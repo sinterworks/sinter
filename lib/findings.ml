@@ -200,9 +200,8 @@ let first_declared = "first declared here"
 let declared_earlier slug item =
   Printf.sprintf "the slug %s of %s is declared earlier" slug item
 
-let is_open (_ : Facts.plan) = true
-
 let plan_duplicates facts =
+  let is_open = Facts.is_open facts in
   let by_place (a : Facts.plan) (b : Facts.plan) =
     compare (a.path, a.span.start.line) (b.path, b.span.start.line)
   in
@@ -286,14 +285,13 @@ let duplicates facts =
              ~order:(fun (a : Facts.step) (b : Facts.step) ->
                Int.compare a.span.start.line b.span.start.line)
              plan.steps))
-      (Facts.plans facts)
+      (Facts.open_plans facts)
 
 let missing_plan_ids facts ~base =
   List.filter_map
     (fun (plan : Facts.plan) ->
       match plan.id with
       | Some _ -> None
-      | None when not (is_open plan) -> None
       | None ->
           Some
             (Finding.make Finding_class.Missing_plan_id
@@ -306,7 +304,7 @@ let missing_plan_ids facts ~base =
                     (Plan_target.derive ~base ~path:plan.path))
                ?mark:(Finding.part plan.tag Tag_line.Target "no plan id")
                ()))
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let pinned_words = [ "satisfies"; "verifies"; "refines"; "supersedes" ]
 
@@ -651,31 +649,29 @@ let scopes_outside_plans facts =
                             (String.concat ", " outside))
                        ())))
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let steps_without_promises facts =
   if Manifest.step (Facts.manifest facts) <> Manifest.Promises then []
   else
     List.concat_map
       (fun (plan : Facts.plan) ->
-        if not (is_open plan) then []
-        else
-          List.filter_map
-            (fun (step : Facts.step) ->
-              if step.promises <> [] then None
-              else
-                Some
-                  (Finding.make Finding_class.Step_without_promises
-                     (Finding.Fact
-                        { id = Facts.step_id plan step; ack_name = step.slug })
-                     ~place:(place plan.path step.span)
-                     ~detail:
-                       (Printf.sprintf
-                          "%s has no promise, and proof.step is \"promises\""
-                          (Facts.step_id plan step))
-                     ()))
-            plan.steps)
-      (Facts.plans facts)
+        List.filter_map
+          (fun (step : Facts.step) ->
+            if step.promises <> [] then None
+            else
+              Some
+                (Finding.make Finding_class.Step_without_promises
+                   (Finding.Fact
+                      { id = Facts.step_id plan step; ack_name = step.slug })
+                   ~place:(place plan.path step.span)
+                   ~detail:
+                     (Printf.sprintf
+                        "%s has no promise, and proof.step is \"promises\""
+                        (Facts.step_id plan step))
+                   ()))
+          plan.steps)
+      (Facts.open_plans facts)
 
 let intersect a b =
   List.exists
@@ -759,7 +755,7 @@ let scope_overlaps facts =
                 :: walk (index + 1) earlier rest)
       in
       walk 0 Promises.empty plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let promise_subject plan step promise =
   let id = Facts.promise_id plan step promise in
@@ -800,7 +796,7 @@ let unverified_promises facts =
               else None)
             step.promises)
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let promises_out_of_scope facts =
   List.concat_map
@@ -835,41 +831,39 @@ let promises_out_of_scope facts =
               | { by = Some _; _ } | { meeting_facts = []; _ } -> None)
             step.promises)
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let merged_incomplete facts =
   List.concat_map
     (fun (plan : Facts.plan) ->
-      if not (is_open plan) then []
-      else
-        List.filter_map
-          (fun (step : Facts.step) ->
-            let standing = Facts.standing facts plan step in
-            let met, unmet =
-              List.partition
-                (fun promise -> Option.is_some (standing promise).Facts.by)
-                step.promises
-            in
-            match (met, unmet) with
-            | _ :: _, _ :: _ ->
-                Some
-                  (Finding.make Finding_class.Merged_incomplete
-                     (Finding.Fact
-                        { id = Facts.step_id plan step; ack_name = step.slug })
-                     ~place:(place plan.path step.span)
-                     ~detail:
-                       (Printf.sprintf "%s has %d of its %d promises met"
-                          (Facts.step_id plan step) (List.length met)
-                          (List.length step.promises))
-                     ~related:
-                       (List.map
-                          (fun (promise : Facts.promise) ->
-                            related "not met" plan.path promise.span)
-                          unmet)
-                     ())
-            | [], _ | _, [] -> None)
-          plan.steps)
-    (Facts.plans facts)
+      List.filter_map
+        (fun (step : Facts.step) ->
+          let standing = Facts.standing facts plan step in
+          let met, unmet =
+            List.partition
+              (fun promise -> Option.is_some (standing promise).Facts.by)
+              step.promises
+          in
+          match (met, unmet) with
+          | _ :: _, _ :: _ ->
+              Some
+                (Finding.make Finding_class.Merged_incomplete
+                   (Finding.Fact
+                      { id = Facts.step_id plan step; ack_name = step.slug })
+                   ~place:(place plan.path step.span)
+                   ~detail:
+                     (Printf.sprintf "%s has %d of its %d promises met"
+                        (Facts.step_id plan step) (List.length met)
+                        (List.length step.promises))
+                   ~related:
+                     (List.map
+                        (fun (promise : Facts.promise) ->
+                          related "not met" plan.path promise.span)
+                        unmet)
+                   ())
+          | [], _ | _, [] -> None)
+        plan.steps)
+    (Facts.open_plans facts)
 
 let ack_target target =
   let blank = function ' ' | '\t' -> true | _ -> false in
@@ -1098,6 +1092,15 @@ let historical manifest (finding : Finding.t) =
 let of_facts facts ~base ~not_text =
   let manifest = Facts.manifest facts and documents = Facts.files facts in
   let retired = retired facts in
+  let closed =
+    List.fold_left
+      (fun closed path -> Keys.add path () closed)
+      Keys.empty
+      (Facts.closed_plan_files facts)
+  in
+  let not_closed =
+    List.filter (fun (path, _) -> not (Keys.mem path closed)) documents
+  in
   List.sort Finding.compare
     (List.filter
        (fun finding -> not (historical manifest finding))
@@ -1106,7 +1109,7 @@ let of_facts facts ~base ~not_text =
             parse_errors documents ~not_text;
             typo_tags documents;
             ignored_tags documents;
-            invalid_targets manifest documents;
+            invalid_targets manifest not_closed;
             misplaced_plans documents;
             duplicates facts;
             missing_plan_ids facts ~base;

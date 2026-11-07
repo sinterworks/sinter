@@ -1041,6 +1041,16 @@ let delivery plan (step : step) =
   Delivery_line.make ~plan:(full_form plan) ~step:step.slug
     ~hash:(short_hash step)
 
+let is_open facts plan =
+  Option.is_none (Folds.closing facts.ledger ~subject:(plan_fact_id plan))
+
+let open_plans facts = List.filter (is_open facts) facts.plans
+
+let closed_plan_files facts =
+  List.filter_map
+    (fun (plan : plan) -> if is_open facts plan then None else Some plan.path)
+    facts.plans
+
 let named facts =
   let table =
     Hashtbl.create
@@ -1056,7 +1066,7 @@ let named facts =
           let key = (full_form plan, step.slug) in
           if not (Hashtbl.mem table key) then Hashtbl.add table key (plan, step))
         plan.steps)
-    facts.plans;
+    (open_plans facts);
   fun (line : Delivery_line.t) -> Hashtbl.find_opt table (line.plan, line.step)
 
 let counts (step : step) (line : Delivery_line.t) =
@@ -1110,7 +1120,7 @@ let plan_records facts ~delivered plan =
          ("scope", Jsonl.strings plan.scope);
          ("approved", Jsonl.bool judgment.approved);
          ("active", Jsonl.bool false);
-         ("open", Jsonl.bool true);
+         ("open", Jsonl.bool (is_open facts plan));
          ("csh", Jsonl.string hash);
          ("declined", Jsonl.bool (Option.is_some judgment.judged.latest_live));
        ]
@@ -1413,7 +1423,7 @@ let coverage facts =
           (fun step ->
             (step_id plan step, canonical (effective_scope plan step)))
           plan.steps)
-      facts.plans
+      (open_plans facts)
   in
   let positions, scopes, count =
     List.fold_left

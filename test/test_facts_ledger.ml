@@ -522,6 +522,269 @@ let a_judgment_of_a_plan_of_other_facts_is_refused () =
     (Invalid_argument "Facts.plan_judgment: the plan is not one of these facts")
     (fun () -> ignore (Facts.plan_judgment one (the_plan other)))
 
+let closed_plan = [ Lines.completed ~seq:1 plan_id ]
+let abandoned_plan = [ Lines.abandoned ~seq:1 plan_id ~reason:"stop" ]
+
+let a_completed_plan_is_closed_and_its_record_stays () =
+  let facts = facts ~lines:closed_plan plan_files in
+  check_flag "open" "open" plan_id facts false;
+  Alcotest.(check bool) "is_open" false (Facts.is_open facts (the_plan facts));
+  Alcotest.(check int) "no open plan" 0 (List.length (Facts.open_plans facts));
+  Alcotest.(check (list string))
+    "the closed files" [ ".plans/p.md" ]
+    (Facts.closed_plan_files facts);
+  check_flag "the step still prints" "approved" lock_id facts true;
+  Alcotest.(check (option string))
+    "the promise still prints" (Some "promise")
+    (string_field "kind"
+       (record (lock_id |> fun step -> "promise:" ^ step ^ ":req:a") facts))
+
+let an_abandoned_plan_is_closed () =
+  let facts = facts ~lines:abandoned_plan plan_files in
+  check_flag "open" "open" plan_id facts false
+
+let a_plan_without_a_closing_is_open () =
+  let facts = facts plan_files in
+  check_flag "open" "open" plan_id facts true;
+  Alcotest.(check int) "one open plan" 1 (List.length (Facts.open_plans facts));
+  Alcotest.(check (list string))
+    "no closed file" []
+    (Facts.closed_plan_files facts)
+
+let a_closing_of_another_form_leaves_the_plan_open () =
+  check_flag "open" "open" plan_id
+    (facts ~lines:[ Lines.completed ~seq:1 "plan:p" ] plan_files)
+    true;
+  let no_id = [ (".plans/q.md", "# Q\n\n@plan q\n@scope q/**\n") ] in
+  check_flag "a plan with no id closes by its slug" "open" "plan:q"
+    (facts ~lines:[ Lines.completed ~seq:1 "plan:q" ] no_id)
+    false
+
+let a_closed_plan_gives_no_scope () =
+  let covers files lines path = Facts.covers (facts ~lines files) path in
+  Alcotest.(check bool)
+    "an open plan covers" true
+    (covers plan_files [] "src/a/x.ml");
+  Alcotest.(check bool)
+    "a closed plan does not" false
+    (covers plan_files closed_plan "src/a/x.ml");
+  Alcotest.(check (list string))
+    "covering" []
+    (Facts.covering (facts ~lines:closed_plan plan_files) "src/a/x.ml");
+  Alcotest.(check (list string))
+    "covered" []
+    (Facts.covered (facts ~lines:closed_plan plan_files) [ "src/a/x.ml" ])
+
+let a_closed_plan_names_no_step () =
+  let line =
+    match Delivery_line.make ~plan:"p@abc123" ~step:"lock" ~hash:"abcdef" with
+    | Some line -> line
+    | None -> Alcotest.fail "the line does not build"
+  in
+  Alcotest.(check bool)
+    "open" true
+    (Option.is_some (Facts.named (facts plan_files) line));
+  Alcotest.(check bool)
+    "closed" true
+    (Option.is_none (Facts.named (facts ~lines:closed_plan plan_files) line))
+
+let base_commit = "0123456789abcdef0123456789abcdef01234567"
+
+let class_names findings =
+  List.sort_uniq String.compare
+    (List.map
+       (fun (finding : Finding.t) -> Finding_class.name finding.finding_class)
+       findings)
+
+let of_plans facts =
+  List.filter
+    (fun (finding : Finding.t) ->
+      match finding.place with
+      | Some { path; _ } -> String.starts_with ~prefix:".plans/" path
+      | None -> false)
+    (Findings.of_facts facts ~base:base_commit ~not_text:[])
+
+let troubled_plan =
+  [
+    ( ".plans/r.md",
+      "# R\n\n\
+       @plan r\n\
+       @scope src/**\n\n\
+       ## Twice\n\n\
+       @scope src/a/**\n\
+       @decision twice\n\n\
+       ## Twice\n\n\
+       @scope src/b/**\n\
+       @decision again\n\n\
+       ## Outside\n\n\
+       @scope lib/**\n\
+       @decision outside\n\n\
+       ## Far\n\n\
+       @scope src/f/**\n\
+       @req far\n\n\
+       ## Half\n\n\
+       @scope docs/**\n\
+       @decision here\n\
+       @decision missing\n\n\
+       ## Shared one\n\n\
+       @scope src/s/**\n\
+       @decision shared\n\n\
+       ## Shared two\n\n\
+       @scope src/s/**\n\
+       @decision shared\n\n\
+       ## Bad\n\n\
+       @scope src/x/**\n\
+       @decision -bad\n\n\
+       ## Tidy\n\n\
+       @scope src/t/**\n" );
+    ("docs/here.md", "# H\n\n@decision here\n");
+    ("other/far.md", "# F\n\n@req far\n");
+  ]
+
+let plan_classes =
+  [
+    "duplicate";
+    "invalid-target";
+    "merged-incomplete";
+    "missing-plan-id";
+    "promise-out-of-scope";
+    "scope-outside-plan";
+    "scope-overlap";
+    "step-without-promises";
+    "unverified-promise";
+  ]
+
+let proof_promises = "[proof]\nstep = \"promises\"\n"
+
+let an_open_plan_gives_each_finding_of_a_plan () =
+  Alcotest.(check (list string))
+    "the classes" plan_classes
+    (class_names (of_plans (facts ~extra:proof_promises troubled_plan)))
+
+let a_closed_plan_gives_none_of_them () =
+  Alcotest.(check (list string))
+    "no class" []
+    (class_names
+       (of_plans
+          (facts ~extra:proof_promises
+             ~lines:[ Lines.completed ~seq:1 "plan:r" ]
+             troubled_plan)))
+
+let two_plans_with_one_full_form_stay_a_duplicate_when_closed () =
+  let files =
+    [
+      (".plans/a.md", "# A\n\n@plan p@abc123\n");
+      (".plans/b.md", "# B\n\n@plan p@abc123\n");
+    ]
+  in
+  let duplicates lines =
+    List.length
+      (List.filter
+         (fun (finding : Finding.t) ->
+           finding.finding_class = Finding_class.Duplicate)
+         (of_plans (facts ~lines files)))
+  in
+  Alcotest.(check int) "open" 1 (duplicates []);
+  Alcotest.(check int)
+    "closed" 1
+    (duplicates [ Lines.completed ~seq:1 plan_id ])
+
+let two_plans_with_one_slug_are_a_duplicate_only_while_open () =
+  let files =
+    [
+      (".plans/a.md", "# A\n\n@plan p@abc123\n");
+      (".plans/b.md", "# B\n\n@plan p@def456\n");
+    ]
+  in
+  let duplicates lines =
+    List.length
+      (List.filter
+         (fun (finding : Finding.t) ->
+           finding.finding_class = Finding_class.Duplicate)
+         (of_plans (facts ~lines files)))
+  in
+  Alcotest.(check int) "both open" 1 (duplicates []);
+  Alcotest.(check int)
+    "one closed" 0
+    (duplicates [ Lines.completed ~seq:1 plan_id ])
+
+let compared_classes ~lines ~message base tree =
+  let base = facts ~lines base and tree = facts ~lines tree in
+  class_names
+    (Adjudicator.classes ~base
+       ~deliveries:(Delivery_line.read ~commit:base_commit message)
+       tree [])
+
+let base_of_diff =
+  [
+    ( ".plans/r.md",
+      "# R\n\n\
+       @plan r@abc123\n\n\
+       ## Gone\n\n\
+       @scope docs/**\n\
+       @decision kept\n\n\
+       ## Later\n\n\
+       @scope src/**\n\
+       @decision later\n" );
+    ("docs/kept.md", "# K\n\n@decision kept\n");
+    ("docs/old.md", "# O\n\n@decision old\n");
+  ]
+
+let tree_of_diff =
+  [
+    ( ".plans/r.md",
+      "# R\n\n\
+       @plan r@abc123\n\n\
+       ## Now\n\n\
+       @scope docs/**\n\
+       @decision kept\n\
+       @decision old\n\n\
+       ## Later\n\n\
+       @scope src/**\n\
+       @decision later\n\n\
+       ## Refactor\n\n\
+       @scope lib/**\n\n\
+       ## Unmet\n\n\
+       @scope tools/**\n\
+       @decision nowhere\n" );
+    ("docs/kept.md", "# K\n\n@decision kept\n");
+    ("docs/old.md", "# O\n\n@decision old\n");
+    ("src/later.md", "# L\n\n@decision later\n");
+  ]
+
+let delivery_lines =
+  lazy
+    (let plan = the_plan (facts tree_of_diff) in
+     String.concat "\n"
+       (List.filter_map
+          (fun (step : Facts.step) ->
+            if List.mem step.slug [ "refactor"; "unmet" ] then
+              Option.map Delivery_line.to_string (Facts.delivery plan step)
+            else None)
+          plan.steps))
+
+let an_open_plan_gives_each_finding_of_a_change () =
+  Alcotest.(check (list string))
+    "the classes"
+    [
+      "delivery-on-unmet-step";
+      "delivery-without-change";
+      "missing-delivery";
+      "promise-collision";
+      "renamed-step";
+    ]
+    (compared_classes ~lines:[]
+       ~message:(Lazy.force delivery_lines)
+       base_of_diff tree_of_diff)
+
+let a_closed_plan_leaves_only_a_stale_delivery_line () =
+  Alcotest.(check (list string))
+    "the classes" [ "stale-delivery" ]
+    (compared_classes
+       ~lines:[ Lines.completed ~seq:1 "plan:r@abc123" ]
+       ~message:(Lazy.force delivery_lines)
+       base_of_diff tree_of_diff)
+
 let case name test = Alcotest.test_case name `Quick test
 
 let tests =
@@ -593,4 +856,23 @@ let tests =
       the_declines_of_plans_and_steps_give_records;
     case "a judgment of a plan of other facts is refused"
       a_judgment_of_a_plan_of_other_facts_is_refused;
+    case "a completed plan is closed and its record stays"
+      a_completed_plan_is_closed_and_its_record_stays;
+    case "an abandoned plan is closed" an_abandoned_plan_is_closed;
+    case "a plan without a closing is open" a_plan_without_a_closing_is_open;
+    case "a closing of another form leaves the plan open"
+      a_closing_of_another_form_leaves_the_plan_open;
+    case "a closed plan gives no scope" a_closed_plan_gives_no_scope;
+    case "a closed plan names no step" a_closed_plan_names_no_step;
+    case "an open plan gives each finding of a plan"
+      an_open_plan_gives_each_finding_of_a_plan;
+    case "a closed plan gives none of them" a_closed_plan_gives_none_of_them;
+    case "two plans with one full form stay a duplicate when closed"
+      two_plans_with_one_full_form_stay_a_duplicate_when_closed;
+    case "two plans with one slug are a duplicate only while open"
+      two_plans_with_one_slug_are_a_duplicate_only_while_open;
+    case "an open plan gives each finding of a change"
+      an_open_plan_gives_each_finding_of_a_change;
+    case "a closed plan leaves only a stale delivery line"
+      a_closed_plan_leaves_only_a_stale_delivery_line;
   ]

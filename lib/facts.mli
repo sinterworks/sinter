@@ -14,7 +14,9 @@
 
     The records take the values that hold when the evidence and the session are
     absent. Declarations, plans, and steps read the approvals and the declines
-    of the ledger. No plan and no step is active, and every plan is open. *)
+    of the ledger. No plan and no step is active. A plan with a [completed] or
+    an [abandoned] entry for its full form is closed: its record stays with
+    [open] false, and its steps and promises still print. *)
 
 type t
 (** The facts of one tree. *)
@@ -220,9 +222,9 @@ val delivery : plan -> step -> Delivery_line.t option
     letter and no digit. *)
 
 val named : t -> Delivery_line.t -> (plan * step) option
-(** [named facts line] is the step that [line] names: the first plan of {!plans}
-    whose {!full_form} is the plan of [line], and its first step whose slug is
-    the step of [line]. It is [None] when [facts] hold no such step.
+(** [named facts line] is the step that [line] names: the first open plan of
+    {!plans} whose {!full_form} is the plan of [line], and its first step whose
+    slug is the step of [line]. It is [None] when [facts] hold no such step.
     [named facts] builds its table once, and gives a function that each line can
     share. *)
 
@@ -341,6 +343,18 @@ val block_acks : t -> string -> int -> ack list
 val plans : t -> plan list
 (** [plans facts] is every plan, in the order of the files of {!make}. *)
 
+val is_open : t -> plan -> bool
+(** [is_open facts plan] is [true] until the ledger holds a [completed] or an
+    [abandoned] entry whose subject is {!plan_fact_id} [plan], by its bytes. *)
+
+val open_plans : t -> plan list
+(** [open_plans facts] is each plan of {!plans} that {!is_open} holds for, in
+    its order. *)
+
+val closed_plan_files : t -> string list
+(** [closed_plan_files facts] is the path of each plan of {!plans} that
+    {!is_open} does not hold for, in the order of {!plans}. *)
+
 val plan_files : t -> string list
 (** [plan_files facts] is the path of each plan file of {!make}, in the order of
     the files: the path of each plan of {!plans}, and the path of each plan file
@@ -352,9 +366,9 @@ val effective_scope : plan -> step -> string list
     [plan] when the step has none. *)
 
 val covering : t -> string -> string list
-(** [covering facts path] is the id of each step of each plan of [facts] whose
-    effective scope holds [path], in the order of {!plans} and then of the
-    steps. The steps of every plan count. A glob of a scope that is not valid
+(** [covering facts path] is the id of each step of each open plan of [facts]
+    whose effective scope holds [path], in the order of {!plans} and then of the
+    steps. A closed plan gives no scope. A glob of a scope that is not valid
     holds no path. [covering facts] builds one path set for each scope that one
     or more steps have, and an index of them ({!Path_index}), and gives a
     function that each path can share. *)
@@ -365,10 +379,10 @@ val covers : t -> string -> bool
     can share. *)
 
 val covered : t -> string list -> string list
-(** [covered facts paths] is the id of each step of each plan of [facts] whose
-    effective scope holds one or more of [paths], in the order of {!plans} and
-    then of the steps. It is the ids of {!covering} for each of [paths], each id
-    once. *)
+(** [covered facts paths] is the id of each step of each open plan of [facts]
+    whose effective scope holds one or more of [paths], in the order of {!plans}
+    and then of the steps. It is the ids of {!covering} for each of [paths],
+    each id once. *)
 
 type meeting_fact = private { id : string; path : string; span : Markdown.span }
 (** A fact that would meet a promise: its id, its path, and its span. *)

@@ -285,7 +285,7 @@ let promise_collisions ~base ~same facts =
                 step.promises)
             plan.steps
         else [])
-      (Facts.plans facts)
+      (Facts.open_plans facts)
   in
   let promised =
     List.fold_left
@@ -345,7 +345,7 @@ let same_plan (old : Facts.plan) (plan : Facts.plan) =
      && String.equal old.path plan.path
 
 let renamed_steps ~base ~same ~whole_base facts =
-  let plans = Facts.plans facts in
+  let plans = Facts.open_plans facts in
   let lost =
     List.concat_map
       (fun (old : Facts.plan) ->
@@ -481,7 +481,7 @@ let counted ~deliveries facts =
           | Some (named, found) when named == step -> Some (plan, step, found)
           | Some _ | None -> None)
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let deliveries_without_change ~counted ~changed ~base facts =
   let covered =
@@ -576,7 +576,7 @@ let missing_deliveries ~counted ~whole_base facts =
             then Some (plan, step)
             else None)
           plan.steps)
-      (Facts.plans facts)
+      (Facts.open_plans facts)
   in
   List.filter_map
     (fun ((plan : Facts.plan), (step : Facts.step)) ->
