@@ -785,6 +785,58 @@ let a_closed_plan_leaves_only_a_stale_delivery_line () =
        ~message:(Lazy.force delivery_lines)
        base_of_diff tree_of_diff)
 
+let a_matching_delivered_entry_delivers_and_does_a_step () =
+  let lines = [ Lines.delivered ~seq:1 tidy_id ~csh:(Lazy.force tidy_hash) ] in
+  let facts = facts ~lines plan_files in
+  check_flag "delivered" "delivered" tidy_id facts true;
+  check_flag "done" "done" tidy_id facts true
+
+let a_delivered_entry_at_another_hash_does_not_deliver () =
+  let lines = [ Lines.delivered ~seq:1 tidy_id ~csh:(Lines.hash 9) ] in
+  let facts = facts ~lines plan_files in
+  check_flag "not delivered" "delivered" tidy_id facts false;
+  check_flag "not done" "done" tidy_id facts false
+
+let no_delivered_entry_leaves_a_step_not_delivered () =
+  check_flag "not delivered" "delivered" tidy_id (facts plan_files) false
+
+let a_delivered_entry_does_not_do_a_step_under_another_proof () =
+  let lines = [ Lines.delivered ~seq:1 tidy_id ~csh:(Lazy.force tidy_hash) ] in
+  let facts = facts ~extra:step_approval ~lines plan_files in
+  check_flag "delivered" "delivered" tidy_id facts true;
+  check_flag "not done" "done" tidy_id facts false
+
+let a_delivered_entry_does_not_do_a_step_with_unmet_promises () =
+  let hash = field_of plan_files lock_id "csh" in
+  let facts =
+    facts ~lines:[ Lines.delivered ~seq:1 lock_id ~csh:hash ] plan_files
+  in
+  check_flag "delivered" "delivered" lock_id facts true;
+  check_flag "not done" "done" lock_id facts false
+
+let renamed_classes ~lines =
+  let base =
+    [ (".plans/p.md", "# P\n\n@plan p@abc123\n\n## Old\n\n@scope src/**\n") ]
+  and tree =
+    [ (".plans/p.md", "# P\n\n@plan p@abc123\n\n## New\n\n@scope src/**\n") ]
+  in
+  class_names
+    (Adjudicator.classes ~base:(facts ~lines base) (facts ~lines tree) [])
+
+let a_delivered_entry_starts_a_step_at_any_hash () =
+  Alcotest.(check (list string))
+    "the step is started" [ "renamed-step" ]
+    (renamed_classes
+       ~lines:[ Lines.delivered ~seq:1 "step:p@abc123/old" ~csh:(Lines.hash 9) ])
+
+let a_step_with_no_delivered_entry_renames_freely () =
+  Alcotest.(check (list string)) "free" [] (renamed_classes ~lines:[]);
+  Alcotest.(check (list string))
+    "another step" []
+    (renamed_classes
+       ~lines:
+         [ Lines.delivered ~seq:1 "step:p@abc123/other" ~csh:(Lines.hash 9) ])
+
 let case name test = Alcotest.test_case name `Quick test
 
 let tests =
@@ -875,4 +927,18 @@ let tests =
       an_open_plan_gives_each_finding_of_a_change;
     case "a closed plan leaves only a stale delivery line"
       a_closed_plan_leaves_only_a_stale_delivery_line;
+    case "a matching delivered entry delivers and does a step"
+      a_matching_delivered_entry_delivers_and_does_a_step;
+    case "a delivered entry at another hash does not deliver"
+      a_delivered_entry_at_another_hash_does_not_deliver;
+    case "no delivered entry leaves a step not delivered"
+      no_delivered_entry_leaves_a_step_not_delivered;
+    case "a delivered entry does not do a step under another proof"
+      a_delivered_entry_does_not_do_a_step_under_another_proof;
+    case "a delivered entry does not do a step with unmet promises"
+      a_delivered_entry_does_not_do_a_step_with_unmet_promises;
+    case "a delivered entry starts a step at any hash"
+      a_delivered_entry_starts_a_step_at_any_hash;
+    case "a step with no delivered entry renames freely"
+      a_step_with_no_delivered_entry_renames_freely;
   ]

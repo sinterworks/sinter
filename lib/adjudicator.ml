@@ -355,12 +355,14 @@ let renamed_steps ~base ~same ~whole_base facts =
           | None -> []
           | Some (plan : Facts.plan) ->
               let started (step : Facts.step) =
-                List.exists
-                  (fun (promise : Facts.promise) ->
-                    Facts.met_within (Lazy.force whole_base)
-                      ~scope:(Facts.effective_scope old step)
-                      ~word:promise.word ~target:promise.target)
-                  step.promises
+                Folds.started (Facts.ledger facts)
+                  ~subject:(Facts.step_id old step)
+                || List.exists
+                     (fun (promise : Facts.promise) ->
+                       Facts.met_within (Lazy.force whole_base)
+                         ~scope:(Facts.effective_scope old step)
+                         ~word:promise.word ~target:promise.target)
+                     step.promises
               in
               List.filter_map
                 (fun (step : Facts.step) ->

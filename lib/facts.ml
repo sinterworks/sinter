@@ -1135,7 +1135,10 @@ let plan_records facts ~delivered plan =
     let scope = effective_scope plan step in
     let in_scope = Path_set.mem (path_set scope) in
     let step_id = step_id plan step in
-    let delivered = Ids.mem step_id delivered in
+    let delivered =
+      Ids.mem step_id delivered
+      || Folds.delivered facts.ledger ~subject:step_id ~hash:step.hash
+    in
     let promises =
       List.map
         (fun (promise : promise) ->

@@ -81,10 +81,12 @@ val classes :
 
     - [renamed-step]: a step of a plan of [base] whose file is not [same], when
       the same plan of the working tree, by the rule of [promise-collision], is
-      open and has no step of its slug, and the step is started in the base:
-      {!Facts.met_within} [whole_base] meets one of its promises with the
-      effective scope of the step in the base. The finding sits at the tag line
-      of [@plan] of the plan of the working tree, one for each slug.
+      open and has no step of its slug, and the step is started in the base: the
+      ledger of the working tree holds a [delivered] entry whose subject is the
+      step, at any [csh], or {!Facts.met_within} [whole_base] meets one of its
+      promises with the effective scope of the step in the base. The finding
+      sits at the tag line of [@plan] of the plan of the working tree, one for
+      each slug.
 
     - [stale-delivery]: a line of [deliveries] that does not count: it does not
       match the pattern, {!Facts.named} gives no step for it, or {!Facts.counts}

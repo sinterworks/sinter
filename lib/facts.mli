@@ -76,13 +76,14 @@ val records : ?deliveries:Delivery_line.found list -> t -> Jsonl.record list
     change; it is empty when absent.
 
     A step is delivered when a line of [deliveries] counts for it: the line
-    matches the pattern, {!named} gives the step for it, and {!counts} holds.
-    The record of each step holds [delivered]; its step hash, [csh], as
-    {!step.hash} gives it; and [delivery], the text of {!delivery} of the step,
-    when there is one. A step with no promise is done only when [proof.step] is
-    ["delivered"] and the step is delivered; or when [proof.step] is
-    ["approval"] and {!step_judgment} approves it. Under ["promises"] such a
-    step is never done.
+    matches the pattern, {!named} gives the step for it, and {!counts} holds. A
+    step is also delivered when the ledger holds a [delivered] entry whose
+    subject is the step and whose [csh] is its current step hash. The record of
+    each step holds [delivered]; its step hash, [csh], as {!step.hash} gives it;
+    and [delivery], the text of {!delivery} of the step, when there is one. A
+    step with no promise is done only when [proof.step] is ["delivered"] and the
+    step is delivered; or when [proof.step] is ["approval"] and {!step_judgment}
+    approves it. Under ["promises"] such a step is never done.
 
     A declaration of the kinds [req], [design], and [decision] holds [approved],
     which is {!is_approved}; [approval], the id of the approval that counts,
