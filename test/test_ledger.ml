@@ -10,32 +10,12 @@ let property ?(count = 200) ~name ~print generator check =
     (QCheck2.Test.make ~count ~name ~print generator check)
 
 let holds name condition = Alcotest.(check bool) name true condition
-let hash n = Sha256.hex (string_of_int n)
-let commit_id = String.make 40 'c'
-
-let common ?(kind = "approval") ?(seq = 1) () =
-  [
-    ("v", Json.Int 1);
-    ("seq", Json.Int seq);
-    ("kind", Json.String kind);
-    ("by", Json.String "a@example.com");
-    ("ts", Json.String "2026-10-31T14:05:09Z");
-    ("head", Json.String commit_id);
-    ("branch", Json.String "main");
-    ("tool", Json.String "sinter 0.1.0");
-  ]
-
-let printed value =
-  match Json.to_string value with
-  | Ok text -> text
-  | Error _ -> Alcotest.fail "the value does not print"
-
-let with_id fields =
-  match Ledger.id_of (Json.Object fields) with
-  | Ok id -> ("id", Json.String id) :: fields
-  | Error _ -> Alcotest.fail "the value does not print"
-
-let line_of fields = printed (Json.Object (with_id fields))
+let hash = Ledger_lines.hash
+let commit_id = Ledger_lines.commit_id
+let common = Ledger_lines.common
+let printed = Ledger_lines.printed
+let with_id = Ledger_lines.with_id
+let line_of = Ledger_lines.line_of
 
 let approval =
   common ()
@@ -746,32 +726,7 @@ let an_unknown_kind_gives_its_seq () =
   | _ -> Alcotest.fail "the line gives another result"
 
 let set_fields ~csh scopes promises =
-  common ~kind:"commitment-set" ()
-  @ [
-      ("csh", Json.String csh);
-      ( "scopes",
-        Json.Array
-          (List.map
-             (fun (step, glob) ->
-               Json.Object
-                 (("glob", Json.String glob)
-                 ::
-                 (match step with
-                 | Some s -> [ ("step", Json.String s) ]
-                 | None -> [])))
-             scopes) );
-      ( "promises",
-        Json.Array
-          (List.map
-             (fun (step, word, target) ->
-               Json.Object
-                 [
-                   ("step", Json.String step);
-                   ("target", Json.String target);
-                   ("word", Json.String word);
-                 ])
-             promises) );
-    ]
+  Ledger_lines.set_fields ~csh scopes promises
 
 let lockout_bytes =
   {|{"groups":[{"promises":[{"target":"lockout-policy","word":"decision"}],"scope":["src/**"]},{"promises":[{"target":"auth-lockout","word":"req"},{"target":"auth-lockout","word":"verifies"}],"scope":["src/auth/**"]}],"scope":["src/**"]}|}
