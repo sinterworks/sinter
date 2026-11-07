@@ -531,7 +531,7 @@ column to `warn`, at every gate. `sinter init` writes
 |---|---|---|---|---|---|---|
 | `parse-error` | file | *engine*: a governed file with a parse failure ([packs.md](packs.md) section 5.2). In a file with no syntax tree, and in a file of a fetched pack, the file's facts are absent. In a markdown file with a syntax tree, the facts stay, one finding sits at each error, and the tier of such a finding is `warn` where the class's tier is `block` | tree | · | · | warn, block, block |
 | `typo-tag` | line | *engine*: a tag line whose tag word ([vocabulary.md](vocabulary.md) section 3.1) is not in the vocabulary and lies within Damerau–Levenshtein distance 2 of a word of the vocabulary. The pack's foreign vocabulary is exempt. The fix writes the nearest word of the vocabulary in place of the tag word. When two words are equally near, it writes the first in byte order, as [manifest.md](manifest.md) section 4.2 does for keys. When that word is `ack`, the finding has no fix, so that no fix of this class writes an `@ack` line | tree | · | F | warn, warn, warn |
-| `ignored-tag` | line | *engine*: in markdown, a paragraph that a section or a list item holds directly, that is not the first paragraph of that section or list item, that no block quote holds, and whose first line is a tag line. The scanner reads no tag in it ([packs.md](packs.md) section 7.2) | tree | · | · | warn, warn, warn |
+| `ignored-tag` | line | *engine*: in markdown, a block that a section or a list item holds directly and that no block quote holds: a paragraph that is not the first paragraph of that section or list item, and whose first line is a tag line; or a comment block that is no leading block, and whose first line of content is a tag line. The scanner reads no tag in it ([packs.md](packs.md) section 7.2) | tree | · | · | warn, warn, warn |
 | `invalid-target` | tag | *engine*: a tag target that fails its pattern: a slug that fails the slug pattern, an external id whose namespace is undeclared or whose id fails the pattern of its namespace, or a tag target of `@plan` that fails the rules of the full form ([vocabulary.md](vocabulary.md) sections 4.1, 4.2, and 4.3). Such a tag target is never `dangling` | tree | · | · | block, block, block |
 | `duplicate` | tag or line | *engine*: two slugs in one namespace that are equal, or that differ only in case ([vocabulary.md](vocabulary.md) section 4.1): two declarations; two open plans; or two steps of one plan. Two plans of any state with one full form ([vocabulary.md](vocabulary.md) section 4.3) are also a group. Order the facts of one such group by the byte order of their paths, and then by their lines. Each fact after the first gives one finding. Its subject is the tag of that fact or, for a step, the line of the step's heading ([jsonl.md](jsonl.md) section 9). A plan that both rules of plans report gives one finding, by the rule of the full form. The `detail` names the rule that applies | tree | · | · | block, block, block |
 | `scope-outside-plan` | step | *engine*: a step whose `@scope` is not contained in its plan's `@scope`. The tool decides containment on the plain globs ([manifest.md](manifest.md) section 7.2), by the rule of glob containment of [ledger.md](ledger.md) section 11: each plain glob of the step must be contained in a plain glob of the plan. A `!` glob of the step only narrows the step's scope, so it never breaks containment | tree | · | · | block, block, — |
@@ -634,6 +634,13 @@ a bump of a declaration can write any higher revision, and an added
 plan id can be any six lowercase hex digits. The column of
 the `@` and the rest of each line of the pair, the inline description,
 must be equal.
+
+An `@ack` line that a fix inserts in a tag comment or removes from a
+tag comment can move the `-->` of that comment from one line to
+another. So a pair of tags that stand in tag comments and that are
+equal also passes, with no change between them, when two conditions
+hold: the hunk holds an `@ack` line, and its removed lines and its
+added lines hold as many tag lines on which a tag comment ends.
 
 ### 9.2 Promises without evidence
 

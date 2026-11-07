@@ -697,34 +697,58 @@ no section. Its text belongs to the block quote or the list item.
 
 ### 7.2 First paragraphs
 
-[vocabulary.md](vocabulary.md) section 2 makes two paragraphs
-tag-bearing: the first paragraph of a section and the first paragraph
-of a list item. The first paragraph is the block right after the
-heading or the list marker, when that block is a paragraph. So when
-that block is a list, a code block, an HTML block, a table, a block
-quote, or a thematic break, the section or the list item has no first
-paragraph.
+[vocabulary.md](vocabulary.md) section 2 makes these things tag-bearing
+at the start of a section and at the start of a list item: each tag
+comment, and the first paragraph. Each one is a node of its own. The
+first paragraph is the block right after the heading or the list marker
+and the leading blocks, when that block is a paragraph. So when that
+block is a list, a code block, a table, a block quote, a thematic
+break, or an HTML block that is no comment block, the section or the
+list item has no first paragraph. A comment block, tag comment or not,
+does not stop the next block from being the first paragraph. A block
+after any other block is no first paragraph.
+
+A task marker makes the text after it a paragraph in CommonMark, so
+`- [ ] <!-- @cites a v1 -->` holds no HTML block. Take the paragraph
+right after a task marker. When that paragraph starts with `<!--`, and
+the first `-->` of the paragraph has only spaces and tabs after it on
+its line, then the lines up to that `-->` are a comment block. The rest
+of the paragraph, when any line is left, is a paragraph after that
+block.
 
 Nothing inside a block quote is tag-bearing
 ([vocabulary.md](vocabulary.md) section 2). A list item inside a block
-quote has no tag-bearing paragraph.
+quote has no tag-bearing node.
 
-Sinter reads tags in no other paragraph. A section or a list item
-holds a paragraph **directly** when no list item and no block quote
-inside it holds the paragraph. Take a paragraph that a section or a
-list item holds directly, and that is not its first paragraph. When
-the first line of that paragraph is a tag line, Sinter reports one
-finding of the class `ignored-tag` at that line
-([algebra.md](algebra.md) section 9). Sinter reports no `ignored-tag`
-inside a block quote.
+Sinter reads tags in no other paragraph and in no other comment block.
+A section or a list item holds a block **directly** when no list item
+and no block quote inside it holds the block. Sinter reports one
+finding of the class `ignored-tag` ([algebra.md](algebra.md) section
+9) for each of these two kinds of block that a section or a list item
+holds directly:
+
+- A paragraph that is not its first paragraph, and whose first line is
+  a tag line. The finding is at that line.
+- A comment block that is no leading block, and whose first line of
+  content is a tag line. The first line of content is the first line
+  that holds text after the comment delimiters are removed. The finding
+  is at that line.
+
+So a comment that holds a tag line in the wrong place gives this
+finding. A comment whose first line of content is no tag line gives no
+finding, so a section that a person commented out gives none, unless
+its first line of content is a tag line. A leading block never gives
+this finding. Sinter reports no `ignored-tag` inside a block quote.
 
 ### 7.3 Tag lines
 
-Each line of a tag-bearing paragraph is a tag line when its text,
-after the spaces and tabs at its start, starts with `@`
+Each line of a first paragraph is a tag line when its text, after the
+spaces and tabs at its start, starts with `@`
 ([vocabulary.md](vocabulary.md) section 3.1). This rule also holds for
 a line inside a code span or inside inline HTML that crosses lines:
-Sinter does not parse the inline content of a paragraph.
+Sinter does not parse the inline content of a paragraph. An HTML
+comment inside a paragraph is therefore no comment block, except at
+the start of the paragraph after a task marker (section 7.2).
 
 ### 7.4 Front matter
 

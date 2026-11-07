@@ -412,7 +412,8 @@ unsolved problems of software work, with the same two mechanisms and no
 other machinery, when the markdown pack reads the documentation. This
 use also orders the list of packs (section 5.2): the artifacts that most
 need tracing and least often get it are interfaces and data shapes, not
-code.
+code. A section or a list item in markdown can hold its tags in an HTML
+comment, so that a published page does not show them.
 
 ## 4. Test evidence
 

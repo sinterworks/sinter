@@ -257,8 +257,9 @@ step, after its heading line, in four steps:
 
 1. Take the lines of the section, with the lines of each section
    inside it. Leave out each tag line ([vocabulary.md](vocabulary.md)
-   section 3.1). The trailing prose of a block is
-   no tag line, so it stays.
+   section 3.1) and each delimiter line of a tag comment
+   ([vocabulary.md](vocabulary.md) section 3.1). The trailing prose of a
+   block is no tag line, so it stays, without its comment delimiters.
 2. Leave out the blank lines at the start and at the end. A blank line
    holds only spaces and tabs.
 3. Normalize each line by the rules of the extent hash
@@ -304,7 +305,9 @@ of the test or the group.
 **`site`** — an anonymous source: a code site, or a markdown section
 that holds a citation outside every declaration's extent
 ([vocabulary.md](vocabulary.md) section 7.2). For a markdown section,
-the span of the record is the first paragraph of the section.
+the span of the record is the first paragraph of the section. When its
+first citation outside every extent stands in a tag comment, the span
+is that tag line.
 
 | field | type | meaning |
 |---|---|---|
@@ -587,7 +590,11 @@ citation.
 An edit of a tag line covers only the part of the line that changes:
 the tag word, the target, or the revision (section 3), or a revision
 inserted right after the target. The column of the `@` and the inline
-description do not change.
+description do not change. In a tag comment, the end of a tag line is
+its last character that is not a space or a tab, before the `-->` and
+the line ending, so an edit keeps the comment delimiters
+([vocabulary.md](vocabulary.md) section 3.1). Example: the fix of
+`unbumped` on `<!-- @req a -->` gives `<!-- @req a v2 -->`.
 
 The fix of a finding that an `@ack` can accept can insert the `@ack`
 line for the finding ([vocabulary.md](vocabulary.md) section 7.4).
@@ -603,7 +610,10 @@ ending, then a prefix, then the `@ack` line:
   The new line therefore starts at the column of that `@`.
 
 A file that does not end with LF still does not end with LF after the
-edit.
+edit. In a tag comment, the edit inserts at that end of the tag line,
+so the `@ack` line stands in the comment. Example: the edit gives
+`<!-- @req a` from
+`<!-- @req a -->`, then a line ending, and then `     @ack x h -->`.
 
 The fix of a `stale-ack` finding removes `@ack` lines: each void
 `@ack` line with the id of the finding ([algebra.md](algebra.md)
@@ -613,10 +623,10 @@ line, before the line ending of that tag line. It ends at the end of
 the `@ack` line, before the line ending of the `@ack` line. So the
 line ending of the `@ack` line becomes the line ending of the line
 before it. When the `@ack` line is the last line of a file that does
-not end with LF, the edit starts at column 1 of the `@ack` line. An
-`@ack` on the first tag line of its block gets no edit, because on the
-first line of a list item the line also holds the list marker. So a
-finding with such a line has no fix.
+not end with LF, and it stands in no comment, the edit starts at
+column 1 of the `@ack` line. An `@ack` on the first tag line of its
+block gets no edit, because on the first line of a list item the line
+also holds the list marker. So a finding with such a line has no fix.
 
 The objects of `edits` are sorted by
 `(alt, path, line, col, eline, ecol, text)`, each string in byte

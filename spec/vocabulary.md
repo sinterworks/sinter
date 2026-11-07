@@ -33,8 +33,9 @@ tags only inside these nodes:
 - In code, the tag-bearing node is a **run**: a sequence of comments
   on consecutive lines, with no blank line and no code between them
   ([packs.md](packs.md) section 6.2).
-- In markdown, the tag-bearing nodes are the first paragraph of a
-  section and the first paragraph of a list item. A section is a
+- In markdown, the tag-bearing nodes are each tag comment at the start
+  of a section or a list item, the first paragraph of a section, and
+  the first paragraph of a list item. A section is a
   heading plus the text below it, up to the next heading of the same
   or higher level. Only an ATX heading, a line that starts with one to
   six `#` characters, opens a section; a setext heading, a line of
@@ -44,14 +45,63 @@ tags only inside these nodes:
   item** is one item of a markdown list, ordered or not. It holds its
   own text and its **sub-items**: the items of the lists inside it.
 
-The **first paragraph** of a section is the block right after its
-heading, when that block is a paragraph. For the section of level 0,
-it is the first block of the file after its front matter
-([packs.md](packs.md) section 7.4), when that block is a
-paragraph. The first paragraph of a list item is the block right after
-its list marker, and after its task marker when it has one, when that
-block is a paragraph. Sinter reads tags in no other paragraph
+A **comment block** is an HTML block in the CommonMark form that
+starts with `<!--`. The first `-->` of the block must end its last
+line, so that only spaces and tabs follow it. Any other HTML block is
+no comment block, for example a block with text after the `-->`, a
+block with two comments on one line, and a block with no `-->`. In
+`<!-->` and `<!--->`, the two delimiters share characters, and the
+comment block holds no line. After a task marker, the start of a
+paragraph can also be a comment block ([packs.md](packs.md) section
+7.2).
+
+The **leading blocks** of a section or a list item are the comment
+blocks at its start. Only other comment blocks can stand before a
+leading block, and blank lines can stand between them. The start of a
+section is the place right after its heading. The start of the section
+of level 0 is the place right after the front matter of the file
+([packs.md](packs.md) section 7.4), or the start of the file when it
+has no front matter. The start of a list item is the place right after
+its list marker, and after its task marker when it has one. So a
+license header in comments at the top of a file does not stop a tag
+comment after it.
+
+A **tag comment** is a leading block that holds at least one tag line
+(section 3.1). It works as a comment in code does. Each tag comment is
+a tag-bearing node of its own, and the scanner reads its tag lines,
+blocks, and trailing prose by sections 3.1 and 3.2, inside the comment.
+Prose lines in the comment are allowed, and the prose after a tag line
+is its description. A blank line in the comment ends a description. A
+leading block with no tag line holds no tag. So a section that a person
+commented out at the start of a section counts when it holds a tag line,
+as commented-out code does. Sinter reads no tag in any other comment
+block. These forms are tag comments:
+
+```markdown
+<!-- @cites a v1 -->
+
+<!--
+@decision a
+@cites b v1
+One sentence of description.
+-->
+
+<!-- @req a
+One sentence of description. -->
+```
+
+The **first paragraph** of a section or a list item is the block right
+after its start and its leading blocks, when that block is a paragraph.
+Any other block in that place means that the section or the list item
+has no first paragraph. Sinter reads tags in no other paragraph
 ([packs.md](packs.md) section 7.2).
+
+The first paragraph is a tag-bearing node of its own, with its own tag
+lines and its own descriptions. Nothing outside a comment is the
+description of a tag in that comment. So after `<!-- @req a -->`, a
+paragraph on the next line is no description, and a blank line outside
+a comment decides nothing about a tag in it. Two tag comments are two
+nodes, so a section or a list item can hold several tag-bearing nodes.
 
 Nothing inside a block quote is tag-bearing. A heading inside a block
 quote opens no section, and the first paragraph of a list item inside
@@ -88,9 +138,12 @@ tag-bearing node. In code, remove the indentation and the comment
 sigils, as [packs.md](packs.md) section 6.3 says. On the first line of
 a list item, remove the list marker, such as `-`, `*`, or `1.`, and
 the indentation before it, and then the task marker, `[ ]`, `[x]`, or
-`[X]`, when the item has one. Then remove the spaces and tabs at the
-start of the line. The line is a tag line when the remaining text
-starts with `@`.
+`[X]`, when the item has one. In a comment block, remove the **comment
+delimiters**: the `<!--` with the spaces and tabs after it, and the
+`-->` with the spaces and tabs before it. A first or a last line of the
+block that held only a delimiter is no line of the comment; it is a
+**delimiter line**. Then remove the spaces and tabs at the start of the
+line. The line is a tag line when the remaining text starts with `@`.
 
 The **tag word** of a tag line is its `@` and the longest run of ASCII
 letters, ASCII digits, and `-` right after the `@`. Example: in the
@@ -257,10 +310,10 @@ An item's **extent** is the text that its revision covers.
   the block: the lines of its comments that can carry tags
   ([packs.md](packs.md) section 6.2). The attached code is not part of
   the extent.
-- In markdown, a declaration in the first paragraph of a section claims
-  the whole section as its extent, up to the next heading of the same
-  or higher level.
-- In markdown, a declaration in the first paragraph of a list item
+- In markdown, a declaration in a tag-bearing node of a section
+  claims the whole section as its extent, up to the next heading of
+  the same or higher level.
+- In markdown, a declaration in a tag-bearing node of a list item
   claims the list item, with its sub-items, as its extent.
 - In a rule file, the extent of the `@rule` declaration is the whole
   file ([manifest.md](manifest.md) section 14).
@@ -268,19 +321,20 @@ An item's **extent** is the text that its revision covers.
 Three boundary rules apply in markdown:
 
 1. Two extents that touch never merge into one extent. An extent ends
-   where the next declaration begins. When one tag-bearing node holds
-   two or more declarations, the extent of each declaration, except
-   the last, ends at the line before the tag line of the next
-   declaration. The extent of each later declaration starts at its own
-   tag line.
+   where the next declaration begins. When the tag-bearing nodes of one
+   section or one list item hold two or more declarations, the extent
+   of each declaration, except the last, ends at the line before the
+   tag line of the next declaration. The extent of each later
+   declaration starts at its own tag line.
    The extent of the last declaration runs to the end that it would
    have alone.
 2. A declaration in a nested section removes that section from the
    enclosing extent. A declaration in a list item removes that list
    item, with its sub-items, from the enclosing extent.
 3. After rules 1 and 2, an extent ends at its last line that is not
-   blank. A blank line holds only spaces and tabs. The blank lines at
-   the end of a section or a list item are no part of the extent, so
+   blank and that is not a delimiter line of a tag comment (section
+   3.1). A blank line holds only spaces and tabs. The blank lines at the
+   end of a section or a list item are no part of the extent, so
    adding or removing them does not change the extent hash (section
    6.1).
 
@@ -300,7 +354,10 @@ text. To normalize, apply these steps in order:
    no comment sigils, so in markdown keep the lines as they are, with
    one change: on each heading line that opens a section, remove the
    section number of its heading text (section 10.3), with the spaces
-   and tabs after it.
+   and tabs after it. In a tag comment (section 2), remove the comment
+   delimiters (section 3.1) from each line. Drop each delimiter line,
+   with the list marker and the task marker when it holds them. A blank
+   line in the comment stays. Every other comment block stays as it is.
 2. Remove trailing whitespace from every line.
 3. Use LF as the line ending.
 4. Drop every `@ack` line.
@@ -332,6 +389,58 @@ change the extent hash. Every other byte change changes the extent
 hash. For example, when the opening sigil of a block comment moves
 onto a line of its own, the extent gains an empty line, and its hash
 changes.
+
+A move of a section's first paragraph into a tag comment also does not
+change the extent hash. A blank line after the paragraph stays after
+the `-->`. A description that the move leaves outside the comment
+keeps the extent hash, but it is no description any more. So these two
+sections have one extent hash and one description:
+
+```markdown
+## Lock an account
+@req account-lockout v2
+Lock an account after 5 failed sign-ins.
+
+More text.
+
+## Lock an account
+<!--
+@req account-lockout v2
+Lock an account after 5 failed sign-ins.
+-->
+
+More text.
+```
+
+These two sections also have one extent hash, and neither gives the
+tag a description:
+
+```markdown
+## Lock an account
+@req account-lockout v2
+
+Lock an account after 5 failed sign-ins.
+
+## Lock an account
+<!--
+@req account-lockout v2
+-->
+
+Lock an account after 5 failed sign-ins.
+```
+
+One thing can change. After the plain line `@req a` and a blank line,
+the next paragraph is not the first paragraph, so Sinter reads no tag
+line in it. When its first line is a tag line, it gives `ignored-tag`
+([packs.md](packs.md) section 7.2). After `<!-- @req a -->` and a blank
+line, that paragraph is the first paragraph, so Sinter reads each of
+its tag lines.
+
+In a list item, the form on one line, `- <!-- @cites a v1 -->`, gives
+the hash of the plain form `- @cites a v1`. The form on several lines
+gives that hash when the first tag line is the declaration of the
+extent. For any other first tag line, the tag line has no list marker,
+so the hash differs.
 
 ### 6.2 The code hash
 
@@ -402,8 +511,8 @@ The source of a citation depends on its kind and on its place:
   source of the innermost section that holds the tag line.
 
 A markdown section is an anonymous source when it holds a citation
-outside every declaration's extent. Its block is its first paragraph,
-and its extent is the whole section (section 6). Its id comes from the
+outside every declaration's extent. Its block is the block of that
+citation, and its extent is the whole section (section 6). Its id comes from the
 path of the file and the slug of the section's heading
 ([jsonl.md](jsonl.md) section 9). A list item is never an anonymous
 source. A code site and such a section are both **sites**.
@@ -437,8 +546,9 @@ declaration that carries it. A status tag has no tag target. It has
 effect only in the tag block of a declaration: the block whose tag
 lines hold the declaration. Anywhere else it is inert. In markdown the
 extent of a declaration is its whole section or its whole list item,
-but only the first paragraph is tag-bearing, so a status tag must
-stand in that paragraph. There is no "done" status.
+but only its tag comments and its first paragraph are tag-bearing, so
+a status tag must stand in the block of the declaration there. There is
+no "done" status.
 
 | tag | applies to | meaning |
 |---|---|---|
@@ -710,7 +820,8 @@ of such a step loses its slug, and it is an error (finding class
 `renamed-step`). A step that is not started can be renamed freely.
 
 The **prose** of a step is the text of its section after its heading
-line, with the text of each section inside it, without the tag lines.
+line, with the text of each section inside it, without the tag lines
+and the delimiter lines of its tag comments (section 3.1).
 The trailing prose of a block (section 3.2) is part of it. The
 heading lines of the sections inside the step stay, without their
 section numbers. [jsonl.md](jsonl.md) section 4 gives the exact rule.
