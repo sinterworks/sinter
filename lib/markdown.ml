@@ -43,7 +43,7 @@ type section = {
   text : string option;
 }
 
-type node = Section_paragraph | Item_paragraph
+type node = Section_node | Item_node
 type extent = { first : int; last : int; hash : string }
 
 type tag = {
@@ -58,6 +58,7 @@ type tag = {
   section : int;
   owner : int option;
   extent : extent option;
+  in_comment : bool;
 }
 
 type block = {
@@ -77,7 +78,7 @@ type t = {
 }
 
 type error = Not_utf_8 of int | No_tree of Sinter_bridge.Tree.error
-type kind = Section | Heading | Paragraph | Item | Other
+type kind = Section | Heading | Paragraph | Item | Html | Other
 
 type tree = {
   kind : kind;
@@ -91,6 +92,7 @@ let kind_of = function
   | "atx_heading" -> Heading
   | "paragraph" -> Paragraph
   | "list_item" -> Item
+  | "html_block" -> Html
   | _ -> Other
 
 let order a b =
@@ -230,18 +232,22 @@ let numberer () =
 
 type container = { first_line : int; last_line : int; parent : int option }
 
-type paragraph = {
-  container : int;
-  in_section : int;
-  bearer : node;
-  paragraph : tree;
+type row = {
+  row : int;
+  body_start : int;
+  body_stop : int;
+  written : (int * Tag_line.t) option;
 }
+
+type comment = { rows : row list; holds_tag : bool }
+type part = Comment_part of comment | Paragraph_part of tree
+type bearing = { container : int; in_section : int; bearer : node; part : part }
 
 type walk = {
   lines : Line_index.t;
   containers : container Dynarray.t;
   sections : (section * int) Dynarray.t;
-  paragraphs : paragraph Dynarray.t;
+  bearing : bearing Dynarray.t;
   unread : span Dynarray.t;
   numbers : (int * int * int) Dynarray.t;
   number : string -> string;
@@ -251,11 +257,14 @@ let add array value =
   Dynarray.add_last array value;
   Dynarray.length array - 1
 
-let tag_span lines start line =
+let span_to lines start stop =
   {
     start = Line_index.position lines start;
-    stop = Line_index.after lines (Line_index.content_end lines line);
+    stop = Line_index.after lines stop;
   }
+
+let tag_span lines start line =
+  span_to lines start (Line_index.content_end lines line)
 
 let check_unread walk paragraph =
   let text = Line_index.text walk.lines in
@@ -264,21 +273,162 @@ let check_unread walk paragraph =
     Dynarray.add_last walk.unread
       (tag_span walk.lines at (Line_index.line_of walk.lines at))
 
-let rec walk_blocks walk ~container ~in_section ~bearer blocks =
-  (match blocks with
-  | ({ kind = Paragraph; _ } as paragraph) :: _ ->
-      Dynarray.add_last walk.paragraphs
-        { container; in_section; bearer; paragraph }
-  | _ -> ());
-  List.iteri
-    (fun index block ->
+let open_delimiter = "<!--"
+let close_delimiter = "-->"
+
+let holds text offset stop word =
+  let length = String.length word in
+  let rec same index =
+    index = length || (text.[offset + index] = word.[index] && same (index + 1))
+  in
+  (offset + length <= stop)
+  [@mutaml.skip
+    "every caller passes an offset where the word fits before stop or meets a \
+     line ending first: first_close checks offset + 3 <= stop itself, and \
+     comment_range calls it at the < that starts a block, whose first line \
+     ends before stop; no delimiter holds a line ending, so the compare fails \
+     there as the bound does"]
+  && same 0
+
+let first_close text start stop =
+  let rec search offset =
+    if
+      (offset
+      + String.length close_delimiter)
+      [@mutaml.skip
+        "holds refuses an offset whose three bytes pass stop, so a search that \
+         goes some offsets further finds no other close and ends with None"]
+      > stop
+    then None
+    else if holds text offset stop close_delimiter then Some offset
+    else search (offset + 1)
+  in
+  search (start + 2)
+
+let comment_range lines start stop =
+  let text = Line_index.text lines in
+  let at = first_kept is_blank_byte text start in
+  if holds text at stop open_delimiter then
+    Option.map (fun close -> (at, close)) (first_close text at stop)
+  else None
+
+let rec skip_blanks text offset stop =
+  if
+    (offset < stop)
+    [@mutaml.skip
+      "the byte at stop is the - of the close or the line ending of the line, \
+       never a space or a tab, so the scan stops at stop either way"]
+    && is_blank_byte text.[offset]
+  then skip_blanks text (offset + 1) stop
+  else offset
+
+let rec back_blanks text offset start =
+  if offset > start && is_blank_byte text.[offset - 1] then
+    back_blanks text (offset - 1) start
+  else offset
+
+let comment_row lines ~opened ~close ~first_line ~last_line line =
+  let text = Line_index.text lines in
+  let limit =
+    if line = last_line then close else Line_index.content_end lines line
+  in
+  let head_stop =
+    if line = first_line then opened else Line_index.first lines line
+  in
+  let body_start =
+    if line = first_line then
+      skip_blanks text (min (opened + String.length open_delimiter) limit) limit
+    else head_stop
+  in
+  let body_stop = back_blanks text limit body_start in
+  ( {
+      row = line;
+      body_start;
+      body_stop;
+      written =
+        Tag_line.read (String.sub text body_start (body_stop - body_start));
+    },
+    (line = first_line || line = last_line) && body_stop = body_start )
+
+let comment_of_range lines ~opened ~close =
+  let first_line = Line_index.line_of lines opened in
+  let last_line = Line_index.line_of lines close in
+  let rec collect line rows =
+    if line < first_line then rows
+    else
+      let row, only_delimiter =
+        comment_row lines ~opened ~close ~first_line ~last_line line
+      in
+      collect (line - 1) (if only_delimiter then rows else row :: rows)
+  in
+  let rows = collect last_line [] in
+  { rows; holds_tag = List.exists (fun row -> Option.is_some row.written) rows }
+
+let comment_block lines block =
+  match comment_range lines block.start block.stop with
+  | Some (opened, close)
+    when Option.is_none
+           (last_kept is_space_byte (Line_index.text lines)
+              (close + String.length close_delimiter)
+              block.stop) ->
+      Some (comment_of_range lines ~opened ~close)
+  | Some _ | None -> None
+
+let split_task_comment lines = function
+  | ({ kind = Paragraph; start; stop; _ } as paragraph) :: blocks -> (
+      let text = Line_index.text lines in
+      match comment_range lines start stop with
+      | Some (_, close) ->
+          let line = Line_index.line_of lines close in
+          let line_end = Line_index.content_end lines line in
+          if
+            Option.is_some
+              (last_kept is_space_byte text
+                 (close + String.length close_delimiter)
+                 line_end)
+          then paragraph :: blocks
+          else
+            let comment =
+              { kind = Html; start; stop = line_end; children = [] }
+            in
+            if line < content_last_line lines paragraph then
+              comment
+              :: { paragraph with start = Line_index.first lines (line + 1) }
+              :: blocks
+            else comment :: blocks
+      | None -> paragraph :: blocks)
+  | blocks -> blocks
+
+let rec leading lines comments = function
+  | ({ kind = Html; _ } as block) :: blocks as all -> (
+      match comment_block lines block with
+      | Some comment -> leading lines (comment :: comments) blocks
+      | None -> (List.rev comments, all))
+  | blocks -> (List.rev comments, blocks)
+
+let rec walk_blocks walk ~container ~in_section ~bearer (comments, blocks) =
+  let node part =
+    Dynarray.add_last walk.bearing { container; in_section; bearer; part }
+  in
+  List.iter
+    (fun comment -> if comment.holds_tag then node (Comment_part comment))
+    comments;
+  let blocks =
+    match blocks with
+    | ({ kind = Paragraph; _ } as paragraph) :: blocks ->
+        node (Paragraph_part paragraph);
+        blocks
+    | blocks -> blocks
+  in
+  List.iter
+    (fun block ->
       match block.kind with
-      | Paragraph -> if index > 0 then check_unread walk block
+      | Paragraph -> check_unread walk block
       | Item -> walk_item walk ~parent:container ~in_section block
       | Section ->
           walk_section walk ~parent:(Some in_section) ~holder:(Some container)
             block
-      | Heading | Other -> ())
+      | Heading | Html | Other -> ())
     blocks
 
 and walk_item walk ~parent ~in_section item =
@@ -290,8 +440,9 @@ and walk_item walk ~parent ~in_section item =
         parent = Some parent;
       }
   in
-  walk_blocks walk ~container ~in_section ~bearer:Item_paragraph
-    (flatten item.children)
+  walk_blocks walk ~container ~in_section ~bearer:Item_node
+    (leading walk.lines []
+       (split_task_comment walk.lines (flatten item.children)))
 
 and walk_section walk ~parent ~holder section =
   let lines = walk.lines in
@@ -334,8 +485,9 @@ and walk_section walk ~parent ~holder section =
         parent = holder;
       }
   in
+  let ((_, after) as start) = leading lines [] blocks in
   let first_paragraph =
-    match blocks with
+    match after with
     | { kind = Paragraph; start; stop; _ } :: _ ->
         Some (trimmed_span lines start stop)
     | _ -> None
@@ -345,7 +497,7 @@ and walk_section walk ~parent ~holder section =
       ( { level; heading; parent; first_paragraph; extent = None; text = None },
         container )
   in
-  walk_blocks walk ~container ~in_section ~bearer:Section_paragraph blocks
+  walk_blocks walk ~container ~in_section ~bearer:Section_node start
 
 type pending = {
   line : int;
@@ -353,16 +505,17 @@ type pending = {
   tag_line : Tag_line.t;
   parts : Tag_line.parts;
   rest_start : int;
-  of_paragraph : paragraph;
+  stop_offset : int;
+  of_node : bearing;
   in_block : int;
   declares : bool;
+  in_comment_block : bool;
 }
 
 type pending_block = {
   members : int list;
-  prose_lines : int list;
-  first_block_line : int;
-  last_block_line : int;
+  prose_lines : string list;
+  block_lines : int list;
   last_tag_line : int;
   last_at : int;
 }
@@ -379,11 +532,8 @@ let declares (tag_line : Tag_line.t) (parts : Tag_line.parts) =
   | Some target -> Slug.is_valid target
   | None -> false
 
-let read_paragraph lines tags blocks paragraph =
-  let node = paragraph.paragraph in
+let read_node lines tags blocks node =
   let text = Line_index.text lines in
-  let first = Line_index.line_of lines node.start in
-  let last = content_last_line lines node in
   let current = ref None in
   let close () =
     match !current with
@@ -394,72 +544,97 @@ let read_paragraph lines tags blocks paragraph =
                block with
                members = List.rev block.members;
                prose_lines = List.rev block.prose_lines;
+               block_lines = List.rev block.block_lines;
              });
         current := None
     | None -> ()
   in
-  for line = first to last do
-    let start =
-      if line = first then node.start else Line_index.first lines line
-    in
-    let stop = max start (Line_index.content_end lines line) in
-    match Tag_line.read (String.sub text start (stop - start)) with
-    | Some (at, tag_line) ->
-        (match !current with
-        | Some { prose_lines = []; _ } -> ()
-        | Some _ | None ->
-            close ();
-            current :=
-              Some
-                {
-                  members = [];
-                  prose_lines = [];
-                  first_block_line = line;
-                  last_block_line = line;
-                  last_tag_line = line;
-                  last_at =
-                    (start + at)
-                    [@mutaml.skip
-                      "the update of current right after this one sets last_at \
-                       to start + at again, so no code reads this value"];
-                });
-        let in_block = Dynarray.length blocks in
-        let parts = Tag_line.parts tag_line.rest in
-        let index =
-          add tags
+  let tag_line ~line ~at ~stop ~in_comment_block (tag_line : Tag_line.t) =
+    (match !current with
+    | Some { prose_lines = []; _ } -> ()
+    | Some _ | None ->
+        close ();
+        current :=
+          Some
             {
-              line;
-              at = start + at;
-              tag_line;
-              parts;
-              rest_start = start + at + 1 + String.length tag_line.word;
-              of_paragraph = paragraph;
-              in_block;
-              declares = declares tag_line parts;
-            }
+              members = [];
+              prose_lines = [];
+              block_lines = [];
+              last_tag_line = line;
+              last_at =
+                at
+                [@mutaml.skip
+                  "the update of current right after this one sets last_at to \
+                   at again, so no code reads this value"];
+            });
+    let in_block = Dynarray.length blocks in
+    let parts = Tag_line.parts tag_line.rest in
+    let index =
+      add tags
+        {
+          line;
+          at;
+          tag_line;
+          parts;
+          rest_start = at + 1 + String.length tag_line.word;
+          stop_offset = stop;
+          of_node = node;
+          in_block;
+          declares = declares tag_line parts;
+          in_comment_block;
+        }
+    in
+    current :=
+      Option.map
+        (fun block ->
+          {
+            block with
+            members = index :: block.members;
+            block_lines = line :: block.block_lines;
+            last_tag_line = line;
+            last_at = at;
+          })
+        !current
+  in
+  let prose line words =
+    current :=
+      Option.map
+        (fun block ->
+          {
+            block with
+            prose_lines = words :: block.prose_lines;
+            block_lines = line :: block.block_lines;
+          })
+        !current
+  in
+  (match node.part with
+  | Comment_part comment ->
+      List.iter
+        (fun row ->
+          match row.written with
+          | Some (at, written) ->
+              tag_line ~line:row.row ~at:(row.body_start + at)
+                ~stop:row.body_stop ~in_comment_block:true written
+          | None when row.body_stop > row.body_start ->
+              prose row.row
+                (String.sub text row.body_start
+                   (row.body_stop - row.body_start))
+          | None -> close ())
+        comment.rows
+  | Paragraph_part paragraph ->
+      let first = Line_index.line_of lines paragraph.start in
+      let last = content_last_line lines paragraph in
+      for line = first to last do
+        let start =
+          if line = first then paragraph.start else Line_index.first lines line
         in
-        current :=
-          Option.map
-            (fun block ->
-              {
-                block with
-                members = index :: block.members;
-                last_block_line = line;
-                last_tag_line = line;
-                last_at = start + at;
-              })
-            !current
-    | None ->
-        current :=
-          Option.map
-            (fun block ->
-              {
-                block with
-                prose_lines = line :: block.prose_lines;
-                last_block_line = line;
-              })
-            !current
-  done;
+        let stop = max start (Line_index.content_end lines line) in
+        match Tag_line.read (String.sub text start (stop - start)) with
+        | Some (at, written) ->
+            tag_line ~line ~at:(start + at) ~stop ~in_comment_block:false
+              written
+        | None -> prose line (Line_index.content lines line)
+      done);
   close ()
 
 let extent_lines lines ~holes first last =
@@ -540,7 +715,7 @@ let structure lines captures =
       lines;
       containers = Dynarray.create ();
       sections = Dynarray.create ();
-      paragraphs = Dynarray.create ();
+      bearing = Dynarray.create ();
       unread = Dynarray.create ();
       numbers = Dynarray.create ();
       number = numberer ();
@@ -550,7 +725,7 @@ let structure lines captures =
     (fun root ->
       match root.kind with
       | Section -> walk_section walk ~parent:None ~holder:None root
-      | Heading | Paragraph | Item | Other -> ())
+      | Heading | Paragraph | Item | Html | Other -> ())
     (nest nodes);
   walk
 
@@ -559,14 +734,14 @@ let range_of = function
       Some (low, List.nth included (List.length included - 1))
   | [] -> None
 
-let by_paragraph declarations =
+let by_container declarations =
   let rec group = function
     | [] -> []
     | ((_, first) as head) :: rest ->
         let same, others =
           let rec take same = function
             | ((_, tag) as next) :: rest
-              when tag.of_paragraph.paragraph == first.of_paragraph.paragraph ->
+              when tag.of_node.container = first.of_node.container ->
                 take (next :: same) rest
             | rest -> (List.rev same, rest)
           in
@@ -599,21 +774,22 @@ let new_line lines ~line ~at =
              (text.[offset]
               [@mutaml.skip
                 "the bytes of a line before the @ of a tag line are blanks, \
-                 list markers, and task boxes, all ASCII, and the @ is ASCII \
-                 too, so offset + 1 also reads a byte that starts a character; \
-                 the mark also takes out offset - 1, which counts the byte \
-                 before each byte"])
+                 list markers, task boxes, and a comment delimiter, all ASCII, \
+                 and the @ is ASCII too, so offset + 1 also reads a byte that \
+                 starts a character; the mark also takes out offset - 1, which \
+                 counts the byte before each byte"])
            land (0xC0
                 [@mutaml.skip
                   "the bytes of a line before the @ of a tag line are blanks, \
-                   list markers, and task boxes, all ASCII; an ASCII byte has \
-                   its top bit clear, so no mask gives 0x80, and each byte \
-                   counts as one character either way"])
+                   list markers, task boxes, and a comment delimiter, all \
+                   ASCII; an ASCII byte has its top bit clear, so no mask \
+                   gives 0x80, and each byte counts as one character either \
+                   way"])
            <> (0x80
               [@mutaml.skip
                 "the bytes of a line before the @ of a tag line are blanks, \
-                 list markers, and task boxes, all ASCII, so each byte counts \
-                 as one character either way"])
+                 list markers, task boxes, and a comment delimiter, all ASCII, \
+                 so each byte counts as one character either way"])
          then count + 1
          else count)
   in
@@ -626,13 +802,12 @@ let new_line lines ~line ~at =
 
 let assemble lines ~open_end ~texts walk errors =
   let pending = Dynarray.create () and pending_blocks = Dynarray.create () in
-  Dynarray.iter (read_paragraph lines pending pending_blocks) walk.paragraphs;
+  Dynarray.iter (read_node lines pending pending_blocks) walk.bearing;
   let pending = Dynarray.to_array pending in
   let containers = Dynarray.to_array walk.containers in
   let declared = Array.make (Array.length containers) false in
   Array.iter
-    (fun tag ->
-      if tag.declares then declared.(tag.of_paragraph.container) <- true)
+    (fun tag -> if tag.declares then declared.(tag.of_node.container) <- true)
     pending;
   let holes = Array.make (Array.length containers) [] in
   Array.iteri
@@ -665,7 +840,7 @@ let assemble lines ~open_end ~texts walk errors =
     let rec split start = function
       | [] -> ()
       | (index, tag) :: later -> (
-          let container = tag.of_paragraph.container in
+          let container = tag.of_node.container in
           let stop =
             match later with
             | (_, next) :: _ -> next.line - 1
@@ -688,26 +863,22 @@ let assemble lines ~open_end ~texts walk errors =
     in
     match declarations with
     | (_, tag) :: _ ->
-        split containers.(tag.of_paragraph.container).first_line declarations
+        split containers.(tag.of_node.container).first_line declarations
     | [] -> ()
   in
   pending |> Array.to_list
   |> List.mapi (fun index tag -> (index, tag))
   |> List.filter (fun (_, tag) -> tag.declares)
-  |> by_paragraph |> List.iter claim;
+  |> by_container |> List.iter claim;
   let blocks =
     Array.map
       (fun block ->
         let own index = pending.(index).declares in
         {
           tags = block.members;
-          prose = List.map (Line_index.content lines) block.prose_lines;
+          prose = block.prose_lines;
           new_line = new_line lines ~line:block.last_tag_line ~at:block.last_at;
-          hash =
-            hash_lines lines ~at ~numbered ~own
-              (List.init
-                 (block.last_block_line - block.first_block_line + 1)
-                 (fun offset -> block.first_block_line + offset));
+          hash = hash_lines lines ~at ~numbered ~own block.block_lines;
         })
       (Dynarray.to_array pending_blocks)
   in
@@ -715,17 +886,18 @@ let assemble lines ~open_end ~texts walk errors =
     Array.mapi
       (fun index tag ->
         {
-          span = tag_span lines tag.at tag.line;
+          span = span_to lines tag.at tag.stop_offset;
           word = tag.tag_line.word;
           rest = tag.tag_line.rest;
           target = tag.parts.target;
           rev = tag.parts.revision;
           desc = tag.parts.description;
           block = tag.in_block;
-          node = tag.of_paragraph.bearer;
-          section = tag.of_paragraph.in_section;
+          node = tag.of_node.bearer;
+          section = tag.of_node.in_section;
           owner = owners.(tag.line);
           extent = extents.(index);
+          in_comment = tag.in_comment_block;
         })
       pending
   in

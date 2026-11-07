@@ -13,11 +13,18 @@
     the file is part of no line and counts in no column.
 
     A section opens at an ATX heading that no block quote and no list item
-    holds; the text before the first such heading is the section of level 0. The
-    tag-bearing nodes are the first paragraph of a section and the first
-    paragraph of a list item, when no block quote holds them. A declaration is a
-    tag line of the word [req], [design], [decision], or [rule] whose target
-    matches the slug pattern. *)
+    holds; the text before the first such heading is the section of level 0. A
+    comment block is an HTML block that starts with [<!--] and whose first [-->]
+    has only spaces and tabs after it. After a task marker, a paragraph that
+    starts with such a comment reads as that comment and a paragraph after it.
+    The leading blocks of a section or a list item are the comment blocks at its
+    start. A tag comment is a leading block that holds a tag line. When no block
+    quote holds them, the tag-bearing nodes are each tag comment, the first
+    paragraph of a section, and the first paragraph of a list item: the
+    paragraph right after the leading blocks. A delimiter line is a first or a
+    last line of a tag comment that holds only a comment delimiter. A
+    declaration is a tag line of the word [req], [design], [decision], or [rule]
+    whose target matches the slug pattern. *)
 
 type position = Line_index.position = { line : int; column : int }
 
@@ -81,8 +88,8 @@ type section = {
       (** the extent of the section: its lines after two changes, from column 1
           of the first line to the end of the last. The lines of each section
           inside it and of each list item inside it that holds a declaration in
-          its first paragraph are removed, and then the blank lines at the end.
-          A blank line holds only spaces and tabs. The section of level 0 starts
+          a tag-bearing node are removed, and then the blank lines at the end. A
+          blank line holds only spaces and tabs. The section of level 0 starts
           at line 1, so it holds the front matter. [None] when no line is left.
       *)
   text : string option;
@@ -100,8 +107,8 @@ type section = {
 
 (** The kind of tag-bearing node that holds a tag line. *)
 type node =
-  | Section_paragraph  (** the first paragraph of a section *)
-  | Item_paragraph  (** the first paragraph of a list item *)
+  | Section_node  (** a tag-bearing node of a section *)
+  | Item_node  (** a tag-bearing node of a list item *)
 
 type extent = {
   first : int;  (** the first line of the extent *)
@@ -116,9 +123,13 @@ type extent = {
 type tag = {
   span : span;
       (** from the [@] to the last character of the line, the spaces and tabs at
-          its end included *)
+          its end included. In a tag comment, the span stops at the last
+          character before the [-->] and the line ending that is not a space or
+          a tab. *)
   word : string;  (** the tag word without its [@]; it can be empty *)
-  rest : string;  (** the text of the line after the tag word *)
+  rest : string;
+      (** the text of the line after the tag word, up to the end of
+          {!field-span} *)
   target : string option;  (** the first token of [rest] *)
   rev : int option;
       (** [N] when the second token of [rest] is [vN], with [N] from 1 to 2^53 -
@@ -136,6 +147,7 @@ type tag = {
           line. For a declaration, it is the declaration itself. No two extents
           share a line. *)
   extent : extent option;  (** the extent, for a declaration alone *)
+  in_comment : bool;  (** [true] when the line stands in a tag comment *)
 }
 (** One tag line. *)
 
@@ -151,20 +163,21 @@ type block = {
       (** the indices in {!field-tags} of the tag lines, in the order of the
           lines; never empty *)
   prose : string list;
-      (** the lines of the trailing prose, each without its line ending *)
+      (** the lines of the trailing prose, each without its line ending. A line
+          in a tag comment is also without its comment delimiters. *)
   hash : string;
       (** the block hash, as 64 lowercase hexadecimal digits: the hash of the
           lines of the block, by the rule of the extent hash *)
   new_line : string;
-      (** the text that starts a new line right after the last tag line of the
-          block, at the column of its [@]: the line ending of that line, then
-          {!Tag_line.indent} of the text of that line before its [@]. The line
-          ending is CR and LF or one LF, as the line has it, and one LF when the
-          line is the last line of a file that does not end with an LF. A byte
-          order mark is no part of the text before the [@]. When that text holds
-          no tab and 16 characters or fewer, the value is one of a fixed set of
-          strings that every read shares, and a read allocates nothing for it.
-      *)
+      (** the text that starts a new line right after the end of {!field-span}
+          of the last tag line of the block, at the column of its [@]: the line
+          ending of that line, then {!Tag_line.indent} of the text of that line
+          before its [@]. The line ending is CR and LF or one LF, as the line
+          has it, and one LF when the line is the last line of a file that does
+          not end with an LF. A byte order mark is no part of the text before
+          the [@]. When that text holds no tab and 16 characters or fewer, the
+          value is one of a fixed set of strings that every read shares, and a
+          read allocates nothing for it. *)
 }
 (** One block: a run of tag lines of one tag-bearing node, and the trailing
     prose after them. *)

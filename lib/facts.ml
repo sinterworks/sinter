@@ -260,8 +260,8 @@ let ordinary_file ~base ~path (document : Markdown.t) =
         | Some slug, Some extent ->
             let title =
               match tag.node with
-              | Markdown.Item_paragraph -> None
-              | Markdown.Section_paragraph ->
+              | Markdown.Item_node -> None
+              | Markdown.Section_node ->
                   Option.map
                     (fun (heading : Markdown.heading) -> heading.text)
                     document.sections.(tag.section).heading

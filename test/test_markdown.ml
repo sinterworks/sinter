@@ -51,8 +51,8 @@ let describe (file : Markdown.t) =
              (option string_of_int tag.rev)
              tag.desc (span tag.span) tag.block
              (match tag.node with
-             | Section_paragraph -> "section-paragraph"
-             | Item_paragraph -> "item-paragraph")
+             | Section_node -> "section-paragraph"
+             | Item_node -> "item-paragraph")
              tag.section
              (option string_of_int tag.owner)
              (option
@@ -295,7 +295,7 @@ let containers_open_no_section =
 let first_block_must_be_a_paragraph =
   check_structure
     "# Comment first\n\
-     <!-- note -->\n\
+     <!-- note --> tail\n\
      @req a v1\n\n\
      # Code first\n\
      ```\n\
@@ -810,6 +810,23 @@ let markdown_line =
       "|  |  |";
       "    code";
       "<!-- c -->";
+      "<!--";
+      "-->";
+      "<!-->";
+      "<!---> ";
+      "<!-- @req q -->";
+      "<!-- \t@cites a v1 \t--> ";
+      "@req r -->";
+      "<!-- @req s";
+      "<!-- @cites a --> tail";
+      "<!-- a --> <!-- @req b -->";
+      "- <!-- @cites z -->";
+      "- <!--";
+      "  @req x";
+      "  -->";
+      "- [ ] <!-- @req x -->";
+      "- [x] <!--";
+      "> <!-- @req y -->";
       "Title";
       "=====";
       "- # In item";
@@ -1401,6 +1418,406 @@ let a_carriage_return_with_no_line_feed_after_it_is_in_the_span () =
     "the new line after the tag line" "\n" file.blocks.(0).new_line;
   Alcotest.(check string) "the rest of the tag line" " x\r" file.tags.(0).rest
 
+let tag_summary (file : Markdown.t) =
+  Array.to_list
+    (Array.map
+       (fun (tag : Markdown.tag) ->
+         Printf.sprintf "@%s %s %s %S %s block %d%s" tag.word
+           (option Fun.id tag.target)
+           (option string_of_int tag.rev)
+           tag.desc (span tag.span) tag.block
+           (if tag.in_comment then " comment" else ""))
+       file.tags)
+
+let check_tags text expected () =
+  Alcotest.(check (list string)) "the tags" expected (tag_summary (file text))
+
+let check_prose text expected () =
+  Alcotest.(check (list (list string)))
+    "the prose of each block" expected
+    (Array.to_list
+       (Array.map
+          (fun (block : Markdown.block) -> block.prose)
+          (file text).blocks))
+
+let a_tag_comment_on_one_line_reads =
+  check_tags "## T\n<!-- @req a v2 Words. -->\nText.\n"
+    [ "@req a 2 \" Words.\" 2:6-2:22 block 0 comment" ]
+
+let a_tag_comment_on_several_lines_reads =
+  check_tags "## T\n<!--\n@req a\n  @cites b v1\n-->\nText.\n"
+    [
+      "@req a - \"\" 3:1-3:7 block 0 comment";
+      "@cites b 1 \"\" 4:3-4:14 block 0 comment";
+    ]
+
+let a_tag_comment_can_hold_tags_on_its_delimiter_lines =
+  check_tags "## T\n<!-- @req a\n@cites b v1 -->\n"
+    [
+      "@req a - \"\" 2:6-2:12 block 0 comment";
+      "@cites b 1 \"\" 3:1-3:12 block 0 comment";
+    ]
+
+let spaces_and_tabs_around_the_delimiters_go =
+  check_tags "## T\n  <!--\t  @req a \t -->  \t\n"
+    [ "@req a - \"\" 2:10-2:16 block 0 comment" ]
+
+let a_carriage_return_ends_a_line_of_a_comment =
+  check_tags "## T\r\n<!--\r\n@req a  \r\n@cites b v1 -->\r\nText.\r\n"
+    [
+      "@req a - \"\" 3:1-3:7 block 0 comment";
+      "@cites b 1 \"\" 4:1-4:12 block 0 comment";
+    ]
+
+let a_comment_at_the_end_of_a_file_needs_no_line_feed =
+  check_tags "## T\n<!-- @req a -->"
+    [ "@req a - \"\" 2:6-2:12 block 0 comment" ]
+
+let a_byte_order_mark_stands_before_a_comment =
+  check_tags "\xEF\xBB\xBF<!-- @req a -->\nText.\n"
+    [ "@req a - \"\" 1:6-1:12 block 0 comment" ]
+
+let prose_in_a_comment_is_the_description () =
+  check_prose "## T\n<!--\n@req a\nOne.\n  Two.\n-->\n"
+    [ [ "One."; "  Two." ] ]
+    ();
+  check_prose "## T\n<!-- @req a\nOne. -->\n" [ [ "One." ] ] ();
+  Alcotest.(check (list string))
+    "the tag stops before its description"
+    [ "@req a - \"\" 3:1-3:7 block 0 comment" ]
+    (tag_summary (file "## T\n<!--\n@req a\nOne.\n-->\n"))
+
+let a_paragraph_after_a_comment_is_no_description () =
+  check_prose "## T\n<!-- @req a -->\nOne.\n" [ [] ] ();
+  check_prose "## T\n<!--\n@req a\n-->\nOne.\n" [ [] ] ();
+  check_prose "## T\n<!-- @req a -->\n\nOne.\n" [ [] ] ()
+
+let a_blank_line_in_a_comment_ends_the_description () =
+  check_prose "## T\n<!--\n@req a\nOne.\n\nTwo.\n-->\n" [ [ "One." ] ] ();
+  check_prose "## T\n<!--\n@req a\n\n@cites b\nOne.\n-->\n" [ []; [ "One." ] ]
+    ()
+
+let prose_before_the_first_tag_is_no_description () =
+  let text = "## T\n<!--\nwords\n@req a\nOne.\n-->\n" in
+  check_prose text [ [ "One." ] ] ();
+  Alcotest.(check (list string))
+    "the tag reads"
+    [ "@req a - \"\" 4:1-4:7 block 0 comment" ]
+    (tag_summary (file text))
+
+let a_tag_after_prose_starts_a_block_in_a_comment =
+  check_prose "## T\n<!--\n@req a\nOne.\n@cites b\nTwo.\n-->\n"
+    [ [ "One." ]; [ "Two." ] ]
+
+let two_tag_comments_are_two_nodes () =
+  let file = file "## T\n<!-- @req a -->\n<!-- @deprecated -->\n" in
+  Alcotest.(check int) "two blocks" 2 (Array.length file.blocks)
+
+let a_tag_can_touch_the_delimiters =
+  check_tags "## T\n<!--@req a-->\n"
+    [ "@req a - \"\" 2:5-2:11 block 0 comment" ]
+
+let an_arrow_inside_a_comment_does_not_close_it =
+  check_tags "## T\n<!-- @req a -> b -->\n"
+    [ "@req a - \" -> b\" 2:6-2:17 block 0 comment" ]
+
+let text_right_after_the_close_makes_no_comment_block () =
+  check_tags "## T\n<!-- @req a -->x\n" [] ();
+  check_tags "- [ ] <!-- @cites a -->x\n  @cites b\n"
+    [ "@cites b - \"\" 2:3-2:11 block 0" ]
+    ()
+
+let a_task_paragraph_needs_the_whole_opening_delimiter =
+  check_tags "- [ ] a!-- @cites b -->\n" []
+
+let a_task_paragraph_holds_no_close_after_a_blank_line =
+  check_tags "- [ ] <!-- @cites a\n\n  -->\n" []
+
+let a_task_comment_reads_each_line_once =
+  check_tags "- [ ] <!--\n  @req a -->\n  Text.\n"
+    [ "@req a - \"\" 2:3-2:9 block 0 comment" ]
+
+let a_comment_and_a_paragraph_are_two_nodes () =
+  let text = "## T\n<!-- @req a\nOne. -->\n@cites b\nTwo.\n" in
+  check_prose text [ [ "One." ]; [ "Two." ] ] ();
+  Alcotest.(check (list string))
+    "the tags"
+    [
+      "@req a - \"\" 2:6-2:12 block 0 comment";
+      "@cites b - \"\" 4:1-4:9 block 1";
+    ]
+    (tag_summary (file text))
+
+let a_paragraph_after_a_tag_comment_and_a_blank_line_reads () =
+  let text = "## T\n<!-- @req a -->\n\n@cites b\nOne.\n" in
+  check_prose text [ []; [ "One." ] ] ();
+  Alcotest.(check (list string))
+    "no tag stays unread" []
+    (List.map span (file text).unread)
+
+let a_plain_paragraph_after_a_blank_line_stays_unread () =
+  let text = "## T\n@req a\n\n@cites b\nOne.\n" in
+  check_prose text [ [] ] ();
+  Alcotest.(check (list string))
+    "the tag stays unread" [ "4:1-4:9" ]
+    (List.map span (file text).unread)
+
+let a_section_commented_out_at_the_start_counts () =
+  let text = "## T\n<!--\n## Old\n@req a\nOld text.\n-->\n" in
+  check_prose text [ [ "Old text." ] ] ();
+  Alcotest.(check (list string))
+    "the tag reads"
+    [ "@req a - \"\" 4:1-4:7 block 0 comment" ]
+    (tag_summary (file text))
+
+let the_declarations_of_two_nodes_split_the_extent () =
+  let range text index =
+    Option.map
+      (fun (extent : Markdown.extent) -> (extent.first, extent.last))
+      (file text).tags.(index).extent
+  in
+  let two_comments = "## T\n<!-- @req a -->\n\n<!-- @req b -->\nOne.\n"
+  and comment_and_paragraph = "## T\n<!-- @req a -->\n@req b\nOne.\n" in
+  Alcotest.(check (option (pair int int)))
+    "the first comment ends before the second"
+    (Some (1, 2))
+    (range two_comments 0);
+  Alcotest.(check (option (pair int int)))
+    "the second comment runs to the end"
+    (Some (4, 5))
+    (range two_comments 1);
+  Alcotest.(check (option (pair int int)))
+    "the comment ends before the paragraph"
+    (Some (1, 2))
+    (range comment_and_paragraph 0);
+  Alcotest.(check (option (pair int int)))
+    "the paragraph runs to the end"
+    (Some (3, 4))
+    (range comment_and_paragraph 1)
+
+let a_license_header_stands_before_a_tag_comment_at_level_0 =
+  check_tags
+    "<!-- The license of the file -->\n\
+     <!-- The owner of the file -->\n\n\
+     <!-- @req a -->\n\
+     Text.\n"
+    [ "@req a - \"\" 4:6-4:12 block 0 comment" ]
+
+let a_tag_comment_comes_after_front_matter =
+  check_tags "---\nt: 1\n---\n\n<!-- @req a -->\nText.\n"
+    [ "@req a - \"\" 5:6-5:12 block 0 comment" ]
+
+let a_tag_comment_comes_after_toml_front_matter =
+  check_tags "+++\nt = 1\n+++\n<!-- @rule a -->\nText.\n"
+    [ "@rule a - \"\" 4:6-4:13 block 0 comment" ]
+
+let a_comment_before_a_first_paragraph_does_not_stop_it =
+  check_tags "## T\n<!-- words -->\n<!---->\n\n@req a\n"
+    [ "@req a - \"\" 5:1-5:7 block 0" ]
+
+let an_item_holds_a_tag_comment =
+  check_tags "- <!-- @cites a v1 -->\n  Text.\n1. <!-- @cites b -->\n"
+    [
+      "@cites a 1 \"\" 1:8-1:19 block 0 comment";
+      "@cites b - \"\" 3:9-3:17 block 1 comment";
+    ]
+
+let an_item_holds_a_comment_on_several_lines =
+  check_tags "- <!--\n  @req a\n  -->\n  Text.\n"
+    [ "@req a - \"\" 2:3-2:9 block 0 comment" ]
+
+let an_item_at_depth_holds_a_tag_comment =
+  check_tags "- a\n  - b\n    - <!-- @cites c -->\n      Text.\n"
+    [ "@cites c - \"\" 3:12-3:20 block 0 comment" ]
+
+let a_task_item_holds_a_tag_comment () =
+  check_tags "- [ ] <!-- @cites a -->\n  Text.\n"
+    [ "@cites a - \"\" 1:12-1:20 block 0 comment" ]
+    ();
+  check_prose "- [ ] <!-- @cites a -->\n  Text.\n" [ [] ] ()
+
+let a_task_item_holds_a_comment_on_several_lines () =
+  check_tags "- [x] <!--\n  @req a\n  Text.\n  -->\n"
+    [ "@req a - \"\" 2:3-2:9 block 0 comment" ]
+    ();
+  check_prose "- [x] <!--\n  @req a\n  Text.\n  -->\n" [ [ "  Text." ] ] ()
+
+let a_task_item_keeps_a_first_paragraph_after_a_comment =
+  check_tags "- [ ] <!-- @cites a -->\n  @cites b\n"
+    [
+      "@cites a - \"\" 1:12-1:20 block 0 comment";
+      "@cites b - \"\" 2:3-2:11 block 1";
+    ]
+
+let a_task_item_holds_a_paragraph_after_a_blank_line =
+  check_tags "- [X] <!-- @cites a -->\n\n  @cites b\n"
+    [
+      "@cites a - \"\" 1:12-1:20 block 0 comment";
+      "@cites b - \"\" 3:3-3:11 block 1";
+    ]
+
+let text_after_a_comment_in_a_task_item_keeps_a_paragraph =
+  check_tags "- [ ] <!-- @cites a --> tail\n  @cites b\n"
+    [ "@cites b - \"\" 2:3-2:11 block 0" ]
+
+let an_open_comment_in_a_task_item_keeps_a_paragraph =
+  check_tags "- [ ] <!-- words\n  @cites b\n"
+    [ "@cites b - \"\" 2:3-2:11 block 0" ]
+
+let a_task_item_with_two_comments_reads_both =
+  check_tags "- [ ] <!-- @cites a -->\n  <!-- @cites b -->\n"
+    [
+      "@cites a - \"\" 1:12-1:20 block 0 comment";
+      "@cites b - \"\" 2:8-2:16 block 1 comment";
+    ]
+
+let a_block_quote_holds_no_tag_comment =
+  check_structure "> <!-- @req a -->\n> Text.\n\n> - <!-- @req b -->\n"
+    [ "section 0 level 0 parent - first - extent 1:1-4:20" ]
+
+let a_comment_with_no_line_is_no_tag_comment text () =
+  Alcotest.(check (list string))
+    (Printf.sprintf "%S gives the next paragraph" text)
+    [ "@req a - \"\" 3:1-3:7 block 0" ]
+    (tag_summary (file ("## T\n" ^ text ^ "\n@req a\n")))
+
+let a_comment_that_stops_a_first_paragraph text () =
+  Alcotest.(check (list string))
+    (Printf.sprintf "%S gives no tag" text)
+    []
+    (tag_summary (file ("## T\n" ^ text ^ "\n@req a\n")))
+
+let the_first_paragraph_stays_a_paragraph () =
+  let first text = option span (file text).sections.(0).first_paragraph in
+  Alcotest.(check string)
+    "a comment alone" "-"
+    (first "## T\n<!-- @req a -->\n");
+  Alcotest.(check string)
+    "a comment and a paragraph" "3:1-3:6"
+    (first "## T\n<!-- @req a -->\nText.\n");
+  Alcotest.(check string)
+    "a comment with no tag" "3:1-3:6"
+    (first "## T\n<!-- words -->\nText.\n")
+
+let a_tag_line_outside_a_list_item_ends_its_comment =
+  check_tags "- <!--\n@req a\n-->\n" []
+
+let a_foreign_word_reads_in_a_comment =
+  check_tags "## T\n<!-- @param x -->\n"
+    [ "@param x - \"\" 2:6-2:14 block 0 comment" ]
+
+let the_new_line_of_a_comment_reaches_its_at () =
+  let block = (file "## T\n<!-- @req a -->\n").blocks.(0) in
+  Alcotest.(check string) "the indent of the delimiter" "\n     " block.new_line
+
+let comment_cases =
+  [
+    Alcotest.test_case "a tag comment on one line reads" `Quick
+      a_tag_comment_on_one_line_reads;
+    Alcotest.test_case "a tag comment on several lines reads" `Quick
+      a_tag_comment_on_several_lines_reads;
+    Alcotest.test_case "a tag comment can hold tags on its delimiter lines"
+      `Quick a_tag_comment_can_hold_tags_on_its_delimiter_lines;
+    Alcotest.test_case "spaces and tabs around the delimiters go" `Quick
+      spaces_and_tabs_around_the_delimiters_go;
+    Alcotest.test_case "a carriage return ends a line of a comment" `Quick
+      a_carriage_return_ends_a_line_of_a_comment;
+    Alcotest.test_case "a comment at the end of a file needs no line feed"
+      `Quick a_comment_at_the_end_of_a_file_needs_no_line_feed;
+    Alcotest.test_case "a byte order mark stands before a comment" `Quick
+      a_byte_order_mark_stands_before_a_comment;
+    Alcotest.test_case "prose in a comment is the description" `Quick
+      prose_in_a_comment_is_the_description;
+    Alcotest.test_case "a paragraph after a comment is no description" `Quick
+      a_paragraph_after_a_comment_is_no_description;
+    Alcotest.test_case "a blank line in a comment ends the description" `Quick
+      a_blank_line_in_a_comment_ends_the_description;
+    Alcotest.test_case "prose before the first tag is no description" `Quick
+      prose_before_the_first_tag_is_no_description;
+    Alcotest.test_case "a tag after prose starts a block in a comment" `Quick
+      a_tag_after_prose_starts_a_block_in_a_comment;
+    Alcotest.test_case "two tag comments are two nodes" `Quick
+      two_tag_comments_are_two_nodes;
+    Alcotest.test_case "a tag can touch the delimiters" `Quick
+      a_tag_can_touch_the_delimiters;
+    Alcotest.test_case "an arrow inside a comment does not close it" `Quick
+      an_arrow_inside_a_comment_does_not_close_it;
+    Alcotest.test_case "text right after the close makes no comment block"
+      `Quick text_right_after_the_close_makes_no_comment_block;
+    Alcotest.test_case "a task paragraph needs the whole opening delimiter"
+      `Quick a_task_paragraph_needs_the_whole_opening_delimiter;
+    Alcotest.test_case "a task paragraph holds no close after a blank line"
+      `Quick a_task_paragraph_holds_no_close_after_a_blank_line;
+    Alcotest.test_case "a task comment reads each line once" `Quick
+      a_task_comment_reads_each_line_once;
+    Alcotest.test_case "a comment and a paragraph are two nodes" `Quick
+      a_comment_and_a_paragraph_are_two_nodes;
+    Alcotest.test_case "a paragraph after a tag comment and a blank line reads"
+      `Quick a_paragraph_after_a_tag_comment_and_a_blank_line_reads;
+    Alcotest.test_case "a plain paragraph after a blank line stays unread"
+      `Quick a_plain_paragraph_after_a_blank_line_stays_unread;
+    Alcotest.test_case "a section commented out at the start counts" `Quick
+      a_section_commented_out_at_the_start_counts;
+    Alcotest.test_case "the declarations of two nodes split the extent" `Quick
+      the_declarations_of_two_nodes_split_the_extent;
+    Alcotest.test_case "a license header stands before a tag comment at level 0"
+      `Quick a_license_header_stands_before_a_tag_comment_at_level_0;
+    Alcotest.test_case "a tag comment comes after front matter" `Quick
+      a_tag_comment_comes_after_front_matter;
+    Alcotest.test_case "a tag comment comes after TOML front matter" `Quick
+      a_tag_comment_comes_after_toml_front_matter;
+    Alcotest.test_case "a comment before a first paragraph does not stop it"
+      `Quick a_comment_before_a_first_paragraph_does_not_stop_it;
+    Alcotest.test_case "an item holds a tag comment" `Quick
+      an_item_holds_a_tag_comment;
+    Alcotest.test_case "an item holds a comment on several lines" `Quick
+      an_item_holds_a_comment_on_several_lines;
+    Alcotest.test_case "an item at depth holds a tag comment" `Quick
+      an_item_at_depth_holds_a_tag_comment;
+    Alcotest.test_case "a task item holds a tag comment" `Quick
+      a_task_item_holds_a_tag_comment;
+    Alcotest.test_case "a task item holds a comment on several lines" `Quick
+      a_task_item_holds_a_comment_on_several_lines;
+    Alcotest.test_case "a task item keeps a first paragraph after a comment"
+      `Quick a_task_item_keeps_a_first_paragraph_after_a_comment;
+    Alcotest.test_case "a task item holds a paragraph after a blank line" `Quick
+      a_task_item_holds_a_paragraph_after_a_blank_line;
+    Alcotest.test_case "text after a comment in a task item keeps a paragraph"
+      `Quick text_after_a_comment_in_a_task_item_keeps_a_paragraph;
+    Alcotest.test_case "an open comment in a task item keeps a paragraph" `Quick
+      an_open_comment_in_a_task_item_keeps_a_paragraph;
+    Alcotest.test_case "a task item with two comments reads both" `Quick
+      a_task_item_with_two_comments_reads_both;
+    Alcotest.test_case "a block quote holds no tag comment" `Quick
+      a_block_quote_holds_no_tag_comment;
+    Alcotest.test_case "a comment with no line is no tag comment: <!---->"
+      `Quick
+      (a_comment_with_no_line_is_no_tag_comment "<!---->");
+    Alcotest.test_case "a comment with no line is no tag comment: <!-- -->"
+      `Quick
+      (a_comment_with_no_line_is_no_tag_comment "<!-- -->");
+    Alcotest.test_case "a comment with no line is no tag comment: <!-->" `Quick
+      (a_comment_with_no_line_is_no_tag_comment "<!-->");
+    Alcotest.test_case "a comment with no line is no tag comment: <!--->" `Quick
+      (a_comment_with_no_line_is_no_tag_comment "<!--->");
+    Alcotest.test_case "text after the close stops a first paragraph" `Quick
+      (a_comment_that_stops_a_first_paragraph "<!-- @req b --> tail");
+    Alcotest.test_case "two comments on one line stop a first paragraph" `Quick
+      (a_comment_that_stops_a_first_paragraph "<!-- @req b --> <!-- @req c -->");
+    Alcotest.test_case "another HTML block stops a first paragraph" `Quick
+      (a_comment_that_stops_a_first_paragraph "<hr />\n");
+    Alcotest.test_case "a comment with no close stops a first paragraph" `Quick
+      (a_comment_that_stops_a_first_paragraph "<!-- @req b");
+    Alcotest.test_case "the first paragraph stays a paragraph" `Quick
+      the_first_paragraph_stays_a_paragraph;
+    Alcotest.test_case "a tag line outside a list item ends its comment" `Quick
+      a_tag_line_outside_a_list_item_ends_its_comment;
+    Alcotest.test_case "a foreign word reads in a comment" `Quick
+      a_foreign_word_reads_in_a_comment;
+    Alcotest.test_case "the new line of a comment reaches its @" `Quick
+      the_new_line_of_a_comment_reaches_its_at;
+  ]
+
 let tests =
   [
     Alcotest.test_case "unterminated is the last line without a line feed"
@@ -1507,3 +1924,4 @@ let tests =
       `Quick new_line_of_a_wide_or_tabbed_indent_is_its_own;
     new_line_ends_the_last_tag_line_and_reaches_its_at;
   ]
+  @ comment_cases
