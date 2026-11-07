@@ -573,7 +573,7 @@ let a_plan_file_gives_its_plan_steps_and_promises () =
       "{\"col\":1,\"ecol\":25,\"eline\":14,\"id\":\"promise:step:auth-lockout/record-the-policy:decision:lockout-policy\",\"kind\":\"promise\",\"line\":14,\"met\":false,\"out_of_scope\":false,\"pack\":\"markdown\",\"path\":\".plans/auth.md\",\"plan\":\"auth-lockout\",\"step\":\"record-the-policy\",\"target\":\"lockout-policy\",\"v\":1,\"word\":\"decision\"}";
       (fun hash ->
         Printf.sprintf
-          "{\"active\":false,\"approved\":true,\"col\":1,\"csh\":\"%s\",\"delivered\":false,\"delivery\":\"Delivers: \
+          "{\"active\":false,\"approved\":true,\"col\":1,\"csh\":\"%s\",\"declined\":false,\"delivered\":false,\"delivery\":\"Delivers: \
            auth-lockout/lock-the-account \
            %s\",\"done\":false,\"ecol\":20,\"eline\":6,\"id\":\"step:auth-lockout/lock-the-account\",\"kind\":\"step\",\"line\":6,\"met\":0,\"own_scope\":true,\"pack\":\"markdown\",\"path\":\".plans/auth.md\",\"plan\":\"auth-lockout\",\"refactor\":false,\"scope\":[\"src/auth/**\"],\"slug\":\"lock-the-account\",\"title\":\"Lock \
            the account\",\"total\":2,\"v\":1}"
@@ -583,7 +583,7 @@ let a_plan_file_gives_its_plan_steps_and_promises () =
            [ "src/auth/**" ]);
       (fun hash ->
         Printf.sprintf
-          "{\"active\":false,\"approved\":true,\"col\":1,\"csh\":\"%s\",\"delivered\":false,\"delivery\":\"Delivers: \
+          "{\"active\":false,\"approved\":true,\"col\":1,\"csh\":\"%s\",\"declined\":false,\"delivered\":false,\"delivery\":\"Delivers: \
            auth-lockout/record-the-policy \
            %s\",\"done\":false,\"ecol\":21,\"eline\":12,\"id\":\"step:auth-lockout/record-the-policy\",\"kind\":\"step\",\"line\":12,\"met\":0,\"own_scope\":false,\"pack\":\"markdown\",\"path\":\".plans/auth.md\",\"plan\":\"auth-lockout\",\"refactor\":false,\"scope\":[\"src/**\"],\"slug\":\"record-the-policy\",\"title\":\"Record \
            the policy\",\"total\":1,\"v\":1}"

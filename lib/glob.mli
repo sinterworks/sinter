@@ -82,3 +82,14 @@ val contained : string -> string -> bool
     [inner] holds no [*] and does not end with [/], and [outer] matches [inner].
     In every other case it is [false], so [false] means that no proof exists,
     not that a path lies outside [outer]. *)
+
+type container
+(** A list of globs, read once, for many questions of containment. *)
+
+val container : string list -> container
+(** [container globs] parses each of [globs] once. A string that is not a valid
+    glob stays in the set of verbatim globs only. *)
+
+val holds : container -> string -> bool
+(** [holds (container globs) inner] is [List.exists (contained inner) globs]. It
+    tests the verbatim globs with a set first, and it parses [inner] once. *)

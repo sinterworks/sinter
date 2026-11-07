@@ -188,3 +188,55 @@ let contained inner outer =
         Option.is_some folder && matches outer_glob (inner ^ "x")
       else matches outer_glob inner
   | Error _, _ | _, Error _ -> false
+
+module Verbatim = Set.Make (String)
+
+type container = {
+  verbatim : Verbatim.t;
+  whole : bool;
+  parsed : (t * string option) list;
+}
+
+let container globs =
+  let fulls = List.map full globs in
+  let parsed =
+    List.filter_map
+      (fun outer_full ->
+        match of_string outer_full with
+        | Error _ -> None
+        | Ok glob ->
+            Some
+              ( glob,
+                if String.ends_with ~suffix:"/**" outer_full then
+                  Some (String.sub outer_full 0 (String.length outer_full - 3))
+                else None ))
+      fulls
+  in
+  {
+    verbatim = Verbatim.of_list fulls;
+    whole = List.exists (fun (glob, _) -> String.equal glob.text "**") parsed;
+    parsed;
+  }
+
+let holds container inner =
+  Verbatim.mem (full inner) container.verbatim
+  ||
+  match of_string (full inner) with
+  | Error _ -> false
+  | Ok _ ->
+      container.whole
+      ||
+      if String.contains inner '*' then
+        List.exists
+          (fun (_, folder) ->
+            Option.fold ~none:false
+              ~some:(fun prefix ->
+                String.starts_with ~prefix:(prefix ^ "/") inner)
+              folder)
+          container.parsed
+      else if String.ends_with ~suffix:"/" inner then
+        List.exists
+          (fun (glob, folder) ->
+            Option.is_some folder && matches glob (inner ^ "x"))
+          container.parsed
+      else List.exists (fun (glob, _) -> matches glob inner) container.parsed

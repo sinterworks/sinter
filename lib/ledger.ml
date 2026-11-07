@@ -260,7 +260,7 @@ let objects keys item = function
 
 module Names = Map.Make (String)
 
-let csh_holds csh scopes promises =
+let stated_set scopes promises =
   let add key value map =
     Names.update key
       (fun found -> Some (value :: Option.value found ~default:[]))
@@ -274,27 +274,39 @@ let csh_holds csh scopes promises =
         | Some step -> (plan_scope, add step scope.glob own))
       ([], Names.empty) scopes
   in
-  let inherited, owned =
+  let held =
     List.fold_left
-      (fun (inherited, owned) (promise : promise) ->
-        let pair = (promise.word, promise.target) in
-        if Names.mem promise.step own then
-          (inherited, add promise.step pair owned)
-        else (pair :: inherited, owned))
-      ([], Names.empty) promises
+      (fun held (promise : promise) ->
+        add promise.step (promise.word, promise.target) held)
+      Names.empty promises
   in
-  let steps =
-    { Commitment_set.scope = plan_scope; promises = inherited }
-    :: Names.fold
-         (fun step globs steps ->
-           {
-             Commitment_set.scope = globs;
-             promises = Option.value (Names.find_opt step owned) ~default:[];
-           }
-           :: steps)
-         own []
-  in
-  String.equal csh (Commitment_set.hash ~scope:plan_scope steps)
+  let promises_of slug = Option.value (Names.find_opt slug held) ~default:[] in
+  {
+    Commitment_set.plan_scope;
+    steps =
+      Names.fold
+        (fun slug globs steps ->
+          {
+            Commitment_set.slug;
+            own = Some globs;
+            stated_promises = promises_of slug;
+          }
+          :: steps)
+        own
+        (Names.fold
+           (fun slug stated_promises steps ->
+             if Names.mem slug own then steps
+             else { Commitment_set.slug; own = None; stated_promises } :: steps)
+           held []);
+  }
+
+let csh_holds csh scopes promises =
+  String.equal csh (Commitment_set.hash_of_set (stated_set scopes promises))
+
+let commitment_set entry =
+  match entry.body with
+  | Commitment_set { scopes; promises; _ } -> Some (stated_set scopes promises)
+  | _ -> None
 
 let body format kind members =
   let req name check = required members name check

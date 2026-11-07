@@ -13,12 +13,8 @@
     [external] record.
 
     The records take the values that hold when the evidence and the session are
-    absent. A declaration reads the ledger. For a plan and a step, the records
-    take the values that hold as if the ledger held no entry: every plan is
-    open, no plan and no step is active or declined, a plan of a kind that needs
-    approval is not approved, and a step without promises is not approved while
-    [proof.step] is ["approval"]. Every other step is approved when its plan is.
-*)
+    absent. Declarations, plans, and steps read the approvals and the declines
+    of the ledger. No plan and no step is active, and every plan is open. *)
 
 type t
 (** The facts of one tree. *)
@@ -82,17 +78,18 @@ val records : ?deliveries:Delivery_line.found list -> t -> Jsonl.record list
     The record of each step holds [delivered]; its step hash, [csh], as
     {!step.hash} gives it; and [delivery], the text of {!delivery} of the step,
     when there is one. A step with no promise is done only when [proof.step] is
-    ["delivered"] and the step is delivered: under ["approval"] no step is
-    approved while the ledger is absent, and under ["promises"] such a step is
-    never done.
+    ["delivered"] and the step is delivered; or when [proof.step] is
+    ["approval"] and {!step_judgment} approves it. Under ["promises"] such a
+    step is never done.
 
     A declaration of the kinds [req], [design], and [decision] holds [approved],
     which is {!is_approved}; [approval], the id of the approval that counts,
     only when its kind needs approval and such an approval exists; and
     [declined], which is [true] when a decline of it is live, whatever its kind.
-    Each live decline of such a declaration gives one [decline] record, once for
-    each entry, in the byte order of the ids, after the records that have a
-    path.
+    A plan and a step hold [approved] and [approval] from {!plan_judgment} and
+    {!step_judgment}, and [declined] when a decline of them is live. Each live
+    decline gives one [decline] record, once for each entry, in the byte order
+    of the ids, after the records that have a path.
 
     Every string of the result is valid UTF-8 when every path of [make] is. *)
 
@@ -232,6 +229,39 @@ val named : t -> Delivery_line.t -> (plan * step) option
 val counts : step -> Delivery_line.t -> bool
 (** [counts step line] is [true] when the hash of [line] is {!short_hash}
     [step]. *)
+
+type judgment = private {
+  approved : bool;
+      (** the plan or the step is approved: [true] for a plan when its kind
+          needs no approval *)
+  judged : Folds.judged;  (** the judgments of the ledger on its current text *)
+}
+(** How the ledger judges a plan or a step. *)
+
+val plan_judgment : t -> plan -> judgment
+(** [plan_judgment facts plan] is how the ledger judges [plan]. While the kind
+    [plan] needs approval, [plan] is approved when it has a latest approval with
+    its set, no live decline, and no {!plan_difference}. {!Commitment_set} takes
+    the set of the entry that that approval names. [plan_judgment facts] makes
+    the comparison once for each plan.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
+
+val plan_difference : t -> plan -> Commitment_set.difference option
+(** [plan_difference facts plan] is how the current set of [plan] differs from
+    the set of its latest approval that has its set. It is [None] when the sets
+    agree, when no such approval exists, and when the kind [plan] needs no
+    approval.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
+
+val step_judgment : t -> plan -> step -> judgment
+(** [step_judgment facts plan step] is how the ledger judges [step] of [plan]. A
+    step without promises is approved under [proof.step = "approval"] when an
+    approval counts for it at its current step hash. Every other step is
+    approved when its plan is.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
 
 val full_form : plan -> string
 (** [full_form plan] is the full form of [plan]: its slug, then [@] and its plan

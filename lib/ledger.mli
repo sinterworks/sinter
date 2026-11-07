@@ -77,6 +77,12 @@ type entry = private {
 }
 (** One entry of a known kind, as its line gives it. *)
 
+val commitment_set : entry -> Commitment_set.set option
+(** [commitment_set entry] is the set that a [commitment-set] entry holds, read
+    from its [scopes] and [promises]: the plan scope is each glob with no step,
+    and a step that no object of [scopes] names takes the plan scope. It is
+    [None] for every other kind. *)
+
 val kind_name : body -> string
 (** [kind_name body] is the name of the kind of [body], as the field [kind]
     writes it, for example ["commitment-set"]. *)

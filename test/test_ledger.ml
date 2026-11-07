@@ -810,6 +810,44 @@ let a_step_with_scopes_does_not_take_the_plan_scope () =
           ]
           [ ("s", "req", "a") ]))
 
+let the_set_of_an_entry () =
+  let entry =
+    match
+      Ledger_lines.entries
+        [
+          Ledger_lines.commitment_set ~seq:1
+            [ (None, "src/**"); (Some "own", "src/a/**") ]
+            [ ("own", "req", "a"); ("inherits", "cites", "b") ];
+        ]
+    with
+    | [ entry ] -> entry
+    | _ -> Alcotest.fail "the line gives another result"
+  in
+  match Ledger.commitment_set entry with
+  | None -> Alcotest.fail "the entry gives no set"
+  | Some set ->
+      Alcotest.(check (list string))
+        "the plan scope" [ "src/**" ] set.plan_scope;
+      Alcotest.(
+        check
+          (list
+             (triple string (option (list string)) (list (pair string string)))))
+        "the steps"
+        [
+          ("inherits", None, [ ("cites", "b") ]);
+          ("own", Some [ "src/a/**" ], [ ("req", "a") ]);
+        ]
+        (List.sort compare
+           (List.map
+              (fun (step : Commitment_set.stated) ->
+                (step.slug, step.own, step.stated_promises))
+              set.steps))
+
+let another_kind_has_no_set () =
+  match Ledger_lines.entries [ Ledger_lines.completed ~seq:1 "plan:p" ] with
+  | [ entry ] -> holds "no set" (Option.is_none (Ledger.commitment_set entry))
+  | _ -> Alcotest.fail "the line gives another result"
+
 let promises_of_one_wide_scope count =
   let globs = List.init count (Printf.sprintf "dir/%05d/**") in
   let promises = List.init count (Printf.sprintf "t%05d") in
@@ -999,6 +1037,8 @@ let line_tests =
       a_step_without_scopes_takes_the_plan_scope;
     Alcotest.test_case "a step with scopes does not take the plan scope" `Quick
       a_step_with_scopes_does_not_take_the_plan_scope;
+    Alcotest.test_case "the set of an entry" `Quick the_set_of_an_entry;
+    Alcotest.test_case "another kind has no set" `Quick another_kind_has_no_set;
     Alcotest.test_case "a set whose promises share a wide scope holds" `Quick
       a_set_whose_promises_share_a_wide_scope_holds;
     Alcotest.test_case "the work of a set grows with its line" `Quick

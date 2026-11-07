@@ -280,6 +280,248 @@ let identities_leave_out_declines () =
        (fun (identity : Facts.identity) -> identity.kind)
        (Facts.identities (facts ~lines:[ refuse ~seq:1 () ] a_file)))
 
+let plan_text =
+  "# P\n\n\
+   @plan p@abc123\n\
+   @scope src/**\n\n\
+   ## Lock\n\n\
+   @scope src/a/**\n\
+   @req a\n\n\
+   ## Tidy\n\n\
+   @scope src/b/**\n\
+   Remove the dead code.\n"
+
+let plan_files = [ (".plans/p.md", plan_text) ]
+let plan_id = "plan:p@abc123"
+let lock_id = "step:p@abc123/lock"
+let tidy_id = "step:p@abc123/tidy"
+let needs_plan = "[proof]\nplan = \"approval\"\n"
+
+let scopes =
+  [ (None, "src/**"); (Some "lock", "src/a/**"); (Some "tidy", "src/b/**") ]
+
+let promises = [ ("lock", "req", "a") ]
+
+let field_of files id name =
+  match string_field name (record id (facts files)) with
+  | Some text -> text
+  | None -> Alcotest.fail ("the record has no " ^ name)
+
+let csh = lazy (field_of plan_files plan_id "csh")
+let tidy_hash = lazy (field_of plan_files tidy_id "csh")
+let the_set ~seq = Lines.commitment_set ~seq scopes promises
+
+let approve_plan ~seq =
+  Lines.approval_of_hash ~seq plan_id ~csh:(Lazy.force csh)
+
+let the_plan facts = List.hd (Facts.plans facts)
+
+let the_hash_of_the_plan_is_the_hash_of_its_entry () =
+  Alcotest.(check string)
+    "the two agree" (Lazy.force csh)
+    (Lines.set_hash scopes promises)
+
+let the_approval_of_the_plan_approves_it_and_its_steps () =
+  let approval = approve_plan ~seq:2 in
+  let facts =
+    facts ~extra:needs_plan ~lines:[ the_set ~seq:1; approval ] plan_files
+  in
+  check_flag "the plan" "approved" plan_id facts true;
+  check_flag "the step with a promise" "approved" lock_id facts true;
+  check_flag "the step without a promise" "approved" tidy_id facts true;
+  check_approval "the plan names it" plan_id facts
+    (Some (Lines.id_of_line approval));
+  Alcotest.(check bool)
+    "no difference" true
+    (Option.is_none (Facts.plan_difference facts (the_plan facts)))
+
+let no_ledger_leaves_the_plan_not_approved () =
+  let facts = facts ~extra:needs_plan plan_files in
+  check_flag "the plan" "approved" plan_id facts false;
+  check_flag "the step" "approved" lock_id facts false;
+  check_approval "no approval" plan_id facts None
+
+let an_approval_without_its_set_counts_for_nothing () =
+  let facts =
+    facts ~extra:needs_plan ~lines:[ approve_plan ~seq:1 ] plan_files
+  in
+  check_flag "the plan" "approved" plan_id facts false;
+  check_approval "no approval" plan_id facts None
+
+let a_plan_with_no_need_of_approval_still_names_its_approval () =
+  let approval = approve_plan ~seq:2 in
+  let facts = facts ~lines:[ the_set ~seq:1; approval ] plan_files in
+  check_flag "approved" "approved" plan_id facts true;
+  check_approval "the approval" plan_id facts (Some (Lines.id_of_line approval))
+
+let a_plan_with_no_need_of_approval_makes_no_comparison () =
+  let other = [ (None, "lib/**") ] in
+  let lines =
+    [
+      Lines.commitment_set ~seq:1 other [];
+      Lines.approval_of_hash ~seq:2 plan_id ~csh:(Lines.set_hash other []);
+    ]
+  in
+  let facts = facts ~lines plan_files in
+  Alcotest.(check bool)
+    "no difference" true
+    (Option.is_none (Facts.plan_difference facts (the_plan facts)))
+
+let a_change_of_the_set_needs_a_new_approval () =
+  let other = [ (None, "lib/**") ] in
+  let lines =
+    [
+      Lines.commitment_set ~seq:1 other [];
+      Lines.approval_of_hash ~seq:2 plan_id ~csh:(Lines.set_hash other []);
+    ]
+  in
+  let facts = facts ~extra:needs_plan ~lines plan_files in
+  check_flag "not approved" "approved" plan_id facts false;
+  Alcotest.(check bool)
+    "the approval stays named" true
+    (Option.is_some (string_field "approval" (record plan_id facts)));
+  match Facts.plan_difference facts (the_plan facts) with
+  | Some difference ->
+      Alcotest.(check (list (pair string string)))
+        "added"
+        [ ("req", "a") ]
+        difference.added;
+      Alcotest.(check (list string)) "wider" [ "src/**" ] difference.wider
+  | None -> Alcotest.fail "the sets differ"
+
+let a_free_amendment_keeps_the_approval () =
+  let narrower =
+    [
+      ( ".plans/p.md",
+        "# P\n\n\
+         @plan p@abc123\n\
+         @scope src/**\n\n\
+         ## Lock it\n\n\
+         @scope src/a/b/**\n\
+         @req a\n" );
+    ]
+  in
+  let facts =
+    facts ~extra:needs_plan
+      ~lines:[ the_set ~seq:1; approve_plan ~seq:2 ]
+      narrower
+  in
+  check_flag "still approved" "approved" plan_id facts true
+
+let a_live_decline_of_a_plan_blocks_approval_when_it_needs_one () =
+  let hash = Lazy.force csh in
+  let lines =
+    [
+      the_set ~seq:1;
+      approve_plan ~seq:2;
+      Lines.decline ~seq:3 plan_id ~hash ~reason:"no";
+    ]
+  in
+  let needing = facts ~extra:needs_plan ~lines plan_files in
+  check_flag "not approved" "approved" plan_id needing false;
+  check_flag "declined" "declined" plan_id needing true;
+  Alcotest.(check bool)
+    "the sets agree" true
+    (Option.is_none (Facts.plan_difference needing (the_plan needing)));
+  let free = facts ~lines plan_files in
+  check_flag "approved with no need" "approved" plan_id free true;
+  check_flag "still declined" "declined" plan_id free true
+
+let a_plan_declined_then_approved_at_another_set_then_back_is_approved () =
+  let hash = Lazy.force csh in
+  let wider_scopes = [ (None, "**"); (Some "lock", "src/**") ] in
+  let wider_hash = Lines.set_hash wider_scopes promises in
+  let lines =
+    [
+      Lines.decline ~seq:1 plan_id ~hash ~reason:"no";
+      Lines.commitment_set ~seq:2 wider_scopes promises;
+      Lines.approval_of_hash ~seq:3 plan_id ~csh:wider_hash;
+    ]
+  in
+  let facts = facts ~extra:needs_plan ~lines plan_files in
+  check_flag "approved" "approved" plan_id facts true;
+  check_flag "not declined" "declined" plan_id facts false
+
+let a_free_amendment_moves_the_hash_and_ends_a_decline () =
+  let moved =
+    [
+      ( ".plans/p.md",
+        "# P\n\n\
+         @plan p@abc123\n\
+         @scope src/**\n\n\
+         ## Lock\n\n\
+         @scope src/a/b/**\n\
+         @req a\n" );
+    ]
+  in
+  let lines =
+    [ Lines.decline ~seq:1 plan_id ~hash:(Lazy.force csh) ~reason:"no" ]
+  in
+  check_flag "not declined at the new hash" "declined" plan_id
+    (facts ~lines moved) false
+
+let step_lines ~seq =
+  Lines.approval_of_hash ~seq tidy_id ~csh:(Lazy.force tidy_hash)
+
+let step_approval = "[proof]\nstep = \"approval\"\n"
+
+let a_step_without_promises_takes_its_own_approval () =
+  let approval = step_lines ~seq:1 in
+  let facts = facts ~extra:step_approval ~lines:[ approval ] plan_files in
+  check_flag "approved" "approved" tidy_id facts true;
+  check_flag "done" "done" tidy_id facts true;
+  check_approval "the approval" tidy_id facts (Some (Lines.id_of_line approval))
+
+let a_decline_of_the_step_removes_its_approval () =
+  let refusal =
+    Lines.decline ~seq:2 tidy_id ~hash:(Lazy.force tidy_hash) ~reason:"no"
+  in
+  let facts =
+    facts ~extra:step_approval ~lines:[ step_lines ~seq:1; refusal ] plan_files
+  in
+  check_flag "not approved" "approved" tidy_id facts false;
+  check_flag "not done" "done" tidy_id facts false;
+  check_flag "declined" "declined" tidy_id facts true;
+  check_approval "none counts" tidy_id facts None
+
+let a_step_with_promises_takes_the_plan_and_reports_a_decline () =
+  let hash = field_of plan_files lock_id "csh" in
+  let refusal = Lines.decline ~seq:1 lock_id ~hash ~reason:"no" in
+  let facts = facts ~lines:[ refusal ] plan_files in
+  check_flag "approved with the plan" "approved" lock_id facts true;
+  check_flag "declined" "declined" lock_id facts true
+
+let an_approval_of_a_step_under_another_proof_is_still_named () =
+  let approval = step_lines ~seq:1 in
+  check_approval "the approval" tidy_id
+    (facts ~lines:[ approval ] plan_files)
+    (Some (Lines.id_of_line approval))
+
+let the_declines_of_plans_and_steps_give_records () =
+  let hash = field_of plan_files lock_id "csh" in
+  let lines =
+    [
+      Lines.decline ~seq:1 plan_id ~hash:(Lazy.force csh) ~reason:"plan";
+      Lines.decline ~seq:2 lock_id ~hash ~reason:"step";
+    ]
+  in
+  Alcotest.(check (list (option string)))
+    "the reasons, in the order of the ids"
+    (List.map
+       (fun (_, reason) -> Some reason)
+       (List.sort compare
+          (List.map2
+             (fun line reason -> (Lines.id_of_line line, reason))
+             lines [ "plan"; "step" ])))
+    (List.map (string_field "reason")
+       (decline_records (facts ~lines plan_files)))
+
+let a_judgment_of_a_plan_of_other_facts_is_refused () =
+  let one = facts plan_files and other = facts plan_files in
+  Alcotest.check_raises "the plan is not one of these facts"
+    (Invalid_argument "Facts.plan_judgment: the plan is not one of these facts")
+    (fun () -> ignore (Facts.plan_judgment one (the_plan other)))
+
 let case name test = Alcotest.test_case name `Quick test
 
 let tests =
@@ -317,4 +559,38 @@ let tests =
     case "a decline that an approval of one copy ends stays for the other"
       a_decline_that_an_approval_of_one_copy_ends_stays_for_the_other;
     case "identities leave out declines" identities_leave_out_declines;
+    case "the hash of the plan is the hash of its entry"
+      the_hash_of_the_plan_is_the_hash_of_its_entry;
+    case "the approval of the plan approves it and its steps"
+      the_approval_of_the_plan_approves_it_and_its_steps;
+    case "no ledger leaves the plan not approved"
+      no_ledger_leaves_the_plan_not_approved;
+    case "an approval without its set counts for nothing"
+      an_approval_without_its_set_counts_for_nothing;
+    case "a plan with no need of approval still names its approval"
+      a_plan_with_no_need_of_approval_still_names_its_approval;
+    case "a plan with no need of approval makes no comparison"
+      a_plan_with_no_need_of_approval_makes_no_comparison;
+    case "a change of the set needs a new approval"
+      a_change_of_the_set_needs_a_new_approval;
+    case "a free amendment keeps the approval"
+      a_free_amendment_keeps_the_approval;
+    case "a live decline of a plan blocks approval when it needs one"
+      a_live_decline_of_a_plan_blocks_approval_when_it_needs_one;
+    case "a plan declined then approved at another set then back is approved"
+      a_plan_declined_then_approved_at_another_set_then_back_is_approved;
+    case "a free amendment moves the hash and ends a decline"
+      a_free_amendment_moves_the_hash_and_ends_a_decline;
+    case "a step without promises takes its own approval"
+      a_step_without_promises_takes_its_own_approval;
+    case "a decline of the step removes its approval"
+      a_decline_of_the_step_removes_its_approval;
+    case "a step with promises takes the plan and reports a decline"
+      a_step_with_promises_takes_the_plan_and_reports_a_decline;
+    case "an approval of a step under another proof is still named"
+      an_approval_of_a_step_under_another_proof_is_still_named;
+    case "the declines of plans and steps give records"
+      the_declines_of_plans_and_steps_give_records;
+    case "a judgment of a plan of other facts is refused"
+      a_judgment_of_a_plan_of_other_facts_is_refused;
   ]

@@ -670,6 +670,72 @@ let contained_table () =
       ("b?", "**/x", false);
     ]
 
+let holds_table () =
+  let container =
+    Glob.container [ "src/**"; "a/*.md"; "lib/"; "x?"; "only/one.md" ]
+  in
+  List.iter
+    (fun (inner, expected) ->
+      Alcotest.(check bool) inner expected (Glob.holds container inner))
+    [
+      ("src/**", true);
+      ("src/", true);
+      ("lib/**", true);
+      ("x?", true);
+      ("src/api/**", true);
+      ("src/a/*.ml", true);
+      ("src/a.ml", true);
+      ("src/api/", true);
+      ("a/b.md", true);
+      ("a/b.txt", false);
+      ("a/b/", false);
+      ("only/one.md", true);
+      ("only/", false);
+      ("only/*.md", false);
+      ("y?", false);
+      ("other.md", false);
+    ];
+  Alcotest.(check bool)
+    "** holds every valid glob" true
+    (Glob.holds (Glob.container [ "**" ]) "a/*/b");
+  Alcotest.(check bool)
+    "** holds no invalid glob" false
+    (Glob.holds (Glob.container [ "**" ]) "a?");
+  Alcotest.(check bool)
+    "no glob holds nothing" false
+    (Glob.holds (Glob.container []) "a")
+
+let containment_glob =
+  Gen.oneof_list
+    [
+      "**";
+      "src/**";
+      "src/";
+      "src/a.ml";
+      "src/*.ml";
+      "src/a/";
+      "src/a/**";
+      "*.md";
+      "a?";
+      "";
+      "/x";
+      "lib/**/x";
+      "lib/x";
+      "src/*/";
+    ]
+
+let holds_is_contained_in_some_glob =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:500
+       ~name:"holds answers as contained does for some glob"
+       ~print:(fun (inner, outers) ->
+         inner ^ " in " ^ String.concat ", " outers)
+       Gen.(pair containment_glob (list_size (int_range 0 4) containment_glob))
+       (fun (inner, outers) ->
+         Bool.equal
+           (Glob.holds (Glob.container outers) inner)
+           (List.exists (Glob.contained inner) outers)))
+
 let tests =
   [
     case "leading names are the names before a star"
@@ -720,6 +786,8 @@ let tests =
       the_fault_keeps_a_segment_with_a_semicolon_whole;
     matches_answers_any_path;
     case "the table of containment" contained_table;
+    case "the table of a container" holds_table;
+    holds_is_contained_in_some_glob;
     case "a path in a plain glob is in the set"
       a_path_in_a_plain_glob_is_in_the_set;
     case "an excluded glob takes paths out" an_excluded_glob_takes_paths_out;

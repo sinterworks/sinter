@@ -180,6 +180,14 @@ module Blocks = Map.Make (struct
     match String.compare a c with 0 -> Int.compare b d | order -> order
 end)
 
+type judgment = { approved : bool; judged : Folds.judged }
+
+type plan_state = {
+  hash : string;
+  judgment : judgment;
+  difference : Commitment_set.difference option;
+}
+
 type t = {
   manifest : Manifest.t;
   ledger : Folds.t;
@@ -197,6 +205,7 @@ type t = {
   block_hashes : string array Paths.t Lazy.t;
   block_acks : ack list Blocks.t Lazy.t;
   steps_by_name : (plan * step) list Pairs.t Lazy.t;
+  plan_states : (plan * plan_state Lazy.t) Paths.t;
 }
 
 let site_id path (section : Markdown.section) =
@@ -644,6 +653,55 @@ let lookups (declarations : declaration array) edges targets plans =
            edges);
   }
 
+let full_form (plan : plan) =
+  Plan_target.to_string { slug = plan.slug; id = plan.id }
+
+let plan_fact_id plan = "plan:" ^ full_form plan
+
+let commitment_set (plan : plan) =
+  {
+    Commitment_set.plan_scope = plan.scope;
+    steps =
+      List.map
+        (fun (step : step) ->
+          {
+            Commitment_set.slug = step.slug;
+            own = step.own_scope;
+            stated_promises =
+              List.map
+                (fun (promise : promise) -> (promise.word, promise.target))
+                step.promises;
+          })
+        plan.steps;
+  }
+
+let commitment_hash plan = Commitment_set.hash_of_set (commitment_set plan)
+
+let plan_state manifest ledger plan =
+  let subject = plan_fact_id plan and hash = commitment_hash plan in
+  let judged = Folds.plan ledger ~subject ~hash in
+  let needed = needs_approval manifest Manifest.Plan in
+  let difference =
+    match Folds.latest_approval_with_set ledger ~subject with
+    | Some (_, set) when needed ->
+        Option.bind (Ledger.commitment_set set) (fun approved ->
+            Commitment_set.compare_sets ~current:(commitment_set plan) ~approved)
+    | Some _ | None -> None
+  in
+  {
+    hash;
+    judgment =
+      {
+        approved =
+          (not needed)
+          || Option.is_some judged.approval
+             && Option.is_none judged.latest_live
+             && Option.is_none difference;
+        judged;
+      };
+    difference;
+  }
+
 let make manifest ~ledger files =
   let ordinary, plans =
     List.partition_map
@@ -723,6 +781,13 @@ let make manifest ~ledger files =
                    names)
                names plan.steps)
            Pairs.empty plans);
+    plan_states =
+      List.fold_left
+        (fun states (plan : plan) ->
+          Paths.add plan.path
+            (plan, lazy (plan_state manifest ledger plan))
+            states)
+        Paths.empty plans;
   }
 
 type fact = {
@@ -757,28 +822,6 @@ let canonical globs = List.sort_uniq String.compare globs
 
 let effective_scope plan (step : step) =
   Option.value step.own_scope ~default:plan.scope
-
-let commitment_hash plan =
-  let pairs (step : step) =
-    List.map
-      (fun (promise : promise) -> (promise.word, promise.target))
-      step.promises
-  in
-  Commitment_set.hash ~scope:plan.scope
-    ({
-       Commitment_set.scope = plan.scope;
-       promises =
-         List.concat_map
-           (fun (step : step) ->
-             if Option.is_none step.own_scope then pairs step else [])
-           plan.steps;
-     }
-    :: List.filter_map
-         (fun (step : step) ->
-           Option.map
-             (fun scope -> { Commitment_set.scope; promises = pairs step })
-             step.own_scope)
-         plan.steps)
 
 let declaration_records facts ~inforce ~approved =
   List.filter_map Fun.id
@@ -986,10 +1029,6 @@ let met_within facts ~scope ~word ~target =
            | Unresolved _, _ -> false)
          facts.edges facts.targets
 
-let full_form (plan : plan) =
-  Plan_target.to_string { slug = plan.slug; id = plan.id }
-
-let plan_fact_id plan = "plan:" ^ full_form plan
 let step_id plan (step : step) = "step:" ^ full_form plan ^ "/" ^ step.slug
 
 let promise_id plan step (promise : promise) =
@@ -1038,19 +1077,44 @@ let delivered_steps facts deliveries =
       | Some _ | None -> ids)
     Ids.empty deliveries
 
+let plan_entry facts (plan : plan) =
+  match Paths.find_opt plan.path facts.plan_states with
+  | Some (known, state) when known == plan -> Lazy.force state
+  | Some _ | None ->
+      invalid_arg "Facts.plan_judgment: the plan is not one of these facts"
+
+let plan_judgment facts plan = (plan_entry facts plan).judgment
+let plan_difference facts plan = (plan_entry facts plan).difference
+
+let step_judgment facts plan (step : step) =
+  let judged =
+    Folds.step facts.ledger ~subject:(step_id plan step) ~hash:step.hash
+  in
+  {
+    approved =
+      (if
+         step.promises = []
+         && Manifest.step facts.manifest = Manifest.Step_approval
+       then Option.is_some judged.approval
+       else (plan_judgment facts plan).approved);
+    judged;
+  }
+
 let plan_records facts ~delivered plan =
-  let plan_approved = not (needs_approval facts.manifest Manifest.Plan) in
+  let { hash; judgment; _ } = plan_entry facts plan in
+  let entry_id (entry : Ledger.entry) = Jsonl.string entry.id in
   let plan_record =
     located ~kind:"plan" ~id:(plan_fact_id plan) ~path:plan.path ~span:plan.span
       ([
          ("slug", Jsonl.string plan.slug);
          ("scope", Jsonl.strings plan.scope);
-         ("approved", Jsonl.bool plan_approved);
+         ("approved", Jsonl.bool judgment.approved);
          ("active", Jsonl.bool false);
          ("open", Jsonl.bool true);
-         ("csh", Jsonl.string (commitment_hash plan));
-         ("declined", Jsonl.bool false);
+         ("csh", Jsonl.string hash);
+         ("declined", Jsonl.bool (Option.is_some judgment.judged.latest_live));
        ]
+      @ optional "approval" (Option.map entry_id judgment.judged.approval)
       @ optional "plan_id"
           (Option.map
              (fun (id : Plan_target.id) -> Jsonl.string (id :> string))
@@ -1076,10 +1140,8 @@ let plan_records facts ~delivered plan =
     let verified =
       not (List.exists in_scope (Lazy.force facts.lookups).verifies)
     in
-    let own_approval =
-      total = 0 && Manifest.step facts.manifest = Manifest.Step_approval
-    in
-    let approved = plan_approved && not own_approval in
+    let judgment = step_judgment facts plan step in
+    let approved = judgment.approved in
     let settled =
       if total > 0 then met = total
       else
@@ -1103,8 +1165,10 @@ let plan_records facts ~delivered plan =
          ("csh", Jsonl.string step.hash);
          ("delivered", Jsonl.bool delivered);
          ("approved", Jsonl.bool approved);
+         ("declined", Jsonl.bool (Option.is_some judgment.judged.latest_live));
          ("active", Jsonl.bool false);
        ]
+      @ optional "approval" (Option.map entry_id judgment.judged.approval)
       @ optional "delivery"
           (Option.map
              (fun line -> Jsonl.string (Delivery_line.to_string line))
@@ -1177,13 +1241,24 @@ let live_declines ledger judged =
       List.rev_append (Folds.live ledger ~subject ~hash ~after) found)
     least []
 
-let judged_declarations facts =
+let judged_facts facts =
   List.filter_map
     (fun (d : declaration) ->
       if Option.is_some (manifest_kind d.kind) then
         Some (declaration_id d, d.extent.hash, judged facts.ledger d)
       else None)
     (Array.to_list facts.declarations)
+  @ List.concat_map
+      (fun plan ->
+        let { hash; judgment; _ } = plan_entry facts plan in
+        (plan_fact_id plan, hash, judgment.judged)
+        :: List.map
+             (fun (step : step) ->
+               ( step_id plan step,
+                 step.hash,
+                 (step_judgment facts plan step).judged ))
+             plan.steps)
+      facts.plans
 
 let records ?(deliveries = []) facts =
   let delivered = delivered_steps facts deliveries in
@@ -1201,7 +1276,7 @@ let records ?(deliveries = []) facts =
             ack_records facts;
             List.concat_map (plan_records facts ~delivered) facts.plans;
           ]))
-  @ decline_records (live_declines facts.ledger (judged_declarations facts))
+  @ decline_records (live_declines facts.ledger (judged_facts facts))
   @ external_records facts
 
 type identity = {
