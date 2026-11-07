@@ -73,8 +73,8 @@ let ignored_tags documents =
             (Finding.Line { path; line = span.start.line })
             ~place:(place path span)
             ~detail:
-              "sinter reads tags only in the first paragraph of a section or a \
-               list item"
+              "sinter reads tags only at the start of a section or a list \
+               item: in an HTML comment or in the first paragraph"
             ())
         document.unread)
     documents

@@ -1,0 +1,4 @@
+{"base":"fa23d0c85486a6f09792056c342dc4315ab9d4b3","default_branch":"main","evidence":false,"kind":"index","manifest":"sinter.toml","mode":"tree","packs":[],"tool":"<tool>","tree":"b5ba416baf47ca0ad40d163e21b84b4b6bbbacce","v":1}
+{"col":8,"dangling":false,"dst":"req:one","ecol":21,"eline":5,"id":"cites:site:docs/a.md#list->one","kind":"cites","line":5,"pack":"markdown","path":"docs/a.md","rev":1,"src":"site:docs/a.md#list","suspect":false,"target":"one","v":1}
+{"approval_required":false,"approved":true,"col":8,"declined":false,"ecol":16,"eline":3,"id":"req:one","inforce":true,"kind":"req","line":3,"pack":"markdown","path":"docs/a.md","rev":1,"slug":"one","v":1,"xeline":4,"xh":"2acabc75eb83523d786c3245c13edbcdb5ba68fe81282f8446f0a4e9a13f5439","xline":3}
+{"col":8,"ecol":21,"eline":5,"id":"site:docs/a.md#list","kind":"site","line":5,"name":"list","pack":"markdown","path":"docs/a.md","v":1,"xeline":6,"xline":1}

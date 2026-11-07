@@ -120,7 +120,8 @@ let ignored_tag_sits_at_a_later_paragraph () =
     [ ("docs/a.md", "# A\n\nText.\n\n@req a v1\n\n> @req b v1\n") ]
     [
       "docs/a.md:5:1-5:10 | finding:ignored-tag:line:docs/a.md@L5 | sinter \
-       reads tags only in the first paragraph of a section or a list item";
+       reads tags only at the start of a section or a list item: in an HTML \
+       comment or in the first paragraph";
     ]
 
 let invalid_target_names_why_the_target_fails () =

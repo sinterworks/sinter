@@ -1,0 +1,6 @@
+ignored-tag: sinter reads tags only at the start of a section or a list item: in an HTML comment or in the first paragraph
+ --> docs/a.md:6:1
+  |
+6 | @req a
+  | ^^^^^^
+  |

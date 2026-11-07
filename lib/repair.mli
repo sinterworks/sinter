@@ -14,6 +14,10 @@ type tag = {
   target : string option;  (** the tag target *)
   rev : int option;  (** the revision *)
   desc : string;  (** the inline description, as it stands *)
+  in_comment : bool;  (** [true] when the line stands in a tag comment *)
+  closes : bool;
+      (** [true] when the line stands in a tag comment whose [-->] is on that
+          line *)
 }
 (** The parts of one tag line that the test compares. *)
 
@@ -75,7 +79,11 @@ val is_repair : fixes -> removed:tag list -> added:tag list -> bool
       added tag, and so on.
     + In each pair of an old tag [o] and a new tag [n], the columns of the [@]
       are equal, and the inline descriptions are equal.
-    + Each pair differs by exactly one of these edits:
+    + Each pair differs by exactly one of the edits below. A pair of two equal
+      tags in tag comments also passes when [removed] or [added] holds a tag of
+      the word [ack], and when [removed] and [added] hold as many tags on whose
+      line a comment ends, because that [@ack] line can move the [-->] of a
+      comment:
 
     - a re-pin: [o] and [n] have one citation word, one tag target, and two
       different revisions, and the revision of [n] is [fixes.revision] of the

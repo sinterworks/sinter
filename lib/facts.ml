@@ -230,7 +230,7 @@ let ordinary_file ~base ~path (document : Markdown.t) =
         is_citation tag
         && Option.is_none (owner tag)
         && Option.is_none site.(tag.section)
-      then site.(tag.section) <- Some tag.span)
+      then site.(tag.section) <- Some tag)
     tags;
   let status = Array.make count None in
   Array.iter
@@ -320,12 +320,14 @@ let ordinary_file ~base ~path (document : Markdown.t) =
     List.filter_map
       (fun index ->
         Option.map
-          (fun citation ->
+          (fun (citation : Markdown.tag) ->
             let section = document.sections.(index) in
             let span =
-              match (section.first_paragraph, section.extent) with
-              | Some span, _ | None, Some span -> span
-              | None, None -> citation
+              match
+                (citation.in_comment, section.first_paragraph, section.extent)
+              with
+              | false, Some span, _ | false, None, Some span -> span
+              | true, _, _ | false, None, None -> citation.span
             in
             {
               id = site_id path section;

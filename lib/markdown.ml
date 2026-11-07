@@ -59,6 +59,7 @@ type tag = {
   owner : int option;
   extent : extent option;
   in_comment : bool;
+  closes_comment : bool;
 }
 
 type block = {
@@ -237,10 +238,17 @@ type row = {
   head_stop : int;
   body_start : int;
   body_stop : int;
+  closes : bool;
   written : (int * Tag_line.t) option;
 }
 
-type comment = { rows : row list; holds_tag : bool; delimiter_rows : int list }
+type comment = {
+  rows : row list;
+  holds_tag : bool;
+  first_content : row option;
+  delimiter_rows : int list;
+}
+
 type part = Comment_part of comment | Paragraph_part of tree
 type bearing = { container : int; in_section : int; bearer : node; part : part }
 
@@ -349,6 +357,7 @@ let comment_row lines ~opened ~close ~first_line ~last_line line =
       head_stop;
       body_start;
       body_stop;
+      closes = line = last_line;
       written =
         Tag_line.read (String.sub text body_start (body_stop - body_start));
     },
@@ -370,6 +379,8 @@ let comment_of_range lines ~opened ~close =
   {
     rows;
     holds_tag = List.exists (fun row -> Option.is_some row.written) rows;
+    first_content =
+      List.find_opt (fun row -> row.body_stop > row.body_start) rows;
     delimiter_rows;
   }
 
@@ -415,6 +426,13 @@ let rec leading lines comments = function
       | None -> (List.rev comments, all))
   | blocks -> (List.rev comments, blocks)
 
+let check_comment walk comment =
+  match comment.first_content with
+  | Some { written = Some (at, _); body_start; body_stop; _ } ->
+      Dynarray.add_last walk.unread
+        (span_to walk.lines (body_start + at) body_stop)
+  | Some _ | None -> ()
+
 let rec walk_blocks walk ~container ~in_section ~bearer (comments, blocks) =
   let node part =
     Dynarray.add_last walk.bearing { container; in_section; bearer; part }
@@ -439,11 +457,13 @@ let rec walk_blocks walk ~container ~in_section ~bearer (comments, blocks) =
     (fun block ->
       match block.kind with
       | Paragraph -> check_unread walk block
+      | Html ->
+          Option.iter (check_comment walk) (comment_block walk.lines block)
       | Item -> walk_item walk ~parent:container ~in_section block
       | Section ->
           walk_section walk ~parent:(Some in_section) ~holder:(Some container)
             block
-      | Heading | Html | Other -> ())
+      | Heading | Other -> ())
     blocks
 
 and walk_item walk ~parent ~in_section item =
@@ -527,6 +547,7 @@ type pending = {
   in_block : int;
   declares : bool;
   in_comment_block : bool;
+  closes : bool;
 }
 
 type pending_block = {
@@ -566,7 +587,7 @@ let read_node lines tags blocks node =
         current := None
     | None -> ()
   in
-  let tag_line ~line ~head_stop ~body_start ~at ~stop ~in_comment_block
+  let tag_line ~line ~head_stop ~body_start ~at ~stop ~in_comment_block ~closes
       (tag_line : Tag_line.t) =
     (match !current with
     | Some { prose_lines = []; _ } -> ()
@@ -602,6 +623,7 @@ let read_node lines tags blocks node =
           in_block;
           declares = declares tag_line parts;
           in_comment_block;
+          closes;
         }
     in
     current :=
@@ -635,7 +657,8 @@ let read_node lines tags blocks node =
           | Some (at, written) ->
               tag_line ~line:row.row ~head_stop:row.head_stop
                 ~body_start:row.body_start ~at:(row.body_start + at)
-                ~stop:row.body_stop ~in_comment_block:true written
+                ~stop:row.body_stop ~in_comment_block:true ~closes:row.closes
+                written
           | None when row.body_stop > row.body_start ->
               prose row.row
                 (String.sub text row.body_start
@@ -654,7 +677,8 @@ let read_node lines tags blocks node =
         | Some (at, written) ->
             let first_byte = Line_index.first lines line in
             tag_line ~line ~head_stop:first_byte ~body_start:first_byte
-              ~at:(start + at) ~stop ~in_comment_block:false written
+              ~at:(start + at) ~stop ~in_comment_block:false ~closes:false
+              written
         | None -> prose line (Line_index.content lines line)
       done);
   close ()
@@ -945,6 +969,7 @@ let assemble lines ~open_end ~texts walk errors =
           owner = owners.(tag.line);
           extent = extents.(index);
           in_comment = tag.in_comment_block;
+          closes_comment = tag.closes;
         })
       pending
   in

@@ -113,9 +113,9 @@ val alternatives : t -> edit list list
     - {!remove_acks}: one edit with an empty text for each [@ack] line, in the
       order of the lines: from the end of the tag line before the [@ack] line to
       the end of the [@ack] line, each end before the line ending of its line;
-      or, when the [@ack] line is the last line of a file that does not end with
-      an LF ({!Markdown.t.unterminated}), from column 1 of the [@ack] line to
-      its end. *)
+      or, when the [@ack] line stands in no tag comment and is the last line of
+      a file that does not end with an LF ({!Markdown.t.unterminated}), from
+      column 1 of the [@ack] line to its end. *)
 
 val help : t -> string
 (** [help fix] is the help message of [fix], one line for the person who reads

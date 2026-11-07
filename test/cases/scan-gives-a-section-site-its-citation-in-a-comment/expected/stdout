@@ -1,0 +1,4 @@
+{"base":"c3e987f59efe5f876f6db8dc705b96c552481983","default_branch":"main","evidence":false,"kind":"index","manifest":"sinter.toml","mode":"tree","packs":[],"tool":"<tool>","tree":"66b3dcfc195f3c3676034b827e63287cbc867492","v":1}
+{"col":6,"dangling":false,"dst":"req:a","ecol":17,"eline":6,"id":"cites:site:docs/a.md#u->a","kind":"cites","line":6,"pack":"markdown","path":"docs/a.md","rev":1,"src":"site:docs/a.md#u","suspect":false,"target":"a","v":1}
+{"approval_required":false,"approved":true,"col":1,"declined":false,"desc":"Text.","ecol":7,"eline":2,"id":"req:a","inforce":true,"kind":"req","line":2,"pack":"markdown","path":"docs/a.md","rev":1,"slug":"a","title":"T","v":1,"xeline":3,"xh":"33d5214bbd4adbec044169829ea2eba0e06fed6727f0a97083591583a28ece6a","xline":1}
+{"col":6,"ecol":17,"eline":6,"id":"site:docs/a.md#u","kind":"site","line":6,"name":"u","pack":"markdown","path":"docs/a.md","v":1,"xeline":7,"xline":5}

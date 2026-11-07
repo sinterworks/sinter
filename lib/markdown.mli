@@ -150,6 +150,9 @@ type tag = {
           share a line. *)
   extent : extent option;  (** the extent, for a declaration alone *)
   in_comment : bool;  (** [true] when the line stands in a tag comment *)
+  closes_comment : bool;
+      (** [true] when the line stands in a tag comment whose [-->] is on that
+          line *)
 }
 (** One tag line. *)
 
@@ -189,10 +192,11 @@ type t = {
   tags : tag array;  (** every tag line, in the order of the file *)
   blocks : block array;  (** in the order of the file *)
   unread : span list;
-      (** for each paragraph whose tags the reader does not read and whose first
-          line is a tag line, the span of that tag line, in the order of the
-          file. Such a paragraph is not the first paragraph of the section or
-          the list item that holds it, and no block quote holds it. *)
+      (** for each paragraph and each comment block whose tags the reader does
+          not read and whose first line of content is a tag line, the span of
+          that tag line, in the order of the file. Such a paragraph is not the
+          first paragraph of the section or the list item that holds it. Such a
+          comment block is no leading block. No block quote holds either. *)
   errors : span list;
       (** the places of the parse failures, in the order of the file: each
           [ERROR] node and each [MISSING] node that no [ERROR] node holds; when

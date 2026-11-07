@@ -20,7 +20,7 @@ duplicate: the slug Login of decision:Login is declared earlier
   |           ^^^^^ declared again here
   |
 
-ignored-tag: sinter reads tags only in the first paragraph of a section or a list item
+ignored-tag: sinter reads tags only at the start of a section or a list item: in an HTML comment or in the first paragraph
   --> docs/a.md:12:1
    |
 12 | @cites login v1

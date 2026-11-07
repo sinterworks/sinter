@@ -7,6 +7,8 @@ type tag = {
   target : string option;
   rev : int option;
   desc : string;
+  in_comment : bool;
+  closes : bool;
 }
 
 let of_markdown (tag : Markdown.tag) =
@@ -16,6 +18,8 @@ let of_markdown (tag : Markdown.tag) =
     target = tag.target;
     rev = tag.rev;
     desc = tag.desc;
+    in_comment = tag.in_comment;
+    closes = tag.closes_comment;
   }
 
 let tags (document : Markdown.t) ~first ~count =
@@ -118,11 +122,22 @@ let is_ack (tag : tag) = String.equal tag.word "ack"
 let is_repair fixes ~removed ~added =
   let old = List.filter (fun tag -> not (is_ack tag)) removed
   and fresh = List.filter (fun tag -> not (is_ack tag)) added in
+  let closing tags =
+    List.length (List.filter (fun (tag : tag) -> tag.closes) tags)
+  in
+  let acked =
+    (List.exists is_ack removed || List.exists is_ack added)
+    && closing removed = closing added
+  in
+  let moved_delimiter (o : tag) (n : tag) =
+    acked && o.in_comment && n.in_comment && { o with closes = n.closes } = n
+  in
   (removed <> [] || added <> [])
   && List.compare_lengths old fresh = 0
   && List.for_all2
        (fun (o : tag) (n : tag) ->
-         o.column = n.column && String.equal o.desc n.desc && edit fixes o n)
+         o.column = n.column && String.equal o.desc n.desc
+         && (edit fixes o n || moved_delimiter o n))
        old fresh
 
 let hunk fixes ~base document (h : Git.hunk) =

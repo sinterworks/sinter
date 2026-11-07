@@ -2157,6 +2157,104 @@ let hash_cases =
     a_comment_block_changes_no_fact_of_a_tag;
   ]
 
+let unread_of text = List.map span (file text).unread
+
+let check_unread_places text expected () =
+  Alcotest.(check (list string)) "the unread places" expected (unread_of text)
+
+let a_tag_comment_in_the_wrong_place_is_unread =
+  check_unread_places
+    "## T\nText.\n\n<!-- @req a v1 -->\n\n<!--\n@cites b\n-->\n"
+    [ "4:6-4:15"; "7:1-7:9" ]
+
+let a_tag_comment_right_after_a_paragraph_is_unread =
+  check_unread_places "## T\nText.\n<!-- @req a -->\nMore.\n" [ "3:6-3:12" ]
+
+let a_comment_after_a_setext_heading_is_unread =
+  check_unread_places "Title\n=====\n<!-- @req a -->\nText.\n" [ "3:6-3:12" ]
+
+let a_comment_out_of_place_that_mixes_tags_and_text_is_unread =
+  check_unread_places "## T\nText.\n\n<!--\n@req a\nwords\n-->\n" [ "5:1-5:7" ]
+
+let a_blank_line_in_a_comment_out_of_place_changes_nothing =
+  check_unread_places "## T\nText.\n\n<!--\n\n@req a\n\nwords\n-->\n"
+    [ "6:1-6:7" ]
+
+let a_comment_in_place_is_never_unread =
+  check_unread_places
+    "## T\n\
+     <!--\n\
+     @req a\n\
+     words\n\n\
+     @cites b\n\
+     -->\n\
+     <!-- words\n\
+     @req c -->\n\
+     <!-- @req d --> \n"
+    []
+
+let a_comment_with_text_first_is_not_unread =
+  check_unread_places
+    "## T\nText.\n\n<!-- words\n@req a\n-->\n\n<!--\n\nwords\n@req b\n-->\n" []
+
+let a_comment_in_a_block_quote_is_not_unread =
+  check_unread_places "> Text.\n>\n> <!-- @req a -->\n\n> - <!-- @req b -->\n"
+    []
+
+let a_comment_with_text_after_it_is_not_unread =
+  check_unread_places "## T\nText.\n\n<!-- @req a --> tail\n\n<!-- @req b -->"
+    [ "6:6-6:12" ]
+
+let a_comment_with_no_close_is_not_unread =
+  check_unread_places "## T\nText.\n\n<!-- @req a\n" []
+
+let an_item_holds_a_comment_directly =
+  check_unread_places
+    "- Text.\n\n  <!-- @cites a -->\n\n  - <!-- @cites b -->\n    Text.\n"
+    [ "3:8-3:16" ]
+
+let a_comment_after_a_task_paragraph_is_unread =
+  check_unread_places "- [ ] Text.\n  <!-- @cites a -->\n" [ "2:8-2:16" ]
+
+let a_tag_knows_whether_its_line_closes_the_comment () =
+  Alcotest.(check (list bool))
+    "the flag of each tag" [ false; true; false ]
+    (Array.to_list
+       (Array.map
+          (fun (tag : Markdown.tag) -> tag.closes_comment)
+          (file "## T\n<!-- @req a\n@cites b -->\n@cites c\n").tags))
+
+let ignored_cases =
+  [
+    Alcotest.test_case "a tag comment in the wrong place is unread" `Quick
+      a_tag_comment_in_the_wrong_place_is_unread;
+    Alcotest.test_case "a tag comment right after a paragraph is unread" `Quick
+      a_tag_comment_right_after_a_paragraph_is_unread;
+    Alcotest.test_case "a comment after a setext heading is unread" `Quick
+      a_comment_after_a_setext_heading_is_unread;
+    Alcotest.test_case
+      "a comment out of place that mixes tags and text is unread" `Quick
+      a_comment_out_of_place_that_mixes_tags_and_text_is_unread;
+    Alcotest.test_case "a blank line in a comment out of place changes nothing"
+      `Quick a_blank_line_in_a_comment_out_of_place_changes_nothing;
+    Alcotest.test_case "a comment in place is never unread" `Quick
+      a_comment_in_place_is_never_unread;
+    Alcotest.test_case "a comment with text first is not unread" `Quick
+      a_comment_with_text_first_is_not_unread;
+    Alcotest.test_case "a comment in a block quote is not unread" `Quick
+      a_comment_in_a_block_quote_is_not_unread;
+    Alcotest.test_case "a comment with text after it is not unread" `Quick
+      a_comment_with_text_after_it_is_not_unread;
+    Alcotest.test_case "a comment with no close is not unread" `Quick
+      a_comment_with_no_close_is_not_unread;
+    Alcotest.test_case "an item holds a comment directly" `Quick
+      an_item_holds_a_comment_directly;
+    Alcotest.test_case "a tag knows whether its line closes the comment" `Quick
+      a_tag_knows_whether_its_line_closes_the_comment;
+    Alcotest.test_case "a comment after a task paragraph is unread" `Quick
+      a_comment_after_a_task_paragraph_is_unread;
+  ]
+
 let tests =
   [
     Alcotest.test_case "unterminated is the last line without a line feed"
@@ -2263,4 +2361,4 @@ let tests =
       `Quick new_line_of_a_wide_or_tabbed_indent_is_its_own;
     new_line_ends_the_last_tag_line_and_reaches_its_at;
   ]
-  @ comment_cases @ hash_cases
+  @ comment_cases @ hash_cases @ ignored_cases

@@ -51,8 +51,9 @@ let fixes_of table =
     word = (fun word -> List.assoc_opt word table.words);
   }
 
-let tag ?(column = 1) ?target ?rev ?(desc = "") word =
-  { Repair.column; word; target; rev; desc }
+let tag ?(column = 1) ?target ?rev ?(desc = "") ?(in_comment = false)
+    ?(closes = false) word =
+  { Repair.column; word; target; rev; desc; in_comment; closes }
 
 let repair ?(table = no_fix) removed added =
   Repair.is_repair (fixes_of table) ~removed ~added
@@ -290,6 +291,42 @@ let a_corrected_word_is_the_word_of_the_fix () =
           [ tag "req" ~target:"a" ~rev:2 ] );
     ]
 
+let an_equal_pair_in_comments_needs_an_ack () =
+  let closed =
+    tag "cites" ~column:6 ~target:"a" ~rev:1 ~in_comment:true ~closes:true
+  in
+  let opened = { closed with closes = false } in
+  let ack = tag "ack" ~column:6 ~target:"retired" ~desc:" 0123abcd" in
+  let closing_ack = { ack with in_comment = true; closes = true } in
+  let plain = { closed with in_comment = false; closes = false } in
+  List.iter
+    (fun (name, expected, actual) -> Alcotest.(check bool) name expected actual)
+    [
+      ( "an added ack moves the delimiter",
+        true,
+        repair [ closed ] [ opened; closing_ack ] );
+      ( "a removed ack moves the delimiter",
+        true,
+        repair [ opened; closing_ack ] [ closed ] );
+      ( "an added ack that does not close the comment is a change",
+        false,
+        repair [ closed ] [ opened; { closing_ack with closes = false } ] );
+      ( "an ack that closes no comment it opened is a change",
+        false,
+        repair [ opened ] [ opened; closing_ack ] );
+      ("with no ack the pair is no change", false, repair [ closed ] [ opened ]);
+      ("a plain pair is no change", false, repair [ plain ] [ plain; ack ]);
+      ( "a pair with one side out of a comment is a change",
+        false,
+        repair [ plain ] [ opened; closing_ack ] );
+      ( "the other side out of a comment is a change",
+        false,
+        repair [ closed ] [ { plain with closes = false }; closing_ack ] );
+      ( "a pair with another target is a change",
+        false,
+        repair [ closed ] [ { opened with target = Some "b" }; closing_ack ] );
+    ]
+
 let a_pair_keeps_its_column_and_its_description () =
   let old = tag "cites" ~target:"a" ~rev:1 ~desc:" Text." ~column:3 in
   let fixed = { old with rev = Some 2 } in
@@ -518,7 +555,15 @@ let tag_gen =
     let* target = option target_gen in
     let* rev = option rev_gen in
     let+ desc = desc_gen in
-    { Repair.column; word; target; rev; desc })
+    {
+      Repair.column;
+      word;
+      target;
+      rev;
+      desc;
+      in_comment = false;
+      closes = false;
+    })
 
 let table_gen =
   Gen.(
@@ -666,7 +711,15 @@ let edit_gen =
     let rev = if rev = old_rev then rev + 1 else rev in
     let* pinned = bool in
     let make word target rev =
-      { Repair.column; word; target = Some target; rev; desc }
+      {
+        Repair.column;
+        word;
+        target = Some target;
+        rev;
+        desc;
+        in_comment = false;
+        closes = false;
+      }
     in
     let kept = if pinned then Some old_rev else None in
     let written = Option.map (fun _ -> rev) kept in
@@ -740,8 +793,26 @@ let edit_gen =
         {
           name = "corrected word";
           table = { no_fix with words = [ ("reqq", "req") ] };
-          old_tag = { Repair.column; word = "reqq"; target; rev = kept; desc };
-          new_tag = { Repair.column; word = "req"; target; rev = kept; desc };
+          old_tag =
+            {
+              Repair.column;
+              word = "reqq";
+              target;
+              rev = kept;
+              desc;
+              in_comment = false;
+              closes = false;
+            };
+          new_tag =
+            {
+              Repair.column;
+              word = "req";
+              target;
+              rev = kept;
+              desc;
+              in_comment = false;
+              closes = false;
+            };
         }
     | _ ->
         let+ id = map (Printf.sprintf "%06x") (int_bound 0xffffff) in
@@ -803,6 +874,8 @@ let tests =
       a_retarget_names_what_its_fix_names;
     case "a corrected word is the word of the fix"
       a_corrected_word_is_the_word_of_the_fix;
+    case "an equal pair in comments needs an ack"
+      an_equal_pair_in_comments_needs_an_ack;
     case "a pair keeps its column and its description"
       a_pair_keeps_its_column_and_its_description;
     case "every pair must be an edit" every_pair_must_be_an_edit;

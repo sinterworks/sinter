@@ -1,0 +1,24 @@
+retired: decision:cookie is deprecated
+ --> docs/a.md:2:6
+  |
+2 | <!-- @cites cookie v2 -->
+  |             ^^^^^^ cites a retired item
+  |
+ ::: docs/decisions/cookie.md:3:1
+  |
+3 | @decision cookie v2
+  | ------------------- the cited item is deprecated
+  |
+help: if the citation still holds, accept the finding with an @ack line
+  |
+2 - <!-- @cites cookie v2 -->
+2 + <!-- @cites cookie v2
+3 +      @ack retired cookie 2dde99aa -->
+  |
+
+stale-ack: the @ack names the hash 2dde99aa, and its block has the hash 01ba4719
+ --> docs/a.md:3:1
+  |
+3 | @ack retired cookie 2dde99aa
+  |                     ^^^^^^^^ does not match the block
+  |

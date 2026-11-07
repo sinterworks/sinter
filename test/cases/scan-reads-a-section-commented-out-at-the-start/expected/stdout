@@ -1,0 +1,2 @@
+{"base":"3251e58624367b36f409319794c3f78d024bfc21","default_branch":"main","evidence":false,"kind":"index","manifest":"sinter.toml","mode":"tree","packs":[],"tool":"<tool>","tree":"2a6cf857eb2ea6710f5f2504ac1d204bf469223d","v":1}
+{"approval_required":false,"approved":true,"col":1,"declined":false,"desc":"Old text.","ecol":7,"eline":4,"id":"req:a","inforce":true,"kind":"req","line":4,"pack":"markdown","path":"docs/a.md","rev":1,"slug":"a","title":"T","v":1,"xeline":7,"xh":"4c62e48054dc2c7f042b51a8016b6ad9ce06085a34d7f7880011433fa32c4ff0","xline":1}

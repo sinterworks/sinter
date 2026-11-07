@@ -119,7 +119,10 @@ let first_seen lines =
          else line :: kept)
        [] lines)
 
+type form = Plain | One_comment_each | One_comment | Delimiter_lines
+
 type block = {
+  form : form;
   marker : string;
   indent : string;
   lines : line list;
@@ -128,9 +131,10 @@ type block = {
 
 let block =
   Gen.(
-    map3
-      (fun (marker, indent) lines acks ->
-        { marker; indent; lines = first_seen lines; acks })
+    map4
+      (fun form (marker, indent) lines acks ->
+        { form; marker; indent; lines = first_seen lines; acks })
+      (oneof_list [ Plain; One_comment_each; One_comment; Delimiter_lines ])
       (oneof_list
          [ ("", ""); ("- ", "  "); ("- [ ] ", "      "); ("10. ", "    ") ])
       (list_size (int_range 1 3) line)
@@ -144,21 +148,40 @@ let block =
            [ "@ack nothing 00000000"; "@ack retired dep 00000000" ];
          ]))
 
+let render_block block =
+  let lines = List.map render_line block.lines @ block.acks in
+  let placed =
+    List.mapi (fun position line ->
+        (if position = 0 then block.marker else block.indent) ^ line)
+  in
+  let rec closed = function
+    | [] -> []
+    | [ last ] -> [ last ^ " -->" ]
+    | line :: rest -> line :: closed rest
+  in
+  match block.form with
+  | Plain -> placed lines
+  | One_comment_each ->
+      placed (List.map (fun line -> "<!-- " ^ line ^ " -->") lines)
+  | One_comment -> (
+      match lines with
+      | [] -> []
+      | first :: rest -> (
+          match closed (first :: rest) with
+          | line :: rest -> placed (("<!-- " ^ line) :: rest)
+          | [] -> []))
+  | Delimiter_lines ->
+      (block.marker ^ "<!--")
+      :: List.map (fun line -> block.indent ^ line) lines
+      @ [ block.indent ^ "-->" ]
+
 let render_guide ending final blocks =
   String.concat ending
     ("# Guide"
     :: List.concat
          (List.mapi
             (fun index block ->
-              ""
-              :: Printf.sprintf "## G%d" index
-              :: ""
-              :: List.mapi
-                   (fun position line ->
-                     (if position = 0 then block.marker else block.indent)
-                     ^ render_line line)
-                   block.lines
-              @ List.map (fun ack -> block.indent ^ ack) block.acks)
+              "" :: Printf.sprintf "## G%d" index :: "" :: render_block block)
             blocks))
   ^ if final then ending else ""
 
@@ -251,7 +274,35 @@ let is_mechanical ~base files change =
     (Some (Edits.document change.after))
     (hunk change.before change.after)
 
-let lines text = String.split_on_char '\n' text
+let strip_end text =
+  let rec stop index =
+    if index > 0 && (text.[index - 1] = ' ' || text.[index - 1] = '\t') then
+      stop (index - 1)
+    else index
+  in
+  String.sub text 0 (stop (String.length text))
+
+let without_delimiters line =
+  let body =
+    if String.ends_with ~suffix:"\r" line then
+      String.sub line 0 (String.length line - 1)
+    else line
+  in
+  let body =
+    if String.ends_with ~suffix:"-->" body then
+      String.sub body 0 (String.length body - 3)
+    else body
+  in
+  let body = strip_end body in
+  match String.index_opt body '<' with
+  | Some at
+    when String.starts_with ~prefix:"<!-- "
+           (String.sub body at (String.length body - at)) ->
+      String.sub body 0 at
+      ^ String.sub body (at + 5) (String.length body - at - 5)
+  | Some _ | None -> body
+
+let lines text = List.map without_delimiters (String.split_on_char '\n' text)
 
 let tag_at (document : Markdown.t) line =
   List.find
@@ -273,8 +324,8 @@ let touches_only_its_place change =
   in
   match (change.finding.finding_class, change.finding.ackable) with
   | Finding_class.Stale_ack, _ ->
-      let before = file_lines change.before
-      and after = file_lines change.after in
+      let before = List.map without_delimiters (file_lines change.before)
+      and after = List.map without_delimiters (file_lines change.after) in
       let removed =
         List.map (fun (edit : Fix.edit) -> edit.eline) change.edits
       in
@@ -550,6 +601,152 @@ let every_fix_of_the_probe_touches_only_its_place () =
         (touches_only_its_place change))
     (Lazy.force probe_changes)
 
+let comment_base =
+  [
+    ("docs/decisions.md", decisions);
+    ("docs/moved.md", "# Moved\n\n<!-- @req moved v1 Move it. -->\n");
+    ("docs/edited.md", "# Edited\n<!-- @req edited v2 -->\nOld.\n");
+  ]
+
+let comment_guide =
+  "# Guide\n\n\
+   ## Typo\n\
+   <!-- @reqq a v1 -->\n\n\
+   ## Suspect\n\
+   <!-- @cites login v1 -->\n\n\
+   ## Unpinned\n\
+   <!-- @satisfies login Why. -->\n\n\
+   ## Dangling\n\
+   <!--\n\
+   @cites Login v2\n\
+   -->\n\n\
+   ## Retired\n\
+   <!-- @cites old v1 -->\n\n\
+   ## Renamed\n\
+   <!-- @cites moved v1 -->\n\n\
+   ## Ack\n\
+   - <!-- @cites dep -->\n\
+  \  Text.\n\n\
+   ## Stale\n\
+   <!-- @cites login v2\n\
+   @ack suspect 00000000 -->\n\n\
+   ## Stale apart\n\
+   <!-- @cites login v2 -->\n\
+   <!-- @ack suspect 11111111 -->\n\n\
+   ## Stale after a comment\n\
+   <!-- @cites login v2 -->\n\
+   @ack suspect 22222222\n\n\
+   ## Stale before prose\n\
+   <!--\n\
+   @cites login v2\n\
+   @ack suspect 33333333\n\
+   Prose.\n\
+   -->\n\n\
+   ## Ack before prose\n\
+   <!--\n\
+   @cites dep\n\
+   Prose.\n\
+   -->\n"
+
+let comment_tree =
+  [
+    ("docs/decisions.md", decisions);
+    ("docs/moved.md", "# Moved\n\n<!-- @req moved-new v1 Move it. -->\n");
+    ("docs/edited.md", "# Edited\n<!-- @req edited v2 -->\nNew.\n");
+    ("docs/guide.md", comment_guide);
+    (".plans/p.md", "<!-- SPDX -->\n<!-- @plan p -->\n");
+    ("docs/end.md", "# End\n<!-- @cites login v2\n@ack suspect 44444444 -->");
+  ]
+
+let written_lines change =
+  let before = file_lines change.before and after = file_lines change.after in
+  let line =
+    List.fold_left
+      (fun line (edit : Fix.edit) -> min line edit.line)
+      max_int change.edits
+  in
+  let count = max 1 (1 + List.length after - List.length before) in
+  String.concat " | "
+    (List.filteri
+       (fun index _ -> index >= line - 1 && index < line - 1 + count)
+       after)
+
+let a_fix_keeps_the_delimiters () =
+  Alcotest.(check (list string))
+    "the lines that each fix writes"
+    [
+      ".plans/p.md missing-plan-id <!-- @plan p@a153a1 -->";
+      "docs/edited.md unbumped <!-- @req edited v3 -->";
+      "docs/end.md stale-ack <!-- @cites login v2 -->";
+      "docs/guide.md typo-tag <!-- @req a v1 -->";
+      "docs/guide.md suspect <!-- @cites login v2 -->";
+      "docs/guide.md unpinned <!-- @satisfies login v2 Why. -->";
+      "docs/guide.md dangling @cites login v2";
+      "docs/guide.md retired <!-- @cites new v3 -->";
+      "docs/guide.md retired <!-- @cites other v1 -->";
+      "docs/guide.md renamed <!-- @cites moved-new v1 -->";
+      "docs/guide.md retired - <!-- @cites dep |        @ack retired dep \
+       9b26ac71 -->";
+      "docs/guide.md stale-ack <!-- @cites login v2 -->";
+      "docs/guide.md stale-ack @cites login v2";
+      "docs/guide.md retired @cites dep | @ack retired dep 004c9bc1";
+    ]
+    (List.map
+       (fun change ->
+         Printf.sprintf "%s %s %s" change.path
+           (Finding_class.name change.finding.finding_class)
+           (written_lines change))
+       (changes ~base:comment_base comment_tree))
+
+let an_ack_in_another_node_has_no_fix () =
+  Alcotest.(check (list (pair int bool)))
+    "the line of each void @ack, and whether it has a fix"
+    [ (29, true); (33, false); (37, false); (42, true) ]
+    (List.filter_map
+       (fun (finding : Finding.t) ->
+         match (finding.finding_class, finding.place) with
+         | Finding_class.Stale_ack, Some place
+           when String.equal place.path "docs/guide.md" ->
+             Some (place.span.start.line, Option.is_some finding.fix)
+         | _ -> None)
+       (findings ~base:comment_base comment_tree))
+
+let a_finding_gives_its_place_in_the_comment () =
+  Alcotest.(check (list string))
+    "the places"
+    [ "docs/guide.md:4:6-4:16 typo-tag"; "docs/guide.md:7:6-7:21 suspect" ]
+    (List.filter_map
+       (fun (finding : Finding.t) ->
+         match finding.place with
+         | Some place
+           when String.equal place.path "docs/guide.md"
+                && place.span.start.line < 8 ->
+             Some
+               (Printf.sprintf "%s:%d:%d-%d:%d %s" place.path
+                  place.span.start.line place.span.start.column
+                  place.span.stop.line place.span.stop.column
+                  (Finding_class.name finding.finding_class))
+         | _ -> None)
+       (findings ~base:comment_base comment_tree))
+
+let every_fix_in_a_comment_repairs_its_finding () =
+  List.iter
+    (fun change ->
+      Alcotest.(check bool)
+        (Finding.id change.finding)
+        true
+        (repairs ~base:comment_base comment_tree change))
+    (changes ~base:comment_base comment_tree)
+
+let every_fix_in_a_comment_is_a_mechanical_repair () =
+  List.iter
+    (fun change ->
+      Alcotest.(check bool)
+        (Finding.id change.finding)
+        true
+        (is_mechanical ~base:comment_base comment_tree change))
+    (changes ~base:comment_base comment_tree)
+
 let the_probe_removes_each_stale_ack () =
   Alcotest.(check (list string))
     "the stale-ack fixes"
@@ -702,6 +899,16 @@ let tests =
       every_fix_of_the_probe_is_a_mechanical_repair;
     Alcotest.test_case "every fix of the probe touches only its place" `Quick
       every_fix_of_the_probe_touches_only_its_place;
+    Alcotest.test_case "a fix keeps the delimiters" `Quick
+      a_fix_keeps_the_delimiters;
+    Alcotest.test_case "an @ack in another node has no fix" `Quick
+      an_ack_in_another_node_has_no_fix;
+    Alcotest.test_case "a finding gives its place in the comment" `Quick
+      a_finding_gives_its_place_in_the_comment;
+    Alcotest.test_case "every fix in a comment repairs its finding" `Quick
+      every_fix_in_a_comment_repairs_its_finding;
+    Alcotest.test_case "every fix in a comment is a mechanical repair" `Quick
+      every_fix_in_a_comment_is_a_mechanical_repair;
     Alcotest.test_case "the probe removes each stale ack" `Quick
       the_probe_removes_each_stale_ack;
     Alcotest.test_case "a tag word made ack is no mechanical repair" `Quick

@@ -1,0 +1,2 @@
+{"base":"5d4c5eb841d8b1703768d7ef1a208516adc1eec2","default_branch":"main","evidence":false,"kind":"index","manifest":"sinter.toml","mode":"tree","packs":[],"tool":"<tool>","tree":"7184ba91a89b04af8af46d10d897ddf0bfa0cc2e","v":1}
+{"approval_required":false,"approved":true,"col":6,"declined":false,"ecol":29,"eline":2,"id":"req:account-lockout","inforce":true,"kind":"req","line":2,"pack":"markdown","path":"docs/a.md","rev":2,"slug":"account-lockout","title":"Lock an account","v":1,"xeline":3,"xh":"9e9e29ac2ecb854c6dae08b66c783295d18ce988a20db447d2ca19a9e356b934","xline":1}

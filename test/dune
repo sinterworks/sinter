@@ -30,6 +30,10 @@
  (dirs :standard .plans))
 
 (subdir
+ cases/scan-reads-a-plan-in-a-tag-comment/tree
+ (dirs :standard .plans))
+
+(subdir
  cases/scan-reads-a-refactor-step-as-done-by-its-delivery-line/base
  (dirs :standard .plans))
 

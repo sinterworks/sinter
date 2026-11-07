@@ -62,7 +62,12 @@ let removal (document : Markdown.t) ((previous : Markdown.tag), ack) =
   if not (String.equal ack.Markdown.word "ack") then fail "the tag is no @ack";
   if previous.span.stop.line + 1 <> ack.span.start.line then
     fail "the tag is not on the line before the @ack";
-  { previous; ack; last = document.unterminated = Some ack.span.start.line }
+  {
+    previous;
+    ack;
+    last =
+      (not ack.in_comment) && document.unterminated = Some ack.span.start.line;
+  }
 
 let remove_acks document pairs =
   let removals =

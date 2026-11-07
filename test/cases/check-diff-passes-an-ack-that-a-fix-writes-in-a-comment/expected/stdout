@@ -1,0 +1,6 @@
+unplanned-change: no step of an open plan, no rule, and no exempt path covers docs/plain.md
+ --> docs/plain.md:2:1
+  |
+2 | <!-- @cites cookie v2  -->
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
