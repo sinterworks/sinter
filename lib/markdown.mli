@@ -88,20 +88,20 @@ type section = {
       (** the extent of the section: its lines after two changes, from column 1
           of the first line to the end of the last. The lines of each section
           inside it and of each list item inside it that holds a declaration in
-          a tag-bearing node are removed, and then the blank lines at the end. A
-          blank line holds only spaces and tabs. The section of level 0 starts
-          at line 1, so it holds the front matter. [None] when no line is left.
-      *)
+          a tag-bearing node are removed, and then the blank lines and the
+          delimiter lines at the end. A blank line holds only spaces and tabs.
+          The section of level 0 starts at line 1, so it holds the front matter.
+          [None] when no line is left. *)
   text : string option;
       (** the text of the section, when {!read} takes [~texts:true]: the lines
           of the section after its heading, with the lines of each section
-          inside it, without each tag line of {!field-tags}, and without the
-          blank lines at the start and at the end. On each heading line that
-          opens a section, the section number of the heading text goes, with the
-          spaces and tabs after it. Each line loses the spaces and tabs at its
-          end, and ends with one LF. The section of level 0 starts at line 1.
-          [""] when no line is left; [None] when {!read} takes [~texts:false].
-      *)
+          inside it, without each tag line of {!field-tags} and each delimiter
+          line, and without the blank lines at the start and at the end. On each
+          heading line that opens a section, the section number of the heading
+          text goes, with the spaces and tabs after it. Each line loses the
+          spaces and tabs at its end, and ends with one LF. The section of level
+          0 starts at line 1. [""] when no line is left; [None] when {!read}
+          takes [~texts:false]. *)
 }
 (** One section. *)
 
@@ -116,7 +116,9 @@ type extent = {
   hash : string;
       (** the extent hash, as 64 lowercase hexadecimal digits. On each heading
           line that opens a section, the hash leaves out the section number of
-          the heading text, with the spaces and tabs after it. *)
+          the heading text, with the spaces and tabs after it. The hash leaves
+          out the comment delimiters of each line of a tag comment, and each
+          delimiter line, with its list marker and its task marker. *)
 }
 (** The extent of a declaration. *)
 

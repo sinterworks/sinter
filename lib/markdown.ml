@@ -234,12 +234,13 @@ type container = { first_line : int; last_line : int; parent : int option }
 
 type row = {
   row : int;
+  head_stop : int;
   body_start : int;
   body_stop : int;
   written : (int * Tag_line.t) option;
 }
 
-type comment = { rows : row list; holds_tag : bool }
+type comment = { rows : row list; holds_tag : bool; delimiter_rows : int list }
 type part = Comment_part of comment | Paragraph_part of tree
 type bearing = { container : int; in_section : int; bearer : node; part : part }
 
@@ -249,6 +250,8 @@ type walk = {
   sections : (section * int) Dynarray.t;
   bearing : bearing Dynarray.t;
   unread : span Dynarray.t;
+  delimiter_lines : int Dynarray.t;
+  comment_rows : row Dynarray.t;
   numbers : (int * int * int) Dynarray.t;
   number : string -> string;
 }
@@ -343,6 +346,7 @@ let comment_row lines ~opened ~close ~first_line ~last_line line =
   let body_stop = back_blanks text limit body_start in
   ( {
       row = line;
+      head_stop;
       body_start;
       body_stop;
       written =
@@ -353,16 +357,21 @@ let comment_row lines ~opened ~close ~first_line ~last_line line =
 let comment_of_range lines ~opened ~close =
   let first_line = Line_index.line_of lines opened in
   let last_line = Line_index.line_of lines close in
-  let rec collect line rows =
-    if line < first_line then rows
+  let rec collect line rows delimiters =
+    if line < first_line then (rows, delimiters)
     else
       let row, only_delimiter =
         comment_row lines ~opened ~close ~first_line ~last_line line
       in
-      collect (line - 1) (if only_delimiter then rows else row :: rows)
+      if only_delimiter then collect (line - 1) rows (line :: delimiters)
+      else collect (line - 1) (row :: rows) delimiters
   in
-  let rows = collect last_line [] in
-  { rows; holds_tag = List.exists (fun row -> Option.is_some row.written) rows }
+  let rows, delimiter_rows = collect last_line [] [] in
+  {
+    rows;
+    holds_tag = List.exists (fun row -> Option.is_some row.written) rows;
+    delimiter_rows;
+  }
 
 let comment_block lines block =
   match comment_range lines block.start block.stop with
@@ -411,7 +420,13 @@ let rec walk_blocks walk ~container ~in_section ~bearer (comments, blocks) =
     Dynarray.add_last walk.bearing { container; in_section; bearer; part }
   in
   List.iter
-    (fun comment -> if comment.holds_tag then node (Comment_part comment))
+    (fun comment ->
+      if comment.holds_tag then (
+        node (Comment_part comment);
+        List.iter (Dynarray.add_last walk.comment_rows) comment.rows;
+        List.iter
+          (Dynarray.add_last walk.delimiter_lines)
+          comment.delimiter_rows))
     comments;
   let blocks =
     match blocks with
@@ -504,6 +519,8 @@ type pending = {
   at : int;
   tag_line : Tag_line.t;
   parts : Tag_line.parts;
+  head_stop : int;
+  body_start : int;
   rest_start : int;
   stop_offset : int;
   of_node : bearing;
@@ -549,7 +566,8 @@ let read_node lines tags blocks node =
         current := None
     | None -> ()
   in
-  let tag_line ~line ~at ~stop ~in_comment_block (tag_line : Tag_line.t) =
+  let tag_line ~line ~head_stop ~body_start ~at ~stop ~in_comment_block
+      (tag_line : Tag_line.t) =
     (match !current with
     | Some { prose_lines = []; _ } -> ()
     | Some _ | None ->
@@ -576,6 +594,8 @@ let read_node lines tags blocks node =
           at;
           tag_line;
           parts;
+          head_stop;
+          body_start;
           rest_start = at + 1 + String.length tag_line.word;
           stop_offset = stop;
           of_node = node;
@@ -613,7 +633,8 @@ let read_node lines tags blocks node =
         (fun row ->
           match row.written with
           | Some (at, written) ->
-              tag_line ~line:row.row ~at:(row.body_start + at)
+              tag_line ~line:row.row ~head_stop:row.head_stop
+                ~body_start:row.body_start ~at:(row.body_start + at)
                 ~stop:row.body_stop ~in_comment_block:true written
           | None when row.body_stop > row.body_start ->
               prose row.row
@@ -631,13 +652,14 @@ let read_node lines tags blocks node =
         let stop = max start (Line_index.content_end lines line) in
         match Tag_line.read (String.sub text start (stop - start)) with
         | Some (at, written) ->
-            tag_line ~line ~at:(start + at) ~stop ~in_comment_block:false
-              written
+            let first_byte = Line_index.first lines line in
+            tag_line ~line ~head_stop:first_byte ~body_start:first_byte
+              ~at:(start + at) ~stop ~in_comment_block:false written
         | None -> prose line (Line_index.content lines line)
       done);
   close ()
 
-let extent_lines lines ~holes first last =
+let extent_lines lines ~delimiter ~holes first last =
   let count = Array.length holes in
   let rec collect line hole found =
     if line > last then found
@@ -646,47 +668,62 @@ let extent_lines lines ~holes first last =
     else collect (line + 1) hole (line :: found)
   in
   let rec drop_blank = function
-    | line :: rest when is_blank_line lines line -> drop_blank rest
+    | line :: rest when delimiter line || is_blank_line lines line ->
+        drop_blank rest
     | kept -> kept
   in
   List.rev (drop_blank (collect first 0 []))
 
-let plain_line lines ~numbered line =
+let plain_line lines ~numbered ~row_at line =
   let content = Line_index.content lines line in
-  match numbered line with
-  | Some (offset, cut) ->
+  match (numbered line, row_at line) with
+  | Some (offset, cut), _ ->
       let start = offset - Line_index.first lines line in
       strip_end
         (String.sub content 0 start
         ^ String.sub content (start + cut) (String.length content - start - cut)
         )
-  | None -> strip_end content
+  | None, Some (row : row) ->
+      let text = Line_index.text lines in
+      let first = Line_index.first lines line in
+      strip_end
+        (String.sub text first (row.head_stop - first)
+        ^ String.sub text row.body_start (row.body_stop - row.body_start))
+  | None, None -> strip_end content
 
-let section_text lines ~at ~numbered first last =
+let section_text lines ~at ~delimiter ~numbered ~row_at first last =
   let rec drop_blank = function
     | line :: rest when is_blank_line lines line -> drop_blank rest
     | kept -> kept
   in
   List.init (max 0 (last - first + 1)) (fun offset -> first + offset)
-  |> List.filter (fun line -> Option.is_none (at line))
+  |> List.filter (fun line -> Option.is_none (at line) && not (delimiter line))
   |> drop_blank |> List.rev |> drop_blank |> List.rev
-  |> List.map (fun line -> plain_line lines ~numbered line ^ "\n")
+  |> List.map (fun line -> plain_line lines ~numbered ~row_at line ^ "\n")
   |> String.concat ""
 
-let hash_lines lines ~at ~numbered ~own included =
+let hash_lines lines ~at ~delimiter ~numbered ~row_at ~own included =
   let normal line =
     match at line with
     | Some (_, pending) when pending.tag_line.word = "ack" -> None
     | Some (index, pending) when own index ->
         Some (strip pending.parts.description)
-    | Some (_, pending) when List.mem pending.tag_line.word citation_words ->
+    | Some (_, pending) ->
+        let text = Line_index.text lines in
         let start = Line_index.first lines line in
-        let prefix =
-          String.sub (Line_index.text lines) start (pending.rest_start - start)
+        let rest =
+          if List.mem pending.tag_line.word citation_words then
+            Tag_line.without_revision pending.tag_line.rest
+          else pending.tag_line.rest
         in
         Some
-          (strip_end (prefix ^ Tag_line.without_revision pending.tag_line.rest))
-    | _ -> Some (plain_line lines ~numbered line)
+          (strip_end
+             (String.sub text start (pending.head_stop - start)
+             ^ String.sub text pending.body_start
+                 (pending.rest_start - pending.body_start)
+             ^ rest))
+    | None when delimiter line -> None
+    | None -> Some (plain_line lines ~numbered ~row_at line)
   in
   Sha256.hex (String.concat "\n" (List.filter_map normal included) ^ "\n")
 
@@ -717,6 +754,8 @@ let structure lines captures =
       sections = Dynarray.create ();
       bearing = Dynarray.create ();
       unread = Dynarray.create ();
+      delimiter_lines = Dynarray.create ();
+      comment_rows = Dynarray.create ();
       numbers = Dynarray.create ();
       number = numberer ();
     }
@@ -834,6 +873,12 @@ let assemble lines ~open_end ~texts walk errors =
     (fun (line, offset, cut) -> number_at.(line) <- Some (offset, cut))
     walk.numbers;
   let numbered line = number_at.(line) in
+  let delimiter_at = Array.make (count + 1) false in
+  Dynarray.iter (fun line -> delimiter_at.(line) <- true) walk.delimiter_lines;
+  let delimiter line = delimiter_at.(line) in
+  let row_table = Array.make (count + 1) None in
+  Dynarray.iter (fun row -> row_table.(row.row) <- Some row) walk.comment_rows;
+  let row_at line = row_table.(line) in
   let owners = Array.make (count + 1) None in
   let extents = Array.make (Array.length pending) None in
   let claim declarations =
@@ -847,13 +892,13 @@ let assemble lines ~open_end ~texts walk errors =
             | [] -> containers.(container).last_line
           in
           let included =
-            extent_lines lines ~holes:holes.(container) start stop
+            extent_lines lines ~delimiter ~holes:holes.(container) start stop
           in
           List.iter (fun line -> owners.(line) <- Some index) included;
           (match range_of included with
           | Some (first, last) ->
               let hash =
-                hash_lines lines ~at ~numbered
+                hash_lines lines ~at ~delimiter ~numbered ~row_at
                   ~own:(fun other -> other = index)
                   included
               in
@@ -878,7 +923,9 @@ let assemble lines ~open_end ~texts walk errors =
           tags = block.members;
           prose = block.prose_lines;
           new_line = new_line lines ~line:block.last_tag_line ~at:block.last_at;
-          hash = hash_lines lines ~at ~numbered ~own block.block_lines;
+          hash =
+            hash_lines lines ~at ~delimiter ~numbered ~row_at ~own
+              block.block_lines;
         })
       (Dynarray.to_array pending_blocks)
   in
@@ -906,8 +953,8 @@ let assemble lines ~open_end ~texts walk errors =
       (fun ((section : section), container_index) ->
         let container = containers.(container_index) in
         let extent =
-          extent_lines lines ~holes:holes.(container_index) container.first_line
-            container.last_line
+          extent_lines lines ~delimiter ~holes:holes.(container_index)
+            container.first_line container.last_line
           |> range_of
           |> Option.map (fun (first, last) ->
               {
@@ -919,7 +966,7 @@ let assemble lines ~open_end ~texts walk errors =
         let text =
           if texts then
             Some
-              (section_text lines ~at ~numbered
+              (section_text lines ~at ~delimiter ~numbered ~row_at
                  (if section.level = 0 then container.first_line
                   else container.first_line + 1)
                  container.last_line)

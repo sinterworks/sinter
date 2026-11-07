@@ -1818,6 +1818,345 @@ let comment_cases =
       the_new_line_of_a_comment_reaches_its_at;
   ]
 
+let extent_hash text index =
+  match (file text).tags.(index).extent with
+  | Some extent -> extent.hash
+  | None -> Alcotest.fail "the tag has no extent"
+
+let check_hash name normalized text index () =
+  Alcotest.(check string) name (hex normalized) (extent_hash text index)
+
+let every_form_gives_the_hash_of_the_plain_form () =
+  List.iter
+    (fun text -> check_hash (String.escaped text) "## T\n\nText.\n" text 0 ())
+    [
+      "## T\n@req a\nText.\n";
+      "## T\n<!-- @req a -->\nText.\n";
+      "## T\n<!--\n@req a\n-->\nText.\n";
+      "## T\n<!-- @req a\n-->\nText.\n";
+      "## T\n<!--\n@req a -->\nText.\n";
+      "## T\n<!--\t  @req a \t -->  \nText.\n";
+      "## T\r\n<!--\r\n@req a\r\n-->\r\nText.\r\n";
+    ]
+
+let a_citation_in_a_comment_keeps_its_line () =
+  List.iter
+    (fun text ->
+      check_hash (String.escaped text) "## T\n\n@cites b\nText.\n" text 0 ())
+    [
+      "## T\n@req a\n@cites b v1\nText.\n";
+      "## T\n<!-- @req a\n@cites b v1 -->\nText.\n";
+      "## T\n<!-- @req a -->\n<!-- @cites b v1 -->\nText.\n";
+      "## T\n<!--\n@req a\n@cites b v2\n-->\nText.\n";
+    ]
+
+let any_other_tag_in_a_comment_keeps_its_line () =
+  List.iter
+    (fun (word, text) ->
+      check_hash word (Printf.sprintf "## T\n\n%s x\nText.\n" word) text 0 ())
+    [
+      ("@deprecated", "## T\n<!-- @req a\n@deprecated x -->\nText.\n");
+      ("@zzz", "## T\n<!--\n@req a\n@zzz x\n-->\nText.\n");
+      ("@param", "## T\n<!-- @req a -->\n<!-- @param x -->\nText.\n");
+    ]
+
+let an_indented_comment_keeps_its_indent =
+  check_hash "the indent stays" "## T\n\n  @cites b\nText.\n"
+    "## T\n<!-- @req a -->\n  <!-- @cites b v1 -->\nText.\n" 0
+
+let an_ack_in_a_comment_leaves_the_hash =
+  check_hash "the @ack goes" "## T\n\nText.\n"
+    "## T\n<!-- @req a\n@ack retired b 01234567 -->\nText.\n" 0
+
+let a_blank_line_after_the_comment_stays_in_the_extent =
+  check_hash "the blank line stays" "## T\n\n\nText.\n"
+    "## T\n<!-- @req a -->\n\nText.\n" 0
+
+let a_comment_that_is_no_tag_comment_stays_as_bytes =
+  check_hash "the bytes stay" "## T\n<!-- note -->\n\nText.\n"
+    "## T\n<!-- note -->\n<!-- @req a -->\nText.\n" 0
+
+let a_tag_comment_out_of_place_stays_as_bytes =
+  check_hash "the bytes stay"
+    "## T\n\nText.\n\n<!-- @cites b v1 -->\n<!--\n@cites c\n-->\n"
+    "## T\n@req a\nText.\n\n<!-- @cites b v1 -->\n<!--\n@cites c\n-->\n" 0
+
+let a_delimiter_line_ends_no_extent () =
+  let one_line = "## T\n<!-- @req a -->\n\n<!-- @req b -->\n"
+  and several = "## T\n<!-- @req a -->\n\n<!--\n@req b\n-->\n" in
+  check_hash "the first extent" "## T\n\n" one_line 0 ();
+  check_hash "the first extent, several lines" "## T\n\n" several 0 ();
+  check_hash "the second extent" "\n" several 1 ();
+  let last index =
+    Option.map
+      (fun (extent : Markdown.extent) -> extent.last)
+      (file several).tags.(index).extent
+  in
+  Alcotest.(check (option int)) "the first ends at its tag" (Some 2) (last 0);
+  Alcotest.(check (option int)) "the second ends at its tag" (Some 5) (last 1);
+  Alcotest.(check string)
+    "the section extent ends at the tag" "1:1-5:7"
+    (option span (file several).sections.(0).extent)
+
+let an_item_gives_the_hash_of_the_plain_form () =
+  List.iter
+    (fun text -> check_hash (String.escaped text) "\n  Text.\n" text 0 ())
+    [
+      "- @req a\n  Text.\n";
+      "- <!-- @req a -->\n  Text.\n";
+      "- <!--\n  @req a\n  -->\n  Text.\n";
+      "- [ ] @req a\n  Text.\n";
+      "- [ ] <!-- @req a -->\n  Text.\n";
+      "- [x] <!--\n  @req a\n  -->\n  Text.\n";
+    ]
+
+let a_citation_on_an_item_keeps_its_marker () =
+  List.iter
+    (fun (expected, text) ->
+      check_hash (String.escaped text) expected text 0 ())
+    [
+      ("\n\n- @cites b\n  Text.\n", "@req a\n\n- @cites b v1\n  Text.\n");
+      ( "\n\n- @cites b\n  Text.\n",
+        "@req a\n\n- <!-- @cites b v1 -->\n  Text.\n" );
+      ( "\n\n- [ ] @cites b\n  Text.\n",
+        "@req a\n\n- [ ] <!-- @cites b v1 -->\n  Text.\n" );
+      ( "\n\n  @cites b\n  Text.\n",
+        "@req a\n\n- <!--\n  @cites b v1\n  -->\n  Text.\n" );
+    ]
+
+let prose_in_a_comment_stays_in_the_extent () =
+  List.iter
+    (fun (normalized, text) ->
+      check_hash (String.escaped text) normalized text 0 ())
+    [
+      ("## T\n\nText.\n", "## T\n<!--\n@req a\nText.\n-->\n");
+      ("## T\n\nText.\n", "## T\n<!-- @req a\nText. -->\n");
+      ("## T\n\n\nText.\n", "## T\n<!--\n@req a\n\nText.\n-->\n");
+      ("## T\nwords\n\n", "## T\n<!-- words\n@req a -->\n");
+      ("- words\n\n", "- <!-- words\n  @req a -->\n");
+      ("## T\n\n\nMore.\n", "## T\n<!--\n@req a\n-->\n\nMore.\n");
+    ]
+
+let the_block_hash_of_a_comment_is_the_hash_of_its_lines () =
+  let hash text = (file text).blocks.(0).hash in
+  let plain = hash "## T\n@req a\n@cites b v1\nText.\n" in
+  List.iter
+    (fun text ->
+      Alcotest.(check string) (String.escaped text) plain (hash text))
+    [
+      "## T\n<!--\n@req a\n@cites b v1\nText.\n-->\n";
+      "## T\n<!-- @req a\n@cites b v1\nText. -->\n";
+    ]
+
+let the_text_of_a_section_leaves_out_the_delimiter_lines () =
+  let text source = Option.value (file source).sections.(0).text ~default:"-" in
+  List.iter
+    (fun source ->
+      Alcotest.(check string) (String.escaped source) "Text.\n" (text source))
+    [
+      "## T\n@req a\nText.\n";
+      "## T\n<!-- @req a -->\nText.\n";
+      "## T\n<!--\n@req a\n-->\nText.\n";
+      "## T\n<!--\n@req a\nText.\n-->\n";
+      "## T\n<!-- @req a\nText. -->\n";
+      "## T\n<!--\n@req a\n-->\n\nText.\n";
+    ];
+  Alcotest.(check string)
+    "a comment with no tag stays" "<!-- note -->\nText.\n"
+    (text "## T\n<!-- note -->\n<!-- @req a -->\nText.\n");
+  Alcotest.(check string)
+    "a marker goes with a delimiter line" "  Text.\n"
+    (text "- <!--\n  @req a\n  -->\n  Text.\n")
+
+let section_body =
+  Gen.oneof_list
+    [
+      []; [ "Text." ]; [ "One."; "`two` *three*"; "  Four." ]; [ "caf\xc3\xa9" ];
+    ]
+
+let section_tags =
+  Gen.list_size (Gen.int_range 1 4)
+    (Gen.oneof_list
+       [
+         "@req a";
+         "@req a v2";
+         "@req b v3 Words.";
+         "@design c";
+         "@cites d v1";
+         "@cites e";
+         "@cites gh/1 caf\xc3\xa9";
+         "@satisfies f v2 Why.";
+         "@deprecated";
+         "@ack retired x 01234567";
+         "@zzz word";
+         "@param p";
+         "  @refines g v1";
+       ])
+
+let in_one_comment tags =
+  let wrap tag ~before ~after =
+    let body = String.trim tag in
+    let indent = String.sub tag 0 (String.length tag - String.length body) in
+    indent ^ before ^ body ^ after
+  in
+  let rec lines = function
+    | [] -> []
+    | [ last ] -> [ wrap last ~before:"" ~after:" -->" ]
+    | tag :: rest -> tag :: lines rest
+  in
+  match tags with
+  | [] -> []
+  | [ tag ] -> [ wrap tag ~before:"<!-- " ~after:" -->" ]
+  | first :: rest -> wrap first ~before:"<!-- " ~after:"" :: lines rest
+
+let one_comment_each tags =
+  List.concat_map (fun tag -> in_one_comment [ tag ]) tags
+
+let forms_of_a_section =
+  Gen.triple section_tags section_body (Gen.oneof_list [ "\n"; "\r\n" ])
+
+let facts_of_a_tag (file : Markdown.t) (tag : Markdown.tag) =
+  Printf.sprintf "@%s %s %s %S block %d owner %s hash %s" tag.word
+    (option Fun.id tag.target)
+    (option string_of_int tag.rev)
+    tag.desc tag.block
+    (option string_of_int tag.owner)
+    (option (fun (extent : Markdown.extent) -> extent.hash) tag.extent)
+  ^ String.concat "," (List.map string_of_int file.blocks.(tag.block).tags)
+
+let facts_of_a_section_text text =
+  let file = file text in
+  ( Array.to_list (Array.map (facts_of_a_tag file) file.tags),
+    Array.to_list
+      (Array.map
+         (fun (block : Markdown.block) -> (block.prose, block.hash))
+         file.blocks),
+    Array.to_list
+      (Array.map
+         (fun (section : Markdown.section) -> section.text)
+         file.sections),
+    List.length file.unread )
+
+let delimiter_lines lines = ("<!--" :: lines) @ [ "-->" ]
+
+let the_move_into_a_comment_gives_equal_facts =
+  property ~count:200
+    ~name:
+      "a first paragraph moved into a comment gives the extent hash and the \
+       description of the plain form"
+    ~print:(fun (tags, body, _) -> String.concat "\n" (tags @ body))
+    forms_of_a_section
+    (fun (tags, body, ending) ->
+      let text head =
+        String.concat ending (("# Title" :: head) @ [ ""; "More."; "" ])
+      in
+      let plain = facts_of_a_section_text (text (tags @ body)) in
+      List.for_all
+        (fun form -> facts_of_a_section_text (text form) = plain)
+        [ delimiter_lines (tags @ body); in_one_comment (tags @ body) ])
+
+let the_tags_alone_moved_into_a_comment_give_equal_facts =
+  property ~count:200
+    ~name:
+      "tags moved into a comment with a blank line after it give the extent \
+       hash and the description of the plain form"
+    ~print:(fun (tags, body, _) -> String.concat "\n" (tags @ body))
+    forms_of_a_section
+    (fun (tags, body, ending) ->
+      let text head =
+        String.concat ending
+          (("# Title" :: head) @ ("" :: "More." :: body) @ [ "" ])
+      in
+      let plain = facts_of_a_section_text (text tags) in
+      List.for_all
+        (fun form -> facts_of_a_section_text (text form) = plain)
+        [ delimiter_lines tags; in_one_comment tags ])
+
+let each_comment_form_gives_the_extent_hash =
+  property ~count:200
+    ~name:"a description left out of a comment keeps the extent hash"
+    ~print:(fun (tags, body, _) -> String.concat "\n" (tags @ body))
+    forms_of_a_section
+    (fun (tags, body, ending) ->
+      let hashes head =
+        let text = String.concat ending (("# Title" :: head) @ body @ [ "" ]) in
+        List.filter_map
+          (fun (tag : Markdown.tag) ->
+            Option.map
+              (fun (extent : Markdown.extent) -> extent.hash)
+              tag.extent)
+          (Array.to_list (file text).tags)
+      in
+      let plain = hashes tags in
+      List.for_all
+        (fun form -> hashes form = plain)
+        [ delimiter_lines tags; one_comment_each tags; in_one_comment tags ])
+
+let tags_without_extents text =
+  let file = file text in
+  ( Array.to_list
+      (Array.map
+         (fun (tag : Markdown.tag) ->
+           (tag.word, tag.target, tag.rev, tag.desc, tag.block, tag.owner))
+         file.tags),
+    Array.to_list
+      (Array.map
+         (fun (block : Markdown.block) -> (block.prose, block.hash))
+         file.blocks),
+    List.length file.unread )
+
+let a_comment_block_changes_no_fact_of_a_tag =
+  property ~count:200 ~name:"a comment with no tag changes no fact of a tag"
+    ~print:(fun (tags, body, _) -> String.concat "\n" (tags @ body))
+    forms_of_a_section
+    (fun (tags, body, ending) ->
+      let text ~before ~after =
+        String.concat ending
+          (("# Title" :: before) @ tags @ body @ ("" :: after) @ [ "" ])
+      in
+      let plain = tags_without_extents (text ~before:[] ~after:[]) in
+      List.for_all
+        (fun comment ->
+          tags_without_extents (text ~before:[ comment ] ~after:[]) = plain
+          && tags_without_extents (text ~before:[] ~after:[ comment ]) = plain)
+        [ "<!-- words -->"; "<!---->"; "<!--\nwords\n\nmore\n-->" ])
+
+let hash_cases =
+  [
+    Alcotest.test_case "every form gives the hash of the plain form" `Quick
+      every_form_gives_the_hash_of_the_plain_form;
+    Alcotest.test_case "a citation in a comment keeps its line" `Quick
+      a_citation_in_a_comment_keeps_its_line;
+    Alcotest.test_case "any other tag in a comment keeps its line" `Quick
+      any_other_tag_in_a_comment_keeps_its_line;
+    Alcotest.test_case "an indented comment keeps its indent" `Quick
+      an_indented_comment_keeps_its_indent;
+    Alcotest.test_case "an @ack in a comment leaves the hash" `Quick
+      an_ack_in_a_comment_leaves_the_hash;
+    Alcotest.test_case "a blank line after the comment stays in the extent"
+      `Quick a_blank_line_after_the_comment_stays_in_the_extent;
+    Alcotest.test_case "a comment that is no tag comment stays as bytes" `Quick
+      a_comment_that_is_no_tag_comment_stays_as_bytes;
+    Alcotest.test_case "a tag comment out of place stays as bytes" `Quick
+      a_tag_comment_out_of_place_stays_as_bytes;
+    Alcotest.test_case "a delimiter line ends no extent" `Quick
+      a_delimiter_line_ends_no_extent;
+    Alcotest.test_case "an item gives the hash of the plain form" `Quick
+      an_item_gives_the_hash_of_the_plain_form;
+    Alcotest.test_case "a citation on an item keeps its marker" `Quick
+      a_citation_on_an_item_keeps_its_marker;
+    Alcotest.test_case "prose in a comment stays in the extent" `Quick
+      prose_in_a_comment_stays_in_the_extent;
+    Alcotest.test_case "the block hash of a comment is the hash of its lines"
+      `Quick the_block_hash_of_a_comment_is_the_hash_of_its_lines;
+    Alcotest.test_case "the text of a section leaves out the delimiter lines"
+      `Quick the_text_of_a_section_leaves_out_the_delimiter_lines;
+    the_move_into_a_comment_gives_equal_facts;
+    the_tags_alone_moved_into_a_comment_give_equal_facts;
+    each_comment_form_gives_the_extent_hash;
+    a_comment_block_changes_no_fact_of_a_tag;
+  ]
+
 let tests =
   [
     Alcotest.test_case "unterminated is the last line without a line feed"
@@ -1924,4 +2263,4 @@ let tests =
       `Quick new_line_of_a_wide_or_tabbed_indent_is_its_own;
     new_line_ends_the_last_tag_line_and_reaches_its_at;
   ]
-  @ comment_cases
+  @ comment_cases @ hash_cases
