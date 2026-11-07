@@ -1084,6 +1084,162 @@ let stale_acks facts retired =
       | Some _ | None -> None)
     voids
 
+let no_glob_in_scope facts =
+  List.concat_map
+    (fun (plan : Facts.plan) ->
+      List.map
+        (fun (tag : Markdown.tag) ->
+          Finding.make Finding_class.Invalid_target
+            (Finding.Tag { path = plan.path; position = start_of tag.span })
+            ~place:(place plan.path tag.span)
+            ~detail:"the @scope line holds no glob"
+            ?mark:(Finding.part tag Tag_line.Word "holds no glob")
+            ())
+        plan.empty_scopes)
+    (Facts.open_plans facts)
+
+let declined_detail id (entry : Ledger.entry) =
+  let cleaned =
+    match entry.body with
+    | Ledger.Decline { reason; _ } -> Display.clean reason
+    | _ -> ""
+  in
+  if String.equal cleaned "" then id ^ " is declined, with no reason"
+  else cleaned
+
+let declined_finding ?mark subject ~id ~place entry =
+  Finding.make Finding_class.Declined subject ~place
+    ~detail:(declined_detail id entry) ?mark ()
+
+let declined facts =
+  List.filter_map Fun.id
+    (List.mapi
+       (fun index (d : Facts.declaration) ->
+         match (d.kind, (Facts.declaration_judged facts index).latest_live) with
+         | ("req" | "design" | "decision"), Some entry ->
+             Some
+               (declined_finding (declaration_subject d)
+                  ~id:(Facts.declaration_id d) ~place:(place d.path d.span)
+                  ?mark:(Finding.part d.tag Tag_line.Target "declined")
+                  entry)
+         | _ -> None)
+       (Facts.declarations facts))
+  @ List.concat_map
+      (fun (plan : Facts.plan) ->
+        let id = Facts.plan_fact_id plan in
+        Option.fold ~none:[]
+          ~some:(fun entry ->
+            [
+              declined_finding
+                (Finding.Fact { id; ack_name = plan.slug })
+                ~id
+                ~place:(place plan.path plan.span)
+                ?mark:(Finding.part plan.tag Tag_line.Target "declined")
+                entry;
+            ])
+          (Facts.plan_judgment facts plan).judged.latest_live
+        @ List.filter_map
+            (fun (step : Facts.step) ->
+              let id = Facts.step_id plan step in
+              Option.map
+                (declined_finding
+                   (Finding.Fact { id; ack_name = step.slug })
+                   ~id
+                   ~place:(place plan.path step.span))
+                (Facts.step_judgment facts plan step).judged.latest_live)
+            plan.steps)
+      (Facts.open_plans facts)
+
+let unapproved_edges facts =
+  let declarations = Array.of_list (Facts.declarations facts) in
+  List.filter_map
+    (fun ((edge : Facts.edge), target) ->
+      match (edge.word, target) with
+      | ("satisfies" | "verifies"), Facts.Declaration index -> (
+          let declaration = declarations.(index) in
+          let finding finding_class =
+            let id = Facts.declaration_id declaration in
+            Some
+              (Finding.make finding_class (edge_subject edge)
+                 ~place:(place edge.path edge.span)
+                 ~detail:(id ^ " is not approved")
+                 ?mark:(Finding.part edge.tag Tag_line.Target "not approved")
+                 ~related:
+                   [
+                     related
+                       (Printf.sprintf "declared here at v%d" declaration.rev)
+                       declaration.path declaration.span;
+                   ]
+                 ())
+          in
+          match declaration.kind with
+          | _ when Facts.is_approved facts index -> None
+          | "req" -> finding Finding_class.Unapproved_req
+          | "design" -> finding Finding_class.Unapproved_design
+          | _ -> None)
+      | _ -> None)
+    (Facts.edges facts)
+
+let awaiting_approvals facts =
+  List.filter_map Fun.id
+    (List.mapi
+       (fun index (d : Facts.declaration) ->
+         if
+           List.mem d.kind [ "req"; "design"; "decision" ]
+           && Facts.is_in_force facts index
+           && not (Facts.is_approved facts index)
+         then
+           Some
+             (Finding.make Finding_class.Awaiting_approval
+                (declaration_subject d) ~place:(place d.path d.span)
+                ~detail:
+                  (Printf.sprintf "%s at v%d waits for an approval"
+                     (Facts.declaration_id d) d.rev)
+                ?mark:
+                  (Finding.part d.tag Tag_line.Target "waits for an approval")
+                ())
+         else None)
+       (Facts.declarations facts))
+
+let difference_detail (difference : Commitment_set.difference) =
+  let pairs list =
+    List.sort String.compare
+      (List.map (fun (word, target) -> word ^ ":" ^ target) list)
+  in
+  let part name = function
+    | [] -> []
+    | items -> [ name ^ ": " ^ String.concat ", " items ]
+  in
+  Display.clean
+    (String.concat "; "
+       (part "promises added" (pairs difference.added)
+       @ part "promises removed" (pairs difference.removed)
+       @ part "scope wider" difference.wider))
+
+let unapproved_plans facts =
+  List.filter_map
+    (fun (plan : Facts.plan) ->
+      let judgment = Facts.plan_judgment facts plan in
+      if judgment.approved then None
+      else
+        let detail =
+          match
+            (judgment.judged.approval, Facts.plan_difference facts plan)
+          with
+          | None, _ -> "no approval of the plan has its set"
+          | Some _, Some difference -> difference_detail difference
+          | Some _, None -> "a decline of the plan is live"
+        in
+        Some
+          (Finding.make Finding_class.Unapproved_plan
+             (Finding.Fact
+                { id = Facts.plan_fact_id plan; ack_name = plan.slug })
+             ~place:(place plan.path plan.span)
+             ~detail
+             ?mark:(Finding.part plan.tag Tag_line.Target "not approved")
+             ()))
+    (Facts.open_plans facts)
+
 let historical manifest (finding : Finding.t) =
   List.exists
     (fun (place : Finding.place) -> Manifest.is_historical manifest place.path)
@@ -1131,6 +1287,11 @@ let of_facts facts ~base ~not_text =
             unverified_promises facts;
             promises_out_of_scope facts;
             merged_incomplete facts;
+            no_glob_in_scope facts;
+            declined facts;
+            unapproved_edges facts;
+            awaiting_approvals facts;
+            unapproved_plans facts;
           ]))
 
 let tree ?phases manifest documents ~base ~not_text =

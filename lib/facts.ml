@@ -154,6 +154,7 @@ type plan = {
   scope : string list;
   steps : step list;
   tag : Markdown.tag;
+  empty_scopes : Markdown.tag list;
 }
 
 type meeting_fact = { id : string; path : string; span : Markdown.span }
@@ -393,7 +394,17 @@ let first_scope (document : Markdown.t) indices =
   List.find_map
     (fun index ->
       let tag = document.tags.(index) in
-      if String.equal tag.word "scope" then Some (globs tag.rest) else None)
+      if String.equal tag.word "scope" then
+        match globs tag.rest with [] -> None | found -> Some found
+      else None)
+    indices
+
+let empty_scopes (document : Markdown.t) indices =
+  List.filter_map
+    (fun index ->
+      let tag = document.tags.(index) in
+      if String.equal tag.word "scope" && globs tag.rest = [] then Some tag
+      else None)
     indices
 
 let rec step_section (document : Markdown.t) index =
@@ -506,6 +517,14 @@ let plan_file ~path (document : Markdown.t) plan_index =
             List.filter_map step
               (List.init (Array.length document.sections) Fun.id);
           tag = plan_tag;
+          empty_scopes =
+            empty_scopes document
+              (first_block
+              @ List.filter
+                  (fun index ->
+                    Option.is_some
+                      (step_section document document.tags.(index).section))
+                  later);
         }
   | Some (Error _) | None -> None
 
@@ -1351,6 +1370,9 @@ let files facts = facts.files
 let declarations facts = Array.to_list facts.declarations
 let is_in_force facts index = facts.inforce.(index)
 let is_approved facts = approved facts.manifest facts.ledger facts.declarations
+
+let declaration_judged facts index =
+  judged facts.ledger facts.declarations.(index)
 
 module Indices = Set.Make (Int)
 

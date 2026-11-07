@@ -28,10 +28,11 @@ val growth :
 (** [growth ~exponent ~margin ~sizes:(small, large) ~input f] compares the work
     of [f] on an input of size [small] with its work on an input of size
     [large]. [input n] makes the input of size [n], outside the count. The
-    function first calls [f] once on the input of size [small], with no count. A
-    value that this call computes and keeps is not in the counts. The function
-    then counts [w1], the words of [f] on the input of size [small], and [w2],
-    the words of [f] on the input of size [large]. The result is [Ok ()] when
+    function first calls [f] once on an input of size [small], with no count. A
+    value that this call keeps outside its input is not in the counts. The
+    function then counts [w1], the words of [f] on a new input of size [small],
+    and [w2], the words of [f] on the input of size [large]. A lazy value inside
+    an input counts on both sides. The result is [Ok ()] when
     [w2 <= margin * w1 * (large / small) ** exponent], and otherwise [Error]
     with a message that gives both sizes, both counts, and the limit. The
     default [exponent] is [1.], a linear growth.

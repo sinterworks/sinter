@@ -176,7 +176,9 @@ type step = private {
   slug : string;
   title : string;
   span : Markdown.span;  (** the heading line *)
-  own_scope : string list option;  (** the globs of the [@scope] of the step *)
+  own_scope : string list option;
+      (** the globs of the first [@scope] of the step that holds a glob; [None]
+          when no such line exists *)
   promises : promise list;
       (** in the order of the file, each word and tag target once *)
   hash : string;
@@ -196,10 +198,15 @@ type plan = private {
   path : string;
   span : Markdown.span;  (** the tag line of [@plan] *)
   title : string option;
-  scope : string list;  (** the globs of the [@scope] of the plan *)
+  scope : string list;
+      (** the globs of the first [@scope] of the first tag block of the plan
+          that holds a glob; empty when no such line exists *)
   steps : step list;  (** in the order of the file *)
   tag : Markdown.tag;
       (** the tag line of [@plan], as the document of the file holds it *)
+  empty_scopes : Markdown.tag list;
+      (** each [@scope] line of the plan or of a step that holds no glob, in the
+          order of the file. Such a line counts as no [@scope] line. *)
 }
 (** One plan file. *)
 
@@ -292,6 +299,12 @@ val is_in_force : t -> int -> bool
     A [supersedes] edge is effective when its source is a declaration that
     carries no status and that {!is_approved} holds for. A declaration with no
     status on a cycle of [supersedes] edges is in force.
+
+    @raise Invalid_argument if [index] is not an index of {!declarations}. *)
+
+val declaration_judged : t -> int -> Folds.judged
+(** [declaration_judged facts index] is how the ledger judges the current text
+    of the declaration at [index], whatever its kind.
 
     @raise Invalid_argument if [index] is not an index of {!declarations}. *)
 

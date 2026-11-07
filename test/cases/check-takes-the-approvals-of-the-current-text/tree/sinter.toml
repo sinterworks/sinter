@@ -1,0 +1,7 @@
+[scan]
+packs.markdown.files = ["**/*.md"]
+[proof]
+req = "approval"
+design = "approval"
+decision = "approval"
+plan = "approval"

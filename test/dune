@@ -125,3 +125,135 @@
 (subdir
  cases/check-diff-counts-a-deleted-plan-file-as-exempt-on-both-sides/base
  (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-a-decline-of-each-kind/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-brief-cleans-a-reason-of-the-ledger/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-json-cleans-a-reason-of-the-ledger/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-sarif-cleans-a-reason-of-the-ledger/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-porcelain-cleans-a-reason-of-the-ledger/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-at-turn-warns-on-a-decline/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-at-merged-gives-no-decline/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-prints-the-live-declines/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-a-plan-with-no-approval/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-at-turn-warns-on-a-plan-with-no-approval/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-at-merged-gives-no-unapproved-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-takes-the-approval-of-a-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-a-plan-with-a-live-decline-and-its-approved-set/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-an-approval-without-its-set-as-no-approval/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-the-difference-of-a-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-keeps-an-approval-after-a-free-amendment/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-the-findings-of-an-open-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-gives-no-finding-for-a-completed-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-gives-no-finding-for-an-abandoned-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-prints-a-closed-plan-with-its-steps-and-promises/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-counts-the-scope-of-an-open-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-counts-the-scope-of-an-open-plan/base
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-reads-no-scope-of-a-closed-plan/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-reads-no-scope-of-a-closed-plan/base
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-reports-a-scope-line-with-no-glob/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-reads-a-scope-line-with-no-glob-as-no-line/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-reads-a-step-as-done-by-a-delivered-entry/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-reads-no-delivery-at-another-step-hash/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/scan-reads-a-step-as-done-by-its-approval/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-reports-a-rename-of-a-step-that-a-delivered-entry-started/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-reports-a-rename-of-a-step-that-a-delivered-entry-started/base
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-lets-a-step-with-no-delivered-entry-rename/tree
+ (dirs :standard .plans))
+
+(subdir
+ cases/check-diff-lets-a-step-with-no-delivered-entry-rename/base
+ (dirs :standard .plans))

@@ -837,6 +837,416 @@ let a_step_with_no_delivered_entry_renames_freely () =
        ~lines:
          [ Lines.delivered ~seq:1 "step:p@abc123/other" ~csh:(Lines.hash 9) ])
 
+let found_of finding_class facts =
+  List.filter
+    (fun (finding : Finding.t) -> finding.finding_class = finding_class)
+    (Findings.of_facts facts ~base:base_commit ~not_text:[])
+
+let details finding_class facts =
+  List.map
+    (fun (finding : Finding.t) -> Option.value finding.detail ~default:"")
+    (found_of finding_class facts)
+
+let subjects finding_class facts =
+  List.map
+    (fun (finding : Finding.t) -> Finding.subject_id finding.subject)
+    (found_of finding_class facts)
+
+let strings = Alcotest.(list string)
+let cited = ("docs/w.md", "# W\n\n@satisfies a v1\nThe work.\n")
+
+let an_edge_to_an_unapproved_req_is_a_finding () =
+  let facts = facts ~extra:needs_req (cited :: a_file) in
+  Alcotest.check strings "the subject"
+    [ "satisfies:site:docs/w.md#w->a" ]
+    (subjects Finding_class.Unapproved_req facts);
+  Alcotest.check strings "the detail"
+    [ "req:a is not approved" ]
+    (details Finding_class.Unapproved_req facts);
+  match found_of Finding_class.Unapproved_req facts with
+  | [ finding ] ->
+      Alcotest.(check (list string))
+        "the related place" [ "docs/a.md" ]
+        (List.filter_map
+           (fun (related : Finding.related) ->
+             Option.map
+               (fun (place : Finding.place) -> place.path)
+               related.place)
+           finding.related);
+      Alcotest.(check bool) "no fix" true (Option.is_none finding.fix)
+  | _ -> Alcotest.fail "one finding"
+
+let an_edge_to_an_unapproved_design_is_its_own_class () =
+  let files =
+    [
+      ("docs/d.md", "# D\n\n@design d\nThe text.\n");
+      ("docs/w.md", "# W\n\n@satisfies d v1\nThe work.\n");
+    ]
+  in
+  let facts = facts ~extra:"[proof]\ndesign = \"approval\"\n" files in
+  Alcotest.check strings "the detail"
+    [ "design:d is not approved" ]
+    (details Finding_class.Unapproved_design facts);
+  Alcotest.check strings "no req" []
+    (details Finding_class.Unapproved_req facts)
+
+let an_edge_to_an_approved_item_is_no_finding () =
+  let facts =
+    facts ~extra:needs_req ~lines:[ approve ~seq:1 () ] (cited :: a_file)
+  in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Unapproved_req facts);
+  Alcotest.check strings "no waiting" []
+    (details Finding_class.Awaiting_approval facts)
+
+let a_kind_that_needs_no_approval_gives_no_finding () =
+  let facts = facts (cited :: a_file) in
+  Alcotest.check strings "no edge" []
+    (details Finding_class.Unapproved_req facts);
+  Alcotest.check strings "no waiting" []
+    (details Finding_class.Awaiting_approval facts)
+
+let a_citation_of_an_unapproved_item_is_no_finding_of_these_classes () =
+  let facts =
+    facts ~extra:needs_req
+      (("docs/w.md", "# W\n\n@cites a\nThe work.\n") :: a_file)
+  in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Unapproved_req facts)
+
+let an_edge_to_a_decision_gives_neither_class () =
+  let files =
+    [
+      ("docs/d.md", "# D\n\n@decision d\nThe text.\n");
+      ("docs/w.md", "# W\n\n@satisfies d v1\nThe work.\n");
+    ]
+  in
+  let facts = facts ~extra:needs_decision files in
+  Alcotest.check strings "no req" []
+    (details Finding_class.Unapproved_req facts);
+  Alcotest.check strings "no design" []
+    (details Finding_class.Unapproved_design facts)
+
+let a_declaration_in_force_waits_for_an_approval () =
+  let facts =
+    facts ~extra:needs_req [ ("docs/a.md", "# A\n\n@req a v3\nText.\n") ]
+  in
+  Alcotest.check strings "the detail"
+    [ "req:a at v3 waits for an approval" ]
+    (details Finding_class.Awaiting_approval facts);
+  Alcotest.check strings "the subject" [ "req:a" ]
+    (subjects Finding_class.Awaiting_approval facts)
+
+let a_retired_declaration_waits_for_nothing () =
+  let line =
+    Lines.approval_of_text ~seq:1 "decision:b" ~rev:1 ~xh:(Lazy.force b_xh)
+  in
+  let facts = facts ~extra:needs_decision ~lines:[ line ] chain in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Awaiting_approval facts)
+
+let a_declaration_with_a_status_waits_for_nothing () =
+  let facts =
+    facts ~extra:needs_req
+      [ ("docs/a.md", "# A\n\n@req a\n@deprecated\nText.\n") ]
+  in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Awaiting_approval facts)
+
+let a_rule_waits_for_nothing () =
+  let facts =
+    facts ~extra:needs_req [ ("docs/r.md", "# R\n\n@rule r\nThe text of r.\n") ]
+  in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Awaiting_approval facts)
+
+let a_decline_reports_its_reason () =
+  let facts = facts ~lines:[ refuse ~seq:1 ~reason:"too broad" () ] a_file in
+  Alcotest.check strings "the detail" [ "too broad" ]
+    (details Finding_class.Declined facts);
+  Alcotest.check strings "the subject" [ "req:a" ]
+    (subjects Finding_class.Declined facts)
+
+let the_latest_live_decline_gives_the_reason_and_one_finding () =
+  let facts =
+    facts
+      ~lines:
+        [ refuse ~seq:1 ~reason:"first" (); refuse ~seq:2 ~reason:"second" () ]
+      a_file
+  in
+  Alcotest.check strings "the detail" [ "second" ]
+    (details Finding_class.Declined facts)
+
+let a_reason_passes_through_the_cleaning () =
+  let facts =
+    facts ~lines:[ refuse ~seq:1 ~reason:"a\nb\027[31m\xe2\x80\xae" () ] a_file
+  in
+  Alcotest.check strings "the detail"
+    [ Display.clean "a\nb\027[31m\xe2\x80\xae" ]
+    (details Finding_class.Declined facts);
+  List.iter
+    (fun detail ->
+      Alcotest.(check bool)
+        "no control character" true
+        (String.for_all (fun c -> Char.code c >= 0x20 && c <> '\127') detail))
+    (details Finding_class.Declined facts)
+
+let an_empty_reason_gives_a_text_and_no_crash () =
+  let facts = facts ~lines:[ refuse ~seq:1 ~reason:"" () ] a_file in
+  Alcotest.check strings "the detail"
+    [ "req:a is declined, with no reason" ]
+    (details Finding_class.Declined facts)
+
+let a_reason_of_spaces_or_of_control_characters_gives_no_empty_detail () =
+  List.iter
+    (fun reason ->
+      let found =
+        details Finding_class.Declined
+          (facts ~lines:[ refuse ~seq:1 ~reason () ] a_file)
+      in
+      Alcotest.(check int) reason 1 (List.length found);
+      List.iter
+        (fun detail ->
+          Alcotest.(check bool) "not empty" false (String.equal detail ""))
+        found)
+    [ " "; "\t"; "\n"; "\027"; "\000"; "\xe2\x80\xae" ]
+
+let the_ended_decline_is_no_finding () =
+  let facts =
+    facts ~lines:[ refuse ~seq:1 ~reason:"x" (); approve ~seq:2 () ] a_file
+  in
+  Alcotest.check strings "no finding" [] (details Finding_class.Declined facts)
+
+let a_decline_of_a_plan_and_of_a_step_report_at_their_ids () =
+  let lock = field_of plan_files lock_id "csh" in
+  let lines =
+    [
+      Lines.decline ~seq:1 plan_id ~hash:(Lazy.force csh) ~reason:"plan";
+      Lines.decline ~seq:2 tidy_id ~hash:(Lazy.force tidy_hash) ~reason:"tidy";
+      Lines.decline ~seq:3 lock_id ~hash:lock ~reason:"lock";
+    ]
+  in
+  let facts = facts ~lines plan_files in
+  Alcotest.check strings "the subjects, in the order of the file"
+    [ plan_id; lock_id; tidy_id ]
+    (subjects Finding_class.Declined facts);
+  Alcotest.check strings "the details" [ "plan"; "lock"; "tidy" ]
+    (details Finding_class.Declined facts)
+
+let a_closed_plan_reports_no_decline () =
+  let lines =
+    [
+      Lines.decline ~seq:1 plan_id ~hash:(Lazy.force csh) ~reason:"plan";
+      Lines.decline ~seq:2 tidy_id ~hash:(Lazy.force tidy_hash) ~reason:"tidy";
+      Lines.completed ~seq:3 plan_id;
+    ]
+  in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Declined (facts ~lines plan_files))
+
+let a_plan_with_no_approval_says_so () =
+  Alcotest.check strings "the detail"
+    [ "no approval of the plan has its set" ]
+    (details Finding_class.Unapproved_plan (facts ~extra:needs_plan plan_files));
+  Alcotest.check strings "the subject" [ plan_id ]
+    (subjects Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan plan_files))
+
+let a_plan_with_a_difference_names_it_in_byte_order () =
+  let scopes =
+    [ (None, "lib/**"); (None, "!lib/x/**"); (Some "o", "lib/**") ]
+  in
+  let promises =
+    [ ("o", "req", "b\nc"); ("o", "cites", "z"); ("o", "cites", "y") ]
+  in
+  let lines =
+    [
+      Lines.commitment_set ~seq:1 scopes promises;
+      Lines.approval_of_hash ~seq:2 plan_id
+        ~csh:(Lines.set_hash scopes promises);
+    ]
+  in
+  Alcotest.check strings "the detail"
+    [
+      Printf.sprintf
+        "promises added: req:a; promises removed: cites:y, cites:z, %s; scope \
+         wider: !lib/x/**, src/**"
+        (Display.clean "req:b\nc");
+    ]
+    (details Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan ~lines plan_files))
+
+let each_part_of_the_detail_stands_alone () =
+  let added =
+    let promises = [ ("o", "req", "a"); ("o", "req", "b") ] in
+    [
+      Lines.commitment_set ~seq:1 scopes promises;
+      Lines.approval_of_hash ~seq:2 plan_id
+        ~csh:(Lines.set_hash scopes promises);
+    ]
+  in
+  Alcotest.check strings "only removed"
+    [ "promises removed: req:b" ]
+    (details Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan ~lines:added plan_files));
+  let narrow = [ (None, "src/a/**") ] in
+  let promises = [ ("lock", "req", "a") ] in
+  let wider =
+    [
+      Lines.commitment_set ~seq:1 narrow promises;
+      Lines.approval_of_hash ~seq:2 plan_id
+        ~csh:(Lines.set_hash narrow promises);
+    ]
+  in
+  Alcotest.check strings "only wider" [ "scope wider: src/**" ]
+    (details Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan ~lines:wider plan_files))
+
+let a_plan_with_only_a_live_decline_says_so () =
+  let lines =
+    [
+      the_set ~seq:1;
+      approve_plan ~seq:2;
+      Lines.decline ~seq:3 plan_id ~hash:(Lazy.force csh) ~reason:"no";
+    ]
+  in
+  let facts = facts ~extra:needs_plan ~lines plan_files in
+  Alcotest.check strings "the detail"
+    [ "a decline of the plan is live" ]
+    (details Finding_class.Unapproved_plan facts);
+  Alcotest.check strings "the class declined too" [ "no" ]
+    (details Finding_class.Declined facts)
+
+let an_approved_or_closed_or_free_plan_gives_no_finding () =
+  Alcotest.check strings "approved" []
+    (details Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan
+          ~lines:[ the_set ~seq:1; approve_plan ~seq:2 ]
+          plan_files));
+  Alcotest.check strings "closed" []
+    (details Finding_class.Unapproved_plan
+       (facts ~extra:needs_plan ~lines:closed_plan plan_files));
+  Alcotest.check strings "no need" []
+    (details Finding_class.Unapproved_plan (facts plan_files))
+
+let scope_text =
+  "# P\n\n@plan p@abc123\n@scope src/**\n\n## Lock\n\n@scope ,\n@req a\n"
+
+let an_empty_scope_line_counts_as_no_line () =
+  let files = [ (".plans/p.md", scope_text) ] in
+  check_flag "no own scope" "own_scope" lock_id (facts files) false;
+  Alcotest.(check string)
+    "the two hashes agree"
+    (field_of files plan_id "csh")
+    (Lines.set_hash [ (None, "src/**") ] [ ("lock", "req", "a") ])
+
+let a_second_scope_line_counts_after_an_empty_one () =
+  let text =
+    "# P\n\n\
+     @plan p@abc123\n\
+     @scope src/**\n\n\
+     ## Lock\n\n\
+     @scope\n\
+     @scope , ,\n\
+     @scope src/a/**\n\
+     @req a\n"
+  in
+  let facts = facts [ (".plans/p.md", text) ] in
+  check_flag "its own scope" "own_scope" lock_id facts true;
+  match (the_plan facts).steps with
+  | [ step ] ->
+      Alcotest.(check (option (list string)))
+        "the globs" (Some [ "src/a/**" ]) step.own_scope
+  | _ -> Alcotest.fail "one step"
+
+let an_empty_scope_of_a_plan_counts_as_no_line () =
+  let text = "# P\n\n@plan p@abc123\n@scope ,\n@scope src/**\n" in
+  let facts = facts [ (".plans/p.md", text) ] in
+  Alcotest.(check (list string))
+    "the plan scope" [ "src/**" ] (the_plan facts).scope
+
+let a_section_with_only_an_empty_scope_line_is_no_step () =
+  let text = "# P\n\n@plan p@abc123\n\n## Prose\n\n@scope ,\n" in
+  Alcotest.(check int)
+    "no step" 0
+    (List.length (the_plan (facts [ (".plans/p.md", text) ])).steps)
+
+let an_empty_scope_line_is_a_finding_for_a_plan_and_a_step () =
+  let text =
+    "# P\n\n\
+     @plan p@abc123\n\
+     @scope ,\n\n\
+     ## Lock\n\n\
+     @scope\n\
+     @req a\n\n\
+     ## Prose\n\n\
+     @scope , ,\n"
+  in
+  let found =
+    found_of Finding_class.Invalid_target (facts [ (".plans/p.md", text) ])
+  in
+  Alcotest.(check (list string))
+    "each line"
+    [ "tag:.plans/p.md@L4C1"; "tag:.plans/p.md@L8C1"; "tag:.plans/p.md@L13C1" ]
+    (List.map
+       (fun (finding : Finding.t) -> Finding.subject_id finding.subject)
+       found);
+  List.iter
+    (fun (finding : Finding.t) ->
+      Alcotest.(check (option string))
+        "the detail" (Some "the @scope line holds no glob") finding.detail)
+    found
+
+let a_scope_line_with_a_glob_is_no_finding () =
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Invalid_target (facts plan_files))
+
+let a_scope_line_outside_a_plan_and_a_step_is_no_finding () =
+  let text = "# P\n\n@plan p@abc123\n\n# Q\n\n@scope ,\n" in
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Invalid_target (facts [ (".plans/p.md", text) ]));
+  Alcotest.check strings "another file" []
+    (details Finding_class.Invalid_target
+       (facts [ ("docs/a.md", "# A\n\n@scope ,\n") ]))
+
+let a_closed_plan_reports_no_empty_scope_line () =
+  Alcotest.check strings "no finding" []
+    (details Finding_class.Invalid_target
+       (facts
+          ~lines:[ Lines.completed ~seq:1 plan_id ]
+          [ (".plans/p.md", scope_text) ]))
+
+let printable text = String.equal (Display.clean text) text
+
+let any_text_of_the_ledger_stops_no_check =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:"no text of the ledger stops a check or reaches a detail raw"
+       ~print:(fun (a, b, c) -> String.concat " | " [ a; b; c ])
+       QCheck2.Gen.(
+         triple Generators.utf_8_string Generators.utf_8_string
+           Generators.utf_8_string)
+       (fun (reason, target, glob) ->
+         let scopes = [ (None, glob) ] in
+         let promises = [ ("lock", "req", target) ] in
+         let lines =
+           [
+             Lines.decline ~seq:1 plan_id ~hash:(Lazy.force csh) ~reason;
+             Lines.commitment_set ~seq:2 scopes promises;
+             Lines.approval_of_hash ~seq:3 plan_id
+               ~csh:(Lines.set_hash scopes promises);
+             Lines.decline ~seq:4 plan_id ~hash:(Lazy.force csh) ~reason;
+           ]
+         in
+         let facts = facts ~extra:needs_plan ~lines plan_files in
+         List.for_all
+           (fun (finding : Finding.t) ->
+             match finding.finding_class with
+             | Finding_class.Declined | Finding_class.Unapproved_plan ->
+                 Option.fold ~none:false ~some:printable finding.detail
+             | _ -> true)
+           (Findings.of_facts facts ~base:base_commit ~not_text:[])))
+
 let case name test = Alcotest.test_case name `Quick test
 
 let tests =
@@ -941,4 +1351,62 @@ let tests =
       a_delivered_entry_starts_a_step_at_any_hash;
     case "a step with no delivered entry renames freely"
       a_step_with_no_delivered_entry_renames_freely;
+    case "an edge to an unapproved req is a finding"
+      an_edge_to_an_unapproved_req_is_a_finding;
+    case "an edge to an unapproved design is its own class"
+      an_edge_to_an_unapproved_design_is_its_own_class;
+    case "an edge to an approved item is no finding"
+      an_edge_to_an_approved_item_is_no_finding;
+    case "a kind that needs no approval gives no finding"
+      a_kind_that_needs_no_approval_gives_no_finding;
+    case "a citation of an unapproved item is no finding of these classes"
+      a_citation_of_an_unapproved_item_is_no_finding_of_these_classes;
+    case "an edge to a decision gives neither class"
+      an_edge_to_a_decision_gives_neither_class;
+    case "a declaration in force waits for an approval"
+      a_declaration_in_force_waits_for_an_approval;
+    case "a retired declaration waits for nothing"
+      a_retired_declaration_waits_for_nothing;
+    case "a declaration with a status waits for nothing"
+      a_declaration_with_a_status_waits_for_nothing;
+    case "a rule waits for nothing" a_rule_waits_for_nothing;
+    case "a decline reports its reason" a_decline_reports_its_reason;
+    case "the latest live decline gives the reason and one finding"
+      the_latest_live_decline_gives_the_reason_and_one_finding;
+    case "a reason passes through the cleaning"
+      a_reason_passes_through_the_cleaning;
+    case "an empty reason gives a text and no crash"
+      an_empty_reason_gives_a_text_and_no_crash;
+    case "a reason of spaces or of control characters gives no empty detail"
+      a_reason_of_spaces_or_of_control_characters_gives_no_empty_detail;
+    case "the ended decline is no finding" the_ended_decline_is_no_finding;
+    case "a decline of a plan and of a step report at their ids"
+      a_decline_of_a_plan_and_of_a_step_report_at_their_ids;
+    case "a closed plan reports no decline" a_closed_plan_reports_no_decline;
+    case "a plan with no approval says so" a_plan_with_no_approval_says_so;
+    case "a plan with a difference names it in byte order"
+      a_plan_with_a_difference_names_it_in_byte_order;
+    case "each part of the detail stands alone"
+      each_part_of_the_detail_stands_alone;
+    case "a plan with only a live decline says so"
+      a_plan_with_only_a_live_decline_says_so;
+    case "an approved or closed or free plan gives no finding"
+      an_approved_or_closed_or_free_plan_gives_no_finding;
+    case "an empty scope line counts as no line"
+      an_empty_scope_line_counts_as_no_line;
+    case "a second scope line counts after an empty one"
+      a_second_scope_line_counts_after_an_empty_one;
+    case "an empty scope of a plan counts as no line"
+      an_empty_scope_of_a_plan_counts_as_no_line;
+    case "a section with only an empty scope line is no step"
+      a_section_with_only_an_empty_scope_line_is_no_step;
+    case "an empty scope line is a finding for a plan and a step"
+      an_empty_scope_line_is_a_finding_for_a_plan_and_a_step;
+    case "a scope line with a glob is no finding"
+      a_scope_line_with_a_glob_is_no_finding;
+    case "a scope line outside a plan and a step is no finding"
+      a_scope_line_outside_a_plan_and_a_step_is_no_finding;
+    case "a closed plan reports no empty scope line"
+      a_closed_plan_reports_no_empty_scope_line;
+    any_text_of_the_ledger_stops_no_check;
   ]
