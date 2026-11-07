@@ -22,6 +22,30 @@ Each of these lines is a *tag*. A tag is a line of text in your own
 file. It is not a git tag, which is a name that a person gives to a
 commit in git.
 
+## Sinter and coding agents
+
+A *coding agent* is a program that writes and changes code from your
+instructions. For many years, people wrote most of the code of a
+project by hand. In many projects, coding agents write much of the code
+instead. Then the people of the project do a different task. They
+decide what the software must do, and they write it down. They give
+the changes to agents. Then they make sure that the code still does
+what they decided.
+
+Sinter helps with that last task. A project keeps these texts in its
+repository, as Markdown files with tags:
+
+- A *requirement* says what the software must do.
+- A *decision record* says which choice the project made, and why.
+- A *plan* lists the steps of a change, and the files that each step
+  can change.
+
+Sinter compares the files of the repository with these texts, and it
+reports each place where they disagree. An agent can say that a step is
+complete. Sinter does not read what an agent says. It reads only the
+files and the commits of the repository, so a step counts as complete
+only when its changes are in the repository.
+
 ## Get Sinter
 
 Sinter has no prebuilt release. You build it from its source code. You
@@ -156,9 +180,8 @@ untraced: nothing satisfies req:session-length, and nothing verifies it
 2 findings in 2 files; 1 has a fix
 ```
 
-Each problem that Sinter reports is a *finding*. Sinter writes the
-requirement as `req:session-length`: the word of its tag without the
-`@`, then its name.
+Each problem that Sinter reports is a *finding*. A finding names the
+requirement as `req:session-length`, where `req` means a requirement.
 
 The finding `suspect` says that the guide names revision 1 of the
 requirement. The requirement is now at revision 2. Sinter cannot read
