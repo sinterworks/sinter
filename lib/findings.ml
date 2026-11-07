@@ -1133,7 +1133,7 @@ let of_facts facts ~base ~not_text =
 let tree ?phases manifest documents ~base ~not_text =
   let facts =
     Allocation.measure phases "facts" (fun () ->
-        Facts.make manifest ~ledger:[] documents)
+        Facts.make manifest ~ledger:Folds.empty documents)
   in
   Allocation.measure phases "findings" (fun () ->
       of_facts facts ~base ~not_text)

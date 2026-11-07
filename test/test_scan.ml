@@ -1199,7 +1199,7 @@ let the_ledger_warning_needs_a_plan_and_no_ledger () =
     match Scan.ledger tree Ledger.Tip with
     | Ok read ->
         Scan.ledger_warnings read
-          (Facts.make ~ledger:[] tree.manifest tree.documents)
+          (Facts.make ~ledger:Folds.empty tree.manifest tree.documents)
     | Error _ -> Alcotest.fail "the ledger does not read"
   in
   let plan = (".plans/p.md", "# P\n\n@plan p\n") in
@@ -1218,10 +1218,14 @@ let a_scan_names_the_ledger_and_reads_its_entries () =
   let tree = load repo in
   match Scan.ledger tree Ledger.Tip with
   | Ok read ->
-      Alcotest.(check int) "no entry" 0 (List.length (Scan.entries read));
-      Alcotest.(check int)
-        "no entry without a ledger" 0
-        (List.length (Scan.entries None));
+      Alcotest.(check bool)
+        "the folds hold no closing" true
+        (Option.is_none
+           (Folds.closing (Scan.folds read) ~subject:"plan:p@abc123"));
+      Alcotest.(check bool)
+        "no closing without a ledger" true
+        (Option.is_none
+           (Folds.closing (Scan.folds None) ~subject:"plan:p@abc123"));
       Alcotest.(check (option string))
         "the index names the tip" (Some commit)
         (match Scan.index tree ~ledger:read ~tool:"v1" with

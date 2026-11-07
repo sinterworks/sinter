@@ -182,7 +182,7 @@ end)
 
 type t = {
   manifest : Manifest.t;
-  ledger : Ledger.entry list;
+  ledger : Folds.t;
   files : (string * Markdown.t) list;
   declarations : declaration array;
   inforce : bool array;
@@ -535,22 +535,31 @@ let resolver manifest (declarations : declaration array) =
         | Some index -> Declaration index
         | None -> Unresolved { dangling = Slug.is_valid text })
 
-let approved manifest (declarations : declaration array) index =
-  match manifest_kind declarations.(index).kind with
-  | Some kind -> Manifest.approval manifest kind = Manifest.Declaration
-  | None -> true
+let needs_approval manifest kind =
+  Manifest.approval manifest kind = Manifest.Approval
 
-let effective_source manifest (declarations : declaration array) index =
+let judged ledger (d : declaration) =
+  Folds.declaration ledger ~subject:(declaration_id d) ~rev:d.rev
+    ~xh:d.extent.hash
+
+let approved manifest ledger (declarations : declaration array) index =
+  let d = declarations.(index) in
+  match manifest_kind d.kind with
+  | Some kind when needs_approval manifest kind ->
+      Option.is_some (judged ledger d).approval
+  | Some _ | None -> true
+
+let effective_source manifest ledger (declarations : declaration array) index =
   Option.is_none declarations.(index).status
-  && approved manifest declarations index
+  && approved manifest ledger declarations index
 
-let retirers manifest (declarations : declaration array) edges targets =
+let retirers manifest ledger (declarations : declaration array) edges targets =
   let found = Array.make (Array.length declarations) [] in
   List.iter2
     (fun (edge : edge) target ->
       match (edge.word, edge.source, target) with
       | "supersedes", Some source, Declaration target
-        when effective_source manifest declarations source ->
+        when effective_source manifest ledger declarations source ->
           found.(target) <- source :: found.(target)
       | _ -> ())
     edges targets;
@@ -661,7 +670,7 @@ let make manifest ~ledger files =
     let resolve = resolver manifest declarations in
     List.map (fun edge -> resolve edge.target_text) edges
   in
-  let retirers = retirers manifest declarations edges targets in
+  let retirers = retirers manifest ledger declarations edges targets in
   let plan_files = List.map fst plans in
   let plans = List.filter_map snd plans in
   let acks = List.rev acks in
@@ -771,15 +780,14 @@ let commitment_hash plan =
              step.own_scope)
          plan.steps)
 
-let needs_approval manifest kind =
-  Manifest.approval manifest kind = Manifest.Approval
-
 let declaration_records facts ~inforce ~approved =
   List.filter_map Fun.id
     (List.mapi
        (fun index (d : declaration) ->
          Option.map
            (fun kind ->
+             let needed = needs_approval facts.manifest kind in
+             let judged = judged facts.ledger d in
              located ~kind:d.kind ~id:(declaration_id d) ~path:d.path
                ~span:d.span
                ([
@@ -790,10 +798,15 @@ let declaration_records facts ~inforce ~approved =
                   ("xeline", Jsonl.int d.extent.last);
                   ("inforce", Jsonl.bool inforce.(index));
                   ("approved", Jsonl.bool (approved index));
-                  ( "approval_required",
-                    Jsonl.bool (needs_approval facts.manifest kind) );
-                  ("declined", Jsonl.bool false);
+                  ("approval_required", Jsonl.bool needed);
+                  ("declined", Jsonl.bool (Option.is_some judged.latest_live));
                 ]
+               @ optional "approval"
+                   (if needed then
+                      Option.map
+                        (fun (entry : Ledger.entry) -> Jsonl.string entry.id)
+                        judged.approval
+                    else None)
                @ optional "title" (Option.map Jsonl.string d.title)
                @ text_unless_empty "desc" d.desc
                @ optional "status" (Option.map Jsonl.string d.status)))
@@ -817,7 +830,9 @@ let edge_records facts =
       in
       let effective =
         match edge.source with
-        | Some index -> effective_source facts.manifest facts.declarations index
+        | Some index ->
+            effective_source facts.manifest facts.ledger facts.declarations
+              index
         | None -> false
       in
       located ~kind:edge.word ~id:(edge_id edge) ~path:edge.path ~span:edge.span
@@ -1114,9 +1129,65 @@ let plan_records facts ~delivered plan =
   in
   plan_record :: List.concat_map step_records plan.steps
 
+let decline_records entries =
+  List.filter_map
+    (fun (entry : Ledger.entry) ->
+      match entry.body with
+      | Ledger.Decline { subject; hash; reason } ->
+          Some
+            [
+              ("v", Jsonl.int 1);
+              ("kind", Jsonl.string "decline");
+              ("id", Jsonl.string ("decline:" ^ entry.id));
+              ("subject", Jsonl.string subject);
+              ("hash", Jsonl.string hash);
+              ("reason", Jsonl.string reason);
+              ("by", Jsonl.string entry.by);
+              ("ts", Jsonl.string entry.ts);
+              ("entry", Jsonl.string entry.id);
+            ]
+      | _ -> None)
+    (List.sort_uniq
+       (fun (a : Ledger.entry) (b : Ledger.entry) -> String.compare a.id b.id)
+       entries)
+
+let live_declines ledger judged =
+  let least =
+    (Hashtbl.create ~random:true 16
+     [@mutaml.skip
+       "the seed and the first size change only the time of a lookup on keys \
+        that collide, and never its result; the entries of the table are read \
+        in the order of a sort below"])
+  in
+  List.iter
+    (fun (subject, hash, (judged : Folds.judged)) ->
+      if Option.is_some judged.latest_live then
+        let key = (subject, hash) in
+        match Hashtbl.find_opt least key with
+        | Some after
+          when (after <= judged.after)
+               [@mutaml.skip
+                 "when the two are equal, the table already holds the value \
+                  that a replace would write"] ->
+            ()
+        | Some _ | None -> Hashtbl.replace least key judged.after)
+    judged;
+  Hashtbl.fold
+    (fun (subject, hash) after found ->
+      List.rev_append (Folds.live ledger ~subject ~hash ~after) found)
+    least []
+
+let judged_declarations facts =
+  List.filter_map
+    (fun (d : declaration) ->
+      if Option.is_some (manifest_kind d.kind) then
+        Some (declaration_id d, d.extent.hash, judged facts.ledger d)
+      else None)
+    (Array.to_list facts.declarations)
+
 let records ?(deliveries = []) facts =
   let delivered = delivered_steps facts deliveries in
-  let approved = approved facts.manifest facts.declarations in
+  let approved = approved facts.manifest facts.ledger facts.declarations in
   let inforce = facts.inforce in
   List.map
     (fun fact -> fact.record)
@@ -1130,6 +1201,7 @@ let records ?(deliveries = []) facts =
             ack_records facts;
             List.concat_map (plan_records facts ~delivered) facts.plans;
           ]))
+  @ decline_records (live_declines facts.ledger (judged_declarations facts))
   @ external_records facts
 
 type identity = {
@@ -1190,6 +1262,7 @@ let ledger facts = facts.ledger
 let files facts = facts.files
 let declarations facts = Array.to_list facts.declarations
 let is_in_force facts index = facts.inforce.(index)
+let is_approved facts = approved facts.manifest facts.ledger facts.declarations
 
 module Indices = Set.Make (Int)
 

@@ -584,9 +584,10 @@ make, and the table shows `-`.
 When the environment variable `SINTER_PHASE_WORDS` names a file,
 `sinter scan` and `sinter check` write to it the words of memory that
 the OCaml runtime allocated in each phase of the command (a word is 8
-bytes on a 64-bit machine): `repository`, `read`, `parse`, `facts`,
-`records` (scan) or `findings` (check), and `output`. `check` also has
-`base-read`, which reads the base. `check --diff` also has
+bytes on a 64-bit machine): `repository`, `read`, `parse`, `ledger`
+(the read and the check of the ledger), `folds` (the folds of the
+ledger), `facts`, `records` (scan) or `findings` (check), and `output`.
+`check` also has `base-read`, which reads the base. `check --diff` also has
 `base-facts` and `base-findings`, which make the facts and the
 findings of the whole base. `sinter ledger log` and
 `sinter ledger verify` write the phases `repository`, `ledger` (the

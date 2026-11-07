@@ -161,13 +161,25 @@ let a_command_writes_the_words_of_its_phases () =
         (names (In_channel.with_open_bin words In_channel.input_all));
       Sys.remove words)
     [
-      ("scan", [ "repository"; "read"; "parse"; "facts"; "records"; "output" ]);
+      ( "scan",
+        [
+          "repository";
+          "read";
+          "parse";
+          "ledger";
+          "folds";
+          "facts";
+          "records";
+          "output";
+        ] );
       ( "check",
         [
           "repository";
           "base-read";
           "read";
           "parse";
+          "ledger";
+          "folds";
           "facts";
           "findings";
           "output";

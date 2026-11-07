@@ -13,8 +13,9 @@
     [external] record.
 
     The records take the values that hold when the evidence and the session are
-    absent, and as if the ledger held no entry: every plan is open, no plan and
-    no step is active, nothing is declined, an item of a kind that needs
+    absent. A declaration reads the ledger. For a plan and a step, the records
+    take the values that hold as if the ledger held no entry: every plan is
+    open, no plan and no step is active or declined, a plan of a kind that needs
     approval is not approved, and a step without promises is not approved while
     [proof.step] is ["approval"]. Every other step is approved when its plan is.
 *)
@@ -26,14 +27,13 @@ val may_hold_plan : string -> bool
 (** [may_hold_plan path] is [true] when [path] starts with [.plans/]: only a
     file at such a path can be a plan file. *)
 
-val make :
-  Manifest.t -> ledger:Ledger.entry list -> (string * Markdown.t) list -> t
-(** [make manifest ~ledger files] is the facts of [files] with the entries
-    [ledger] of the ledger, in the order of their [seq] ({!Ledger.compare}).
-    Each pair is the path of one file, relative to the repository root, and the
-    document that {!Markdown.read} gave for the file. No path occurs twice. The
-    manifest gives the namespaces, the kinds that need approval, and the default
-    locations of the kinds. No fact and no record depends on [ledger].
+val make : Manifest.t -> ledger:Folds.t -> (string * Markdown.t) list -> t
+(** [make manifest ~ledger files] is the facts of [files] with the folds
+    [ledger] of the ledger. One command builds {!Folds.of_entries} once, and
+    each [make] shares it. Each pair is the path of one file, relative to the
+    repository root, and the document that {!Markdown.read} gave for the file.
+    No path occurs twice. The manifest gives the namespaces, the kinds that need
+    approval, and the default locations of the kinds.
 
     @raise Invalid_argument
       if the document of a plan file that gives a plan holds no text of a
@@ -42,9 +42,8 @@ val make :
 val manifest : t -> Manifest.t
 (** [manifest facts] is the manifest that {!make} took. *)
 
-val ledger : t -> Ledger.entry list
-(** [ledger facts] is the entries of the ledger that {!make} took, in their
-    order. *)
+val ledger : t -> Folds.t
+(** [ledger facts] is the folds of the ledger that {!make} took. *)
 
 val files : t -> (string * Markdown.t) list
 (** [files facts] is the files that {!make} took, in their order. *)
@@ -59,10 +58,11 @@ type identity = private {
 (** The identity of one fact. *)
 
 val identities : t -> identity list
-(** [identities facts] is the identity of each fact that {!records} gives a
-    record for: each declaration, edge, site, ack, plan, step, promise, and
-    external id, in this order of kinds. An external id that several edges name
-    comes once. *)
+(** [identities facts] is the identity of each fact of the tree that {!records}
+    gives a record for: each declaration, edge, site, ack, plan, step, promise,
+    and external id, in this order of kinds. An external id that several edges
+    name comes once. It leaves out each [decline] record, because a [decline]
+    comes from the ledger, and only a fact of the tree leaves a tombstone. *)
 
 val iter_identities :
   ?within:(string -> bool) -> t -> (identity -> unit) -> unit
@@ -85,6 +85,14 @@ val records : ?deliveries:Delivery_line.found list -> t -> Jsonl.record list
     ["delivered"] and the step is delivered: under ["approval"] no step is
     approved while the ledger is absent, and under ["promises"] such a step is
     never done.
+
+    A declaration of the kinds [req], [design], and [decision] holds [approved],
+    which is {!is_approved}; [approval], the id of the approval that counts,
+    only when its kind needs approval and such an approval exists; and
+    [declined], which is [true] when a decline of it is live, whatever its kind.
+    Each live decline of such a declaration gives one [decline] record, once for
+    each entry, in the byte order of the ids, after the records that have a
+    path.
 
     Every string of the result is valid UTF-8 when every path of [make] is. *)
 
@@ -249,8 +257,16 @@ val is_in_force : t -> int -> bool
 (** [is_in_force facts index] is [true] when the declaration at [index] is in
     force: it carries no status and no effective [supersedes] edge points at it.
     A [supersedes] edge is effective when its source is a declaration that
-    carries no status and whose kind needs no approval. A declaration with no
+    carries no status and that {!is_approved} holds for. A declaration with no
     status on a cycle of [supersedes] edges is in force.
+
+    @raise Invalid_argument if [index] is not an index of {!declarations}. *)
+
+val is_approved : t -> int -> bool
+(** [is_approved facts index] is [true] when the kind of the declaration at
+    [index] needs no approval, or when an approval of its current slug,
+    revision, and extent hash counts: it is later than each decline at that
+    extent hash. A declaration of the kind [rule] counts as approved.
 
     @raise Invalid_argument if [index] is not an index of {!declarations}. *)
 

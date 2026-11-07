@@ -77,6 +77,7 @@ let () =
       ("commitment set", Test_commitment_set.tests);
       ("ledger", Test_ledger.tests);
       ("folds", Test_folds.tests);
+      ("facts of the ledger", Test_facts_ledger.tests);
       ("ledger commands", Test_ledger_cli.tests);
       ("git diff", Test_git_diff.tests);
       ("git view", Test_git_view.tests);

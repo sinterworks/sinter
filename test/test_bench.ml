@@ -1060,13 +1060,24 @@ let run_skips_every_budget_that_it_cannot_check () =
         Yojson.Basic.Util.(
           match to_string (member "command" result) with
           | "scan" ->
-              [ "repository"; "read"; "parse"; "facts"; "records"; "output" ]
+              [
+                "repository";
+                "read";
+                "parse";
+                "ledger";
+                "folds";
+                "facts";
+                "records";
+                "output";
+              ]
           | "check-diff" ->
               [
                 "repository";
                 "base-read";
                 "read";
                 "parse";
+                "ledger";
+                "folds";
                 "facts";
                 "findings";
                 "base-facts";
@@ -1079,6 +1090,8 @@ let run_skips_every_budget_that_it_cannot_check () =
                 "base-read";
                 "read";
                 "parse";
+                "ledger";
+                "folds";
                 "facts";
                 "findings";
                 "output";
