@@ -4,21 +4,24 @@
 (* @cites performance-budgets *)
 
 (** The growth budgets of [sinter scan], [sinter check], [sinter check --diff],
-    [sinter ledger log], and [sinter ledger verify], and their check against the
-    measures of a benchmark run.
+    [sinter check] on a tree with a ledger, [sinter ledger log], and
+    [sinter ledger verify], and their check against the measures of a benchmark
+    run.
 
     The budgets file is TOML. It holds the tables [scan] and [check]; the tables
-    [check-diff], [ledger-log], and [ledger-verify] when those commands have a
-    budget; and nothing else. Each table holds the key [allocation-growth], and
-    may hold the table [phases], and nothing else. [allocation-growth] is a
-    positive integer or float, the limit, for each phase of the command, of the
-    words that the phase allocates on the larger tree, divided by the words on
-    the smaller tree. The trees are those of 10,000 and of 1,000 declarations
-    for [scan], [check], and [check-diff], and the ledgers of 100,000 and of
-    1,000 entries for [ledger-log] and [ledger-verify]. Each key of [phases]
-    names a phase, and its value, a positive integer or float, is the limit of
-    that phase in place of [allocation-growth]. {!check} refuses a key of
-    [phases] that names no phase of the run. *)
+    [check-diff], [check-ledger], [ledger-log], and [ledger-verify] when those
+    commands have a budget; and nothing else. Each table holds the key
+    [allocation-growth], and may hold the table [phases], and nothing else.
+    [allocation-growth] is a positive integer or float, the limit, for each
+    phase of the command, of the words that the phase allocates on the larger
+    tree, divided by the words on the smaller tree. The trees are those of
+    10,000 and of 1,000 declarations for [scan], [check], and [check-diff]; the
+    ledgers of 100,000 and of 1,000 entries for [ledger-log] and
+    [ledger-verify]; and the tree of 1,000 declarations with those two ledgers
+    for [check-ledger]. Each key of [phases] names a phase, and its value, a
+    positive integer or float, is the limit of that phase in place of
+    [allocation-growth]. {!check} refuses a key of [phases] that names no phase
+    of the run. *)
 
 type t
 (** The budgets of the commands. *)
@@ -32,9 +35,9 @@ val of_string : string -> (t, string) result
 
 val growth : t -> string -> float option
 (** [growth budgets command] is the growth limit [allocation-growth] of
-    [command], [scan], [check], [check-diff], [ledger-log], or [ledger-verify];
-    [None] for any other command, and for a command whose table the budgets do
-    not have. *)
+    [command], [scan], [check], [check-diff], [check-ledger], [ledger-log], or
+    [ledger-verify]; [None] for any other command, and for a command whose table
+    the budgets do not have. *)
 
 (** The outcome of one growth limit. *)
 type verdict =
@@ -44,7 +47,8 @@ type verdict =
 
 type outcome = {
   command : string;
-      (** [scan], [check], [check-diff], [ledger-log], or [ledger-verify] *)
+      (** [scan], [check], [check-diff], [check-ledger], [ledger-log], or
+          [ledger-verify] *)
   phase : string option;  (** the phase; [None] when the run counted no phase *)
   limit : float;
   verdict : verdict;
@@ -56,11 +60,12 @@ val check :
   words:(tree:string -> command:string -> (string * float) list) ->
   (outcome list, string) result
 (** [check budgets ~words] checks the growth limits of [scan], then of [check],
-    then of [check-diff], [ledger-log], and [ledger-verify], each when the
-    budgets have its table. [words ~tree ~command] is the words of each phase of
-    [command] on [tree], in the order of the phases, or [[]] when the run did
-    not count them. The trees are [n1000] and [n10000], and [l1000] and
-    [l100000] for the commands of the ledger.
+    then of [check-diff], [check-ledger], [ledger-log], and [ledger-verify],
+    each when the budgets have its table. [words ~tree ~command] is the words of
+    each phase of [command] on [tree], in the order of the phases, or [[]] when
+    the run did not count them. The trees are [n1000] and [n10000]; [l1000] and
+    [l100000] for the commands of the ledger; and [n1000-l1000] and
+    [n1000-l100000] for [check-ledger].
 
     A command gives one outcome for each phase of the larger tree, in its order,
     skipped when the smaller tree has no such phase or counts [0.] words in it.

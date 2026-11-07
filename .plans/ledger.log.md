@@ -139,3 +139,45 @@
   maintainer later. The critic also found that the reader looked up
   the scope of each promise in every scope object; it now groups both
   by step once.
+
+## Check approvals
+
+- The worst-case measurement of the new hash form came before the
+  limit went. Eight shapes of a ledger line at about 100 KB, 1 MB, and
+  10 MB: many distinct scopes with long shared prefixes, one scope with
+  many globs, many promises in one group, many steps with one scope, and
+  the old worst shape, promises times globs. Each factor of 10 in the
+  line gave a factor of 6.3 to 11.8 in the words of the phase `ledger`.
+  A line of about 754 KB of the old worst shape cost 0.12 s and 27 MB,
+  against 21.5 s and 8.1 GB for 552 KB in the old form. So the limit of
+  1 MiB is gone.
+- The first form of `Folds` built the list of live declines at each
+  lookup, and the critic measured edges times declines. A lookup now
+  reads the head of the list of declines, which is the latest, and
+  `Folds.live` gives the list only for a record.
+- The first form of `Commitment_set.compare_sets` compared each pair of
+  scopes once but added its result once for each promise. The critic
+  measured 167.6 G instructions at 8,000 promises and 8,000 globs. A
+  pair now adds its result once.
+- The lead fixed two details of a finding. `unapproved-plan` with only
+  a live decline says `a decline of the plan is live`. `declined` with a
+  reason that is empty after the cleaning says `<id> is declined, with no
+  reason`. The reader accepts an empty `reason`, so the decline command
+  of the next step can refuse one.
+- `Counted_work.growth` warmed up on the input that it then counted, so
+  a lazy value inside the input counted only on the large side. It now
+  warms up on a fresh input of the small size.
+- A tag with an invalid target in the file of a closed plan gives no
+  finding. Rule 4 names the promises of a closed plan. A `typo-tag`, an
+  `ignored-tag`, a `parse-error`, and a `misplaced-plan` in that file
+  stay, because a line of a file is no fact of the plan.
+- The target `check-ledger` comes from the options `--sizes` and
+  `--ledgers` of `bench/run.exe`, on the first size. The tree holds its
+  ledger in one commit. The generated entries are all approvals, so the
+  benchmark does not grow the declines, the sets, or the closings.
+- Left for later: the comparison of one pair of scopes is still inner
+  globs times outer globs when no glob is verbatim. The critic measured
+  3.25 s at 4,000 by 4,000, with a peak of about 20 MB.
+- Left for later: the CI job "Measure performance" passes no `--ledgers`
+  to `bench/run.exe`, so it measures no command of the ledger and no
+  `check-ledger`. The scope of this step does not hold the workflow.

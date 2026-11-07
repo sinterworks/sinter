@@ -544,7 +544,9 @@ generated trees: git repositories of a given number of declarations,
 made from a fixed seed. The same seed and the same number give the
 same tree on every run. It also measures `sinter ledger log` and
 `sinter ledger verify` on generated ledgers of 10, 1,000, and 100,000
-entries, with one commit for each entry. From the repository root:
+entries, with one commit for each entry. The target `check-ledger`
+measures `sinter check` on the tree of 1,000 declarations with each of
+those ledgers. From the repository root:
 
 ```
 dune build @bench
@@ -601,12 +603,15 @@ limit (`docs/decisions/performance-budgets.md`). The growth of a phase
 is the words on the tree of 10,000 declarations, divided by the words
 on the tree of 1,000 declarations. For the commands of the ledger, it
 is the words on the ledger of 100,000 entries, divided by the words on
-the ledger of 1,000 entries. A step whose cost grows faster than
-the tree raises the growth of its phase. The limit applies to each
-phase, on every platform. A command can give one phase a limit of its
-own, under `phases`: the findings phase of `sinter check` has the limit
-16. A name under `phases` that is not a phase of the command stops the
-run. No budget applies to the peak memory.
+the ledger of 1,000 entries. For `check-ledger`, it is the words on
+the tree of 1,000 declarations with the ledger of 100,000 entries,
+divided by the words on that tree with the ledger of 1,000 entries. A
+step whose cost grows faster than the tree raises the growth of its
+phase. The limit applies to each phase, on every platform. A command
+can give one phase a limit of its own, under `phases`: the findings
+phase of `sinter check` has the limit 16. A name under `phases` that
+is not a phase of the command stops the run. No budget applies to the
+peak memory.
 
 The CI job "Measure performance" makes the same measures as `@bench`
 on `ubuntu-26.04`. It fails only when the growth of a phase exceeds
