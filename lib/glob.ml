@@ -164,3 +164,27 @@ let message error =
   match parts error with
   | fault, None -> fault
   | fault, Some help -> fault ^ "; " ^ help
+
+let full glob = if String.ends_with ~suffix:"/" glob then glob ^ "**" else glob
+
+let contained inner outer =
+  let inner_full = full inner and outer_full = full outer in
+  let folder =
+    if String.ends_with ~suffix:"/**" outer_full then
+      Some (String.sub outer_full 0 (String.length outer_full - 3))
+    else None
+  in
+  String.equal inner_full outer_full
+  ||
+  match (of_string inner_full, of_string outer_full) with
+  | Ok _, Ok outer_glob ->
+      String.equal outer_full "**"
+      ||
+      if String.contains inner '*' then
+        Option.fold ~none:false
+          ~some:(fun prefix -> String.starts_with ~prefix:(prefix ^ "/") inner)
+          folder
+      else if String.ends_with ~suffix:"/" inner then
+        Option.is_some folder && matches outer_glob (inner ^ "x")
+      else matches outer_glob inner
+  | Error _, _ | _, Error _ -> false

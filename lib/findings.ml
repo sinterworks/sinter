@@ -622,30 +622,6 @@ let untraced facts =
 let plain scope =
   List.filter (fun glob -> not (String.starts_with ~prefix:"!" glob)) scope
 
-let full glob = if String.ends_with ~suffix:"/" glob then glob ^ "**" else glob
-
-let contained inner outer =
-  let inner_full = full inner and outer_full = full outer in
-  let folder =
-    if String.ends_with ~suffix:"/**" outer_full then
-      Some (String.sub outer_full 0 (String.length outer_full - 3))
-    else None
-  in
-  String.equal inner_full outer_full
-  ||
-  match (Glob.of_string inner_full, Glob.of_string outer_full) with
-  | Ok _, Ok outer_glob ->
-      String.equal outer_full "**"
-      ||
-      if String.contains inner '*' then
-        Option.fold ~none:false
-          ~some:(fun prefix -> String.starts_with ~prefix:(prefix ^ "/") inner)
-          folder
-      else if String.ends_with ~suffix:"/" inner then
-        Option.is_some folder && Glob.matches outer_glob (inner ^ "x")
-      else Glob.matches outer_glob inner
-  | Error _, _ | _, Error _ -> false
-
 let scopes_outside_plans facts =
   List.concat_map
     (fun (plan : Facts.plan) ->
@@ -657,7 +633,7 @@ let scopes_outside_plans facts =
           | Some scope -> (
               match
                 List.filter
-                  (fun glob -> not (List.exists (contained glob) outer))
+                  (fun glob -> not (List.exists (Glob.contained glob) outer))
                   (plain scope)
               with
               | [] -> None
@@ -705,7 +681,8 @@ let intersect a b =
   List.exists
     (fun glob_a ->
       List.exists
-        (fun glob_b -> contained glob_a glob_b || contained glob_b glob_a)
+        (fun glob_b ->
+          Glob.contained glob_a glob_b || Glob.contained glob_b glob_a)
         (plain b))
     (plain a)
 

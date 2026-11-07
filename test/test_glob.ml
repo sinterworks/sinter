@@ -641,6 +641,35 @@ let of_strings_answers_any_list =
 
 let case name test = Alcotest.test_case name `Quick test
 
+let contained_table () =
+  List.iter
+    (fun (inner, outer, expected) ->
+      Alcotest.(check bool)
+        (Printf.sprintf "%s in %s" inner outer)
+        expected
+        (Glob.contained inner outer))
+    [
+      ("src/**", "src/**", true);
+      ("src/", "src/**", true);
+      ("src/**", "src/", true);
+      ("a/b.md", "a/*.md", true);
+      ("a/b.md", "**", true);
+      ("a/*.md", "**", true);
+      ("src/api/**", "src/**", true);
+      ("src/a/*.ml", "src/**", true);
+      ("src/api/", "src/**", true);
+      ("src/api/", "src/*/", true);
+      ("src/api/", "src/api.md", false);
+      ("src/*/x", "src/*", false);
+      ("lib/**", "src/**", false);
+      ("srcs/**", "src/**", false);
+      ("src/a.ml", "src/*.md", false);
+      ("a?", "a?", true);
+      ("a?", "**", false);
+      ("a", "b?", false);
+      ("b?", "**/x", false);
+    ]
+
 let tests =
   [
     case "leading names are the names before a star"
@@ -690,6 +719,7 @@ let tests =
     case "the fault keeps a segment with a semicolon whole"
       the_fault_keeps_a_segment_with_a_semicolon_whole;
     matches_answers_any_path;
+    case "the table of containment" contained_table;
     case "a path in a plain glob is in the set"
       a_path_in_a_plain_glob_is_in_the_set;
     case "an excluded glob takes paths out" an_excluded_glob_takes_paths_out;
