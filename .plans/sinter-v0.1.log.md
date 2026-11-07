@@ -505,3 +505,34 @@ Linux only, gives 1 on every leg: 0 is false in GitHub expressions.
   2 groups with `sinter parse` and tree-sitter-typescript 0.23.2. The
   example before it gave 2 to 4 matches for each test with an escape
   or a substitution.
+
+## Read tags in HTML comments
+
+- tree-sitter-markdown gives the CommonMark form in each case that the
+  tests cover. After a task marker, CommonMark makes the text a
+  paragraph, so `- [ ] <!-- @cites a -->` holds no HTML block. The
+  reader takes a comment at the start of that paragraph as a comment
+  block (`spec/packs.md` section 7.2).
+- The first design joined a tag comment and the first paragraph after
+  it into one node. That design changed `desc` on the 34 requirements
+  of `spec/ledger.md` whose tags stand alone before a blank line. The
+  maintainer then ruled that a tag comment works as a comment in code:
+  its prose is the description, and it never joins the first
+  paragraph.
+- A line of a tag comment that holds only a delimiter leaves the
+  extent hash with its list marker and its task marker. So a
+  declaration in the form on several lines in a list item keeps the
+  hash of the plain form. A citation as the first tag of a list item
+  keeps it only in the form on one line.
+- A tag line in a comment stops at its last character that is no space
+  or tab. So a fix that inserts or removes an `@ack` gives back the
+  same tags, and the test of a mechanical repair accepts it when the
+  hunk holds as many lines on which a comment ends.
+- A comment out of the place at the start of a section or a list item
+  keeps its bytes in the extent hash, because Sinter reads no tag in it.
+- An `@ack` in another comment, or after a comment, is the first tag of
+  its own block. It covers nothing, and its `stale-ack` has no fix.
+- The proof moved 207 first paragraphs into comments in a copy of this
+  repository. The records of `sinter scan` were equal apart from line
+  and column, `sinter check` gave the same findings at each gate, and
+  `sinter check --diff` gave no finding.
