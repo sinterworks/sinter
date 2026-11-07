@@ -260,8 +260,6 @@ let objects keys item = function
 
 module Names = Map.Make (String)
 
-let set_limit = 1_048_576
-
 let csh_holds csh scopes promises =
   let add key value map =
     Names.update key
@@ -296,8 +294,7 @@ let csh_holds csh scopes promises =
            :: steps)
          own []
   in
-  Commitment_set.size ~scope:plan_scope steps <= set_limit
-  && String.equal csh (Commitment_set.hash ~scope:plan_scope steps)
+  String.equal csh (Commitment_set.hash ~scope:plan_scope steps)
 
 let body format kind members =
   let req name check = required members name check

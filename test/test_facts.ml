@@ -559,7 +559,7 @@ let step_hash ?(promises = []) ?(prose = "") scope =
 let a_plan_file_gives_its_plan_steps_and_promises () =
   let csh =
     Sha256.hex
-      "{\"promises\":[{\"scope\":[\"src/**\"],\"target\":\"lockout-policy\",\"word\":\"decision\"},{\"scope\":[\"src/auth/**\"],\"target\":\"auth-lockout\",\"word\":\"req\"},{\"scope\":[\"src/auth/**\"],\"target\":\"auth-lockout\",\"word\":\"verifies\"}],\"scope\":[\"src/**\"]}"
+      "{\"groups\":[{\"promises\":[{\"target\":\"lockout-policy\",\"word\":\"decision\"}],\"scope\":[\"src/**\"]},{\"promises\":[{\"target\":\"auth-lockout\",\"word\":\"req\"},{\"target\":\"auth-lockout\",\"word\":\"verifies\"}],\"scope\":[\"src/auth/**\"]}],\"scope\":[\"src/**\"]}"
   in
   Alcotest.(check (list string))
     "the records, in order"

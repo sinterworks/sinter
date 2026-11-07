@@ -1,6 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
+(* @cites commitment-set-form *)
+
 type step = { scope : string list; promises : (string * string) list }
 
 let canonical_bytes value =
@@ -17,56 +19,45 @@ let globs globs =
        (fun glob -> Json.String glob)
        (List.sort_uniq String.compare globs))
 
-let promise_objects steps =
-  List.map
-    (fun (word, target, _, scope) ->
-      Json.Object
-        [
-          ("scope", scope);
-          ("target", Json.String target);
-          ("word", Json.String word);
-        ])
-    (List.sort
-       (fun (w1, t1, s1, _) (w2, t2, s2, _) ->
-         match String.compare w1 w2 with
-         | 0 -> (
-             match String.compare t1 t2 with
-             | 0 -> String.compare s1 s2
-             | n -> n)
-         | n -> n)
-       (List.concat_map
-          (fun { scope; promises } ->
+module Groups = Map.Make (String)
+
+let promise_objects promises =
+  Json.Array
+    (List.map
+       (fun (word, target) ->
+         Json.Object
+           [ ("target", Json.String target); ("word", Json.String word) ])
+       (List.sort
+          (fun (w1, t1) (w2, t2) ->
+            match String.compare w1 w2 with 0 -> String.compare t1 t2 | n -> n)
+          promises))
+
+let groups steps =
+  let by_scope =
+    List.fold_left
+      (fun groups { scope; promises } ->
+        match promises with
+        | [] -> groups
+        | _ :: _ ->
             let scope = globs scope in
-            let bytes = canonical_bytes scope in
-            List.map
-              (fun (word, target) -> (word, target, bytes, scope))
-              promises)
-          steps))
+            Groups.update (canonical_bytes scope)
+              (fun found ->
+                let earlier =
+                  match found with Some (_, earlier) -> earlier | None -> []
+                in
+                Some (scope, List.rev_append promises earlier))
+              groups)
+      Groups.empty steps
+  in
+  Json.Array
+    (List.map
+       (fun (_, (scope, promises)) ->
+         Json.Object
+           [ ("promises", promise_objects promises); ("scope", scope) ])
+       (Groups.bindings by_scope))
 
 let bytes ~scope steps =
   canonical_bytes
-    (Json.Object
-       [
-         ("promises", Json.Array (promise_objects steps)); ("scope", globs scope);
-       ])
+    (Json.Object [ ("groups", groups steps); ("scope", globs scope) ])
 
 let hash ~scope steps = Sha256.hex (bytes ~scope steps)
-let printed text = String.length (canonical_bytes (Json.String text))
-
-let array_size globs =
-  let globs = List.sort_uniq String.compare globs in
-  List.fold_left (fun total glob -> total + printed glob + 1) 1 globs
-  + if globs = [] then 1 else 0
-
-let size ~scope steps =
-  let promises, objects =
-    List.fold_left
-      (fun (count, total) { scope; promises } ->
-        let scope = array_size scope in
-        List.fold_left
-          (fun (count, total) (word, target) ->
-            (count + 1, total + scope + printed target + printed word + 28))
-          (count, total) promises)
-      (0, 0) steps
-  in
-  24 + objects + max 0 (promises - 1) + array_size scope

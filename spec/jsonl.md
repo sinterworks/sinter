@@ -173,23 +173,26 @@ Example:
 
 The **commitment-set hash** (`csh`) is SHA-256 over canonical bytes
 that hold the plan's commitment set ([vocabulary.md](vocabulary.md)
-section 10.6): the promises, each with the effective scope of its
+section 10.6): the promises, grouped by the effective scope of their
 step, and the plan scope. The canonical bytes are one JSON object in
 the canonical form of RFC 8785 (JCS) that section 2 uses, with no LF
 at the end. The object has two keys:
 
-- `promises`: an array with one object for each promise record of the
-  plan (section 5). Each object has three keys: `word` and `target`,
-  as the promise record gives them, and `scope`, the effective scope
-  of the promise's step. Two promises of two steps can give two equal
+- `groups`: an array with one object for each distinct effective scope
+  that holds at least one promise record of the plan (section 5). Each
+  object has two keys. `scope` is the effective scope. `promises` is an
+  array with one object for each promise of the steps with that scope.
+  Each promise object has two keys, `word` and `target`, as the promise
+  record gives them. Two promises of two steps can give two equal
   objects. Then the array holds both objects.
 - `scope`: the globs of the plan's own `@scope` line, or an empty
   array when the plan has no `@scope` line.
 
 Each array of globs holds each glob once, sorted in byte order. The
-promise objects are sorted by `word`, then by `target`, then by the
-canonical bytes of their `scope` array, each in byte order. The rules
-of section 2 for the values of a record do not apply to this object.
+promise objects of a group are sorted by `word`, then by `target`, each
+in byte order. The groups are sorted by the canonical bytes of their
+`scope` array, in byte order. The rules of section 2 for the values of
+a record do not apply to this object.
 
 The object holds no step slug, and a step with no promise adds nothing
 to it. So a step rename does not change `csh`, and a decline bound to
@@ -215,7 +218,7 @@ Example: this plan file gives the canonical bytes below it.
 ```
 
 ```
-{"promises":[{"scope":["src/**"],"target":"lockout-policy","word":"decision"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"req"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"verifies"}],"scope":["src/**"]}
+{"groups":[{"promises":[{"target":"lockout-policy","word":"decision"}],"scope":["src/**"]},{"promises":[{"target":"auth-lockout","word":"req"},{"target":"auth-lockout","word":"verifies"}],"scope":["src/auth/**"]}],"scope":["src/**"]}
 ```
 
 **`step`**

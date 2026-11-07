@@ -14,7 +14,7 @@ let lockout =
   ]
 
 let lockout_bytes =
-  {|{"promises":[{"scope":["src/**"],"target":"lockout-policy","word":"decision"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"req"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"verifies"}],"scope":["src/**"]}|}
+  {|{"groups":[{"promises":[{"target":"lockout-policy","word":"decision"}],"scope":["src/**"]},{"promises":[{"target":"auth-lockout","word":"req"},{"target":"auth-lockout","word":"verifies"}],"scope":["src/auth/**"]}],"scope":["src/**"]}|}
 
 let the_example_of_the_specification () =
   Alcotest.(check string)
@@ -22,45 +22,46 @@ let the_example_of_the_specification () =
     (Commitment_set.bytes ~scope:[ "src/**" ] lockout);
   Alcotest.(check string)
     "the hash" (Sha256.hex lockout_bytes)
-    (Commitment_set.hash ~scope:[ "src/**" ] lockout);
-  Alcotest.(check int)
-    "the size"
-    (String.length lockout_bytes)
-    (Commitment_set.size ~scope:[ "src/**" ] lockout)
+    (Commitment_set.hash ~scope:[ "src/**" ] lockout)
 
 let an_empty_set () =
   Alcotest.(check string)
-    "the bytes" {|{"promises":[],"scope":[]}|}
-    (Commitment_set.bytes ~scope:[] []);
-  Alcotest.(check int) "the size" 26 (Commitment_set.size ~scope:[] []);
-  Alcotest.(check int)
-    "the size with a step without promises" 26
-    (Commitment_set.size ~scope:[] [ step [ "a" ] [] ])
+    "the bytes" {|{"groups":[],"scope":[]}|}
+    (Commitment_set.bytes ~scope:[] [])
+
+let a_step_with_no_promise_adds_nothing () =
+  Alcotest.(check string)
+    "the bytes" {|{"groups":[],"scope":[]}|}
+    (Commitment_set.bytes ~scope:[] [ step [ "a" ] [] ])
 
 let equal_promises_stay_two () =
   Alcotest.(check string)
     "the bytes"
-    {|{"promises":[{"scope":["a"],"target":"t","word":"req"},{"scope":["a"],"target":"t","word":"req"}],"scope":[]}|}
+    {|{"groups":[{"promises":[{"target":"t","word":"req"},{"target":"t","word":"req"}],"scope":["a"]}],"scope":[]}|}
     (Commitment_set.bytes ~scope:[]
        [ step [ "a" ] [ ("req", "t") ]; step [ "a"; "a" ] [ ("req", "t") ] ])
 
-let promises_sort_by_word_target_and_scope () =
+let promises_sort_by_word_and_target_in_each_group () =
   Alcotest.(check string)
     "the bytes"
-    {|{"promises":[{"scope":["a"],"target":"t","word":"req"},{"scope":["b"],"target":"t","word":"req"},{"scope":["a"],"target":"u","word":"req"},{"scope":["a"],"target":"a","word":"verifies"}],"scope":["x","y"]}|}
+    {|{"groups":[{"promises":[{"target":"t","word":"req"},{"target":"u","word":"req"},{"target":"a","word":"verifies"}],"scope":["a"]},{"promises":[{"target":"t","word":"req"}],"scope":["b"]}],"scope":["x","y"]}|}
     (Commitment_set.bytes ~scope:[ "y"; "x"; "y" ]
        [
-         step [ "a" ] [ ("verifies", "a"); ("req", "u"); ("req", "t") ];
          step [ "b" ] [ ("req", "t") ];
+         step [ "a" ] [ ("verifies", "a"); ("req", "u"); ("req", "t") ];
        ])
 
-let escapes_count_in_the_size () =
-  let scope = [ "a\"b"; "c\\d"; "e\001f"; "\xc3\xa9" ] in
-  let steps = [ step [ "\t" ] [ ("w\"", "t\n") ] ] in
-  Alcotest.(check int)
-    "the size"
-    (String.length (Commitment_set.bytes ~scope steps))
-    (Commitment_set.size ~scope steps)
+let groups_sort_by_the_bytes_of_their_scope () =
+  Alcotest.(check string)
+    "the bytes"
+    {|{"groups":[{"promises":[{"target":"t","word":"req"}],"scope":["a","c"]},{"promises":[{"target":"t","word":"req"}],"scope":["a-b"]},{"promises":[{"target":"t","word":"req"}],"scope":["b"]},{"promises":[{"target":"t","word":"req"}],"scope":[]}],"scope":[]}|}
+    (Commitment_set.bytes ~scope:[]
+       [
+         step [] [ ("req", "t") ];
+         step [ "b" ] [ ("req", "t") ];
+         step [ "a-b" ] [ ("req", "t") ];
+         step [ "c"; "a" ] [ ("req", "t") ];
+       ])
 
 let text_that_is_not_utf_8 () =
   let error =
@@ -71,9 +72,17 @@ let text_that_is_not_utf_8 () =
   Alcotest.check_raises "the hash" error (fun () ->
       ignore (Commitment_set.hash ~scope:[ "\xff" ] []));
   Alcotest.check_raises "the bytes" error (fun () ->
-      ignore (Commitment_set.bytes ~scope:[] [ step [ "\xff" ] [] ]));
-  Alcotest.check_raises "the size" error (fun () ->
-      ignore (Commitment_set.size ~scope:[] [ step [] [ ("\xff", "t") ] ]))
+      ignore
+        (Commitment_set.bytes ~scope:[] [ step [ "\xff" ] [ ("req", "t") ] ]));
+  Alcotest.check_raises "a word" error (fun () ->
+      ignore (Commitment_set.hash ~scope:[] [ step [] [ ("\xff", "t") ] ]));
+  Alcotest.check_raises "a target" error (fun () ->
+      ignore (Commitment_set.hash ~scope:[] [ step [] [ ("req", "\xff") ] ]))
+
+let a_glob_of_a_step_with_no_promise_is_not_read () =
+  Alcotest.(check string)
+    "the bytes" {|{"groups":[],"scope":[]}|}
+    (Commitment_set.bytes ~scope:[] [ step [ "\xff" ] [] ])
 
 let text =
   Gen.oneof
@@ -110,10 +119,73 @@ let order_changes_nothing =
                 step (List.rev s.scope) (List.rev s.promises))
               steps)))
 
-let the_size_is_the_length_of_the_bytes =
-  property "the size is the length of the bytes" (fun (scope, steps) ->
-      Commitment_set.size ~scope steps
-      = String.length (Commitment_set.bytes ~scope steps))
+module Triples = Map.Make (struct
+  type t = string * string * string list
+
+  let compare = compare
+end)
+
+let triples steps =
+  List.fold_left
+    (fun found (s : Commitment_set.step) ->
+      let scope = List.sort_uniq String.compare s.scope in
+      List.fold_left
+        (fun found (word, target) ->
+          Triples.update (word, target, scope)
+            (fun count -> Some (1 + Option.value count ~default:0))
+            found)
+        found s.promises)
+    Triples.empty steps
+
+let equal_sets_give_one_hash =
+  property "two steps with one scope merge, and the order of steps is free"
+    (fun (scope, steps) ->
+      let merged =
+        List.map
+          (fun ((word, target, globs), count) ->
+            step globs (List.init count (fun _ -> (word, target))))
+          (Triples.bindings (triples steps))
+      in
+      String.equal
+        (Commitment_set.hash ~scope steps)
+        (Commitment_set.hash ~scope merged))
+
+let the_bytes_tell_apart_each_multiset_of_triples =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:300
+       ~name:"two sets with two multisets of promises give two sets of bytes"
+       ~print:(fun ((_, a), (_, b)) ->
+         Printf.sprintf "%d and %d steps" (List.length a) (List.length b))
+       Gen.(pair steps steps)
+       (fun ((scope_a, a), (scope_b, b)) ->
+         let same_set =
+           Triples.equal Int.equal (triples a) (triples b)
+           && List.sort_uniq String.compare scope_a
+              = List.sort_uniq String.compare scope_b
+         in
+         Bool.equal same_set
+           (String.equal
+              (Commitment_set.bytes ~scope:scope_a a)
+              (Commitment_set.bytes ~scope:scope_b b))))
+
+let the_bytes_grow_with_the_input =
+  property "the bytes hold each scope once, not once for each promise"
+    (fun (scope, steps) ->
+      let text = List.map (fun t -> String.length t + 8) in
+      let size =
+        List.fold_left ( + ) 0 (text scope)
+        + List.fold_left
+            (fun total (s : Commitment_set.step) ->
+              total
+              + List.fold_left ( + ) 0 (text s.scope)
+              + List.fold_left
+                  (fun total (word, target) ->
+                    total + String.length word + String.length target)
+                  0 s.promises
+              + (40 * List.length s.promises))
+            0 steps
+      in
+      String.length (Commitment_set.bytes ~scope steps) <= 24 + (6 * size))
 
 let the_hash_is_the_hash_of_the_bytes =
   property "the hash is the SHA-256 of the bytes" (fun (scope, steps) ->
@@ -126,13 +198,19 @@ let tests =
     Alcotest.test_case "the example of the specification" `Quick
       the_example_of_the_specification;
     Alcotest.test_case "an empty set" `Quick an_empty_set;
+    Alcotest.test_case "a step with no promise adds nothing" `Quick
+      a_step_with_no_promise_adds_nothing;
     Alcotest.test_case "equal promises stay two" `Quick equal_promises_stay_two;
-    Alcotest.test_case "promises sort by word, target, and scope" `Quick
-      promises_sort_by_word_target_and_scope;
-    Alcotest.test_case "escapes count in the size" `Quick
-      escapes_count_in_the_size;
+    Alcotest.test_case "promises sort by word and target in each group" `Quick
+      promises_sort_by_word_and_target_in_each_group;
+    Alcotest.test_case "groups sort by the bytes of their scope" `Quick
+      groups_sort_by_the_bytes_of_their_scope;
     Alcotest.test_case "a text that is not UTF-8" `Quick text_that_is_not_utf_8;
+    Alcotest.test_case "a glob of a step with no promise is not read" `Quick
+      a_glob_of_a_step_with_no_promise_is_not_read;
     order_changes_nothing;
-    the_size_is_the_length_of_the_bytes;
+    equal_sets_give_one_hash;
+    the_bytes_tell_apart_each_multiset_of_triples;
+    the_bytes_grow_with_the_input;
     the_hash_is_the_hash_of_the_bytes;
   ]

@@ -366,7 +366,7 @@ decline, and then writes a new approval of the same `(slug, rev, xh)`.
 
 ## 6. `commitment-set`
 
-@req ledger-approved-commitment-set v2
+@req ledger-approved-commitment-set v3
 
 A `commitment-set` entry holds the commitment set of a plan
 ([vocabulary.md](vocabulary.md) section 10.6) in full, not only as a
@@ -393,14 +393,7 @@ alone:
   of its `step`.
 
 A reader computes the hash of the set again, and compares it with
-`csh`. The hash **holds** when the two are equal and the canonical
-bytes that the hash covers are 1 MiB (1,048,576 bytes) or shorter.
-Those bytes repeat the effective scope of a step in each of its
-promises, so their length grows with the number of promises times the
-number of globs, and a short line could cost a reader much time and
-memory. A reader adds up the length of those bytes first, from the
-printed form of each string, and builds no bytes and computes no hash
-when the length is above the limit.
+`csh`. The hash **holds** when the two are equal.
 
 An approval of a plan names its set by its `csh`. Its **set entry** is
 the latest `commitment-set` entry below the approval whose `csh` is the
