@@ -147,7 +147,8 @@
   10 MB: many distinct scopes with long shared prefixes, one scope with
   many globs, many promises in one group, many steps with one scope, and
   the old worst shape, promises times globs. Each factor of 10 in the
-  line gave a factor of 6.3 to 11.8 in the words of the phase `ledger`.
+  line gave a factor of 6.3 to 11.8 in the words that the phase
+  `ledger` allocates.
   A line of about 754 KB of the old worst shape cost 0.12 s and 27 MB,
   against 21.5 s and 8.1 GB for 552 KB in the old form. So the limit of
   1 MiB is gone.
@@ -161,8 +162,8 @@
   pair now adds its result once.
 - The lead fixed two details of a finding. `unapproved-plan` with only
   a live decline says `a decline of the plan is live`. `declined` with a
-  reason that is empty after the cleaning says `<id> is declined, with no
-  reason`. The reader accepts an empty `reason`, so the decline command
+  reason that is empty after `Display.clean` says `<id> is declined,
+  with no reason`. The reader accepts an empty `reason`, so the decline command
   of the next step can refuse one.
 - `Counted_work.growth` warmed up on the input that it then counted, so
   a lazy value inside the input counted only on the large side. It now
