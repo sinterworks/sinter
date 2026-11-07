@@ -237,6 +237,7 @@ Example: this plan file gives the canonical bytes below it.
 | `delivery` | string | the delivery line of the step ([vocabulary.md](vocabulary.md) section 10.8), for example `Delivers: sinter-v0.1@097ce8/check-a-tree 05ef56`; omitted when the slug of the step is empty |
 | `approved` | bool | *derived*: the step is approved ([algebra.md](algebra.md) section 6.5) |
 | `approval` | string | *derived*: the id of the `approval` entry of the ledger that counts for the step ([ledger.md](ledger.md) section 5.2); omitted when none |
+| `declined` | bool | *derived*: a live decline exists for the step ([ledger.md](ledger.md) section 7.2) |
 | `active` | bool | *derived* from the session; `false` when there is no session |
 
 The **step hash** (`csh` of a step) is SHA-256 over canonical bytes
@@ -425,7 +426,7 @@ ledger. It emits live declines only ([ledger.md](ledger.md) section
 | field | type | meaning |
 |---|---|---|
 | `subject` | string | fact id |
-| `hash` | string | the extent or commitment-set hash the refusal was bound to |
+| `hash` | string | the extent hash, the commitment-set hash, or the step hash that the refusal was bound to |
 | `reason` | string | |
 | `by` `ts` | string | |
 | `entry` | string | ledger entry id |
@@ -733,6 +734,11 @@ path from artifact import to evidence binding, not only parsing. A
 tool release that changes any derived field's semantics must
 regenerate every pack's fixture on the branch `main` of the packs
 repository.
+
+A fixture ledger is a file `ledger.jsonl` in the folder of the case.
+Each line is the exact line of one entry of the ledger, in canonical
+form, with its `id`, in `seq` order. A case with no such file has no
+ledger.
 
 A release of a pack is also checked against the fixtures of the
 release before it, by the rules of [packs.md](packs.md) section 2.5.

@@ -425,7 +425,7 @@ hash that holds has the same `scopes` and `promises` as the set.
 
 ### 7.1 The fields of a decline
 
-@req ledger-decline v2
+@req ledger-decline v3
 
 A decline records a refusal by a person, bound to the exact text
 refused.
@@ -436,13 +436,14 @@ refused.
 | `hash` | the subject's extent hash (`xh`), commitment-set hash (`csh`), or step hash at the moment of refusal |
 | `reason` | required |
 
-The subject of a decline is a declaration, a plan, or a step. The
-decline command refuses a subject of another kind. A person can
-decline one text twice, each time with a reason. Both declines stay.
+The subject of a decline is a declaration, a plan, or a step without
+promises. The decline command refuses a subject of another kind. A
+person can decline one text twice, each time with a reason. Both
+declines stay.
 
 ### 7.2 A live decline
 
-@req ledger-live-decline v3
+@req ledger-live-decline v4
 
 A decline is never deleted. A decline is **live** while both of these
 conditions hold:
@@ -458,13 +459,20 @@ conditions hold:
      approval.
 
 For a declaration and a step, an approval at another hash ends no
-decline. A person who approves a text over their own refusal of the
-same text ends that refusal. For a plan, the latest approval of the
+decline. For a declaration, an approval ends a decline only while it
+is an approval of the current `(slug, rev, xh)`. So a revision bump
+that keeps the text makes a decline of that text live again, until a
+person approves the new triple. For a plan, the latest approval of the
 plan that has its set ends every earlier decline, because the plan is
 approved against the set of that approval (section 11). So a decline
 at the commitment-set hash X, then an approval of a set Y that
 contains X, and then the text X again give an approved plan with no
-live decline. A plan with a live decline is not approved.
+live decline.
+
+When the kind `plan` needs approval ([manifest.md](manifest.md) section
+10.1), a plan with a live decline is not approved. A live decline of a
+plan is the finding `declined` ([algebra.md](algebra.md) section 9)
+also when the kind `plan` does not need approval.
 
 ## 8. The job on the default branch
 
@@ -715,22 +723,28 @@ decline (section 7.2), and all three clauses hold:
 
 ### 11.2 Glob containment
 
-@req ledger-glob-containment v2
+@req ledger-glob-containment v3
 
 **Glob containment** `G' ⊆ G` is decided structurally and
-conservatively. Every glob in `G'` must satisfy one of these three
-cases:
+conservatively. A glob that starts with `!` leaves paths out
+([manifest.md](manifest.md) section 7.2). Every other glob is a plain
+glob. A plain glob of the new scope `G'` must satisfy one of these
+three cases against the plain globs of the approved scope `G`:
 
 - it appears verbatim in `G`;
 - it is a literal path, or a literal path prefix, that some glob in
   `G` matches;
 - it is `<g>/<segments>` for some `<g>/**` in `G`.
 
-When the checker cannot prove that a glob satisfies one of these three
-cases, the checker treats the new scope as wider than the approved
-scope. The rule is decidable and deterministic. When the checker
-cannot prove containment, the checker asks a person for a new approval,
-which is the safe result for approval.
+Each `!` glob of the approved scope must appear verbatim in the new
+scope. A `!` glob of the new scope that the approved scope does not
+have needs no case, because it only leaves paths out.
+
+When the checker cannot prove that a glob satisfies these rules, the
+checker treats the new scope as wider than the approved scope. The
+rule is decidable and deterministic. When the checker cannot prove
+containment, the checker asks a person for a new approval, which is
+the safe result for approval.
 
 ### 11.3 Free amendments
 
