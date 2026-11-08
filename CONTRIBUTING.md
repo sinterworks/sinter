@@ -2,15 +2,23 @@
 
 ## Writing
 
-All text in this repository uses Simplified Technical English
-(ASD-STE100) in the style of Simple English Wikipedia. This style
-applies to documentation, specifications, code comments, commit
-messages, pull requests, and the tool's own output. The rules:
+All text in this repository follows the rules below. They take
+Simplified Technical English (ASD-STE100), in the style of Simple
+English Wikipedia, as their model. They set no limit on the number of
+words in a sentence. The rules apply to documentation,
+specifications, code comments, commit messages, pull requests, and the
+tool's own output. The rules:
 
 - Write for the people who use Sinter or contribute to it. Assume
   they do not share your context.
-- Use short sentences: one idea per sentence, about 20 words or
-  fewer.
+- Give each sentence one idea: one fact, one rule, or one
+  instruction, with the conditions that belong to it.
+- Let a sentence be as long as its idea needs. Do not cut words that
+  the idea needs.
+- Split a sentence that holds two ideas.
+- When one sentence cannot hold an idea clearly, divide the idea into
+  parts that each make sense alone, such as a rule and then each of its
+  conditions. Give each part its own sentence.
 - Use the active voice and simple tenses.
 - Use one word for one meaning, and use it the same way every time.
 - Do not invent terms. When a technical term is necessary, define it
