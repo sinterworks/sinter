@@ -174,8 +174,13 @@ accounts, so a bare tag line notifies strangers.
 
 All text in the record follows these rules:
 
-- Use short sentences: one idea per sentence, about 20 words or
-  fewer.
+- Give each sentence one idea: one fact, one rule, or one
+  instruction, with its conditions.
+- Let a sentence be as long as its idea needs. Split a sentence that
+  holds two ideas.
+- When one sentence cannot hold an idea clearly, divide the idea into
+  parts that each make sense alone, and give each part its own
+  sentence.
 - Use the active voice and simple tenses.
 - Use one word for one meaning, and use it the same way every time.
 - Do not invent terms. Define a technical term at first use.
