@@ -17,6 +17,36 @@
   - Decide, when rule files are built, whether an edit of a rule file
     needs a revision bump (`unbumped`), and whether `config-changed`
     covers rule files.
+- **A dictionary of terms** — one definition for each term of a
+  repository, in any file that Sinter reads. Every text, and every
+  agent, then uses a term with one meaning. Not designed.
+  - A new tag, `@term`, declares one term and its definition. A term has
+    a slug, such as `default-branch` for the term "default branch".
+  - The definition is normative: it fixes what the term means in every
+    text of the repository.
+  - The slugs of terms form one namespace for the whole repository,
+    apart from the slug namespaces of `spec/vocabulary.md` section 4.1.
+  - A slug of a term can start with a prefix and `/`, as in
+    `ledger/claim`, to group the terms of one area. Today the slug
+    pattern does not allow `/`. Also, `<ns>/<id>` is the form of an
+    external id (`spec/vocabulary.md` section 4.2).
+  - A citation of a term states the kind of its target, as in
+    `@cites term:ledger/claim`. Today a citation never states a kind
+    (`spec/vocabulary.md` section 4.1).
+  - A term has no revision. Today every declaration has a revision
+    (`spec/vocabulary.md` sections 5 and 9). The ledger also binds each
+    approval to a revision (`spec/ledger.md` section 5.2).
+  - A command that searches the terms and prints a definition. The same
+    search can be a tool of the MCP server that the item
+    **`sinter serve --mcp`** describes. The command overlaps with the
+    item **`sinter search`**.
+  - How Sinter shows a person that a definition changed. A changed
+    definition changes the meaning of each text that uses the term. A
+    possible way: Sinter compares the extent hash of each definition
+    (`spec/vocabulary.md` section 6.1) at the diff base and in the
+    working tree. It then reports each text that cites a term whose
+    definition changed. That way does not find a text
+    that uses a term with no citation. Undecided.
 - **`sinter patch`** — print the mechanical fixes of the findings as a
   diff for `git apply`, design notes section 11.10. Sinter itself
   writes no file.
