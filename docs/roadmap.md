@@ -171,6 +171,57 @@
   reports no name for them. The OCaml pack needs a way to bind their
   results before it can read them as tests. This matters because
   Sinter checks its own code. Not designed.
+- **Tags in Python docstrings** — in Python, a docstring is a statement
+  that consists of one string literal, not an f-string, and that is
+  the first statement of a module, a class, or a function. Python
+  keeps the documentation of that module, class, or function in its
+  docstring. The language pack for Python (`spec/packs.md` section 2)
+  reads tags only in `#` comments:
+  its query file `tags.scm` (`spec/packs.md` section 4.2) captures no
+  string literal, and `spec/vocabulary.md` section 2 forbids tags in a
+  string literal. So Sinter reads no tag line (`spec/vocabulary.md`
+  section 3.1) in a docstring. A new release of the pack could read
+  tag lines in docstrings too. Not designed. This list is a sketch of
+  the places that such a change would probably touch, and it is not
+  complete:
+  - `spec/vocabulary.md` section 2: an exception for docstrings to the
+    rule against tags in string literals.
+  - `spec/packs.md` section 4.2: a way for `tags.scm` to capture a
+    docstring and no other string literal. A query captures a node of
+    the syntax tree (`spec/packs.md` section 4.1). The grammar that
+    the pack pins, tree-sitter-python v0.25.0, has no kind of node for
+    a docstring.
+  - `spec/packs.md` section 3.4: the quotes of a docstring as comment
+    sigils, the texts that open a comment, close it, or start an inner
+    line of it. A sigil is a fixed text, and a string literal can start
+    with a prefix such as `r`, `R`, `u`, or `U`, so the sigils need a
+    new form or a new rule.
+  - `spec/packs.md` sections 6.1 and 6.2: a docstring would become a
+    comment and stop being code. A `#` comment on the line before or
+    after a docstring would then join its run, the sequence of
+    comments that Sinter reads as one unit.
+  - `spec/packs.md` section 6.4: the attachment of a docstring's run
+    to the class or function whose docstring it is. A run attaches
+    only to an attachment target that starts after the run. A
+    docstring is part of the body of its class or function, so its run
+    starts inside its target and cannot attach to it. It can attach
+    instead to the next attachment target, such as the first method of
+    a class, when the three conditions of section 6.4 hold. Otherwise
+    it is unattached. An attachment target is a definition, a test,
+    or a group (`spec/packs.md` section 6.4). The docstring of a
+    module needs a target of a new kind, because a file is not an
+    attachment target.
+  - `spec/vocabulary.md` section 6.2: the code hash of a definition is
+    taken over its body, and the section says that a body contains no
+    comment sigils and no tag lines. A docstring with tag lines would
+    break that statement.
+  - `spec/packs.md` section 2.5: the kind of the new release. A minor
+    release changes no extent hash (`spec/vocabulary.md` section 6.1).
+    The extent of a block of tag lines (`spec/vocabulary.md` sections
+    3.1 and 6.1) is the tag-bearing text of its run. So a `#` comment
+    that joins the run of a docstring changes the extent of each block
+    in that comment, and the release may need to be a major release.
+  - The code of Sinter's scanner, and its tests.
 - **Drop the pins on the measuring tools** when upstream `bisect_ppx`
   and `mutaml` release versions that install beside the lock file
   (`docs/decisions/instrumented-tooling.md`).
