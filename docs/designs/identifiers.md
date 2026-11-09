@@ -5,7 +5,8 @@
 @design identifiers=v1
 @cites rfc/5234
 @cites rfc/7405
-Each tag line, inline citation, and id pattern of Sinter has one written form, by which a parser accepts or rejects the text and gives the names and revisions that the text holds.
+@cites commonmark/0.31.2
+A parser reads tag lines, inline citations, id patterns, and bindings of external namespaces, accepts or rejects each of them, and gives the values that each of them holds.
 
 Sinter reads the text files of a repository. A tag line, such as
 `@req size-limit=v2`, declares a thing of the repository or cites one.
@@ -16,12 +17,17 @@ such as the issues of a tracker.
 The productions in section 4 are written in ABNF, the notation of
 RFC 5234. A production, such as `slug = segment *( "/" segment )`,
 gives the texts that its name matches. In a production, `/` separates
-two alternatives. The quoted string `"/"` is the character `/`. `*`
-repeats the element after it. `[ ]` makes an element optional. `%x41`
-is the character U+0041, and `%x30-39` is any one character from
-U+0030 to U+0039. In RFC 5234, a quoted string such as `"a"` matches
-its letters in either case. RFC 7405 adds the form `%s"…"`, which
-matches its letters only in the same case, as in `%s"@req"`.
+two alternatives. The quoted string `"/"` is the character `/`. `( )`
+groups elements, and `[ ]` makes an element optional. `*` repeats the
+element after it any number of times, `1*` repeats it one or more
+times, and `8*64` repeats it from 8 to 64 times. `%x41` is the
+character U+0041, and `%x30-39` is any one character from U+0030 to
+U+0039. In RFC 5234, a quoted string such as `"a"` matches its letters
+in either case. RFC 7405 adds the form `%s"…"`, which matches its
+letters only in the same case, as in `%s"@req"`.
+
+From CommonMark 0.31.2, the design takes what a markdown link is, its
+destination and its link text, and the inline elements of a link text.
 
 ## 1. Terms
 
@@ -31,50 +37,55 @@ matches its letters only in the same case, as in `%s"@req"`.
 | must | states an obligation of a conforming parser |
 | ABNF | the notation for grammars of RFC 5234, with the case-sensitive strings of RFC 7405 |
 | production | a rule of ABNF, such as `slug = segment *( "/" segment )`, which gives the texts that its name matches |
-| character | one Unicode code point |
+| character | one Unicode scalar value: a code point that is not from U+D800 to U+DFFF |
+| text | a sequence of characters |
 | printable ASCII character | a character from `!` to `~`; a space is not one |
-| line | a sequence of characters with no line feed, which a parser reads as one unit |
+| line | a text with no line feed, which a parser reads as one unit |
 | tag line | a line whose first character, after the spaces and tabs at its start, is `@` |
 | tag word | the `@` at the start of a tag line, with the ASCII letters, ASCII digits, and `-` right after it, such as `@req` |
 | Sinter tag word | one of the fifteen tag words of Sinter, such as `@req` and `@cites` |
-| declaration | a tag line that declares a thing, such as `@req size-limit=v2` |
-| citation | a tag line that cites a thing, such as `@cites packs#size-limit=v2` |
+| declaration | a tag line whose tag word is `@decision`, `@design`, `@finding-class`, `@req`, or `@spec`, such as `@req size-limit=v2` |
+| citation | a tag line whose tag word is `@cites`, `@refines`, `@satisfies`, `@supersedes`, or `@verifies`, such as `@cites packs#size-limit=v2` |
 | status tag | a tag line with `@deferred`, `@deprecated`, or `@rejected`, which has no target |
 | directive | a tag line with `@ack` or `@extern`, each of which has a form of its own |
-| target | the run of characters after the tag word of a declaration, a citation, or an `@extern` line and the spaces after the tag word, which names a thing; also the destination of an inline citation after `sinter:` |
+| target | the run of characters after the tag word of a declaration, a citation, or an `@extern` line and the spaces and tabs after the tag word; also the destination of an inline citation after `sinter:` |
 | inline description | the text of a tag line after its target, or after the tag word of a status tag; an `@ack` line has none |
 | segment | a run of ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them, such as `size-limit` |
-| slug | one segment, or several segments joined by `/`, that names a thing of the repository, such as `packs` or `billing/auth` |
-| custom namespace | the segments of a slug before its last segment, such as `billing` in `billing/auth` |
-| part name | a segment that names one part of a thing, such as a requirement of a design or a section of an external document |
+| slug | one segment, or several segments joined by `/`, such as `packs` or `billing/auth` |
+| custom namespace | the text of a slug before its last `/`, such as `billing` in `billing/auth` and `a/b` in `a/b/c` |
+| part name | the segment after `#` in a name, such as `descriptor` in `packs#descriptor` |
 | full name | a slug, `#`, and a part name, such as `packs#descriptor` |
 | name | a slug, a full name, or `#` and a part name |
-| kind word | a word before `:` at the start of a target, which states what kind of thing the target names, such as `req` in `req:packs#size-limit=v2` |
-| label | a run of printable ASCII characters other than `/`, `#`, `@`, `*`, and `=`, such as `v2`, that names one revision of a thing |
-| revision | a label, or `*`, which stands for any revision; a target gives it after `=`, right after the name of the thing that it is a revision of |
-| every-part target | a target such as `docs=v3#*`, which stands for every part of the thing that its slug names |
-| external namespace | a name, such as `gh`, for a set of things outside the repository, such as the issues of a tracker |
-| external id | the name of an external namespace, `/`, and an id, such as `gh/42`; the id names one thing of the external namespace |
-| id pattern | a small regular expression that matches the ids of one external namespace |
+| kind word | one of six words, such as `req`, that can stand with a `:` at the start of a target, as in `req:packs#size-limit=v2` |
+| label | a run of printable ASCII characters other than `/`, `#`, `@`, `*`, and `=`, such as `v2` |
+| revision | the text after `=` in a target: a label, or `*`, which stands for any label |
+| every-part target | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
+| external namespace | one pair of the binding of `external-namespaces`: a namespace name and an id pattern |
+| namespace name | the name of an external namespace, such as `gh` |
+| external id | a namespace name, `/`, and an id, such as `gh/42` |
+| id | a text that a parser tests against an id pattern, such as `42` in `gh/42` |
+| id pattern | a small regular expression, which gives the form of the ids of one external namespace |
+| fit | an id fits an id pattern when the id has the form that the id pattern gives, such as `42` for `[1-9][0-9]*` |
 | head | the text of a target without its kind word, up to its first `#` or `=` |
-| external target | a target whose head starts with the name of an external namespace, followed by `/` or by the end of the head |
+| external target | the target of a declaration, a citation, or an inline citation whose head starts with a namespace name, followed by `/` or by the end of the head |
 | inline citation | a markdown link whose destination starts with `sinter:` |
 | destination | the address of a markdown link, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)` |
 | link text | the text between the brackets of a markdown link, such as `the limit` in `[the limit](sinter:packs#size-limit=v2)` |
+| plain string content | the text that a link text shows without its markup, such as `the limit` for `*the* limit` |
 | white space character | a space, a tab, a line feed, a form feed, a carriage return, or another space character of Unicode, such as U+00A0, the no-break space |
-| parameter | an input of a parser that a program binds before the parser reads lines and links |
-| binding | what a program binds a parameter to |
+| parameter | an input of a parser that the parser reads before any other input |
+| binding | the input that a program gives for a parameter, such as a set of pairs for `external-namespaces` |
+| result | what a conforming parser gives for an input, such as "valid" or "not a tag line" |
 | valid, invalid | the results of a conforming parser for an input that it accepts and for an input that it rejects |
-| value | what a conforming parser gives from a valid input, such as the slug of its target |
+| value | a text or a fact that a conforming parser gives for an input together with its result, such as the tag word of a tag line or the slug of a target |
 
 ## 2. The written forms
 
 ### 2.1 Tag lines and tag words
 
-A parser reads lines. A line is a sequence of characters with no line
-feed. A line is a tag line when its first character, after the spaces
-and tabs at its start, is `@`. Every such line is a tag line, whatever
-its tag word is.
+A parser reads lines. A line is a text with no line feed. A line is a
+tag line when its first character, after the spaces and tabs at its
+start, is `@`. Every such line is a tag line, whatever its tag word is.
 
 The tag word of a tag line is its `@` and the longest run of ASCII
 letters, ASCII digits, and `-` right after that `@`. The run can be
@@ -91,10 +102,9 @@ empty.
 
 Sinter has fifteen tag words. A tag word is a Sinter tag word only when
 it has the characters of one of them, with the same case, so `@Req` is
-not `@req`.
-For a tag line whose tag word is not a Sinter tag word, a conforming
-parser gives the result "other tag word" and the tag word, and nothing
-more.
+not `@req`. For a tag line whose tag word is not a Sinter tag word, a
+conforming parser gives the result "other tag word" and the tag word,
+and nothing more.
 
 A Sinter tag word makes its tag line a declaration, a citation, a
 status tag, or a directive. The tag word also sets the form of the line
@@ -134,25 +144,24 @@ A segment is a run of ASCII letters and ASCII digits, with one `-`,
 `docs--x`, and `docs x` are not segments.
 
 A slug is one segment, such as `packs`, or several segments joined by
-`/`, such as `billing/auth`. The segments before the last one are the
-custom namespace of the slug: `billing` in `billing/auth`.
+`/`, such as `billing/auth`. The text of a slug before its last `/` is
+the custom namespace of the slug: `billing` in `billing/auth`, and
+`a/b` in `a/b/c`.
 
 A part name is one segment. A full name is a slug, `#`, and a part
 name, such as `packs#descriptor` or `billing/auth#lockout`. A target
 can also hold `#` and a part name with no slug before the `#`, as in
-`#descriptor=v1`. Such a target names the part `descriptor` of the thing
-whose text holds the target. A name is a slug, a full name, or `#` and
-a part name.
+`#descriptor=v1`. A name is a slug, a full name, or `#` and a part
+name.
 
-A conforming parser gives each name as it is written, so
+A conforming parser gives each name with its case unchanged, so
 `Auth-Lockout` and `auth-lockout` stay two different texts.
 
 ### 2.3 Kind words
 
-A kind word states what kind of thing a target names. The six kind
-words are `decision`, `design`, `finding-class`, `req`, `spec`, and
-`term`. A kind word stands at the start of a target, with a `:` after
-it: `req:packs#size-limit=v2`, `spec:rfc/8259`.
+The six kind words are `decision`, `design`, `finding-class`, `req`,
+`spec`, and `term`. A kind word stands at the start of a target, with a
+`:` after it: `req:packs#size-limit=v2`, `spec:rfc/8259`.
 
 The target of a citation and the target of an inline citation can start
 with a kind word. The target of `@extern` always starts with one. The
@@ -162,76 +171,79 @@ invalid: `plan` is not a kind word, and `plan:upkeep` is not a slug.
 
 ### 2.4 Revisions
 
-A revision is a label or `*`. A label names one revision of a thing. A
-label is a run of printable ASCII characters other than `/`, `#`, `@`,
-`*`, and `=`, such as `v2`, `2026-11`, `v1.2.0`, or `rc1`. `*` stands
-for any revision.
+A revision is a label or `*`. A label is a run of printable ASCII
+characters other than `/`, `#`, `@`, `*`, and `=`, such as `v2`,
+`2026-11`, `v1.2.0`, or `rc1`. `*` stands for any label.
 
-A revision follows the name of the thing that it is a revision of,
-after `=`. A target holds one revision at most. In `docs#size=v2`, `v2`
-is a revision of the part `size` of `docs`, and the target holds no
-revision of `docs`.
+A revision follows a name, after `=`. A target carries one revision at
+most. When the name before the revision holds a part name, the revision
+belongs to the part name. Otherwise, the revision belongs to the slug.
+So in `docs#size=v2`, the revision `v2` belongs to the part name
+`size`, and the target carries no revision for the slug `docs`.
 
-| target | name | revision | a revision of |
+| target | name | revision | the revision belongs to |
 |---|---|---|---|
-| `docs=v3` | the slug `docs` | `v3` | `docs` |
-| `billing/auth=v3` | the slug `billing/auth` | `v3` | `billing/auth` |
-| `docs#size=v2` | the full name `docs#size` | `v2` | the part `size` of `docs` |
-| `#size=v2` | `#` and the part name `size` | `v2` | the part `size` of the thing whose text holds the target |
-| `docs=*` | the slug `docs` | `*` | `docs` |
-| `docs#size=*` | the full name `docs#size` | `*` | the part `size` of `docs` |
+| `docs=v3` | the slug `docs` | `v3` | the slug `docs` |
+| `billing/auth=v3` | the slug `billing/auth` | `v3` | the slug `billing/auth` |
+| `docs#size=v2` | the full name `docs#size` | `v2` | the part name `size` |
+| `#size=v2` | `#` and the part name `size` | `v2` | the part name `size` |
+| `docs=*` | the slug `docs` | `*` | the slug `docs` |
+| `docs#size=*` | the full name `docs#size` | `*` | the part name `size` |
 
 The target of every declaration, citation, and inline citation carries
 a revision, except an external target. The target of a declaration
 carries a label. The target of `@cites` and the target of an inline
-citation carry a label or `*`. The target of each other citation word
-carries a label. An external target, the target of `@extern`, and an
-`@ack` line carry no revision.
+citation carry a label or `*`. The target of a citation whose tag word
+is `@refines`, `@satisfies`, `@supersedes`, or `@verifies` carries a
+label. The target of `@extern` and an `@ack` line carry no revision.
 
 A revision has no default. So a declaration, a citation, or an inline
 citation whose target is not external and carries no revision is
 invalid. For example, `@cites billing/auth` and `@design billing/auth`
-are invalid: each target is the slug `billing/auth`, which has two
-segments, and carries no revision.
+are invalid: neither target carries a revision.
 
-A label ends at the first space or tab, so a character right after a
-target belongs to its label: in `@cites docs=v1, and more`, the label
-is `v1,`. A label holds no `=`, so `@cites docs=v=1` is invalid.
+A label ends at the first space or tab. So a character that follows
+the label, with no space or tab between them, belongs to the label: in
+`@cites docs=v1, and more`, the label is `v1,`. A label holds no `=`,
+so `@cites docs=v=1` is invalid.
 
-An every-part target, such as `docs=v3#*`, stands for every part of
-the thing that its slug names. Only the target of `@supersedes` can be
-an every-part target. Its revision is a label, and it follows the slug,
-before `#*`: in `docs=v3#*`, `v3` is a revision of `docs`. An
-every-part target holds no kind word. So `@supersedes docs#*=v3` and
-`@supersedes docs=*#*` are invalid.
+An every-part target is a slug, `=`, a label, and `#*`, such as
+`docs=v3#*`. Only the target of `@supersedes` can be an every-part
+target. The revision of an every-part target belongs to the slug, and
+it is a label. So `@supersedes docs#*=v3` and `@supersedes docs=*#*`
+are invalid. An every-part target holds no kind word, so
+`@supersedes design:docs=v3#*` is invalid.
 
 ### 2.5 External ids
 
-The parameter `external-namespaces` (section 3) gives each external
-namespace with its id pattern. An external id is the name of an
-external namespace, `/`, and an id, such as `gh/42`. The id is a run of
-printable ASCII characters other than `#`, `/`, `=`, and `@`, and the
-id pattern of the external namespace matches the id. An external id can
-take `#` and a part name, which names a part of the external thing, as
-in `rfc/8259#section-6`. An external id carries no revision.
+The parameter `external-namespaces` (section 3) gives the external
+namespaces. Each external namespace has a namespace name, such as `gh`,
+and an id pattern. An external id is a namespace name, `/`, and an id,
+such as `gh/42`. The id is a run of printable ASCII characters other
+than `#`, `/`, `=`, and `@`, and it fits the id pattern of the external
+namespace. An external id can take `#` and a part name, as in
+`rfc/8259#section-6`. An external id carries no revision.
 
-One rule decides whether a target holds an external id. The head of a
-target is its text after its kind word and the `:` after the kind word,
-and before its first `#` or `=`. When the head starts with the name of
-an external namespace, followed by `/` or by the end of the head, the
-target is an external target. A conforming parser reads an external
-target only as an external id, with an optional `#` and part name after
-it. It reads no other target as an external id.
+One rule decides whether the target of a declaration, a citation, or an
+inline citation holds an external id. The head of the target is its
+text after its kind word and the `:` after the kind word, and before
+its first `#` or `=`. When the head starts with a namespace name,
+followed by `/` or by the end of the head, the target is an external
+target. A conforming parser reads an external target only as an
+external id, with an optional `#` and part name after it. It reads no
+other target as an external id. The target of `@extern` is never an
+external target, so `@extern spec:gh` is valid under a binding with
+the external namespace `gh`.
 
 So the binding of `external-namespaces` decides how a target reads.
-When `gh` is an external namespace, `@cites gh/42` cites the external
-id `gh/42`. When `gh` is not one, the target `gh/42` is the slug
+When `gh` is a namespace name of the binding, `@cites gh/42` cites the
+external id `gh/42`. When it is not, the target `gh/42` is the slug
 `gh/42`: `@cites gh/42` is invalid, because it carries no revision, and
 `@cites gh/42=v1` is valid. Under a binding with the external namespace
 `gh`:
 
-- `@cites gh/0` is invalid when the id pattern of `gh` does not match
-  `0`.
+- `@cites gh/0` is invalid when `0` does not fit the id pattern of
+  `gh`.
 - `@cites gh/42=v1` is invalid, because the target is external, and an
   id holds no `=`.
 - `@cites gh/42/x` is invalid, because the target is external, and an
@@ -266,16 +278,15 @@ is `docs#size=v2`, and the hash is `3f2a9c1d`.
 ### 2.7 Inline citations
 
 An inline citation is a markdown link whose destination starts with the
-seven characters `sinter:`. A link is a link as CommonMark 0.31.2
-defines it: an inline link, a reference link, or an autolink. An image
-is not a link, so `![x](sinter:packs#size-limit=v2)` is not an inline
-citation.
+seven characters `sinter:`. A link is an inline link, a reference link,
+or an autolink, as CommonMark 0.31.2 defines them. An image is not a
+link, so `![x](sinter:packs#size-limit=v2)` is not an inline citation.
 
 The destination of an inline link or a reference link is its link
-destination as CommonMark gives it. The angle brackets around it go,
-and each backslash escape, entity reference, and numeric character
-reference becomes its character. No percent-decoding applies, so `%23`
-is three characters and not `#`. So
+destination as CommonMark gives it. The destination holds no angle
+brackets that enclose it, and each backslash escape, entity reference,
+and numeric character reference in it is replaced by its character. No
+percent-decoding applies, so `%23` is three characters and not `#`. So
 `[x](sinter:packs\#size-limit=v2)` and
 `[x](sinter:packs&#35;size-limit=v2)` both have the destination
 `sinter:packs#size-limit=v2`, and `[x](sinter:packs%23size-limit=v2)`
@@ -283,144 +294,193 @@ is invalid. The destination of an autolink is its text between `<` and
 `>`.
 
 The target of an inline citation is its destination after `sinter:`.
-The target is a name, `=`, and a revision, or an external id, with an
-optional kind word before it. As in the target of `@cites`, the
-revision is a label or `*`, and an external id carries no revision. So
-`[auth](sinter:billing/auth=v3)` cites the slug `billing/auth` with the
-revision `v3`, and `[auth](sinter:billing/auth)` is invalid. The rule
-of external targets (section 2.5) applies as it applies in a tag line,
-so `[x](sinter:gh/42=v2)` is invalid.
+The target is an optional kind word and `:`, and then either a name,
+`=`, and a revision, or an external id with an optional `#` and part
+name. As in the target of `@cites`, the revision is a label or `*`, and
+an external id carries no revision. So `[auth](sinter:billing/auth=v3)`
+cites the slug `billing/auth` with the revision `v3`, and
+`[auth](sinter:billing/auth)` is invalid. The rule of external targets
+(section 2.5) applies as it applies in a tag line, so
+`[x](sinter:gh/42=v2)` is invalid.
 
 The link text is the text between the brackets of the link, as it
 stands in the document: `*the* limit` in
-`[*the* limit](sinter:packs#size-limit=v2)`. An inline citation is
-invalid when its link text is empty or holds only white space
-characters, as in `[](sinter:packs#size-limit=v2)` and
-`[ ](sinter:packs#size-limit=v2)`. The link text of an autolink, such
-as `<sinter:req:packs#size-limit=v2>`, is its text between `<` and `>`.
+`[*the* limit](sinter:packs#size-limit=v2)`. The link text of an
+autolink, such as `<sinter:req:packs#size-limit=v2>`, is its text
+between `<` and `>`.
+
+An inline citation is invalid when the plain string content of its
+link text holds no character other than white space characters. The
+plain string content is the text that the inline elements of the link
+text give, without their markup:
+
+- Textual content gives its characters, after its escapes and
+  references resolve, so `&nbsp;` gives U+00A0.
+- A code span gives its content.
+- Emphasis and strong emphasis give the plain string content of what
+  they hold, so `*the* limit` gives `the limit`.
+- An image gives the plain string content of its description.
+- A line break gives a line feed.
+- Raw HTML, such as `<!-- -->`, gives no characters.
+
+So `[](sinter:packs#size-limit=v2)`, `[ ](sinter:packs#size-limit=v2)`,
+`[&nbsp;](sinter:packs#size-limit=v2)`, and
+`[<!-- -->](sinter:packs#size-limit=v2)` are invalid. But
+`[**](sinter:packs#size-limit=v2)` is valid: `**` that opens no
+emphasis is text. The plain string content of the link text of an
+autolink is the link text.
 
 ### 2.8 Id patterns
 
-An id pattern is a small regular expression. It matches an id only when
-it matches the whole id. It is built from these elements:
+An id pattern is a small regular expression. An id fits an id pattern
+when the whole id, and not only a part of it, has the form that the id
+pattern gives. An id pattern is built from these elements:
 
-| element | form | matches |
+| element | form | texts that fit it |
 |---|---|---|
 | literal | one printable ASCII character other than `\ . [ ] ( ) { } * + ? \| ^ $ # / = @` | that character |
-| character class | `[`, one or more members, `]` | one character that a member matches |
+| character class | `[`, one or more members, `]` | one character that fits a member |
 | member | a printable ASCII character other than `\ [ ] ^ - # / = @` | that character |
 | member | a range `x-y`: two digits, two upper-case letters, or two lower-case letters, with `x` not after `y` | each character from `x` to `y` |
 | member | `-`, first or last in its character class | `-` |
-| group | `(`, a pattern, `)` | what the pattern matches |
-| sequence | elements one after another | what each element matches, one after another |
-| alternation | `a\|b` | what `a` matches, or what `b` matches |
-| quantifier | `?`, `*`, `+`, `{n}`, `{n,}`, or `{n,m}` after a literal, a character class, or a group | the element 0 or 1 times; 0 or more times; 1 or more times; `n` times; `n` or more times; from `n` to `m` times |
+| group | `(`, a pattern, `)` | the texts that fit the pattern |
+| sequence | elements one after another | texts that fit each element, one after another |
+| alternation | `a\|b` | the texts that fit `a`, and the texts that fit `b` |
+| quantifier | `?`, `*`, `+`, `{n}`, `{n,}`, or `{n,m}` after a literal, a character class, or a group | texts that fit the element, 0 or 1 times; 0 or more times; 1 or more times; `n` times; `n` or more times; from `n` to `m` times |
 
-Alternation binds loosest, so `ab|c` matches `ab` and `c`. A quantifier
-applies to the one literal, character class, or group before it, and an
-element takes one quantifier at most. In a quantifier, `n` and `m` are
-decimal numbers from 0 to 255, written with no leading zero, and `n` is
-not greater than `m`. Case always matters. A character class can match
-characters that a literal leaves out, such as `.` and `+`: `[.]`,
-`[+]`.
+Alternation binds loosest, so the ids `ab` and `c` fit `ab|c`. A
+quantifier applies to the one literal, character class, or group
+before it, and an element takes one quantifier at most. In a
+quantifier, `n` and `m` are decimal numbers from 0 to 255, written with
+no leading zero, and `n` is not greater than `m`. Case always matters.
+A character class can hold characters that a literal leaves out, such
+as `.` and `+`: `[.]`, `[+]`.
 
 These conditions also apply to an id pattern:
 
-- It does not match the empty id. So `[0-9]*` is invalid.
+- The empty id does not fit it. So `[0-9]*` is invalid.
 - It holds 1,000 characters at most.
 - Its size is 1,000 at most. The size counts the literals and the
   character classes of the pattern when each quantifier is written out
   as copies of its element. `{n}` counts as `n` copies, `{n,m}` counts
   as `m` copies, and each of them counts as one copy at least. `{n,}`
   counts as `n` copies and one more. `?`, `*`, and `+` count as one
-  copy. Examples: `([0-9]{3}-){10}` has the size 40, and
-  `((a{0,255}){0,255})b` has the size 65,026, so it is invalid.
+  copy. Examples: `([0-9]{3}-){10}` has the size 40,
+  `([0-9]{250}){4}` has the size 1,000, and `([0-9]{143}){7}` has the
+  size 1,001, so it is invalid.
 
-| id pattern | ids that it matches |
+| id pattern | ids that fit it |
 |---|---|
 | `[1-9][0-9]*` | the numbers of GitHub issues and pull requests, such as `42` |
-| `[A-Z]+-[1-9][0-9]*` | Jira keys, such as `PROJ-1` |
+| `[A-Z]+-[1-9][0-9]*` | Jira keys whose project key holds only letters, such as `PROJ-1` |
 
-A valid id pattern matches the same ids in POSIX extended regular
-expressions in the POSIX locale, in RE2, and in ECMAScript without the
-`v` flag, when each of them matches the id pattern against the whole
-id.
+A valid id pattern is also a POSIX extended regular expression in the
+POSIX locale, an RE2 expression, and an ECMAScript expression without
+the `v` flag. Each of these, anchored at the start and the end of the
+id, finds exactly the ids that fit the id pattern.
 
 ### 2.9 Results and values
 
-A conforming parser gives a result for every input, and it never stops
-with an error. A line gets one of four results: not a tag line, other
-tag word, valid, or invalid. A markdown link or image gets one of three
-results: not an inline citation, valid, or invalid. An id pattern and a
-binding of `external-namespaces` each get valid or invalid. For an id
-pattern that it accepts and an id, the parser gives matches or does not
-match.
+A conforming parser gives one result for each id pattern, for each
+binding of `external-namespaces`, and for each id pattern that it
+accepts together with an id. Under a binding that it accepts, it also
+gives one result for each line, link, and image. Under a binding that
+it rejects, it gives no result and no value for a line, a link, or an
+image.
 
-For a valid input, the parser also gives its values, such as the kind
-word, the slug, the custom namespace, the part name, the external
-namespace and the id, the revision, the inline description, and the
-link text. Each value that is a text is a run of the characters of the
-input, as it is written.
+A line gets one of four results: not a tag line, other tag word, valid,
+or invalid. A markdown link or image gets one of three results: not an
+inline citation, valid, or invalid. An id pattern and a binding of
+`external-namespaces` each get valid or invalid. An id pattern that the
+parser accepts, together with an id, gets matches or does not match.
+
+For a tag line, the parser gives the tag word. For a valid input, it
+also gives the values that the input holds, such as the kind word, the
+slug, the custom namespace, the part name, the namespace name and the
+id, the revision, the inline description, the subject and the hash,
+and the link text. For each other input, it gives no value. Each value
+of a tag line is a run of the characters of the line. Each value of a
+target of an inline citation is a run of the characters of the
+destination, after the escapes and references of the destination
+resolve. The link text is a run of the characters of the document.
 
 ## 3. Parameters
 
 ### 3.1 `external-namespaces`
 
-The parameter `external-namespaces` gives the external namespaces and
-their id patterns. Its binding is a finite set of pairs. Each pair
-holds the name of one external namespace and the id pattern of that
-external namespace. A program binds the parameter before the parser
-reads lines and links. The binding can be the empty set, and then no
-target is external.
+The parameter `external-namespaces` gives the external namespaces. Its
+binding is a finite set of pairs. Each pair is one external namespace:
+a namespace name and an id pattern. The parser reads the binding before
+any other input. The binding can be the empty set, and then no target
+is external.
 
-The name of an external namespace is a run of lower-case ASCII letters
-and ASCII digits that starts with a letter, with one `-` at most between
-two of them, such as `gh` or `my-tracker`. No two pairs of a valid
-binding have the same name, and each id pattern of a valid binding is
-valid.
+A namespace name is a run of lower-case ASCII letters and ASCII digits
+that starts with a letter, with one `-` at most between two of them,
+such as `gh` or `my-tracker`. No two pairs of a valid binding have the
+same namespace name, and each id pattern of a valid binding is valid.
 
 ## 4. Requirements
 
-### 4.1 Notation
+### 4.1 Characters and texts
+
+@req characters=v1
+
+A character is a Unicode scalar value: a code point from U+0000 to
+U+D7FF, or from U+E000 to U+10FFFF. A text is a sequence of characters,
+and the empty text is the text of no characters. A space is U+0020, a
+tab is U+0009, and a line feed is U+000A. One character comes before
+another in code point order when its code point is less than the code
+point of the other.
+
+### 4.2 Notation
 
 @req notation=v1
 @cites rfc/5234
 @cites rfc/7405
-
-A character is a Unicode code point. A space is U+0020, a tab is
-U+0009, and a line feed is U+000A.
+@cites #characters=v1
 
 The productions of this design are rules of ABNF, the notation of
 RFC 5234, with the case-sensitive strings of RFC 7405. They use the core
 rules of RFC 5234, Appendix B.1. Each terminal value of a production is
-the number of one Unicode code point, so `%x41` matches the character
+the code point of one character, so `%x41` matches the character
 U+0041. A text matches a production when the production matches the
 whole of the text.
 
 The production `any-char` matches each character:
 
 ```
-any-char  = %x0-10FFFF
+any-char  = %x0-D7FF / %xE000-10FFFF
 ```
 
-### 4.2 Tag lines
+### 4.3 Outcomes
+
+@req outcomes=v1
+
+A result is one of these seven names: "not a tag line", "other tag word",
+"not an inline citation", "valid", "invalid", "matches", and "does not
+match". To reject an input is to give it the result "invalid". To
+accept an input is to give it the result "valid".
+
+### 4.4 Tag lines
 
 @req tag-lines=v1
+@cites #characters=v1
 @cites #notation=v1
 
-A line is a sequence of characters that holds no line feed. A tag line
-is a line whose first character after the spaces and tabs at its start
-is `@`. The tag word of a tag line is the longest text that starts at
-that `@` and that matches `tag-word`:
+A line is a text that holds no line feed. A tag line is a line whose
+first character after the spaces and tabs at its start is `@`. The tag
+word of a tag line is the longest text that starts at that `@` and that
+matches `tag-word`:
 
 ```
 tag-word  = "@" *( ALPHA / DIGIT / "-" )
 ```
 
-### 4.3 Tag words
+### 4.5 Tag words
 
 @req tag-words=v1
 @cites #tag-lines=v1
+@cites #characters=v1
 
 The Sinter tag words are these fifteen tag words, in four sets:
 
@@ -440,9 +500,10 @@ directive is a tag line whose tag word is a directive word. An `@ack`
 line is a tag line whose tag word is `@ack`, and an `@extern` line is a
 tag line whose tag word is `@extern`.
 
-### 4.4 Spaces, targets, and inline descriptions
+### 4.6 Spaces, targets, and inline descriptions
 
 @req line-layout=v1
+@cites #characters=v1
 @cites #notation=v1
 @cites #tag-lines=v1
 @cites #tag-words=v1
@@ -464,10 +525,11 @@ tabs at its start. The inline description of a status tag is the text
 of the line after its tag word, without the spaces and tabs at its
 start. An inline description can be empty.
 
-### 4.5 Segments and names
+### 4.7 Segments and names
 
 @req segments=v1
 @cites #notation=v1
+@cites #characters=v1
 
 These productions give the forms of names:
 
@@ -483,10 +545,11 @@ name       = slug / full-name / "#" part-name
 The custom namespace of a slug that holds a `/` is the text of the slug
 before its last `/`.
 
-### 4.6 Kind words
+### 4.8 Kind words
 
 @req kind-words=v1
 @cites #notation=v1
+@cites #characters=v1
 
 The kind words are the texts that this production matches:
 
@@ -495,7 +558,7 @@ kind-word  = %s"decision" / %s"design" / %s"finding-class" / %s"req"
            / %s"spec" / %s"term"
 ```
 
-### 4.7 Revisions
+### 4.9 Revisions
 
 @req revisions=v1
 @cites #notation=v1
@@ -508,13 +571,15 @@ label     = 1*( %x21-22 / %x24-29 / %x2B-2E / %x30-3C / %x3E-3F
 revision  = label / "*"
 ```
 
-### 4.8 The grammar of id patterns
+### 4.10 The grammar of id patterns
 
 @req id-pattern-grammar=v1
+@cites #characters=v1
 @cites #notation=v1
 
-A conforming parser must reject an id pattern that does not match the
-production `pattern`:
+An id pattern is a text that a conforming parser reads as a pattern for
+ids. An id is a text that a conforming parser tests against an id
+pattern. These productions give the form of an id pattern:
 
 ```
 pattern     = branch *( "|" branch )
@@ -540,69 +605,105 @@ The quantifiers `{n}`, `{n,}`, and `{n,m}` are the forms
 `n` is the number of the first `count`, and `m` is the number of the
 second `count`.
 
-### 4.9 Ranges in id patterns
+### 4.11 The form of an id pattern
+
+@req id-pattern-syntax=v1
+@cites #outcomes=v1
+@cites #id-pattern-grammar=v1
+
+A conforming parser must reject an id pattern that does not match the
+production `pattern`.
+
+### 4.12 Ranges in id patterns
 
 @req id-pattern-ranges=v1
-@cites #notation=v1
+@cites #characters=v1
+@cites #outcomes=v1
 @cites #id-pattern-grammar=v1
 
 A conforming parser must reject an id pattern that holds a `range`
-whose first character has a greater code than its last character.
+whose first character comes after its last character in code point
+order.
 
-### 4.10 Counts in id patterns
+### 4.13 Counts in id patterns
 
 @req id-pattern-counts=v1
+@cites #outcomes=v1
 @cites #id-pattern-grammar=v1
 
 A conforming parser must reject an id pattern that holds a `count`
-whose number is greater than 255, or a quantifier `{n,m}` in which `n`
-is greater than `m`.
+whose number is greater than 255.
 
-### 4.11 The meaning of id patterns
+### 4.14 Bounds in id patterns
+
+@req id-pattern-bounds=v1
+@cites #outcomes=v1
+@cites #id-pattern-grammar=v1
+
+A conforming parser must reject an id pattern that holds a quantifier
+`{n,m}` in which `n` is greater than `m`.
+
+### 4.15 The meaning of id patterns
 
 @req id-pattern-meaning=v1
-@cites #notation=v1
+@cites #characters=v1
 @cites #id-pattern-grammar=v1
 
-A text that matches `pattern` matches an id when, and only when, the
-text matches the whole id with these meanings:
+An id fits an id pattern that matches `pattern` when the whole id fits
+that `pattern` by these rules. In the rules, a text is a run of
+characters of the id.
 
-- A `literal` matches the one character that it is.
-- A `char-class` matches one character that one of its members matches.
-  A `range` matches each character whose code is from the code of its
-  first character to the code of its last character, both included. A
-  `single` matches the one character that it is. A `-` right after the
-  `[` or right before the `]` of a `char-class` matches the character
-  `-`.
-- An `atom` of the form `"(" pattern ")"` matches what its inner
-  `pattern` matches.
-- A `piece` with no `quantifier` matches what its `atom` matches. A
-  `piece` with a `quantifier` matches a text that is a sequence of
-  texts that its `atom` matches, one after another. The number of texts
-  in the sequence is 0 or 1 for `?`, 0 or more for `*`, 1 or more for
-  `+`, exactly `n` for `{n}`, `n` or more for `{n,}`, and from `n` to
-  `m` for `{n,m}`. Two texts of the sequence can differ.
-- A `branch` matches a text when its pieces, in their order, match
-  texts that together make that text, one after another.
-- A `pattern` matches a text when one of its branches matches that
-  text.
+- A text fits a `literal` when it is the one character of the
+  `literal`.
+- A text fits a `char-class` when it fits one of the members of the
+  `char-class`. A text fits a `range` when it is one character that
+  comes neither before the first character of the `range` nor after
+  its last character in code point order. A text fits a `single` when
+  it is the one character of the `single`. A text fits a `-` right
+  after the `[` or right before the `]` of a `char-class` when it is
+  the character `-`.
+- A text fits an `atom` of the form `"(" pattern ")"` when it fits the
+  inner `pattern`.
+- A text fits a `piece` with no `quantifier` when it fits the `atom` of
+  the `piece`. A text fits a `piece` with a `quantifier` when it is a
+  sequence of texts that each fit the `atom`, one after another, and
+  the number of texts is 0 or 1 for `?`, 0 or more for `*`, 1 or more
+  for `+`, exactly `n` for `{n}`, `n` or more for `{n,}`, and from `n`
+  to `m` for `{n,m}`. The texts of the sequence can differ.
+- A text fits a `branch` when it is a sequence of texts, one for each
+  `piece` of the `branch` in their order, and each text fits its
+  `piece`.
+- A text fits a `pattern` when it fits one of the branches of the
+  `pattern`.
 
-For an id pattern that it accepts and an id, a conforming parser must
-give the result "matches" when the id pattern matches the id, and the
-result "does not match" when it does not.
+### 4.16 Matching ids
 
-### 4.12 The empty id
-
-@req id-pattern-empty=v1
+@req id-pattern-matching=v1
+@cites #outcomes=v1
+@cites #id-pattern-grammar=v1
 @cites #id-pattern-meaning=v1
 
-The empty id is the id of no characters. A conforming parser must
-reject an id pattern that matches the empty id.
+For an id pattern that it accepts and an id, a conforming parser must
+give the result "matches" when the id fits the id pattern, and the
+result "does not match" when it does not.
 
-### 4.13 The size of an id pattern
+### 4.17 The empty id
+
+@req id-pattern-empty=v1
+@cites #characters=v1
+@cites #outcomes=v1
+@cites #id-pattern-grammar=v1
+@cites #id-pattern-meaning=v1
+
+A conforming parser must reject an id pattern that matches `pattern`
+when the empty text, as an id, fits the id pattern.
+
+### 4.18 The size of an id pattern
 
 @req id-pattern-size=v1
+@cites #outcomes=v1
 @cites #id-pattern-grammar=v1
+@cites #characters=v1
 
 The size of a text that matches `pattern` is a number that these rules
 give:
@@ -621,196 +722,90 @@ give:
 A conforming parser must reject an id pattern whose size is greater
 than 1,000.
 
-### 4.14 The length of an id pattern
+### 4.19 The length of an id pattern
 
 @req id-pattern-length=v1
-@cites #notation=v1
+@cites #characters=v1
+@cites #outcomes=v1
+@cites #id-pattern-grammar=v1
 
 A conforming parser must reject an id pattern that holds more than
 1,000 characters.
 
-### 4.15 External namespaces
+### 4.20 External namespaces
 
 @req external-namespaces=v1
+@cites #characters=v1
+@cites #notation=v1
+@cites #id-pattern-grammar=v1
 
-`external-namespaces` is a parameter: an input that a program binds
-before a conforming parser reads lines and links. A binding of
-`external-namespaces` is a finite set of pairs. Each pair holds a name
-and an id pattern. The external namespaces are the names of the pairs
-of the binding, and the id pattern of an external namespace is the id
-pattern of its pair.
+`external-namespaces` is a parameter: an input of a conforming parser
+that the parser reads before any other input. A binding of
+`external-namespaces` is a finite set of pairs. Each pair holds a text,
+its namespace name, and an id pattern. The external namespaces are the
+pairs of the binding. This production gives the form of a namespace
+name:
 
-### 4.16 The binding of external namespaces
+```
+namespace-name  = %x61-7A *( %x61-7A / DIGIT )
+                  *( "-" 1*( %x61-7A / DIGIT ) )
+```
+
+### 4.21 The binding of external namespaces
 
 @req namespace-binding=v1
-@cites #notation=v1
+@cites #outcomes=v1
 @cites #external-namespaces=v1
-@cites #id-pattern-grammar=v1
+@cites #id-pattern-syntax=v1
 @cites #id-pattern-ranges=v1
 @cites #id-pattern-counts=v1
+@cites #id-pattern-bounds=v1
 @cites #id-pattern-empty=v1
 @cites #id-pattern-size=v1
 @cites #id-pattern-length=v1
+@cites #id-pattern-grammar=v1
 
 A conforming parser must reject a binding of `external-namespaces` in
 each of these cases:
 
-1. A name of the binding does not match `namespace-name`:
+1. A namespace name of the binding does not match `namespace-name`.
+2. Two pairs of the binding have the same namespace name.
+3. A requirement that this requirement cites states that a conforming
+   parser must reject an id pattern of the binding.
 
-   ```
-   namespace-name  = %x61-7A *( %x61-7A / DIGIT )
-                     *( "-" 1*( %x61-7A / DIGIT ) )
-   ```
+### 4.22 The scope of the binding
 
-2. Two pairs of the binding have the same name.
-3. An id pattern of the binding is an id pattern that a conforming
-   parser must reject.
-
-### 4.17 External ids
-
-@req external-ids=v1
-@cites #notation=v1
-@cites #segments=v1
-@cites #kind-words=v1
-@cites #line-layout=v1
-@cites #inline-citations=v1
+@req binding-scope=v1
+@cites #outcomes=v1
+@cites #tag-lines=v1
 @cites #external-namespaces=v1
-@cites #id-pattern-meaning=v1
+@cites #inline-citations=v1
 
-These productions give the form of an external id. In them,
-`namespace` matches the name of each external namespace, and no other
-text.
+An obligation that cites this requirement holds for a line, a link, or
+an image only when the parser reads it under a binding of
+`external-namespaces` that the parser accepts.
 
-```
-external-ref  = external-id [ "#" part-name ]
-external-id   = namespace "/" id
-namespace     = <the name of an external namespace>
-id            = 1*( %x21-22 / %x24-2E / %x30-3C / %x3E-3F / %x41-7E )
-```
+### 4.23 A rejected binding
 
-An `external-id` matches a text only when the id pattern of its
-`namespace` matches its `id`.
+@req rejected-binding=v1
+@cites #outcomes=v1
+@cites #tag-lines=v1
+@cites #external-namespaces=v1
+@cites #inline-citations=v1
 
-A target starts with a kind word when the text of the target before its
-first `:` matches `kind-word`. The head of a target is the text of the
-target after that kind word and that `:`, when the target starts with a
-kind word, and before the first character of the target that is `#` or
-`=`, when the target holds one. The target of a declaration, a
-citation, or an inline citation is external when the text of its head
-before the first `/` of the head, or the whole head when the head holds
-no `/`, is the name of an external namespace. When the target of a line
-or of a destination is external, a production matches that line or that
-destination only by a match in which `external-ref` matches the target,
-without its kind word and the `:` after it when the target starts with
-a kind word.
+Under a binding of `external-namespaces` that it rejects, a conforming
+parser must give no result and no value for a line, a link, or an
+image.
 
-### 4.18 Declarations
-
-@req declarations=v1
-@cites #notation=v1
-@cites #tag-words=v1
-@cites #line-layout=v1
-@cites #segments=v1
-@cites #revisions=v1
-@cites #external-ids=v1
-
-A conforming parser must reject a declaration that does not match
-`declaration-line`:
-
-```
-declaration-line  = indent ( %s"@decision" / %s"@design"
-                           / %s"@finding-class" )
-                    gap slug "=" label rest
-                  / indent %s"@spec" gap ( segment / full-name )
-                    "=" label rest
-                  / indent %s"@req" gap ( slug / full-name )
-                    "=" label rest
-```
-
-### 4.19 Citations
-
-@req citations=v1
-@cites #notation=v1
-@cites #tag-words=v1
-@cites #line-layout=v1
-@cites #segments=v1
-@cites #kind-words=v1
-@cites #revisions=v1
-@cites #external-ids=v1
-
-A conforming parser must reject a citation that does not match
-`citation-line`:
-
-```
-citation-line  = indent %s"@cites" gap [ kind-word ":" ]
-                 ( name "=" revision / external-ref ) rest
-               / indent ( %s"@refines" / %s"@satisfies"
-                        / %s"@supersedes" / %s"@verifies" )
-                 gap [ kind-word ":" ] ( name "=" label / external-ref )
-                 rest
-               / indent %s"@supersedes" gap every-part rest
-every-part     = slug "=" label "#*"
-```
-
-An every-part target is a target that matches `every-part`.
-
-### 4.20 Status tags
-
-@req status-tags=v1
-@cites #notation=v1
-@cites #tag-words=v1
-@cites #line-layout=v1
-
-A conforming parser must reject a status tag that does not match
-`status-line`:
-
-```
-status-line  = indent ( %s"@deferred" / %s"@deprecated" / %s"@rejected" )
-               rest
-```
-
-### 4.21 The directive `@extern`
-
-@req extern=v1
-@cites #notation=v1
-@cites #tag-words=v1
-@cites #line-layout=v1
-@cites #segments=v1
-@cites #kind-words=v1
-
-A conforming parser must reject an `@extern` line that does not match
-`extern-line`:
-
-```
-extern-line  = indent %s"@extern" gap kind-word ":" part-name rest
-```
-
-### 4.22 The directive `@ack`
-
-@req ack=v1
-@cites #notation=v1
-@cites #tag-words=v1
-@cites #line-layout=v1
-@cites #segments=v1
-
-A conforming parser must reject an `@ack` line that does not match
-`ack-line`:
-
-```
-ack-line  = indent %s"@ack" gap slug [ gap subject ] gap hash *WSP
-subject   = non-wsp [ *any-char non-wsp ]
-non-wsp   = %x0-8 / %xA-1F / %x21-10FFFF
-hash      = 8*64( %x30-39 / %x61-66 )
-```
-
-### 4.23 Inline citations
+### 4.24 Inline citations
 
 @req inline-citations=v1
-@cites #notation=v1
+@cites commonmark/0.31.2
+@cites #characters=v1
 
-A link is a link of a markdown document as CommonMark 0.31.2 defines
-it: an inline link, a full, collapsed, or shortcut reference link, or
-an autolink. An image is not a link.
+A link is an inline link, a full, collapsed, or shortcut reference
+link, or an autolink, each as CommonMark 0.31.2 defines it. An image is
+not a link.
 
 The destination of an inline link or a reference link is its link
 destination as CommonMark 0.31.2 gives it: without the angle brackets
@@ -827,62 +822,305 @@ reference link is the text of the document between the `[` and the `]`
 that delimit its link text in CommonMark 0.31.2. The link text of an
 autolink is its text between `<` and `>`.
 
-### 4.24 The targets of inline citations
+### 4.25 The content of a link text
 
-@req inline-targets=v1
-@cites #notation=v1
+@req link-text-content=v1
+@cites commonmark/0.31.2
+@cites #characters=v1
 @cites #inline-citations=v1
+
+A white space character is one of these characters: U+0009, U+000A,
+U+000C, U+000D, U+0020, U+00A0, U+1680, each character from U+2000 to
+U+200A, U+202F, U+205F, and U+3000.
+
+The plain string content of the link text of an inline link or a
+reference link is a text. It is the text that the inline elements of
+the link text, as CommonMark 0.31.2 parses them, give by these rules,
+one after another:
+
+- Textual content gives its characters, with each backslash escape,
+  entity reference, and numeric character reference replaced by its
+  character.
+- A code span gives its content.
+- Emphasis and strong emphasis give the plain string content of their
+  inline elements.
+- An image gives the plain string content of the inline elements of its
+  image description.
+- A soft line break and a hard line break each give a line feed.
+- Raw HTML gives the empty text.
+
+The plain string content of the link text of an autolink is that link
+text.
+
+### 4.26 External ids
+
+@req external-ids=v1
+@cites #notation=v1
+@cites #segments=v1
+@cites #external-namespaces=v1
+@cites #id-pattern-meaning=v1
+@cites #characters=v1
+@cites #id-pattern-grammar=v1
+
+These productions give the form of an external id:
+
+```
+external-ref  = external-id [ "#" part-name ]
+external-id   = namespace "/" id-text
+namespace     = namespace-name
+id-text       = 1*( %x21-22 / %x24-2E / %x30-3C / %x3E-3F / %x41-7E )
+```
+
+A text matches `namespace` only when it is the namespace name of an
+external namespace. A text matches `external-id` only when the text
+that its `id-text` matches, as an id, fits the id pattern of the
+external namespace whose namespace name its `namespace` matches.
+
+### 4.27 External targets
+
+@req external-targets=v1
+@cites #tag-words=v1
+@cites #line-layout=v1
+@cites #kind-words=v1
+@cites #external-namespaces=v1
+@cites #inline-citations=v1
+@cites #external-ids=v1
+@cites #characters=v1
+@cites #tag-lines=v1
+
+A target starts with a kind word when it holds a `:` and the text
+before its first `:` matches `kind-word`. The head of a target is the
+text of the target after that kind word and that `:`, when the target
+starts with a kind word, and before the first character of the target
+that is `#` or `=`, when the target holds one. The target of a
+declaration, a citation, or an inline citation is external when the
+text of its head before the first `/` of the head, or the whole head
+when the head holds no `/`, is the namespace name of an external
+namespace. When the target of a declaration or a citation is external,
+a production matches the line only by a match in which `external-ref`
+matches the target, without its kind word and the `:` after it when the
+target starts with a kind word. When the target of an inline citation
+is external, a production matches the destination only by such a
+match.
+
+### 4.28 The grammar of declarations
+
+@req declaration-grammar=v1
+@cites #notation=v1
+@cites #line-layout=v1
+@cites #segments=v1
+@cites #revisions=v1
+@cites #external-targets=v1
+@cites #tag-words=v1
+
+This production gives the form of a declaration:
+
+```
+declaration-line  = indent ( %s"@decision" / %s"@design"
+                           / %s"@finding-class" )
+                    gap slug "=" label rest
+                  / indent %s"@spec" gap ( segment / full-name )
+                    "=" label rest
+                  / indent %s"@req" gap ( slug / full-name )
+                    "=" label rest
+```
+
+### 4.29 Declarations
+
+@req declarations=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #tag-words=v1
+@cites #declaration-grammar=v1
+
+A conforming parser must reject a declaration that does not match
+`declaration-line`.
+
+### 4.30 The grammar of citations
+
+@req citation-grammar=v1
+@cites #notation=v1
+@cites #line-layout=v1
 @cites #segments=v1
 @cites #kind-words=v1
 @cites #revisions=v1
+@cites #external-targets=v1
 @cites #external-ids=v1
+@cites #tag-words=v1
 
-A conforming parser must reject an inline citation whose destination
-does not match `inline-destination`:
+These productions give the form of a citation:
+
+```
+citation-line  = indent %s"@cites" gap [ kind-word ":" ]
+                 ( name "=" revision / external-ref ) rest
+               / indent ( %s"@refines" / %s"@satisfies"
+                        / %s"@supersedes" / %s"@verifies" )
+                 gap [ kind-word ":" ] ( name "=" label / external-ref )
+                 rest
+               / indent %s"@supersedes" gap every-part rest
+every-part     = slug "=" label "#*"
+```
+
+An every-part target is a target that matches `every-part`.
+
+### 4.31 Citations
+
+@req citations=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #tag-words=v1
+@cites #citation-grammar=v1
+
+A conforming parser must reject a citation that does not match
+`citation-line`.
+
+### 4.32 Status tags
+
+@req status-tags=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #notation=v1
+@cites #tag-words=v1
+@cites #line-layout=v1
+
+A conforming parser must reject a status tag that does not match
+`status-line`:
+
+```
+status-line  = indent ( %s"@deferred" / %s"@deprecated" / %s"@rejected" )
+               rest
+```
+
+### 4.33 The grammar of `@extern`
+
+@req extern-grammar=v1
+@cites #notation=v1
+@cites #line-layout=v1
+@cites #segments=v1
+@cites #kind-words=v1
+@cites #tag-words=v1
+
+This production gives the form of an `@extern` line:
+
+```
+extern-line  = indent %s"@extern" gap kind-word ":" part-name rest
+```
+
+### 4.34 The directive `@extern`
+
+@req extern=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #tag-words=v1
+@cites #extern-grammar=v1
+
+A conforming parser must reject an `@extern` line that does not match
+`extern-line`.
+
+### 4.35 The grammar of `@ack`
+
+@req ack-grammar=v1
+@cites #characters=v1
+@cites #notation=v1
+@cites #line-layout=v1
+@cites #segments=v1
+@cites #tag-words=v1
+
+These productions give the form of an `@ack` line:
+
+```
+ack-line  = indent %s"@ack" gap slug [ gap subject ] gap hash *WSP
+subject   = non-wsp [ *any-char non-wsp ]
+non-wsp   = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
+hash      = 8*64( %x30-39 / %x61-66 )
+```
+
+### 4.36 The directive `@ack`
+
+@req ack=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #tag-words=v1
+@cites #ack-grammar=v1
+
+A conforming parser must reject an `@ack` line that does not match
+`ack-line`.
+
+### 4.37 The grammar of inline citations
+
+@req inline-grammar=v1
+@cites #notation=v1
+@cites #segments=v1
+@cites #kind-words=v1
+@cites #revisions=v1
+@cites #external-targets=v1
+@cites #external-ids=v1
+@cites #inline-citations=v1
+
+This production gives the form of the destination of an inline
+citation:
 
 ```
 inline-destination  = %s"sinter:" [ kind-word ":" ]
                       ( name "=" revision / external-ref )
 ```
 
-### 4.25 The link text of inline citations
+### 4.38 The targets of inline citations
+
+@req inline-targets=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #inline-citations=v1
+@cites #inline-grammar=v1
+
+A conforming parser must reject an inline citation whose destination
+does not match `inline-destination`.
+
+### 4.39 The link text of inline citations
 
 @req inline-link-text=v1
-@cites #notation=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
 @cites #inline-citations=v1
+@cites #link-text-content=v1
+@cites #characters=v1
 
-A white space character is one of these characters: U+0009, U+000A,
-U+000C, U+000D, U+0020, U+00A0, U+1680, each character from U+2000 to
-U+200A, U+202F, U+205F, and U+3000. A conforming parser must reject an
-inline citation whose link text is empty or holds only white space
-characters.
+A conforming parser must reject an inline citation when the plain
+string content of its link text holds no character other than white
+space characters.
 
-### 4.26 Values
+### 4.40 Values
 
 @req values=v1
+@cites #characters=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
 @cites #tag-lines=v1
 @cites #tag-words=v1
 @cites #line-layout=v1
+@cites #inline-citations=v1
 @cites #segments=v1
 @cites #kind-words=v1
 @cites #revisions=v1
 @cites #external-ids=v1
-@cites #declarations=v1
-@cites #citations=v1
-@cites #extern=v1
-@cites #ack=v1
-@cites #inline-citations=v1
-@cites #inline-targets=v1
+@cites #declaration-grammar=v1
+@cites #citation-grammar=v1
+@cites #extern-grammar=v1
+@cites #ack-grammar=v1
+@cites #inline-grammar=v1
+@cites #id-pattern-grammar=v1
+@cites #external-namespaces=v1
 
-The match of an input is the match of the input by one production:
+A match of an input is a match of the input by one production:
 `declaration-line` for a declaration, `citation-line` for a citation,
 `extern-line` for an `@extern` line, `ack-line` for an `@ack` line, and
 `inline-destination` for the destination of an inline citation.
 
 For each tag line, a conforming parser must give its tag word. For each
 declaration, citation, status tag, directive, and inline citation that
-it accepts, it must also give each value of this table that the input
-holds, and no other value:
+it accepts, it must also give each value of this table that a match of
+the input holds, and no other value. For each other input, it must give
+no value, except the tag word of a tag line.
 
 | value | input that holds the value | the value |
 |---|---|---|
@@ -890,12 +1128,12 @@ holds, and no other value:
 | the kind word | an input whose match holds `kind-word` | the text that `kind-word` matches |
 | the slug | an input whose match holds `slug` | the text that `slug` matches |
 | the slug | a declaration with the tag word `@spec` whose target holds no `#` | the text that `segment` matches |
-| the custom namespace | an input with a slug that holds a `/` | the custom namespace of the slug |
+| the custom namespace | an input whose match holds `slug`, when the text that `slug` matches holds a `/` | the custom namespace of that text |
 | the part name | an input whose match holds `part-name` | the text that `part-name` matches |
 | every part | a citation whose target is an every-part target | no text |
-| the external namespace | an input whose match holds `external-id` | the text that `namespace` matches |
-| the id | an input whose match holds `external-id` | the text that `id` matches |
-| the revision | an input whose match holds `label` or `revision` | the text that `label` or `revision` matches, as a revision of the part that the part name names, when the match holds `part-name`, and as a revision of the thing that the slug names, when it does not |
+| the namespace name | an input whose match holds `external-id` | the text that `namespace` matches |
+| the id | an input whose match holds `external-id` | the text that `id-text` matches |
+| the revision | an input whose match holds `revision` or `label` | the text that `revision` matches, or the text that `label` matches when the match holds no `revision`; the revision belongs to the part name when the match holds `part-name`, and to the slug when it does not |
 | the inline description | a declaration, a citation, a status tag, or an `@extern` line | its inline description |
 | the subject | an `@ack` line | the text that `subject` matches, or the empty text when the match holds no `subject` |
 | the hash | an `@ack` line | the text that `hash` matches |
@@ -904,17 +1142,19 @@ holds, and no other value:
 Each value that is a text is a run of the characters of the line, of
 the destination, or of the document, without a change.
 
-### 4.27 Results
+### 4.41 Results
 
 @req results=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
 @cites #tag-lines=v1
 @cites #tag-words=v1
 @cites #inline-citations=v1
+@cites #id-pattern-grammar=v1
 @cites #external-namespaces=v1
-@cites #id-pattern-meaning=v1
 
-A conforming parser must give one result for each input of this table,
-and only a result that the table lists for that input:
+A conforming parser must give exactly one result for each input of this
+table, and only a result that the table lists for that input:
 
 | input | result |
 |---|---|
@@ -923,25 +1163,44 @@ and only a result that the table lists for that input:
 | a declaration, a citation, a status tag, or a directive | valid or invalid |
 | a link or an image of a markdown document that is not an inline citation | not an inline citation |
 | an inline citation | valid or invalid |
-| an id pattern, which is any sequence of characters | valid or invalid |
+| an id pattern | valid or invalid |
 | a binding of `external-namespaces` | valid or invalid |
-| an id pattern that the parser accepts, and an id, which is any sequence of characters | matches or does not match |
+| an id pattern that the parser accepts, and an id | matches or does not match |
 
-The parser reads a line, a link, and an image under a binding of
-`external-namespaces` that it accepts. It must not stop with an error on
-any input.
+### 4.42 Acceptance
 
-To reject an input is to give it the result "invalid". To accept an
-input is to give it the result "valid". The parser must reject an input
-when a requirement of this design states that the parser must reject
-it, and it must accept each other input whose result is valid or
-invalid.
+@req acceptance=v1
+@cites #outcomes=v1
+@cites #binding-scope=v1
+@cites #tag-words=v1
+@cites #inline-citations=v1
+@cites #id-pattern-grammar=v1
+@cites #external-namespaces=v1
+@cites #id-pattern-syntax=v1
+@cites #id-pattern-ranges=v1
+@cites #id-pattern-counts=v1
+@cites #id-pattern-bounds=v1
+@cites #id-pattern-empty=v1
+@cites #id-pattern-size=v1
+@cites #id-pattern-length=v1
+@cites #namespace-binding=v1
+@cites #declarations=v1
+@cites #citations=v1
+@cites #status-tags=v1
+@cites #extern=v1
+@cites #ack=v1
+@cites #inline-targets=v1
+@cites #inline-link-text=v1
+
+A conforming parser must accept each declaration, citation, status tag,
+directive, inline citation, id pattern, and binding of
+`external-namespaces`, unless a requirement that this requirement cites
+states that the parser must reject it.
 
 ## 5. Conformance
 
 A parser conforms to this design when it meets every requirement of
-section 4. So a conforming parser gives a result for every input, and
-it never stops with an error.
+section 4.
 
 Each vector below gives an input and the result that a conforming
 parser gives for it. These conventions apply:
@@ -952,6 +1211,11 @@ parser gives for it. These conventions apply:
 - For a valid input, a row names every value that the parser gives,
   with two exceptions: the tag word of a tag line, and an inline
   description that is empty.
+- For an input that is not valid, the parser gives no value, except the
+  tag word of a tag line. A row of a tag line with another tag word
+  names that tag word.
+- The text after "invalid:" or "not an inline citation:" explains the
+  result. A parser does not give it.
 
 ### 5.1 Tag lines
 
@@ -972,7 +1236,7 @@ parser gives for it. These conventions apply:
 | `@deferred Waits for a measurement.` | valid status tag: inline description `Waits for a measurement.` |
 | `@rejected Replaced by the size limit.` | valid status tag: inline description `Replaced by the size limit.` |
 | `@design billing/auth=v2` | valid declaration: slug `billing/auth`, custom namespace `billing`, revision `v2` |
-| `@design billing/auth` | invalid: no revision; the `/` joins the two segments of the slug `billing/auth` |
+| `@design billing/auth` | invalid: no revision |
 | `@design docs#size=v1` | invalid: the target of `@design` is a slug |
 | `@design gh=v1` | invalid: the target is external, and the target of a declaration is never an external id |
 | `@spec descriptor=v2` | valid declaration: slug `descriptor`, revision `v2` |
@@ -993,16 +1257,16 @@ parser gives for it. These conventions apply:
 | `@cites #size=v2` | valid citation: part name `size`, revision `v2` |
 | `@cites req:#size=v2` | valid citation: kind word `req`, part name `size`, revision `v2` |
 | `@cites billing/auth=v3` | valid citation: slug `billing/auth`, custom namespace `billing`, revision `v3` |
-| `@cites billing/auth` | invalid: no revision; the `/` joins the two segments of the slug `billing/auth` |
+| `@cites billing/auth` | invalid: no revision |
 | `@cites docs` | invalid: no revision |
 | `@cites docs=` | invalid: no label after `=` |
 | `@cites docs=v1.2.0` | valid citation: slug `docs`, revision `v1.2.0` |
 | `@cites docs=v1, and more` | valid citation: slug `docs`, revision `v1,`, inline description `and more` |
 | `@cites docs=v@1` | invalid: a label holds no `@` |
 | `@cites docs=v=1` | invalid: a label holds no `=` |
-| `@cites docs=v3#size=v2` | invalid: a target holds one revision at most |
+| `@cites docs=v3#size=v2` | invalid: a target carries one revision at most |
 | `@cites docs@3f2a9c=*` | invalid: a slug holds no `@` |
-| `@cites docs=v3#size` | invalid: the revision of the part `size` follows `size`, and a label holds no `#` |
+| `@cites docs=v3#size` | invalid: the revision of the part name `size` follows `size`, and a label holds no `#` |
 | `@cites docs#a/b=v1` | invalid: `a/b` is not a part name |
 | `@cites docs#a#b=v1` | invalid: a second `#` |
 | `@cites plan:upkeep=*` | invalid: `plan` is not a kind word, and a slug holds no `:` |
@@ -1017,10 +1281,10 @@ parser gives for it. These conventions apply:
 | `@supersedes docs=*#*` | invalid: the revision of an every-part target is a label |
 | `@cites docs=v3#*` | invalid: only `@supersedes` takes an every-part target |
 | `@supersedes design:docs=v3#*` | invalid: an every-part target holds no kind word |
-| `@cites gh/42` | valid citation: external namespace `gh`, id `42` |
-| `@verifies gh/42` | valid citation: external namespace `gh`, id `42` |
-| `@cites spec:rfc/8259#section-6` | valid citation: kind word `spec`, external namespace `rfc`, id `8259`, part name `section-6` |
-| `@cites gh/0` | invalid: the id pattern of `gh` does not match `0` |
+| `@cites gh/42` | valid citation: namespace name `gh`, id `42` |
+| `@verifies gh/42` | valid citation: namespace name `gh`, id `42` |
+| `@cites spec:rfc/8259#section-6` | valid citation: kind word `spec`, namespace name `rfc`, id `8259`, part name `section-6` |
+| `@cites gh/0` | invalid: `0` does not fit the id pattern of `gh` |
 | `@cites gh/42=v1` | invalid: the target is external, and an id holds no `=` |
 | `@cites gh/42/x` | invalid: the target is external, and an id holds no `/` |
 | `@cites gh` | invalid: the target is external, and no `/` and id follow `gh` |
@@ -1028,6 +1292,7 @@ parser gives for it. These conventions apply:
 | `@supersedes gh/42#*` | invalid: the target is external, and `*` is not a part name |
 | `@cites jira/PROJ-1=*` | valid citation: slug `jira/PROJ-1`, custom namespace `jira`, revision `*` |
 | `@extern spec:descriptor` | valid directive: kind word `spec`, part name `descriptor` |
+| `@extern spec:gh` | valid directive: kind word `spec`, part name `gh` |
 | `@extern spec:descriptor=v1` | invalid: the target of `@extern` carries no revision |
 | `@extern descriptor` | invalid: no kind word |
 | `@extern spec:packs#descriptor` | invalid: the target of `@extern` holds no slug |
@@ -1036,9 +1301,11 @@ parser gives for it. These conventions apply:
 | `@ack retired a @b 3f2a9c1d` | valid directive: slug `retired`, subject `a @b`, hash `3f2a9c1d` |
 | `@ack retired 3f2a9c1d`, then two spaces | valid directive: slug `retired`, empty subject, hash `3f2a9c1d` |
 | `@ack retired docs#size=v2`, two spaces, and `3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash `3f2a9c1d` |
-| `@ack retired 3F2A9C1D` | invalid: the hash holds upper-case digits |
+| `@ack retired`, a space, and `0123456789abcdef` written 4 times | valid directive: slug `retired`, empty subject, hash `0123456789abcdef` written 4 times |
+| `@ack retired`, a space, `0123456789abcdef` written 4 times, and `0` | invalid: the hash has more than 64 digits |
+| `@ack retired 3F2A9C1D` | invalid: the hash holds upper-case letters |
 | `@ack retired 3f2a9c` | invalid: the hash has fewer than 8 digits |
-| `@ack 3f2a9c1d` | invalid: no slug before the hash |
+| `@ack 3f2a9c1d` | invalid: `3f2a9c1d` is the slug, and no hash follows it |
 
 ### 5.2 Inline citations
 
@@ -1049,18 +1316,24 @@ Each row gives a markdown document that holds one link or one image.
 | `[the size limit](sinter:req:packs#size-limit=v2)` | valid: link text `the size limit`, kind word `req`, slug `packs`, part name `size-limit`, revision `v2` |
 | `[the size limit](sinter:req:packs#size-limit)` | invalid: no revision |
 | `[any revision](sinter:packs#size-limit=*)` | valid: link text `any revision`, slug `packs`, part name `size-limit`, revision `*` |
-| `[](sinter:packs#size-limit=v2)` | invalid: the link text is empty |
-| `[ ](sinter:packs#size-limit=v2)` | invalid: the link text holds only a white space character |
+| `[](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is empty |
+| `[ ](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is one space |
+| `[&nbsp;](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+00A0, a white space character |
+| `[<!-- -->](sinter:packs#size-limit=v2)` | invalid: raw HTML gives no plain string content |
+| `> [`, a line feed, and `> ](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is a line feed |
+| `[`, U+200B, and `](sinter:packs#size-limit=v2)` | valid: link text U+200B, slug `packs`, part name `size-limit`, revision `v2` |
+| `[**](sinter:packs#size-limit=v2)` | valid: link text `**`, slug `packs`, part name `size-limit`, revision `v2` |
 | `[the limit](sinter:#size-limit=v2)` | valid: link text `the limit`, part name `size-limit`, revision `v2` |
-| `[RFC 8259](sinter:spec:rfc/8259)` | valid: link text `RFC 8259`, kind word `spec`, external namespace `rfc`, id `8259` |
+| `[RFC 8259](sinter:spec:rfc/8259)` | valid: link text `RFC 8259`, kind word `spec`, namespace name `rfc`, id `8259` |
 | `[x](sinter:gh/42=v2)` | invalid: the target is external, and an id holds no `=` |
 | `[auth](sinter:billing/auth=v3)` | valid: link text `auth`, slug `billing/auth`, custom namespace `billing`, revision `v3` |
-| `[auth](sinter:billing/auth)` | invalid: no revision; the `/` joins the two segments of the slug `billing/auth` |
-| `[auth][r]`, and the line `[r]: sinter:billing/auth=v3` | valid: link text `auth`, slug `billing/auth`, custom namespace `billing`, revision `v3` |
+| `[auth](sinter:billing/auth)` | invalid: no revision |
+| `[auth][r]`, a blank line, and the line `[r]: sinter:billing/auth=v3` | valid: link text `auth`, slug `billing/auth`, custom namespace `billing`, revision `v3` |
 | `<sinter:req:packs#size-limit=v2>` | valid: link text `sinter:req:packs#size-limit=v2`, kind word `req`, slug `packs`, part name `size-limit`, revision `v2` |
 | `[*the* limit](sinter:packs#size-limit=v2)` | valid: link text `*the* limit`, slug `packs`, part name `size-limit`, revision `v2` |
 | `[x](sinter:packs\#size-limit=v2)` | valid: link text `x`, slug `packs`, part name `size-limit`, revision `v2` |
 | `[x](sinter:packs&#35;size-limit=v2)` | valid: link text `x`, slug `packs`, part name `size-limit`, revision `v2` |
+| `[x](sinter:&#65;uth=v1)` | valid: link text `x`, slug `Auth`, revision `v1` |
 | `[x](sinter:packs%23size-limit=v2)` | invalid: `%23` is three characters, and a segment holds no `%` |
 | `[x](sinter:docs=v3#*)` | invalid: only `@supersedes` takes an every-part target |
 | `[x](sinter:)` | invalid: no target |
@@ -1073,21 +1346,25 @@ Each row gives a markdown document that holds one link or one image.
 ### 5.3 Id patterns
 
 Each item gives an id pattern and its result. For a valid id pattern,
-it also gives ids that the id pattern matches and ids that it does not
-match.
+it also gives ids for which the parser gives the result "matches", and
+ids for which it gives "does not match".
 
-- `[1-9][0-9]*`: valid; matches `42`; does not match `0` or `042`.
+- `[1-9][0-9]*`: valid; matches `42`; does not match `0`, `042`, or
+  `４２`.
 - `[A-Z]+-[1-9][0-9]*`: valid; matches `PROJ-1`; does not match
   `proj-1`.
 - `[.]x`: valid; matches `.x`; does not match `ax`.
 - `[a-]+`: valid; matches `a-a`.
 - `ab|c`: valid; matches `ab` and `c`; does not match `ac`.
 - `a{0}b`: valid; matches `b`; does not match `ab`.
-- `([0-9]{3}-){10}`: valid; its size is 40.
-- the character class `[0123456789]` written 83 times, which is 996
-  characters: valid.
+- `([0-9]{3}-){10}`: valid; matches
+  `123-123-123-123-123-123-123-123-123-123-`; does not match `123-`.
+- `([0-9]{250}){4}`: valid.
+- the character class `[0123456789]` written 83 times, then `[01]`,
+  which is 1,000 characters: valid.
 - `^[0-9]+$`: invalid: `^` and `$` are not literals.
 - `.+`: invalid: `.` is not a literal.
+- `é+`: invalid: `é` is not a literal.
 - `[#0-9]+`: invalid: `#` is not a member of a character class.
 - `x=[0-9]+`: invalid: `=` is not a literal.
 - `[0-9=]+`: invalid: `=` is not a member of a character class.
@@ -1103,10 +1380,12 @@ match.
 - `a{01}`: invalid: a count other than `0` does not start with `0`.
 - `a**`: invalid: a second quantifier.
 - `a|`: invalid: an empty branch.
-- `[0-9]*`: invalid: it matches the empty id.
+- `[0-9]*`: invalid: the empty id fits it.
+- `([0-9]{143}){7}`: invalid: its size is 1,001.
 - `((a{0,255}){0,255})b`: invalid: its size is 65,026.
-- the character class `[0123456789]` written 84 times, which is 1,008
-  characters: invalid: it holds more than 1,000 characters.
+- the character class `[0123456789]` written 83 times, then `[01]0`,
+  which is 1,001 characters: invalid: it holds more than 1,000
+  characters.
 
 ### 5.4 Bindings of `external-namespaces`
 
@@ -1118,5 +1397,5 @@ match.
 | `GH` with `[1-9][0-9]*` | invalid: `GH` does not match `namespace-name` |
 | `my--tracker` with `[1-9][0-9]*` | invalid: `my--tracker` does not match `namespace-name` |
 | `9ns` with `[1-9][0-9]*` | invalid: `9ns` does not match `namespace-name` |
-| `gh` with `[1-9][0-9]*`, and `gh` with `[a-z]+` | invalid: two pairs with the name `gh` |
-| `gh` with `[0-9]*` | invalid: the id pattern matches the empty id |
+| `gh` with `[1-9][0-9]*`, and `gh` with `[a-z]+` | invalid: two pairs with the namespace name `gh` |
+| `gh` with `[0-9]*` | invalid: the empty id fits the id pattern |
