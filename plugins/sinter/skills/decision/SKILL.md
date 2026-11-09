@@ -182,7 +182,9 @@ All text in the record follows these rules:
   parts that each make sense alone, and give each part its own
   sentence.
 - Use the active voice and simple tenses.
-- Use one word for one meaning, and use it the same way every time.
+- Use one term, a word or a fixed phrase, for one meaning, and use it
+  the same way every time. When a word has more than one meaning,
+  give each meaning a fixed phrase, not a synonym.
 - Do not invent terms. Define a technical term at first use.
 - Do not add notes that explain why a sentence or a file exists.
 
