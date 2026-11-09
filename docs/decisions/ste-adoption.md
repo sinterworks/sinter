@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Write all project text by rules modelled on Simplified Technical English
-@decision ste-adoption v2
+@decision ste-adoption v3
 Every text in the repository, and the tool's own output, follows the writing rules of CONTRIBUTING.md, which take Simplified Technical English (ASD-STE100) in the style of Simple English Wikipedia as their model.
 
 ## Context
@@ -19,16 +19,25 @@ idea needs, or break an idea into parts that do not make sense alone.
 Both make the text harder to follow. So Sinter keeps one idea in each
 sentence. It sets no limit on the number of words.
 
+ASD-STE100 gives one meaning to each word. When that writing rule
+applies to single words, a writer must replace a word that has a
+second meaning in the project with a synonym. The synonym is one more
+term that the reader must learn, and the plain words are often in use
+already. A fixed phrase, such as "boundary rule", keeps the familiar
+word and still tells the meanings apart. So the unit of the writing
+rule is a term: a word or a fixed phrase.
+
 ## Decision
 
 All text follows the rules in the "Writing" section of
 CONTRIBUTING.md. In short: one idea in each sentence, with the length
-that the idea needs; active voice and simple tenses; one word for one
-meaning; no invented terms, and a definition at first use for a
-necessary technical term; one clear referent for every pronoun;
-context before detail; lists for sequences and tables for enumerable
-facts; no notes that explain why a sentence or a file exists; no prose
-that opens a document by explaining what the document is.
+that the idea needs; active voice and simple tenses; one term, a word
+or a fixed phrase, for one meaning; no invented terms, and a
+definition at first use for a necessary technical term; one clear
+referent for every pronoun; context before detail; lists for sequences
+and tables for enumerable facts; no notes that explain why a sentence
+or a file exists; no prose that opens a document by explaining what the
+document is.
 
 The rules apply to documentation, specifications, code comments,
 commit messages, the tool's output, and an agent's replies to the
@@ -44,7 +53,13 @@ section 7).
 
 ## Alternatives considered
 
-None were put forward, for this revision or for the first.
+None were put forward for revisions 1 and 2.
+
+For revision 3, one was put forward: keep one word for one meaning,
+and give each other meaning of a word a new word, for example
+"provision" in place of "rule" in "four global rules". It was not
+chosen. The plain words were in use already, and each new word is one
+more term that the reader must learn.
 
 ## Consequences
 

@@ -20,7 +20,10 @@ tool's own output. The rules:
   parts that each make sense alone, such as a rule and then each of its
   conditions. Give each part its own sentence.
 - Use the active voice and simple tenses.
-- Use one word for one meaning, and use it the same way every time.
+- Use one term for one meaning, and use it the same way every time. A
+  term is a word or a fixed phrase, such as "boundary rule" or "git's
+  index". When a word has more than one meaning in the project, give
+  each meaning a fixed phrase, and do not use a synonym in its place.
 - Do not invent terms. When a technical term is necessary, define it
   at first use.
 - Give every pronoun one clear referent. Repeat the noun when in
