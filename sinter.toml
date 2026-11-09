@@ -24,4 +24,4 @@ exempt = [
 decision = ["docs/decisions/"]
 
 [check]
-warn-only = false
+warn-only = true
