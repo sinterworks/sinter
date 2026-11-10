@@ -38,8 +38,9 @@ text, the rule `UTF8-char`, which matches the bytes that encode one
 character, and the rule `UTF8-octets`, which matches the byte
 sequences that are valid UTF-8.
 
-From RFC 8259, the design takes JSON texts: each line of the file that
-holds the conformance vectors of the design is a JSON text.
+From RFC 8259, the design takes JSON texts: the file that holds the
+conformance vectors of the design has one JSON text on each line of its
+text.
 
 ## 1. Glossary
 
@@ -1102,47 +1103,72 @@ The conformance vectors of this design are in the file
 directory as this design. A vector is an input and what a conforming
 program gives for it. Each vector follows from the requirements and adds
 nothing to them. The vectors are in groups. A group is a set of vectors
-that test the same requirements, and it has a name, such as `decode`.
+whose inputs have one form. Each group has a name, such as `decode`, and
+a subsection below, which names the requirements that the vectors of the
+group test and describes their inputs, results, and values. Each vector
+of a group tests one or more of these requirements.
 
-The file is valid UTF-8, and each line of the file is a JSON text, as
-RFC 8259 defines it, then a line feed. The JSON text of each line holds
-one object. The file has three kinds of line, in this order:
+Several requirements apply only when a program gives the thing that they
+name, such as a line number. So a vector tests a program only on what
+the program gives for the input: a program that gives a line number for
+a character, and no column, is tested only on the line number. The
+subsection of each group says what a conforming program gives in each
+case.
+
+The file is valid UTF-8. Its text has no byte order mark and no carriage
+return, and it ends with a line feed. Each line of the text of the file
+is a JSON text, as RFC 8259 defines it, that holds one object. So only a
+line feed ends a line of the file. U+0085, U+2028, and U+2029 stand in
+some strings of the file, and they do not end a line. The file has three
+kinds of line, in this order:
 
 1. The first line is the set line. Its object has one member, `rev`:
-   the revision of the whole set of vectors, such as `v1`.
-2. Then each group has a group line. Its object has two members:
-   `group`, the name of the group, and `rev`, the revision of the group.
+   the revision of the whole set of vectors.
+2. Then each group has a group line, in this order: `character-positions`,
+   `decode`, `encode`, `lines`, `spans`. Its object has two members:
+   `group`, the name of the group, as a string, and `rev`, the revision
+   of the group.
 3. Then each vector has a vector line, in increasing order of the
    numbers of the vectors.
 
 The object of a vector line has these members:
 
-- `n`: the number of the vector, a whole number of 1 or more. No other
-  vector of the file has this number.
+- `n`: the number of the vector, a JSON number written as the decimal
+  numeral of a whole number of 1 or more. No other vector of the file
+  has this number.
 - `rev`: the revision of the vector.
-- `group`: the name of the group of the vector.
+- `group`: the name of the group of the vector, as a string.
 - `input`: the input.
 - `result`: the result that a conforming program gives for the input.
   Only a vector of the group `decode` has this member.
 - `values`: what a conforming program gives for the input, other than
   the result. A vector of the group `decode` with the result "invalid"
   does not have this member. Each other vector has it.
-- `note`: an explanation of the vector, which a conforming program does
-  not give. A vector has this member only when it has an explanation.
+- `note`: an explanation of the vector, as a string, which a conforming
+  program does not give. A vector has this member only when it has an
+  explanation.
 
-In the members `input`, `result`, and `values`, a JSON value stands for
-a text, a byte sequence, a whole number, a run, a position, or a
-sequence, in these forms:
+A revision is a string of `v`, then the decimal numeral of a whole
+number of 1 or more, such as `"v1"`. The revision of a vector rises when
+its group, its input, its result, or its values change. The revision of
+a group, and the revision of the whole set, rise when one of their
+vectors changes, joins them, or leaves them. A change of a note alone
+changes no revision. A program does not need the revisions to run the
+vectors.
 
-- A text, such as a result, is a string whose characters are the
+Inside the members `input`, `result`, and `values`, each value that the
+subsection of a group names as a text, a byte sequence, a whole number,
+a run, a position, or a sequence has this form:
+
+- A text, such as a result, is a JSON string whose characters are the
   characters of the text, in order. So the text `a`, a line feed, `b` is
   `"a\nb"`, and the empty text is `""`.
-- A byte sequence is a string of hex digits: for each byte, in order,
-  the hex digit of the quotient of the byte divided by 16, then the hex
-  digit of the remainder. So the byte sequence 0xC3, 0xA9 is `"c3a9"`,
-  and the empty byte sequence is `""`.
+- A byte sequence is a JSON string of hex digits: for each byte, in
+  order, the hex digit of the whole-number quotient of the byte divided
+  by 16, then the hex digit of the remainder. So the byte sequence
+  0xC3, 0xA9 is `"c3a9"`, and the empty byte sequence is `""`.
 - A whole number, such as a place, a boundary, a line number, or a
-  column, is a number written as its decimal numeral, such as `12`.
+  column, is a JSON number written as its decimal numeral, such as `12`.
 - A run is an object with two members: `from`, the boundary where the
   run starts, and `to`, the boundary where the run ends. So the run that
   starts at boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
@@ -1165,8 +1191,13 @@ sequence as UTF-8.
   when it is not.
 - `values`: only with the result "valid", an object with one member,
   `text`: the text of the byte sequence. With the result "invalid", the
-  vector has no `values`: a conforming program gives no text as the text
-  of the byte sequence.
+  vector has no `values`.
+
+When a conforming program gives a result for the byte sequence, as a
+test of whether the byte sequence is valid UTF-8, it gives the result of
+`result`. When it gives a text as the text of the byte sequence, it
+gives the text of `text`. For a vector with the result "invalid", it
+gives no text as the text of the byte sequence.
 
 ```
 {"group":"decode","input":"6869","n":1,"result":"valid","rev":"v1","values":{"text":"hi"}}
@@ -1180,8 +1211,11 @@ The group `encode` holds the vectors of the requirement
 
 - `input`: the text.
 - `result`: no vector of the group has this member.
-- `values`: an object with one member, `encoding`: the byte sequence
-  that a conforming program gives as the UTF-8 encoding of the text.
+- `values`: an object with one member, `encoding`: the UTF-8 encoding of
+  the text.
+
+When a conforming program gives a byte sequence as the UTF-8 encoding of
+the text, it gives the byte sequence of `encoding`.
 
 ```
 {"group":"encode","input":"hi","n":30,"rev":"v1","values":{"encoding":"6869"}}
@@ -1201,18 +1235,21 @@ and the lines of the text.
   element of each array is the line with the line number k, or its
   text. When the text has no line, both arrays are empty.
 
-When a conforming program gives the lines of the text, it gives the runs
-of `runs`, or the texts of `texts`, in their order. When it gives one of
-these lines, as a run or as its text, together with a line number, that
-line number is k for the k-th element.
+When a conforming program gives the lines of the text, it gives as many
+runs or texts as `runs` has elements, and the k-th of them is the k-th
+element of `runs` or the k-th element of `texts`. When it gives a run or
+a text, together with a line number k, as a line of the text, the run is
+the k-th element of `runs`, or the text is the k-th element of `texts`.
+It gives, as a line of the text, only an element of `runs` or an element
+of `texts`.
 
 ```
 {"group":"lines","input":"a\nb","n":48,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
 ```
 
-### 5.4 The positions that a program gives
+### 5.4 The positions of characters that a program gives
 
-The group `positions` holds the vectors of the requirements
+The group `character-positions` holds the vectors of the requirements
 `give-character-positions` and `omit-byte-order-mark-positions`. Each
 vector gives a text, a place of the text, and the position of the
 character at that place, when that character has a position.
@@ -1221,14 +1258,16 @@ character at that place, when that character has a position.
   the place.
 - `result`: no vector of the group has this member.
 - `values`: when the character at the place has a position, an object
-  with one member, `position`: that position. A conforming program gives
-  its line number as the line number of the character, and its column
-  as the column of the character. When the character has no position,
-  `values` is the empty object, `{}`: a conforming program gives no line
-  number and no column for the character.
+  with one member, `position`: that position. When the character has no
+  position, the empty object, `{}`.
+
+When a conforming program gives a line number for the character at the
+place, it gives the line number of `position`. When it gives a column for
+that character, it gives the column of `position`. When `values` is
+`{}`, it gives no line number and no column for that character.
 
 ```
-{"group":"positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+{"group":"character-positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
 ```
 
 ### 5.5 The starts and ends of spans that a program gives
@@ -1243,8 +1282,14 @@ text, and, when the run is a span, the start and the end of the span.
 - `result`: no vector of the group has this member.
 - `values`: when the run is a span, an object with two members: `start`,
   the start of the span, and `end`, the end of the span. When the run is
-  not a span, `values` is the empty object, `{}`: a conforming program
-  gives no line number and no column as the start or the end of the run.
+  not a span, the empty object, `{}`.
+
+When a conforming program gives a line number for the start of the
+span, it gives the line number of `start`. When it gives a column for
+the start of the span, it gives the column of `start`. In the same way,
+it gives the line number and the column of `end` for the end of the
+span. When `values` is `{}`, it gives no line number and no column as
+the start or the end of the run.
 
 ```
 {"group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"n":100,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
