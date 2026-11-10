@@ -7,7 +7,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; conforming programs, inputs, and results; and requirements for conforming programs that test and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; conforming programs, inputs, and results; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when it is
@@ -53,7 +53,7 @@ design has one JSON text on each line of its text.
 | [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
 | [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
-| decode | a conforming program decodes a byte sequence as UTF-8 when it tests whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
+| decode | a conforming program decodes a byte sequence as UTF-8 when it gives a result for whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
 | [result](sinter:#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input; the double quotes are not part of the result; a conforming program gives a result when it gives something that stands for that result and for no other result |
 | [whole number](sinter:#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
 | [decimal numeral](sinter:#decimal-numeral=v1) | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
@@ -449,12 +449,12 @@ character `a` matches `hex-digit`.
 
 An input is a thing that a conforming program takes, such as a byte
 sequence or a text. A conforming program decodes a byte sequence as
-UTF-8 when it tests whether the byte sequence is valid UTF-8 and, when
-the byte sequence is valid UTF-8, gives the text of the byte sequence. A
-result of a requirement is a text that the requirement shows between
-two double quotes, such as "valid", as one of the cases of what a
-conforming program gives for an input. The double quotes are not part
-of the result. A conforming program gives a result when it gives
+UTF-8 when it gives a result for whether the byte sequence is valid
+UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the
+byte sequence. A result of a requirement is a text that the requirement
+shows between two double quotes, such as "valid", as one of the cases of
+what a conforming program gives for an input. The double quotes are not
+part of the result. A conforming program gives a result when it gives
 something that stands for that result and for no other result. So a
 program that gives the number 1 for "valid" and the number 0 for
 "invalid" gives these two results.
@@ -464,7 +464,7 @@ program gives:
 
 | input | what a conforming program gives |
 |---|---|
-| a byte sequence that it tests for valid UTF-8 | exactly one result: "valid" when the byte sequence is valid UTF-8, and "invalid" when it is not |
+| a byte sequence, when it gives a result for whether the byte sequence is valid UTF-8 | exactly one result: "valid" when the byte sequence is valid UTF-8, and "invalid" when it is not |
 | a byte sequence for which it gives a text as the text of the byte sequence | the text of the byte sequence, and no other text |
 | a text for which it gives the UTF-8 encoding | the UTF-8 encoding of the text |
 | a text for which it gives the lines | as many runs or texts as the text has lines: as the k-th of them, the line with the line number k, or the text of that line |
@@ -982,17 +982,17 @@ result.
 
 ## 4. Requirements
 
-### 4.1 The test of whether a byte sequence is valid UTF-8
+### 4.1 The validation of UTF-8
 
-@req test-utf-8=v1
+@req validate-utf-8=v1
 @cites #{
     conforming-program=v1, result=v1, byte-sequence=v1, valid-utf-8=v1,
 }
 
-When a conforming program gives a result for a byte sequence as a test
-of whether the byte sequence is valid UTF-8, it must give exactly one
-result: "valid" when the byte sequence is valid UTF-8, and "invalid"
-when the byte sequence is not valid UTF-8.
+When a conforming program gives a result for whether a byte sequence is
+valid UTF-8, it must give exactly one result: "valid" when the byte
+sequence is valid UTF-8, and "invalid" when the byte sequence is not
+valid UTF-8.
 
 ### 4.2 The texts of byte sequences
 
@@ -1129,14 +1129,14 @@ directory as this design. A vector is an input and what a conforming
 program gives for it. Each vector follows from the requirements and adds
 nothing to them. The vectors are in groups. Each group has a name, such
 as `decode`, and a subsection below. The subsection names the
-requirements that the vectors of the group test, and it describes their
-inputs, results, and values. Each vector of a group tests one or more of
-these requirements.
+requirements that the vectors of the group follow from, and it
+describes their inputs, results, and values. Each vector of a group
+follows from one or more of these requirements.
 
 Several requirements apply only when a program gives the thing that they
-name, such as a line number. So a vector tests a program only on what
+name, such as a line number. So a vector holds a program only to what
 the program gives for the input: a program that gives a line number for
-a character, and no column, is tested only on the line number. The
+a character, and no column, is held only to the line number. The
 subsection of each group says what a conforming program gives in each
 case.
 
@@ -1212,8 +1212,8 @@ number, a run, a position, or a sequence has this form:
 
 ### 5.1 Byte sequences that a program decodes
 
-The group `decode` holds the vectors of the requirements `test-utf-8`,
-`give-texts-of-byte-sequences`, and
+The group `decode` holds the vectors of the requirements
+`validate-utf-8`, `give-texts-of-byte-sequences`, and
 `omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
 sequence and what a conforming program gives when it decodes the byte
 sequence as UTF-8.
@@ -1225,11 +1225,11 @@ sequence as UTF-8.
   `text`: the text of the byte sequence. With the result "invalid", the
   empty JSON object, `{}`.
 
-When a conforming program gives a result for the byte sequence, as a
-test of whether the byte sequence is valid UTF-8, it gives the result
-that `result` holds. When it gives a text as the text of the byte
-sequence, it gives the text that `text` holds. When `values` is `{}`, it
-gives no text as the text of the byte sequence.
+When a conforming program gives a result for whether the byte sequence
+is valid UTF-8, it gives the result that `result` holds. When it gives a
+text as the text of the byte sequence, it gives the text that `text`
+holds. When `values` is `{}`, it gives no text as the text of the byte
+sequence.
 
 ```
 {"group":"decode","input":"6869","n":1,"result":"valid","rev":"v1","values":{"text":"hi"}}
