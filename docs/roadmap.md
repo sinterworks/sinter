@@ -220,6 +220,23 @@
     test needs no separate comment.
   - It needs citable conformance vectors and the format of their lines,
     which the redesign of Sinter decides.
+- **A clean-room implementation as the acceptance test of the designs**
+  — before the release of v0.1, a new implementation of the core
+  features of Sinter, in another language, written from the designs
+  alone. Probably done once. Not designed.
+  - The people or agents that write it read only the designs, their
+    conformance vectors, and the standards that the designs cite. They
+    do not read Sinter's code, its tests, or the history of the designs.
+  - The new implementation passes every conformance vector of the
+    designs that it implements.
+  - Both implementations then run on Sinter's own repository and on a
+    corpus of small example repositories. Each example holds a known
+    issue that Sinter must report, such as a citation that pins an old
+    revision. Both implementations must report the same findings.
+  - Each disagreement is a gap in a design or a defect in one of the
+    implementations. A gap is fixed in the design.
+  - Which features count as the core, and which language the new
+    implementation uses, are not decided.
 - **Tags in Python docstrings** — in Python, a docstring is a statement
   that consists of one string literal, not an f-string, and that is
   the first statement of a module, a class, or a function. Python
