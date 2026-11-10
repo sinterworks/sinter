@@ -39,7 +39,7 @@ sequences that are valid UTF-8.
 
 ## 1. Glossary
 
-| term | meaning |
+| word or phrase | meaning |
 |---|---|
 | term | a definition that a design declares under a name, such as `whole-number`; every definition of a design is a term |
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
