@@ -40,13 +40,14 @@ names and opens the file that it finds, with its flags `O_DIRECTORY` and
 | word or phrase | meaning |
 |---|---|
 | [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries and the runtime that the program uses |
-| [file system](sinter:#file-system=v1) | the part of the system that stores files, as POSIX.1-2024 defines a file system, and that acts on those files when a program asks it to, such as to look for a folder entry of a folder, or to give the bytes of a regular file; a file is on the file system that stores it |
+| [file system](sinter:#file-system=v1) | the part of the system that stores files, as POSIX.1-2024 defines a file system, and that acts on those files when a program asks it to, such as to look for a directory entry of a folder, or to give the bytes of a regular file; a file is on the file system that stores it |
 | [folder tree](sinter:#folder-tree=v1) | a folder, its root, with the file of each folder entry of the root and the file of each folder entry of each folder of the folder tree |
 | [root](sinter:#folder-tree=v1) | the folder at the top of a folder tree |
 | file | a file as POSIX.1-2024 defines a file: a folder, a regular file, a symbolic link, or a file of another kind |
 | [file type](sinter:#file-kind=v1) | the type of a file on a file system, such as a directory or a regular file, as POSIX.1-2024 defines the file types; it gives the kind of the file |
 | [folder](sinter:#folder=v1) | a file that holds folder entries; POSIX.1-2024 calls it a directory |
-| [folder entry](sinter:#folder=v1) | an entry name and a file, which a folder holds: a directory entry of POSIX.1-2024 other than `.` and `..` |
+| [listing](sinter:#folder=v1) | an action in which a program asks the file system that a folder is on for the names of the directory entries of that folder |
+| [folder entry](sinter:#folder=v1) | an entry name and a file, which a folder holds: a directory entry of POSIX.1-2024 that a listing of the folder gives, other than `.` and `..` |
 | [entry name](sinter:#folder=v1) | the byte sequence that names a folder entry |
 | [hold a file](sinter:#folder=v1) | a folder holds a file when, and only when, that file is the file of a folder entry of the folder |
 | [regular file](sinter:#regular-file=v1) | a file that holds a content |
@@ -55,30 +56,34 @@ names and opens the file that it finds, with its flags `O_DIRECTORY` and
 | [file of another kind](sinter:#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe, a character special file, a block special file, or a socket |
 | [valid path](sinter:#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [file name](sinter:#path=v1) | one of the texts of which a valid path is made, such as `docs` or `a.md` in `docs/a.md`; the file names of a valid path have numbers from 1, in order: `docs` is file name 1 of `docs/a.md`; a file name is a text, and an entry name is a byte sequence |
-| [lookup](sinter:#lookup=v1) | an action of a program, or a part of one, in which the file system that a folder is on looks for a folder entry of the folder for a byte sequence; the lookups that the file system makes to complete it, in folders that the action does not name, are part of it; a lookup finds the file of a folder entry when, and only when, the file system finds that folder entry and its entry name is that byte sequence; when the file system finds the directory entry `.` or `..`, the lookup finds no folder entry; one action can make several lookups |
+| [lookup](sinter:#lookup=v1) | an action of a program, or a part of one, in which the file system that a folder is on looks for a directory entry of the folder for a byte sequence; the lookups that the file system makes to complete it, in folders that the action does not name, are part of it; one action can make several lookups |
+| [reach](sinter:#lookup=v1) | for a lookup, the file system reaches one directory entry of the folder, and the file of that directory entry, or reaches no directory entry; it can reach a directory entry whose name is another byte sequence |
+| [find](sinter:#lookup=v1) | a lookup finds the file of a folder entry when, and only when, the file system reaches that folder entry for the lookup and its entry name is the byte sequence of the lookup; otherwise the lookup finds no folder entry |
 | union file system | a file system whose folders each show, as one folder, the folder entries of several folders of other file systems |
 | ignore case | treat two names that differ only in the case of their letters, such as `a.md` and `A.md`, as one name |
 | Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9; a file system that ignores differences of Unicode normalization treats two names that differ only in this way as one name |
-| [open](sinter:#open=v1) | an open of a file is an action in which a program asks the file system to open the file: to give the program a means by which it can ask for the bytes of the file or make lookups in it; an action that both makes lookups and opens the file that the last of them finds is these lookups followed by an open |
+| [open](sinter:#open=v1) | an open of a file is an action in which a program asks the file system to open the file: to give the program a means by which it can ask for the bytes of the file or make lookups in it; an action that both makes lookups and opens the file that the file system reaches for the last of them is these lookups followed by an open; when such an action fails because that file is a symbolic link and the action asks for a file that is not a symbolic link, or because that file is not a folder and the action asks for a folder, the open fails, and not the lookup |
 | [close](sinter:#open=v1) | give back to the file system the means that an open of a file gave to the program |
-| [failure cause](sinter:#failure-cause=v1) | one of these causes for which an action of a program can fail: too many open files in the program or in the system; that the system does not give the program the memory that the action needs; or an error that the system reports for the action, such as an input or output error of a device, other than an interruption by a signal, a report that the action would wait, and a form error |
-| [form error](sinter:#form-error=v1) | an error that the system reports for an action because the program asked for the action wrongly, such as for the means of a file that the program already closed, an address of memory that is not valid, or an argument that the action does not accept; an action that holds more bytes than the system accepts in one action makes no form error |
-| [refused](sinter:#refused-lookup=v1) | a lookup, as a step of a file read, is refused when, and only when, the file system reports for it a failure for a lack of the search permission of the program for the folder, for a byte sequence longer than the file system allows in an entry name, or for a failure cause; when the program has no read permission for the folder; or when an action of the program that takes the entry names of the folder fails for a failure cause and no later lookup in that folder follows |
+| [failure cause](sinter:#failure-cause=v1) | one of these causes for which an action of a program can fail: too many open files in the program or in the system; that the system does not give the program the memory that the action needs; or an error that the system reports for the action, such as an input or output error of a device, other than an interruption by a signal, a report that the action would wait, a form error, a report that a folder holds no folder entry for a byte sequence, a report that the file that the file system reaches for a lookup is a symbolic link or is not a folder when the action asks for a file that is not a symbolic link, for a folder, or for a lookup in that file, a report of a lack of a permission, and a report that a byte sequence is longer than a file system allows in an entry name, or that a file system does not accept a byte sequence as an entry name |
+| [form error](sinter:#form-error=v1) | an error that the system reports for an action because the program asked for the action wrongly: with a means that is not open, or that is not open for that action; with an address of memory that is not valid; with a flag, or for an action, that the system does not know or does not provide; or with a value of an argument that the action does not accept, whatever the state of the file systems; a report that a folder holds no folder entry for a byte sequence, that the file that the file system reaches for a lookup is a symbolic link or is not a folder, of a lack of a permission, that a byte sequence is longer than a file system allows in an entry name, that a file system does not accept a byte sequence as an entry name, or that an action holds more bytes than the system accepts in one action is not a form error |
+| [refused](sinter:#refused-lookup=v1) | a lookup, as a step of a file read, is refused when, and only when, the file system reports for it a failure for a lack of the search permission of the program for the folder, for a byte sequence longer than the file system allows in an entry name, for a byte sequence that the file system does not accept as an entry name, or for a failure cause; when the program has no read permission for the folder at the moment of the lookup; or when the latest listing of the folder, as a step of the file read, fails for a failure cause and no later lookup in that folder follows |
 | [search permission](sinter:#search-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to look up folder entries in a folder |
 | [read permission](sinter:#read-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a regular file or the entry names of a folder |
-| [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the entry names of a folder, of the reference of a symbolic link, or of the data of a file of another kind; copying the file type or another attribute of a file takes no bytes from it |
-| [request](sinter:#request=v1) | an action in which a program asks the file system for one or more bytes of the content of a regular file that the program has open, in their order in the content; the first byte of the request is the first of these bytes; an action that maps the content into the memory of the program is not a request |
+| [attribute](sinter:#attribute=v1) | a property of a file other than the content of a regular file, the folder entries of a folder, the reference of a symbolic link, and the data of a file of another kind, such as its file type, its size, its mode, its owner, its times, or its extended attributes |
+| [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the names of the directory entries of a folder, of the reference of a symbolic link, or of the data of a file of another kind; copying an attribute of a file takes no bytes from it |
+| [request](sinter:#request=v1) | an action in which a program asks the file system for one or more bytes of the content of a regular file that the program has open, in their order in the content, from the byte at the first place of the request; an action that maps the content into the memory of the program is not a request |
+| [first place of a request](sinter:#request=v1) | the whole number k, 1 or more, for which a request asks first for the byte at place k of the content; it can be greater than the number of bytes of the content |
 | [end of the content](sinter:#request=v1) | what the file system reports for a request when, and only when, it gives no byte and reports no error for that request; it is not a failure |
-| [read a text as a path in a folder tree](sinter:#file-read=v1) | give, for the text and the folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
-| [file read](sinter:#file-read=v1) | one operation of a program that reads a text as a path in a folder tree each folder of which is on a file system |
-| [start of a file read](sinter:#file-read-step=v1) | the first action that the program makes, for that file read, with the text of the file read |
-| [step of a file read](sinter:#file-read-step=v1) | each action that the program makes, from the start of the file read to its result, with the text of the file read, with the root of the folder tree, or with a file that a step of that file read finds, and each lookup that the program makes in that time to reach the root, the first time or again; an action that the program makes only for another file read, as a step of that other file read, is not a step of the file read; the lookups by which the program opened the root before the start of the file read are not steps of it |
+| [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text and a folder tree each folder of which is on a file system, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
+| [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
+| [start of a file read](sinter:#file-read-step=v1) | the first action, of any kind, that the program makes for that file read alone |
+| [step of a file read](sinter:#file-read-step=v1) | each action that the program makes for that file read alone, from the start of the file read to its result, and each other action that the program makes in that time with the text of the file read, with the root of the folder tree, or with a file that a step of that file read finds, except an action that the program makes for no file read or only for other file reads |
 | [fail to take the content](sinter:#failure-to-take-content=v1) | in a file read, a program fails to take the content of a regular file when, and only when, it stops taking bytes from the regular file, as steps of the file read, for one of three reasons, unless the file system reported the end of the content for the latest request of the program, as a step of the file read, for bytes of the regular file; the reasons: the latest open of the regular file, as a step of the file read, failed for a lack of the read permission or for a failure cause; the latest request, as a step of the file read, for the first byte of the content that the program has not taken failed for a failure cause; or the system does not give the program the memory to keep a byte that the file system gives for a request of the program, as a step of the file read |
-| [byte sequence that a file read takes](sinter:#file-read-byte-sequence=v1) | when the file system reports the end of the content for the latest request, as a step of a file read, for bytes of a regular file, and a request, as a step of the file read, gave each byte before the first byte of that request: those bytes, each as the latest such request that gave it gave it |
+| [byte sequence that a file read takes](sinter:#file-read-byte-sequence=v1) | when the file system reports the end of the content for the latest request, as a step of a file read, for bytes of a regular file, and a request, as a step of the file read, gave a byte for each place before the first place of that request: the byte sequence of these places, with, at each place, the byte that the latest such request that gave a byte for that place gave for it |
 | [file names of a file read](sinter:#file-name-lookup=v1) | the file names of the text of a file read, when that text is a valid path |
-| [lookup of a file name](sinter:#file-name-lookup=v1) | a lookup of the UTF-8 encoding of a file name of a file read: of file name 1 in the root, and of each later file name in a folder that a lookup of the file name right before it, as a step of the same file read, found |
-| [walk](sinter:#walk=v1) | the lookups that a program makes as steps of a file read |
-| [outcome](sinter:#walk=v1) | what a walk gives for a file name, such as the outcome regular file or the outcome no entry: first, the outcome refused, when no lookup of the file name follows the latest open of a folder that a lookup of the file name right before it found, and that open fails for a lack of the search permission, for a lack of the read permission, or for a failure cause, or when no lookup of the file name follows an action that asks only for the lookup of the file name and fails before that lookup for a failure cause or because the system does not accept, in one action, as many bytes as the UTF-8 encoding of the file name holds; otherwise, from the latest lookup of that file name; the outcome of a walk is the outcome of the file name with the lowest number that has one |
+| [lookup of a file name](sinter:#file-name-lookup=v1) | a lookup of the UTF-8 encoding of a file name of a file read: of file name 1 in the root, and of each later file name in a folder that the file system reached for a lookup of the file name right before it, as a step of the same file read |
+| [walk](sinter:#walk=v1) | the lookups of the file names of a file read that a program makes as steps of that file read |
+| [outcome](sinter:#walk=v1) | what a walk gives for a file name, such as the outcome regular file or the outcome no entry: first, the outcome refused, when no lookup of the file name follows the latest open of a folder that a lookup of the file name right before it found, and that open fails for a lack of the search permission, for a lack of the read permission, or for a failure cause, or when no lookup of the file name follows an action that asks only for the lookup of the file name and fails before that lookup for a failure cause, for a byte sequence longer than a file system allows in an entry name, for a byte sequence that a file system does not accept as an entry name, or because the system does not accept, in one action, as many bytes as the UTF-8 encoding of the file name holds; otherwise, from the latest lookup of that file name; the outcome of a walk is the outcome of the file name with the lowest number that has one |
 | [valid glob](sinter:#glob=v1) | a pattern for valid paths, such as `docs/**/*.md` |
 | [glob segment](sinter:#glob=v1) | one of the texts that a valid glob joins with `/`, such as `docs`, `**`, or `*.md` in `docs/**/*.md`; when the valid glob ends with `/`, the text `**` is one more glob segment after them, so the glob segments of `docs/` are `docs` and `**`; the glob segments of a valid glob have numbers from 1, in order |
 | [fit](sinter:#glob-fit=v1) | a valid path fits a valid glob when the valid path has the form that the valid glob gives |
@@ -89,8 +94,8 @@ names and opens the file that it finds, with its flags `O_DIRECTORY` and
 | [glob text of a path set member](sinter:#path-set=v1) | the text after the `!` of a `!` member, or the whole path set member for a plain member; it can be a text that is not a valid glob |
 | [valid path set](sinter:#valid-path-set=v1) | a path set in which the glob text of each path set member is a valid glob, no two path set members are the same text, and at least one path set member is a plain member when the path set holds a path set member |
 | [set of a path set](sinter:#path-set-membership=v1) | the valid paths that fit the glob text of a plain member of the path set and the glob text of no `!` member of it, when the glob text of each path set member is a valid glob |
-| validate | to validate a text as a path, a text as a glob, or a path set is to give for it one of the results "valid" and "invalid", other than as the result of a file read; a validation is one such action |
-| decide | to decide whether a valid path fits a valid glob is to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a path set is to give one of the results "in the set" and "not in the set" |
+| validate | to validate a text as a path, a text as a glob, or a path set is to make an operation to give for it one of the results "valid" and "invalid", other than a file read; a validation is one such operation |
+| decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob is to make an operation to give one of the results "in the set" and "not in the set" |
 | valid, invalid | the results of a validation of a text as a path, of a text as a glob, or of a path set; a file read also gives "invalid", for a text that is not a valid path |
 
 ## 2. Files, paths, globs, and path sets
@@ -102,10 +107,10 @@ together with the operating system of that computer. The program, and
 the libraries and the runtime that the program uses, are not part of the
 system. A file system is the part of the system that stores files, as
 POSIX.1-2024 defines a file system, and that acts on those files when a
-program asks it to, such as to look for a folder entry of a folder, or
-to give the bytes of a regular file. A file is on the file system that
-stores it. The folders of a folder tree can be on more than one file
-system.
+program asks it to, such as to look for a directory entry of a folder,
+or to give the bytes of a regular file. A file is on the file system
+that stores it. The folders of a folder tree can be on more than one
+file system.
 
 A folder tree is a folder, its root, together with the file of each
 folder entry of the root and the file of each folder entry of each
@@ -124,9 +129,9 @@ file of a folder entry of the folder. In a file read, a lookup of a byte
 sequence finds the file of a folder entry only when that byte sequence
 is the entry name of that folder entry, on every file system. So, when
 the program has the search permission and the read permission for the
-root, and no action of the file read fails, a file read of `A.md` in a
-folder tree whose root holds only the regular file `a.md` gives "no
-file", also on a file system that ignores case.
+root, and no action of the file read fails for a failure cause, a file
+read of `A.md` in a folder tree whose root holds only the regular file
+`a.md` gives "no file", also on a file system that ignores case.
 
 On a file system, the file type of a file gives its kind, as
 POSIX.1-2024 defines the file types. A file of the type directory is a
@@ -135,10 +140,17 @@ type symbolic link is a symbolic link. A file of each other type, such
 as a FIFO special file (a pipe), a character special file, a block
 special file, or a socket, is a file of another kind.
 
-In POSIX.1-2024, the names `.` and `..` in a directory lead to the
-directory itself and to the directory above it. The folder entries of a
-folder do not include `.` or `..`. So the name `..` does not make the
-folder above the root a file of the folder tree.
+A listing of a folder is an action in which a program asks the file
+system that the folder is on for the names of the directory entries of
+the folder, as POSIX.1-2024 defines directory entries. The folder
+entries of a folder are the directory entries whose names a listing of
+the folder gives, other than `.` and `..`. In POSIX.1-2024, the names
+`.` and `..` in a directory lead to the directory itself and to the
+directory above it. So the name `..` does not make the folder above the
+root a file of the folder tree. Some file systems also have a name that
+a program can look up and that a listing does not give, such as the
+name of a hidden folder of snapshots. Such a name is not the entry name
+of a folder entry.
 
 ### 2.2 Valid paths
 
@@ -185,12 +197,14 @@ regular file, as POSIX.1-2024 defines hard links.
 
 ### 2.3 The file read
 
-To read a text as a path in a folder tree is to give, for that text and
-that folder tree, one of the results "invalid", "found", "no file",
-"symbolic link", "not a regular file", "not UTF-8", and "cannot read". A
-file read is one operation of a program that reads a text as a path in a
-folder tree each folder of which is on a file system. In a file read,
-the program does these things, in order:
+A file read is an operation that a program makes to give, for a text and
+a folder tree each folder of which is on a file system, one of the
+results "invalid", "found", "no file", "symbolic link", "not a regular
+file", "not UTF-8", and "cannot read". An operation that a program
+makes to give one of these results is a file read, also when the
+program gives another thing in it, or nothing. To read a text as a path
+in a folder tree is to make a file read of that text in that
+folder tree. In a file read, the program does these things, in order:
 
 1. The program sees whether the text is a valid path. When the text is
    not a valid path, the file read gives the result "invalid".
@@ -204,51 +218,62 @@ the program does these things, in order:
 4. The file read gives one result, such as "found" with the text of the
    regular file, or "no file".
 
-A file read starts at the first action that the program makes, for that
-file read, with the text of the file read. A step of a file read is each
-action that the program makes, from the start of the file read to its
-result, with the text of the file read, with the root of the
-folder tree, or with a file that a step of that file read finds. Each
-lookup that the program makes in that time to reach the root, the first
-time or again, is also a step of the file read.
+A file read starts at the first action, of any kind, that the program
+makes for that file read alone. A step of a file read is each action
+that the program makes for that file read alone, from the start of the
+file read to its result. Each other action that the program makes in
+that time with the text of the file read, with the root of the
+folder tree, or with a file that a step of that file read finds is also
+a step of the file read, except an action that the program makes for no
+file read or only for other file reads.
 
-An action that the program makes only for another file read, as a step
-of that other file read, is not a step of the file read. So, when the
-program makes two file reads at the same time, an action that it makes
-only for one of them is not a step of the other, also when the two file
-reads have the same text.
-
-The lookups by which the program opened the root before the start of the
-file read are not steps of the file read. A lookup that the program
-makes to reach the root is not a lookup of a file name of the file read,
-so a conforming program opens the root before the file read starts.
+So, when the program makes two file reads at the same time, an action
+that it makes only for one of them is not a step of the other, also when
+the two file reads have the same text. An action that the program makes
+for no file read, such as a listing of the root for another purpose, is
+not a step of a file read. An action that the program makes for two file
+reads together, in the time of each of them, with the root, is a step of
+each of them.
 
 A lookup of a byte sequence in a folder is an action of a program, or a
 part of one, in which the file system that the folder is on looks for a
-folder entry of the folder for that byte sequence, at the moment of the
-lookup. The lookups that a file system makes, to complete a lookup, in
-folders that the action does not name, such as the folders that a union
-file system joins into one folder, are part of that lookup.
+directory entry of the folder for that byte sequence, at the moment of
+the lookup. For a lookup, the file system reaches one directory entry of
+the folder, and the file of that directory entry, or it reaches no
+directory entry. The lookups that a file system makes, to complete a
+lookup, in folders that the action does not name, such as the folders
+that a union file system joins into one folder, are part of that lookup.
 
-A lookup finds no folder entry when the file system reports that the
-folder holds no folder entry for the byte sequence. It also finds no
-folder entry when the file system finds a folder entry whose entry name
-is another byte sequence. It also finds no folder entry when the file
-system finds the directory entry `.` or `..` of the folder for the byte
-sequence, as a file system that ignores a space at the end of a name can
-do for the UTF-8 encoding of `..` followed by a space. A lookup finds
-the file of a folder entry when the file system finds that folder entry,
-and the entry name of that folder entry is the byte sequence. What the
-program does with that file after the lookup does not change what the
-lookup finds.
+A lookup finds the file of a folder entry when the file system reaches
+that folder entry for the lookup, and the entry name of that folder
+entry is the byte sequence of the lookup. Otherwise the lookup finds no
+folder entry. So a lookup finds no folder entry when the file system
+reports that the folder holds no folder entry for the byte sequence. It
+also finds no folder entry when the file system reaches a folder entry
+whose entry name is another byte sequence. It also finds no folder entry
+when the file system reaches a directory entry that is not a folder
+entry: the directory entry `.` or `..` of the folder, as a file system
+that ignores a space at the end of a name can reach for a lookup of the
+UTF-8 encoding of `..` followed by a space, or a directory entry whose
+name a listing of the folder does not give. What the program does with
+the file after the lookup does not change what the lookup finds.
 
 Some file systems ignore case or differences of Unicode normalization:
 in a lookup of `A.md` in a folder that holds the folder entry `a.md`,
-such a file system can find that folder entry. That lookup finds no
+such a file system can reach that folder entry. That lookup finds no
 folder entry, because the entry name `a.md` is not the byte sequence of
 the lookup. From the entry names of the folder, the program can see
-whether the entry name of the folder entry that the file system finds is
-the byte sequence of the lookup.
+whether the folder holds a folder entry whose entry name is the byte
+sequence of the lookup.
+
+Before its first lookup of a file name of the file read, the program can
+make lookups, as steps of the file read, so that the file system reaches
+the root, such as the lookups of an open of the root for that file read
+alone. After that first lookup, the program makes no such lookup as a
+step of the file read. An open of the root that the program makes for
+the file read alone is a step of the file read. An open of the root that
+the program makes once, before the start of each of the file reads that
+use its means, and for none of them alone, is a step of none of them.
 
 A failure cause of an action of a program is one of these:
 
@@ -256,52 +281,88 @@ A failure cause of an action of a program is one of these:
 - that the system does not give the program the memory that the action
   needs;
 - an error that the system reports for the action, such as an input or
-  output error of a device, other than an interruption by a signal, a
-  report that the action would wait, and a form error.
+  output error of a device, other than each of these reports:
+  - an interruption by a signal;
+  - that the action would wait;
+  - a form error;
+  - that a folder holds no folder entry for a byte sequence;
+  - that the file that the file system reaches for a lookup is a
+    symbolic link, when the action asks for a file that is not a
+    symbolic link;
+  - that the file that the file system reaches for a lookup is not a
+    folder, when the action asks for a folder, or for a lookup in that
+    file;
+  - a lack of a permission of the program;
+  - that a byte sequence is longer than a file system allows in an
+    entry name, or that a file system does not accept a byte sequence as
+    an entry name.
 
-A form error of an action is an error that the system reports for the
-action because the program asked for the action wrongly, such as for
-the means that an open gave after the program closed that file, for an
-address of memory that is not valid, for a flag that the system does
-not know, or for another argument that the action does not accept. A
-failure because the action holds more bytes than the system accepts in
-one action is not a form error. As a step of a file read, the program
-makes no action that fails for a form error.
+A report that a folder holds no folder entry for a byte sequence, or
+that the file that the file system reaches is a symbolic link or is not
+a folder, tells the program what the file system reaches for a lookup.
+So a report that the folder holds no folder entry for the byte sequence
+of a lookup tells the program that the lookup finds no folder entry.
+Each case below that needs a lack of a permission, or a byte sequence
+that a file system does not accept as an entry name, names it, as a
+refused lookup names a lack of the search permission.
 
-In the cases below, a failure of a lookup, of an open of a folder, of
-an action that takes the entry names of a folder, of an action before
-the lookup that the action asks for, of an open of a regular file, or of
-a request counts only when the action fails for a failure cause or for
-a cause that the case names. A failure for another cause, such as an
-interruption by a signal, does not count. After such a failure, the
-program makes the action again, or another action that does the same
-thing. The program cannot stop at such a failure, because the walk of a
-valid path must get an outcome, and the program takes the bytes of a
-content until the end of the content or until it fails to take the
-content.
+A form error of an action of a program is an error that the system
+reports for the action because the program asked for the action
+wrongly, in one of these ways:
+
+- with a means that is not open, or that is not open for that action,
+  such as the means of a file that the program already closed;
+- with an address of memory that is not valid;
+- with a flag, or for an action, that the system does not know or does
+  not provide;
+- with a value of an argument that the action does not accept, whatever
+  the state of the file systems.
+
+These reports are not form errors: that a folder holds no folder entry
+for a byte sequence; that the file that the file system reaches for a
+lookup is a symbolic link, or is not a folder; a lack of a permission of
+the program; that a byte sequence is longer than a file system allows in
+an entry name, or that a file system does not accept a byte sequence as
+an entry name; and that the action holds more bytes than the system
+accepts in one action. As a step of a file read, the program makes no
+action that fails for a form error.
+
+In the cases below, a failure of a lookup, of an open of a folder, of a
+listing of a folder, of an action that fails before the lookup that it
+asks for, of an open of a regular file, or of a request counts only when
+the action fails for a failure cause or for a cause that the case names.
+A failure for another cause, such as an interruption by a signal, does
+not count. After such a failure, the program makes the action again, or
+another action that does the same thing, while the walk of the file read
+has no outcome, or while the program takes the bytes of a content. The
+program cannot stop at such a failure, because the walk of a valid path
+must get an outcome, and the program takes the bytes of a content until
+the end of the content or until it fails to take the content.
 
 A lookup that a program makes as a step of a file read is refused when,
 and only when, one of these holds:
 
 - The file system reports, for the lookup, a failure for a lack of the
   search permission of the program for the folder, for a byte sequence
-  longer than the file system allows in an entry name, or for a failure
-  cause.
-- The program has no read permission for the folder.
-- An action of the program that takes the entry names of the folder, as
-  a step of the file read, fails for a failure cause, and no later
-  lookup in that folder follows.
+  longer than the file system allows in an entry name, for a byte
+  sequence that the file system does not accept as an entry name, or for
+  a failure cause.
+- The program has no read permission for the folder at the moment of
+  the lookup.
+- The latest listing of the folder that the program makes as a step of
+  the file read fails for a failure cause, and the program makes no
+  lookup in that folder, as a step of the file read, after that listing.
 
 Whether a lookup in a folder for which the program has no read
-permission is refused does not depend on what the file system finds, or
-on whether the program takes the entry names of the folder: only the
-read permission of the program for the folder counts. Such a lookup is
-refused on every file system, also when the folder holds a folder entry
-whose entry name is the byte sequence of the lookup, and the file read
-gives "cannot read". The program learns, for each folder in which it
-makes a lookup of the walk, whether it has the read permission for that
-folder, for example from an open of the folder that needs the read
-permission.
+permission is refused does not depend on what the file system reaches,
+or on whether the program makes a listing of the folder: only the read
+permission of the program for the folder, at the moment of the lookup,
+counts. Such a lookup is refused on every file system, also when the
+folder holds a folder entry whose entry name is the byte sequence of the
+lookup, and the file read gives "cannot read". The program learns, for
+each folder in which it makes a lookup of the walk, whether it has the
+read permission for that folder, for example from an open of the folder
+that needs the read permission.
 
 A lookup follows no symbolic link: when the file of the folder entry is
 a symbolic link, the lookup finds that symbolic link.
@@ -313,62 +374,88 @@ asks the file system to open the file. An open fails when the file
 system does not give that means. To close a file is to give back to the
 file system the means that an open of that file gave to the program. An
 action in which a program asks the file system both to make lookups and
-to open the file that the last of them finds, such as a call of the
-function `openat` of POSIX.1-2024, is these lookups followed by an open.
-The open is not part of a lookup, so a failure of the open does not make
-a lookup refused.
+to open the file that the file system reaches for the last of them, such
+as a call of the function `openat` of POSIX.1-2024, is these lookups
+followed by an open. The open is not part of a lookup, so a failure of
+the open does not make a lookup refused.
 
 An action that makes a lookup and an open can fail because the file
-that the lookup finds is a symbolic link, as a call of `openat` with the
-flag `O_NOFOLLOW` can fail, or because that file is not a folder, as a
-call of `openat` with the flag `O_DIRECTORY` can fail. Then that lookup
-finds that file, and that lookup is not refused.
+that the file system reaches for the lookup is a symbolic link and the
+action asks for a file that is not a symbolic link, as a call of
+`openat` with the flag `O_NOFOLLOW` can fail. It can also fail because
+that file is not a folder and the action asks for a folder, as a call of
+`openat` with the flag `O_DIRECTORY` can fail. Such a failure is a
+failure of the open of that file, and not of the lookup: the file
+system reaches that file for the lookup, and the lookup is not refused.
 
-When it gives the result of a file read, the program has closed each
-file that it opened as a step of the file read, and it keeps no memory
-that it got from the system as a step of the file read, also not as a
-cache, other than the memory that holds the result and the text that it
-gives with the result. So file reads, one after another, cannot use up
-the open files or the memory that the system can give.
+When it gives the result of a file read, the program has given back to
+the file system each means that an open, as a step of the file read,
+gave to the program. So a program that opens one folder twice in a file
+read, such as once for its lookups and once for a listing, gives back
+both means. When the program opens the root for the file read alone,
+that open is a step of the file read, and the program gives back its
+means too.
+
+When it gives the result of a file read, the program also holds no data
+that it took or made as a step of the file read, also not in a cache,
+other than the result and the text that it gives with the result. Data
+in memory that the program has freed for later use is not data that the
+program holds, whether or not the system gets that memory back. So the
+open files and the data that a program holds do not grow with the number
+of its file reads.
 
 One action can make several lookups. When one action looks for the
-folder entries for several byte sequences in turn, the first in a folder
-and each later byte sequence in the folder that the action found for the
-byte sequence right before it, the action makes one lookup of each byte
-sequence, in that order. Example: when `docs` is a folder, a call of
-`openat` with the bytes of `docs/a.md` makes the lookup of `docs` in a
-folder, and then the lookup of `a.md` in the folder that the lookup of
-`docs` found. When such an action follows a symbolic link, each lookup
-that it makes to follow the link is a further lookup. Only the following
-of a symbolic link makes further lookups. An action that fails before a
-file system looks for a folder entry for a byte sequence is not a lookup
-of that byte sequence. Example: an action fails in this way when the
-program gives it more bytes than the system accepts in one action.
+directory entries for several byte sequences in turn, the first in a
+folder and each later byte sequence in the folder that the file system
+reached for the lookup of the byte sequence right before it, the action
+makes one lookup of each byte sequence, in that order. Example: when
+`docs` is a folder, a call of `openat` with the bytes of `docs/a.md`
+makes the lookup of `docs` in a folder, and then the lookup of `a.md` in
+the folder that the file system reached for the lookup of `docs`. When
+such an action follows a symbolic link, each lookup that it makes to
+follow the link is a further lookup. Only the following of a symbolic
+link makes further lookups. An action that fails before a file system
+looks for a directory entry for a byte sequence is not a lookup of that
+byte sequence. Example: an action fails in this way when the program
+gives it more bytes than the system accepts in one action.
 
 In POSIX.1-2024, the file system can complete a lookup in a folder with
 the search permission of the program for that folder and no other
 permission of the program. So the permissions of the program for the
 file that a lookup finds do not change what the lookup finds.
 
+An attribute of a file is a property of the file other than the content
+of a regular file, the folder entries of a folder, the reference of a
+symbolic link, and the data of a file of another kind. Examples of
+attributes are the file type of a file, as POSIX.1-2024 defines the
+file types, its size, its mode, its owner, its times, and its extended
+attributes.
+
 A program takes a byte from a file when it copies into the program a
 byte that the file holds or gives: a byte of the content of a regular
-file, of the entry names of a folder, of the reference of a symbolic
-link, or of the data of a file of another kind. A lookup takes no bytes
-from a file. Copying the file type or another attribute of a file, such
-as its size, into the program takes no bytes from that file.
+file, of the names of the directory entries of a folder, of the
+reference of a symbolic link, or of the data of a file of another kind.
+The names of the directory entries of a folder are its entry names, the
+names `.` and `..`, and the names that a listing of the folder does not
+give. A lookup takes no bytes from a file. Copying an attribute of a
+file into the program takes no bytes from that file.
 
 A request is an action in which a program asks the file system for one
 or more bytes of the content of a regular file that the program has
-open, in their order in the content. The first byte of a request is the
-first of these bytes. An action that maps the content into the memory of
-the program is not a request. The file system reports the end of the
-content for a request when, and only when, it gives no byte and reports
-no error for that request, such as for a request whose first byte is
-past the last byte of the content. The end of the content is not a
-failure. A request on which the file system gives fewer bytes than the
-request asks for is not a failure either. When the file system gives at
-least one byte for a request, that request does not report the end of
-the content, so the program asks again, from the next byte.
+open, in their order in the content, from the byte at the first place of
+the request. The first place of a request is a whole number, 1 or more:
+the request asks first for the byte at that place of the content, and
+then for the bytes after it. The first place of a request can be greater
+than the number of bytes of the content. An action that maps the content
+into the memory of the program is not a request. The file system reports
+the end of the content for a request when, and only when, it gives no
+byte and reports no error for that request, such as for a request whose
+first place is greater than the number of bytes of the content. The end
+of the content is not a failure. A request on which the file system
+gives fewer bytes than the request asks for is not a failure either.
+When the file system gives at least one byte for a request, that request
+does not report the end of the content, so the program asks again, from
+the next byte.
 
 Only the latest request of the program for bytes of a regular file, as
 a step of the file read, counts for the end of the content. So, when
@@ -403,35 +490,46 @@ does not count for a later file read.
 
 When the file system reports the end of the content for the latest
 request of the program for bytes of a regular file, as a step of a file
-read, and a request of the program, as a step of that file read, gave
-each byte before the first byte of that request, the byte sequence that
-the file read takes from that regular file is the bytes before the first
-byte of that request, in their order in the content. It holds each byte
-as the latest request of the program, as a step of the file read, that
-gave that byte gave it. Example: a program takes 100 bytes of a content.
-Another process then cuts the content to 50 bytes, and the program takes
-every byte of the content again, from the first byte. The file system
-reports the end of the content for the request whose first byte is
-byte 51. So the byte sequence holds 50 bytes, as the later requests
-gave them.
+read, and, for each place before the first place of that request, a
+request of the program, as a step of that file read, gave a byte for
+that place, the byte sequence that the file read takes from that regular
+file has a byte at each of these places, and at no other place. At each
+of these places, it holds the byte that the latest request of the
+program, as a step of the file read, that gave a byte for that place
+gave for it. Example: a program takes 100 bytes of a content. Another
+process then cuts the content to 50 bytes, and the program takes every
+byte of the content again, from the first byte. The file system reports
+the end of the content for the request whose first place is 51. So the
+byte sequence holds 50 bytes, as the later requests gave them.
 
 For a text that is not a valid path, the program makes no lookup and
 takes no bytes from a file as a step of the file read. Each action that
 the program makes with that text, from the start of the file read to its
-result, and not only for another file read, is a step of the file read.
-So a text such as `../a.md` or `/etc/passwd` never leads the program out
-of the folder tree.
+result, is a step of the file read, unless the program makes it for no
+file read or only for other file reads. So a text such as `../a.md` or
+`/etc/passwd` never leads the program out of the folder tree.
 
 For a valid path, the file names of the file read are the file names of
 the valid path. A lookup of a file name is a lookup of the UTF-8
 encoding of that file name. So the walk of a file read never finds the
 file of a folder entry whose entry name is not valid UTF-8. A lookup of
 file name 1 is a lookup in the root, and a lookup of each later file
-name is a lookup in a folder that a lookup of the file name right before
-it, in the same file read, found. So a lookup of an earlier file read
-does not count for a later file read. As a step of the file read, the
-program makes no lookup other than these lookups. The walk of the file
-read is the lookups that the program makes as steps of the file read.
+name is a lookup in a folder that the file system reached for a lookup
+of the file name right before it, in the same file read. So a lookup of
+an earlier file read does not count for a later file read. Example: on
+a file system that ignores case, in a folder tree whose root holds the
+folder `docs`, which holds the regular file `a.md`, a call of `openat`
+with the bytes of `Docs/a.md` makes a lookup of file name 1, `Docs`, in
+the root, and a lookup of file name 2, `a.md`, in the folder `docs`. The
+lookup of `Docs` finds no folder entry, so the walk has the outcome no
+entry, and the file read gives "no file".
+
+As a step of the file read, the program makes no lookup other than these
+lookups and, before its first lookup of a file name, the lookups that it
+makes so that the file system reaches the root. The walk of the file
+read is the lookups of the file names of the file read that the program
+makes as steps of the file read. So the lookups by which the file system
+reaches the root are not lookups of the walk.
 
 A file name of the file read can have an outcome. Two kinds of failure
 give a file name the outcome refused:
@@ -445,14 +543,16 @@ give a file name the outcome refused:
   interrupts, the program can still make the lookup of the file name in
   that folder.
 - An action that asks for the lookup of the file name and for no other
-  lookup fails before a file system looks for a folder entry for the
-  UTF-8 encoding of the file name, for a failure cause or because the
-  system does not accept, in one action, as many bytes as that UTF-8
-  encoding holds, and the program makes no lookup of the file name after
-  that action. An action that asks for the lookups of several file
-  names and fails in this way, such as an action with all the bytes of a
-  long valid path, makes no lookup and gives no outcome. The program can
-  still look up each file name with an action of its own.
+  lookup fails before a file system looks for a directory entry for the
+  UTF-8 encoding of the file name, for a failure cause, for a byte
+  sequence longer than a file system allows in an entry name, for a byte
+  sequence that a file system does not accept as an entry name, or
+  because the system does not accept, in one action, as many bytes as
+  that UTF-8 encoding holds, and the program makes no lookup of the file
+  name after that action. An action that asks for the lookups of several
+  file names and fails in this way, such as an action with all the bytes
+  of a long valid path, makes no lookup and gives no outcome. The
+  program can still look up each file name with an action of its own.
 
 Otherwise, the outcome of a file name comes from the latest lookup of
 that file name in the walk: it is the first row of this table whose
@@ -510,16 +610,17 @@ read", and not "not UTF-8".
 
 Another process can change the folder tree during the file read. As a
 step of the file read, the program takes only bytes of the entry names
-of a folder in which it makes a lookup of the walk, and bytes of the
-content of a regular file that a lookup of the file name with the
-highest number found. So a change to the folder tree during the file
-read, such as a folder that a lookup of the walk found and that another
-process then replaces with a symbolic link, cannot make the program take
-bytes of the content of a regular file that no lookup of the file name
-with the highest number found, such as a regular file in the folder that
-the reference of that symbolic link leads to. When another process
-changes the regular file during the file read, the result comes from the
-bytes that the program takes.
+of a folder in which it makes a lookup of the walk, bytes of the names
+`.` and `..` of the directory entries of such a folder, which a listing
+of the folder can give, and bytes of the content of a regular file that
+a lookup of the file name with the highest number found. So a change to
+the folder tree during the file read, such as a folder that a lookup of
+the walk found and that another process then replaces with a symbolic
+link, cannot make the program take bytes of the content of a regular
+file that no lookup of the file name with the highest number found, such
+as a regular file in the folder that the reference of that symbolic link
+leads to. When another process changes the regular file during the file
+read, the result comes from the bytes that the program takes.
 
 The walk never follows a symbolic link. A symbolic link ends the walk,
 whatever the number of the file name whose lookup finds it, and the
@@ -532,26 +633,31 @@ whose reference leads to the root, and the regular file `a.md`, the walk
 of the file read of `a.md` finds the regular file `a.md`.
 
 When no other process changes the folder tree during the file read, the
-program opens no file of another kind as a step of the file read. The
-program can learn the kind of a file from its file type, which an action
-that makes a lookup can give without an open of the file. An open of a
-file of another kind can act on another process or on a device: for
-example, an open of a pipe can let a process that waits for that open
-go on.
+program opens no file of another kind as a step of the file read. An
+action that makes a lookup and asks to open the file that the file
+system reaches is an open of that file, also when the open fails. So a
+call of `openat` with the flag `O_DIRECTORY` for a pipe is an open of
+the pipe, and the program learns the file type of a file before it
+opens the file. The program can learn the kind of a file from its file
+type, which an action that makes a lookup can give without an open of
+the file. An open of a file of another kind can act on another process
+or on a device: for example, an open of a pipe can let a process that
+waits for that open go on.
 
 As a step of a file read, the program does not wait for another process
 or for a device to act on a file of another kind, such as for a process
 to open the other end of a pipe.
 
 As a step of a file read, the program does not change the content, the
-folder entries, the reference, or another attribute of a file of the
-folder tree, such as its mode, its owner, its times, or its extended
+folder entries, or the reference of a file of the folder tree, or an
+attribute of it, such as its mode, its owner, its times, or its extended
 attributes. A change that the file system makes by itself when a program
-takes bytes from a file or makes a lookup, such as a change of the time
-of last access, is not a change by the program. From the start of the
-file read to its result, the program also does not change, by any
-action, whether it has the search permission or the read permission for
-a file of the folder tree.
+makes a lookup, an open, or a request, or takes bytes from a file, such
+as a change of the time of last access, is not a change by the program,
+also for a request for which the file system reports the end of the
+content. From the start of the file read to its result, the program also
+does not change, by any action, whether it has the search permission or
+the read permission for a file of the folder tree.
 
 The file read gives the result of the first row of this table whose
 conditions hold. An empty cell sets no condition.
@@ -667,28 +773,30 @@ the valid path `a/b` is in the set of that path set.
 ### 2.6 Validations and results
 
 A program validates a text as a path, a text as a glob, or a path set
-when it gives for it one of the results "valid" and "invalid", other
-than as the result of a file read. A program
-decides whether a valid path fits a valid glob, or whether a valid path
-is in the set of a path set, when it gives one of two other results.
-This table gives the input and the results of each of these five
-actions:
+when it makes an operation to give for it one of the results "valid" and
+"invalid", other than a file read. A program decides whether a valid
+path fits a valid glob, or whether a valid path is in the set of a path
+set, when it makes an operation to give one of two other results. The
+program validates or decides in such an operation also when it gives
+another thing in it, or nothing. This table gives the input and the
+results of each of these five operations:
 
-| action | input | results |
+| operation | input | results |
 |---|---|---|
 | validate a text as a path | a text | "valid" or "invalid" |
 | validate a text as a glob | a text | "valid" or "invalid" |
-| decide whether a valid path fits a valid glob | a valid glob and a valid path | "fits" or "does not fit" |
+| decide whether a valid path fits a valid glob | a valid path and a valid glob | "fits" or "does not fit" |
 | validate a path set | a path set | "valid" or "invalid" |
 | decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob | that valid path and that path set | "in the set" or "not in the set" |
 
 In each validation that it makes, a conforming program gives exactly one
 result. Each time it decides whether a valid path fits a valid glob, or
 whether a valid path is in the set of a path set, a conforming program
-also gives exactly one result. In each file read that it makes, a
-conforming program gives exactly one of seven results: "invalid",
-"found", "no file", "symbolic link", "not a regular file", "not UTF-8",
-and "cannot read".
+also gives exactly one result. So a program that, in a validation of a
+long text, gives an error in place of a result does not conform. In each
+file read that it makes, a conforming program gives exactly one of seven
+results: "invalid", "found", "no file", "symbolic link", "not a regular
+file", "not UTF-8", and "cannot read".
 
 ## 3. Definitions
 
@@ -725,10 +833,15 @@ A folder is a file that holds folder entries. Each folder entry of a
 folder has an entry name, which is a byte sequence, and a file. No two
 folder entries of one folder have the same entry name. A folder holds a
 file when, and only when, that file is the file of a folder entry of
-that folder. The folder entries of a folder on a file system are the
-directory entries of that folder, as POSIX.1-2024 defines directory
-entries, except each directory entry whose name is the UTF-8 encoding of
-the text `.` or of the text `..`.
+that folder. A listing of a folder is an action in which a program asks
+the file system that the folder is on for the names of the directory
+entries of that folder, as POSIX.1-2024 defines directory entries. The
+folder entries of a folder on a file system are the directory entries of
+that folder whose names a listing of that folder gives, except each
+directory entry whose name is the UTF-8 encoding of the text `.` or of
+the text `..`. The entry name of a folder entry is the name of that
+directory entry, and the file of a folder entry is the file of that
+directory entry.
 
 ### 3.4 Regular files
 
@@ -802,52 +915,49 @@ the process of the program for that file, as POSIX.1-2024 defines it.
 @cites {
     posix/2024,
     #{system=v1, file-system=v1, folder=v1, symbolic-link=v1},
-    text#{
-        byte=v1, byte-sequence=v1, text=v1, utf-8-encoding=v1,
-        code-span=v1,
-    },
+    text#{byte=v1, byte-sequence=v1},
 }
 
 A lookup of a byte sequence in a folder is an action of a program, or a
 part of an action of a program, in which the file system that the folder
-is on looks for a folder entry of the folder for that byte sequence, at
-the moment of the lookup. The lookups that a file system makes, to
-complete a lookup, in folders that the action does not name, such as
-the folders that a union file system joins into one folder, are part of
-that lookup.
-
-A lookup finds no folder entry when, and only when, one of these holds:
-
-- The file system reports that the folder holds no folder entry for the
-  byte sequence.
-- The file system finds a folder entry whose entry name is not that byte
-  sequence.
-- The file system finds, for that byte sequence, a directory entry of
-  the folder, as POSIX.1-2024 defines directory entries, whose name is
-  the UTF-8 encoding of the text `.` or of the text `..`.
+is on looks for a directory entry of the folder, as POSIX.1-2024 defines
+directory entries, for that byte sequence, at the moment of the lookup.
+For a lookup, the file system reaches one directory entry of the folder,
+or it reaches no directory entry. It can reach a directory entry whose
+name is not that byte sequence. When the file system reaches a directory
+entry for a lookup, it also reaches the file of that directory entry for
+that lookup. The lookups that a file system makes, to complete a lookup,
+in folders that the action does not name, such as the folders that a
+union file system joins into one folder, are part of that lookup.
 
 A lookup finds the file of a folder entry when, and only when, the file
-system finds that folder entry, and the entry name of that folder entry
-is that byte sequence. What the program does with that file after the
-lookup does not change what the lookup finds.
+system reaches that folder entry for the lookup, and the entry name of
+that folder entry is that byte sequence. A lookup finds no folder entry
+when, and only when, it does not find the file of a folder entry. What
+the program does with that file after the lookup does not change what
+the lookup finds.
 
 A lookup follows no symbolic link: when the file of the folder entry is
 a symbolic link, the lookup finds that symbolic link. An action of a
-program that looks for the folder entries for several byte sequences in
+program that looks for directory entries for several byte sequences in
 turn, the first in a folder and each later one in the folder that the
-action found for the byte sequence right before it, makes one lookup of
-each of these byte sequences, in that order. Each lookup that such an
-action makes to follow a symbolic link is a further lookup of that
-action. Only the following of a symbolic link makes further lookups. An
-action that fails before a file system looks for a folder entry for a
-byte sequence, such as an action that fails because the program gives
-it more bytes than the system accepts in one action, is not a lookup of
-that byte sequence.
+file system reached for the lookup of the byte sequence right before it,
+makes one lookup of each of these byte sequences, in that order. Each
+lookup that such an action makes to follow a symbolic link is a further
+lookup of that action. Only the following of a symbolic link makes
+further lookups. An action that fails before a file system looks for a
+directory entry for a byte sequence, such as an action that fails
+because the program gives it more bytes than the system accepts in one
+action, is not a lookup of that byte sequence.
 
 ### 3.12 Opens
 
 @term open=v1
-@cites {#{file-system=v1, lookup=v1}, text#{byte=v1}}
+@cites {
+    posix/2024,
+    #{file-system=v1, folder=v1, symbolic-link=v1, lookup=v1},
+    text#{byte=v1, code-span=v1},
+}
 
 To open a file is to get from the file system a means by which a program
 can ask for the bytes that the file holds or gives, or make lookups in
@@ -855,29 +965,60 @@ the file. An open of a file is an action in which a program asks the
 file system to open the file. An open of a file fails when, and only
 when, the file system does not give that means to the program. An
 action in which a program asks the file system both to make one or more
-lookups and to open the file that the last of these lookups finds is
-these lookups followed by an open of that file. The open of the file
-that a lookup finds is not part of that lookup. To close a file is to
-give back to the file system the means that an open of that file gave
-to the program.
+lookups and to open the file that the file system reaches for the last
+of these lookups is these lookups followed by an open of that file. The
+open of the file that the file system reaches for a lookup is not part
+of that lookup. When such an action fails because that file is a
+symbolic link and the action asks for a file that is not a symbolic
+link, such as a call of the function `openat` of POSIX.1-2024 with the
+flag `O_NOFOLLOW`, or because that file is not a folder and the action
+asks for a folder, such as a call of `openat` with the flag
+`O_DIRECTORY`, that failure is a failure of the open of that file, and
+not of that lookup: the file system reaches that file for that lookup.
+To close a file is to give back to the file system the means that an
+open of that file gave to the program.
 
 ### 3.13 Form errors
 
 @term form-error=v1
-@cites {#{system=v1, open=v1}, text#{byte=v1}}
+@cites {
+    #{
+        system=v1, file-system=v1, folder=v1, symbolic-link=v1,
+        lookup=v1, open=v1,
+    },
+    text#{byte=v1, byte-sequence=v1},
+}
 
 A form error of an action of a program is an error that the system
 reports for the action because the program asked for the action
-wrongly, such as for the means that an open gave after the program
-closed that file, for an address of memory that is not valid, for a
-flag that the system does not know, or for another argument that the
-action does not accept. A failure because the action holds more bytes
-than the system accepts in one action is not a form error.
+wrongly, in one of these ways:
+
+- with a means that is not open, or that is not open for that action,
+  such as the means of a file that the program already closed;
+- with an address of memory that is not valid;
+- with a flag, or for an action, that the system does not know or does
+  not provide;
+- with a value of an argument that the action does not accept, whatever
+  the state of the file systems.
+
+These reports are not form errors: that a folder holds no folder entry
+for a byte sequence; that the file that the file system reaches for a
+lookup is a symbolic link, or is not a folder; a lack of a permission of
+the program; that a byte sequence is longer than a file system allows in
+an entry name, or that a file system does not accept a byte sequence as
+an entry name; and that the action holds more bytes than the system
+accepts in one action.
 
 ### 3.14 Failure causes
 
 @term failure-cause=v1
-@cites #{system=v1, open=v1, form-error=v1}
+@cites {
+    #{
+        system=v1, file-system=v1, folder=v1, symbolic-link=v1,
+        lookup=v1, open=v1, form-error=v1,
+    },
+    text#{byte-sequence=v1},
+}
 
 A failure cause of an action of a program is one of these:
 
@@ -885,8 +1026,21 @@ A failure cause of an action of a program is one of these:
 - that the system does not give the program the memory that the action
   needs;
 - an error that the system reports for the action, such as an input or
-  output error of a device, other than an interruption by a signal, a
-  report that the action would wait, and a form error.
+  output error of a device, other than each of these reports:
+  - an interruption by a signal;
+  - that the action would wait;
+  - a form error;
+  - that a folder holds no folder entry for a byte sequence;
+  - that the file that the file system reaches for a lookup is a
+    symbolic link, when the action asks for a file that is not a
+    symbolic link;
+  - that the file that the file system reaches for a lookup is not a
+    folder, when the action asks for a folder, or for a lookup in that
+    file;
+  - a lack of a permission of the program;
+  - that a byte sequence is longer than a file system allows in an
+    entry name, or that a file system does not accept a byte sequence as
+    an entry name.
 
 ### 3.15 Valid paths
 
@@ -916,58 +1070,81 @@ more than the file name right before it.
     text#{text=v1, result=v1},
 }
 
-To read a text as a path in a folder tree is to give, for that text and
-that folder tree, one of the results "invalid", "found", "no file",
-"symbolic link", "not a regular file", "not UTF-8", and "cannot read". A
-file read is one operation of a program that reads a text as a path in a
-folder tree each folder of which is on a file system.
+A file read is an operation that a program makes to give, for a text and
+a folder tree each folder of which is on a file system, one of the
+results "invalid", "found", "no file", "symbolic link", "not a regular
+file", "not UTF-8", and "cannot read". Such an operation is a file read
+also when the program gives another thing in it, or nothing. That text
+is the text of the file read, and that folder tree is the folder tree of
+the file read. The result of a file read is the result that the program
+gives in that operation. To read a text as a path in a folder tree is to
+make a file read of that text in that folder tree.
 
 ### 3.17 The steps of a file read
 
 @term file-read-step=v1
 @cites {
-    #{folder-tree=v1, lookup=v1, open=v1, file-read=v1},
+    #{folder-tree=v1, lookup=v1, file-read=v1},
     text#{text=v1, result=v1},
 }
 
-A file read starts at the first action that the program makes, for that
-file read, with the text of that file read. A step of a file read is
-each action that the program makes, from the start of that file read to
-its result, with the text of that file read, with the root of the
-folder tree, or with a file that a step of that file read finds, and
-each lookup that the program makes in that time to reach the root, the
-first time or again. An action that the program makes only for another
-file read, as a step of that other file read, is not a step of the file
-read. The lookups by which the program opened the root before the start
-of the file read are not steps of the file read.
+An action that a program makes for a file read alone is an action that
+the program makes for that file read and for no other file read. A file
+read starts at the first action, of any kind, that the program makes for
+that file read alone. A step of a file read is each action that the
+program makes for that file read alone, from the start of that file read
+to its result, and each other action that the program makes in that time
+with the text of that file read, with the root of the folder tree of
+that file read, or with a file that a step of that file read finds,
+except an action that the program makes for no file read or only for
+other file reads.
 
-### 3.18 Bytes taken from a file
+### 3.18 Attributes
+
+@term attribute=v1
+@cites {
+    posix/2024,
+    #{
+        folder=v1, regular-file=v1, symbolic-link=v1,
+        file-of-another-kind=v1, file-kind=v1,
+    },
+}
+
+An attribute of a file is a property of the file other than the content
+of a regular file, the folder entries of a folder, the reference of a
+symbolic link, and the data of a file of another kind, such as the file
+type of the file, as POSIX.1-2024 defines the file types, its size, its
+mode, its owner, its times, or its extended attributes.
+
+### 3.19 Bytes taken from a file
 
 @term taken-byte=v1
 @cites {
+    posix/2024,
     #{
         folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, file-kind=v1, lookup=v1,
+        file-of-another-kind=v1, lookup=v1, attribute=v1,
     },
     text#{byte=v1},
 }
 
 A byte that a program takes from a file is a byte that the file holds
 or gives and that the program copies into the program: a byte of the
-content of a regular file, of the entry names of a folder, of the
-reference of a symbolic link, or of the data of a file of another kind.
-To take bytes from a file is to copy such bytes into the program. A
-lookup takes no bytes from a file. Copying the file type or another
-attribute of a file into the program takes no bytes from that file.
+content of a regular file, of the names of the directory entries of a
+folder, as POSIX.1-2024 defines directory entries, of the reference of
+a symbolic link, or of the data of a file of another kind. To take bytes
+from a file is to copy such bytes into the program. A lookup takes no
+bytes from a file. Copying an attribute of a file into the program takes
+no bytes from that file.
 
-### 3.19 Refused lookups
+### 3.20 Refused lookups
 
 @term refused-lookup=v1
 @cites {
     #{
         file-system=v1, folder=v1, search-permission=v1,
         read-permission=v1, lookup=v1, failure-cause=v1, file-read=v1,
-        file-read-step=v1, taken-byte=v1,
+        file-read-step=v1,
     },
     text#{byte-sequence=v1},
 }
@@ -977,30 +1154,38 @@ and only when, one of these holds:
 
 - The file system reports, for the lookup, a failure for a lack of the
   search permission of the program for the folder, for a byte sequence
-  longer than the file system allows in an entry name, or for a failure
-  cause.
-- The program has no read permission for the folder.
-- The program makes an action that takes the entry names of the folder,
-  as a step of that file read, the action fails for a failure cause, and
-  the program makes no later lookup in that folder as a step of that
-  file read.
+  longer than the file system allows in an entry name, for a byte
+  sequence that the file system does not accept as an entry name, or for
+  a failure cause.
+- The program has no read permission for the folder at the moment of
+  the lookup.
+- The latest listing of the folder that the program makes as a step of
+  that file read fails for a failure cause, and the program makes no
+  lookup in that folder, as a step of that file read, after that
+  listing.
 
-### 3.20 Requests
+### 3.21 Requests
 
 @term request=v1
-@cites {#{file-system=v1, regular-file=v1, open=v1}, text#{byte=v1}}
+@cites {
+    #{file-system=v1, regular-file=v1, open=v1},
+    text#{byte=v1, byte-sequence=v1, whole-number=v1},
+}
 
 A request is an action in which a program asks the file system for one
 or more bytes of the content of a regular file that the program has
-open, in their order in the content. The first byte of a request is the
-first of the bytes that the request asks for. An action that maps the
-content into the memory of the program is not a request. The file
-system reports the end of the content for a request when, and only
-when, it gives no byte and reports no error for that request. The end
-of the content is not a failure, and a request on which the file system
-gives fewer bytes than the request asks for is not a failure.
+open, in their order in the content, from the byte at the first place of
+the request. The first place of a request is a whole number, 1 or more:
+the request asks first for the byte at that place of the content, and
+then for the bytes after it. The first place of a request can be greater
+than the number of bytes of the content. An action that maps the content
+into the memory of the program is not a request. The file system
+reports the end of the content for a request when, and only when, it
+gives no byte and reports no error for that request. The end of the
+content is not a failure, and a request on which the file system gives
+fewer bytes than the request asks for is not a failure.
 
-### 3.21 Failures to take a content
+### 3.22 Failures to take a content
 
 @term failure-to-take-content=v1
 @cites {
@@ -1028,7 +1213,7 @@ program, as a step of that file read, for bytes of that regular file:
   the file system gives for a request of the program, as a step of that
   file read.
 
-### 3.22 The byte sequence that a file read takes
+### 3.23 The byte sequence that a file read takes
 
 @term file-read-byte-sequence=v1
 @cites {
@@ -1036,25 +1221,26 @@ program, as a step of that file read, for bytes of that regular file:
         file-system=v1, regular-file=v1, file-read=v1,
         file-read-step=v1, request=v1,
     },
-    text#{byte=v1, byte-sequence=v1},
+    text#{byte=v1, byte-sequence=v1, whole-number=v1},
 }
 
 When the file system reports the end of the content for the latest
 request of a program for bytes of the content of a regular file, as a
-step of a file read, and, for each byte before the first byte of that
-request, a request of the program, as a step of that file read, gave
-that byte, the byte sequence that the file read takes from that regular
-file is the bytes before the first byte of that request, in their order
-in the content, each byte as the latest request of the program, as a
-step of that file read, that gave that byte gave it.
+step of a file read, and, for each whole number k from 1 to one less
+than the first place of that request, a request of the program, as a
+step of that file read, gave a byte for place k of the content, the byte
+sequence that the file read takes from that regular file is the byte
+sequence that has a byte at each of these places k and at no other
+place: at place k, the byte that the latest request of the program, as a
+step of that file read, that gave a byte for place k gave for place k.
 
-### 3.23 Lookups of the file names of a file read
+### 3.24 Lookups of the file names of a file read
 
 @term file-name-lookup=v1
 @cites {
     #{
-        folder-tree=v1, folder=v1, lookup=v1, path=v1, file-read=v1,
-        file-read-step=v1,
+        file-system=v1, folder-tree=v1, folder=v1, lookup=v1, path=v1,
+        file-read=v1, file-read-step=v1,
     },
     text#{text=v1, utf-8-encoding=v1},
 }
@@ -1064,10 +1250,10 @@ read are the file names of that text. A lookup of file name 1 of the
 file read is a lookup of the UTF-8 encoding of file name 1 in the root
 of the folder tree. A lookup of each later file name of the file read is
 a lookup of the UTF-8 encoding of that later file name in a folder that
-a lookup of the file name right before it, as a step of the same file
-read, found.
+the file system reached for a lookup of the file name right before it,
+as a step of the same file read.
 
-### 3.24 Walks
+### 3.25 Walks
 
 @term walk=v1
 @cites {
@@ -1078,20 +1264,20 @@ read, found.
         failure-cause=v1, path=v1, file-read=v1, file-read-step=v1,
         refused-lookup=v1, file-name-lookup=v1,
     },
-    text#{byte=v1, utf-8-encoding=v1},
+    text#{byte=v1, byte-sequence=v1, utf-8-encoding=v1},
 }
 
-The walk of a file read is the lookups that the program makes as steps
-of that file read. For each file name of the file read, the outcome of
-that file name is the first row of this table whose condition holds,
-where the lookup is the latest lookup of that file name in the walk, and
-where a row that names the lookup does not hold for a file name that the
-walk does not look up:
+The walk of a file read is the lookups of the file names of that file
+read that the program makes as steps of that file read. For each file
+name of the file read, the outcome of that file name is the first row of
+this table whose condition holds, where the lookup is the latest lookup
+of that file name in the walk, and where a row that names the lookup
+does not hold for a file name that the walk does not look up:
 
 | outcome | condition |
 |---|---|
 | refused | the latest open, as a step of the file read, of a folder that a lookup of the file name right before it found fails for a lack of the search permission of the program for that folder, for a lack of the read permission of the program for that folder, or for a failure cause, and the walk holds no lookup of the file name after that open |
-| refused | an action, as a step of the file read, that asks for a lookup of the file name and for no other lookup fails before a file system looks for a folder entry for the UTF-8 encoding of the file name, for a failure cause or because the system does not accept, in one action, as many bytes as that UTF-8 encoding holds, and the walk holds no lookup of the file name after that action |
+| refused | an action, as a step of the file read, that asks for a lookup of the file name and for no other lookup fails before a file system looks for a directory entry for the UTF-8 encoding of the file name, for a failure cause, for a byte sequence longer than a file system allows in an entry name, for a byte sequence that a file system does not accept as an entry name, or because the system does not accept, in one action, as many bytes as that UTF-8 encoding holds, and the walk holds no lookup of the file name after that action |
 | refused | the lookup is refused |
 | no entry | the lookup finds no folder entry |
 | symbolic link | the lookup finds a symbolic link |
@@ -1105,7 +1291,7 @@ outcome. A walk in which no file name has an outcome has no outcome.
 With the outcome regular file, the walk finds the regular file that the
 latest lookup of the file name with the highest number found.
 
-### 3.25 Valid globs
+### 3.26 Valid globs
 
 @term glob=v1
 @cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
@@ -1127,7 +1313,7 @@ The glob segments of a valid glob are the texts that its `glob-segment`
 elements match, in order, and then the text `**` when the valid glob
 ends with `/`. They have numbers from 1, in that order.
 
-### 3.26 Valid paths that fit valid globs
+### 3.27 Valid paths that fit valid globs
 
 @term glob-fit=v1
 @cites {
@@ -1160,7 +1346,7 @@ which the character of the glob segment is a character other than `*`
 when, and only when, the run holds one character, and that character is
 the character of the glob segment at that place.
 
-### 3.27 Path sets
+### 3.28 Path sets
 
 @term path-set=v1
 @cites text#{
@@ -1174,7 +1360,7 @@ set member that starts at boundary 1 and ends at the last boundary of
 that path set member. Each other path set member is a plain member, and
 the glob text of that path set member is the path set member.
 
-### 3.28 Valid path sets
+### 3.29 Valid path sets
 
 @term valid-path-set=v1
 @cites {#{path-set=v1, glob=v1}, text#{text=v1}}
@@ -1184,7 +1370,7 @@ member is a valid glob, no two path set members are the same text, and
 at least one path set member is a plain member when the path set holds
 at least one path set member.
 
-### 3.29 The set of a path set
+### 3.30 The set of a path set
 
 @term path-set-membership=v1
 @cites {
@@ -1211,12 +1397,13 @@ the path set.
     },
 }
 
-Each time it gives one of the results "valid" and "invalid" for whether
-a text is a valid path, other than as the result of a file read, a
-conforming program must give exactly one result: "valid" when the text
-matches `path`, and "invalid" when the text does not match `path`.
+In each validation of a text as a path that it makes, which is an
+operation to give one of the results "valid" and "invalid" for whether
+the text is a valid path, other than a file read, a conforming program
+must give exactly one result: "valid" when the text matches `path`, and
+"invalid" when the text does not match `path`.
 
-### 4.2 Walks that reach an outcome
+### 4.2 Walks that get an outcome
 
 @req complete-walks=v1
 @cites {
@@ -1227,25 +1414,27 @@ matches `path`, and "invalid" when the text does not match `path`.
     text#{conforming-program=v1, requirement=v1},
 }
 
-When it reads a valid path as a path in a folder tree, a conforming
-program must, as steps of the file read, make lookups of the file names
-of the file read, or actions that ask for these lookups, until the walk
-of the file read has an outcome.
+In each file read that it makes of a valid path as a path in a
+folder tree, a conforming program must, as steps of that file read,
+make lookups of the file names of that file read, or actions that ask
+for these lookups, until the walk of that file read has an outcome.
 
 ### 4.3 The lookups of a file read
 
 @req limit-lookups=v1
 @cites {
     #{
-        folder-tree=v1, lookup=v1, path=v1, file-read=v1,
-        file-read-step=v1, file-name-lookup=v1,
+        file-system=v1, folder-tree=v1, lookup=v1, path=v1,
+        file-read=v1, file-read-step=v1, file-name-lookup=v1,
     },
     text#{conforming-program=v1, text=v1, requirement=v1},
 }
 
 As a step of a file read of a text as a path in a folder tree, a
 conforming program must make no lookup other than a lookup of a file
-name of that file read.
+name of that file read and a lookup that it makes, before its first
+lookup of a file name of that file read, so that the file system
+reaches the root of that folder tree.
 
 ### 4.4 The files from which a file read takes bytes
 
@@ -1256,15 +1445,19 @@ name of that file read.
         taken-byte=v1, path=v1, file-read=v1, file-read-step=v1,
         file-name-lookup=v1, walk=v1,
     },
-    text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
+    text#{
+        conforming-program=v1, text=v1, byte=v1, code-span=v1,
+        requirement=v1,
+    },
 }
 
 As a step of a file read of a text as a path in a folder tree, a
 conforming program must take no byte from a file other than a byte of
 the entry names of a folder in which the program makes a lookup of the
-walk of that file read, and a byte of the content of a regular file that
-a lookup of the file name with the highest number of that file read, in
-the walk of that file read, found.
+walk of that file read, a byte of the names `.` and `..` of the
+directory entries of such a folder, and a byte of the content of a
+regular file that a lookup of the file name with the highest number of
+that file read, in the walk of that file read, found.
 
 ### 4.5 The permissions that an open needs
 
@@ -1309,21 +1502,34 @@ reports the end of the content for the latest request of the program, as
 a step of the file read, for bytes of that regular file, or the program
 fails to take the content of that regular file in that file read.
 
-### 4.7 The files and the memory that a file read takes
+### 4.7 The means that a file read gets
 
-@req release-files-and-memory=v1
+@req give-back-means=v1
 @cites {
-    #{system=v1, open=v1, file-read=v1, file-read-step=v1},
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    #{file-system=v1, open=v1, file-read=v1, file-read-step=v1},
+    text#{conforming-program=v1, result=v1, requirement=v1},
 }
 
 When it gives the result of a file read, a conforming program must have
-closed each file that it opened as a step of that file read, and must
-keep no memory that it got from the system as a step of that file read,
-also not as a cache, other than the memory that holds that result and
-the text that it gives with that result.
+given back to the file system each means that an open, as a step of
+that file read, gave to the program.
 
-### 4.8 No form errors
+### 4.8 The data that a file read leaves
+
+@req release-file-read-data=v1
+@cites {
+    #{system=v1, file-read=v1, file-read-step=v1},
+    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+}
+
+When it gives the result of a file read, a conforming program must hold
+no data that it took or made as a step of that file read, also not in a
+cache, other than that result and the text that it gives with that
+result. Data in memory that the program has freed for later use is not
+data that the program holds, whether or not the system gets that memory
+back.
+
+### 4.9 No form errors
 
 @req avoid-form-errors=v1
 @cites {
@@ -1337,7 +1543,7 @@ the text that it gives with that result.
 As a step of a file read of a text as a path in a folder tree, a
 conforming program must make no action that fails for a form error.
 
-### 4.9 No wait for another process
+### 4.10 No wait for another process
 
 @req avoid-waits=v1
 @cites {
@@ -1353,7 +1559,7 @@ path in a folder tree, wait for another process or for a device to act
 on a file of another kind, such as for a process to open the other end
 of a pipe.
 
-### 4.10 No open of a file of another kind
+### 4.11 No open of a file of another kind
 
 @req avoid-opens-of-files-of-another-kind=v1
 @cites {
@@ -1368,27 +1574,28 @@ When no other process changes a folder tree during a file read of a text
 as a path in that folder tree, a conforming program must make no open of
 a file of another kind as a step of that file read.
 
-### 4.11 No change to the files of the folder tree
+### 4.12 No change to the files of the folder tree
 
 @req keep-folder-trees-unchanged=v1
 @cites {
     #{
         file-system=v1, folder-tree=v1, folder=v1, regular-file=v1,
-        symbolic-link=v1, lookup=v1, taken-byte=v1, path=v1,
-        file-read=v1, file-read-step=v1,
+        symbolic-link=v1, lookup=v1, open=v1, attribute=v1,
+        taken-byte=v1, request=v1, path=v1, file-read=v1,
+        file-read-step=v1,
     },
     text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
 }
 
 As a step of a file read of a text as a path in a folder tree, a
-conforming program must not change the content, the folder entries, the
-reference, or another attribute of a file of the folder tree, such as
-its mode, its owner, its times, or its extended attributes, other than
-by a change that the file system makes by itself when the program takes
-bytes from a file or makes a lookup, such as a change of the time of
-last access.
+conforming program must not change the content, the folder entries, or
+the reference of a file of the folder tree, or an attribute of it, such
+as its mode, its owner, its times, or its extended attributes, other
+than by a change that the file system makes by itself when the program
+makes a lookup, an open, or a request, or takes bytes from a file, such
+as a change of the time of last access.
 
-### 4.12 No change to the permissions of the program
+### 4.13 No change to the permissions of the program
 
 @req keep-permissions-unchanged=v1
 @cites {
@@ -1404,7 +1611,7 @@ the result of that file read, a conforming program must not change, by
 any action, whether it has the search permission or the read permission
 for a file of the folder tree.
 
-### 4.13 The result of a file read
+### 4.14 The result of a file read
 
 @req give-file-read-results=v1
 @cites {
@@ -1418,11 +1625,11 @@ for a file of the folder tree.
     },
 }
 
-When it reads a text as a path in a folder tree, a conforming program
-must give exactly one result: the result of the first row of this table
-whose conditions hold for the text, for the outcome of the walk of the
-file read, and for the regular file that the walk finds, where an empty
-cell sets no condition:
+In each file read that it makes of a text as a path in a folder tree, a
+conforming program must give exactly one result: the result of the
+first row of this table whose conditions hold for the text, for the
+outcome of the walk of that file read, and for the regular file that the
+walk finds, where an empty cell sets no condition:
 
 | text | outcome of the walk | regular file that the walk finds | result |
 |---|---|---|---|
@@ -1436,7 +1643,7 @@ cell sets no condition:
 | a valid path | regular file | the byte sequence that the file read takes from it is not valid UTF-8 | "not UTF-8" |
 | a valid path | regular file | the byte sequence that the file read takes from it is valid UTF-8 | "found" |
 
-### 4.14 The text of a file
+### 4.15 The text of a file
 
 @req give-file-text=v1
 @cites {
@@ -1455,7 +1662,7 @@ When it reads a text as a path in a folder tree and gives the result
 byte sequence that the file read takes from the regular file that the
 walk of the file read finds, and no other text.
 
-### 4.15 No text with another result
+### 4.16 No text with another result
 
 @req omit-texts-of-other-results=v1
 @cites {
@@ -1466,7 +1673,7 @@ walk of the file read finds, and no other text.
 When it reads a text as a path in a folder tree and gives a result other
 than "found", a conforming program must give no text with that result.
 
-### 4.16 The validation of texts as globs
+### 4.17 The validation of texts as globs
 
 @req validate-globs=v1
 @cites {
@@ -1477,12 +1684,13 @@ than "found", a conforming program must give no text with that result.
     },
 }
 
-Each time it gives one of the results "valid" and "invalid" for whether
-a text is a valid glob, a conforming program must give exactly one
+In each validation of a text as a glob that it makes, which is an
+operation to give one of the results "valid" and "invalid" for whether
+the text is a valid glob, a conforming program must give exactly one
 result: "valid" when the text matches `glob`, and "invalid" when the
 text does not match `glob`.
 
-### 4.17 Whether valid paths fit valid globs
+### 4.18 Whether valid paths fit valid globs
 
 @req decide-glob-fit=v1
 @cites {
@@ -1490,12 +1698,14 @@ text does not match `glob`.
     text#{conforming-program=v1, result=v1, requirement=v1},
 }
 
-Each time it gives one of the results "fits" and "does not fit" for
-whether a valid path fits a valid glob, a conforming program must give
-exactly one result: "fits" when the valid path fits the valid glob, and
-"does not fit" when the valid path does not fit the valid glob.
+Each time it decides whether a valid path fits a valid glob, which is an
+operation to give one of the results "fits" and "does not fit" for
+whether that valid path fits that valid glob, a conforming program must
+give exactly one result: "fits" when the valid path fits the valid
+glob, and "does not fit" when the valid path does not fit the valid
+glob.
 
-### 4.18 The validation of path sets
+### 4.19 The validation of path sets
 
 @req validate-path-sets=v1
 @cites {
@@ -1503,12 +1713,13 @@ exactly one result: "fits" when the valid path fits the valid glob, and
     text#{conforming-program=v1, result=v1, requirement=v1},
 }
 
-Each time it gives one of the results "valid" and "invalid" for whether
-a path set is valid, a conforming program must give exactly one result:
-"valid" when the path set is valid, and "invalid" when the path set is
-not valid.
+In each validation of a path set that it makes, which is an operation to
+give one of the results "valid" and "invalid" for whether the path set
+is valid, a conforming program must give exactly one result: "valid"
+when the path set is valid, and "invalid" when the path set is not
+valid.
 
-### 4.19 Whether valid paths are in the sets of path sets
+### 4.20 Whether valid paths are in the sets of path sets
 
 @req decide-path-set-membership=v1
 @cites {
@@ -1516,12 +1727,13 @@ not valid.
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
 
-Each time it gives one of the results "in the set" and "not in the set"
-for whether a valid path is in the set of a path set in which the glob
-text of each path set member is a valid glob, a conforming program must
-give exactly one result: "in the set" when the valid path is in the set
-of the path set, and "not in the set" when the valid path is not in the
-set of the path set.
+Each time it decides whether a valid path is in the set of a path set in
+which the glob text of each path set member is a valid glob, which is an
+operation to give one of the results "in the set" and "not in the set"
+for whether that valid path is in the set of that path set, a
+conforming program must give exactly one result: "in the set" when the
+valid path is in the set of the path set, and "not in the set" when the
+valid path is not in the set of the path set.
 
 ## 5. Conformance
 
@@ -1599,13 +1811,14 @@ search permission for every folder of the folder tree, and the read
 permission for every regular file and every folder of the folder tree.
 Unless a row says otherwise, the system gives the program all the memory
 that it asks for, and no action of the program fails for a failure cause
-other than a lack of a permission that the row states, a byte sequence
-longer than the file system of the row allows in an entry name, and more
-bytes in one action than the system accepts. A condition on the file
-system, when a row has one, ends the description of the folder tree. A
-row with no condition on the file system gives the same result on every
-file system that can store the folder tree. A content written as "the
-text" and a text is the UTF-8 encoding of that text.
+other than more bytes in one action than the system accepts. A failure
+for a lack of a permission that a row states, or for a byte sequence
+longer than the file system of the row allows in an entry name, is not
+a failure for a failure cause. A condition on the file system, when a
+row has one, ends the description of the folder tree. A row with no
+condition on the file system gives the same result on every file system
+that can store the folder tree. A content written as "the text" and a
+text is the UTF-8 encoding of that text.
 
 | folder tree | text | result |
 |---|---|---|
@@ -1617,10 +1830,12 @@ text" and a text is the UTF-8 encoding of that text.
 | the regular file `a`, whose content is the text `hi` | `a/a` | no file: file name 1, `a`, is not a folder |
 | a chain of 200 folders, each the folder `ddddddddddddddddddddddddd`, in which the root holds the first folder, each folder except the last holds the next folder, and the last folder holds the regular file `a.md`, whose content is the text `hi` | `ddddddddddddddddddddddddd/` written 200 times, `a.md` | found, with the text `hi`: the valid path holds 5,204 characters, more than many systems accept in one action |
 | the regular file `a.md`, whose content is the text `hi` | `A.md` | no file: a lookup finds the file of a folder entry only by its entry name |
+| the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `Docs/a.md` | no file: the lookup of file name 1, `Docs`, finds no folder entry, also on a file system that ignores case |
+| the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi`, on a file system that ignores a space at the end of a name | `docs/.. /docs/a.md` | no file: the lookup of file name 2 finds no folder entry, also when the file system reaches the directory entry `..` for it |
 | the regular file `café.md`, with `é` as U+00E9, whose content is the text `hi` | `cafe`, U+0301, `.md` | no file: the UTF-8 encoding of the text is not the entry name |
 | the folder `docs` | `docs` | not a regular file |
 | the pipe `p`, which no process opens | `p` | not a regular file: the program does not open the pipe, and does not wait for a process to open it |
-| the pipe `p`, which no process opens | `p/x` | no file: `p` is not a folder |
+| the pipe `p`, which no process opens | `p/x` | no file: `p` is not a folder, and the program does not open the pipe |
 | the symbolic link `a.md`, whose reference leads to the regular file `b.md`, and the regular file `b.md`, whose content is the text `hi` | `a.md` | symbolic link |
 | the symbolic link `a.md`, whose reference leads to the regular file `b.md`, and the regular file `b.md`, whose content is the text `hi` | `b.md` | found, with the text `hi` |
 | the symbolic link `d`, whose reference leads to the folder `docs`, and the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `d/a.md` | symbolic link |
