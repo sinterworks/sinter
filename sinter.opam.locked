@@ -18,6 +18,7 @@ depends: [
   "base-threads" {= "base"}
   "base-unix" {= "base"}
   "camlp-streams" {= "5.0.1" & with-dev-setup}
+  "cmarkit" {= "0.4.0"}
   "cmdliner" {= "2.1.1"}
   "compiler-cloning" {= "disabled"}
   "csexp" {= "1.5.2" & with-dev-setup}
