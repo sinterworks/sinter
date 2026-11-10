@@ -58,6 +58,11 @@ vectors of the design is a JSON text.
 | [text](sinter:text#text=v1) | a finite sequence of characters |
 | [run](sinter:text#run=v1) | a sequence of the characters of a text between two of its boundaries, whose characters keep their places in the text |
 | [line](sinter:text#line=v1) | one of the runs into which the line endings of a text divide its body; a line holds no line feed, a byte order mark is on no line, and an empty run at the end of the body is no line |
+| [body](sinter:text#body=v1) | the run of a text that starts at boundary 1 when the text has a byte order mark, and at boundary 0 when it has none, and that ends at the last boundary of the text |
+| [line ending](sinter:text#line-ending=v1) | a run of a text that holds a line feed of the body and, when a carriage return of the body is right before that line feed, that carriage return, and that holds no other character |
+| [byte order mark](sinter:text#byte-order-mark=v1) | the character U+FEFF at place 1 of a text |
+| [hex digit](sinter:text#hex-digit=v1) | one of the characters `0` to `9` and `a` to `f`, which write the whole numbers 0 to 15 |
+| [decimal numeral](sinter:text#decimal-numeral=v1) | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
 | printable ASCII character | a character from `!` to `~`; a space is not one |
 | [tag line](sinter:#tag-line=v1) | a line whose first character, after the spaces and tabs at its start, is `@` |
 | [tag word](sinter:#tag-word=v1) | the `@` that starts a tag line after its spaces and tabs, with the longest run of ASCII letters, ASCII digits, and `-` right after it, such as `@req` |
@@ -312,7 +317,7 @@ external id `gh/42`. When it is not, the target `gh/42` is the slug
   external, and no `/` and id follow `gh`.
 - `@design gh=v1`, `@term gh`, and `@term gh/42` are invalid, because
   the target is external, and the target of a declaration is never an
-  external id.
+  external target.
 - `@supersedes gh/42#*` is invalid, because the target is external and
   `*` is not a part name.
 
@@ -401,10 +406,10 @@ list, before and after each `,` between its braces, and before its `}`.
 So a citation entry does not break across lines. After the target, the
 rest of the last line of the citation can hold an inline description.
 
-Example, with the lines written as in the rows of section 6.2: the lines
-`@cites #{`; a space written 4 times, `notation=v1, characters=v1,`; a
-space written 4 times, `segments=v1,`; and `}` are one citation with the
-citation entries `#notation=v1`, `#characters=v1`, and `#segments=v1`. A
+Example: the lines `@cites #{`; a space written 4 times, then
+`segment=v1, slug=v1,`; a space written 4 times, then `name=v1,`; and
+`}` are one citation with the citation entries `#segment=v1`,
+`#slug=v1`, and `#name=v1`. A
 tag line and a blank line, a line that holds nothing or only spaces and
 tabs, are never continuation lines. When the program comes to the end
 of a line, and the brace count has more `{` than `}`, and there is no
