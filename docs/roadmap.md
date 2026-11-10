@@ -188,6 +188,13 @@
     of the adapter.
   - The first adapter is for Python and pytest, as a decorator. Others
     follow for the test frameworks of the language packs.
+  - In Python, the decorator takes the selection as an expression, not
+    as a string: `@verifies(data_forms.toml["offsets"][:] @ "v2")`.
+    Attributes name the design and its specification, a subscript
+    selects a group or one vector, `[:]` selects every vector, and the
+    operator `@` pins the revision. The language pack for Python can read
+    the call as the citation `data-forms#toml[offsets][*]=v2`, so the
+    test needs no separate comment.
   - It needs citable conformance vectors and the format of their lines,
     which the redesign of Sinter decides.
 - **Tags in Python docstrings** — in Python, a docstring is a statement
