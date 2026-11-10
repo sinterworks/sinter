@@ -53,7 +53,7 @@ input, and a result are.
 | [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req`; in a valid tree, it is a requirement of the design to which it belongs |
 | [design](sinter:text#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [requirement](sinter:text#requirement=v1) | an obligation that a design declares under a name and states with the word must |
-| [specification](sinter:#specification=v1) | a declared item whose declaration word is `@spec`; it specifies one thing of a system, such as a format |
+| [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | [term](sinter:#term=v1) | a declared item whose declaration word is `@term`; its text states the meaning of one word or one fixed phrase |
 | normative | stating what a word or a fixed phrase means, or what a conforming program must do; only the texts of terms and of requirements are normative |
 | [decision record](sinter:#decision-record=v1) | a declared item whose declaration word is `@decision`; it records one standing practice of a project, or one choice with its reason |
@@ -90,7 +90,8 @@ input, and a result are.
 | [site](sinter:#site=v1) | a part of a file with a citation, an inline citation, or an `@ack` line in it, outside the text of every declared item and every comment on a test: in a markdown file, the lines from one heading to the next; in another file, one comment |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | hash | a short text that a fixed function computes from a text, so that two different texts almost never have the same hash |
-| [revised content](sinter:#revised-content=v1) | the part of an item that a revision of the item names, such as the characters of the own text of a design |
+| [revised content](sinter:#revised-content=v1) | the part of an item that a revision of the item names, such as the content characters of the own text of a design |
+| [content characters](sinter:#revised-content=v1) | the characters of a part of a file without its `@ack` lines and without the revisions of its citation entries and inline citations |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label |
 | [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from a source to a cited item, or to none, which a citation entry or an inline citation states |
@@ -562,9 +563,9 @@ names.
 
 | item | revised content |
 |---|---|
-| design | the characters of its own text |
-| specification | the characters of its text, with the texts of its requirements and its terms in it, without the characters of the labels of the declarations of those requirements and terms |
-| requirement, term, decision record, declared finding class | the characters of its text |
+| design | the content characters of its own text |
+| specification | the content characters of its text, with the texts of its requirements and its terms in it, without the characters of the labels of the declarations of those requirements and terms |
+| requirement, term, decision record, declared finding class | the content characters of its text |
 | conformance vector | its input, its result, and its values |
 | group | which conformance vectors are in it, and the revised content of each |
 | vector set | which conformance vectors are in it, and the revised content of each |
@@ -580,6 +581,11 @@ names the revised content that the item has with that label. The
 revised content of a declared item is a text, so two revised contents
 of declared items are the same when they are the same text, wherever
 their characters are in the files.
+
+The content characters of a text leave out each `@ack` line, and the
+revision of each citation entry and of each inline citation. So a new
+ack, or a new pin of a citation, in the text of an item does not change
+its revised content.
 
 So an edit of a requirement or a term inside a specification changes
 the revised content of that requirement or term and of the
@@ -1012,10 +1018,14 @@ text that Sinter gives the agent about its work for that session.
 ### 3.1 Items
 
 @term item=v1
-@cites #{
-    declared-item=v1, specification=v1, term=v1, decision-record=v1,
-    declared-finding-class=v1, conformance-vector=v1, group=v1,
-    vector-set=v1, task=v1, plan=v1, test=v1, site=v1, external-item=v1,
+@cites {
+    text#{specification=v1},
+    #{
+        declared-item=v1, term=v1, decision-record=v1,
+        declared-finding-class=v1, conformance-vector=v1, group=v1,
+        vector-set=v1, task=v1, plan=v1, test=v1, site=v1,
+        external-item=v1,
+    },
 }
 
 An item is a thing that Sinter traces. Each item has exactly one of
@@ -1111,8 +1121,9 @@ of the declared item: `@design` gives the kind design, `@spec` the kind
 specification, `@req` the kind requirement, `@term` the kind term,
 `@decision` the kind decision record, and `@finding-class` the kind
 declared finding class. So an item of the kind design is a declared item
-whose declaration word is `@design`, and an item of the kind requirement
-is a declared item whose declaration word is `@req`. The slug of a
+whose declaration word is `@design`, an item of the kind specification
+is a declared item whose declaration word is `@spec`, and an item of the
+kind requirement is a declared item whose declaration word is `@req`. The slug of a
 declaration is the slug in its target, and the part name of a
 declaration is the part name in its target, when its target starts with
 a full name.
@@ -1149,26 +1160,29 @@ the declaration of the item is.
 ### 3.12 Scopes of specifications
 
 @term specification-scope=v1
-@cites #{
-    declared-item=v1, specification=v1, term=v1, item-text=v1,
-    item-file=v1, markdown-file=v1, tree=v1,
+@cites {
+    text#{specification=v1},
+    #{
+        declared-item=v1, term=v1, item-text=v1, item-file=v1,
+        markdown-file=v1, tree=v1,
+    },
 }
 
-The scope of a specification in a tree is a part of the file of the
-specification:
+The scope of an item of the kind specification in a tree is a part of
+the file of the specification:
 
 - when its declaration is in a markdown file, its text;
 - otherwise, the comment that its declaration is in, with the code to
   which that comment is attached, such as a module or a function; or,
-  when that comment is attached to no code and no code of the file
-  comes before it, the whole file.
+  when that comment is attached to no code and no code of the file comes
+  before it, the whole file.
 
-Of the specifications in whose scopes a part of a file is, the
-innermost is the one whose scope is in the scope of each of the others,
-when exactly one of them is. The text of a specification whose
-declaration is in a comment of a file that is not a markdown file is
-the part of that comment that the specification takes up, with the
-texts of the items of the kind requirement and of the terms whose
+Of the items of the kind specification in whose scopes a part of a file
+is, the innermost is the one whose scope is in the scope of each of the
+others, when exactly one of them is. The text of an item of the kind
+specification whose declaration is in a comment of a file that is not a
+markdown file is the part of that comment that the item takes up, with
+the texts of the items of the kind requirement and of the terms whose
 declarations are in other comments of its scope.
 
 ### 3.13 Home designs
@@ -1176,10 +1190,8 @@ declarations are in other comments of its scope.
 @term home-design=v1
 @cites {
     identifiers#{tag-line=v1, inline-citation=v1},
-    #{
-        declared-item=v1, item-text=v1, specification=v1,
-        specification-scope=v1, tree=v1,
-    },
+    text#{specification=v1},
+    #{declared-item=v1, item-text=v1, specification-scope=v1, tree=v1},
 }
 
 The home design of a tag line or an inline citation in a tree is one
@@ -1188,11 +1200,11 @@ item of the kind design, or none:
 - When the tag line or the inline citation is in the text of an item of
   the kind design, its home design is the innermost of the items of the
   kind design in whose texts it is.
-- Otherwise, when it is in the scope of a specification, and the
-  declaration of the innermost such specification has a part name, its
-  home design is the item of the kind design whose declaration has the
-  slug of the declaration of that specification, when the tree has
-  exactly one such item.
+- Otherwise, when it is in the scope of an item of the kind
+  specification, and the declaration of the innermost such item has a
+  part name, its home design is the item of the kind design whose
+  declaration has the slug of the declaration of that item, when the
+  tree has exactly one such item.
 - Otherwise, it has no home design.
 
 ### 3.14 Containment
@@ -1200,56 +1212,49 @@ item of the kind design, or none:
 @term containment=v1
 @cites {
     identifiers#{segment=v1, slug=v1},
+    text#{specification=v1},
     #{
-        declared-item=v1, home-design=v1, specification=v1,
-        specification-scope=v1, term=v1, tree=v1,
+        declared-item=v1, home-design=v1, specification-scope=v1,
+        term=v1, tree=v1,
     },
 }
 
 Containment is a relation in which one declared item holds another, and
-the other belongs to it. Only items of the kind design and
-specifications hold declared items, and they hold only the items that
-belong to them in these ways:
+the other belongs to it. Only items of the kind design and items of the
+kind specification hold declared items, and they hold only the items
+that belong to them in these ways:
 
-- A specification, an item of the kind requirement, or a term whose
-  declaration has a part name belongs to the item of the kind design
-  whose declaration has the same slug, when the tree has exactly one
-  such item.
-- A specification, an item of the kind requirement, or a term whose
-  declaration has no part name and has a slug of one segment belongs to
-  the home design of its declaration, when the declaration has one.
+- An item of the kind specification, an item of the kind requirement, or
+  a term whose declaration has a part name belongs to the item of the
+  kind design whose declaration has the same slug, when the tree has
+  exactly one such item.
+- An item of the kind specification, an item of the kind requirement, or
+  a term whose declaration has no part name and has a slug of one
+  segment belongs to the home design of its declaration, when the
+  declaration has one.
 - An item of the kind requirement or a term belongs to the innermost
-  specification in whose scope its declaration is, when there is one,
-  and when the two belong to the same item of the kind design or both
-  belong to none.
+  item of the kind specification in whose scope its declaration is, when
+  there is one, and when the two belong to the same item of the kind
+  design or both belong to none.
 
-A specification, an item of the kind requirement, or a term belongs to
-no other declared item. An item of the kind design holds directly an
-item of the kind requirement or a term when that item belongs to it and
-to no specification.
+An item of the kind specification, an item of the kind requirement, or a
+term belongs to no other declared item. An item of the kind design holds
+directly an item of the kind requirement or a term when that item
+belongs to it and to no item of the kind specification.
 
 ### 3.15 Own texts
 
 @term own-text=v1
-@cites #{
-    declared-item=v1, item-text=v1, containment=v1, specification=v1,
-    term=v1,
+@cites {
+    text#{specification=v1},
+    #{declared-item=v1, item-text=v1, containment=v1, term=v1},
 }
 
 The own text of an item of the kind design is the part of its text that
 is in the text of none of the specifications, none of the items of the
 kind requirement, and none of the terms that it holds.
 
-### 3.16 Specifications
-
-@term specification=v1
-@cites #{declared-item=v1}
-
-A specification is a declared item whose declaration word is `@spec`.
-It specifies one thing of a system, such as a format, a protocol, or a
-set of behaviors.
-
-### 3.17 Terms
+### 3.16 Terms
 
 @term term=v1
 @cites #{declared-item=v1, item-text=v1}
@@ -1258,7 +1263,7 @@ A term is a declared item whose declaration word is `@term`. Its text
 states the meaning of one word or one fixed phrase, which other items
 can use.
 
-### 3.18 Decision records
+### 3.17 Decision records
 
 @term decision-record=v1
 @cites #{declared-item=v1}
@@ -1267,7 +1272,7 @@ A decision record is a declared item whose declaration word is
 `@decision`. It records one standing practice of a project, or one
 choice with its reason.
 
-### 3.19 Findings and finding classes
+### 3.18 Findings and finding classes
 
 @term finding-class=v1
 @cites {identifiers#{slug=v1}, text#{text=v1}}
@@ -1276,7 +1281,7 @@ A finding is a report of one condition at one part of a repository.
 Each finding gives its subject: a text that says what the finding is
 about. A finding class is a kind of finding, which a slug names.
 
-### 3.20 Declared finding classes
+### 3.19 Declared finding classes
 
 @term declared-finding-class=v1
 @cites #{declared-item=v1, finding-class=v1, item-text=v1, tree=v1}
@@ -1286,7 +1291,7 @@ A declared finding class is a declared item whose declaration word is
 itself. In a tree, the text of a declared finding class is the whole of
 one file of that tree, its finding-class file.
 
-### 3.21 Names
+### 3.20 Names
 
 @term item-name=v1
 @cites {
@@ -1295,12 +1300,11 @@ one file of that tree, its finding-class file.
         citation-entry=v1, target=v1, inline-citation=v1,
         external-id=v1,
     },
-    text#{text=v1},
+    text#{text=v1, specification=v1},
     #{
-        declared-item=v1, containment=v1, home-design=v1,
-        specification=v1, term=v1, decision-record=v1,
-        declared-finding-class=v1, tree=v1, finding-class=v1,
-        external-item=v1,
+        declared-item=v1, containment=v1, home-design=v1, term=v1,
+        decision-record=v1, declared-finding-class=v1, tree=v1,
+        finding-class=v1, external-item=v1,
     },
 }
 
@@ -1308,48 +1312,48 @@ The name of a declared item in a tree is this:
 
 - of an item of the kind design, a decision record, and a declared
   finding class: the slug of its declaration;
-- of a specification, an item of the kind requirement, and a term that
-  belongs to an item of the kind design: the name of that item of the
-  kind design, `#`, and the part name of the item, which is the part
-  name of its declaration, or the slug of its declaration when its
-  declaration has no part name;
-- of a specification, an item of the kind requirement, and a term that
-  belongs to no item of the kind design: the slug of its declaration,
-  with `#` and the part name of its declaration after it when its
-  declaration has a part name.
+- of an item of the kind specification, an item of the kind requirement,
+  and a term that belongs to an item of the kind design: the name of
+  that item of the kind design, `#`, and the part name of the item,
+  which is the part name of its declaration, or the slug of its
+  declaration when its declaration has no part name;
+- of an item of the kind specification, an item of the kind requirement,
+  and a term that belongs to no item of the kind design: the slug of its
+  declaration, with `#` and the part name of its declaration after it
+  when its declaration has a part name.
 
 These are the sets of names:
 
-- The items of the kind design, the decision records, and the
-  specifications, the items of the kind requirement, and the terms that
-  belong to no item of the kind design and whose names are slugs share
-  one set of slugs, the shared set of slugs.
+- The items of the kind design, the decision records, and the items of
+  the kind specification, the items of the kind requirement, and the
+  terms that belong to no item of the kind design and whose names are
+  slugs share one set of slugs, the shared set of slugs.
 - The declared finding classes have a set of slugs of their own.
-- The specifications, the items of the kind requirement, and the terms
-  that belong to one item of the kind design share one set of part
-  names.
+- The items of the kind specification, the items of the kind
+  requirement, and the terms that belong to one item of the kind design
+  share one set of part names.
 
-In a tree, the entry name of a citation entry, and the text that
-`name` or `external-ref` matches in the target of an inline citation,
-each name one item or nothing:
+In a tree, the entry name of a citation entry, and the text that `name`
+or `external-ref` matches in the target of an inline citation, each name
+one item or nothing:
 
 - A slug names the item of the shared set of slugs that has it as its
   name. After the kind word `finding-class`, a slug names the declared
   finding class that has it as its name.
-- A full name names the specification, the item of the kind
-  requirement, or the term whose part name is the part name of the full
-  name, of the item of the kind design that the slug of the full name
-  names. When the slug of the full name names no item of the kind
+- A full name names the item of the kind specification, the item of the
+  kind requirement, or the term whose part name is the part name of the
+  full name, of the item of the kind design that the slug of the full
+  name names. When the slug of the full name names no item of the kind
   design, the full name names nothing.
-- `#` and a part name names the specification, the item of the kind
-  requirement, or the term whose part name is that part name, of the
-  home design of the citation or of the inline citation. With no home
-  design, it names nothing.
+- `#` and a part name names the item of the kind specification, the item
+  of the kind requirement, or the term whose part name is that part
+  name, of the home design of the citation or of the inline citation.
+  With no home design, it names nothing.
 - A text that `external-ref` matches names an external item.
-- A name that two or more declared items of one set of names have
-  names none of them.
+- A name that two or more declared items of one set of names have names
+  none of them.
 
-### 3.22 Kinds that kind words state
+### 3.21 Kinds that kind words state
 
 @term stated-kind=v1
 @cites {
@@ -1357,8 +1361,9 @@ each name one item or nothing:
         kind-word=v1, citation-entry=v1, target=v1, inline-citation=v1,
         extern-line=v1,
     },
+    text#{specification=v1},
     #{
-        declared-item=v1, specification=v1, term=v1, decision-record=v1,
+        declared-item=v1, term=v1, decision-record=v1,
         declared-finding-class=v1, external-item=v1, finding-class=v1,
     },
 }
@@ -1373,7 +1378,7 @@ meaning of one word or one fixed phrase. `decision` states a decision
 record. `finding-class` states a declared finding class. No kind word
 states an item of another kind of item.
 
-### 3.23 Marks
+### 3.22 Marks
 
 @term mark=v1
 @cites {
@@ -1390,7 +1395,7 @@ the kind design holds an item that is what the kind word of the line
 states, whose part name is the part name of the line, and whose file is
 not the file of the item of the kind design.
 
-### 3.24 Conformance vectors
+### 3.23 Conformance vectors
 
 @term conformance-vector=v1
 @cites {
@@ -1402,12 +1407,12 @@ A conformance vector states one input of a conforming program of one
 design, the design of the vector; one result for that input; and the
 values that come with that result.
 
-### 3.25 Vector sets
+### 3.24 Vector sets
 
 @term vector-set=v1
 @cites {
-    text#{whole-number=v1, design=v1, requirement=v1},
-    #{conformance-vector=v1, specification=v1, containment=v1},
+    text#{whole-number=v1, design=v1, requirement=v1, specification=v1},
+    #{conformance-vector=v1, containment=v1},
 }
 
 Each conformance vector is given for one specification of its design,
@@ -1417,22 +1422,22 @@ The vector set of a design is the set of the conformance vectors given
 for the requirements that it holds directly. Each conformance vector
 has a number in its vector set: a whole number of 1 or more.
 
-### 3.26 Groups
+### 3.25 Groups
 
 @term group=v1
 @cites #{vector-set=v1, conformance-vector=v1}
 
 A group is a set of conformance vectors of one vector set, with a name.
 
-### 3.27 Selections
+### 3.26 Selections
 
 @term selection=v1
 @cites {
     identifiers#{citation-entry=v1, vector-selection=v1},
-    text#{decimal-numeral=v1, whole-number=v1},
+    text#{decimal-numeral=v1, whole-number=v1, specification=v1},
     #{
-        item-name=v1, declared-item=v1, specification=v1,
-        conformance-vector=v1, vector-set=v1, group=v1,
+        item-name=v1, declared-item=v1, conformance-vector=v1,
+        vector-set=v1, group=v1,
     },
 }
 
@@ -1458,12 +1463,15 @@ conformance vectors that it names: the one vector, every vector of the
 group, every vector of the vector set, or no vector when it names
 nothing.
 
-### 3.28 Identity of items across trees
+### 3.27 Identity of items across trees
 
 @term same-item=v1
-@cites #{
-    item=v1, declared-item=v1, item-name=v1, conformance-vector=v1,
-    vector-set=v1, group=v1, specification=v1, tree=v1,
+@cites {
+    text#{specification=v1},
+    #{
+        item=v1, declared-item=v1, item-name=v1, conformance-vector=v1,
+        vector-set=v1, group=v1, tree=v1,
+    },
 }
 
 An item of one tree and an item of another tree are the same item
@@ -1478,7 +1486,7 @@ when, and only when, one of these is true:
 - both are vector sets, of specifications that are the same item, or of
   items of the kind design that are the same item.
 
-### 3.29 Tests
+### 3.28 Tests
 
 @term test=v1
 @cites {identifiers#{declaration=v1}, #{tree=v1}}
@@ -1491,7 +1499,7 @@ the part of a file that the test takes up. A comment on a test is a
 comment that is attached to the code of the test, such as the comment
 right before a test function.
 
-### 3.30 Test evidence
+### 3.29 Test evidence
 
 @term test-evidence=v1
 @cites #{test=v1}
@@ -1500,7 +1508,7 @@ Test evidence is the set of the reports that tests gave in one
 execution of their test frameworks: which tests ran, and which of them
 passed and which failed.
 
-### 3.31 Sites
+### 3.30 Sites
 
 @term site=v1
 @cites {
@@ -1529,7 +1537,7 @@ comment on a test. A site is a part of a file that is the site of a
 citation, of an inline citation, or of an `@ack` line. A site has no
 name.
 
-### 3.32 External items
+### 3.31 External items
 
 @term external-item=v1
 @cites {
@@ -1543,28 +1551,35 @@ even when nothing outside the repository has that external id. An
 external id with `#` and a part name names a part of such an item, and
 that part is an external item too.
 
-### 3.33 Revised content
+### 3.32 Revised content
 
 @term revised-content=v1
 @cites {
-    identifiers#{label=v1},
-    text#{input=v1, result=v1, text=v1, character=v1},
+    identifiers#{
+        label=v1, revision=v1, citation-entry=v1, inline-citation=v1,
+        target=v1, ack-line=v1,
+    },
+    text#{input=v1, result=v1, text=v1, character=v1, specification=v1},
     #{
-        declared-item=v1, own-text=v1, specification=v1, term=v1,
-        decision-record=v1, declared-finding-class=v1, item-text=v1,
-        containment=v1, conformance-vector=v1, vector-set=v1, group=v1,
-        task=v1, plan=v1, test=v1, site=v1, external-item=v1, item=v1,
+        declared-item=v1, own-text=v1, term=v1, decision-record=v1,
+        declared-finding-class=v1, item-text=v1, containment=v1,
+        conformance-vector=v1, vector-set=v1, group=v1, task=v1,
+        plan=v1, test=v1, site=v1, external-item=v1, item=v1,
     },
 }
 
-The revised content of an item is this:
+The content characters of a part of a file are the characters of that
+part, without the characters of each `@ack` line in it, and without the
+characters of the revision of each citation entry and of the target of
+each inline citation in it. The revised content of an item is this:
 
-- of an item of the kind design, the characters of its own text;
-- of a specification, the characters of its text, without the
-  characters of the labels of the declarations of the items of the kind
-  requirement and of the terms that it holds;
+- of an item of the kind design, the content characters of its own
+  text;
+- of an item of the kind specification, the content characters of its
+  text, without the characters of the labels of the declarations of the
+  items of the kind requirement and of the terms that it holds;
 - of an item of the kind requirement, of a term, of a decision record,
-  and of a declared finding class, the characters of its text;
+  and of a declared finding class, the content characters of its text;
 - of a conformance vector, its input, its result, and its values;
 - of a group and of a vector set, which conformance vectors are in it,
   and the revised content of each.
@@ -1574,7 +1589,7 @@ contents of declared items are the same when they are the same text. A
 task, a plan, a test, a site, and an external item have no revised
 content.
 
-### 3.34 Revisions of items
+### 3.33 Revisions of items
 
 @term item-revision=v1
 @cites {
@@ -1594,7 +1609,7 @@ the label that the tree gives it. A declared item whose declaration has
 no label has no current revision, and an item that has no revised
 content has no revision.
 
-### 3.35 Edges
+### 3.34 Edges
 
 @term edge=v1
 @cites {
@@ -1625,7 +1640,7 @@ item, or none:
 When the citation entry or the target names no item in that tree, the
 edge has no cited item in that tree.
 
-### 3.36 Sources of edges
+### 3.35 Sources of edges
 
 @term edge-source=v1
 @cites {
@@ -1650,7 +1665,7 @@ one item, or in none:
 The source of an edge is the item in which the citation or the inline
 citation that states the edge stands.
 
-### 3.37 Pinned edges
+### 3.36 Pinned edges
 
 @term pinned-edge=v1
 @cites {
@@ -1668,7 +1683,7 @@ relation to the revised content of its cited item that its label names.
 An edge that is not pinned states its relation to its cited item at
 each revision of the cited item.
 
-### 3.38 Edges of the kind `cites`
+### 3.37 Edges of the kind `cites`
 
 @term cites-edge=v1
 @cites #{edge=v1, edge-source=v1}
@@ -1676,7 +1691,7 @@ each revision of the cited item.
 A `cites` edge states that its source refers to its cited item and
 rests on what the cited item says.
 
-### 3.39 Edges of the kind `satisfies`
+### 3.38 Edges of the kind `satisfies`
 
 @term satisfies-edge=v1
 @cites #{edge=v1, edge-source=v1}
@@ -1684,7 +1699,7 @@ rests on what the cited item says.
 A `satisfies` edge states that its source does what its cited item
 states.
 
-### 3.40 Edges of the kind `verifies`
+### 3.39 Edges of the kind `verifies`
 
 @term verifies-edge=v1
 @cites {
@@ -1704,7 +1719,7 @@ code that the source runs gives, for the input of each conformance
 vector of the selection of the citation entry of the edge, the result
 and the values of that vector.
 
-### 3.41 Edges of the kind `refines`
+### 3.40 Edges of the kind `refines`
 
 @term refines-edge=v1
 @cites #{edge=v1, edge-source=v1}
@@ -1712,14 +1727,15 @@ and the values of that vector.
 A `refines` edge states that its source states all or part of its
 cited item in more detail.
 
-### 3.42 Edges of the kind `supersedes`
+### 3.41 Edges of the kind `supersedes`
 
 @term supersedes-edge=v1
 @cites {
     identifiers#{citation-entry=v1, citation-line=v1},
+    text#{specification=v1},
     #{
         item=v1, edge=v1, declared-item=v1, containment=v1,
-        item-name=v1, specification=v1, term=v1, edge-source=v1,
+        item-name=v1, term=v1, edge-source=v1,
     },
 }
 
@@ -1732,7 +1748,7 @@ be replaced by the declared item with the same kind of item and the same
 part name that the source holds, when the source holds one. Only a
 `supersedes` edge states that one declared item is to replace another.
 
-### 3.43 Cycles of edges of the kind `supersedes`
+### 3.42 Cycles of edges of the kind `supersedes`
 
 @term supersedes-cycle=v1
 @cites #{edge=v1, supersedes-edge=v1, declared-item=v1, tree=v1}
@@ -1741,7 +1757,7 @@ A declared item is on a cycle of `supersedes` edges in a tree when, and
 only when, it reaches itself in that tree along one or more `supersedes`
 edges of that tree, each from its source to its cited item.
 
-### 3.44 Status tags of declared items
+### 3.43 Status tags of declared items
 
 @term item-status-tag=v1
 @cites {
@@ -1761,7 +1777,7 @@ declaration of exactly one declared item, is a status tag of that
 declared item. Each other status tag is a status tag of no declared
 item.
 
-### 3.45 Acks
+### 3.44 Acks
 
 @term ack=v1
 @cites {
@@ -1796,7 +1812,7 @@ same text as the subject of the line. When the subject of the line is
 empty, the ack is for every finding of that finding class in that part
 of a file.
 
-### 3.46 Valid edges
+### 3.45 Valid edges
 
 @term valid-edge=v1
 @cites {
@@ -1804,9 +1820,10 @@ of a file.
         kind-word=v1, citation-entry=v1, target=v1, inline-citation=v1,
         citation-line=v1,
     },
+    text#{specification=v1},
     #{
         item=v1, edge=v1, edge-source=v1, stated-kind=v1,
-        declared-item=v1, external-item=v1, specification=v1, test=v1,
+        declared-item=v1, external-item=v1, test=v1,
         conformance-vector=v1, group=v1, vector-set=v1, tree=v1,
         term=v1,
     },
@@ -1836,14 +1853,15 @@ in that tree:
     `every-part` matches the citation entry, the source and the cited
     item are items of the kind design.
 
-### 3.47 Valid marks
+### 3.46 Valid marks
 
 @term valid-mark=v1
 @cites {
     identifiers#{extern-line=v1, kind-word=v1, part-name=v1},
+    text#{specification=v1},
     #{
-        mark=v1, declared-item=v1, containment=v1, specification=v1,
-        term=v1, item-name=v1, item-file=v1,
+        mark=v1, declared-item=v1, containment=v1, term=v1,
+        item-name=v1, item-file=v1,
     },
 }
 
@@ -1863,14 +1881,15 @@ of these is true:
   the line and whose file is not the file of the item of the kind
   design.
 
-### 3.48 Valid status tags
+### 3.47 Valid status tags
 
 @term valid-status-tag=v1
 @cites {
     identifiers#{status-tag=v1, sinter-tag-word=v1},
+    text#{specification=v1},
     #{
-        item=v1, declared-item=v1, item-status-tag=v1, specification=v1,
-        term=v1, decision-record=v1,
+        item=v1, declared-item=v1, item-status-tag=v1, term=v1,
+        decision-record=v1,
     },
 }
 
@@ -1879,17 +1898,20 @@ word fits the kind of item of that declared item. `@deprecated` fits the
 kinds design, specification, requirement, term, and decision record.
 `@rejected` and `@deferred` fit only the kind decision record.
 
-### 3.49 Valid trees
+### 3.48 Valid trees
 
 @term valid-tree=v1
 @cites {
     identifiers#{extern-line=v1, part-name=v1, label=v1, kind-word=v1},
-    text#{design=v1, requirement=v1, conforming-program=v1},
+    text#{
+        design=v1, requirement=v1, conforming-program=v1,
+        specification=v1,
+    },
     #{
         tree=v1, item=v1, edge=v1, valid-edge=v1, mark=v1,
         valid-mark=v1, accepted-input=v1, own-text=v1,
         item-status-tag=v1, valid-status-tag=v1, declared-item=v1,
-        containment=v1, item-text=v1, item-file=v1, specification=v1,
+        containment=v1, item-text=v1, item-file=v1,
         specification-scope=v1, term=v1, item-name=v1,
         supersedes-cycle=v1, markdown-file=v1, finding-class=v1,
         declared-finding-class=v1,
@@ -1906,11 +1928,12 @@ A tree is valid when, and only when, each of these is true in it:
   the declaration of exactly one declared item.
 - Each status tag of each declared item is valid.
 - The declaration of each item of the kind design is in a markdown file.
-- Each specification, each item of the kind requirement, and each term
-  belongs to exactly one item of the kind design.
-- Each specification, each item of the kind requirement, and each term
-  whose declaration is in the text of an item of the kind design belongs
-  to that item of the kind design.
+- Each item of the kind specification, each item of the kind
+  requirement, and each term belongs to exactly one item of the kind
+  design.
+- Each item of the kind specification, each item of the kind
+  requirement, and each term whose declaration is in the text of an item
+  of the kind design belongs to that item of the kind design.
 - Each item of the kind requirement and each term whose declaration is
   in the text of a specification belongs to that specification.
 - The text of no item of the kind design is in the text of another item
@@ -1932,12 +1955,14 @@ A tree is valid when, and only when, each of these is true in it:
 - No two declared items of one set of names have the same name.
 - No declared item is on a cycle of `supersedes` edges.
 
-In a valid tree, each item of the kind design is a design, and each item
-of the kind requirement belongs to an item of the kind design and is a
-requirement of that design. A tree that is not valid still has its
+In a valid tree, each item of the kind design is a design, each item of
+the kind specification belongs to an item of the kind design and is a
+specification of that design, and each item of the kind requirement
+belongs to an item of the kind design and is a requirement of that
+design. A tree that is not valid still has its
 items, its edges, and their states.
 
-### 3.50 Work items
+### 3.49 Work items
 
 @term work-item=v1
 @cites #{task=v1, plan=v1, tree=v1}
@@ -1946,7 +1971,7 @@ A work item is a task or a plan. No work item is in a file of a tree.
 Each work item has a work item id, which never changes and which names
 exactly one work item, and a display name, which can change.
 
-### 3.51 Tasks
+### 3.50 Tasks
 
 @term task=v1
 @cites #{person=v1, agent=v1, external-item=v1}
@@ -1959,7 +1984,7 @@ the path of the file is in that set. A task names at most one external
 item, which can say what the work is, and several tasks can name one
 external item. A task has no description of its own and no branch.
 
-### 3.52 Promises
+### 3.51 Promises
 
 @term promise=v1
 @cites {
@@ -1985,14 +2010,14 @@ that kind of edge that meets each of these conditions:
 - when its kind of edge is `verifies`, that test evidence reports its
   source as passed.
 
-### 3.53 Plans
+### 3.52 Plans
 
 @term plan=v1
 @cites #{task=v1}
 
 A plan says how a set of tasks and plans gets done.
 
-### 3.54 Waits
+### 3.53 Waits
 
 @term wait=v1
 @cites #{work-item=v1}
@@ -2000,25 +2025,25 @@ A plan says how a set of tasks and plans gets done.
 A wait is a relation from one work item, the waiting item, to another
 work item, the item that it waits for.
 
-### 3.55 What a plan carries out
+### 3.54 What a plan carries out
 
 @term carried-out-item=v1
 @cites {
-    text#{requirement=v1, design=v1},
-    #{plan=v1, specification=v1, item-name=v1},
+    text#{requirement=v1, design=v1, specification=v1},
+    #{plan=v1, item-name=v1},
 }
 
 A plan carries out a set of requirements, specifications, and designs:
 its work is for them. The plan names each of them by its name.
 
-### 3.56 Definitions of work items
+### 3.55 Definitions of work items
 
 @term work-item-definition=v1
 @cites {
-    text#{requirement=v1, design=v1},
+    text#{requirement=v1, design=v1, specification=v1},
     #{
         work-item=v1, task=v1, promise=v1, plan=v1, wait=v1,
-        carried-out-item=v1, external-item=v1, specification=v1,
+        carried-out-item=v1, external-item=v1,
     },
 }
 
@@ -2030,7 +2055,7 @@ item is the one plan, or none, that its definition names. The waits of
 a work item are the waits from it that its definition names. The work
 item id of a work item is not part of its definition.
 
-### 3.57 Changes
+### 3.56 Changes
 
 @term change=v1
 @cites #{default-branch=v1}
@@ -2043,7 +2068,7 @@ change are the commits that the branch of the change reaches and the
 default branch does not reach. The last commit of the change is the
 commit to which the branch of the change points.
 
-### 3.58 Diffs of changes
+### 3.57 Diffs of changes
 
 @term change-diff=v1
 @cites {text#{line=v1}, #{change=v1, tree=v1, default-branch=v1}}
@@ -2053,7 +2078,7 @@ tree of the merge base of the branch of the change and the default
 branch, and the tree of the last commit of the change: the lines that
 the change adds and the lines that it removes.
 
-### 3.59 Delivery lines
+### 3.58 Delivery lines
 
 @term delivery-line=v1
 @cites {
@@ -2068,7 +2093,7 @@ definition of the task, and it names each definition of the task whose
 paths and promises have a hash with that start. The finishing commit of
 a delivery line is the commit in whose message the line is.
 
-### 3.60 Task lines
+### 3.59 Task lines
 
 @term task-line=v1
 @cites {text#{line=v1}, #{task=v1, work-item=v1}}
@@ -2077,7 +2102,7 @@ A task line is a line of the message of a commit that names one task by
 its work item id, and that states that the commit does part of the work
 of the task without finishing it.
 
-### 3.61 Ledger entries
+### 3.60 Ledger entries
 
 @term ledger-entry=v1
 @cites #{person=v1, agent=v1, job=v1, task=v1, plan=v1}
@@ -2091,7 +2116,7 @@ agent wrote a ledger entry, the ledger entry also records the person for
 whom that agent acts. Each ledger entry also records the branch from
 which it was written, when there was one.
 
-### 3.62 The ledger
+### 3.61 The ledger
 
 @term ledger=v1
 @cites {text#{whole-number=v1}, #{ledger-entry=v1}}
@@ -2112,7 +2137,7 @@ ledger entries of the ledger, for a whole number n of 0 or more. The
 point of a ledger entry is the point right before it, and the end of a
 ledger is the point after its last ledger entry.
 
-### 3.63 Repairs and voids
+### 3.62 Repairs and voids
 
 @term repair=v1
 @cites #{ledger=v1, ledger-entry=v1}
@@ -2126,7 +2151,7 @@ entry that came after it. A void records that a repair removed one
 ledger entry, and the reason for the removal. A repair makes no other
 ledger entry different.
 
-### 3.64 Definition entries
+### 3.63 Definition entries
 
 @term definition-entry=v1
 @cites {
@@ -2147,14 +2172,16 @@ with the definition number n − 1 of its work item. A `task` ledger entry
 records a definition of a task, and a `plan` ledger entry records a
 definition of a plan. A definition entry records no judgment.
 
-### 3.65 Subjects of approval
+### 3.64 Subjects of approval
 
 @term subject-of-approval=v1
-@cites #{
-    person=v1, declared-item=v1, own-text=v1, specification=v1, term=v1,
-    decision-record=v1, containment=v1, revised-content=v1,
-    same-item=v1,
-    tree=v1,
+@cites {
+    text#{specification=v1},
+    #{
+        person=v1, declared-item=v1, own-text=v1, term=v1,
+        decision-record=v1, containment=v1, revised-content=v1,
+        same-item=v1, tree=v1,
+    },
 }
 
 A subject of approval is a unit that a person approves or declines as a
@@ -2171,7 +2198,7 @@ declared item. A subject of approval of one tree and a subject of
 approval of another tree are the same subject of approval when their
 declared items are the same item.
 
-### 3.66 Judgments
+### 3.65 Judgments
 
 @term judgment=v1
 @cites {
@@ -2196,7 +2223,7 @@ judgment is one of these four kinds of ledger entry:
 - An `abandoned` ledger entry records that a person ended one task or
   one plan without finishing its work, and the reason.
 
-### 3.67 Records of the job
+### 3.66 Records of the job
 
 @term job-record=v1
 @cites {
@@ -2217,7 +2244,7 @@ the revision that the promised requirement has in the tree that the job
 read, and whether the promise was kept in that tree, with the test
 evidence that the job read.
 
-### 3.68 The states of work items
+### 3.67 The states of work items
 
 @term work-item-state=v1
 @cites #{
@@ -2295,7 +2322,7 @@ of each task and each plan, by these rules:
      one part, and each of its parts is done at that point;
    - open, when, and only when, it is neither abandoned nor done.
 
-### 3.69 States
+### 3.68 States
 
 @term state=v1
 @cites #{item=v1, edge=v1, subject-of-approval=v1, tree=v1, ledger=v1}
@@ -2304,7 +2331,7 @@ A state is a named condition of an item, an edge, or a subject of
 approval, in a tree, at a point of a ledger, or in a tree at a point of
 a ledger.
 
-### 3.70 Deprecated
+### 3.69 Deprecated
 
 @term deprecated-item=v1
 @cites {
@@ -2319,7 +2346,7 @@ A declared item is deprecated in a tree when, and only when, it has a
 valid `@deprecated` status tag in that tree. That status tag states
 that the item no longer applies and that nothing replaces it.
 
-### 3.71 Rejected
+### 3.70 Rejected
 
 @term rejected-record=v1
 @cites {
@@ -2334,7 +2361,7 @@ A decision record is rejected in a tree when, and only when, it has a
 valid `@rejected` status tag in that tree. That status tag states that
 the choice of the record was considered and not made.
 
-### 3.72 Deferred
+### 3.71 Deferred
 
 @term deferred-record=v1
 @cites {
@@ -2349,15 +2376,15 @@ A decision record is deferred in a tree when, and only when, it has a
 valid `@deferred` status tag in that tree. That status tag states that
 the choice of the record is not made yet.
 
-### 3.73 Approved and declined
+### 3.72 Approved and declined
 
 @term approval-state=v1
 @cites {
-    text#{design=v1, requirement=v1},
+    text#{design=v1, requirement=v1, specification=v1},
     #{
         subject-of-approval=v1, judgment=v1, ledger=v1, ledger-entry=v1,
-        revised-content=v1, containment=v1, own-text=v1,
-        specification=v1, term=v1, decision-record=v1, tree=v1, item=v1,
+        revised-content=v1, containment=v1, own-text=v1, term=v1,
+        decision-record=v1, tree=v1, item=v1,
     },
 }
 
@@ -2383,7 +2410,7 @@ declined:
   specifications, and each requirement and each term that it holds
   directly are approved.
 
-### 3.74 Drafts
+### 3.73 Drafts
 
 @term draft-design=v1
 @cites {text#{design=v1}, #{approval-state=v1, tree=v1, ledger=v1}}
@@ -2391,7 +2418,7 @@ declined:
 A design is a draft in a tree, at a point of a ledger, when, and only
 when, it is not approved in that tree at that point.
 
-### 3.75 Effective edges of the kind `supersedes`
+### 3.74 Effective edges of the kind `supersedes`
 
 @term effective-supersedes-edge=v1
 @cites #{
@@ -2406,13 +2433,13 @@ its source has no valid status tag in that tree; and, when the
 repository needs approval for declared items of the kind of item of its
 source, its source is approved in that tree at that point.
 
-### 3.76 Retired
+### 3.75 Retired
 
 @term retired-item=v1
 @cites {
-    text#{design=v1},
+    text#{design=v1, specification=v1},
     #{
-        declared-item=v1, specification=v1, edge=v1, item-status-tag=v1,
+        declared-item=v1, edge=v1, item-status-tag=v1,
         valid-status-tag=v1, effective-supersedes-edge=v1,
         supersedes-cycle=v1, containment=v1, tree=v1, ledger=v1,
     },
@@ -2427,7 +2454,7 @@ only when, one of these is true in that tree at that point:
 - the item belongs to a retired item of the kind design or to a retired
   specification.
 
-### 3.77 In force
+### 3.76 In force
 
 @term in-force-item=v1
 @cites #{declared-item=v1, retired-item=v1, tree=v1, ledger=v1}
@@ -2435,7 +2462,7 @@ only when, one of these is true in that tree at that point:
 A declared item is in force in a tree, at a point of a ledger, when, and
 only when, it is not retired in that tree at that point.
 
-### 3.78 Suspect
+### 3.77 Suspect
 
 @term suspect-edge=v1
 @cites #{pinned-edge=v1, edge=v1, item-revision=v1, tree=v1}
@@ -2444,7 +2471,7 @@ An edge is suspect in a tree when, and only when, it is pinned, it has a
 cited item in that tree, and that cited item has no current revision in
 that tree, or a current revision other than the label of the edge.
 
-### 3.79 Met waits
+### 3.78 Met waits
 
 @term met-wait=v1
 @cites #{wait=v1, work-item=v1, work-item-state=v1, ledger=v1}
@@ -2452,7 +2479,7 @@ that tree, or a current revision other than the label of the edge.
 A wait is met at a point of a ledger when, and only when, the work item
 that it waits for is done at that point.
 
-### 3.80 Ready tasks
+### 3.79 Ready tasks
 
 @term ready-task=v1
 @cites #{
@@ -2465,13 +2492,13 @@ at that point, each wait of its current definition is met at that
 point, and each wait of the current definition of each plan that the
 task is under at that point is met at that point.
 
-### 3.81 Requirements accounted for
+### 3.80 Requirements accounted for
 
 @term requirement-accounted-for=v1
 @cites {
-    text#{requirement=v1, design=v1},
+    text#{requirement=v1, design=v1, specification=v1},
     #{
-        specification=v1, containment=v1, task=v1, plan=v1, promise=v1,
+        containment=v1, task=v1, plan=v1, promise=v1,
         carried-out-item=v1, work-item-definition=v1,
         work-item-state=v1, ledger=v1, ledger-entry=v1, judgment=v1,
         job-record=v1, item-revision=v1, item-name=v1, tree=v1,
