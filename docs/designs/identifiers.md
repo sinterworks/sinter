@@ -379,15 +379,15 @@ An `@ack` line holds two or more runs of characters other than spaces
 and tabs after `@ack`, with spaces or tabs between them:
 
 - The first is a slug.
-- The last is the **hash**: from 8 to 64 lower-case hexadecimal digits,
+- The last is the **hash prefix**: from 8 to 64 lower-case hexadecimal digits,
   `0` to `9` and `a` to `f`.
 - The text between these two, without the spaces and tabs at its two
   ends, is the **subject**. The subject can be empty, and it can hold
   any character, spaces and `@` included.
 
-Spaces and tabs can follow the hash, and nothing else can. Example: in
+Spaces and tabs can follow the hash prefix, and nothing else can. Example: in
 `@ack retired docs#size=v2 3f2a9c1d`, the slug is `retired`, the subject
-is `docs#size=v2`, and the hash is `3f2a9c1d`.
+is `docs#size=v2`, and the hash prefix is `3f2a9c1d`.
 
 ### 2.8 Inline citations
 
@@ -552,7 +552,7 @@ For a tag line, the parser gives the tag word. For a valid declaration,
 citation, status tag, directive, or inline citation, it also gives the
 values that the input holds, such as the kind word, the slug, the
 custom namespace, the part name, the namespace name and the id, the
-revision, the inline description, the subject and the hash, and the
+revision, the inline description, the subject and the hash prefix, and the
 link text. For a citation, it gives the values of each entry as one
 group, in the order of the entries. It gives each value together with
 its name, such as "the slug". For each other input, it gives no value
@@ -1291,10 +1291,10 @@ extern-line  = indent %s"@extern" gap kind-word ":" part-name rest
 These productions give the form of an `@ack` line:
 
 ```
-ack-line  = indent %s"@ack" gap slug [ gap subject ] gap hash *WSP
-subject   = non-wsp [ *any-char non-wsp ]
-non-wsp   = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
-hash      = 8*64( %x30-39 / %x61-66 )
+ack-line    = indent %s"@ack" gap slug [ gap subject ] gap hash-prefix *WSP
+subject     = non-wsp [ *any-char non-wsp ]
+non-wsp     = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
+hash-prefix = 8*64( %x30-39 / %x61-66 )
 ```
 
 ### 4.42 The grammar of inline citations
@@ -1416,7 +1416,7 @@ its name in the first column of its table:
 | the type of tag line | a tag line with a Sinter tag word | declaration, citation, status tag, or directive: the one that the tag line is |
 | the inline description | a declaration, a citation, a status tag, or an `@extern` line | its inline description |
 | the subject | an `@ack` line | the text that `subject` matches, or the empty text when the match holds no `subject` |
-| the hash | an `@ack` line | the text that `hash` matches |
+| the hash prefix | an `@ack` line | the text that `hash-prefix` matches |
 | the link text | an inline citation | its link text |
 
 | name | match | value |
@@ -1645,16 +1645,16 @@ neither is an input.
 | `@extern spec:descriptor=v1` | invalid: the target of `@extern` carries no revision |
 | `@extern descriptor` | invalid: no kind word |
 | `@extern spec:packs#descriptor` | invalid: the target of `@extern` holds no `#` |
-| `@ack retired docs#size=v2 3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash `3f2a9c1d` |
-| `@ack unexercised 3f2a9c1d0b7e` | valid directive: slug `unexercised`, empty subject, hash `3f2a9c1d0b7e` |
-| `@ack retired a @b 3f2a9c1d` | valid directive: slug `retired`, subject `a @b`, hash `3f2a9c1d` |
-| `@ack retired 3f2a9c1d`, then two spaces | valid directive: slug `retired`, empty subject, hash `3f2a9c1d` |
-| `@ack retired docs#size=v2`, two spaces, and `3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash `3f2a9c1d` |
-| `@ack retired`, a space, and `0123456789abcdef` written 4 times | valid directive: slug `retired`, empty subject, hash `0123456789abcdef` written 4 times |
-| `@ack retired`, a space, `0123456789abcdef` written 4 times, and `0` | invalid: the hash has more than 64 digits |
-| `@ack retired 3F2A9C1D` | invalid: the hash holds upper-case letters |
-| `@ack retired 3f2a9c` | invalid: the hash has fewer than 8 digits |
-| `@ack 3f2a9c1d` | invalid: `3f2a9c1d` is the slug, and no hash follows it |
+| `@ack retired docs#size=v2 3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash prefix `3f2a9c1d` |
+| `@ack unexercised 3f2a9c1d0b7e` | valid directive: slug `unexercised`, empty subject, hash prefix `3f2a9c1d0b7e` |
+| `@ack retired a @b 3f2a9c1d` | valid directive: slug `retired`, subject `a @b`, hash prefix `3f2a9c1d` |
+| `@ack retired 3f2a9c1d`, then two spaces | valid directive: slug `retired`, empty subject, hash prefix `3f2a9c1d` |
+| `@ack retired docs#size=v2`, two spaces, and `3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash prefix `3f2a9c1d` |
+| `@ack retired`, a space, and `0123456789abcdef` written 4 times | valid directive: slug `retired`, empty subject, hash prefix `0123456789abcdef` written 4 times |
+| `@ack retired`, a space, `0123456789abcdef` written 4 times, and `0` | invalid: the hash prefix has more than 64 digits |
+| `@ack retired 3F2A9C1D` | invalid: the hash prefix holds upper-case letters |
+| `@ack retired 3f2a9c` | invalid: the hash prefix has fewer than 8 digits |
+| `@ack 3f2a9c1d` | invalid: `3f2a9c1d` is the slug, and no hash prefix follows it |
 
 ### 5.2 Citations over several lines
 
