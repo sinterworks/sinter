@@ -164,6 +164,29 @@
 - **`sinter-packs` repository** — the language packs, in the
   repository `sinterworks/sinter-packs`, with the licenses that
   `docs/licensing-setup.md` describes.
+- **Run the examples of the user manual in the browser** — a reader
+  of the user manual, which the plan `sinter-user-manual` builds, runs
+  each example command on the web page, and edits the files of the
+  example. Not designed.
+  - Sinter runs in the browser of the reader. wasm_of_ocaml compiles
+    Sinter to WebAssembly, the program format that browsers run.
+  - A second bridge, in JavaScript, loads the tree-sitter grammars with
+    web-tree-sitter. The bridge in `bridge/` uses wasmtime, which
+    cannot run in a browser.
+  - A layer in `lib/git.ml` lets Sinter use a git written in
+    JavaScript, such as isomorphic-git. Today Sinter starts the `git`
+    program as a separate process, and a browser cannot start a
+    process.
+  - A preprocessor of mdBook, the program that builds the manual,
+    turns each example command into an element that the reader can
+    run. The setting `additional-js` adds the editor and the terminal
+    to each page.
+  - Ways that were put forward and not chosen: Linux and the `sinter`
+    program in one WebAssembly image, made with container2wasm, which
+    is a large download and slow to start; WebVM, because its engine,
+    CheerpX, needs a commercial license for use by an organization;
+    and a server that runs the examples, which needs hosting and a
+    secure sandbox.
 - **Test evidence for Sinter itself** — JUnit output from the test
   suite, for `evidence import`.
 - **Tests with no name** — the OCaml tests of `ppx_expect` and
