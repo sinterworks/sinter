@@ -61,7 +61,8 @@ names and opens the file that it finds, with its flags `O_DIRECTORY` and
 | Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9; a file system that ignores differences of Unicode normalization treats two names that differ only in this way as one name |
 | [open](sinter:#open=v1) | an open of a file is an action in which a program asks the file system to open the file: to give the program a means by which it can ask for the bytes of the file or make lookups in it; an action that both makes lookups and opens the file that the last of them finds is these lookups followed by an open |
 | [close](sinter:#open=v1) | give back to the file system the means that an open of a file gave to the program |
-| [failure cause](sinter:#failure-cause=v1) | one of these causes for which an action of a program can fail: too many open files in the program or in the system; that the system does not give the program the memory that the action needs; or an error that the system reports for the action, such as an input or output error of a device, other than an interruption by a signal, a report that the action would wait, and an error that the form of the action causes |
+| [failure cause](sinter:#failure-cause=v1) | one of these causes for which an action of a program can fail: too many open files in the program or in the system; that the system does not give the program the memory that the action needs; or an error that the system reports for the action, such as an input or output error of a device, other than an interruption by a signal, a report that the action would wait, and a form error |
+| [form error](sinter:#form-error=v1) | an error that the system reports for an action because the program asked for the action wrongly, such as for the means of a file that the program already closed, an address of memory that is not valid, or an argument that the action does not accept; an action that holds more bytes than the system accepts in one action makes no form error |
 | [refused](sinter:#refused-lookup=v1) | a lookup, as a step of a file read, is refused when, and only when, the file system reports for it a failure for a lack of the search permission of the program for the folder, for a byte sequence longer than the file system allows in an entry name, or for a failure cause; when the program has no read permission for the folder; or when an action of the program that takes the entry names of the folder fails for a failure cause and no later lookup in that folder follows |
 | [search permission](sinter:#search-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to look up folder entries in a folder |
 | [read permission](sinter:#read-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a regular file or the entry names of a folder |
@@ -256,15 +257,22 @@ A failure cause of an action of a program is one of these:
   needs;
 - an error that the system reports for the action, such as an input or
   output error of a device, other than an interruption by a signal, a
-  report that the action would wait, and an error that the form of the
-  action causes, such as an error for a flag that the system does not
-  know.
+  report that the action would wait, and a form error.
+
+A form error of an action is an error that the system reports for the
+action because the program asked for the action wrongly, such as for
+the means that an open gave after the program closed that file, for an
+address of memory that is not valid, for a flag that the system does
+not know, or for another argument that the action does not accept. A
+failure because the action holds more bytes than the system accepts in
+one action is not a form error. As a step of a file read, the program
+makes no action that fails for a form error.
 
 In the cases below, a failure of a lookup, of an open of a folder, of
 an action that takes the entry names of a folder, of an action before
 the lookup that the action asks for, of an open of a regular file, or of
-a request counts only when the action fails for a failure cause or for a cause
-that the case names. A failure for another cause, such as an
+a request counts only when the action fails for a failure cause or for
+a cause that the case names. A failure for another cause, such as an
 interruption by a signal, does not count. After such a failure, the
 program makes the action again, or another action that does the same
 thing. The program cannot stop at such a failure, because the walk of a
@@ -316,9 +324,12 @@ flag `O_NOFOLLOW` can fail, or because that file is not a folder, as a
 call of `openat` with the flag `O_DIRECTORY` can fail. Then that lookup
 finds that file, and that lookup is not refused.
 
-Before it gives the result of a file read, the program closes each file
-that it opened as a step of the file read, once for each open of that
-file, as a step of the file read, that did not fail.
+When it gives the result of a file read, the program has closed each
+file that it opened as a step of the file read, and it keeps no memory
+that it got from the system as a step of the file read, also not as a
+cache, other than the memory that holds the result and the text that it
+gives with the result. So file reads, one after another, cannot use up
+the open files or the memory that the system can give.
 
 One action can make several lookups. When one action looks for the
 folder entries for several byte sequences in turn, the first in a folder
@@ -850,10 +861,23 @@ that a lookup finds is not part of that lookup. To close a file is to
 give back to the file system the means that an open of that file gave
 to the program.
 
-### 3.13 Failure causes
+### 3.13 Form errors
+
+@term form-error=v1
+@cites {#{system=v1, open=v1}, text#{byte=v1}}
+
+A form error of an action of a program is an error that the system
+reports for the action because the program asked for the action
+wrongly, such as for the means that an open gave after the program
+closed that file, for an address of memory that is not valid, for a
+flag that the system does not know, or for another argument that the
+action does not accept. A failure because the action holds more bytes
+than the system accepts in one action is not a form error.
+
+### 3.14 Failure causes
 
 @term failure-cause=v1
-@cites #{system=v1, open=v1}
+@cites #{system=v1, open=v1, form-error=v1}
 
 A failure cause of an action of a program is one of these:
 
@@ -862,11 +886,9 @@ A failure cause of an action of a program is one of these:
   needs;
 - an error that the system reports for the action, such as an input or
   output error of a device, other than an interruption by a signal, a
-  report that the action would wait, and an error that the form of the
-  action causes, such as an error for a flag that the system does not
-  know.
+  report that the action would wait, and a form error.
 
-### 3.14 Valid paths
+### 3.15 Valid paths
 
 @term path=v1
 @cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
@@ -886,7 +908,7 @@ elements match. They have numbers from 1, in the order of the
 `file-name` element matches, and each later file name has the number 1
 more than the file name right before it.
 
-### 3.15 File reads
+### 3.16 File reads
 
 @term file-read=v1
 @cites {
@@ -900,7 +922,7 @@ that folder tree, one of the results "invalid", "found", "no file",
 file read is one operation of a program that reads a text as a path in a
 folder tree each folder of which is on a file system.
 
-### 3.16 The steps of a file read
+### 3.17 The steps of a file read
 
 @term file-read-step=v1
 @cites {
@@ -919,7 +941,7 @@ file read, as a step of that other file read, is not a step of the file
 read. The lookups by which the program opened the root before the start
 of the file read are not steps of the file read.
 
-### 3.17 Bytes taken from a file
+### 3.18 Bytes taken from a file
 
 @term taken-byte=v1
 @cites {
@@ -938,7 +960,7 @@ To take bytes from a file is to copy such bytes into the program. A
 lookup takes no bytes from a file. Copying the file type or another
 attribute of a file into the program takes no bytes from that file.
 
-### 3.18 Refused lookups
+### 3.19 Refused lookups
 
 @term refused-lookup=v1
 @cites {
@@ -963,7 +985,7 @@ and only when, one of these holds:
   the program makes no later lookup in that folder as a step of that
   file read.
 
-### 3.19 Requests
+### 3.20 Requests
 
 @term request=v1
 @cites {#{file-system=v1, regular-file=v1, open=v1}, text#{byte=v1}}
@@ -978,7 +1000,7 @@ when, it gives no byte and reports no error for that request. The end
 of the content is not a failure, and a request on which the file system
 gives fewer bytes than the request asks for is not a failure.
 
-### 3.20 Failures to take a content
+### 3.21 Failures to take a content
 
 @term failure-to-take-content=v1
 @cites {
@@ -1006,7 +1028,7 @@ program, as a step of that file read, for bytes of that regular file:
   the file system gives for a request of the program, as a step of that
   file read.
 
-### 3.21 The byte sequence that a file read takes
+### 3.22 The byte sequence that a file read takes
 
 @term file-read-byte-sequence=v1
 @cites {
@@ -1026,7 +1048,7 @@ file is the bytes before the first byte of that request, in their order
 in the content, each byte as the latest request of the program, as a
 step of that file read, that gave that byte gave it.
 
-### 3.22 Lookups of the file names of a file read
+### 3.23 Lookups of the file names of a file read
 
 @term file-name-lookup=v1
 @cites {
@@ -1045,7 +1067,7 @@ a lookup of the UTF-8 encoding of that later file name in a folder that
 a lookup of the file name right before it, as a step of the same file
 read, found.
 
-### 3.23 Walks
+### 3.24 Walks
 
 @term walk=v1
 @cites {
@@ -1083,7 +1105,7 @@ outcome. A walk in which no file name has an outcome has no outcome.
 With the outcome regular file, the walk finds the regular file that the
 latest lookup of the file name with the highest number found.
 
-### 3.24 Valid globs
+### 3.25 Valid globs
 
 @term glob=v1
 @cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
@@ -1105,7 +1127,7 @@ The glob segments of a valid glob are the texts that its `glob-segment`
 elements match, in order, and then the text `**` when the valid glob
 ends with `/`. They have numbers from 1, in that order.
 
-### 3.25 Valid paths that fit valid globs
+### 3.26 Valid paths that fit valid globs
 
 @term glob-fit=v1
 @cites {
@@ -1138,7 +1160,7 @@ which the character of the glob segment is a character other than `*`
 when, and only when, the run holds one character, and that character is
 the character of the glob segment at that place.
 
-### 3.26 Path sets
+### 3.27 Path sets
 
 @term path-set=v1
 @cites text#{
@@ -1152,7 +1174,7 @@ set member that starts at boundary 1 and ends at the last boundary of
 that path set member. Each other path set member is a plain member, and
 the glob text of that path set member is the path set member.
 
-### 3.27 Valid path sets
+### 3.28 Valid path sets
 
 @term valid-path-set=v1
 @cites {#{path-set=v1, glob=v1}, text#{text=v1}}
@@ -1162,7 +1184,7 @@ member is a valid glob, no two path set members are the same text, and
 at least one path set member is a plain member when the path set holds
 at least one path set member.
 
-### 3.28 The set of a path set
+### 3.29 The set of a path set
 
 @term path-set-membership=v1
 @cites {
@@ -1287,19 +1309,35 @@ reports the end of the content for the latest request of the program, as
 a step of the file read, for bytes of that regular file, or the program
 fails to take the content of that regular file in that file read.
 
-### 4.7 The files that a file read opens
+### 4.7 The files and the memory that a file read takes
 
-@req close-opened-files=v1
+@req release-files-and-memory=v1
 @cites {
-    #{open=v1, file-read=v1, file-read-step=v1},
-    text#{conforming-program=v1, result=v1, requirement=v1},
+    #{system=v1, open=v1, file-read=v1, file-read-step=v1},
+    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
 
-Before it gives the result of a file read, a conforming program must
-close each file that it opened as a step of that file read, once for
-each open of that file, as a step of that file read, that did not fail.
+When it gives the result of a file read, a conforming program must have
+closed each file that it opened as a step of that file read, and must
+keep no memory that it got from the system as a step of that file read,
+also not as a cache, other than the memory that holds that result and
+the text that it gives with that result.
 
-### 4.8 No wait for another process
+### 4.8 No form errors
+
+@req avoid-form-errors=v1
+@cites {
+    #{
+        folder-tree=v1, form-error=v1, path=v1, file-read=v1,
+        file-read-step=v1,
+    },
+    text#{conforming-program=v1, text=v1, requirement=v1},
+}
+
+As a step of a file read of a text as a path in a folder tree, a
+conforming program must make no action that fails for a form error.
+
+### 4.9 No wait for another process
 
 @req avoid-waits=v1
 @cites {
@@ -1315,7 +1353,7 @@ path in a folder tree, wait for another process or for a device to act
 on a file of another kind, such as for a process to open the other end
 of a pipe.
 
-### 4.9 No open of a file of another kind
+### 4.10 No open of a file of another kind
 
 @req avoid-opens-of-files-of-another-kind=v1
 @cites {
@@ -1330,7 +1368,7 @@ When no other process changes a folder tree during a file read of a text
 as a path in that folder tree, a conforming program must make no open of
 a file of another kind as a step of that file read.
 
-### 4.10 No change to the files of the folder tree
+### 4.11 No change to the files of the folder tree
 
 @req keep-folder-trees-unchanged=v1
 @cites {
@@ -1350,7 +1388,7 @@ by a change that the file system makes by itself when the program takes
 bytes from a file or makes a lookup, such as a change of the time of
 last access.
 
-### 4.11 No change to the permissions of the program
+### 4.12 No change to the permissions of the program
 
 @req keep-permissions-unchanged=v1
 @cites {
@@ -1366,7 +1404,7 @@ the result of that file read, a conforming program must not change, by
 any action, whether it has the search permission or the read permission
 for a file of the folder tree.
 
-### 4.12 The result of a file read
+### 4.13 The result of a file read
 
 @req give-file-read-results=v1
 @cites {
@@ -1398,7 +1436,7 @@ cell sets no condition:
 | a valid path | regular file | the byte sequence that the file read takes from it is not valid UTF-8 | "not UTF-8" |
 | a valid path | regular file | the byte sequence that the file read takes from it is valid UTF-8 | "found" |
 
-### 4.13 The text of a file
+### 4.14 The text of a file
 
 @req give-file-text=v1
 @cites {
@@ -1417,7 +1455,7 @@ When it reads a text as a path in a folder tree and gives the result
 byte sequence that the file read takes from the regular file that the
 walk of the file read finds, and no other text.
 
-### 4.14 No text with another result
+### 4.15 No text with another result
 
 @req omit-texts-of-other-results=v1
 @cites {
@@ -1428,7 +1466,7 @@ walk of the file read finds, and no other text.
 When it reads a text as a path in a folder tree and gives a result other
 than "found", a conforming program must give no text with that result.
 
-### 4.15 The validation of texts as globs
+### 4.16 The validation of texts as globs
 
 @req validate-globs=v1
 @cites {
@@ -1444,7 +1482,7 @@ a text is a valid glob, a conforming program must give exactly one
 result: "valid" when the text matches `glob`, and "invalid" when the
 text does not match `glob`.
 
-### 4.16 Whether valid paths fit valid globs
+### 4.17 Whether valid paths fit valid globs
 
 @req decide-glob-fit=v1
 @cites {
@@ -1457,7 +1495,7 @@ whether a valid path fits a valid glob, a conforming program must give
 exactly one result: "fits" when the valid path fits the valid glob, and
 "does not fit" when the valid path does not fit the valid glob.
 
-### 4.17 The validation of path sets
+### 4.18 The validation of path sets
 
 @req validate-path-sets=v1
 @cites {
@@ -1470,7 +1508,7 @@ a path set is valid, a conforming program must give exactly one result:
 "valid" when the path set is valid, and "invalid" when the path set is
 not valid.
 
-### 4.18 Whether valid paths are in the sets of path sets
+### 4.19 Whether valid paths are in the sets of path sets
 
 @req decide-path-set-membership=v1
 @cites {
