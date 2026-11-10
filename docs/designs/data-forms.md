@@ -3,6 +3,7 @@
 
 # Data forms
 @design data-forms=v1
+@cites rfc/3339
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
@@ -42,6 +43,7 @@ From the standards that it cites, the design takes these parts:
 
 | standard | what the design takes from it |
 |---|---|
+| RFC 3339 | the meaning of the offset of an offset date-time |
 | RFC 3629 | the UTF-8 encoding of a text |
 | RFC 5234, RFC 7405 | the notation of the productions |
 | TOML 1.1.0 | TOML documents, their tables, their TOML keys, and their TOML values |
@@ -333,13 +335,23 @@ implementation makes these choices:
 | the floats `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` of TOML 1.1.0 | `inf` and `+inf` give positive infinity, and `-inf` gives negative infinity; `nan`, `+nan`, and `-nan` each give a TOML float that is NaN |
 | more than nine digits in the fraction of a second | a local time, a local date-time, and an offset date-time keep the first nine digits, and the further digits do not change the fraction |
 | the second 60 | a valid second of a local time, a local date-time, and an offset date-time, on every date and at every hour and minute |
-| the offset of an offset date-time | `Z` when the document gives `Z` or `z`, and otherwise the signed number of minutes that the document gives; `+00:00` and `-00:00` both give 0 minutes; `Z` and 0 minutes are two different offsets; no offset date-time changes to UTC |
 | a newline in a multi-line basic string or a multi-line literal string | each newline that TOML 1.1.0 does not trim stays in the TOML string as its characters: U+000A, or U+000D and U+000A |
 | an escape sequence that TOML 1.1.0 reserves, such as `\q`, in a basic string or a multi-line basic string | the bytes are not a TOML document |
 
 So `00:00:00.123456789123` and `00:00:00.123456789` give equal local
-times, and the offset date-times `1979-05-27T07:32:00Z` and
-`1979-05-27T07:32:00+00:00` are not equal.
+times.
+
+TOML 1.1.0 writes an offset date-time in the form of RFC 3339, and
+RFC 3339, section 4.3, gives the meaning of its offset. The offset of an
+offset date-time is the unknown local offset when the document gives
+the offset as `-00:00`. Otherwise, the offset is a signed number of
+minutes: 0 for `Z` and `z`, and the number of minutes that the document
+gives for each other offset, such as 0 for `+00:00` and −420 for
+`-07:00`. The unknown local offset is not a number of minutes, so it is
+not the offset 0. So the offset date-times `1979-05-27T07:32:00Z` and
+`1979-05-27T07:32:00+00:00` are equal, and `1979-05-27T07:32:00-00:00`
+is equal to neither of them. No offset date-time changes to UTC, so
+`1979-05-27T07:32:00-07:00` and `1979-05-27T14:32:00Z` are not equal.
 
 TOML 1.1.0 trims the newline right after the opening delimiter of a
 multi-line basic string or a multi-line literal string. In a multi-line
@@ -991,13 +1003,14 @@ minute.
 ### 3.25 Offsets in TOML
 
 @req toml-offsets=v1
-@cites {toml/1.1.0, #{toml-values=v1}}
+@cites {toml/1.1.0, rfc/3339, #{toml-values=v1}}
 
-The offset of an offset date-time is `Z` when the document gives the
-offset as `Z` or `z`. Otherwise, its offset is the signed number of
-minutes that the document gives for the offset, so `+00:00` and
-`-00:00` both give the offset of 0 minutes. The offset `Z` and the
-offset of 0 minutes are two different offsets.
+The offset of an offset date-time is the unknown local offset of
+RFC 3339, section 4.3, when the document gives the offset as `-00:00`.
+Otherwise, the offset is a signed number of minutes: 0 when the document
+gives the offset as `Z` or `z`, and the number of minutes that the
+document gives for each other offset, such as 0 for `+00:00` and −420
+for `-07:00`. The unknown local offset is not a number of minutes.
 
 ### 3.26 Newlines in TOML strings
 
@@ -1472,8 +1485,19 @@ root table.
 - `t = 12:00:60`: valid: `t` holds the local time 12:00:60.
 - `t = 23:59:60`: valid: `t` holds the local time 23:59:60.
 - `a = 1979-05-27T07:32:00-00:00`: valid: `a` holds the offset date-time
-  1979-05-27T07:32:00 with the offset of 0 minutes, which is not the
-  offset `Z`.
+  1979-05-27T07:32:00 with the unknown local offset, which is not the
+  offset 0.
+- Each of these two texts: valid, with equal root tables: `a` holds the
+  offset date-time 1979-05-27T07:32:00 with the offset 0.
+
+  ```toml
+  a = 1979-05-27T07:32:00Z
+  ```
+
+  ```toml
+  a = 1979-05-27T07:32:00+00:00
+  ```
+
 - `s = """a`, the bytes 0x0D and 0x0A, then `b"""` and the byte 0x0A:
   valid: `s` holds the TOML string of `a`, U+000D, U+000A, and `b`.
 - `s = '''a`, the bytes 0x0D and 0x0A, then `b'''` and the byte 0x0A:
