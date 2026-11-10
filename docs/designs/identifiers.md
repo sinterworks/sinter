@@ -2048,6 +2048,9 @@ requirements and adds nothing to them. The vectors are in groups. Each
 group has a name, such as `citations`. The subsections below name the
 requirements that the vectors of each group follow from, and they
 describe the inputs, the results, and the values of these vectors.
+Where a term of section 4 cites a term of Text and notation, such as the
+lines or the body of a text, the vectors follow the definition of that
+term in Text and notation.
 
 The file is valid UTF-8. Its text does not start with U+FEFF, it holds
 no carriage return, and it ends with a line feed. Each line of the text
@@ -2101,12 +2104,17 @@ A revision is a JSON string of `v`, then the decimal numeral of a whole
 number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, and a change of a note alone changes no
-revision. A program does not need the revisions to run the vectors.
+vector. A revision rises, to a greater number after its `v`, when a
+vector that it covers changes, joins, or leaves, and a change of a note
+alone changes no revision. A program does not need the revisions to run
+the vectors.
 
-Inside the members `input` and `values`, each text, binding, and
-sequence has this form:
+A vector writes each input and each value in one fixed form. A text is
+a JSON value, a JSON string. A binding, a pair, a set of values, and a
+sequence are not JSON values. Inside the members `input` and `values`,
+each text, binding, and sequence has this fixed form, and the
+paragraphs after this list give the fixed form of the other inputs and
+values:
 
 - A text, such as a line, an id pattern, or a value, is a JSON string
   whose characters are the characters of the text, in order. So the
@@ -2175,9 +2183,12 @@ citation are members of the JSON object of the citation, and not of an
 element of `entries`.
 
 For the tag line or the inline citation, a conforming program gives
-each value that the JSON object holds, together with its value name,
-and no other value. An empty JSON object, `{}`, says that a conforming
-program gives no value for it.
+each value that the JSON object holds, and, for a citation, each value
+that an element of `entries` holds, in the list of that citation entry.
+It gives each of these values together with its value name, and it
+gives no other value. An empty JSON object, `{}`, says that a
+conforming program gives no value for the tag line or the inline
+citation.
 
 ### 6.1 Tag lines
 
@@ -2194,9 +2205,9 @@ group holds one kind of line:
 
 The vectors of these groups follow from the requirements
 `reject-unmatched-inputs`, `reject-repeated-entries`, `give-tag-words`,
-`give-values`, `give-no-other-values`, `give-results`,
-`give-no-results-for-non-inputs`, and `accept-inputs`. Each vector gives
-a text of one line, and what a conforming program gives for that line.
+`give-values`, `give-no-other-values`, `give-results`, and
+`accept-inputs`. Each vector gives a text of one line, and what a
+conforming program gives for that line.
 
 - `input`: the binding and the text, as described above. The text has
   one line. The markdown document of the text holds no link and no
@@ -2221,7 +2232,8 @@ a text of one line, and what a conforming program gives for that line.
 
 For the line `@cites gh/42`, a conforming program gives no result for
 the id pattern `[1-9][0-9]*` of `gh`, and none for the pair of that id
-pattern and the id `42`, because neither is an input.
+pattern and the id `42`, because neither is an input. The vectors do
+not state this.
 
 ```
 {"group":"declarations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@req size-limit=v2 A descriptor has at most 1 MiB."},"n":1,"result":"valid","rev":"v1","values":{"inline-description":"A descriptor has at most 1 MiB.","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}
@@ -2235,7 +2247,8 @@ The group `continuation-lines` holds texts that start with a citation.
 Each text tests which lines after the line of the citation are its
 continuation lines, and which lines are inputs of their own. A text of
 the group can have one line. Its vectors follow from the requirements of
-the groups of section 6.1. Each vector gives a text and what a
+the groups of section 6.1 and from the requirement
+`give-no-results-for-non-inputs`. Each vector gives a text and what a
 conforming program gives for the inputs that the lines of the text make.
 A citation and its continuation lines are one input, and each other line
 is an input of its own.
@@ -2260,8 +2273,8 @@ result for a continuation line on its own.
 
 ### 6.3 Inline citations
 
-The group `inline-citations` holds texts whose markdown documents hold
-links and images. Its vectors follow from the requirements
+The group `inline-citations` holds texts whose markdown documents can
+hold links and images. Its vectors follow from the requirements
 `reject-unmatched-inputs`, `reject-blank-link-text`, `give-values`,
 `give-no-other-values`, `give-results`, and `accept-inputs`. Each vector
 gives a text and what a conforming program gives for the links and the
@@ -2332,9 +2345,9 @@ The group `bindings` holds bindings of `external-namespaces` that a
 program takes. Its vectors follow from the requirements
 `reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
 `reject-invalid-binding-patterns`, `give-no-other-values`,
-`give-results`, `give-no-results-for-non-inputs`, and `accept-inputs`.
-The id patterns of a binding are not inputs, so a conforming program
-gives them no result of their own.
+`give-results`, and `accept-inputs`. The id patterns of a binding are
+not inputs, so a conforming program gives them no result of their own.
+The vectors do not state this.
 
 - `input`: the binding.
 - `result`: "valid" or "invalid".
@@ -2352,13 +2365,14 @@ binding of `external-namespaces` for which it gives the result
   `text`, the text. The program takes the binding, and it reads the
   text under that binding.
 - `result`: the result of the binding: "invalid".
-- `values`: the empty JSON object, `{}`. In this group, it says that,
-  with the result of the binding, a conforming program gives nothing
-  more: it gives no result and no value for a line, a link, or an image
-  of the text.
+- `values`: a JSON object with one member, `inputs`: a JSON array with
+  one element for each result that a conforming program gives for a
+  line, a link, or an image of the text. Under a binding for which a
+  conforming program gives the result "invalid", it gives no such
+  result, and no value. So `inputs` is the empty JSON array.
 
 ```
 {"group":"bindings","input":[],"n":300,"result":"valid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"n":303,"note":"`GH` does not match `namespace-name`","result":"invalid","rev":"v1","values":{}}
-{"group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"n":308,"result":"invalid","rev":"v1","values":{}}
+{"group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"n":308,"result":"invalid","rev":"v1","values":{"inputs":[]}}
 ```
