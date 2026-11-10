@@ -1138,7 +1138,10 @@ name, such as a line number. So a vector holds a program only to what
 the program gives for the input: a program that gives a line number for
 a character, and no column, is held only to the line number. The
 subsection of each group says what a conforming program gives in each
-case.
+case. When a subsection says that a conforming program gives a thing,
+such as the line number of `position`, it gives that thing and no other
+thing of the same kind, such as no other line number for that
+character.
 
 The file is valid UTF-8. Its text has no byte order mark and no carriage
 return, and it ends with a line feed. Each line of the text of the file
@@ -1174,7 +1177,7 @@ The JSON object of a vector line has these members:
   subsection of the group says which of these things a conforming
   program gives in each case. An empty JSON object, `{}`, says that a
   conforming program gives none of the things that the subsection
-  names.
+  names for `values`.
 - `note`: an explanation of the vector, as a JSON string, which a
   conforming program does not give. A vector has this member only when
   it has an explanation.
@@ -1184,8 +1187,9 @@ number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, and a change of a note alone changes no
-revision. A program does not need the revisions to run the vectors.
+vectors that it covers change, join, or leave. When the text of this
+section changes, the revisions of every vector, every group, and the
+set rise. A change of a note alone changes no revision. A program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
@@ -1226,9 +1230,9 @@ sequence as UTF-8.
   empty JSON object, `{}`.
 
 When a conforming program gives a result for whether the byte sequence
-is valid UTF-8, it gives the result that `result` holds. When it gives a
-text as the text of the byte sequence, it gives the text that `text`
-holds. When `values` is `{}`, it gives no text as the text of the byte
+is valid UTF-8, it gives the result that `result` holds, and no other
+result. When it gives a text as the text of the byte sequence, it gives
+the text that `text` holds, and no other text. When `values` is `{}`, it gives no text as the text of the byte
 sequence.
 
 ```
