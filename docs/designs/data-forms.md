@@ -156,12 +156,17 @@ its letters only in the same case.
 | [id prefix](sinter:#id-prefix=v1) | one or more lower-case ASCII letters and then `-`, such as `e-` |
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
-| [test-vector file name](sinter:#test-vector-file-name=v1) | for texts x and a, the text x, `.`, a, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for a text x alone, x and `.test-vectors.jsonl` |
+| specification | a part of a design that has its own name, terms, requirements, and vectors |
+| [vector](sinter:#vector-meaning=v1) | an input and what a conforming program gives for it, which the object of a vector line states |
+| [test-vector file name](sinter:#test-vector-file-name=v1) | for texts x and a, the text x, `.`, a, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for a text x alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [test-vector revision](sinter:#test-vector-revision=v1) | a text of `v` and the decimal numeral of a whole number of 1 or more, such as `v2` |
-| [group name](sinter:#group-name=v1) | a text of lower-case ASCII letters and ASCII digits, with one `-` at most between two of them, such as `offsets` |
-| [vector line](sinter:#test-vector-set=v1), [group line](sinter:#test-vector-set=v1), [set line](sinter:#test-vector-set=v1) | the canonical byte sequence of the object of one vector, of one group of vectors, or of the whole set, then the byte 0x0A |
+| [group name](sinter:#group-name=v1) | a text of the letters `a` to `z` and the digits `0` to `9` that starts with a letter, with one `-` at most between two of them, such as `offsets` or `g-2` |
+| [group](sinter:#test-vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets`; the vectors of a group are the vectors that have it |
+| [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group of vectors, or of the whole test-vector set, each with fixed members |
+| [vector line](sinter:#test-vector-line=v1), [group line](sinter:#test-vector-line=v1), [set line](sinter:#test-vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then the group lines, then the vector lines, in a fixed order |
-| [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of test-vector sets, from the earliest to the latest, whose numbers and revisions change by fixed rules |
+| [version](sinter:#test-vector-version-sequence=v1) | one of the test-vector sets of a version sequence |
+| [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of test-vector sets, its versions, from the earliest to the latest, whose numbers and revisions change by fixed rules |
 
 ## 2. Results, JSON values, and canonical forms
 
@@ -2914,56 +2919,60 @@ result of the test of whether the text fits the hash-id form.
 ## 8. Test vectors
 @spec test-vectors=v1
 
-A test-vector set holds the conformance vectors of one specification of
-a design, or of the requirements that a design holds outside its
-specifications, as JSON objects, one on each line. A conforming program
-reads a byte sequence as a test-vector set, and it tests whether a
-sequence of byte sequences is a version sequence: a sequence of versions
-of one test-vector set whose revisions follow the changes of its
-vectors.
+A vector is an input and what a conforming program gives for it. A
+test-vector set is a byte sequence that holds the vectors of one
+specification of a design, or of the requirements that a design holds
+outside its specifications. A conforming program reads a byte sequence
+as a test-vector set, and it tests whether a sequence of byte sequences
+is a version sequence: a sequence of versions of the vectors of a
+specification, each version a test-vector set, whose revisions follow
+the changes of the vectors.
 
 The test-vector file name of two texts, such as `a` and `b`, is
 `a.b.test-vectors.jsonl`, and the test-vector file name of one text,
-such as `a`, is `a.test-vectors.jsonl`. The test vectors of the
-specification `b` of the design `a` are in the file
-`a.b.test-vectors.jsonl`, and the test vectors that the design `a` holds
-outside its specifications are in the file `a.test-vectors.jsonl`.
+such as `a`, is `a.test-vectors.jsonl`.
 
-The first line of a test-vector set holds the set object, such as
-`{"rev":"v3"}`, with the revision of the whole set. Then each group of
-vectors has a group line, such as `{"group":"offsets","rev":"v2"}`, in
-the key order of the group names. Then each vector has a vector line, in
-increasing order of its number `n`, such as
+A test-vector set holds JSON objects as their canonical byte sequences,
+each then the byte 0x0A, so a test-vector set has exactly one form for
+its objects. It starts with its set line, which holds the set object,
+such as `{"rev":"v3"}`, with the revision of the whole set. Then each
+group of vectors has a group line, such as
+`{"group":"offsets","rev":"v2"}`, in the key order of the group names.
+Then each vector has a vector line, in increasing order of its number
+`n`, such as
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`.
-Each line is the canonical byte sequence of its object, then the byte
-0x0A, so a test-vector set has exactly one form for its objects. The
-objects of the vector lines can hold any JSON value in `input` and in
-`values`, so a vector object need not be a line object.
+The objects of the vector lines can hold any JSON value in `input` and
+in `values`, so a vector object need not be a line object.
 
-A vector gives an input, in `input`. For an obligation that gives a
-result, a vector gives the result that a conforming program gives for
-that input, in `result`, without double quotes, and it can give, in
-`values`, what the program gives with the result. A vector without
-`result` is a vector of an obligation that gives an output and no
-result, and `values` holds that output. A vector has `result` or
-`values`, or both, so each vector tests something. A vector can also give, in
-`note`, an explanation, which is no part of the input, the result, or
-the values.
+The object of a vector line states one vector. The value of `input` is
+the input of the vector. The value of `result` is the result that a
+conforming program gives for that input, without its double quotes. The
+value of `values` is what the program gives with that result. When the
+object has no member `result`, as for a requirement that has no results,
+the value of `values` is the output that the program gives for the
+input. A vector with `result` and without `values` states the result,
+and states nothing about what the program gives with it. Each vector has
+`result` or `values`, or both, so each vector tests something. The value
+of `note` explains the vector, and it is no part of the input, the
+result, or the values.
 
 Each vector, each group, and the whole set have a revision, such as
 `v2`. When the group, the input, the result, or the values of a vector
-change from one version of the set to the next, the revision of the
-vector rises, and so do the revisions of its group and of the set. A
-group and the set also rise when a vector joins or leaves them. A group
-that comes back to the set after it left gets a revision higher than
-each revision that it had before. A change of a note alone changes no
-revision. A number `n` is given once: a vector that leaves the set takes
-its number with it, and a new vector gets a number greater than each
-number before it.
+change, the revision of the vector rises, and so do the revision of each
+group that holds it in either version and the revision of the set. When
+a vector joins or leaves, the revision of the set rises, and so does the
+revision of its group when its group is in both versions. Without such a
+change, no revision changes, so a change of a note alone changes no
+revision. A revision can rise by more than 1. A new vector, and a group
+that is in no earlier version, can have any revision. A group that comes
+back after it left gets a revision higher than each revision that it had
+before. A number `n` is given once: a vector that leaves takes its
+number with it, and a new vector gets a number greater than each number
+before it.
 
 ### 8.1 Definitions
 
-#### 8.1.1 The file names of test vectors
+#### 8.1.1 Test-vector file names
 
 @term test-vector-file-name=v1
 @cites text#{text=v1, code-span=v1}
@@ -2971,7 +2980,9 @@ number before it.
 For texts x and a, the test-vector file name of x and a is the text x,
 then `.`, then the text a, then `.test-vectors.jsonl`. For a text x, the
 test-vector file name of x alone is the text x, then
-`.test-vectors.jsonl`.
+`.test-vectors.jsonl`. So the test-vector file name of `a` and `b` is
+`a.b.test-vectors.jsonl`, and the test-vector file name of `a` alone is
+`a.test-vectors.jsonl`.
 
 #### 8.1.2 Test-vector revisions
 
@@ -3001,59 +3012,101 @@ greater than the number of s.
 A group name is a text that matches the production `group-name`:
 
 ```abnf
-group-name  = 1*( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
+group-name  = %x61-7A *( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 ```
 
-#### 8.1.4 Test-vector sets
+#### 8.1.4 Vector objects, group objects, and set objects
 
-@term test-vector-set=v1
+@term vector-object=v1
 @cites {
-    text#{
-        byte-sequence=v1, byte=v1, 0x-numeral=v1, text=v1,
-        code-span=v1,
-    },
-    #{
-        json-value=v1, canonical-byte-sequence=v1, key-order=v1,
-        test-vector-revision=v1, group-name=v1,
-    },
+    text#{text=v1, code-span=v1},
+    #{json-value=v1, test-vector-revision=v1, group-name=v1},
 }
 
-In these definitions, a member that a code span names, such as the
-member `n`, is the member whose key is the text of the code span, and
-the value of `n` is the value of the member `n`.
+A member that a code span names, such as the member `n`, is the member
+whose key is the text of the code span, and the value of `n` is the
+value of the member `n`.
 
 - A vector object is an object that has the members `n`, `rev`, `group`,
   and `input`, has the member `result` or the member `values` or both,
-  can have the member `note`, and has no other member. The value of `n` is an integer of 1 or more. The
-  value of `rev` is a string that is a test-vector revision. The value
-  of `group` is a string that is a group name. The value of `input` is a
-  JSON value. The value of `result` is a string. The value of `values`
-  is a JSON value. The value of `note` is a string.
+  can have the member `note`, and has no other member. The value of `n`
+  is an integer of 1 or more. The value of `rev` is a string that is a
+  test-vector revision. The value of `group` is a string that is a group
+  name. The value of `input` is a JSON value. The value of `result` is a
+  string. The value of `values` is a JSON value. The value of `note` is
+  a string.
 - A group object is an object that has the members `group` and `rev`,
   and no other member. The value of `group` is a string that is a group
   name. The value of `rev` is a string that is a test-vector revision.
 - A set object is an object that has the member `rev`, and no other
   member. The value of `rev` is a string that is a test-vector revision.
-- A vector line, a group line, and a set line are the canonical byte
-  sequences of a vector object, of a group object, and of a set object,
-  then the byte 0x0A. The object of such a line is the object whose
-  canonical bytes the line holds. The number of a vector line is the
-  value of `n` of its object. The group of a vector line or of a group
-  line is the value of `group` of its object. The revision of a vector
-  line, of a group line, or of a set line is the value of `rev` of its
-  object.
-- A test-vector set is a byte sequence that holds, in this order, and no
-  other bytes: one set line; then one group line for each text that is
-  the group of a vector line of the byte sequence, and no other group
-  line, in the key order of their groups; then the vector lines, each
-  with a greater number than the vector line before it.
 
-#### 8.1.5 Version sequences
+#### 8.1.5 Vector lines, group lines, and set lines
+
+@term test-vector-line=v1
+@cites {
+    text#{byte=v1, 0x-numeral=v1, code-span=v1},
+    #{json-value=v1, canonical-byte-sequence=v1, vector-object=v1},
+}
+
+A vector line is the canonical byte sequence of a vector object, then
+the byte 0x0A. A group line is the canonical byte sequence of a group
+object, then the byte 0x0A. A set line is the canonical byte sequence of
+a set object, then the byte 0x0A. The object of a vector line, of a
+group line, or of a set line is the object whose canonical byte sequence
+it holds. The number of a vector line is the value of `n` of its object.
+The group of a vector line or of a group line is the value of `group` of
+its object. The revision of a vector line, of a group line, or of a set
+line is the value of `rev` of its object.
+
+#### 8.1.6 Test-vector sets
+
+@term test-vector-set=v1
+@cites {
+    text#{byte-sequence=v1, byte=v1, text=v1},
+    #{key-order=v1, test-vector-line=v1},
+}
+
+A test-vector set is a byte sequence that holds, in this order, and no
+other bytes: one set line; then group lines; then vector lines, each
+with a greater number than the vector line before it. The group lines
+are one group line for each text that is the group of one of these
+vector lines, and no other group line, in the key order of their groups.
+A group of a test-vector set is the group of one of its group lines. The
+revision of a group of a test-vector set is the revision of the group
+line of that group, and the revision of a test-vector set is the
+revision of its set line.
+
+#### 8.1.7 The meaning of a vector
+
+@term vector-meaning=v1
+@cites {
+    text#{conforming-program=v1, input=v1, result=v1, code-span=v1},
+    #{json-value=v1, vector-object=v1, test-vector-line=v1},
+}
+
+A vector is an input and what a conforming program gives for it. The
+object of a vector line states one vector:
+
+- The value of `input` is the input of the vector.
+- The value of `result` is the result that a conforming program gives
+  for that input.
+- The value of `values` is what the program gives with that result, or,
+  when the object has no member `result`, the output that the program
+  gives for that input.
+- The value of `note` explains the vector, and it is no part of the
+  input, the result, or the values.
+
+A vector with `result` and without `values` states the result, and
+states nothing about what the program gives with it.
+
+#### 8.1.8 Version sequences
 
 @term test-vector-version-sequence=v1
 @cites {
     text#{byte-sequence=v1, code-span=v1},
     #{
+        json-value=v1, vector-object=v1, test-vector-line=v1,
         test-vector-set=v1, test-vector-revision=v1,
         canonical-byte-sequence=v1,
     },
@@ -3076,21 +3129,20 @@ differ. These are the rules:
   revision of the vector line of e with the same number. The revision of
   each other vector line of l whose number is the number of a vector
   line of e is the same as the revision of that vector line of e.
-- For each group of a group line of both e and l: when a vector line of
-  l of that group changes, when l has a vector line of that group whose
-  number is the number of no vector line of that group in e, or when e
-  has a vector line of that group whose number is the number of no
-  vector line of that group in l, the revision of the group line in l is
-  higher than its revision in e. Otherwise, its revision in l is the
-  same as its revision in e.
-- For each group of a group line of l that is the group of no group line
-  of e, the revision of that group line is higher than the revision of
-  each group line of that group in each version before l.
+- For each group of both e and l: when a vector line of l of that group
+  changes, when l has a vector line of that group whose number is the
+  number of no vector line of that group in e, or when e has a vector
+  line of that group whose number is the number of no vector line of
+  that group in l, the revision of that group in l is higher than its
+  revision in e. Otherwise, the revision of that group in l is the same
+  as its revision in e.
+- For each group of l that is not a group of e, the revision of that
+  group in l is higher than its revision in each version before l that
+  has that group.
 - When a vector line of l changes, or when e or l has a vector line
   whose number is the number of no vector line of the other version, the
-  revision of the set line of l is higher than the revision of the set
-  line of e. Otherwise, the revision of the set line of l is the same as
-  the revision of the set line of e.
+  revision of l is higher than the revision of e. Otherwise, the
+  revision of l is the same as the revision of e.
 
 ### 8.2 Test-vector sets as input
 
@@ -3100,14 +3152,14 @@ differ. These are the rules:
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{result-list=v1, json-value=v1, test-vector-set=v1},
+    #{json-value=v1, test-vector-line=v1, test-vector-set=v1},
 }
 
-For each byte sequence, a conforming program must give the result
-"valid" and the objects of the set line, the group lines, and the vector
-lines of the byte sequence, in their order, when the byte sequence is a
-test-vector set. For every other byte sequence, it must give the result
-"invalid".
+For each byte sequence that is a test-vector set, a conforming program
+must give the result "valid" and the objects of the set line, the group
+lines, and the vector lines of the byte sequence, in their order, and no
+other result and no other object. For every other byte sequence, it must
+give the result "invalid", and no other result and no object.
 
 ### 8.3 Tests of version sequences
 
@@ -3117,17 +3169,20 @@ test-vector set. For every other byte sequence, it must give the result
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{result-list=v1, test-vector-version-sequence=v1},
+    #{test-vector-version-sequence=v1},
 }
 
 For each finite sequence of byte sequences, a conforming program must
-give the result "valid" when the sequence is a version sequence, and the
-result "invalid" when it is not.
+give the result "valid", and no other result, when the sequence is a
+version sequence, and the result "invalid", and no other result, when
+the sequence is not a version sequence.
 
 ### 8.4 Conformance
 
-A program, or a part of a program, conforms to the specification Test
-vectors when it meets every requirement of the specification.
+A program conforms to the specification `test-vectors` when it is a
+[conforming program](sinter:text#conforming-program=v1) of that
+[specification](sinter:text#specification=v1): it meets every
+requirement that the specification declares.
 
 Each vector gives an input and what a conforming program gives for it.
 These conventions apply:
@@ -3135,53 +3190,72 @@ These conventions apply:
 - A vector gives a byte sequence as its parts, in order, with commas
   between them. A part is a 0x numeral, for the byte that it writes, or
   characters between backticks, for the UTF-8 encoding of these
-  characters. A vector gives every byte of a byte sequence, each
-  final 0x0A included.
-- A result stands between double quotes. After "valid" and a colon
-  stands what a conforming program gives with the result. After
-  "invalid" and a colon stands an explanation of the result, which a
-  conforming program does not give.
+  characters. A vector gives every byte of a byte sequence, each final
+  0x0A included. A vector gives the byte sequence that has no bytes as
+  the empty byte sequence.
+- A vector gives a JSON value, such as an object, as its canonical form
+  between backticks.
+- A result stands between double quotes. After "valid", the word "with"
+  and the objects that follow it stand for what a conforming program
+  gives with the result: these objects, in their order. Then, after a
+  colon, an explanation of the result can stand, which a conforming
+  program does not give.
 
 #### 8.4.1 Test-vector sets
 
 Each item gives a byte sequence and what a conforming program gives for
 it as a test-vector set.
 
-- `{"rev":"v1"}`, 0x0A: "valid": the object `{"rev":"v1"}`.
+- `{"rev":"v1"}`, 0x0A: "valid" with the object `{"rev":"v1"}`.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "valid": the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
+  "valid" with the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
   `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`.
 - `{"rev":"v3"}`, 0x0A, `{"group":"g-2","rev":"v2"}`, 0x0A,
-  `{"group":"g-2","input":{"b":[1,{"c":true}]},"n":7,"note":"a note","result":"invalid","rev":"v2","values":["e"]}`, 0x0A: "valid":
-  the objects `{"rev":"v3"}`, `{"group":"g-2","rev":"v2"}`,
+  `{"group":"g-2","input":{"b":[1,{"c":true}]},"n":7,"note":"a note","result":"invalid","rev":"v2","values":["e"]}`,
+  0x0A: "valid" with the objects `{"rev":"v3"}`,
+  `{"group":"g-2","rev":"v2"}`,
   `{"group":"g-2","input":{"b":[1,{"c":true}]},"n":7,"note":"a note","result":"invalid","rev":"v2","values":["e"]}`.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"b","rev":"v1"}`, 0x0A,
   `{"group":"b","input":1,"n":1,"result":"valid","rev":"v1"}`, 0x0A,
   `{"group":"a","input":2,"n":2,"result":"valid","rev":"v1"}`, 0x0A:
-  "valid": the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
+  "valid" with the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
   `{"group":"b","rev":"v1"}`,
   `{"group":"b","input":1,"n":1,"result":"valid","rev":"v1"}`,
   `{"group":"a","input":2,"n":2,"result":"valid","rev":"v1"}`.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"abc","n":1,"rev":"v1","values":"ba7816bf"}`,
-  0x0A: "valid": the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
-  `{"group":"a","input":"abc","n":1,"rev":"v1","values":"ba7816bf"}`;
+  0x0A: "valid" with the objects `{"rev":"v1"}`,
+  `{"group":"a","rev":"v1"}`,
+  `{"group":"a","input":"abc","n":1,"rev":"v1","values":"ba7816bf"}`:
   the vector object has no member `result`, and its member `values`
   holds an output.
 - the empty byte sequence: "invalid": the byte sequence holds no set
   line.
 - `{"group":"a","rev":"v1"}`, 0x0A, `{"rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the set line is not the first line.
+  "invalid": the byte sequence does not start with a set line.
+- 0xEF, 0xBB, 0xBF, `{"rev":"v1"}`, 0x0A: "invalid": the byte sequence
+  does not start with a set line.
 - `{"rev":"v1"}`, 0x0A, `{"rev":"v1"}`, 0x0A: "invalid": the byte
   sequence holds two set lines.
+- `{"rev":"v1"}`, 0x0A, 0x0A: "invalid": the second byte 0x0A is no part
+  of a set line, a group line, or a vector line.
 - `{"rev":"v1"}`, 0x0A, `{"group":"b","rev":"v1"}`, 0x0A,
   `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":1,"n":1,"result":"valid","rev":"v1"}`, 0x0A,
   `{"group":"b","input":2,"n":2,"result":"valid","rev":"v1"}`, 0x0A:
   "invalid": the group lines are not in the key order of their groups.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": two group lines have the group `a`.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","rev":"v2"}`, 0x0A,
+  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": two group lines have the group `a`, one with the revision
+  v1 and one with the revision v2.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"b","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
@@ -3204,10 +3278,22 @@ it as a test-vector set.
   "invalid": two vector lines have the number 1.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":0,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the number of a vector line is 1 or more.
+  "invalid": the value of `n` is less than 1.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":"x","n":"1","result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": the value of `n` is a string, not an integer.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":"x","n":9007199254740992,"result":"valid","rev":"v1"}`,
+  0x0A: "invalid": the number 9,007,199,254,740,992 is greater than
+  9,007,199,254,740,991, so it is not an integer.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"extra":1,"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`,
   0x0A: "invalid": a vector object has no member `extra`.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1","x":1}`, 0x0A,
+  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": a group object has no member `x`.
+- `{"note":"x","rev":"v1"}`, 0x0A: "invalid": a set object has no member
+  `note`.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","n":1,"result":"valid","rev":"v1"}`, 0x0A: "invalid":
   the vector object has no member `input`.
@@ -3218,6 +3304,19 @@ it as a test-vector set.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":true,"rev":"v1"}`, 0x0A:
   "invalid": the value of `result` is not a string.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":"x","n":1,"note":1,"result":"valid","rev":"v1"}`,
+  0x0A: "invalid": the value of `note` is not a string.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":null,"n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": null is not a JSON value.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":1.5,"n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": `1.5` is not the canonical form of a JSON value.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":{"b":1,"a":2},"n":1,"result":"valid","rev":"v1"}`,
+  0x0A: "invalid": the members of the value of `input` are not in key
+  order.
 - `{"rev":"v0"}`, 0x0A: "invalid": `v0` is not a test-vector revision.
 - `{"rev":"v01"}`, 0x0A: "invalid": `v01` is not a test-vector revision.
 - `{"rev":"V1"}`, 0x0A: "invalid": `V1` is not a test-vector revision.
@@ -3227,8 +3326,11 @@ it as a test-vector set.
 - `{"rev":"v1"}`, 0x0A, `{"group":"A","rev":"v1"}`, 0x0A,
   `{"group":"A","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
   "invalid": `A` is not a group name.
+- `{"rev":"v1"}`, 0x0A, `{"group":"12","rev":"v1"}`, 0x0A,
+  `{"group":"12","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
+  "invalid": `12` is not a group name.
 - `{"rev": "v1"}`, 0x0A: "invalid": a space stands outside a string, so
-  the line is not the canonical byte sequence of an object.
+  the byte sequence does not start with a set line.
 - `{"rev":"v1"}`, 0x0A, `{"rev":"v1","group":"a"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
   "invalid": the members of the group object are not in key order.
@@ -3259,6 +3361,7 @@ version sequence.
 | L | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
 | M | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
 | N | `{"rev":"v1"}` |
+| O | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"b","rev":"v2"}`, 0x0A, `{"group":"b","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
 | P | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v3"}`, 0x0A |
 | Q | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
 | R | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
@@ -3267,6 +3370,9 @@ version sequence.
 | U | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v3"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v3","values":[2]}`, 0x0A |
 | V | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"b","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
 | W | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"b","rev":"v2"}`, 0x0A, `{"group":"b","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
+| X | `{"rev":"v5"}`, 0x0A, `{"group":"a","rev":"v3"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v4"}`, 0x0A |
+| Y | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v7"}`, 0x0A |
+| Z | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v3"}`, 0x0A |
 
 - (): "valid": a sequence of no versions.
 - (A): "valid": a sequence of one version.
@@ -3274,27 +3380,38 @@ version sequence.
 - (A, B): "valid": a change of a note alone changes no revision.
 - (A, C): "valid": vector 1 changes its result, and its revision, the
   revision of the group `a`, and the revision of the set rise.
+- (A, X): "valid": vector 1 changes its result, its revision rises from
+  v1 to v4, the revision of the group `a` rises from v1 to v3, and the
+  revision of the set rises from v1 to v5; a revision can rise by more
+  than 1.
 - (A, D): "invalid": vector 1 changes, and its revision does not rise.
 - (A, E): "invalid": vector 1 changes, and the revision of the set does
   not rise.
-- (A, F): "valid": vector 2 joins the group `a` and the set, and the
-  revisions of the group and of the set rise.
+- (A, F): "valid": vector 2 joins the group `a`, and the revisions of
+  the group and of the set rise.
+- (A, Y): "valid": vector 2 joins the group `a` with the revision v7; a
+  new vector can have any revision.
 - (A, G): "invalid": vector 2 joins the group `a`, and the revision of
   the group does not rise.
-- (A, F, H): "valid": vector 2 leaves the group `a` and the set, and the
-  revisions of the group and of the set rise.
+- (A, F, H): "valid": vector 2 leaves the group `a`, and the revisions
+  of the group and of the set rise.
 - (A, F, H, I): "invalid": the number 2 of a vector that left comes
   back.
 - (A, J): "invalid": the revision of vector 1 rises, and vector 1 does
   not change.
+- (B, J): "invalid": only the note of vector 1 changes, and the revision
+  of vector 1 rises.
 - (A, K): "valid": vector 1 moves from the group `a` to the new group
   `b`, its revision and the revision of the set rise, and the group `a`
-  leaves the set.
+  leaves.
 - (L, M): "invalid": the new number 2 is not greater than the number 3
   of an earlier version.
 - (A, N): "invalid": N is not a test-vector set.
 - (A, K, P): "invalid": the group `a` comes back with the revision v1
   that it had before.
+- (A, K, Z): "valid": vector 1 moves back to the group `a` and changes
+  its result, and the group `a` comes back with the revision v2, which
+  is higher than the revision v1 that it had before.
 - (A, Q): "invalid": the revision of the group `a` rises, and nothing in
   the group `a` changes.
 - (A, R): "invalid": the revision of the set rises, and no vector
@@ -3309,3 +3426,5 @@ version sequence.
 - (V, W): "valid": vector 1 moves from the group `a` to the group `b`,
   and both groups are in both versions; the revisions of vector 1, of
   both groups, and of the set rise.
+- (V, O): "invalid": vector 1 moves from the group `a` to the group `b`,
+  and the revision of the group `a` does not rise.
