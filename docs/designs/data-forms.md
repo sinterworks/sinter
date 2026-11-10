@@ -3423,15 +3423,21 @@ in `values`, so a vector object need not be a line object.
 The forms of its group give the meaning of each vector line. The forms
 of a group are four things that the Conformance section of the design of
 the vectors gives for that group, or, for the vectors of a
-specification, the Conformance part of that specification:
+specification, the Conformance part of that specification. The text of
+the forms of a group is the whole text of that Conformance section or
+part, so a change anywhere in it changes the forms of every group that
+it gives:
 
 1. the requirements of the group, from which the vectors of the group
    follow;
 2. what the value of `input` stands for: one input of a conforming
    program, such as a byte sequence as its hex text, or several inputs,
    such as a text and a place of that text;
-3. which of these inputs the value of `result` is the result of;
-4. what the value of `values` stands for. It can stand for a thing that
+3. which of these inputs the value of `result` is the result of, and,
+   when the requirements oblige that result only when a conforming
+   program gives a result for that input, that condition;
+4. what the value of `values` stands for, such as the results of the
+   other inputs. It can stand for a thing that
    a conforming program gives when it gives a thing of that kind, for
    things of which a conforming program gives one in place of another,
    and for a thing that a conforming program does not give.
@@ -3440,20 +3446,23 @@ By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
 give for that input. The value of `result` is the result that these
 requirements oblige a conforming program to give for the input that the
-forms name for `result`. The value of `values` stands for what these
-requirements oblige a conforming program to give for the input, other
-than a result. A vector object without the member `result` states
-nothing about a result, and a vector object without the member `values`
+forms name for `result`, or, under the condition that the forms name, to
+give whenever it gives a result for that input. The value of `values`
+stands for what these requirements oblige a conforming program to give
+for the input, other than the result that the value of `result` stands
+for, such as the results of the other inputs. A vector object without
+the member `result` states no result other than those that the value of
+`values` stands for, and a vector object without the member `values`
 states nothing about what a conforming program gives for the input,
-other than a result. Each vector object has the member `result` or the
+other than the result that the value of `result` stands for. Each vector object has the member `result` or the
 member `values`, or both. The value of `note` explains the vector, and
 it is no part of the input, the result, or the values.
 
 Each vector, each group, and the whole set have a revision, such as
 `v2`. The forms of a group are part of the meaning of each vector of the
 group. So a version of the vectors is a test-vector set together with
-the forms of each of its groups, given as texts, such as the texts that
-a Conformance section gives for these groups. From one version to the
+the forms of each of its groups, given as texts: the whole text of the
+Conformance section or part that gives them. From one version to the
 next, when the group, the input, the result, or the values of a vector
 change, the revision of the vector rises, and so do the revision of each
 group that holds it in either version and is in both versions, and the
@@ -3593,7 +3602,8 @@ revision of its set line.
 
 For a specification S of a design and a group name g, the forms of the
 group g of S are these four things, which the Conformance part of S
-gives for g:
+gives for g, and the text of these forms is the whole text of that
+Conformance part:
 
 1. the requirements of the group g, which are requirements that S
    declares;
@@ -3603,11 +3613,14 @@ gives for g:
    the fixed form in which the value of `input` holds them, such as the
    hex text of a byte sequence;
 3. which of these inputs the value of `result` of such a vector object
-   is the result of;
+   is the result of; and, when the requirements of the group g oblige
+   that result only when a conforming program of S gives a result for
+   that input, that condition;
 4. what the value of `values` of such a vector object stands for: what
    a conforming program of S gives, or does not give, for these inputs,
-   other than a result; and the fixed form in which the value of
-   `values` holds it. The value of `values` can stand for a thing that
+   other than the result that the value of `result` stands for, such as
+   the results of the other inputs; and the fixed form in which the
+   value of `values` holds it. The value of `values` can stand for a thing that
    the program gives when it gives a thing of that kind, such as the
    text of a byte sequence when the program gives a text for that byte
    sequence; for things of which the program gives one in place of
@@ -3618,7 +3631,8 @@ For a design D and a group name g, the forms of the group g of D are the
 same four things, which the Conformance section of D gives for g, with
 the requirements that D holds outside its specifications in place of the
 requirements that S declares, and with a conforming program of D in
-place of a conforming program of S.
+place of a conforming program of S. The text of these forms is the
+whole text of the Conformance section of D.
 
 #### 8.1.8 The meaning of a vector
 
@@ -3651,15 +3665,19 @@ object states this:
   input of a conforming program of S, or of D, or several.
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
-  `result` as its result for the input that the forms name for `result`.
-  The object states nothing about a result for another of these inputs.
+  `result` as its result for the input that the forms name for
+  `result`; or, when the forms name the condition of a result, to give
+  that value, and no other result, whenever it gives a result for that
+  input. The object states nothing about a result for another of these
+  inputs, other than what the value of `values` stands for.
 - When the object has the member `values`, the requirements of the
   group g oblige a conforming program of S, or of D, to give, for the
   input of the vector, what the value of `values` stands for.
-- An object without the member `result` states nothing about a result.
-  An object without the member `values` states nothing about what a
-  conforming program gives for the input of the vector, other than a
-  result.
+- An object without the member `result` states no result other than
+  those that the value of `values` stands for. An object without the
+  member `values` states nothing about what a conforming program gives
+  for the input of the vector, other than the result that the value of
+  `result` stands for.
 - The value of `note` explains the vector, and it is no part of the
   input, the result, or the values.
 
@@ -3676,8 +3694,9 @@ object states this:
 }
 
 A version is a test-vector set together with a text for each group of
-that test-vector set: the forms of that group in that version, such as
-the text that a Conformance section gives for the forms of that group.
+that test-vector set: the text of the forms of that group in that
+version, which is the whole text of the Conformance section or part
+that gives these forms.
 The vector lines, the groups, and the revision of a version are those of
 its test-vector set, and the revision of a group in a version is the
 revision of that group of its test-vector set.
