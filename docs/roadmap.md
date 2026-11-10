@@ -171,6 +171,32 @@
   reports no name for them. The OCaml pack needs a way to bind their
   results before it can read them as tests. This matters because
   Sinter checks its own code. Not designed.
+- **Test adapters for conformance vectors** — a library for each test
+  framework that loads the conformance vectors of a design and runs one
+  test case for each vector, so that a test of an implementation cites
+  the vectors that it checks. Not designed.
+  - A test names its vectors with a citation, such as
+    `data-forms#toml[offsets][*]=v2`. The adapter loads exactly those
+    vectors from the file `data-forms.toml.test-vectors.jsonl`.
+  - Each vector becomes one test case, so a failure names the vector by
+    its number and its group.
+  - The adapter fails a test whose pinned revision no longer matches
+    the revision of the vectors that it selects.
+  - Sinter traces each such test to the vectors that it cites, and
+    reports each vector that no test exercises. The language pack of the
+    test's language must read the citation, in a comment or in the call
+    of the adapter.
+  - The first adapter is for Python and pytest, as a decorator. Others
+    follow for the test frameworks of the language packs.
+  - In Python, the decorator takes the selection as an expression, not
+    as a string: `@verifies(data_forms.toml["offsets"][:] @ "v2")`.
+    Attributes name the design and its specification, a subscript
+    selects a group or one vector, `[:]` selects every vector, and the
+    operator `@` pins the revision. The language pack for Python can read
+    the call as the citation `data-forms#toml[offsets][*]=v2`, so the
+    test needs no separate comment.
+  - It needs citable conformance vectors and the format of their lines,
+    which the redesign of Sinter decides.
 - **Tags in Python docstrings** — in Python, a docstring is a statement
   that consists of one string literal, not an f-string, and that is
   the first statement of a module, a class, or a function. Python
