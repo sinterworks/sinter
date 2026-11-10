@@ -6,19 +6,17 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites commonmark/0.31.2
-A parser reads lines, links, images, id patterns, ids, and bindings of `external-namespaces`; it gives a result for each input, and values for some inputs.
+Specifies the grammar of tags, identifiers, and links as used in Sinter and requirements for conforming parsers.
 
 A tag line starts, after any spaces and tabs, with a tag word such as
 `@req`. A declaration, such as `@req size-limit=v2`, is a tag line that
-gives a name and a revision. A citation, such as
-`@cites packs#size-limit=v2`, is a tag line that gives what it cites:
+yields a name and a revision. A citation, such as
+`@cites packs#size-limit=v2`, is a tag line that yields what it cites:
 a name and a revision, or an external id. A citation can also cite
 several things in a target list or a scoped list, such as
 `@cites {#notation=v1, gh/42}` and
 `@cites packs#{size=v1, descriptor=v2}`. An inline citation is a link
-of a markdown document that cites in the same way. An id pattern gives
-the form of the ids of an external namespace, such as the issue
-numbers of a tracker.
+written within a block of text that cites in the same way.
 
 The productions in section 4 are written in ABNF, the notation of
 RFC 5234. A production, such as `slug = segment *( "/" segment )`,
@@ -605,16 +603,16 @@ the code point of one character, so `%x41` matches the character
 U+0041. A text matches a production when the production matches the
 whole of the text.
 
-### 4.3 Results and values
+### 4.3 Results
 
 @req result-list=v1
 @cites #{characters=v1}
 
-The results are these seven: "not a tag line", "other tag word", "not
-an inline citation", "valid", "invalid", "fits", and "does not fit". To
-reject is to give the result "invalid". To accept is to give the result
-"valid". A value is a text or a fact that a conforming parser gives
-together with a result.
+The results of a conforming parser are these seven: "not a tag line",
+"other tag word", "not an inline citation", "valid", "invalid", "fits",
+and "does not fit". To reject is to give the result "invalid". To
+accept is to give the result "valid". A value is a text or a fact that
+a conforming parser gives together with a result.
 
 ### 4.4 Tag lines
 
@@ -652,9 +650,9 @@ status word. A directive is a tag line whose tag word is a directive
 word. An `@ack` line is a tag line whose tag word is `@ack`, and an
 `@extern` line is a tag line whose tag word is `@extern`.
 
-### 4.6 Continuation lines
+### 4.6 Line continuations
 
-@req continuation=v1
+@req line-continuation=v1
 @cites #{tag-lines=v1, tag-words=v1, characters=v1}
 
 A conforming parser reads the lines that a program gives to it in their
@@ -686,7 +684,7 @@ tabs. The text of each other tag line is its line.
 @req line-layout=v1
 @cites #{
     notation=v1, characters=v1, tag-lines=v1, tag-words=v1,
-    continuation=v1,
+    line-continuation=v1,
 }
 
 The production `any-char` matches each character, and the other
@@ -940,11 +938,11 @@ namespace-name  = %x61-7A *( %x61-7A / DIGIT )
                   *( "-" 1*( %x61-7A / DIGIT ) )
 ```
 
-### 4.19 Inputs
+### 4.19 Parser inputs
 
-@req inputs=v1
+@req parser-inputs=v1
 @cites #{
-    tag-lines=v1, links=v1, continuation=v1, tag-words=v1,
+    tag-lines=v1, links=v1, line-continuation=v1, tag-words=v1,
     id-pattern-grammar=v1, external-namespaces=v1, result-list=v1,
 }
 
@@ -960,47 +958,56 @@ The inputs of a conforming parser are these:
 - each pair of an id pattern and an id that a program gives to the
   parser, when that id pattern is an input that the parser accepts.
 
-### 4.20 The form of an id pattern
+### 4.20 Unmatched id patterns
 
 @req reject-unmatched-id-patterns=v1
-@cites #{result-list=v1, id-pattern-grammar=v1, inputs=v1, notation=v1}
+@cites #{
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    notation=v1,
+}
 
 A conforming parser must reject each id pattern that is an input and
 that does not match the production `pattern`.
 
-### 4.21 Ranges in id patterns
+### 4.21 Reversed ranges in id patterns
 
 @req reject-reversed-ranges=v1
 @cites #{
-    result-list=v1, id-pattern-grammar=v1, inputs=v1, characters=v1,
-    notation=v1,
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    characters=v1, notation=v1,
 }
 
 A conforming parser must reject each id pattern that is an input and
 that holds a `range` whose first character comes after its last
 character in code point order.
 
-### 4.22 Counts in id patterns
+### 4.22 Limit counts in id patterns
 
 @req reject-large-counts=v1
-@cites #{result-list=v1, id-pattern-grammar=v1, inputs=v1, notation=v1}
+@cites #{
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    notation=v1,
+}
 
 A conforming parser must reject each id pattern that is an input and
 that holds a `count` whose number is greater than 255.
 
-### 4.23 Bounds in id patterns
+### 4.23 Reversed bounds in id patterns
 
 @req reject-reversed-bounds=v1
-@cites #{result-list=v1, id-pattern-grammar=v1, inputs=v1, notation=v1}
+@cites #{
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    notation=v1,
+}
 
 A conforming parser must reject each id pattern that is an input and
 that holds a quantifier `{n,m}` in which `n` is greater than `m`.
 
-### 4.24 Testing ids
+### 4.24 Test ids
 
 @req test-ids=v1
 @cites #{
-    inputs=v1, id-pattern-grammar=v1, result-list=v1,
+    parser-inputs=v1, id-pattern-grammar=v1, result-list=v1,
     id-pattern-meaning=v1,
 }
 
@@ -1008,12 +1015,12 @@ For each input that is a pair of an id pattern and an id, a conforming
 parser must give the result "fits" when the id fits the id pattern, and
 the result "does not fit" when it does not.
 
-### 4.25 The empty id
+### 4.25 Empty ids
 
 @req reject-empty-id-fit=v1
 @cites #{
-    result-list=v1, id-pattern-grammar=v1, inputs=v1, characters=v1,
-    id-pattern-meaning=v1,
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    characters=v1, id-pattern-meaning=v1,
 }
 
 A conforming parser must reject each id pattern that is an input and
@@ -1042,7 +1049,7 @@ give:
 
 @req reject-oversized-id-patterns=v1
 @cites #{
-    result-list=v1, id-pattern-grammar=v1, inputs=v1,
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
     id-pattern-size=v1,
 }
 
@@ -1053,7 +1060,8 @@ whose size is greater than 1,000.
 
 @req reject-long-id-patterns=v1
 @cites #{
-    result-list=v1, id-pattern-grammar=v1, inputs=v1, characters=v1,
+    result-list=v1, id-pattern-grammar=v1, parser-inputs=v1,
+    characters=v1,
 }
 
 A conforming parser must reject each id pattern that is an input and
@@ -1075,12 +1083,12 @@ holds a namespace name that does not match `namespace-name`.
 A conforming parser must reject a binding of `external-namespaces` in
 which two pairs have the same namespace name.
 
-### 4.31 The id patterns of a binding
+### 4.31 Invalid binding patterns
 
 @req reject-invalid-binding-patterns=v1
 @cites #{
     result-list=v1, external-namespaces=v1, id-pattern-grammar=v1,
-    inputs=v1, reject-unmatched-id-patterns=v1,
+    parser-inputs=v1, reject-unmatched-id-patterns=v1,
     reject-reversed-ranges=v1, reject-large-counts=v1,
     reject-reversed-bounds=v1, reject-empty-id-fit=v1,
     reject-oversized-id-patterns=v1, reject-long-id-patterns=v1,
@@ -1092,7 +1100,7 @@ of these requirements: `reject-unmatched-id-patterns`, `reject-reversed-ranges`,
 `reject-large-counts`, `reject-reversed-bounds`, `reject-empty-id-fit`,
 `reject-oversized-id-patterns`, and `reject-long-id-patterns`.
 
-### 4.32 A rejected binding
+### 4.32 Rejected bindings
 
 @req give-no-results-under-rejected-bindings=v1
 @cites #{external-namespaces=v1, result-list=v1, tag-lines=v1, links=v1}
@@ -1165,7 +1173,7 @@ declaration-line  = indent ( %s"@decision" / %s"@design"
 
 @req citation-grammar=v1
 @cites #{
-    characters=v1, continuation=v1, tag-words=v1, notation=v1,
+    characters=v1, line-continuation=v1, tag-words=v1, notation=v1,
     line-layout=v1, kind-words=v1, segments=v1, revisions=v1,
     external-ids=v1,
 }
@@ -1214,7 +1222,7 @@ An every-part target is a text that `every-part` matches.
 
 @req scoped-lists=v1
 @cites #{
-    notation=v1, characters=v1, continuation=v1, tag-words=v1,
+    notation=v1, characters=v1, line-continuation=v1, tag-words=v1,
     citation-grammar=v1, segments=v1, revisions=v1,
 }
 
@@ -1231,7 +1239,7 @@ before its `{`, and then that `part-name`, that `=`, and that
 
 @req entries=v1
 @cites #{
-    notation=v1, characters=v1, continuation=v1, tag-words=v1,
+    notation=v1, characters=v1, line-continuation=v1, tag-words=v1,
     citation-grammar=v1, scoped-lists=v1, tag-lines=v1, segments=v1,
     external-ids=v1,
 }
@@ -1309,7 +1317,7 @@ inline-destination  = %s"sinter:" [ kind-word ":" ]
 
 @req input-matches=v1
 @cites #{
-    notation=v1, inputs=v1, characters=v1, continuation=v1,
+    notation=v1, parser-inputs=v1, characters=v1, line-continuation=v1,
     tag-lines=v1, destinations=v1, declaration-grammar=v1, tag-words=v1,
     citation-grammar=v1, status-grammar=v1, extern-grammar=v1,
     ack-grammar=v1, inline-grammar=v1, external-targets=v1,
@@ -1384,10 +1392,10 @@ name "the tag word".
 @req give-values=v1
 @cites #{
     external-namespaces=v1, result-list=v1, tag-words=v1,
-    destinations=v1, inputs=v1, entries=v1, notation=v1, tag-lines=v1,
-    characters=v1, ack-grammar=v1, link-text=v1, kind-words=v1,
-    segments=v1, citation-grammar=v1, external-ids=v1, revisions=v1,
-    line-layout=v1, input-matches=v1,
+    destinations=v1, parser-inputs=v1, entries=v1, notation=v1,
+    tag-lines=v1, characters=v1, ack-grammar=v1, link-text=v1,
+    kind-words=v1, segments=v1, citation-grammar=v1, external-ids=v1,
+    revisions=v1, line-layout=v1, input-matches=v1,
 }
 
 Under a binding of `external-namespaces` that it accepts, a conforming
@@ -1426,7 +1434,10 @@ its name in the first column of its table:
 ### 4.49 No other values
 
 @req give-no-other-values=v1
-@cites #{result-list=v1, inputs=v1, give-values=v1, give-tag-words=v1}
+@cites #{
+    result-list=v1, parser-inputs=v1, give-values=v1,
+    give-tag-words=v1,
+}
 
 A conforming parser must give no value for an input other than the
 values that the requirements `give-values` and `give-tag-words` state for
@@ -1436,7 +1447,7 @@ that input.
 
 @req give-results=v1
 @cites #{
-    result-list=v1, inputs=v1, tag-lines=v1, links=v1,
+    result-list=v1, parser-inputs=v1, tag-lines=v1, links=v1,
     external-namespaces=v1, tag-words=v1, destinations=v1,
     id-pattern-grammar=v1,
 }
@@ -1462,7 +1473,7 @@ result for anything that is not an input.
 
 @req accept-inputs=v1
 @cites #{
-    result-list=v1, inputs=v1, tag-words=v1, destinations=v1,
+    result-list=v1, parser-inputs=v1, tag-words=v1, destinations=v1,
     id-pattern-grammar=v1, external-namespaces=v1,
     reject-unmatched-id-patterns=v1, reject-reversed-ranges=v1,
     reject-large-counts=v1, reject-reversed-bounds=v1,
