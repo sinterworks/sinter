@@ -7,7 +7,7 @@
  (libraries sinter_text sinter_id_patterns)
  (flags
   (:standard -open Sinter_id_patterns))
- (private_modules lexical)
+ (private_modules lexical grammar)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation
