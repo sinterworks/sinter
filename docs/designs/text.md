@@ -354,19 +354,28 @@ has the start line 1, column 4, and the end line 1, column 4.
 | `a`, a line feed | 2 to 2 | line 2, column 1 | line 2, column 1 |
 | the empty text | 0 to 0 | line 1, column 1 | line 1, column 1 |
 
-### 2.5 Designs, requirements, and conforming programs
+### 2.5 Designs, specifications, requirements, and conforming programs
 
 A design is a document that declares, each under a name, obligations
 and definitions. A definition of a design is a definition that the
 design declares under a name, such as `whole-number`. A requirement is
 an obligation that a design declares under a name, such as
-`give-lines`, and states with the word must. A conforming program of a
-design is a program, or a part of a program, that meets every
-requirement of the design. So one program can hold conforming programs
-of several designs. In a design, a conforming program is a conforming
-program of that design, and each obligation that a requirement of that
-design states with the word must is an obligation of each conforming
-program of that design.
+`give-lines`, and states with the word must. A specification of a
+design is a part of the design that has a name of its own and that
+declares some of the obligations and definitions of the design.
+
+A conforming program of a design is a program, or a part of a program,
+that meets every requirement of the design. A conforming program of a
+specification meets every requirement that the specification declares,
+and it need not meet the other requirements of the design. So one
+program can hold conforming programs of several designs and of several
+specifications. In a specification of a design, a conforming program is
+a conforming program of that specification. Elsewhere in a design, a
+conforming program is a conforming program of that design. Each
+obligation that a requirement states with the word must is an
+obligation of each conforming program of the design that declares the
+requirement and, when a specification of that design declares the
+requirement, of each conforming program of that specification.
 
 ### 2.6 Code spans and blocks
 
