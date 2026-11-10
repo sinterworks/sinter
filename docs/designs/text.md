@@ -36,50 +36,53 @@ text, the rule `UTF8-char`, which gives the bytes that encode one
 character, and the rule `UTF8-octets`, which gives the byte sequences
 that are valid UTF-8.
 
-## 1. Terms
+## 1. Glossary
 
 | term | meaning |
 |---|---|
-| design | a document that holds requirements |
-| requirement | a definition, or an obligation of a conforming program, that a design holds under a name |
-| cite | a requirement cites another requirement when it names that requirement as one whose definitions it uses |
-| conforming program | a program, or a part of a program, that meets every requirement of a design |
-| must | states an obligation of a conforming program |
-| input | a thing that a conforming program takes, such as a byte sequence or a text |
+| [item](sinter:#item=v1) | a definition or an obligation that a document declares under a name; an item cites another item when it names that item as one whose meaning it uses |
+| term | an item that is a definition, such as `whole-number` |
+| [requirement](sinter:#requirement=v1) | an item that is an obligation, such as `give-lines` |
+| [design](sinter:#design=v1) | a document that declares items |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| must | the word with which a requirement states an obligation of a conforming program |
+| [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
 | decode | a conforming program decodes a byte sequence as UTF-8 when it tests whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
-| result | a text that a requirement names, between double quotes, as what a conforming program gives for an input, such as "valid" |
-| whole number | a number with no fractional part, such as −7, 0, or 42 |
-| decimal numeral | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
-| 0x numeral | a text that matches the production `x-numeral`: `0x`, then one or more of `0` to `9` and `A` to `F`; it writes a whole number in base 16, such as 0x0A for 10 |
-| U+ numeral | a text that matches the production `u-numeral`: `U+`, then four to six of `0` to `9` and `A` to `F`; it writes a whole number in base 16, such as U+0041 for 65, and, when that number is the code point of a character, names that character |
-| hex digit | one of the characters `0` to `9` and `a` to `f`, which write the whole numbers 0 to 15 |
-| code point | a whole number from 0 to 1,114,111, written as U+0000 to U+10FFFF |
-| character | a unit of text that has one code point, a Unicode scalar value: from U+0000 to U+D7FF, or from U+E000 to U+10FFFF |
-| code point order | the order of characters by their code points |
-| space, tab, line feed, carriage return | the characters U+0020, U+0009, U+000A, and U+000D |
-| text | a finite sequence of characters |
+| [result](sinter:#result=v1) | a text that a requirement names, between double quotes, as what a conforming program gives for an input, such as "valid" |
+| [whole number](sinter:#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
+| [decimal numeral](sinter:#decimal-numeral=v1) | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
+| [0x numeral](sinter:#0x-numeral=v1) | `0x`, then one or more of `0` to `9` and `A` to `F`, which writes a whole number in base 16, such as 0x0A for 10 |
+| [U+ numeral](sinter:#u-numeral=v1) | `U+`, then four to six of `0` to `9` and `A` to `F`, which writes a whole number in base 16, such as U+0041 for 65, and, when that number is the code point of a character, names that character |
+| [hex digit](sinter:#hex-digit=v1) | one of the characters `0` to `9` and `a` to `f`, which write the whole numbers 0 to 15 |
+| [code point](sinter:#code-point=v1) | a whole number from 0 to 1,114,111, written as U+0000 to U+10FFFF |
+| [character](sinter:#character=v1) | a unit of text that has one code point, a Unicode scalar value: from U+0000 to U+D7FF, or from U+E000 to U+10FFFF |
+| [code point order](sinter:#code-point-order=v1) | the order of characters by their code points |
+| [space](sinter:#space=v1), [tab](sinter:#tab=v1), [line feed](sinter:#line-feed=v1), [carriage return](sinter:#carriage-return=v1) | the characters U+0020, U+0009, U+000A, and U+000D |
+| [code span](sinter:#code-span=v1) | the characters between two backticks in an item, such as `%x61`, which stand for those characters and not for the backticks |
+| [text](sinter:#text=v1) | a finite sequence of characters |
 | empty text | the text of no characters |
-| place | the whole number, counted from 1, at which a character is in a text, or a byte is in a byte sequence |
-| boundary | a whole number from 0 to the number of characters of a text: boundary 0 is before place 1, and each other boundary is right after the place with the same number |
-| run | a part of a text that starts at a boundary, ends at the same boundary or a later boundary, and holds the characters between these two boundaries, each at its place, such as the run of `abcde` that starts at boundary 2, ends at boundary 4, and holds `cd`; a run can be empty |
+| [place](sinter:#place=v1) | the whole number, counted from 1, at which a character is in a text, or a byte is in a byte sequence |
+| [boundary](sinter:#boundary=v1) | a whole number from 0 to the number of characters of a text: boundary 0 is before place 1, and each other boundary is right after the place with the same number |
+| [run](sinter:#run=v1) | a part of a text that starts at a boundary, ends at the same boundary or a later boundary, and holds the characters between these two boundaries, each at its place, such as the run of `abcde` that starts at boundary 2, ends at boundary 4, and holds `cd`; a run can be empty |
+| boundary of a run | a boundary of a text from the boundary where a run starts to the boundary where the run ends, such as a boundary of the body |
 | Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9 |
-| byte | a whole number from 0 to 255 |
-| byte sequence | a finite sequence of bytes |
-| UTF-8 encoding | the byte sequence that encodes a text in UTF-8 |
-| valid UTF-8 | a byte sequence is valid UTF-8 when it is the UTF-8 encoding of a text |
-| text of a byte sequence | the text whose UTF-8 encoding a byte sequence is |
+| [byte](sinter:#byte=v1) | a whole number from 0 to 255 |
+| [byte sequence](sinter:#byte-sequence=v1) | a finite sequence of bytes |
+| [UTF-8 encoding](sinter:#utf-8-encoding=v1) | the byte sequence that encodes a text in UTF-8 |
+| [valid UTF-8](sinter:#valid-utf-8=v1) | a byte sequence is valid UTF-8 when it is the UTF-8 encoding of a text |
+| [text of a byte sequence](sinter:#text-of-a-byte-sequence=v1) | the text whose UTF-8 encoding a byte sequence is |
 | overlong encoding | a byte sequence that would encode a character in more bytes than the UTF-8 encoding of that character has |
-| byte order mark | the character U+FEFF at place 1 of a text |
-| body | the run of a text that starts at boundary 1 when the text has a byte order mark, and at boundary 0 when it has none, and that ends at the last boundary of the text |
-| boundary of the body | a boundary of a text from the boundary where the body starts to the boundary where the body ends |
-| line ending | the run of a body that holds a line feed and, when the body holds a carriage return right before that line feed, that carriage return |
-| line | one of the runs into which the line endings divide a body, except an empty run that ends at the boundary where the body ends |
-| line number | the first of the two whole numbers of a position: 1 for the first line of a text, and 1 more for each later line |
+| [byte order mark](sinter:#byte-order-mark=v1) | the character U+FEFF at place 1 of a text |
+| [body](sinter:#body=v1) | the run of a text that starts at boundary 1 when the text has a byte order mark, and at boundary 0 when it has none, and that ends at the last boundary of the text |
+| [line ending](sinter:#line-ending=v1) | the run of a body that holds a line feed and, when the body holds a carriage return right before that line feed, that carriage return |
+| [line](sinter:#line=v1) | one of the runs into which the line endings divide a body, except an empty run that ends at the boundary where the body ends |
+| [line number](sinter:#line-number=v1) | the number of a line: 1 for the first line of a text, and 1 more for each later line; also the first of the two whole numbers of a position |
 | column | the second of the two whole numbers of a position |
-| position | a line number and a column, such as line 3, column 7 |
-| span | a run of a text that starts and ends at boundaries of the body; its start and its end are positions |
+| [position](sinter:#position=v1) | a line number and a column, such as line 3, column 7 |
+| [span](sinter:#span=v1) | a run of a text that starts and ends at boundaries of the body; its start and its end are positions |
 | ABNF | the notation for grammars of RFC 5234, with the case-sensitive strings of RFC 7405 |
-| production | a rule of ABNF that a requirement holds, such as `hex-digit = DIGIT / %x61-66`, which gives the texts that its name matches |
+| [production](sinter:#production=v1) | a rule of ABNF that an item holds, such as `hex-digit = DIGIT / %x61-66`, which gives the texts that its name matches |
+| [rule name](sinter:#rule-name=v1) | the name of a rule of ABNF, such as `DIGIT`, which names a core rule or a rule of an item |
 | terminal value | a number into which a rule of ABNF resolves, such as 0x61 for `%x61` |
 
 ## 2. Numbers, texts, bytes, lines, and notation
@@ -116,8 +119,9 @@ is the code point of exactly one character. So U+D800 is a code point,
 and no character has it. A U+ numeral that writes the code point of a
 character also names that character: U+0041 names the character `A`.
 
-In a requirement, characters between two backticks, such as `%x61`, are
-those characters, and the backticks are not part of them.
+In a term or a requirement, the characters between two backticks, such
+as `%x61`, are a code span. A code span stands for those characters,
+and the backticks are not part of them.
 
 These four characters have names:
 
@@ -348,31 +352,32 @@ matches no character.
 A production can use the core rules of RFC 5234, such as `DIGIT` and
 `HEXDIG`. A quoted string matches its letters in either case, and the
 core rule `HEXDIG` uses quoted strings for its letters. So `HEXDIG`
-matches both `a` and `A`. The production `hex-digit` of section 3.11
+matches both `a` and `A`. The production `hex-digit` of section 3.19
 uses `%x61-66` for its letters, so it matches `a` and does not match
 `A`.
 
-A requirement cites another requirement when it names that requirement
-as one whose definitions it uses. A rule name in a rule of ABNF that a
-requirement holds names a core rule, a rule of that requirement, or a
-rule of a requirement that it cites, without regard to case. So `digit`
+An item cites another item when it names that item as one whose
+meaning it uses. A rule name in a rule of ABNF that an item holds names
+a core rule, a rule of that item, or a rule of an item that it cites,
+without regard to case. So `digit`
 names the core rule `DIGIT`. A rule of ABNF is a production only when
 each of its rule names names exactly one rule. A production holds no
 prose value, which RFC 5234 writes between `<` and `>`.
 
 A text matches a production only as a whole. The text `42` matches the
-production `decimal-numeral` of section 3.9, and the text `42a` does
+production `decimal-numeral` of section 3.16, and the text `42a` does
 not, although the first two characters of `42a` are `42`. A character
 matches a production when the text of that one character matches it,
 so the character `a` matches `hex-digit`.
 
 ### 2.6 Conforming programs, inputs, and results
 
-A design is a document that holds requirements. A requirement is a
-definition, or an obligation of a conforming program, that a design
-holds under a name, such as `whole-numbers`. A conforming program of a
-design is a program, or a part of a program, that meets every
-requirement of the design. So one program can hold conforming programs
+An item is a definition or an obligation that a document declares
+under a name. A term is an item that is a definition, such as
+`whole-number`, and a requirement is an item that is an obligation, such
+as `give-lines`. A design is a document that declares items. A
+conforming program of a design is a program, or a part of a program,
+that meets every requirement of the design. So one program can hold conforming programs
 of several designs. In a design, a conforming program is a conforming
 program of that design, and each obligation that a requirement of that
 design states with the word must is an obligation of each conforming
@@ -404,90 +409,139 @@ character has no position. It also gives no line number and no column as
 the start or the end of a run that is not a span, such as a run that
 starts at boundary 0 of a text that has a byte order mark.
 
-## 3. Requirements
+## 3. Definitions
 
 ### 3.1 Whole numbers
 
-@req whole-numbers=v1
+@term whole-number=v1
 
 A whole number is a number with no fractional part: 0, 1, 2, and so on,
 or −1, −2, and so on.
 
-### 3.2 Characters
+### 3.2 Code points
 
-@req characters=v1
-@cites #{whole-numbers=v1}
+@term code-point=v1
+@cites #{whole-number=v1}
 
-A code point is a whole number from 0 to 1,114,111. Each character has
-one code point, which is a Unicode scalar value: a whole number from 0
-to 55,295 or from 57,344 to 1,114,111. Each Unicode scalar value is the
-code point of exactly one character. A space is the character whose
-code point is 32, a tab is the character whose code point is 9, a line
-feed is the character whose code point is 10, and a carriage return is
-the character whose code point is 13.
+A code point is a whole number from 0 to 1,114,111.
 
-### 3.3 Backticks
+### 3.3 Characters
 
-@req backticks=v1
-@cites #{characters=v1, conforming-programs=v1}
+@term character=v1
+@cites #{code-point=v1, whole-number=v1}
 
-In a requirement, characters between two backticks are those
-characters, and the backticks are not part of them.
+Each character has one code point, which is a Unicode scalar value: a
+whole number from 0 to 55,295 or from 57,344 to 1,114,111. Each Unicode
+scalar value is the code point of exactly one character.
 
-### 3.4 Code point order
+### 3.4 Spaces
 
-@req code-point-order=v1
-@cites #{characters=v1}
+@term space=v1
+@cites #{character=v1, code-point=v1}
+
+A space is the character whose code point is 32.
+
+### 3.5 Tabs
+
+@term tab=v1
+@cites #{character=v1, code-point=v1}
+
+A tab is the character whose code point is 9.
+
+### 3.6 Line feeds
+
+@term line-feed=v1
+@cites #{character=v1, code-point=v1}
+
+A line feed is the character whose code point is 10.
+
+### 3.7 Carriage returns
+
+@term carriage-return=v1
+@cites #{character=v1, code-point=v1}
+
+A carriage return is the character whose code point is 13.
+
+### 3.8 Code spans
+
+@term code-span=v1
+@cites #{character=v1, item=v1}
+
+A code span is the characters between two backticks in an item. A code
+span stands for those characters, and the backticks are not part of
+them.
+
+### 3.9 Code point order
+
+@term code-point-order=v1
+@cites #{character=v1, code-point=v1}
 
 One character comes before another in code point order, and the other
 comes after it, when, and only when, the code point of the one is less
 than the code point of the other.
 
-### 3.5 Texts
+### 3.10 Texts
 
-@req texts=v1
-@cites #{characters=v1, whole-numbers=v1}
+@term text=v1
+@cites #{character=v1}
 
 A text is a finite sequence of characters. The empty text is the text
-of no characters. The places of a text are numbered from 1, one place
-for each character of the text, in the order of the text: the character
-at place 1 is the first character of the text. Two texts are the same
-text when, and only when, they have the same number of characters and
-the same character at each place.
+of no characters. Two texts are the same text when, and only when, they
+have the same number of characters and, in their order, the same first
+character, the same second character, and so on to the last character.
 
-### 3.6 Runs
+### 3.11 Places
 
-@req runs=v1
-@cites #{texts=v1, characters=v1, whole-numbers=v1}
+@term place=v1
+@cites #{text=v1, byte-sequence=v1, character=v1, byte=v1, whole-number=v1}
+
+The places of a text are whole numbers, numbered from 1, one place for
+each character of the text, in the order of the text: the character at
+place 1 is the first character of the text. The places of a byte
+sequence are numbered in the same way, one place for each byte of the
+byte sequence: the byte at place 1 is the first byte.
+
+### 3.12 Boundaries
+
+@term boundary=v1
+@cites #{text=v1, place=v1, character=v1, whole-number=v1}
 
 A boundary of a text is a whole number from 0 to the number of
 characters of the text. Boundary 0 is before place 1, and each other
-boundary k is right after place k. A run of a text has two boundaries
-of the text: s, where it starts, and e, which is s or greater, where it
-ends. For each boundary s of a text and each boundary e of the text
-that is s or greater, the text has a run that starts at s and ends at
-e. The run holds the characters at the places from s + 1 to e, in
-order, each at its place, and these places are the places of the run.
-The run is empty when s = e, and then it holds no character. Two runs
-of a text are the same run when, and only when, they start at the same
-boundary and end at the same boundary. The text of a run is the text of
-the characters of the run, in their order.
+boundary k is right after place k.
 
-### 3.7 Notation
+### 3.13 Runs
 
-@req notation=v1
+@term run=v1
+@cites #{text=v1, place=v1, boundary=v1, character=v1}
+
+A run of a text has two boundaries of the text: s, where it starts, and
+e, which is s or greater, where it ends. For each boundary s of a text
+and each boundary e of the text that is s or greater, the text has a run
+that starts at s and ends at e. The run holds the characters at the
+places from s + 1 to e, in order, each at its place, and these places
+are the places of the run. The run is empty when s = e, and then it
+holds no character. Two runs of a text are the same run when, and only
+when, they start at the same boundary and end at the same boundary. The
+text of a run is the text of the characters of the run, in their order.
+A boundary of a run is a boundary of the text from the boundary where
+the run starts to the boundary where the run ends.
+
+### 3.14 Productions
+
+@term production=v1
 @cites {
     rfc/5234, rfc/7405,
     #{
-        characters=v1, texts=v1, backticks=v1, rule-names=v1,
-        conforming-programs=v1,
+        item=v1, rule-name=v1, code-span=v1, character=v1, code-point=v1,
+        text=v1,
     },
 }
 
 A production is a rule of ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405, that meets these conditions:
 
-- A requirement holds it.
+- An item holds it.
 - It holds no prose value, which RFC 5234 writes between `<` and `>`.
 - Each of its rule names names exactly one rule.
 
@@ -499,23 +553,22 @@ production when, and only when, the production matches the whole of the
 text. A character matches a production when, and only when, the text of
 that one character matches the production.
 
-### 3.8 Rule names
+### 3.15 Rule names
 
-@req rule-names=v1
-@cites {rfc/5234, #{conforming-programs=v1}}
+@term rule-name=v1
+@cites {rfc/5234, #{item=v1}}
 
-A rule name in a rule of ABNF that a requirement R holds names each rule
-that has that rule name, without regard to case, and that is one of
-these: a core rule of RFC 5234, Appendix B.1; a rule of ABNF that R
-holds; or, for each requirement Q that R cites, a rule of ABNF that Q
-holds.
+A rule name in a rule of ABNF that an item R holds names each rule that
+has that rule name, without regard to case, and that is one of these: a
+core rule of RFC 5234, Appendix B.1; a rule of ABNF that R holds; or,
+for each item Q that R cites, a rule of ABNF that Q holds.
 
-### 3.9 Decimal numerals
+### 3.16 Decimal numerals
 
-@req decimal-numerals=v1
+@term decimal-numeral=v1
 @cites #{
-    notation=v1, rule-names=v1, backticks=v1, whole-numbers=v1, texts=v1,
-    characters=v1,
+    production=v1, rule-name=v1, code-span=v1, whole-number=v1, text=v1,
+    character=v1,
 }
 
 A decimal numeral is a text that matches the production
@@ -531,36 +584,53 @@ its characters write in base 10, with `0` for 0, `1` for 1, `2` for 2,
 `9` for 9. The decimal numeral of a whole number of 0 or more is the
 decimal numeral that writes that whole number.
 
-### 3.10 Numerals in base 16
+### 3.17 0x numerals
 
-@req base-16-numerals=v1
+@term 0x-numeral=v1
 @cites #{
-    notation=v1, rule-names=v1, backticks=v1, whole-numbers=v1, texts=v1,
-    characters=v1,
+    production=v1, rule-name=v1, code-span=v1, whole-number=v1, text=v1,
+    character=v1,
 }
 
-A 0x numeral is a text that matches the production `x-numeral`. A U+
-numeral is a text that matches the production `u-numeral`:
+A 0x numeral is a text that matches the production `x-numeral`:
 
 ```
 x-numeral  = %s"0x" 1*( DIGIT / %x41-46 )
+```
+
+A 0x numeral writes the whole number that its characters after `0x`
+write in base 16, with `0` for 0, `1` for 1, `2` for 2, `3` for 3, `4`
+for 4, `5` for 5, `6` for 6, `7` for 7, `8` for 8, `9` for 9, `A` for
+10, `B` for 11, `C` for 12, `D` for 13, `E` for 14, and `F` for 15, such
+as 0x0A for 10.
+
+### 3.18 U+ numerals
+
+@term u-numeral=v1
+@cites #{
+    production=v1, rule-name=v1, code-span=v1, whole-number=v1, text=v1,
+    character=v1, code-point=v1,
+}
+
+A U+ numeral is a text that matches the production `u-numeral`:
+
+```
 u-numeral  = %s"U+" 4*6( DIGIT / %x41-46 )
 ```
 
-A 0x numeral or a U+ numeral writes the whole number that its
-characters after `0x` or `U+` write in base 16, with `0` for 0, `1` for
-1, `2` for 2, `3` for 3, `4` for 4, `5` for 5, `6` for 6, `7` for 7, `8`
-for 8, `9` for 9, `A` for 10, `B` for 11, `C` for 12, `D` for 13, `E`
-for 14, and `F` for 15, such as 0x0A for 10 and U+0041 for 65. A U+
-numeral that writes the code point of a character also names that
-character.
+A U+ numeral writes the whole number that its characters after `U+`
+write in base 16, with `0` for 0, `1` for 1, `2` for 2, `3` for 3, `4`
+for 4, `5` for 5, `6` for 6, `7` for 7, `8` for 8, `9` for 9, `A` for
+10, `B` for 11, `C` for 12, `D` for 13, `E` for 14, and `F` for 15, such
+as U+0041 for 65. A U+ numeral that writes the code point of a
+character also names that character.
 
-### 3.11 Hex digits
+### 3.19 Hex digits
 
-@req hex-digits=v1
+@term hex-digit=v1
 @cites #{
-    notation=v1, rule-names=v1, backticks=v1, whole-numbers=v1,
-    characters=v1,
+    production=v1, rule-name=v1, code-span=v1, whole-number=v1,
+    character=v1,
 }
 
 A hex digit is a character that matches the production `hex-digit`:
@@ -575,67 +645,86 @@ for 9, `a` for 10, `b` for 11, `c` for 12, `d` for 13, `e` for 14, and
 `f` for 15. The hex digit of a whole number from 0 to 15 is the hex
 digit that writes it.
 
-### 3.12 Bytes
+### 3.20 Bytes
 
-@req bytes=v1
-@cites #{whole-numbers=v1, characters=v1, texts=v1}
+@term byte=v1
+@cites #{whole-number=v1, character=v1}
 
-A byte is a whole number from 0 to 255. A byte sequence is a finite
-sequence of bytes. The empty byte sequence is the byte sequence of no
-bytes. The places of a byte sequence are numbered from 1, one place for
-each byte of the byte sequence, in its order. Two byte sequences are
-the same byte sequence when, and only when, they have the same number
-of bytes and the same byte at each place. A byte is not a character,
-and a byte sequence is not a text.
+A byte is a whole number from 0 to 255. A byte is not a character.
 
-### 3.13 UTF-8
+### 3.21 Byte sequences
 
-@req utf-8=v1
-@cites {
-    rfc/3629,
-    #{
-        characters=v1, texts=v1, bytes=v1, base-16-numerals=v1, notation=v1,
-        backticks=v1,
-    },
-}
+@term byte-sequence=v1
+@cites #{byte=v1, text=v1}
+
+A byte sequence is a finite sequence of bytes. The empty byte sequence
+is the byte sequence of no bytes. Two byte sequences are the same byte
+sequence when, and only when, they have the same number of bytes and,
+in their order, the same first byte, the same second byte, and so on to
+the last byte. A byte sequence is not a text.
+
+### 3.22 Valid UTF-8
+
+@term valid-utf-8=v1
+@cites {rfc/3629, #{byte-sequence=v1, byte=v1, code-span=v1}}
 
 A byte sequence is valid UTF-8 when, and only when, the rule
 `UTF8-octets` of RFC 3629 matches the whole byte sequence, with each
-terminal value of that rule as one byte. The text of a byte sequence
-that is valid UTF-8 is the text that holds, for each `UTF8-char` that
-the rule `UTF8-octets` matches in the byte sequence, in their order, the
-character that the bytes of that `UTF8-char` encode, as RFC 3629 defines
-UTF-8, and no other character. The text holds a U+FEFF that the first
-`UTF8-char` encodes, as it holds each other character. The UTF-8
-encoding of a text is the byte sequence that holds, for each character
-of the text in its order, the bytes that encode that character, as
-RFC 3629 defines UTF-8, and no other bytes.
+terminal value of that rule as one byte.
 
-### 3.14 Byte order marks
+### 3.23 The text of a byte sequence
 
-@req byte-order-marks=v1
-@cites #{characters=v1, texts=v1, base-16-numerals=v1}
+@term text-of-a-byte-sequence=v1
+@cites {
+    rfc/3629,
+    #{
+        valid-utf-8=v1, byte-sequence=v1, text=v1, character=v1,
+        u-numeral=v1, code-span=v1,
+    },
+}
+
+The text of a byte sequence that is valid UTF-8 is the text that holds,
+for each `UTF8-char` that the rule `UTF8-octets` of RFC 3629 matches in
+the byte sequence, in their order, the character that the bytes of that
+`UTF8-char` encode, as RFC 3629 defines UTF-8, and no other character.
+The text holds a U+FEFF that the first `UTF8-char` encodes, as it holds
+each other character.
+
+### 3.24 UTF-8 encodings
+
+@term utf-8-encoding=v1
+@cites {rfc/3629, #{text=v1, character=v1, byte-sequence=v1, byte=v1}}
+
+The UTF-8 encoding of a text is the byte sequence that holds, for each
+character of the text in its order, the bytes that encode that
+character, as RFC 3629 defines UTF-8, and no other bytes.
+
+### 3.25 Byte order marks
+
+@term byte-order-mark=v1
+@cites #{text=v1, place=v1, character=v1, u-numeral=v1}
 
 A text has a byte order mark when, and only when, the character at place
 1 of the text is U+FEFF. The byte order mark of such a text is the
 character U+FEFF at place 1.
 
-### 3.15 Bodies
+### 3.26 Bodies
 
-@req bodies=v1
-@cites #{texts=v1, runs=v1, byte-order-marks=v1}
+@term body=v1
+@cites #{text=v1, run=v1, boundary=v1, byte-order-mark=v1}
 
 The body of a text that has a byte order mark is the run of the text
 that starts at boundary 1 and ends at the last boundary of the text.
 The body of every other text is the run of the text that starts at
-boundary 0 and ends at the last boundary of the text. A boundary of the
-body is a boundary of the text from the boundary where the body starts
-to the boundary where the body ends.
+boundary 0 and ends at the last boundary of the text.
 
-### 3.16 Lines
+### 3.27 Line endings
 
-@req lines=v1
-@cites #{characters=v1, texts=v1, runs=v1, bodies=v1, whole-numbers=v1}
+@term line-ending=v1
+@cites #{
+    text=v1, run=v1, boundary=v1, place=v1, body=v1, line-feed=v1,
+    carriage-return=v1, character=v1,
+}
 
 A line ending of a text is a run of the text that meets each of these
 conditions, where p is the boundary where the run ends:
@@ -644,6 +733,11 @@ conditions, where p is the boundary where the run ends:
 - When p − 1 is a place of the body and the character at place p − 1 is
   a carriage return, the run starts at boundary p − 2. Otherwise, the
   run starts at boundary p − 1.
+
+### 3.28 Lines
+
+@term line=v1
+@cites #{text=v1, run=v1, boundary=v1, body=v1, line-ending=v1}
 
 A line of a text is a run of the text that meets each of these
 conditions:
@@ -656,20 +750,23 @@ conditions:
   body ends.
 - It is not empty when it ends at the boundary where the body ends.
 
+### 3.29 Line numbers
+
+@term line-number=v1
+@cites #{line=v1, line-ending=v1, boundary=v1, body=v1, whole-number=v1}
+
 The line that starts at the boundary where the body starts has the line
 number 1. Each other line starts at the boundary where a line ending
 ends, and its line number is 1 more than the line number of the line
 that ends at the boundary where that line ending starts. The lines of a
-text are in the order of their line numbers. A place of a line is a
-place of the run that is that line, and a place of a line ending is a
-place of the run that is that line ending.
+text are in the order of their line numbers.
 
-### 3.17 Positions
+### 3.30 Positions
 
-@req positions=v1
+@term position=v1
 @cites #{
-    lines=v1, bodies=v1, texts=v1, runs=v1, characters=v1,
-    byte-order-marks=v1, whole-numbers=v1,
+    line=v1, line-number=v1, line-ending=v1, body=v1, run=v1, boundary=v1,
+    place=v1, text=v1, character=v1, byte-order-mark=v1, whole-number=v1,
 }
 
 A position is a pair of whole numbers: a line number and a column. The
@@ -690,10 +787,10 @@ boundary p − 1, and the character at place p has that position. The
 character at place 1 of a text that has a byte order mark has no
 position.
 
-### 3.18 Spans
+### 3.31 Spans
 
-@req spans=v1
-@cites #{texts=v1, runs=v1, bodies=v1, lines=v1, positions=v1}
+@term span=v1
+@cites #{text=v1, run=v1, boundary=v1, place=v1, body=v1, line=v1, position=v1}
 
 A span of a text is a run of the text that starts at a boundary of the
 body and ends at a boundary of the body. The start of a span is the
@@ -702,99 +799,127 @@ of the span are places of a line, the end of the span is the position of
 boundary k, where k is the last of those places. Otherwise, the end of
 the span is the start of the span.
 
-### 3.19 Conforming programs
+### 3.32 Items
 
-@req conforming-programs=v1
+@term item=v1
 
-A design is a document that holds requirements. A requirement is a
-definition, or an obligation of a conforming program, that a design
-holds under a name. A requirement cites another requirement when it
-names that requirement as one whose definitions it uses. A conforming
-program of a design is a program, or a part of a program, that meets
-every requirement of the design. In a design, a conforming program is a
-conforming program of that design, and each obligation that a
-requirement of that design states with the word must is an obligation of
-each conforming program of that design.
+An item is a definition or an obligation that a document declares under
+a name. An item cites another item when it names the other item as one
+whose meaning it uses.
 
-### 3.20 Inputs
+### 3.33 Designs
 
-@req inputs=v1
-@cites #{conforming-programs=v1, bytes=v1, texts=v1}
+@term design=v1
+@cites #{item=v1}
+
+A design is a document that declares items.
+
+### 3.34 Requirements
+
+@term requirement=v1
+@cites #{item=v1}
+
+A requirement is an item that is an obligation. A requirement states
+its obligation with the word must.
+
+### 3.35 Conforming programs
+
+@term conforming-program=v1
+@cites #{design=v1, requirement=v1}
+
+A conforming program of a design is a program, or a part of a program,
+that meets every requirement of the design. In a design, a conforming
+program is a conforming program of that design, and each obligation
+that a requirement of that design states with the word must is an
+obligation of each conforming program of that design.
+
+### 3.36 Inputs
+
+@term input=v1
+@cites #{conforming-program=v1, byte-sequence=v1, text=v1}
 
 An input is a thing that a conforming program takes, such as a byte
 sequence or a text.
 
-### 3.21 Results
+### 3.37 Results
 
-@req results=v1
-@cites #{conforming-programs=v1, inputs=v1, texts=v1}
+@term result=v1
+@cites #{conforming-program=v1, input=v1, text=v1, requirement=v1}
 
 A result is a text that a requirement names, between double quotes, as
 what a conforming program gives for an input. The double quotes are not
 part of the result.
 
-### 3.22 Byte sequences that a program decodes
+## 4. Requirements
+
+### 4.1 Byte sequences that a program decodes
 
 @req test-utf-8=v1
-@cites #{conforming-programs=v1, results=v1, bytes=v1, utf-8=v1}
+@cites #{conforming-program=v1, result=v1, byte-sequence=v1, valid-utf-8=v1}
 
 When a conforming program gives a result for a byte sequence as a test
 of whether the byte sequence is valid UTF-8, it must give exactly one
 result: "valid" when the byte sequence is valid UTF-8, and "invalid"
 when the byte sequence is not valid UTF-8.
 
-### 3.23 The text of a byte sequence that a program decodes
+### 4.2 The text of a byte sequence that a program decodes
 
 @req give-decoded-texts=v1
-@cites #{conforming-programs=v1, results=v1, bytes=v1, texts=v1, utf-8=v1}
+@cites #{
+    conforming-program=v1, result=v1, byte-sequence=v1, text=v1,
+    valid-utf-8=v1, text-of-a-byte-sequence=v1,
+}
 
 When a conforming program gives the result "valid" for a byte sequence
 as a test of whether the byte sequence is valid UTF-8, it must give with
 that result the text of the byte sequence, and no other text.
 
-### 3.24 No text with the result "invalid"
+### 4.3 No text with the result "invalid"
 
 @req omit-texts-of-invalid-byte-sequences=v1
-@cites #{conforming-programs=v1, results=v1, bytes=v1, texts=v1, utf-8=v1}
+@cites #{
+    conforming-program=v1, result=v1, byte-sequence=v1, text=v1,
+    valid-utf-8=v1,
+}
 
 When a conforming program gives the result "invalid" for a byte sequence
 as a test of whether the byte sequence is valid UTF-8, it must give no
 text with that result.
 
-### 3.25 The UTF-8 encodings that a program gives
+### 4.4 The UTF-8 encodings that a program gives
 
 @req give-utf-8-encodings=v1
-@cites #{conforming-programs=v1, bytes=v1, texts=v1, utf-8=v1}
+@cites #{conforming-program=v1, byte-sequence=v1, text=v1, utf-8-encoding=v1}
 
 When a conforming program gives a byte sequence as the UTF-8 encoding of
 a text, it must give the UTF-8 encoding of that text, and no other byte
 sequence, as the UTF-8 encoding of that text.
 
-### 3.26 The lines that a program gives
+### 4.5 The lines that a program gives
 
 @req give-lines=v1
-@cites #{conforming-programs=v1, texts=v1, runs=v1, lines=v1}
+@cites #{conforming-program=v1, text=v1, run=v1, line=v1, line-number=v1}
 
 When a conforming program gives the lines of a text, it must give, for
 each line of the text in the order of the lines, exactly one run or
 text: that line, or the text of that line. It must give no other run or
 text as a line of that text.
 
-### 3.27 The line numbers of lines
+### 4.6 The line numbers of lines
 
 @req give-line-numbers=v1
-@cites #{conforming-programs=v1, texts=v1, lines=v1}
+@cites #{conforming-program=v1, text=v1, line=v1, line-number=v1}
 
 When a conforming program gives a line number for a line of a text, it
 must give the line number of that line, and no other line number, for
 that line.
 
-### 3.28 The line numbers and columns of characters
+### 4.7 The line numbers and columns of characters
 
 @req give-character-positions=v1
 @cites #{
-    conforming-programs=v1, texts=v1, characters=v1, runs=v1, bodies=v1,
-    lines=v1, positions=v1,
+    conforming-program=v1, text=v1, character=v1, place=v1, run=v1,
+    body=v1, position=v1,
 }
 
 When a conforming program gives a line number for the character at a
@@ -805,21 +930,21 @@ a place of the body of a text, it must give the column of the position
 of the character at that place, and no other column, for the character
 at that place.
 
-### 3.29 No position for a byte order mark
+### 4.8 No position for a byte order mark
 
 @req omit-byte-order-mark-positions=v1
 @cites #{
-    conforming-programs=v1, texts=v1, characters=v1, byte-order-marks=v1,
-    lines=v1, positions=v1,
+    conforming-program=v1, text=v1, character=v1, place=v1,
+    byte-order-mark=v1, position=v1,
 }
 
 A conforming program must give no line number and no column for the
 character at place 1 of a text that has a byte order mark.
 
-### 3.30 The starts of spans
+### 4.9 The starts of spans
 
 @req give-span-starts=v1
-@cites #{conforming-programs=v1, texts=v1, spans=v1, positions=v1, lines=v1}
+@cites #{conforming-program=v1, text=v1, span=v1, position=v1}
 
 When a conforming program gives a line number for the start of a span of
 a text, it must give the line number of the start of that span, and no
@@ -827,10 +952,10 @@ other line number, for the start of that span. When it gives a column
 for the start of a span of a text, it must give the column of the start
 of that span, and no other column, for the start of that span.
 
-### 3.31 The ends of spans
+### 4.10 The ends of spans
 
 @req give-span-ends=v1
-@cites #{conforming-programs=v1, texts=v1, spans=v1, positions=v1, lines=v1}
+@cites #{conforming-program=v1, text=v1, span=v1, position=v1}
 
 When a conforming program gives a line number for the end of a span of a
 text, it must give the line number of the end of that span, and no other
@@ -838,18 +963,15 @@ line number, for the end of that span. When it gives a column for the
 end of a span of a text, it must give the column of the end of that
 span, and no other column, for the end of that span.
 
-### 3.32 No start and no end for a run that is not a span
+### 4.11 No start and no end for a run that is not a span
 
 @req omit-non-span-positions=v1
-@cites #{
-    conforming-programs=v1, texts=v1, runs=v1, spans=v1, lines=v1,
-    positions=v1,
-}
+@cites #{conforming-program=v1, text=v1, run=v1, span=v1, position=v1}
 
 A conforming program must give no line number and no column as the start
 or the end of a run of a text that is not a span of that text.
 
-## 4. Conformance
+## 5. Conformance
 
 A program, or a part of a program, conforms to this design when it
 meets every requirement of the section Requirements.
@@ -884,7 +1006,7 @@ for it. The cells follow these conventions:
 - The text after a colon that is not between backticks explains the
   row. A conforming program does not give it.
 
-### 4.1 Byte sequences that a program decodes
+### 5.1 Byte sequences that a program decodes
 
 | byte sequence | what a conforming program gives |
 |---|---|
@@ -918,7 +1040,7 @@ for it. The cells follow these conventions:
 | 0xF4, 0x90, 0x80, 0x80 | invalid: the bytes that would encode the whole number 1,114,112, which is not a code point |
 | 0xF8, 0x88, 0x80, 0x80, 0x80 | invalid: the UTF-8 encoding of no character has five bytes |
 
-### 4.2 The UTF-8 encodings that a program gives
+### 5.2 The UTF-8 encodings that a program gives
 
 | text | UTF-8 encoding |
 |---|---|
@@ -940,7 +1062,7 @@ for it. The cells follow these conventions:
 | U+10FFFF | 0xF4, 0x8F, 0xBF, 0xBF |
 | `a`, a carriage return, a line feed | 0x61, 0x0D, 0x0A |
 
-### 4.3 The lines that a program gives
+### 5.3 The lines that a program gives
 
 Each row gives a text and the lines that a conforming program gives for
 that text, in the order of the lines. The line number that a conforming
@@ -975,7 +1097,7 @@ cell, and 1 more for each later line.
 | `a`, U+2028, `b` | `a`, U+2028, `b` |
 | `a`, U+2029, `b` | `a`, U+2029, `b` |
 
-### 4.4 The positions that a program gives
+### 5.4 The positions that a program gives
 
 Each row gives a text, a place of that text, and the position, or none,
 that a conforming program gives for the character at that place. "None"
@@ -1013,7 +1135,7 @@ that character.
 | `a`, U+2028, `b` | 3 | line 1, column 3 |
 | `ab`, a line feed, `c`, a line feed, `de` | 7 | line 3, column 2 |
 
-### 4.5 The starts and ends of spans that a program gives
+### 5.5 The starts and ends of spans that a program gives
 
 Each row gives a text, a run of that text, and, when the run is a span,
 the start and the end of that span that a conforming program gives.
