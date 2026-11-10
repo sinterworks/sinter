@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of items that Sinter traces, with their names, texts, revisions, and edges, and the conditions of a valid tree; work items, changes, the ledger, and the actors that write it; the names and meanings of states; the parameters `approval-kinds`, `read-texts`, and `built-in-finding-classes`; and requirements for conforming programs on what they compute states from, on the treatment of ledger entries and of bindings, on the ledger entries that they append when an agent runs them, on the summary of a change, and on the use of declared tasks.
+Specifies the kinds of items that Sinter traces, with their names, regions, extents, revisions, and edges, and the conditions of a valid tree; work items, changes, the ledger, and the actors that write it; the names and meanings of states; the parameters `approval-kinds`, `read-texts`, and `built-in-finding-classes`; and requirements for conforming programs on what they compute states from, on the treatment of ledger entries and of bindings, on the ledger entries that they append when an agent runs them, on the summary of a change, and on the use of declared tasks.
 
 Sinter traces the items of a repository: designs with their
 specifications, requirements, and terms, decision records, tests, tasks
@@ -67,32 +67,32 @@ and the meaning of a vector.
 | [design](sinter:text#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [requirement](sinter:text#requirement=v1) | an obligation that a design declares under a name and states with the word must |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
-| [term](sinter:#term=v1) | a declared item whose declaration word is `@term`; its text states the meaning of one word or one fixed phrase |
-| normative | stating what a word or a fixed phrase means, or what a conforming program must do; only the texts of terms and of requirements are normative |
+| [term](sinter:#term=v1) | a declared item whose declaration word is `@term`; its region states the meaning of one word or one fixed phrase |
+| normative | stating what a word or a fixed phrase means, or what a conforming program must do; only the regions of terms and of requirements are normative |
 | [decision record](sinter:#decision-record=v1) | a declared item whose declaration word is `@decision`; it records one standing practice of a project, or one choice with its reason |
 | [finding](sinter:#finding-class=v1) | a report of one condition at one part of a repository |
 | [subject of a finding](sinter:#finding-class=v1) | the text that a finding gives to say what it is about |
 | [finding class](sinter:#finding-class=v1) | a kind of finding, which a slug names |
 | [declared finding class](sinter:#declared-finding-class=v1) | a declared item whose declaration word is `@finding-class`: a finding class that a repository declares for itself |
-| [finding-class file](sinter:#declared-finding-class=v1) | the file whose whole text is the text of one declared finding class |
+| [finding-class file](sinter:#declared-finding-class=v1) | the file that one declared finding class takes up whole: its region is the whole of that file |
 | [binding of `built-in-finding-classes`](sinter:#built-in-finding-class=v1) | a finite set of slugs |
 | [built-in finding class](sinter:#built-in-finding-class=v1) | a finding class whose slug is in the binding of `built-in-finding-classes`: a finding class that a conforming program has built in |
-| [text of a declared item](sinter:#item-text=v1) | the set of the runs of the text of one file that a declared item takes up, its declaration included; when that file is not a markdown file, a read text of the file comes from each place of those runs |
-| [characters of a part of a file](sinter:#item-text=v1) | the characters of the runs of that part, in their order in the text of the file; they form one text |
-| [innermost](sinter:#item-text=v1) | of the declared items in whose texts a part of a file is, the one whose text is in the text of each of the others, when exactly one is |
+| [region of a declared item](sinter:#region=v1) | the set of the runs of the text of one file that a declared item takes up, its declaration included; when that file is not a markdown file, a read text of the file comes from each place of those runs |
+| [characters of a part of a file](sinter:#region=v1) | the characters of the runs of that part, in their order in the text of the file; they form one text |
+| [innermost](sinter:#region=v1) | of the declared items in whose regions a part of a file is, the one whose region is in the region of each of the others, when exactly one is |
 | [file of a declared item](sinter:#item-file=v1) | the file in which the declaration of a declared item is |
-| [text of a specification in code](sinter:#specification-text=v1) | for an item of the kind specification whose declaration is in a file that is not a markdown file, the part of the read text of its declaration that it takes up, with the texts of the items of the kind requirement and of the terms that belong to it |
-| [scope of a specification](sinter:#specification-scope=v1) | a part of the file of a specification: when its declaration is in a markdown file, its text; otherwise, the comment that its declaration is in, with the code to which that comment is attached, or, when that comment is attached to no code and no code of the file comes before it, the whole file |
-| [home design](sinter:#home-design=v1) | of a tag line or an inline citation: the innermost item of the kind design in whose text it is; otherwise, when the declaration of the innermost item of the kind specification in whose scope it is has a part name, the item of the kind design whose declaration has the slug of that declaration, when the tree has exactly one such item; otherwise, none |
+| [region of a specification in code](sinter:#specification-region=v1) | for an item of the kind specification whose declaration is in a file that is not a markdown file, the part of the read text of its declaration that it takes up, with the regions of the items of the kind requirement and of the terms that belong to it |
+| [scope of a specification](sinter:#specification-scope=v1) | a part of the file of a specification: when its declaration is in a markdown file, its region; otherwise, the comment that its declaration is in, with the code to which that comment is attached, or, when that comment is attached to no code and no code of the file comes before it, the whole file |
+| [home design](sinter:#home-design=v1) | of a tag line or an inline citation: the innermost item of the kind design in whose region it is; otherwise, when the declaration of the innermost item of the kind specification in whose scope it is has a part name, the item of the kind design whose declaration has the slug of that declaration, when the tree has exactly one such item; otherwise, none |
 | [containment](sinter:#containment=v1) | the relation in which a design holds specifications, requirements, and terms, and a specification holds requirements and terms |
 | [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | a design holds each of its specifications, requirements, and terms, and each of them belongs to the design; a specification holds its requirements and its terms in the same way |
 | [hold directly](sinter:#containment=v1) | a design holds a requirement or a term directly when the requirement or the term belongs to the design and to no specification |
-| [own text](sinter:#own-text=v1) | the part of the text of a design that is in the text of none of its specifications, requirements, and terms |
+| [extent of a declared item](sinter:#extent=v1) | for a design, the part of its region that is in the region of none of its specifications, requirements, and terms; for each other declared item, its region |
 | [name of a declared item](sinter:#item-name=v1) | a slug, such as `packs`; for an item that belongs to a design, the name of the design, `#`, and the part name of the item, such as `packs#size`; for an item of the kind specification, requirement, or term that belongs to no design, which only a tree that is not valid has, the slug or the full name in the target of its declaration |
 | [set of names](sinter:#item-name=v1) | a set of names in which, in a valid tree, no two declared items have the same name: the shared set of slugs, the set of slugs of the declared finding classes, and the set of part names of each design |
 | [entry name](sinter:identifiers#citation-entry=v1) | the part of a citation entry that names its item: a name, an external id with or without a part name, or the slug of a citation entry that `every-part` matches |
 | [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups with the same name in vector sets that are the same item; two vector sets of specifications, or of items of the kind design, that are the same item; or two tests whose files have the same path and to which the binding of `read-texts` gives the same name |
-| [mark](sinter:#mark=v1) | what an `@extern` line in the own text of a design states: the design holds an item of the kind that the kind word of the line states, with the part name of the line, whose declaration is in another file |
+| [mark](sinter:#mark=v1) | what an `@extern` line in the extent of a design states: the design holds an item of the kind that the kind word of the line states, with the part name of the line, whose declaration is in another file |
 | [value](sinter:identifiers#value=v1) | a text or a fact that a conforming program gives together with a result |
 | [conformance vector](sinter:#conformance-vector=v1) | a vector line of a vector set: it states one input of a conforming program of the specification or the design of the vector set, and what that program gives for that input |
 | [vector set](sinter:#vector-set=v1) | the test-vector set in the vector file of one specification, or of one design for the requirements that it holds directly; it is empty when there is no such file |
@@ -104,20 +104,20 @@ and the meaning of a vector.
 | [code of a test](sinter:#test=v1) | the part of its file that the binding of `read-texts` gives as the code of a test |
 | [comment on a test](sinter:#test=v1) | a part of its file that the binding of `read-texts` gives as a comment on a test, such as the comment right before a test function |
 | [test evidence](sinter:#test-evidence=v1) | the reports that tests gave in one execution: which tests ran, and which of them passed or failed |
-| [site](sinter:#site=v1) | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the text of every declared item and every comment on a test: in a markdown file, the part of the read texts in the lines from one heading to the next; in another file, the part of one read text |
+| [site](sinter:#site=v1) | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the region of every declared item and every comment on a test: in a markdown file, the part of the read texts in the lines from one heading to the next; in another file, the part of one read text |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [hash](sinter:data-forms#hash=v1) | the hash of a byte sequence: the 64 hex digits of the digest that SHA-256 gives for it, so that two different byte sequences almost never have the same hash |
-| [revised content](sinter:#revised-content=v1) | the part of an item that a revision of the item names, such as the content characters of the own text of a design |
+| [revised content](sinter:#revised-content=v1) | the part of an item that a revision of the item names, such as the content characters of the extent of a design |
 | [content characters](sinter:#revised-content=v1) | the lines of the text of a part of a file other than its `@ack` lines, joined with one line feed between each two of them, without the revisions of the citation entries and of the targets of the inline citations in them |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration; for a conformance vector, a group, and a vector set, the revision of its vector line, of its group line, and of its set line |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from a source to a cited item, or to none, which a citation entry or an inline citation states |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
-| [stand in](sinter:#edge-source=v1) | a line, a citation, or an inline citation stands in the innermost declared item in whose text it is; otherwise in the innermost test that it is in a comment on; otherwise in its site |
+| [stand in](sinter:#edge-source=v1) | a line, a citation, or an inline citation stands in the innermost declared item in whose region it is; otherwise in the innermost test that it is in a comment on; otherwise in its site |
 | [source](sinter:#edge-source=v1) | the item in which the citation or the inline citation of an edge stands |
 | [cited item](sinter:#edge=v1) | the item that the citation entry or the inline citation of an edge names |
 | [pinned edge](sinter:#pinned-edge=v1) | an edge whose citation entry or inline citation has a label as its revision |
-| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a sequence of `supersedes` edges along which a declared item reaches itself, each edge from its source to its cited item |
+| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a sequence of `supersedes` edges along which a declared item leads back to itself, each edge from its source to its cited item |
 | [status tag of a declared item](sinter:#item-status-tag=v1) | a status tag that is an accepted input and that is among the tag lines of the declaration of exactly one declared item, of that declared item |
 | [ack](sinter:#ack=v1) | what an `@ack` line states: the findings of one finding class in one part of a file are acknowledged |
 | [subject of an `@ack` line](sinter:identifiers#ack-line=v1) | the text between the slug and the hash prefix of an `@ack` line, which can be empty |
@@ -168,8 +168,8 @@ and the meaning of a vector.
 | [under a plan](sinter:#work-item-state=v1) | a part of the plan, or under a part of the plan |
 | [combined relation](sinter:#work-item-state=v1) | the relation from each plan to its parts, from each work item to the work items that it waits for, and from each task to the work items that the plans that it is under wait for |
 | [subject of approval](sinter:#subject-of-approval=v1) | a unit that a person approves or declines as a whole |
-| [kind of subject of approval](sinter:#subject-of-approval=v1) | which of five units a subject of approval is: the own text of a design, a specification, a requirement that a design holds directly, a term that a design holds directly, or a decision record |
-| [subject of approval of a declared item](sinter:#subject-of-approval=v1) | for a design, its own text; for a specification, a requirement or a term that a design holds directly, or a decision record, the subject of approval that it is; for a requirement or a term that a specification holds, the subject of approval of that specification |
+| [kind of subject of approval](sinter:#subject-of-approval=v1) | which of five units a subject of approval is: the extent of a design, a specification, a requirement that a design holds directly, a term that a design holds directly, or a decision record |
+| [subject of approval of a declared item](sinter:#subject-of-approval=v1) | for a design, its extent; for a specification, a requirement or a term that a design holds directly, or a decision record, the subject of approval that it is; for a requirement or a term that a specification holds, the subject of approval of that specification |
 | parameter | a word, such as `approval-kinds`, for which a conforming program takes a binding |
 | [binding of `approval-kinds`](sinter:#approval-binding=v1) | a set of kinds of subject of approval |
 | [need approval](sinter:#approval-binding=v1) | a subject of approval needs approval when its kind is in the binding of `approval-kinds` |
@@ -180,7 +180,7 @@ and the meaning of a vector.
 | [in force](sinter:#in-force-item=v1) | a declared item is in force when it is not retired |
 | [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when it is valid, its source has no valid status tag, and its source is a declared finding class or is approved |
 | [deprecated](sinter:#deprecated-item=v1), [rejected](sinter:#rejected-record=v1), [deferred](sinter:#deferred-record=v1) | the states that the three status words state, through a valid status tag |
-| [approved, declined](sinter:#approval-state=v1) | a subject of approval that needs approval is approved, or declined, when, of the `approval` and `decline` ledger entries that judge it and the revised content that it has in the tree, the latest is an `approval`, or a `decline`; a subject of approval that does not need approval is approved when a commit of the first-parent line of the default branch has a tree in which it has the same revised content, and it is never declined; a requirement or a term that a specification holds is approved, or declined, when that specification is; a design is approved when its own text, each of its specifications, and each requirement and each term that it holds directly are approved |
+| [approved, declined](sinter:#approval-state=v1) | a subject of approval that needs approval is approved, or declined, when, of the `approval` and `decline` ledger entries that judge it and the revised content that it has in the tree, the latest is an `approval`, or a `decline`; a subject of approval that does not need approval is approved when a commit of the first-parent line of the default branch has a tree in which it has the same revised content, and it is never declined; a requirement or a term that a specification holds is approved, or declined, when that specification is; a design is approved when its extent, each of its specifications, and each requirement and each term that it holds directly are approved |
 | [draft](sinter:#draft-design=v1) | a design is a draft while it is not approved |
 | [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when its label is not the current revision of its cited item |
 | [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
@@ -206,7 +206,7 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | design | a declared item whose declaration word is `@design` | a slug, such as `packs` | yes |
 | specification | a declared item whose declaration word is `@spec`, which specifies one thing of a system | a full name, such as `packs#descriptor` | yes |
 | requirement | a declared item whose declaration word is `@req` | a full name, such as `packs#limit-size` | yes |
-| term | a declared item whose declaration word is `@term`, whose text states the meaning of one word or one fixed phrase | a full name, such as `packs#size` | yes |
+| term | a declared item whose declaration word is `@term`, whose region states the meaning of one word or one fixed phrase | a full name, such as `packs#size` | yes |
 | decision record | a declared item whose declaration word is `@decision`, which records one practice or one choice | a slug, such as `code-comments` | yes |
 | declared finding class | a declared item whose declaration word is `@finding-class`, a finding class that a repository declares for itself | a slug, such as `late-fee` | yes |
 | conformance vector | a vector line of a vector set, which states one input of a conforming program and what the program gives for it | its vector set and its number | yes |
@@ -215,7 +215,7 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | task | one piece of work | a work item id | no |
 | plan | how a set of tasks and plans gets done | a work item id | no |
 | test | a unit of code that a test framework runs | its file and the name that the binding of `read-texts` gives it | no |
-| site | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the text of every declared item and every comment on a test | no name | no |
+| site | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the region of every declared item and every comment on a test | no name | no |
 | external item | a thing outside the repository | an external id, such as `gh/42` | no |
 
 A conforming program reads some texts of the files of a tree, the read
@@ -315,10 +315,10 @@ requirement, or term decides the design to which the item belongs:
   is.
 - When the declaration has no part name and its slug is one segment,
   such as `@spec descriptor=v2` or `@term size=v1`, the item belongs to
-  the home design of the declaration: the innermost design in whose text
-  the declaration is; otherwise, when the declaration of the innermost
-  specification in whose scope the declaration is has a part name, the
-  one design whose name is the slug of that declaration.
+  the home design of the declaration: the innermost design in whose
+  region the declaration is; otherwise, when the declaration of the
+  innermost specification in whose scope the declaration is has a part
+  name, the one design whose name is the slug of that declaration.
 - Otherwise, the item belongs to no design.
 
 An item of the kind requirement or a term belongs to the innermost
@@ -349,26 +349,27 @@ The size of a descriptor is the number of bytes of its file.
 A conforming program must reject a descriptor whose size is more than 1 MiB.
 ```
 
-The text of a declared item is a set of runs of the text of one file:
+The region of a declared item is a set of runs of the text of one file:
 the part of that file that the item takes up. Its declaration is in it.
-In a file that is not a markdown file, the text of a declared item is in
-the read texts of the file, so it holds no comment marker. When the
-texts of two declared items have a part in common, one of the two texts
-is in the other. No part of a file is in the texts of two different
-items that are each of the kind requirement or of the kind term. Of the
-declared items in whose texts a part of a file is, the innermost is the
-one whose text is in the text of each of the others, when exactly one of
-them is. The characters of a part of a file are the characters of its
-runs, in their order in the text of the file, and they form one text.
-The own text of a design is the part of its text that is in the text of
-none of its specifications, requirements, and terms. In the example, the
-own text of `packs` is the part of its text that is in the text of none
-of `descriptor`, `size`, and `limit-size`.
+In a file that is not a markdown file, the region of a declared item is
+in the read texts of the file, so it holds no comment marker. When the
+regions of two declared items have a part in common, one of the two
+regions is in the other. No part of a file is in the regions of two
+different items that are each of the kind requirement or of the kind
+term. Of the declared items in whose regions a part of a file is, the
+innermost is the one whose region is in the region of each of the
+others, when exactly one of them is. The characters of a part of a file
+are the characters of its runs, in their order in the text of the file,
+and they form one text. The extent of a design is the part of its region
+that is in the region of none of its specifications, requirements, and
+terms. The extent of each other declared item is its region. In the
+example, the extent of `packs` is the part of its region that is in the
+region of none of `descriptor`, `size`, and `limit-size`.
 
 The file of a declared item is the file in which its declaration is. A
 design can hold a specification, or hold directly a requirement or a
-term, whose declaration is in another file. An `@extern` line in the own
-text of the design states a mark for such an item, such as
+term, whose declaration is in another file. An `@extern` line in the
+extent of the design states a mark for such an item, such as
 `@extern spec:descriptor`. The kind word of the line gives the kind of
 item, and the part name of the line gives the part name of the item. A
 requirement or a term of such a specification has no mark of its own:
@@ -380,30 +381,30 @@ a full name. In a markdown file of its own, it is declared as
 as `(* @spec ledger#entry-ids=v2 *)` before an OCaml module. The scope
 of a specification is a part of its file:
 
-- for a specification declared in a markdown file, its text;
+- for a specification declared in a markdown file, its region;
 - for a specification declared in a comment of another file, that
   comment with the code to which the comment is attached, such as a
   module or a function; or the whole file, when the comment is attached
   to no code and no code of the file comes before it.
 
 The home design of a tag line or an inline citation is the innermost
-design in whose text it is. When it is in the text of no design, and the
-declaration of the innermost specification in whose scope it is has a
-part name, its home design is the one design whose name is the slug of
+design in whose region it is. When it is in the region of no design, and
+the declaration of the innermost specification in whose scope it is has
+a part name, its home design is the one design whose name is the slug of
 that declaration. So a `@req id-form=v1` in a comment in the module of
 the example above belongs to the design `ledger` and to the
 specification `ledger#entry-ids`, and `#id-form` names it there. The
-text of a specification declared in code is the part of the read text of
-its declaration that it takes up, with the texts of the requirements and
-the terms that belong to it. The rest of the code in its scope is not in
-its text, and neither is a requirement of another design whose
-declaration is in its scope.
+region of a specification declared in code is the part of the read text
+of its declaration that it takes up, with the regions of the
+requirements and the terms that belong to it. The rest of the code in
+its scope is not in its region, and neither is a requirement of another
+design whose declaration is in its scope.
 
-Only the texts of terms and of requirements are normative: a term
+Only the regions of terms and of requirements are normative: a term
 states what a word or a fixed phrase means, and a requirement states
 what each conforming program of the design must do. The rest of the
-text of a design and of its specifications explains the terms and the
-requirements and gives examples.
+region of a design and of the regions of its specifications explains the
+terms and the requirements and gives examples.
 
 ### 2.4 Names
 
@@ -471,11 +472,11 @@ Each finding gives its subject: a text that says what the finding is
 about, such as the name of a requirement. A finding class is a kind of
 finding, which a slug names. A repository can declare finding classes
 of its own. Each such declared finding class is a declared item, and its
-text is the whole of one file, its finding-class file. A binding of the
-parameter `built-in-finding-classes` (section 3.3) gives the slugs of
-the finding classes that a conforming program has built in. Each finding
-class whose slug is in that binding is a built-in finding class, and it
-is not an item.
+region is the whole of one file, its finding-class file. A binding of
+the parameter `built-in-finding-classes` (section 3.3) gives the slugs
+of the finding classes that a conforming program has built in. Each
+finding class whose slug is in that binding is a built-in finding class,
+and it is not an item.
 
 An ack is what an `@ack` line states: the findings of one finding class
 in one part of a file are acknowledged. In the line `@ack late-fee
@@ -487,7 +488,7 @@ acknowledges, in the form in which each finding gives its subject. An
 finding class in that part of a file. The part of a file depends on the
 item in which the `@ack` line stands (section 2.10):
 
-- for a declared item, the text of that declared item;
+- for a declared item, the region of that declared item;
 - for a test, the comment on that test that the line is in;
 - for a site, that site.
 
@@ -577,14 +578,14 @@ them passed and which failed.
 
 A site is an item with no name. It is a part of the read texts of a file
 with a citation, an inline citation, or an `@ack` line in it, outside
-the text of every declared item and every comment on a test. In a
+the region of every declared item and every comment on a test. In a
 markdown file, the site of a line is made of the read texts in the part
 of the file from the last heading at or before the line, or from the
 start of the file, to the line before the next heading, or to the end of
 the file: the innermost section of the line, without the sections in
 that section. In another file, the site of a line is made of the read
 text that the line is in, such as one comment. A site holds no part of
-the text of a declared item and no part of a comment on a test. So the
+the region of a declared item and no part of a comment on a test. So the
 sites of one file do not overlap, and a section or a comment whose only
 tag lines are `@ack` lines can be a site.
 
@@ -633,9 +634,9 @@ names.
 
 | item | revised content |
 |---|---|
-| design | the content characters of its own text |
-| specification | the content characters of its text, with the texts of its requirements and its terms in it, without the characters of the labels of the declarations of those requirements and terms |
-| requirement, term, decision record, declared finding class | the content characters of its text |
+| design | the content characters of its extent |
+| specification | the content characters of its extent, with the regions of its requirements and its terms in it, without the characters of the labels of the declarations of those requirements and terms |
+| requirement, term, decision record, declared finding class | the content characters of its extent |
 | conformance vector | its group, its input, its result, and its values: the members `group`, `input`, `result`, and `values` that the object of its vector line has |
 | group | which conformance vectors are in it, and the revised content of each |
 | vector set | which conformance vectors are in it, and the revised content of each |
@@ -657,12 +658,12 @@ their characters are in the files.
 The content characters of a part of a file are the lines of its text
 other than its `@ack` lines, joined with one line feed between each two
 of them, without the revision of each citation entry and of each inline
-citation. So a new ack, or a new pin of a citation, in the text of an
+citation. So a new ack, or a new pin of a citation, in the region of an
 item does not change its revised content.
 
 So an edit of a requirement or a term inside a specification changes
 the revised content of that requirement or term and of the
-specification. An edit of the own text of a design changes the revised
+specification. An edit of the extent of a design changes the revised
 content of the design alone. An edit of one vector changes the revised
 content of its group and of its vector set.
 
@@ -670,13 +671,13 @@ An edge is pinned when the revision of the citation entry or of the
 inline citation that states it is a label: the label of the edge. A
 pinned edge states its relation to the revised content of its cited
 item that its label names. So `@cites packs#limit-size=v2` rests on the
-text of `packs#limit-size` that has the label `v2`. The edges of
-`@supersedes docs=v3#*` and of `@verifies data-forms#toml[*]=v3` are
-pinned too, each with the label `v3`. An edge whose citation entry has
-the revision `*`, such as `@cites packs=*`, is not pinned: it rests on
-the cited item at each of its revisions. An edge whose cited item is an
-external item is not pinned, because an external id carries no
-revision.
+revised content that `packs#limit-size` has with the label `v2`. The
+edges of `@supersedes docs=v3#*` and of
+`@verifies data-forms#toml[*]=v3` are pinned too, each with the label
+`v3`. An edge whose citation entry has the revision `*`, such as
+`@cites packs=*`, is not pinned: it rests on the cited item at each of
+its revisions. An edge whose cited item is an external item is not
+pinned, because an external id carries no revision.
 
 ### 2.10 Edges
 
@@ -694,15 +695,15 @@ no cited item.
 A line, a citation, or an inline citation stands in one item, or in
 none:
 
-1. when it is in the text of a declared item, in the innermost of the
-   declared items in whose texts it is;
+1. when it is in the region of a declared item, in the innermost of the
+   declared items in whose regions it is;
 2. otherwise, when it is in a comment on a test, in the innermost of the
    tests that it is in a comment on: the test whose code is in the code
    of each of the others;
 3. otherwise, in its site.
 
 The source of an edge is the item in which its citation or its inline
-citation stands. So `@supersedes packs#old=v1` in the text of a
+citation stands. So `@supersedes packs#old=v1` in the region of a
 requirement `packs#new` has that requirement as its source, and not the
 design `packs`. A `@verifies` line in a comment on a test has that test
 as its source.
@@ -716,8 +717,8 @@ as its source.
 | `supersedes` | the source is to replace the cited item |
 
 No citation entry and no inline citation names a work item, so no edge
-has a work item as its cited item. Work points at text in the other
-direction: a task promises requirements, and a plan carries out
+has a work item as its cited item. Work points at declared items in the
+other direction: a task promises requirements, and a plan carries out
 requirements, specifications, and designs.
 
 Only a `supersedes` edge states that one declared item is to replace
@@ -728,9 +729,9 @@ things. The design `media` is to replace the design `docs`, which the
 label `v3` pins. And each specification, each requirement, and each term
 `docs#x` is to be replaced by the specification, the requirement, or the
 term `media#x` of the same kind of item, when `media` holds one. A
-declared item is on a cycle of `supersedes` edges when it reaches itself
-along `supersedes` edges, effective or not, each from its source to its
-cited item.
+declared item is on a cycle of `supersedes` edges when it leads back to
+itself along `supersedes` edges, effective or not, each from its source
+to its cited item.
 
 ### 2.11 Valid trees
 
@@ -741,14 +742,14 @@ when it also meets each of these conditions:
 |---|---|
 | each edge is valid: it has a cited item; a kind word at its start is `spec` or `term` for an external item, and states what its cited item is for each other item; and the kinds of its source and of its cited item fit its kind of edge | `@verifies packs#limit-size=v2` in a section of a markdown file, whose source is a site and not a test |
 | each mark is valid: its kind word is `spec`, `req`, or `term`, and the design holds such an item with its part name, directly for `req` and `term`, declared in another file | `@extern design:docs` |
-| each `@extern` line is in the own text of an item of the kind design | `@extern spec:descriptor` in the text of a requirement |
+| each `@extern` line is in the extent of an item of the kind design | `@extern spec:descriptor` in the region of a requirement |
 | each status tag is among the tag lines of the declaration of exactly one declared item | `@deprecated` in a paragraph with no declaration |
 | each status tag of a declared item fits the kind of item of that declared item | `@rejected` in the tag lines of a requirement |
 | the declaration of each item of the kind design is in a markdown file | `@design ledger=v1` in a comment in code |
 | each item of the kind specification, requirement, or term belongs to exactly one item of the kind design | a `@req` line outside every design |
-| each item of the kind specification, requirement, or term whose declaration is in the text of an item of the kind design belongs to that item | `@spec docs#x=v1` in the text of the design `packs` |
-| each item of the kind requirement or term whose declaration is in the text of a specification belongs to that specification | `@req docs#y=v1` in the text of the specification `packs#descriptor` |
-| the text of no item of the kind design is in the text of another one, and the declaration of no specification is in the scope of another specification | `@design docs=v1` in a section of the design `packs` |
+| each item of the kind specification, requirement, or term whose declaration is in the region of an item of the kind design belongs to that item | `@spec docs#x=v1` in the region of the design `packs` |
+| each item of the kind requirement or term whose declaration is in the region of a specification belongs to that specification | `@req docs#y=v1` in the region of the specification `packs#descriptor` |
+| the region of no item of the kind design is in the region of another one, and the declaration of no specification is in the scope of another specification | `@design docs=v1` in a section of the design `packs` |
 | each specification, and each requirement and each term held directly, whose declaration is outside the file of its design has a mark | a specification in a file of its own, with no `@extern` line in the design |
 | each requirement and each term whose declaration has a part name, and is in a markdown file, is declared in the file of its design or in the file of its specification | `@req docs#x=v1` in a markdown file of its own |
 | each term has a label | `@term invoice` |
@@ -778,7 +779,7 @@ requirement, term, specification, design, and decision record;
 In a valid tree, each item of the kind design is a design, and each
 item of the kind requirement belongs to a design and is a requirement
 of that design. In a valid tree, a specification whose declaration is
-in a markdown file other than the file of its design is in the text of
+in a markdown file other than the file of its design is in the region of
 no design. A tree that is not valid still has its items, its edges, and
 their states. So an item of the kind requirement outside every design
 whose declaration has a slug, such as `@req limit-size=v1`, has that
@@ -1005,7 +1006,7 @@ ledger entry records a state.
 | deprecated | a requirement, a term, a specification, a design, or a decision record | a valid `@deprecated` status tag of the item states that it no longer applies and that nothing replaces it |
 | rejected | a decision record | a valid `@rejected` status tag of the record states that its choice was considered and not made |
 | deferred | a decision record | a valid `@deferred` status tag of the record states that its choice is not made yet |
-| approved | a subject of approval, or a design, a specification, a requirement, a term, or a decision record | for a subject of approval that needs approval, the latest judgment of it and of the revised content that it has in the tree is an approval; for another subject of approval, a commit of the first-parent line of the default branch has a tree that gives it the revised content that it has in the tree; a design is approved when its own text, its specifications, and the requirements and the terms that it holds directly are approved |
+| approved | a subject of approval, or a design, a specification, a requirement, a term, or a decision record | for a subject of approval that needs approval, the latest judgment of it and of the revised content that it has in the tree is an approval; for another subject of approval, a commit of the first-parent line of the default branch has a tree that gives it the revised content that it has in the tree; a design is approved when its extent, its specifications, and the requirements and the terms that it holds directly are approved |
 | declined | a subject of approval, or a specification, a requirement, a term, or a decision record | the subject of approval needs approval, and the latest judgment of it and of the revised content that it has in the tree is a decline |
 | draft | a design | the design is not approved |
 | suspect | a pinned edge | the label of the edge is not the current revision of its cited item |
@@ -1020,13 +1021,13 @@ ledger entry records a state.
 | accounted for | a requirement | work for the requirement is under way, or was finished at its current revision |
 
 A subject of approval is a unit that a person approves or declines as a
-whole: the own text of a design, a specification with its requirements
+whole: the extent of a design, a specification with its requirements
 and its terms, a requirement that a design holds directly, a term that a
 design holds directly, or a decision record. These five are the kinds of
 subject of approval. A subject of approval of one tree and a subject of
 approval of another tree are the same subject of approval when their
 declared items are the same item. The subject of approval of a design
-is its own text. The subject of approval of a specification, of a
+is its extent. The subject of approval of a specification, of a
 requirement or a term that a design holds directly, and of a decision
 record is the subject of approval that it is. The subject of approval of
 a requirement or a term that a specification holds is the subject of
@@ -1045,7 +1046,7 @@ merge into the default branch is its approval. A subject of approval
 that does not need approval is never declined. A requirement or a term
 that a specification holds is approved when that specification is
 approved, and declined when it is declined. A design is approved when
-its own text, each of its specifications, and each requirement and each
+its extent, each of its specifications, and each requirement and each
 term that it holds directly are approved.
 
 An `approval` or a `decline` ledger entry records the kind of item and
@@ -1150,7 +1151,7 @@ text that Sinter gives the agent about its work for that session.
 
 The parameter `approval-kinds` gives the kinds of subject of approval
 that need approval. A binding of it is a set of kinds of subject of
-approval, so each of its members is one of these five: the own text of
+approval, so each of its members is one of these five: the extent of
 a design, a specification, a requirement that a design holds directly,
 a term that a design holds directly, and a decision record. The binding
 can be the empty set, and then no subject of approval needs approval.
@@ -1329,9 +1330,9 @@ The slug of a declaration is the slug in its target, and the part name
 of a declaration is the part name in its target, when its target starts
 with a full name.
 
-### 4.11 Texts of declared items
+### 4.11 Regions of declared items
 
-@term item-text=v1
+@term region=v1
 @cites {
     text#{text=v1, run=v1, place=v1, character=v1},
     #{
@@ -1340,20 +1341,20 @@ with a full name.
     },
 }
 
-The text of a declared item in a tree is a set of runs of the text of
+The region of a declared item in a tree is a set of runs of the text of
 one file of that tree: the part of that file that the item takes up.
-The declaration of the item is in its text. When that file is not a
+The declaration of the item is in its region. When that file is not a
 markdown file, each place of each of those runs is a place that a read
-text of that file comes from. A part of a file is in the text of a
+text of that file comes from. A part of a file is in the region of a
 declared item when each place of that part is a place of one of those
-runs. When the texts of two declared items have a part in common, one of
-the two texts is in the other. No part of a file is in the texts of two
-different declared items that are each of the kind requirement or of the
-kind term. Of the declared items in whose texts a part of a file is, the
-innermost is the one whose text is in the text of each of the others,
-when exactly one of them is. The characters of a part of a file are the
-characters of its runs, in their order in the text of the file, and
-they form one text.
+runs. When the regions of two declared items have a part in common, one
+of the two regions is in the other. No part of a file is in the regions
+of two different declared items that are each of the kind requirement or
+of the kind term. Of the declared items in whose regions a part of a
+file is, the innermost is the one whose region is in the region of each
+of the others, when exactly one of them is. The characters of a part of
+a file are the characters of its runs, in their order in the text of the
+file, and they form one text.
 
 ### 4.12 Files of declared items
 
@@ -1369,7 +1370,7 @@ the declaration of the item is.
 @cites {
     text#{specification=v1},
     #{
-        declared-item=v1, item-text=v1, item-file=v1, markdown-file=v1,
+        declared-item=v1, region=v1, item-file=v1, markdown-file=v1,
         tree=v1,
     },
 }
@@ -1377,7 +1378,7 @@ the declaration of the item is.
 The scope of an item of the kind specification in a tree is a part of
 the file of the specification:
 
-- when its declaration is in a markdown file, its text;
+- when its declaration is in a markdown file, its region;
 - otherwise, the comment that its declaration is in, with the code to
   which that comment is attached, such as a module or a function; or,
   when that comment is attached to no code and no code of the file comes
@@ -1393,15 +1394,15 @@ others, when exactly one of them is.
 @cites {
     identifiers#{tag-line=v1, inline-citation=v1},
     text#{specification=v1},
-    #{declared-item=v1, item-text=v1, specification-scope=v1, tree=v1},
+    #{declared-item=v1, region=v1, specification-scope=v1, tree=v1},
 }
 
 The home design of a tag line or an inline citation in a tree is one
 item of the kind design, or none:
 
-- When the tag line or the inline citation is in the text of an item of
-  the kind design, its home design is the innermost of the items of the
-  kind design in whose texts it is.
+- When the tag line or the inline citation is in the region of an item
+  of the kind design, its home design is the innermost of the items of
+  the kind design in whose regions it is.
 - Otherwise, when it is in the scope of an item of the kind
   specification, and the declaration of the innermost such item has a
   part name, its home design is the item of the kind design whose
@@ -1444,42 +1445,43 @@ term belongs to no other declared item. An item of the kind design holds
 directly an item of the kind requirement or a term when that item
 belongs to it and to no item of the kind specification.
 
-### 4.16 Texts of specifications in code
+### 4.16 Regions of specifications in code
 
-@term specification-text=v1
+@term specification-region=v1
 @cites #{
-    declared-item=v1, item-text=v1, containment=v1, markdown-file=v1,
+    declared-item=v1, region=v1, containment=v1, markdown-file=v1,
     read-text-binding=v1, term=v1, tree=v1,
 }
 
-The text of an item of the kind specification in a tree, when its
+The region of an item of the kind specification in a tree, when its
 declaration is in a file that is not a markdown file, is the part of
-the read text of its declaration that the item takes up, with the texts
-of the items of the kind requirement and of the terms that belong to
-it. The read text of its declaration is the read text that its
+the read text of its declaration that the item takes up, with the
+regions of the items of the kind requirement and of the terms that
+belong to it. The read text of its declaration is the read text that its
 declaration is in.
 
-### 4.17 Own texts
+### 4.17 Extents of declared items
 
-@term own-text=v1
+@term extent=v1
 @cites {
     text#{specification=v1},
     #{
-        declared-item=v1, item-text=v1, specification-text=v1,
+        declared-item=v1, region=v1, specification-region=v1,
         containment=v1, term=v1,
     },
 }
 
-The own text of an item of the kind design is the part of its text that
-is in the text of none of the specifications, none of the items of the
-kind requirement, and none of the terms that it holds.
+The extent of an item of the kind design is the part of its region that
+is in the region of none of the specifications, none of the items of the
+kind requirement, and none of the terms that it holds. The extent of
+each other declared item is its region.
 
 ### 4.18 Terms
 
 @term term=v1
-@cites #{declared-item=v1, item-text=v1}
+@cites #{declared-item=v1, region=v1}
 
-A term is a declared item whose declaration word is `@term`. Its text
+A term is a declared item whose declaration word is `@term`. Its region
 states the meaning of one word or one fixed phrase, which other items
 can use.
 
@@ -1504,12 +1506,12 @@ about. A finding class is a kind of finding, which a slug names.
 ### 4.21 Declared finding classes
 
 @term declared-finding-class=v1
-@cites #{declared-item=v1, finding-class=v1, item-text=v1, tree=v1}
+@cites #{declared-item=v1, finding-class=v1, region=v1, tree=v1}
 
 A declared finding class is a declared item whose declaration word is
 `@finding-class`: a finding class that a repository declares for
-itself. In a tree, the text of a declared finding class is the whole of
-one file of that tree, its finding-class file.
+itself. In a tree, the region of a declared finding class is the whole
+of one file of that tree, its finding-class file.
 
 ### 4.22 Built-in finding classes
 
@@ -1612,13 +1614,13 @@ class. No kind word states an item of another kind of item.
 @cites {
     identifiers#{extern-line=v1, kind-word=v1, part-name=v1},
     #{
-        accepted-input=v1, declared-item=v1, own-text=v1,
+        accepted-input=v1, declared-item=v1, extent=v1,
         containment=v1, item-file=v1, item-name=v1, stated-kind=v1,
     },
 }
 
 A mark is what an `@extern` line states, when the line is an accepted
-input and is in the own text of an item of the kind design: that item of
+input and is in the extent of an item of the kind design: that item of
 the kind design holds an item that is what the kind word of the line
 states, whose part name is the part name of the line, and whose file is
 not the file of the item of the kind design.
@@ -1781,7 +1783,7 @@ passed and which failed.
     identifiers#{citation=v1, inline-citation=v1, directive=v1},
     text#{line=v1, place=v1},
     #{
-        declared-item=v1, item-text=v1, specification-text=v1, test=v1,
+        declared-item=v1, region=v1, specification-region=v1, test=v1,
         tree=v1, markdown-file=v1, read-text-binding=v1,
     },
 }
@@ -1799,7 +1801,7 @@ the text of the file that meet each of these conditions:
   the file when no heading follows the part;
 - in a file that is not a markdown file, the read text that the part is
   in comes from the place;
-- the place is in the text of no declared item, and in no comment on a
+- the place is in the region of no declared item, and in no comment on a
   test.
 
 When no place meets these conditions, the part has no site. A site is a
@@ -1833,8 +1835,8 @@ that part is an external item too.
     },
     data-forms#{test-vector-line=v1, vector-object=v1},
     #{
-        declared-item=v1, own-text=v1, term=v1, decision-record=v1,
-        declared-finding-class=v1, item-text=v1, specification-text=v1,
+        declared-item=v1, extent=v1, term=v1, decision-record=v1,
+        declared-finding-class=v1, region=v1, specification-region=v1,
         containment=v1, conformance-vector=v1, vector-set=v1, group=v1,
         task=v1, plan=v1, test=v1, site=v1, external-item=v1, item=v1,
     },
@@ -1853,14 +1855,13 @@ steps give:
 
 The revised content of an item is this:
 
-- of an item of the kind design, the content characters of its own
-  text;
+- of an item of the kind design, the content characters of its extent;
 - of an item of the kind specification, the content characters of its
-  text, where step 3 also leaves out the characters of the label of the
-  declaration of each item of the kind requirement and of each term that
-  it holds;
+  extent, where step 3 also leaves out the characters of the label of
+  the declaration of each item of the kind requirement and of each term
+  that it holds;
 - of an item of the kind requirement, of a term, of a decision record,
-  and of a declared finding class, the content characters of its text;
+  and of a declared finding class, the content characters of its extent;
 - of a conformance vector, the members `group`, `input`, `result`, and
   `values` that the object of its vector line has;
 - of a group and of a vector set, which conformance vectors are in it,
@@ -1936,16 +1937,17 @@ edge has no cited item in that tree.
     identifiers#{citation=v1, inline-citation=v1},
     text#{line=v1},
     #{
-        edge=v1, declared-item=v1, item-text=v1, test=v1, site=v1,
-        tree=v1, item=v1, specification-text=v1,
+        edge=v1, declared-item=v1, region=v1, test=v1, site=v1,
+        tree=v1, item=v1, specification-region=v1,
     },
 }
 
 A line of a file of a tree, a citation, or an inline citation stands in
 one item, or in none:
 
-- when it is in the text of a declared item, it stands in the innermost
-  of the declared items in whose texts it is, when there is one;
+- when it is in the region of a declared item, it stands in the
+  innermost of the declared items in whose regions it is, when there
+  is one;
 - otherwise, when it is in a comment on a test, it stands in the
   innermost of the tests that it is in a comment on: the test whose code
   is in the code of each of the others, when exactly one of them is;
@@ -2044,8 +2046,8 @@ is to replace another.
 @cites #{edge=v1, supersedes-edge=v1, declared-item=v1, tree=v1}
 
 A declared item is on a cycle of `supersedes` edges in a tree when, and
-only when, it reaches itself in that tree along one or more `supersedes`
-edges of that tree, each from its source to its cited item.
+only when, it leads back to itself along one or more `supersedes` edges
+of that tree, each from its source to its cited item.
 
 ### 4.46 Status tags of declared items
 
@@ -2079,7 +2081,7 @@ item.
     #{
         accepted-input=v1, finding-class=v1, declared-finding-class=v1,
         built-in-finding-class=v1, edge-source=v1, declared-item=v1,
-        item-text=v1, specification-text=v1, test=v1, site=v1, item=v1,
+        region=v1, specification-region=v1, test=v1, site=v1, item=v1,
     },
 }
 
@@ -2089,7 +2091,7 @@ The finding class is the finding class whose slug is the slug of the
 line: a built-in finding class, or a declared finding class. The part
 of a file is this:
 
-- when the line stands in a declared item, the text of that declared
+- when the line stands in a declared item, the region of that declared
   item;
 - when the line stands in a test, the comment on that test that the
   line is in;
@@ -2199,13 +2201,13 @@ kinds design, specification, requirement, term, and decision record.
     text#{design=v1, requirement=v1, specification=v1},
     #{
         tree=v1, item=v1, edge=v1, valid-edge=v1, mark=v1,
-        valid-mark=v1, accepted-input=v1, own-text=v1,
+        valid-mark=v1, accepted-input=v1, extent=v1,
         item-status-tag=v1, valid-status-tag=v1, declared-item=v1,
-        containment=v1, item-text=v1, item-file=v1,
+        containment=v1, region=v1, item-file=v1,
         specification-scope=v1, term=v1, item-name=v1,
         supersedes-cycle=v1, markdown-file=v1, finding-class=v1,
         declared-finding-class=v1, built-in-finding-class=v1,
-        specification-text=v1,
+        specification-region=v1,
     },
 }
 
@@ -2213,7 +2215,7 @@ A tree is valid when, and only when, each of these is true in it:
 
 - Each edge is valid.
 - Each mark of each item of the kind design is valid.
-- Each `@extern` line that is an accepted input is in the own text of an
+- Each `@extern` line that is an accepted input is in the extent of an
   item of the kind design.
 - Each status tag that is an accepted input is among the tag lines of
   the declaration of exactly one declared item.
@@ -2223,13 +2225,13 @@ A tree is valid when, and only when, each of these is true in it:
   requirement, and each term belongs to exactly one item of the kind
   design.
 - Each item of the kind specification, each item of the kind
-  requirement, and each term whose declaration is in the text of an item
-  of the kind design belongs to that item of the kind design.
+  requirement, and each term whose declaration is in the region of an
+  item of the kind design belongs to that item of the kind design.
 - Each item of the kind requirement and each term whose declaration is
-  in the text of a specification belongs to that specification.
-- The text of no item of the kind design is in the text of another item
-  of the kind design, and the declaration of no specification is in the
-  scope of another specification.
+  in the region of a specification belongs to that specification.
+- The region of no item of the kind design is in the region of another
+  item of the kind design, and the declaration of no specification is in
+  the scope of another specification.
 - For each specification that an item of the kind design holds, and for
   each item of the kind requirement and each term that it holds
   directly, whose file is not the file of the item of the kind design,
@@ -2497,21 +2499,21 @@ definition of a plan. A definition entry records no judgment.
 @cites {
     text#{specification=v1},
     #{
-        person=v1, declared-item=v1, own-text=v1, term=v1,
+        person=v1, declared-item=v1, extent=v1, term=v1,
         decision-record=v1, containment=v1, revised-content=v1,
         same-item=v1, tree=v1,
     },
 }
 
 A subject of approval is a unit that a person approves or declines as a
-whole. Each subject of approval is one of these: the own text of an item
+whole. Each subject of approval is one of these: the extent of an item
 of the kind design; a specification, with the items of the kind
 requirement and the terms that it holds; an item of the kind requirement
 that an item of the kind design holds directly; a term that an item of
 the kind design holds directly; or a decision record. These five are the
 kinds of subject of approval, and the kind of a subject of approval is
 the one of the five that it is. The declared item of a subject of
-approval is the item of the kind design, for its own text, and otherwise
+approval is the item of the kind design, for its extent, and otherwise
 the specification, the item of the kind requirement, the term, or the
 decision record that the subject of approval is. The subject of approval
 of a declared item is the subject of approval whose declared item it is,
@@ -2646,7 +2648,7 @@ of each task and each plan, by these rules:
    current definition waits for, and from each task to each work item
    that a wait of the current definition of a plan that the task is
    under waits for. The combined relation has a cycle when, and only
-   when, a work item reaches itself along it.
+   when, a work item leads back to itself along it.
 6. Each task that exists at a point is in exactly one of these four
    states at that point:
    - abandoned, when, and only when, an `abandoned` ledger entry of the
@@ -2735,7 +2737,7 @@ the choice of the record is not made yet.
     text#{design=v1, requirement=v1, specification=v1},
     #{
         subject-of-approval=v1, judgment=v1, ledger=v1, ledger-entry=v1,
-        revised-content=v1, containment=v1, own-text=v1, term=v1,
+        revised-content=v1, containment=v1, extent=v1, term=v1,
         decision-record=v1, tree=v1, item=v1, approval-binding=v1,
         default-branch=v1, first-parent-line=v1,
     },
@@ -2763,7 +2765,7 @@ these are the states approved and declined:
 - A requirement or a term that a specification holds is approved when,
   and only when, that specification is approved. It is declined when,
   and only when, that specification is declined.
-- A design is approved when, and only when, its own text, each of its
+- A design is approved when, and only when, its extent, each of its
   specifications, and each requirement and each term that it holds
   directly are approved.
 
