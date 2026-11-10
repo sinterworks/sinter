@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of items that Sinter traces, with their names, regions, extents, revisions, and edges, and the conditions of a valid tree; work items, changes, the ledger, and the actors that write it; the names and meanings of states; the parameters `approval-kinds`, `read-texts`, and `built-in-finding-classes`; and requirements for conforming programs on what they compute states from, on the treatment of ledger entries and of bindings, on the ledger entries that they append when an agent runs them, on the summary of a change, and on the use of declared tasks.
+Specifies the kinds of items that Sinter traces, with their names, regions, extents, revisions, and edges, and the conditions of a valid tree; work items, changes, the ledger, and the actors that write it; the names and meanings of states; the parameters `approval-kinds`, `read-texts`, and `built-in-finding-classes`; and requirements for conforming programs on what they compute states and the validity of trees from, on the treatment of ledger entries and of bindings, on the ledger entries that they append and the repairs that they make when an agent runs them, on the summary of a change, and on the use of declared tasks.
 
 Sinter traces the items of a repository: designs with their
 specifications, requirements, and terms, decision records, tests, tasks
@@ -24,9 +24,10 @@ test evidence.
 From Identifiers, the design takes tag lines, tag words, and kind
 words; names, labels, and revisions; external ids; citation entries,
 their entry names, and their vector selections; the forms of the `@ack`
-and `@extern` lines; inline citations and markdown documents; and which
-tag lines and inline citations a conforming program gives the result
-"valid" under a binding of the parameter `external-namespaces`. From
+and `@extern` lines; inline citations and markdown documents; the
+matches of inputs by productions; and which tag lines and inline
+citations a conforming program gives the result "valid" under a binding
+of the parameter `external-namespaces`. From
 Text and notation, it takes texts, characters, places, runs, lines, line
 feeds, whole numbers, decimal numerals, hex digits, the texts of byte
 sequences, and the UTF-8 encodings of texts, and what a design, a
@@ -51,8 +52,8 @@ and the meaning of a vector.
 | [tree](sinter:#tree=v1) | the set of the files of a repository, with their contents, at one commit or in one working tree |
 | [text of a file](sinter:#tree=v1) | the text of the byte sequence that is the content of a file, when that byte sequence is valid UTF-8 |
 | [valid path of a file](sinter:#tree=v1) | the text of the path of a file, when that path is valid UTF-8 and that text is a valid path, such as `docs/designs/packs.md` |
-| [binding of `read-texts`](sinter:#read-text-binding=v1) | for each file of a tree that has a text: whether the file is a markdown file, the read texts of the file, and the tests of the file, each with its name, its code, and the comments on it |
-| [read text](sinter:#read-text-binding=v1) | a text that the binding of `read-texts` gives for a file, with the runs of the text of the file that it comes from, such as a comment without its comment markers |
+| [binding of `read-texts`](sinter:#read-text-binding=v1) | for each tree, and for each file of the tree that has a text: whether the file is a markdown file; the read texts of the file, and, in a file that is not a markdown file, the code to which each read text is attached and whether code of the file comes before it; and the tests of the file, each with its name, its code, and the comments on it |
+| [read text](sinter:#read-text-binding=v1) | a text that the binding of `read-texts` gives for a file, with the runs of the text of the file that it comes from, one character from each place of those runs, such as a comment without its comment markers |
 | [markdown file](sinter:#markdown-file=v1) | a file that the binding of `read-texts` gives as a markdown file, such as a file whose name ends in `.md`; its headings are the headings of the markdown document of its text |
 | [default branch](sinter:#default-branch=v1) | the branch into which work on a repository merges |
 | actor | a person, an agent, or the job |
@@ -62,8 +63,8 @@ and the meaning of a vector.
 | [job](sinter:#job=v1) | an execution of a conforming program that continuous integration starts at each push to the default branch of a repository |
 | [accepted input](sinter:#accepted-input=v1) | under a binding of `read-texts` and a binding of `external-namespaces`, a tag line or an inline citation of a read text of a file of a tree, to which a conforming program of Identifiers gives the result "valid" under that binding of `external-namespaces` |
 | [declared item](sinter:#declared-item=v1) | what a declaration that is an accepted input declares: an item of the kind design, specification, requirement, term, decision record, or declared finding class |
-| [item of the kind design](sinter:#declared-item=v1) | a declared item whose declaration word is `@design`; in a valid tree, it is a design |
-| [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req`; in a valid tree, it is a requirement of the design to which it belongs |
+| [item of the kind design](sinter:#declared-item=v1) | a declared item whose declaration word is `@design` |
+| [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req` |
 | [design](sinter:text#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [requirement](sinter:text#requirement=v1) | an obligation that a design declares under a name and states with the word must |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
@@ -74,20 +75,22 @@ and the meaning of a vector.
 | [subject of a finding](sinter:#finding-class=v1) | the text that a finding gives to say what it is about |
 | [finding class](sinter:#finding-class=v1) | a kind of finding, which a slug names |
 | [declared finding class](sinter:#declared-finding-class=v1) | a declared item whose declaration word is `@finding-class`: a finding class that a repository declares for itself |
-| [finding-class file](sinter:#declared-finding-class=v1) | the file that one declared finding class takes up whole: its region is the whole of that file |
+| [finding-class file](sinter:#declared-finding-class=v1) | the file of a declared finding class: its region is the whole of that file when that file is a markdown file, and otherwise the places of that file that its read texts come from |
 | [binding of `built-in-finding-classes`](sinter:#built-in-finding-class=v1) | a finite set of slugs |
-| [built-in finding class](sinter:#built-in-finding-class=v1) | a finding class whose slug is in the binding of `built-in-finding-classes`: a finding class that a conforming program has built in |
-| [region of a declared item](sinter:#region=v1) | the set of the runs of the text of one file that a declared item takes up, its declaration included; when that file is not a markdown file, a read text of the file comes from each place of those runs |
-| [characters of a part of a file](sinter:#region=v1) | the characters of the runs of that part, in their order in the text of the file; they form one text |
+| [built-in finding class](sinter:#built-in-finding-class=v1) | a finding class whose slug is in the binding of `built-in-finding-classes`: a finding class that a conforming program has built in; it is not an item and not a declared finding class |
+| [part of a file](sinter:#region=v1) | a set of places of the text of a file, which is not empty |
+| [share a place](sinter:#region=v1) | two parts of a file share a place when a place is in both |
+| [region of a declared item](sinter:#region=v1) | the part of one file that a declared item takes up, its declaration included; when that file is not a markdown file, a read text of the file comes from each place of that part |
+| [characters of a part of a file](sinter:#region=v1) | the characters of the runs of that part, in their order in the text of the file, with one line feed between each two runs that follow each other when the first of the two does not end in a line feed; they form one text |
 | [innermost](sinter:#region=v1) | of the declared items in whose regions a part of a file is, the one whose region is in the region of each of the others, when exactly one is |
 | [file of a declared item](sinter:#item-file=v1) | the file in which the declaration of a declared item is |
-| [region of a specification in code](sinter:#specification-region=v1) | for an item of the kind specification whose declaration is in a file that is not a markdown file, the part of the read text of its declaration that it takes up, with the regions of the items of the kind requirement and of the terms that belong to it |
-| [scope of a specification](sinter:#specification-scope=v1) | a part of the file of a specification: when its declaration is in a markdown file, its region; otherwise, the comment that its declaration is in, with the code to which that comment is attached, or, when that comment is attached to no code and no code of the file comes before it, the whole file |
+| [region of a specification in code](sinter:#specification-region=v1) | for an item of the kind specification whose declaration is in a file that is not a markdown file, the places that the characters of the read text of its declaration that it takes up come from, with the places of the regions of the items of the kind requirement and of the terms that belong to it |
+| [scope of a specification](sinter:#specification-scope=v1) | a part of the file of a specification: when its declaration is in a markdown file, its region; otherwise, the places that the read text that its declaration is in comes from, with the places of the code to which that read text is attached, or, when that read text is attached to no code and no code of the file comes before it, each place of the file |
 | [home design](sinter:#home-design=v1) | of a tag line or an inline citation: the innermost item of the kind design in whose region it is; otherwise, when the declaration of the innermost item of the kind specification in whose scope it is has a part name, the item of the kind design whose declaration has the slug of that declaration, when the tree has exactly one such item; otherwise, none |
 | [containment](sinter:#containment=v1) | the relation in which a design holds specifications, requirements, and terms, and a specification holds requirements and terms |
 | [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | a design holds each of its specifications, requirements, and terms, and each of them belongs to the design; a specification holds its requirements and its terms in the same way |
 | [hold directly](sinter:#containment=v1) | a design holds a requirement or a term directly when the requirement or the term belongs to the design and to no specification |
-| [extent of a declared item](sinter:#extent=v1) | for a design, the part of its region that is in the region of none of its specifications, requirements, and terms; for each other declared item, its region |
+| [extent of a declared item](sinter:#extent=v1) | for a design, the part of its region that is in the region of no other declared item whose region is in its region; for each other declared item, its region |
 | [name of a declared item](sinter:#item-name=v1) | a slug, such as `packs`; for an item that belongs to a design, the name of the design, `#`, and the part name of the item, such as `packs#size`; for an item of the kind specification, requirement, or term that belongs to no design, which only a tree that is not valid has, the slug or the full name in the target of its declaration |
 | [set of names](sinter:#item-name=v1) | a set of names in which, in a valid tree, no two declared items have the same name: the shared set of slugs, the set of slugs of the declared finding classes, and the set of part names of each design |
 | [entry name](sinter:identifiers#citation-entry=v1) | the part of a citation entry that names its item: a name, an external id with or without a part name, or the slug of a citation entry that `every-part` matches |
@@ -95,32 +98,32 @@ and the meaning of a vector.
 | [mark](sinter:#mark=v1) | what an `@extern` line in the extent of a design states: the design holds an item of the kind that the kind word of the line states, with the part name of the line, whose declaration is in another file |
 | [value](sinter:identifiers#value=v1) | a text or a fact that a conforming program gives together with a result |
 | [conformance vector](sinter:#conformance-vector=v1) | a vector line of a vector set: it states one input of a conforming program of the specification or the design of the vector set, and what that program gives for that input |
-| [vector set](sinter:#vector-set=v1) | the test-vector set in the vector file of one specification, or of one design for the requirements that it holds directly; it is empty when there is no such file |
-| [vector file](sinter:#vector-set=v1) | the file, in the folder of the file of a design, whose name is the test-vector file name of the name of the design and the part name of one of its specifications, such as `packs.descriptor.test-vectors.jsonl`, or of the name of the design alone, such as `packs.test-vectors.jsonl` |
+| [vector set](sinter:#vector-set=v1) | the test-vector set in the vector file of one specification, or of one design for the requirements that it holds directly; when there is no such file, or its content is not a test-vector set, the empty vector set: no set line, no group, and no conformance vector |
+| [vector file](sinter:#vector-set=v1) | the file whose valid path is the valid path of the file of a design with its last file name replaced by the test-vector file name of the name of the design and the part name of one of its specifications, such as `packs.descriptor.test-vectors.jsonl`, or of the name of the design alone, such as `packs.test-vectors.jsonl`; it is in the folder of the file of the design, or in a subfolder of that folder when the name of the design holds `/` |
 | [number of a vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of its member `n`, a whole number of 1 or more |
 | [group](sinter:#group=v1) | the conformance vectors of one vector set whose vector lines have one value of the member `group`, with that value as its name |
 | [selection](sinter:#selection=v1) | the set of conformance vectors that one citation entry names: one vector, every vector of a group, or every vector of a vector set |
 | [test](sinter:#test=v1) | a unit of code that a test framework runs and reports as passed or failed, or a set of such units, which the binding of `read-texts` gives with its name |
 | [code of a test](sinter:#test=v1) | the part of its file that the binding of `read-texts` gives as the code of a test |
 | [comment on a test](sinter:#test=v1) | a part of its file that the binding of `read-texts` gives as a comment on a test, such as the comment right before a test function |
-| [test evidence](sinter:#test-evidence=v1) | the reports that tests gave in one execution: which tests ran, and which of them passed or failed |
-| [site](sinter:#site=v1) | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the region of every declared item and every comment on a test: in a markdown file, the part of the read texts in the lines from one heading to the next; in another file, the part of one read text |
+| [test evidence](sinter:#test-evidence=v1) | the reports that tests gave in one execution, each of which names one test by the path of its file and its name, and says whether the test passed or failed |
+| [site](sinter:#site=v1) | a part of a file that holds each place that a citation, an inline citation, or an `@ack` line comes from, and whose places are places of read texts outside the region of every declared item and every comment on a test: in a markdown file, those in the lines from one heading to the next; in another file, those of one read text |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [hash](sinter:data-forms#hash=v1) | the hash of a byte sequence: the 64 hex digits of the digest that SHA-256 gives for it, so that two different byte sequences almost never have the same hash |
 | [revised content](sinter:#revised-content=v1) | the part of an item that a revision of the item names, such as the content characters of the extent of a design |
-| [content characters](sinter:#revised-content=v1) | the lines of the text of a part of a file other than its `@ack` lines, joined with one line feed between each two of them, without the revisions of the citation entries and of the targets of the inline citations in them |
+| [content characters](sinter:#revised-content=v1) | the lines of the text that the characters of a part of a file form, other than the `@ack` lines that are accepted inputs, joined with one line feed between each two of them, without the revisions of the citation entries of the citations, and of the targets of the inline citations, that are accepted inputs |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
-| [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration; for a conformance vector, a group, and a vector set, the revision of its vector line, of its group line, and of its set line |
-| [edge](sinter:#edge=v1) | a relation of one kind of edge from a source to a cited item, or to none, which a citation entry or an inline citation states |
+| [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration; for a conformance vector, the revision of its vector line; for a group, the revision of the group line whose `group` value is the name of the group; for a vector set, the revision of its set line |
+| [edge](sinter:#edge=v1) | a relation of one kind of edge from a source, or from none, to a cited item, or to none, which a citation entry or an inline citation states |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
-| [stand in](sinter:#edge-source=v1) | a line, a citation, or an inline citation stands in the innermost declared item in whose region it is; otherwise in the innermost test that it is in a comment on; otherwise in its site |
+| [stand in](sinter:#edge-source=v1) | a line of a read text, a citation, or an inline citation stands in the innermost declared item in whose region it is; otherwise in the innermost test that it is in a comment on; otherwise in its site |
 | [source](sinter:#edge-source=v1) | the item in which the citation or the inline citation of an edge stands |
 | [cited item](sinter:#edge=v1) | the item that the citation entry or the inline citation of an edge names |
 | [pinned edge](sinter:#pinned-edge=v1) | an edge whose citation entry or inline citation has a label as its revision |
-| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a sequence of `supersedes` edges along which a declared item leads back to itself, each edge from its source to its cited item |
+| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a sequence of `supersedes` edges along which a declared item leads back to itself: the item is the source of the first edge and the cited item of the last edge, and the cited item of each other edge is the source of the next edge |
 | [status tag of a declared item](sinter:#item-status-tag=v1) | a status tag that is an accepted input and that is among the tag lines of the declaration of exactly one declared item, of that declared item |
 | [ack](sinter:#ack=v1) | what an `@ack` line states: the findings of one finding class in one part of a file are acknowledged |
-| [subject of an `@ack` line](sinter:identifiers#ack-line=v1) | the text between the slug and the hash prefix of an `@ack` line, which can be empty |
+| [subject of an `@ack` line](sinter:#ack=v1) | the text that `subject` matches in the match of an `@ack` line, or the empty text when that match uses no `subject` |
 | [valid edge](sinter:#valid-edge=v1) | an edge that has a cited item, whose kind word fits its cited item, and whose source and cited item fit its kind of edge |
 | [valid mark](sinter:#valid-mark=v1) | a mark whose kind word is `spec`, `req`, or `term`, for which the design holds such an item with the part name of the mark, directly for `req` and `term`, declared in another file |
 | [valid status tag](sinter:#valid-status-tag=v1) | a status tag of a declared item whose status word fits the kind of item of that declared item |
@@ -130,12 +133,12 @@ and the meaning of a vector.
 | [display name](sinter:#work-item=v1) | the name of a work item that a person reads, which can change |
 | [task](sinter:#task=v1) | one piece of work that one person or one agent can finish alone |
 | [work of a task](sinter:#task=v1) | what people and agents change in the files of a repository to finish a task |
-| [paths of a task](sinter:#task=v1) | the path set that gives the paths of the files that the work of a task can add, change, or remove |
+| [paths of a task](sinter:#task=v1) | the path set whose set holds the files that the work of a task adds, changes, or removes |
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [file in the set of a path set](sinter:#task=v1) | a file whose valid path is in the set of the path set; a file with no valid path is in the set of no path set |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of a requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree, with test evidence and a path set, when the tree has a valid edge of its kind to its requirement that is not suspect, from a citation in a file that is in the set of that path set, and, for `verifies`, the test evidence reports as passed a test that is the same item as the source of that edge |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree, with test evidence and a path set, when the tree has a valid edge of its kind to its requirement that is not suspect, from a citation in a file that is in the set of that path set, and, for `verifies`, the test evidence reports as passed the test with the path of the file and the name of the source of that edge |
 | [plan](sinter:#plan=v1) | a work item that says how a set of tasks and plans gets done |
 | [plan of a work item](sinter:#work-item-definition=v1) | the plan that the definition of a work item names |
 | [wait](sinter:#wait=v1) | a relation from a work item to another work item that it waits for |
@@ -215,24 +218,25 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | task | one piece of work | a work item id | no |
 | plan | how a set of tasks and plans gets done | a work item id | no |
 | test | a unit of code that a test framework runs | its file and the name that the binding of `read-texts` gives it | no |
-| site | a part of the read texts of a file with a citation, an inline citation, or an `@ack` line in it, outside the region of every declared item and every comment on a test | no name | no |
+| site | a part of a file that holds each place that a citation, an inline citation, or an `@ack` line comes from, and whose places are places of read texts outside the region of every declared item and every comment on a test | no name | no |
 | external item | a thing outside the repository | an external id, such as `gh/42` | no |
 
 A conforming program reads some texts of the files of a tree, the read
 texts, which a binding of the parameter `read-texts` gives (section
-3.2). Sinter reads the comments of code, each without its comment
-markers, and the paragraphs and the headings of markdown files outside
-their code blocks. A conforming program reads the read texts under one
-binding of the parameter `external-namespaces` of Identifiers. An
-accepted input is a tag line or an inline citation of a read text to
-which a conforming program of Identifiers gives the result "valid" under
-that binding. Only an accepted input declares an item, states an edge, a
-mark, or an ack, or is the status tag of an item. So `@req limit-size`
-declares nothing, because its target carries no label. `@deprecated.` is
-the status tag of no item, and `[](sinter:packs#limit-size=v2)` states
-no edge. A tag line in a code block of a markdown file, such as
-`@design packs=v4` in the example of section 2.3, is in no text that
-Sinter reads, so for Sinter it declares nothing.
+3.2). For example, a binding can give the comments of code, each
+without its comment markers, and the paragraphs and the headings of
+markdown files outside their code blocks. A conforming program reads the
+read texts under one binding of the parameter `external-namespaces` of
+Identifiers. An accepted input is a tag line or an inline citation of a
+read text to which a conforming program of Identifiers gives the result
+"valid" under that binding. Only an accepted input declares an item,
+states an edge, a mark, or an ack, or is the status tag of an item. So
+`@req limit-size` declares nothing, because its target carries no label.
+`@deprecated.` is the status tag of no item, and
+`[](sinter:packs#limit-size=v2)` states no edge. A tag line in a code
+block of a markdown file, such as `@design packs=v4` in the example of
+section 2.3, is in no text that Sinter reads, so for Sinter it declares
+nothing.
 
 A declared item is what a declaration that is an accepted input
 declares. The declaration word alone gives the kind of the declared
@@ -349,22 +353,26 @@ The size of a descriptor is the number of bytes of its file.
 A conforming program must reject a descriptor whose size is more than 1 MiB.
 ```
 
-The region of a declared item is a set of runs of the text of one file:
-the part of that file that the item takes up. Its declaration is in it.
-In a file that is not a markdown file, the region of a declared item is
-in the read texts of the file, so it holds no comment marker. When the
-regions of two declared items have a part in common, one of the two
-regions is in the other. No part of a file is in the regions of two
+A part of a file is a set of places of the text of the file, which is
+not empty. The region of a declared item is a part of one file: the part
+of that file that the item takes up. Its declaration is in it. In a file
+that is not a markdown file, a read text of the file comes from each
+place of the region of a declared item, so the region holds no comment
+marker. When the regions of two declared items share a place, one of the
+two regions is in the other. No place of a file is in the regions of two
 different items that are each of the kind requirement or of the kind
 term. Of the declared items in whose regions a part of a file is, the
 innermost is the one whose region is in the region of each of the
-others, when exactly one of them is. The characters of a part of a file
-are the characters of its runs, in their order in the text of the file,
-and they form one text. The extent of a design is the part of its region
-that is in the region of none of its specifications, requirements, and
-terms. The extent of each other declared item is its region. In the
-example, the extent of `packs` is the part of its region that is in the
-region of none of `descriptor`, `size`, and `limit-size`.
+others, when exactly one of them is. The runs of a part of a file are
+the longest runs of the text of the file whose places are in the part.
+The characters of a part of a file are the characters of its runs, in
+their order in the text of the file, with one line feed between each two
+runs that follow each other when the first of the two does not end in a
+line feed, and they form one text. The extent of a design is the part of
+its region that is in the region of no other declared item whose region
+is in its region. The extent of each other declared item is its region.
+In the example, the extent of `packs` is the part of its region that is
+in the region of none of `descriptor`, `size`, and `limit-size`.
 
 The file of a declared item is the file in which its declaration is. A
 design can hold a specification, or hold directly a requirement or a
@@ -382,10 +390,12 @@ as `(* @spec ledger#entry-ids=v2 *)` before an OCaml module. The scope
 of a specification is a part of its file:
 
 - for a specification declared in a markdown file, its region;
-- for a specification declared in a comment of another file, that
-  comment with the code to which the comment is attached, such as a
-  module or a function; or the whole file, when the comment is attached
-  to no code and no code of the file comes before it.
+- for a specification declared in a read text of another file, such as
+  a comment, that read text with the code to which the read text is
+  attached, such as a module or a function; or the whole file, when the
+  read text is attached to no code and no code of the file comes before
+  it. The binding of `read-texts` gives this code, and whether code of
+  the file comes before the read text.
 
 The home design of a tag line or an inline citation is the innermost
 design in whose region it is. When it is in the region of no design, and
@@ -394,11 +404,12 @@ a part name, its home design is the one design whose name is the slug of
 that declaration. So a `@req id-form=v1` in a comment in the module of
 the example above belongs to the design `ledger` and to the
 specification `ledger#entry-ids`, and `#id-form` names it there. The
-region of a specification declared in code is the part of the read text
-of its declaration that it takes up, with the regions of the
-requirements and the terms that belong to it. The rest of the code in
-its scope is not in its region, and neither is a requirement of another
-design whose declaration is in its scope.
+region of a specification declared in code is the set of the places
+that the characters of the read text of its declaration that it takes
+up come from, with the places of the regions of the requirements and
+the terms that belong to it. The rest of the code in its scope is not
+in its region, and neither is a requirement of another design whose
+declaration is in its scope.
 
 Only the regions of terms and of requirements are normative: a term
 states what a word or a fixed phrase means, and a requirement states
@@ -431,10 +442,18 @@ outside every design, or a full name, such as `docs#x` of
 The entry name of a citation entry, and the name or the external id in
 the target of an inline citation, name an item in this way:
 
-- A slug, such as `packs`, names the item of the shared set of slugs
-  that has it as its name. After the kind word `finding-class`, as in
-  `finding-class:late-fee`, a slug names the declared finding class
-  that has it as its name.
+- When the match of the citation entry, or the match of the destination
+  of the inline citation, uses `external-ref`, the text that
+  `external-ref` matches, an external id with or without `#` and a part
+  name, names an external item (section 2.7). So, when `gh` is the
+  namespace name of an external namespace and `billing` is not,
+  `@cites gh/42` names the external item `gh/42`, and
+  `@cites billing/auth=v1` names the item whose name is the slug
+  `billing/auth`.
+- Otherwise, a slug, such as `packs`, names the item of the shared set
+  of slugs that has it as its name. After the kind word
+  `finding-class`, as in `finding-class:late-fee`, a slug names the
+  declared finding class that has it as its name.
 - A full name, such as `packs#size`, names the specification, the
   requirement, or the term of the design that its slug names, whose
   part name is its part name. When its slug names no design, it names
@@ -444,8 +463,6 @@ the target of an inline citation, name an item in this way:
   names the specification, the requirement, or the term with that part
   name of the home design of the citation or of the inline citation.
   With no home design, it names nothing.
-- An external id, with or without `#` and a part name, names an
-  external item (section 2.7).
 
 A name that two or more declared items of one set of names have names
 none of them.
@@ -472,11 +489,13 @@ Each finding gives its subject: a text that says what the finding is
 about, such as the name of a requirement. A finding class is a kind of
 finding, which a slug names. A repository can declare finding classes
 of its own. Each such declared finding class is a declared item, and its
-region is the whole of one file, its finding-class file. A binding of
-the parameter `built-in-finding-classes` (section 3.3) gives the slugs
-of the finding classes that a conforming program has built in. Each
-finding class whose slug is in that binding is a built-in finding class,
-and it is not an item.
+file is its finding-class file. In a valid tree, that file is a
+markdown file, and the region of the declared finding class is the
+whole of that file. A binding of the parameter
+`built-in-finding-classes` (section 3.3) gives the slugs of the finding
+classes that a conforming program has built in. Each finding class whose
+slug is in that binding is a built-in finding class, and it is not an
+item and not a declared finding class.
 
 An ack is what an `@ack` line states: the findings of one finding class
 in one part of a file are acknowledged. In the line `@ack late-fee
@@ -485,8 +504,10 @@ built-in finding class, or a declared finding class. The subject of the
 line, `billing#fee=v2`, is the subject of the findings that the line
 acknowledges, in the form in which each finding gives its subject. An
 `@ack` line with an empty subject acknowledges every finding of its
-finding class in that part of a file. The part of a file depends on the
-item in which the `@ack` line stands (section 2.10):
+finding class in that part of a file. An `@ack` line whose slug is the
+slug of no built-in finding class and of no declared finding class
+states no ack. The part of a file depends on the item in which the
+`@ack` line stands (section 2.10):
 
 - for a declared item, the region of that declared item;
 - for a test, the comment on that test that the line is in;
@@ -495,10 +516,10 @@ item in which the `@ack` line stands (section 2.10):
 The hash of a byte sequence is the 64 hex digits of the digest that
 SHA-256 gives for it, so that two different byte sequences almost never
 have the same hash. The hash prefix `3f2a9c1d` is the start of the hash
-of the UTF-8 encoding of the lines of that part of a file other than its
-`@ack` lines, joined with one line feed between each two of them, as the
-part was when the ack was written. So an `@ack` line that is added or
-removed, with its line ending, changes no hash of an ack.
+of the UTF-8 encoding of the content characters of that part of a file
+(section 2.9), as the part was when the ack was written. So an `@ack`
+line that is added or removed, with its line ending, changes no hash of
+an ack, and neither does a new pin of a citation.
 
 ### 2.6 Conformance vectors
 
@@ -521,6 +542,13 @@ specification. So for the specification `descriptor` of the design
 the design itself, for the requirements that it holds directly, is
 `docs/designs/packs.test-vectors.jsonl`. A specification declared in
 code has its vector file in the folder of the file of its design too.
+When the name of the design holds `/`, so does the test-vector file
+name, and the vector file is in a subfolder of the folder of the file
+of the design. So for the specification `ids` of a design `ledger/core`
+whose file is `docs/designs/core.md`, the vector file is
+`docs/designs/ledger/core.ids.test-vectors.jsonl`. In a valid tree, no
+file is the vector file of two specifications or designs (section
+2.11).
 
 The content of a vector file is a test-vector set, as the specification
 `test-vectors` of Data forms gives it: a set line, then a group line for
@@ -534,7 +562,9 @@ as its name. The member `rev` of each line gives the current revision of
 the conformance vector, of the group, or of the vector set (section
 2.9). When a tree has no vector file for a specification or a design, or
 when the content of its vector file is not a test-vector set, its vector
-set is empty.
+set is the empty vector set: no set line, no group, and no conformance
+vector. A test-vector set that has a set line and no vector line is not
+the empty vector set.
 
 A citation entry of `@cites` or `@verifies` can name one conformance
 vector, one group, or one vector set. The selection of the citation
@@ -573,31 +603,37 @@ of its file that the test takes up. A comment on a test is a comment
 that is attached to the code of the test, such as the comment right
 before a test function. The code names each test, so a test has no
 declaration. Test evidence is the set of the reports that tests gave
-in one execution of their test frameworks: which tests ran, and which of
-them passed and which failed.
+in one execution of their test frameworks. Each report names one test,
+by the path of its file and the name that the binding of `read-texts`
+gives it, and it says whether the test passed or failed. Test evidence
+reports a test as passed when it has at least one report that the test
+passed and no report that the test failed.
 
-A site is an item with no name. It is a part of the read texts of a file
-with a citation, an inline citation, or an `@ack` line in it, outside
-the region of every declared item and every comment on a test. In a
-markdown file, the site of a line is made of the read texts in the part
-of the file from the last heading at or before the line, or from the
-start of the file, to the line before the next heading, or to the end of
-the file: the innermost section of the line, without the sections in
-that section. In another file, the site of a line is made of the read
-text that the line is in, such as one comment. A site holds no part of
-the region of a declared item and no part of a comment on a test. So the
-sites of one file do not overlap, and a section or a comment whose only
-tag lines are `@ack` lines can be a site.
+A site is an item with no name. It is a part of a file that holds each
+place that a citation, an inline citation, or an `@ack` line comes
+from, and whose places are places of read texts outside the region of
+every declared item and every comment on a test. In a markdown file, the
+site of a line is made of the places of the read texts in the lines of
+the file from the last heading at or before the line, or from the start
+of the file, to the line before the next heading, or to the end of the
+file: the innermost section of the line, without the sections in that
+section. In another file, the site of a line is made of the places of
+the read text that the line is in, such as one comment. A site holds no
+place of the region of a declared item and no place of a comment on a
+test. So no two sites of one file share a place, and a section or a
+comment whose only tag lines are `@ack` lines can be a site.
 
 An external item is an item outside the repository that an external id
-names, such as the issue `gh/42` or the standard `rfc/8259`. Each
-external id in an accepted input names an external item, even when
-nothing outside the repository has that external id. An external id
-with `#` and a part name, such as `rfc/8259#section-6`, names a part of
-such an item, and that part is an external item too. An external item
-has no revision. An external item can be a published standard, or a
-part of one. It can also state the meaning of one word or one fixed
-phrase, such as the external item `rfc/8259#value`.
+names, such as the issue `gh/42` or the standard `rfc/8259`. Each text
+that `external-id` matches in the match of an accepted input is an
+external id, and it names an external item, even when nothing outside
+the repository has that external id. A text that `external-ref` matches,
+with `#` and a part name after the external id, such as
+`rfc/8259#section-6`, names a part of such an item, and that part is an
+external item too. An external item has no revision. An external item
+can be a published standard, or a part of one. It can also state the
+meaning of one word or one fixed phrase, such as the external item
+`rfc/8259#value`.
 
 ### 2.8 Kind words
 
@@ -637,7 +673,7 @@ names.
 | design | the content characters of its extent |
 | specification | the content characters of its extent, with the regions of its requirements and its terms in it, without the characters of the labels of the declarations of those requirements and terms |
 | requirement, term, decision record, declared finding class | the content characters of its extent |
-| conformance vector | its group, its input, its result, and its values: the members `group`, `input`, `result`, and `values` that the object of its vector line has |
+| conformance vector | the members `group`, `input`, `result`, and `values` that the object of its vector line has |
 | group | which conformance vectors are in it, and the revised content of each |
 | vector set | which conformance vectors are in it, and the revised content of each |
 | task, plan, test, site, external item | none: the item has no revision |
@@ -645,21 +681,25 @@ names.
 The current revision of an item in a tree is the label that the item
 has in that tree, whatever its revised content. For a declared item, it
 is the label of its declaration. For a conformance vector, it is the
-revision of its vector line; for a group, the revision of its group
-line; and for a vector set, the revision of its set line. A declared
-item whose declaration has no label, such as `@term invoice`, has no
-current revision, and neither has an empty vector set. A revision of an
-item is a label that the item has, and it names the revised content
-that the item has with that label in a given tree. The
-revised content of a declared item is a text, so two revised contents
-of declared items are the same when they are the same text, wherever
-their characters are in the files.
+revision of its vector line; for a group, the revision of the group
+line whose `group` value is the name of the group; and for a vector
+set, the revision of its set line. A declared item whose declaration has
+no label, such as `@term invoice`, has no current revision, and neither
+has the empty vector set. A revision of an item is a label that the item
+has, and it names the revised content that the item has with that label
+in a given tree. The revised content of a declared item is a text, so
+two revised contents of declared items are the same when they are the
+same text, wherever their characters are in the files.
 
-The content characters of a part of a file are the lines of its text
-other than its `@ack` lines, joined with one line feed between each two
-of them, without the revision of each citation entry and of each inline
-citation. So a new ack, or a new pin of a citation, in the region of an
-item does not change its revised content.
+The content characters of a part of a file are the lines of the text
+that its characters form, other than the `@ack` lines that are accepted
+inputs, joined with one line feed between each two of them, without the
+revision of each citation entry of a citation that is an accepted input
+and the revision in the target of each inline citation that is an
+accepted input. So a new ack, or a new pin of a citation, in the region
+of an item does not change its revised content. An `@ack` line in a
+code block of a markdown file is not an accepted input, so it stays in
+the content characters.
 
 So an edit of a requirement or a term inside a specification changes
 the revised content of that requirement or term and of the
@@ -681,19 +721,19 @@ pinned, because an external id carries no revision.
 
 ### 2.10 Edges
 
-An edge is a relation of one kind of edge from a source to a cited
-item. Each citation entry of a citation that is an accepted input
-states one edge. The kind of edge is the citation word without its `@`.
-The cited item of the edge is the item that the citation entry names:
-by its selection when it has a vector selection, and by its entry name
-otherwise. An inline citation that is an accepted input, such as
-`[the limit](sinter:packs#limit-size=v2)`, states one edge of the kind
-`cites`, and the name or the external id in its target names the cited
-item. When the citation entry or the target names no item, the edge has
-no cited item.
+An edge is a relation of one kind of edge from a source, or from none,
+to a cited item, or to none. Each citation entry of a citation that is
+an accepted input states one edge. The kind of edge is the citation word
+without its `@`. The cited item of the edge is the item that the
+citation entry names: by its selection when it has a vector selection,
+and by its entry name otherwise. An inline citation that is an accepted
+input, such as `[the limit](sinter:packs#limit-size=v2)`, states one
+edge of the kind `cites`, and the name or the external id in its target
+names the cited item. When the citation entry or the target names no
+item, the edge has no cited item.
 
-A line, a citation, or an inline citation stands in one item, or in
-none:
+A line of a read text, a citation, or an inline citation stands in one
+item, or in none:
 
 1. when it is in the region of a declared item, in the innermost of the
    declared items in whose regions it is;
@@ -703,7 +743,8 @@ none:
 3. otherwise, in its site.
 
 The source of an edge is the item in which its citation or its inline
-citation stands. So `@supersedes packs#old=v1` in the region of a
+citation stands, or none when the citation or the inline citation stands
+in no item. So `@supersedes packs#old=v1` in the region of a
 requirement `packs#new` has that requirement as its source, and not the
 design `packs`. A `@verifies` line in a comment on a test has that test
 as its source.
@@ -730,8 +771,10 @@ label `v3` pins. And each specification, each requirement, and each term
 `docs#x` is to be replaced by the specification, the requirement, or the
 term `media#x` of the same kind of item, when `media` holds one. A
 declared item is on a cycle of `supersedes` edges when it leads back to
-itself along `supersedes` edges, effective or not, each from its source
-to its cited item.
+itself along `supersedes` edges, effective or not: when the item is the
+source of the first edge of a sequence of `supersedes` edges and the
+cited item of its last edge, and the cited item of each other edge of
+the sequence is the source of the next edge.
 
 ### 2.11 Valid trees
 
@@ -753,9 +796,11 @@ when it also meets each of these conditions:
 | each specification, and each requirement and each term held directly, whose declaration is outside the file of its design has a mark | a specification in a file of its own, with no `@extern` line in the design |
 | each requirement and each term whose declaration has a part name, and is in a markdown file, is declared in the file of its design or in the file of its specification | `@req docs#x=v1` in a markdown file of its own |
 | each term has a label | `@term invoice` |
+| the declaration of each declared finding class is in a markdown file | `@finding-class late-fee=v1` in a comment in code |
 | no two declared finding classes have the same file | two `@finding-class` declarations in one file |
 | no declared finding class has the slug of a built-in finding class | `@finding-class x=v1`, when `x` is in the binding of `built-in-finding-classes` |
 | no two declared items of one set of names have the same name | two declarations `@decision cache=v1` |
+| no file is the vector file of two items | a design `a` with a specification `b`, and a design `a.b`, whose files are in one folder |
 | no declared item is on a cycle of `supersedes` edges | `a` supersedes `b`, and `b` supersedes `a` |
 
 The kinds of source and of cited item fit each kind of edge in this
@@ -799,9 +844,9 @@ change.
 
 A task has:
 
-- its paths: a path set; the work of the task can add, change, or
-  remove a file only when the file is in the set of that path set, so
-  the work of a task whose paths are the empty path set changes no file;
+- its paths: a path set, whose set holds the files that the work of the
+  task adds, changes, or removes, so the work of a task whose paths are
+  the empty path set changes no file;
 - its promises: each a pair of a kind of edge, `satisfies` or
   `verifies`, and the name of a requirement, such as
   `verifies ledger#check-ids`;
@@ -819,8 +864,8 @@ that tree has an edge of the kind of edge of the promise whose cited
 item is the requirement that the promise names, and when that edge is
 valid, is not suspect, and has its citation in a file that is in the set
 of that path set. For a `verifies` promise, that test evidence also
-reports as passed the source of that edge, a test, or a test of another
-tree that is the same item. The job judges each promise of a definition
+reports as passed the test with the path of the file and the name of
+the source of that edge. The job judges each promise of a definition
 of a task with the paths of that definition (section 2.13). An edge that
 was in the tree before the work on the task started keeps the promise
 too.
@@ -850,11 +895,13 @@ a current definition. A work item is a part of a plan when its current
 definition names the plan as its plan. Two exceptions apply. An
 abandoned task, or an abandoned plan, is a part of no plan. And when a
 person abandons a plan, each of its parts that is not done stops being a
-part of it, and its done parts stay while they are done. So a done plan
-that is open again, such as after it gets a new part, is no longer a
-part of the abandoned plan, and new work under it is not under the
-abandoned plan. A work item is under a plan when it
-is a part of the plan, or under a part of the plan.
+part of it. Each of its done parts stays a part of it only while it
+stays done: once that part is not done, it is no longer a part of the
+abandoned plan, even when it is done again later. So a done plan that
+is open again, such as after it gets a new part, is no longer a part of
+the abandoned plan, and work under it is never again under the abandoned
+plan. A work item is under a plan when it is a part of the plan, or
+under a part of the plan.
 
 A wait goes from a work item, the waiting item, to another work item,
 the item that it waits for. A wait is met when the item that it waits
@@ -868,11 +915,13 @@ The combined relation goes from each plan to each of its parts, from
 each work item to each work item that it waits for, and from each task
 to each work item that a plan waits for when the task is under that
 plan. A definition entry after which the combined relation would have a
-cycle is not an accepted definition entry (section 2.13). So no work
-item is under itself, and no work item waits for itself, directly or
-through a plan. For example, a task that waits for the plan that it is
-under would make a cycle: the plan is done only when the task is done,
-and the task waits until the plan is done.
+cycle is not an accepted definition entry (section 2.13). No other
+ledger entry adds a relation to the combined relation. So the combined
+relation never has a cycle: no work item is under itself, and no work
+item waits for itself, directly or through a plan. For example, a task
+that waits for the plan that it is under would make a cycle: the plan is
+done only when the task is done, and the task waits until the plan is
+done.
 
 A commit states its link to a task in a line of its message:
 
@@ -986,15 +1035,20 @@ has in the tree of the merge commit of the delivery line, and whether
 the promise was kept in that tree, with the test evidence that the job
 read and with the paths of that definition. That test evidence is
 available only during the job, so no later reader can observe it again.
+A `done`, an `abandoned`, or a `delivered` ledger entry counts only when
+the work item that it names exists at the point of that ledger entry.
+A ledger entry that does not count changes no state.
 
 ### 2.14 States
 
 A state is a named condition of an item, an edge, or a subject of
 approval, in a tree, at a point of a ledger, or both. A conforming
-program computes each state only from the inputs that section 5.1 lists.
-It computes each state from a ledger entry in the same way, whatever
-writer the ledger entry records (section 5.2). It computes the states
-of one tree at one point of a ledger under one binding of each parameter
+program computes each state, and the validity of each tree, only from
+the inputs that section 5.1 lists. It gives the same states for two
+ledgers whose ledger entries differ only in the writers, the persons,
+and the branches that they record (section 5.2). It computes the states
+of one tree, of one point of a ledger, or of one tree at one point of a
+ledger, and the validity of a tree, under one binding of each parameter
 that section 5.3 names, such as `approval-kinds` (section 3.1). No
 ledger entry records a state.
 
@@ -1002,7 +1056,7 @@ ledger entry records a state.
 |---|---|---|
 | in force | a declared item | the item applies: its authors still agree with it, no other declared item replaces it, and the design or the specification that holds it is in force |
 | retired | a declared item | the item is not in force |
-| effective | a `supersedes` edge | the edge retires its cited item |
+| effective | a `supersedes` edge | the edge retires its cited item, unless that item is on a cycle of `supersedes` edges |
 | deprecated | a requirement, a term, a specification, a design, or a decision record | a valid `@deprecated` status tag of the item states that it no longer applies and that nothing replaces it |
 | rejected | a decision record | a valid `@rejected` status tag of the record states that its choice was considered and not made |
 | deferred | a decision record | a valid `@deferred` status tag of the record states that its choice is not made yet |
@@ -1120,11 +1174,12 @@ same requirement in each tree in which that requirement has that name.
 A statement of an agent is a text that an agent writes, such as a line
 of a file, a line of the message of a commit, a ledger entry, or a
 message to a person. A conforming program computes each state only from
-the inputs that section 5.1 lists, and it computes each state from a
-ledger entry in the same way, whatever writer the ledger entry records
-(section 5.2). When its input states that an agent runs it, a conforming
-program appends to the ledger no ledger entry other than a definition
-entry (section 5.4). A statement of an agent changes a state in one of
+the inputs that section 5.1 lists, and it gives the same states for two
+ledgers whose ledger entries differ only in the writers, the persons,
+and the branches that they record (section 5.2). When its input states
+that an agent runs it, a conforming program appends to the ledger no
+ledger entry other than a definition entry, and it makes no repair
+(section 5.4). A statement of an agent changes a state in one of
 two ways only:
 
 1. as a line of the diff of a change, which is about the item in which
@@ -1163,12 +1218,17 @@ approves each other subject of approval (section 2.14).
 
 The parameter `read-texts` gives the texts that a conforming program
 reads in the files of a tree, and the tests in those files. A binding of
-it gives, for each file of a tree that has a text, whether the file is a
-markdown file, the read texts of the file, and the tests of the file.
-Each read text is a text, with the runs of the text of the file that it
-comes from. Each test has a name, and its code and each comment on it
-are each a set of runs of the text of the file. For example, Sinter
-reads the comments of code, each without its comment markers, and the
+it gives, for each tree, and for each file of the tree that has a text,
+whether the file is a markdown file, the read texts of the file, and the
+tests of the file. Each read text is a text, with the runs of the text
+of the file that it comes from: each character of the read text comes
+from one place of those runs, in their order, and no two read texts of
+one file come from one place. In a file that is not a markdown file,
+the binding also gives, for each read text, the code to which the read
+text is attached, or none, and whether code of the file comes before the
+read text. Each test has a name, and its code and each comment on it are
+each a set of runs of the text of the file. For example, a binding can
+give the comments of code, each without its comment markers, and the
 paragraphs and the headings of markdown files outside their code blocks.
 
 ### 3.3 `built-in-finding-classes`
@@ -1225,27 +1285,37 @@ not a valid path, has no valid path.
 
 @term read-text-binding=v1
 @cites {
-    text#{text=v1, run=v1, character=v1, place=v1, line=v1},
+    text#{
+        text=v1, run=v1, character=v1, place=v1, line=v1,
+        whole-number=v1,
+    },
     #{tree=v1},
 }
 
-A binding of the parameter `read-texts` gives, for each file of a tree
-that has a text in that tree:
+A binding of the parameter `read-texts` gives, for each tree, and for
+each file of that tree that has a text in that tree:
 
 - whether the file is a markdown file;
 - the read texts of the file: each a text, with the runs of the text of
-  the file that it comes from, such that the characters of those runs,
-  in their order in the text of the file, are the characters of the read
-  text;
+  the file that it comes from;
+- when the file is not a markdown file, for each read text of the file:
+  the runs of the text of the file that are the code to which the read
+  text is attached, or no runs when the read text is attached to no
+  code; and whether code of the file comes before the read text;
 - the tests of the file: each with a name, which is a text; with the
   runs of the text of the file that are its code; and with the runs of
   the text of the file that are each comment on it.
 
-Each character of a read text comes from the place at which that
-character is in one of the runs of the read text, and the read text
-comes from the places of those runs. A line or another run of a read
-text is in a part of the file when each of its characters comes from a
-place of that part.
+No place is a place of two runs of one read text, and no place of the
+text of a file is a place of a run of two different read texts of that
+file. A read text has one character for each place of its runs. For
+each whole number k from 1 to the number of the characters of a read
+text, the k-th character of the read text is the character at the k-th
+of the places of its runs, in their order in the text of the file, and
+it comes from that place. A read text comes from each place of its
+runs. A line or another run of a read text is in a set of places of the
+text of the file when each of its characters comes from a place of that
+set.
 
 ### 4.4 Markdown files
 
@@ -1334,27 +1404,37 @@ with a full name.
 
 @term region=v1
 @cites {
-    text#{text=v1, run=v1, place=v1, character=v1},
+    text#{
+        text=v1, run=v1, place=v1, character=v1, line=v1, line-feed=v1,
+    },
     #{
         declared-item=v1, tree=v1, markdown-file=v1,
         read-text-binding=v1,
     },
 }
 
-The region of a declared item in a tree is a set of runs of the text of
-one file of that tree: the part of that file that the item takes up.
-The declaration of the item is in its region. When that file is not a
-markdown file, each place of each of those runs is a place that a read
-text of that file comes from. A part of a file is in the region of a
-declared item when each place of that part is a place of one of those
-runs. When the regions of two declared items have a part in common, one
-of the two regions is in the other. No part of a file is in the regions
-of two different declared items that are each of the kind requirement or
-of the kind term. Of the declared items in whose regions a part of a
-file is, the innermost is the one whose region is in the region of each
-of the others, when exactly one of them is. The characters of a part of
-a file are the characters of its runs, in their order in the text of the
-file, and they form one text.
+A part of a file of a tree is a set of places of the text of that file,
+which is not empty. A run or a line of the text of the file, or another
+part of the file, is in a part of the file when each of its places is
+in that part. Two parts of a file share a place when a place is in both.
+The runs of a part of a file are the runs of the text of the file that
+are not empty, whose places are each in the part, and that have no place
+of the part right before their first place or right after their last
+place. The characters of a part of a file are the characters of its
+runs, in their order in the text of the file, with one line feed
+between each two runs that follow each other when the last character of
+the first of the two is not a line feed. They form one text.
+
+The region of a declared item in a tree is a part of one file of that
+tree: the part of that file that the item takes up. The declaration of
+the item is in its region. When that file is not a markdown file, a
+read text of that file comes from each place of the region. When the
+regions of two declared items share a place, one of the two regions is
+in the other. No place of a file is in the regions of two different
+declared items that are each of the kind requirement or of the kind
+term. Of the declared items in whose regions a part of a file is, the
+innermost is the one whose region is in the region of each of the
+others, when exactly one of them is.
 
 ### 4.12 Files of declared items
 
@@ -1368,10 +1448,10 @@ the declaration of the item is.
 
 @term specification-scope=v1
 @cites {
-    text#{specification=v1},
+    text#{specification=v1, place=v1, run=v1},
     #{
         declared-item=v1, region=v1, item-file=v1, markdown-file=v1,
-        tree=v1,
+        tree=v1, read-text-binding=v1,
     },
 }
 
@@ -1379,10 +1459,14 @@ The scope of an item of the kind specification in a tree is a part of
 the file of the specification:
 
 - when its declaration is in a markdown file, its region;
-- otherwise, the comment that its declaration is in, with the code to
-  which that comment is attached, such as a module or a function; or,
-  when that comment is attached to no code and no code of the file comes
-  before it, the whole file.
+- otherwise, for the read text that its declaration is in:
+  - when the binding of `read-texts` gives code to which the read text
+    is attached, such as a module or a function, the places that the
+    read text comes from, with the places of the runs of that code;
+  - otherwise, when the binding of `read-texts` gives that no code of
+    the file comes before the read text, each place of the text of the
+    file;
+  - otherwise, the places that the read text comes from.
 
 Of the items of the kind specification in whose scopes a part of a file
 is, the innermost is the one whose scope is in the scope of each of the
@@ -1394,7 +1478,10 @@ others, when exactly one of them is.
 @cites {
     identifiers#{tag-line=v1, inline-citation=v1},
     text#{specification=v1},
-    #{declared-item=v1, region=v1, specification-scope=v1, tree=v1},
+    #{
+        declared-item=v1, region=v1, specification-scope=v1, tree=v1,
+        read-text-binding=v1,
+    },
 }
 
 The home design of a tag line or an inline citation in a tree is one
@@ -1418,7 +1505,7 @@ item of the kind design, or none:
     text#{specification=v1},
     #{
         declared-item=v1, home-design=v1, specification-scope=v1,
-        term=v1, tree=v1,
+        term=v1, tree=v1, read-text-binding=v1,
     },
 }
 
@@ -1448,33 +1535,30 @@ belongs to it and to no item of the kind specification.
 ### 4.16 Regions of specifications in code
 
 @term specification-region=v1
-@cites #{
-    declared-item=v1, region=v1, containment=v1, markdown-file=v1,
-    read-text-binding=v1, term=v1, tree=v1,
+@cites {
+    text#{character=v1, place=v1},
+    #{
+        declared-item=v1, region=v1, containment=v1, markdown-file=v1,
+        read-text-binding=v1, term=v1, tree=v1,
+    },
 }
 
-The region of an item of the kind specification in a tree, when its
-declaration is in a file that is not a markdown file, is the part of
-the read text of its declaration that the item takes up, with the
-regions of the items of the kind requirement and of the terms that
-belong to it. The read text of its declaration is the read text that its
-declaration is in.
+When the declaration of an item of the kind specification is in a file
+that is not a markdown file, the region of the item in a tree is the set
+of these places: each place that a character of the read text of its
+declaration that the item takes up comes from; and each place of the
+region of each item of the kind requirement and of each term that
+belongs to the item. The read text of its declaration is the read text
+that its declaration is in.
 
 ### 4.17 Extents of declared items
 
 @term extent=v1
-@cites {
-    text#{specification=v1},
-    #{
-        declared-item=v1, region=v1, specification-region=v1,
-        containment=v1, term=v1,
-    },
-}
+@cites #{declared-item=v1, region=v1, specification-region=v1}
 
 The extent of an item of the kind design is the part of its region that
-is in the region of none of the specifications, none of the items of the
-kind requirement, and none of the terms that it holds. The extent of
-each other declared item is its region.
+is in the region of no other declared item whose region is in its
+region. The extent of each other declared item is its region.
 
 ### 4.18 Terms
 
@@ -1506,21 +1590,33 @@ about. A finding class is a kind of finding, which a slug names.
 ### 4.21 Declared finding classes
 
 @term declared-finding-class=v1
-@cites #{declared-item=v1, finding-class=v1, region=v1, tree=v1}
+@cites {
+    text#{place=v1},
+    #{
+        declared-item=v1, finding-class=v1, region=v1, tree=v1,
+        item-file=v1, markdown-file=v1, read-text-binding=v1,
+    },
+}
 
 A declared finding class is a declared item whose declaration word is
 `@finding-class`: a finding class that a repository declares for
-itself. In a tree, the region of a declared finding class is the whole
-of one file of that tree, its finding-class file.
+itself. In a tree, its finding-class file is its file. Its region is
+the set of all the places of the text of that file when that file is a
+markdown file, and otherwise the set of the places of that file that the
+read texts of that file come from.
 
 ### 4.22 Built-in finding classes
 
 @term built-in-finding-class=v1
-@cites {identifiers#{slug=v1}, #{finding-class=v1}}
+@cites {
+    identifiers#{slug=v1},
+    #{finding-class=v1, item=v1, declared-finding-class=v1},
+}
 
 A binding of the parameter `built-in-finding-classes` is a finite set of
 slugs. Under a binding of `built-in-finding-classes`, a built-in finding
-class is a finding class whose slug is in that binding.
+class is a finding class whose slug is in that binding. A built-in
+finding class is not an item, and it is not a declared finding class.
 
 ### 4.23 Names
 
@@ -1528,8 +1624,8 @@ class is a finding class whose slug is in that binding.
 @cites {
     identifiers#{
         slug=v1, part-name=v1, full-name=v1, name=v1, kind-word=v1,
-        citation-entry=v1, target=v1, inline-citation=v1,
-        external-id=v1,
+        citation-entry=v1, inline-citation=v1, destination=v1,
+        external-id=v1, match=v1, input-match=v1,
     },
     text#{text=v1, specification=v1},
     #{
@@ -1565,8 +1661,11 @@ These are the sets of names:
   share one set of part names.
 
 In a tree, the entry name of a citation entry, and the text that `name`
-or `external-ref` matches in the target of an inline citation, each name
-one item or nothing:
+or `external-ref` matches in the match of the destination of an inline
+citation, each name one item or nothing. When the match of the citation
+entry, or the match of the destination of the inline citation, uses
+`external-ref`, that text names an external item. Otherwise, that text
+is a name, and it names an item, or nothing, in this way:
 
 - A slug names the item of the shared set of slugs that has it as its
   name. After the kind word `finding-class`, a slug names the declared
@@ -1580,7 +1679,6 @@ one item or nothing:
   of the kind requirement, or the term whose part name is that part
   name, of the home design of the citation or of the inline citation.
   With no home design, it names nothing.
-- A text that `external-ref` matches names an external item.
 - A name that two or more declared items of one set of names have names
   none of them.
 
@@ -1616,6 +1714,7 @@ class. No kind word states an item of another kind of item.
     #{
         accepted-input=v1, declared-item=v1, extent=v1,
         containment=v1, item-file=v1, item-name=v1, stated-kind=v1,
+        read-text-binding=v1,
     },
 }
 
@@ -1630,7 +1729,10 @@ not the file of the item of the kind design.
 @term vector-set=v1
 @cites {
     files#{path=v1},
-    data-forms#{test-vector-file-name=v1, test-vector-set=v1},
+    data-forms#{
+        test-vector-file-name=v1, test-vector-set=v1,
+        test-vector-line=v1,
+    },
     #{
         declared-item=v1, containment=v1, item-file=v1, item-name=v1,
         tree=v1,
@@ -1650,13 +1752,23 @@ specification has one vector file, or none, and one vector set:
   last file name replaced by the test-vector file name of the name of
   that item of the kind design and the part name of the item of the kind
   specification.
+- When the name of an item of the kind design holds `/`, so do these
+  test-vector file names, and the valid path of each of these vector
+  files has more file names than the valid path of the file of that
+  item of the kind design. So for an item of the kind design with the
+  name `ledger/core` whose file has the valid path
+  `docs/designs/core.md`, the valid path of its vector file is
+  `docs/designs/ledger/core.test-vectors.jsonl`.
 - An item of the kind specification that belongs to no item of the kind
   design has no vector file. An item of the kind design whose file has
   no valid path has no vector file, and neither has an item of the kind
   specification that belongs to it.
 - The vector set of an item is the test-vector set that is the content
   of its vector file, when the tree has that file and its content is a
-  test-vector set. Otherwise, the vector set of the item is empty.
+  test-vector set. Otherwise, the vector set of the item is the empty
+  vector set: it has no set line, no group line, and no vector line. A
+  test-vector set that has a set line and no vector line is not the
+  empty vector set.
 
 ### 4.27 Conformance vectors
 
@@ -1673,7 +1785,7 @@ Each vector line of the vector set of an item of the kind specification,
 or of an item of the kind design, is a conformance vector of that vector
 set. That vector set is a test-vector set of the specification, or of
 the design, so the object of each of its vector lines states one vector
-of the specification, or of the design. An empty vector set has no
+of the specification, or of the design. The empty vector set has no
 conformance vector. The number of a conformance vector is the number of
 its vector line.
 
@@ -1754,7 +1866,11 @@ when, and only when, one of these is true:
 ### 4.31 Tests
 
 @term test=v1
-@cites {identifiers#{declaration=v1}, #{tree=v1, read-text-binding=v1}}
+@cites {
+    identifiers#{declaration=v1},
+    text#{place=v1, run=v1},
+    #{tree=v1, read-text-binding=v1, region=v1},
+}
 
 Under a binding of `read-texts`, the tests of a file of a tree are the
 tests that the binding gives for that file, and that file is the file
@@ -1762,76 +1878,87 @@ of each of them. A test is a unit of code that a test framework runs
 and reports as passed or failed, such as a test function, or a set of
 such units, such as the tests of one `describe` block. No declaration
 declares a test. The name of a test is the name that the binding gives
-it. The code of a test is the part of its file that the binding gives
-as its code. A comment on a test is a part of its file that the binding
-gives as a comment on that test, such as the comment right before a
-test function.
+it. The code of a test is the part of its file whose places are the
+places of the runs that the binding gives as its code. A comment on a
+test is a part of its file whose places are the places of the runs that
+the binding gives as one comment on that test, such as the comment right
+before a test function.
 
 ### 4.32 Test evidence
 
 @term test-evidence=v1
-@cites #{test=v1}
+@cites #{test=v1, tree=v1, read-text-binding=v1}
 
 Test evidence is the set of the reports that tests gave in one
-execution of their test frameworks: which tests ran, and which of them
-passed and which failed.
+execution of their test frameworks. Each report names one test, by the
+path of its file and the name that the binding of `read-texts` gives
+it, and it says that the test passed or that it failed. Test evidence
+reports a test as passed when, and only when, it has at least one
+report that the test passed and no report that the test failed.
 
 ### 4.33 Sites
 
 @term site=v1
 @cites {
     identifiers#{citation=v1, inline-citation=v1, directive=v1},
-    text#{line=v1, place=v1},
+    text#{line=v1, place=v1, run=v1},
     #{
         declared-item=v1, region=v1, specification-region=v1, test=v1,
         tree=v1, markdown-file=v1, read-text-binding=v1,
     },
 }
 
-Under a binding of `read-texts`, the site of a part of a read text of a
+Under a binding of `read-texts`, the site of a run of a read text of a
 file of a tree, such as a line, a citation, or an inline citation, is a
 part of that file, or none. The places of the site are the places of
 the text of the file that meet each of these conditions:
 
 - in a markdown file, a read text of the file comes from the place, and
   the place is in the lines of the file from the last heading of the
-  file that starts at or before the part, or from the first line of the
-  file when no heading starts at or before the part, to the line before
-  the next heading of the file after the part, or to the last line of
-  the file when no heading follows the part;
-- in a file that is not a markdown file, the read text that the part is
+  file that starts at or before the run, or from the first line of the
+  file when no heading starts at or before the run, to the line before
+  the next heading of the file after the run, or to the last line of
+  the file when no heading follows the run;
+- in a file that is not a markdown file, the read text that the run is
   in comes from the place;
 - the place is in the region of no declared item, and in no comment on a
   test.
 
-When no place meets these conditions, the part has no site. A site is a
+When no place meets these conditions, the run has no site. A site is a
 part of a file that is the site of a citation, of an inline citation,
-or of an `@ack` line. A site has no name.
+or of an `@ack` line, and that holds each place that this citation,
+inline citation, or `@ack` line comes from. A site has no name.
 
 ### 4.34 External items
 
 @term external-item=v1
 @cites {
-    identifiers#{external-id=v1, part-name=v1},
+    identifiers#{
+        external-id=v1, part-name=v1, match=v1, input-match=v1,
+    },
+    text#{text=v1, run=v1},
     #{accepted-input=v1},
 }
 
 An external item is a thing outside the repository that an external id
-names. Each external id in an accepted input names one external item,
-even when nothing outside the repository has that external id. An
-external id with `#` and a part name names a part of such an item, and
-that part is an external item too.
+names. Each text that `external-id` matches in the match of an accepted
+input is an external id, and it names one external item, even when
+nothing outside the repository has that external id. When a run that
+`external-ref` matches in that match holds that external id and then `#`
+and a part name, the text of that run names a part of that external
+item, and that part is an external item too.
 
 ### 4.35 Revised content
 
 @term revised-content=v1
 @cites {
     identifiers#{
-        label=v1, revision=v1, citation-entry=v1, inline-citation=v1,
-        target=v1, ack-line=v1, directive=v1,
+        label=v1, revision=v1, citation=v1, citation-entry=v1,
+        inline-citation=v1, target=v1, ack-line=v1, directive=v1,
     },
     text#{
-        text=v1, character=v1, line=v1, line-feed=v1, specification=v1,
+        text=v1, character=v1, line=v1, line-feed=v1, place=v1,
+        specification=v1,
     },
     data-forms#{test-vector-line=v1, vector-object=v1},
     #{
@@ -1839,6 +1966,7 @@ that part is an external item too.
         declared-finding-class=v1, region=v1, specification-region=v1,
         containment=v1, conformance-vector=v1, vector-set=v1, group=v1,
         task=v1, plan=v1, test=v1, site=v1, external-item=v1, item=v1,
+        accepted-input=v1, read-text-binding=v1,
     },
 }
 
@@ -1846,10 +1974,13 @@ The content characters of a part of a file are the text that these
 steps give:
 
 1. Take the lines of the text that the characters of the part form.
-2. Leave out each of those lines that is an `@ack` line.
-3. In each other line, leave out the characters of the revision of each
-   citation entry, and of the revision in the target of each inline
-   citation.
+2. Leave out each of those lines that holds an `@ack` line that is an
+   accepted input: a line holds it when each character of that `@ack`
+   line comes from the place of a character of the line.
+3. In each other line, leave out each character that is at a place from
+   which a character of one of these comes: the revision of a citation
+   entry of a citation that is an accepted input; the revision in the
+   target of an inline citation that is an accepted input.
 4. Join the lines that remain, in their order, with one line feed
    between each two of them.
 
@@ -1857,9 +1988,9 @@ The revised content of an item is this:
 
 - of an item of the kind design, the content characters of its extent;
 - of an item of the kind specification, the content characters of its
-  extent, where step 3 also leaves out the characters of the label of
-  the declaration of each item of the kind requirement and of each term
-  that it holds;
+  extent, where step 3 also leaves out each character that is at a
+  place from which a character of the label of the declaration of an
+  item of the kind requirement or of a term that it holds comes;
 - of an item of the kind requirement, of a term, of a decision record,
   and of a declared finding class, the content characters of its extent;
 - of a conformance vector, the members `group`, `input`, `result`, and
@@ -1892,11 +2023,11 @@ that tree, whatever its revised content:
 - for a declared item, the label of its declaration;
 - for a conformance vector, the revision of its vector line;
 - for a group, the revision of the group line of its vector set whose
-  group is the name of the group;
+  `group` value is the name of the group;
 - for a vector set, the revision of its set line.
 
 A declared item whose declaration has no label has no current revision,
-and neither has an empty vector set. An item that has no revised
+and neither has the empty vector set. An item that has no revised
 content has no revision.
 
 ### 4.37 Edges
@@ -1905,30 +2036,30 @@ content has no revision.
 @cites {
     identifiers#{
         citation=v1, citation-entry=v1, sinter-tag-word=v1,
-        inline-citation=v1, target=v1, vector-selection=v1, name=v1,
-        external-id=v1,
+        inline-citation=v1, destination=v1, vector-selection=v1,
+        name=v1, external-id=v1, match=v1, input-match=v1,
     },
     text#{text=v1},
     #{item=v1, accepted-input=v1, item-name=v1, selection=v1, tree=v1},
 }
 
-An edge is a relation of one kind of edge from an item, its source, to
-an item, its cited item, or to none. The kinds of edge are these five:
-`cites`, `satisfies`, `verifies`, `refines`, and `supersedes`. Each
-citation entry of a citation that is an accepted input states one edge,
-whose kind of edge is the citation word of the citation without its `@`.
-Each inline citation that is an accepted input states one edge, whose
-kind of edge is `cites`. The cited item of an edge in a tree is this
-item, or none:
+An edge is a relation of one kind of edge from an item, its source, or
+from none, to an item, its cited item, or to none. The kinds of edge are
+these five: `cites`, `satisfies`, `verifies`, `refines`, and
+`supersedes`. Each citation entry of a citation that is an accepted
+input states one edge, whose kind of edge is the citation word of the
+citation without its `@`. Each inline citation that is an accepted input
+states one edge, whose kind of edge is `cites`. The cited item of an
+edge in a tree is this item, or none:
 
 - when the vector selection of its citation entry is not empty, the item
   that the citation entry names in that tree;
 - otherwise, the item that the entry name of its citation entry, or the
-  text that `name` or `external-ref` matches in the target of its inline
-  citation, names in that tree.
+  text that `name` or `external-ref` matches in the match of the
+  destination of its inline citation, names in that tree.
 
-When the citation entry or the target names no item in that tree, the
-edge has no cited item in that tree.
+When the citation entry or the inline citation names no item in that
+tree, the edge has no cited item in that tree.
 
 ### 4.38 Sources of edges
 
@@ -1938,12 +2069,12 @@ edge has no cited item in that tree.
     text#{line=v1},
     #{
         edge=v1, declared-item=v1, region=v1, test=v1, site=v1,
-        tree=v1, item=v1, specification-region=v1,
+        tree=v1, item=v1, specification-region=v1, read-text-binding=v1,
     },
 }
 
-A line of a file of a tree, a citation, or an inline citation stands in
-one item, or in none:
+A line of a read text of a file of a tree, a citation, or an inline
+citation stands in one item, or in none:
 
 - when it is in the region of a declared item, it stands in the
   innermost of the declared items in whose regions it is, when there
@@ -1954,7 +2085,8 @@ one item, or in none:
 - otherwise, it stands in its site, when it has one.
 
 The source of an edge is the item in which the citation or the inline
-citation that states the edge stands.
+citation that states the edge stands, or none when that citation or
+that inline citation stands in no item.
 
 ### 4.39 Pinned edges
 
@@ -2046,8 +2178,11 @@ is to replace another.
 @cites #{edge=v1, supersedes-edge=v1, declared-item=v1, tree=v1}
 
 A declared item is on a cycle of `supersedes` edges in a tree when, and
-only when, it leads back to itself along one or more `supersedes` edges
-of that tree, each from its source to its cited item.
+only when, it leads back to itself along `supersedes` edges of that
+tree: when a sequence of one or more `supersedes` edges of that tree
+has the item as the source of its first edge and as the cited item of
+its last edge, and has the cited item of each other edge as the source
+of the next edge.
 
 ### 4.46 Status tags of declared items
 
@@ -2073,15 +2208,16 @@ item.
 
 @term ack=v1
 @cites {
-    identifiers#{ack-line=v1, directive=v1, slug=v1},
-    text#{
-        text=v1, character=v1, line=v1, line-feed=v1, utf-8-encoding=v1,
+    identifiers#{
+        ack-line=v1, directive=v1, slug=v1, match=v1, input-match=v1,
     },
+    text#{text=v1, utf-8-encoding=v1},
     data-forms#{hash=v1},
     #{
         accepted-input=v1, finding-class=v1, declared-finding-class=v1,
         built-in-finding-class=v1, edge-source=v1, declared-item=v1,
         region=v1, specification-region=v1, test=v1, site=v1, item=v1,
+        read-text-binding=v1, revised-content=v1,
     },
 }
 
@@ -2097,12 +2233,14 @@ of a file is this:
   line is in;
 - when the line stands in a site, that site.
 
-An `@ack` line that stands in no item states no ack. The hash prefix of
-the line is the start of the hash of the UTF-8 encoding of a text: the
-lines of the text that the characters of that part of a file form,
-other than its `@ack` lines, joined in their order with one line feed
-between each two of them, as the part was when the ack was written.
-When the subject of the line is not empty, the ack is for each finding
+An `@ack` line that stands in no item states no ack, and neither does
+an `@ack` line whose slug is the slug of no built-in finding class and
+of no declared finding class. The hash prefix of the line is the start
+of the hash of the UTF-8 encoding of the content characters of that
+part of a file, as the part was when the ack was written. The subject
+of the line is the text that `subject` matches in the match of the
+line, or the empty text when that match uses no `subject`. When the
+subject of the line is not empty, the ack is for each finding
 of that finding class in that part of a file whose subject, in the form
 in which the finding gives it, is the same text as the subject of the
 line. When the subject of the line is empty, the ack is for every
@@ -2127,7 +2265,7 @@ finding of that finding class in that part of a file.
 An edge is valid in a tree when, and only when, each of these is true
 in that tree:
 
-- The edge has a cited item.
+- The edge has a source and a cited item.
 - When the citation entry or the target that states the edge starts with
   a kind word: that kind word is `spec` or `term`, when the cited item
   is an external item; and the cited item is what that kind word states,
@@ -2207,7 +2345,7 @@ kinds design, specification, requirement, term, and decision record.
         specification-scope=v1, term=v1, item-name=v1,
         supersedes-cycle=v1, markdown-file=v1, finding-class=v1,
         declared-finding-class=v1, built-in-finding-class=v1,
-        specification-region=v1,
+        specification-region=v1, read-text-binding=v1, vector-set=v1,
     },
 }
 
@@ -2242,9 +2380,11 @@ A tree is valid when, and only when, each of these is true in it:
   in the file of the item of the kind design to which the item belongs,
   or in the file of the specification to which it belongs.
 - The declaration of each term has a label.
+- The declaration of each declared finding class is in a markdown file.
 - No two declared finding classes have the same file.
 - No declared finding class has the slug of a built-in finding class.
 - No two declared items of one set of names have the same name.
+- No file is the vector file of two items.
 - No declared item is on a cycle of `supersedes` edges.
 
 In a valid tree, each item of the kind design is a design, each item of
@@ -2276,8 +2416,8 @@ alone. The work of a task is what people and agents change in the files
 of the repository to finish the task. A file is in the set of a path set
 when its valid path is in the set of that path set, so a file that has
 no valid path is in the set of no path set. The paths of a task are a
-path set: the work of the task can add, change, or remove a file only
-when the file is in the set of that path set. A task names at most one
+path set, whose set holds the files that the work of the task adds,
+changes, or removes. A task names at most one
 external item, which can say what the work is, and several tasks can
 name one external item. A task has no description of its own and no
 branch.
@@ -2292,7 +2432,7 @@ branch.
     #{
         task=v1, edge=v1, edge-source=v1, valid-edge=v1,
         suspect-edge=v1, declared-item=v1, item-name=v1, test=v1,
-        test-evidence=v1, same-item=v1, tree=v1,
+        test-evidence=v1, tree=v1,
     },
 }
 
@@ -2307,7 +2447,8 @@ has an edge of that kind of edge that meets each of these conditions:
 - the citation that states it is in a file that is in the set of that
   path set;
 - when its kind of edge is `verifies`, that test evidence reports as
-  passed a test that is the same item as its source.
+  passed the test with the path of the file of its source and with the
+  name of its source.
 
 ### 4.55 Plans
 
@@ -2560,7 +2701,7 @@ judgment is one of these four kinds of ledger entry:
   revision of that requirement at which the person judged the work
   finished.
 - An `abandoned` ledger entry records that a person ended one task or
-  one plan without finishing its work, and the reason.
+  one plan, and the reason.
 
 An `approval` or a `decline` ledger entry records the kind of item and
 the name of the declared item of its subject of approval, and the hash
@@ -2609,7 +2750,11 @@ the accepted definition entries, the current definition of each work
 item, the work items that exist, the parts of each plan, and the state
 of each task and each plan, by these rules:
 
-1. A definition entry is an accepted definition entry when, and only
+1. A `done`, an `abandoned`, or a `delivered` ledger entry of a work
+   item is a ledger entry of that kind that names the work item, at
+   whose point the work item exists. Each other `done`, `abandoned`, or
+   `delivered` ledger entry changes no state.
+2. A definition entry is an accepted definition entry when, and only
    when, each of these is true at the point of the definition entry:
    - its definition number is 1, and its work item does not exist; or
      its definition number is one more than the definition number of
@@ -2626,30 +2771,34 @@ of each task and each plan, by these rules:
      its current definition;
    - when it is a `task` ledger entry, the paths of the definition that
      it records are a valid path set.
-2. The current definition of a work item at a point is the definition
+3. The current definition of a work item at a point is the definition
    that the latest accepted definition entry of the work item before
    that point records. A work item exists at a point when, and only
    when, it has a current definition at that point. A work item is a
    task when its first accepted definition entry is a `task` ledger
    entry, and a plan when that ledger entry is a `plan` ledger entry.
-3. A work item is a part of a plan at a point when, and only when, it
+4. A work item is a part of a plan at a point when, and only when, it
    exists at that point, its current definition names that plan as its
    plan, and one of these is true:
    - the plan is not abandoned at that point, and the work item is not
      abandoned at that point;
    - the plan is abandoned at that point; the work item was a part of
-     the plan, and done, at the point of the first `abandoned` ledger
-     entry of the plan; and the work item is done, and not abandoned, at
-     that point.
-4. A work item is under a plan at a point when, and only when, it is a
+     the plan at the point of the first `abandoned` ledger entry of the
+     plan; and the work item is done, and not abandoned, at each point
+     from the point of that ledger entry to that point.
+5. A work item is under a plan at a point when, and only when, it is a
    part of the plan, or under a part of the plan, at that point.
-5. The combined relation at a point goes from each plan to each of its
+6. The combined relation at a point goes from each plan to each of its
    parts, from each work item to each work item that a wait of its
    current definition waits for, and from each task to each work item
    that a wait of the current definition of a plan that the task is
    under waits for. The combined relation has a cycle when, and only
-   when, a work item leads back to itself along it.
-6. Each task that exists at a point is in exactly one of these four
+   when, a work item leads back to itself along it: when a sequence of
+   one or more of its relations has that work item as the work item
+   from which the first relation goes and as the work item to which the
+   last relation goes, and each relation after the first goes from the
+   work item to which the relation before it goes.
+7. Each task that exists at a point is in exactly one of these four
    states at that point:
    - abandoned, when, and only when, an `abandoned` ledger entry of the
      task is before that point, and the task is not done at the point
@@ -2666,9 +2815,9 @@ of each task and each plan, by these rules:
      and a `delivered` ledger entry of the task is before that point;
    - open, when, and only when, it is none of abandoned, done, and
      delivered.
-7. A task is unfinished at a point when, and only when, it is open or
+8. A task is unfinished at a point when, and only when, it is open or
    delivered at that point.
-8. Each plan that exists at a point is in exactly one of these three
+9. Each plan that exists at a point is in exactly one of these three
    states at that point:
    - abandoned, when, and only when, an `abandoned` ledger entry of the
      plan is before that point;
@@ -2893,25 +3042,30 @@ and only when, one of these is true at that point:
     #{
         state=v1, tree=v1, default-branch=v1, delivery-line=v1,
         task-line=v1, ledger=v1, test-evidence=v1, read-text-binding=v1,
-        approval-binding=v1, built-in-finding-class=v1,
+        approval-binding=v1, built-in-finding-class=v1, valid-tree=v1,
     },
 }
 
-A conforming program must compute each state only from these inputs:
-the commits of the repository with their parents; the commit to which
-each branch points, and which branch is the default branch; the paths
-and the contents of the files of trees; the delivery lines and the task
-lines of the messages of commits; the ledger, in its order; test
-evidence; and the bindings of `external-namespaces`, `read-texts`,
-`approval-kinds`, and `built-in-finding-classes`.
+A conforming program must compute each state, and the validity of each
+tree, only from these inputs: the commits of the repository with their
+parents; the commit to which each branch points, and which branch is the
+default branch; the paths and the contents of the files of trees; the
+delivery lines and the task lines of the messages of commits; the
+ledger, in its order; test evidence; and the bindings of
+`external-namespaces`, `read-texts`, `approval-kinds`, and
+`built-in-finding-classes`.
 
 ### 5.2 The same treatment of each ledger entry
 
 @req treat-ledger-entries-alike=v1
-@cites {text#{conforming-program=v1}, #{state=v1, ledger-entry=v1}}
+@cites {
+    text#{conforming-program=v1},
+    #{state=v1, ledger=v1, ledger-entry=v1, person=v1},
+}
 
-A conforming program must compute each state from a ledger entry in the
-same way, whatever writer the ledger entry records.
+A conforming program must give the same states for two ledgers whose
+ledger entries differ only in the writers, the persons, and the
+branches that they record.
 
 ### 5.3 One binding of each parameter
 
@@ -2921,25 +3075,30 @@ same way, whatever writer the ledger entry records.
     text#{conforming-program=v1},
     #{
         state=v1, tree=v1, ledger=v1, read-text-binding=v1,
-        approval-binding=v1, built-in-finding-class=v1,
+        approval-binding=v1, built-in-finding-class=v1, valid-tree=v1,
     },
 }
 
-A conforming program must compute the states that it gives for one tree
-and one point of a ledger under one binding of each of the parameters
-`external-namespaces`, `read-texts`, `approval-kinds`, and
-`built-in-finding-classes`.
+A conforming program must compute, under one binding of each of the
+parameters `external-namespaces`, `read-texts`, `approval-kinds`, and
+`built-in-finding-classes`, each state that it computes for one tree,
+for one point of a ledger, or for one tree at one point of a ledger,
+and the validity of a tree.
 
 ### 5.4 The ledger entries that agents write
 
 @req write-only-definitions-for-agents=v1
 @cites {
     text#{conforming-program=v1, input=v1},
-    #{agent=v1, ledger=v1, ledger-entry=v1, definition-entry=v1},
+    #{
+        agent=v1, ledger=v1, ledger-entry=v1, definition-entry=v1,
+        repair=v1,
+    },
 }
 
 When its input states that an agent runs it, a conforming program must
-append to the ledger no ledger entry other than a definition entry.
+append to the ledger no ledger entry other than a definition entry, and
+must make no repair.
 
 ### 5.5 The summary of a change
 
