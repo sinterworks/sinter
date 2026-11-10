@@ -294,6 +294,16 @@
 - **A fuzz target for the bridge boundary** — `crowbar` under AFL over
   the result-buffer decoder and the wasm export reader, built outside
   the test suite. `docs/decisions/test-rigor.md` notes the choice.
+- **Fuzz targets for the readers of text** — `crowbar` under AFL over
+  the readers that Sinter builds from the designs Text and Identifiers:
+  the UTF-8 decoder, the reader of tag lines, the reader of id patterns
+  and bindings, and the reader of inline citations in Markdown. Built
+  outside the test suite, as the target for the bridge boundary is.
+  Not designed.
+  - A target feeds a reader generated input and reports each input
+    that makes the reader raise an exception or run past a time limit.
+  - Inputs that take time out of proportion to their length are a main
+    aim, such as square brackets nested many levels deep in Markdown.
 - **A generated third-party list** — `THIRD_PARTY.md` built in CI from
   `bridge/Cargo.lock` and `sinter.opam.locked` (`cargo about` or
   `cargo license` for the Rust tree), with a drift check. `cargo deny`
