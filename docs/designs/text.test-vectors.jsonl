@@ -20,19 +20,19 @@
 {"group":"decode","input":"efbbbf78","n":14,"note":"the text keeps its byte order mark","result":"valid","rev":"v1","values":{"text":"﻿x"}}
 {"group":"decode","input":"efbbbfefbbbf","n":15,"result":"valid","rev":"v1","values":{"text":"﻿﻿"}}
 {"group":"decode","input":"610d0a62","n":16,"result":"valid","rev":"v1","values":{"text":"a\r\nb"}}
-{"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1"}
-{"group":"decode","input":"fffe","n":18,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1"}
-{"group":"decode","input":"80","n":19,"note":"the UTF-8 encoding of no character has 0x80 as its first byte","result":"invalid","rev":"v1"}
-{"group":"decode","input":"c3","n":20,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1"}
-{"group":"decode","input":"61c3","n":21,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1"}
-{"group":"decode","input":"c0af","n":22,"note":"an overlong encoding","result":"invalid","rev":"v1"}
-{"group":"decode","input":"c1bf","n":23,"note":"an overlong encoding","result":"invalid","rev":"v1"}
-{"group":"decode","input":"e080af","n":24,"note":"an overlong encoding","result":"invalid","rev":"v1"}
-{"group":"decode","input":"f08080af","n":25,"note":"an overlong encoding","result":"invalid","rev":"v1"}
-{"group":"decode","input":"eda080","n":26,"note":"the three-byte form of RFC 3629 for the number 55,296, which is not the code point of a character","result":"invalid","rev":"v1"}
-{"group":"decode","input":"edbfbf","n":27,"note":"the three-byte form of RFC 3629 for the number 57,343, which is not the code point of a character","result":"invalid","rev":"v1"}
-{"group":"decode","input":"f4908080","n":28,"note":"the four-byte form of RFC 3629 for the number 1,114,112, which is not a code point","result":"invalid","rev":"v1"}
-{"group":"decode","input":"f888808080","n":29,"note":"the UTF-8 encoding of no character has five bytes","result":"invalid","rev":"v1"}
+{"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"fffe","n":18,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"80","n":19,"note":"the UTF-8 encoding of no character has 0x80 as its first byte","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c3","n":20,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"61c3","n":21,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c0af","n":22,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c1bf","n":23,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"e080af","n":24,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f08080af","n":25,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"eda080","n":26,"note":"the three-byte form of RFC 3629 for the number 55,296, which is not the code point of a character","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"edbfbf","n":27,"note":"the three-byte form of RFC 3629 for the number 57,343, which is not the code point of a character","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f4908080","n":28,"note":"the four-byte form of RFC 3629 for the number 1,114,112, which is not a code point","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f888808080","n":29,"note":"the UTF-8 encoding of no character has five bytes","result":"invalid","rev":"v1","values":{}}
 {"group":"encode","input":"hi","n":30,"rev":"v1","values":{"encoding":"6869"}}
 {"group":"encode","input":"","n":31,"rev":"v1","values":{"encoding":""}}
 {"group":"encode","input":"\u0000","n":32,"rev":"v1","values":{"encoding":"00"}}
