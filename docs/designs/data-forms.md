@@ -3167,9 +3167,11 @@ value of `values` is what the program gives with that result, or a JSON
 value that stands for it in such a fixed form. When the object has no
 member `result`, as for a requirement that has no results, the value of
 `values` is the output that the program gives for the input, or a JSON
-value that stands for it. A vector with `result` and without `values`
-states the result, and states nothing about what the program gives with
-it. Each vector has `result` or `values`, or both, so each vector states
+value that stands for it. When the value of `input` stands for several
+inputs of the program, the design of the vectors states which of them
+the value of `result` is the result of, and which results the vectors do
+not state. A vector with `result` and without `values` states the
+result, and states nothing about what the program gives with it. Each vector has `result` or `values`, or both, so each vector states
 what a program must give. The value of `note` explains the vector, and
 it is no part of the input, the result, or the values.
 
@@ -3329,6 +3331,12 @@ or of D:
   stands for it in a fixed form.
 - The value of `note` explains the vector, and it is no part of the
   input, the result, or the values.
+
+The value of `input` can stand for several inputs of the program, such
+as a binding and a line. Then the design of the vectors states, in its
+Conformance section, which of these inputs the value of `result` is the
+result of. A vector states nothing about a result that the design names
+as not stated.
 
 A vector with `result` and without `values` states the result, and
 states nothing about what the program gives with it.
