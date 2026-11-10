@@ -1050,9 +1050,9 @@ Each row gives a tree, a text that a conforming program reads as a path
 in that tree, and the result. The tree is on a file system, and it
 holds only the files that the row names. No other process changes the
 tree during the read. Unless a row says otherwise, the program has the
-search permission and the read permission for every file of the tree. A
-condition on the file system, when a row has one, ends the description
-of the tree. A row with no condition on the file system gives the same
+search permission for every folder of the tree, and the read permission
+for every regular file and every folder of the tree. A condition on the
+file system, when a row has one, ends the description of the tree. A row with no condition on the file system gives the same
 result on every file system. A content written as "the text `hi`" is
 the UTF-8 encoding of that text. A content written as "the bytes
 `FF FE`" gives each byte in two hexadecimal digits.
