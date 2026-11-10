@@ -40,10 +40,9 @@ that are valid UTF-8.
 
 | term | meaning |
 |---|---|
-| [item](sinter:#item=v1) | a definition or an obligation that a document declares under a name; an item cites another item when it names that item as one whose meaning it uses |
-| term | an item that is a definition, such as `whole-number` |
-| [requirement](sinter:#requirement=v1) | an item that is an obligation, such as `give-lines` |
-| [design](sinter:#design=v1) | a document that declares items |
+| term | a definition that a design declares under a name, such as `whole-number` |
+| [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
+| [design](sinter:#design=v1) | a document that declares, each under a name, obligations and the definitions that they use |
 | [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | must | the word with which a requirement states an obligation of a conforming program |
 | [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
@@ -58,7 +57,7 @@ that are valid UTF-8.
 | [character](sinter:#character=v1) | a unit of text that has one code point, a Unicode scalar value: from U+0000 to U+D7FF, or from U+E000 to U+10FFFF |
 | [code point order](sinter:#code-point-order=v1) | the order of characters by their code points |
 | [space](sinter:#space=v1), [tab](sinter:#tab=v1), [line feed](sinter:#line-feed=v1), [carriage return](sinter:#carriage-return=v1) | the characters U+0020, U+0009, U+000A, and U+000D |
-| [code span](sinter:#code-span=v1) | the characters between two backticks in an item, such as `%x61`, which stand for those characters and not for the backticks |
+| [code span](sinter:#code-span=v1) | the characters between two backticks in a definition or a requirement, such as `%x61`, which stand for those characters and not for the backticks |
 | [text](sinter:#text=v1) | a finite sequence of characters |
 | empty text | the text of no characters |
 | [place](sinter:#place=v1) | the whole number, counted from 1, at which a character is in a text, or a byte is in a byte sequence |
@@ -81,8 +80,8 @@ that are valid UTF-8.
 | [position](sinter:#position=v1) | a line number and a column, such as line 3, column 7 |
 | [span](sinter:#span=v1) | a run of a text that starts and ends at boundaries of the body; its start and its end are positions |
 | ABNF | the notation for grammars of RFC 5234, with the case-sensitive strings of RFC 7405 |
-| [production](sinter:#production=v1) | a rule of ABNF that an item holds, such as `hex-digit = DIGIT / %x61-66`, which gives the texts that its name matches |
-| [rule name](sinter:#rule-name=v1) | the name of a rule of ABNF, such as `DIGIT`, which names a core rule or a rule of an item |
+| [production](sinter:#production=v1) | a rule of ABNF that a definition or a requirement holds, such as `hex-digit = DIGIT / %x61-66`, which gives the texts that its name matches |
+| [rule name](sinter:#rule-name=v1) | the name of a rule of ABNF, such as `DIGIT`, which names a core rule, or a rule of a definition or a requirement |
 | terminal value | a number into which a rule of ABNF resolves, such as 0x61 for `%x61` |
 
 ## 2. Numbers, texts, bytes, lines, and notation
@@ -356,10 +355,9 @@ matches both `a` and `A`. The production `hex-digit` of section 3.19
 uses `%x61-66` for its letters, so it matches `a` and does not match
 `A`.
 
-An item cites another item when it names that item as one whose
-meaning it uses. A rule name in a rule of ABNF that an item holds names
-a core rule, a rule of that item, or a rule of an item that it cites,
-without regard to case. So `digit`
+A rule name in a rule of ABNF that a definition or a requirement holds
+names a core rule, a rule of that definition or requirement, or a rule
+of a definition whose meaning it uses, without regard to case. So `digit`
 names the core rule `DIGIT`. A rule of ABNF is a production only when
 each of its rule names names exactly one rule. A production holds no
 prose value, which RFC 5234 writes between `<` and `>`.
@@ -372,11 +370,11 @@ so the character `a` matches `hex-digit`.
 
 ### 2.6 Conforming programs, inputs, and results
 
-An item is a definition or an obligation that a document declares
-under a name. A term is an item that is a definition, such as
-`whole-number`, and a requirement is an item that is an obligation, such
-as `give-lines`. A design is a document that declares items. A
-conforming program of a design is a program, or a part of a program,
+A design is a document that declares, each under a name, obligations
+and the definitions that these obligations use. A requirement is an
+obligation that a design declares, such as `give-lines`, and it states
+its obligation with the word must. A term is a definition that a design
+declares, such as `whole-number`. A conforming program of a design is a program, or a part of a program,
 that meets every requirement of the design. So one program can hold conforming programs
 of several designs. In a design, a conforming program is a conforming
 program of that design, and each obligation that a requirement of that
@@ -465,11 +463,11 @@ A carriage return is the character whose code point is 13.
 ### 3.8 Code spans
 
 @term code-span=v1
-@cites #{character=v1, item=v1}
+@cites #{character=v1, design=v1, requirement=v1}
 
-A code span is the characters between two backticks in an item. A code
-span stands for those characters, and the backticks are not part of
-them.
+A code span is the characters between two backticks in a definition or
+a requirement of a design. A code span stands for those characters, and
+the backticks are not part of them.
 
 ### 3.9 Code point order
 
@@ -533,15 +531,15 @@ the run starts to the boundary where the run ends.
 @cites {
     rfc/5234, rfc/7405,
     #{
-        item=v1, rule-name=v1, code-span=v1, character=v1, code-point=v1,
-        text=v1,
+        design=v1, requirement=v1, rule-name=v1, code-span=v1,
+        character=v1, code-point=v1, text=v1,
     },
 }
 
 A production is a rule of ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405, that meets these conditions:
 
-- An item holds it.
+- A definition or a requirement of a design holds it.
 - It holds no prose value, which RFC 5234 writes between `<` and `>`.
 - Each of its rule names names exactly one rule.
 
@@ -556,12 +554,13 @@ that one character matches the production.
 ### 3.15 Rule names
 
 @term rule-name=v1
-@cites {rfc/5234, #{item=v1}}
+@cites {rfc/5234, #{design=v1, requirement=v1}}
 
-A rule name in a rule of ABNF that an item R holds names each rule that
-has that rule name, without regard to case, and that is one of these: a
-core rule of RFC 5234, Appendix B.1; a rule of ABNF that R holds; or,
-for each item Q that R cites, a rule of ABNF that Q holds.
+A rule name in a rule of ABNF that a definition or a requirement R of a
+design holds names each rule that has that rule name, without regard to
+case, and that is one of these: a core rule of RFC 5234, Appendix B.1; a
+rule of ABNF that R holds; or a rule of ABNF that a definition holds
+whose meaning R uses.
 
 ### 3.16 Decimal numerals
 
@@ -799,30 +798,22 @@ of the span are places of a line, the end of the span is the position of
 boundary k, where k is the last of those places. Otherwise, the end of
 the span is the start of the span.
 
-### 3.32 Items
-
-@term item=v1
-
-An item is a definition or an obligation that a document declares under
-a name. An item cites another item when it names the other item as one
-whose meaning it uses.
-
-### 3.33 Designs
+### 3.32 Designs
 
 @term design=v1
-@cites #{item=v1}
 
-A design is a document that declares items.
+A design is a document that declares, each under a name, obligations
+and the definitions that these obligations use.
 
-### 3.34 Requirements
+### 3.33 Requirements
 
 @term requirement=v1
-@cites #{item=v1}
+@cites #{design=v1}
 
-A requirement is an item that is an obligation. A requirement states
-its obligation with the word must.
+A requirement is an obligation that a design declares under a name. A
+requirement states its obligation with the word must.
 
-### 3.35 Conforming programs
+### 3.34 Conforming programs
 
 @term conforming-program=v1
 @cites #{design=v1, requirement=v1}
@@ -833,7 +824,7 @@ program is a conforming program of that design, and each obligation
 that a requirement of that design states with the word must is an
 obligation of each conforming program of that design.
 
-### 3.36 Inputs
+### 3.35 Inputs
 
 @term input=v1
 @cites #{conforming-program=v1, byte-sequence=v1, text=v1}
@@ -841,7 +832,7 @@ obligation of each conforming program of that design.
 An input is a thing that a conforming program takes, such as a byte
 sequence or a text.
 
-### 3.37 Results
+### 3.36 Results
 
 @term result=v1
 @cites #{conforming-program=v1, input=v1, text=v1, requirement=v1}
