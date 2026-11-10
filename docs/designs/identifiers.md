@@ -981,7 +981,7 @@ A conforming parser must reject each id pattern that is an input and
 that holds a `range` whose first character comes after its last
 character in code point order.
 
-### 4.22 Limit counts in id patterns
+### 4.22 Large counts in id patterns
 
 @req reject-large-counts=v1
 @cites #{
@@ -1003,7 +1003,7 @@ that holds a `count` whose number is greater than 255.
 A conforming parser must reject each id pattern that is an input and
 that holds a quantifier `{n,m}` in which `n` is greater than `m`.
 
-### 4.24 Test ids
+### 4.24 Tests of ids
 
 @req test-ids=v1
 @cites #{
@@ -1443,7 +1443,7 @@ A conforming parser must give no value for an input other than the
 values that the requirements `give-values` and `give-tag-words` state for
 that input.
 
-### 4.50 Results
+### 4.50 The result of each input
 
 @req give-results=v1
 @cites #{
