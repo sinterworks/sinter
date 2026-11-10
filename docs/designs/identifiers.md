@@ -6,6 +6,7 @@
 @cites text=v1
 @cites rfc/5234
 @cites rfc/7405
+@cites rfc/8259
 @cites commonmark/0.31.2
 Specifies the grammar of tags, identifiers, and links as used in Sinter and requirements for conforming programs.
 
@@ -42,7 +43,10 @@ characters, texts, runs, lines, numerals, and productions, and what a
 conforming program and a result are, and it narrows what an input is.
 From CommonMark 0.31.2, the design takes its links and images, their
 link destinations, the block and inline elements that hold them, and the
-replacement of U+0000 by U+FFFD.
+replacement of U+0000 by U+FFFD. From RFC 8259, the design takes JSON
+texts, with their objects, members, arrays, strings, numbers, and the
+literal name `true`: each line of the file that holds the conformance
+vectors of the design is a JSON text.
 
 ## 1. Glossary
 
@@ -2034,396 +2038,305 @@ citation, this obligation holds under a binding of
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it
-meets every requirement of the section Requirements.
+meets every requirement of section 5.
 
-Each vector below gives an input and the result that a conforming
-program gives for it. These conventions apply:
+The vectors of this design are in the file
+[`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in
+the same directory as this design. A vector is an input and what a
+conforming program gives for it. Each vector follows from the
+requirements and adds nothing to them. The vectors are in groups. Each
+group has a name, such as `citations`. The subsections below name the
+requirements that the vectors of each group follow from, and they
+describe the inputs, the results, and the values of these vectors.
 
-- In sections 6.1, 6.2, and 6.3, the program reads each input under one
-  binding of `external-namespaces`, the binding of the conventions. The
-  pairs of the binding of the conventions are `gh` with the id pattern
-  `[1-9][0-9]*`, and `rfc` with the id pattern `[1-9][0-9]*`.
-- The binding of the conventions is an input too. It gets the result
-  "valid", which no row repeats.
-- In section 6.1, each row gives a text that the program reads, and the
-  text has one line.
-- A cell writes a text as its parts, in order, with commas between
-  them. A part is characters between backticks; a space, a tab, a line
-  feed, or a carriage return; a U+ numeral, for the character that it
-  names; the empty text, for no characters; or a part, then "written", a
-  decimal numeral, and "times", for that part as many times in a row as
-  the numeral writes.
-- In a result cell, a value of several parts has "and" between its last
-  two parts, as in "link text `the`, a line feed, and `limit`".
-- A row writes each value name without its "the", as in "slug `docs`"
-  for the value name the slug.
-- For a valid input, a row names every value that the program gives,
-  with two exceptions: the tag word of a tag line, and an inline
-  description that is empty.
-- In the result of a tag line, the words after "valid" name the value
-  "the type of tag line", as in "valid declaration" and "valid status
-  tag". The words "empty subject" name the empty text as the value "the
-  subject".
-- For a citation with two or more citation entries, a row names the
-  values of the tag line first, and then the values of each citation
-  entry after "entry 1:", "entry 2:", and so on. For a citation with
-  one citation entry, a row names the values of the citation entry and
-  of the tag line together.
-- For an input that is not valid, the program gives no value, except the
-  tag word of a tag line. A row of a tag line with another tag word
-  names that tag word.
-- The text after "invalid:", "not an inline citation:", or "no link
-  and no image:" explains the result. A conforming program does not
-  give it.
+The file is valid UTF-8. Its text has no byte order mark and no carriage
+return, and it ends with a line feed. Each line of the text of the file
+is a JSON text, as RFC 8259 defines it, that holds one JSON object. Only
+a line feed ends a line of the file. A JSON string of the file can hold
+U+0085, U+2028, or U+2029, and these characters do not end a line. The
+file has three kinds of line, in this order:
+
+1. The first line is the set line. Its JSON object has one member,
+   `rev`: the revision of the whole set of vectors.
+2. Then each group has a group line, in this order: `bindings`,
+   `citations`, `continuation-lines`, `declarations`, `directives`,
+   `fit`, `id-patterns`, `inline-citations`, `rejected-bindings`,
+   `status-tags`, `tag-words`. Its JSON object has two members: `group`,
+   the name of the group, as a JSON string, and `rev`, the revision of
+   the group.
+3. Then each vector has a vector line, in increasing order of the
+   numbers of the vectors.
+
+The JSON object of a vector line has these members:
+
+- `n`: the number of the vector, a JSON number written as the decimal
+  numeral of a whole number of 1 or more. No other vector of the file
+  has this number. A number is given to one vector only: when a vector
+  leaves the file, no later vector gets its number, and a new vector
+  gets a number greater than each number before it.
+- `rev`: the revision of the vector.
+- `group`: the name of the group of the vector, as a JSON string.
+- `input`: the input.
+- `result`: the result that a conforming program gives for the input,
+  as a JSON string that holds the characters of the result without its
+  double quotes. The subsection of each group says whether the vectors
+  of the group have this member.
+- `values`: a JSON object that holds what a conforming program gives
+  for the input, other than the result that the member `result` holds.
+  Each vector has this member. The subsection of the group gives the
+  members of this JSON object.
+- `note`: an explanation of the vector, as a JSON string, which a
+  conforming program does not give. A vector has this member only when
+  it has an explanation.
+
+A revision is a JSON string of `v`, then the decimal numeral of a whole
+number of 1 or more, such as `"v1"`. The revision of the set line is the
+revision of the whole set, the revision of a group line is the revision
+of the group, and the revision of a vector line is the revision of the
+vector. A revision rises, to a greater number after its `v`, when the
+vectors that it covers change, and a change of a note alone changes no
+revision. A program does not need the revisions to run the vectors.
+
+Inside the members `input` and `values`, each text, binding, and
+sequence has this form:
+
+- A text, such as a line, an id pattern, or a value, is a JSON string
+  whose characters are the characters of the text, in order. So the
+  text `@req`, a tab, `size-limit=v2` is `"@req\tsize-limit=v2"`, and
+  the empty text is `""`.
+- A binding of `external-namespaces` is a JSON array with one element
+  for each pair of the binding. Each element is a JSON object with two
+  members: `namespace-name`, the namespace name of the pair, and
+  `id-pattern`, the id pattern of the pair. The order of the elements
+  has no meaning. So the binding that holds only the pair of the
+  namespace name `gh` and the id pattern `[1-9][0-9]*` is
+  `[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}]`, and the empty
+  set is `[]`.
+- A sequence, such as the citation entries of a citation, is a JSON
+  array of its elements, in order.
+
+In the groups `tag-words`, `declarations`, `citations`, `status-tags`,
+`directives`, `continuation-lines`, and `inline-citations`, a program
+reads a text under a binding of `external-namespaces`. The `input` of
+each vector of these groups is a JSON object with two members:
+`binding`, the binding, and `text`, the text. The program takes the
+binding, and it reads the text under that binding. In the file, the
+binding of each vector of these groups holds two pairs: the namespace
+name `gh` with the id pattern `[1-9][0-9]*`, and the namespace name
+`rfc` with the id pattern `[1-9][0-9]*`. A conforming program gives the
+result "valid" for this binding, as a vector of the group `bindings`
+states. The vectors of these seven groups do not state this result.
+
+In a vector, the values that a conforming program gives for a tag line
+or for an inline citation stand in a JSON object. For each value that
+the program gives, the JSON object has one member, which holds the
+value. The key of
+the member is the value name of the value, without the word "the" at
+its start, with a hyphen in place of each space. For a citation, the
+values of each citation entry are in the member `entries` (see below),
+and not in the JSON object itself. These are the members:
+
+| key | value name | the JSON value of the member |
+|---|---|---|
+| `tag-word` | the tag word | a text |
+| `type-of-tag-line` | the type of tag line | one of the JSON strings `"declaration"`, `"citation"`, `"status tag"`, and `"directive"` |
+| `inline-description` | the inline description | a text, which can be empty |
+| `subject` | the subject | a text, which can be empty |
+| `hash-prefix` | the hash prefix | a text |
+| `link-text` | the link text | a text |
+| `kind-word` | the kind word | a text |
+| `slug` | the slug | a text |
+| `custom-namespace` | the custom namespace | a text |
+| `part-name` | the part name | a text |
+| `every-part` | every part | the JSON value `true` |
+| `vector-number` | the vector number | a text, such as `"12"` |
+| `group-name` | the group name | a text |
+| `every-vector` | every vector | the JSON value `true` |
+| `namespace-name` | the namespace name | a text |
+| `id` | the id | a text |
+| `revision` | the revision | a text |
+
+For a citation that the program accepts, the member `entries` is a JSON
+array with one element for each citation entry, in the order of the
+citation entries. Each element is a JSON object that holds the values of
+the list of that citation entry, with the keys of the table. A citation
+with one citation entry also has the member `entries`, with one element.
+The values `tag-word`, `type-of-tag-line`, and `inline-description` of a
+citation are members of the JSON object of the citation, and not of an
+element of `entries`.
+
+For the input, a conforming program gives each value that the JSON
+object holds, together with its value name, and no other value. An
+empty JSON object, `{}`, says that a conforming program gives no value
+for the input.
 
 ### 6.1 Tag lines
 
-For the line `@cites gh/42`, the program gives no result for the id
-pattern `[1-9][0-9]*` of `gh`, and none for the pair of that id pattern
-and the id `42`, because neither is an input.
+Five groups hold the vectors of texts that have one line each. Each
+group holds one kind of line:
 
-| line | result |
-|---|---|
-| `@req size-limit=v2 A descriptor has at most 1 MiB.` | valid declaration: slug `size-limit`, revision `v2`, inline description `A descriptor has at most 1 MiB.` |
-| `   @design identifiers=v1` | valid declaration: slug `identifiers`, revision `v1` |
-| `@req`, a tab, `size-limit=v2` | valid declaration: slug `size-limit`, revision `v2` |
-| `see @req size-limit=v2` | not a tag line |
-| `@param x The input.` | other tag word: `@param` |
-| `@Req size-limit=v2` | other tag word: `@Req` |
-| `@reqs size-limit=v2` | other tag word: `@reqs` |
-| `@ alone` | other tag word: `@` |
-| `@req:size-limit=v2` | invalid: no space or tab after `@req` |
-| `@deprecated.` | invalid: no space or tab after `@deprecated` |
-| `@deprecated`, a carriage return | invalid: a carriage return that no line feed follows is a character of the line, and it is not a space or a tab |
-| `@deprecated`, a carriage return, a line feed | valid status tag |
-| U+FEFF, `@req size-limit=v2` | valid declaration: slug `size-limit`, revision `v2` |
-| `@req` | invalid: no target |
-| `@deprecated` | valid status tag |
-| `@deferred Waits for a measurement.` | valid status tag: inline description `Waits for a measurement.` |
-| `@rejected Replaced by the size limit.` | valid status tag: inline description `Replaced by the size limit.` |
-| `@deferred x`, a space written 2 times | valid status tag: inline description `x` and a space written 2 times |
-| `@design billing/auth=v2` | valid declaration: slug `billing/auth`, custom namespace `billing`, revision `v2` |
-| `@design billing/auth` | invalid: no revision |
-| `@design docs#size=v1` | invalid: the target of `@design` is a slug |
-| `@design gh=v1` | invalid: the target is external, and the target of a declaration is never an external id |
-| `@spec descriptor=v2` | valid declaration: slug `descriptor`, revision `v2` |
-| `@spec packs#descriptor=v3` | valid declaration: slug `packs`, part name `descriptor`, revision `v3` |
-| `@spec a/b=v1` | invalid: with no `#`, the target of `@spec` holds a slug of one segment |
-| `@req packs#chunk-size=v1` | valid declaration: slug `packs`, part name `chunk-size`, revision `v1` |
-| `@req size-limit` | invalid: no revision |
-| `@req size-limit=*` | invalid: the revision of a declaration is a label |
-| `@req req:size-limit=v1` | invalid: the target of a declaration holds no kind word |
-| `@decision layered-designs=v1` | valid declaration: slug `layered-designs`, revision `v1` |
-| `@finding-class billing/late-fee=v1` | valid declaration: slug `billing/late-fee`, custom namespace `billing`, revision `v1` |
-| `@term segment=v1` | valid declaration: slug `segment`, revision `v1` |
-| `@term invoice` | valid declaration: slug `invoice` |
-| `@term invoice The amount that a customer owes.` | valid declaration: slug `invoice`, inline description `The amount that a customer owes.` |
-| `@term billing#invoice=v2` | valid declaration: slug `billing`, part name `invoice`, revision `v2` |
-| `@term billing/terms#invoice` | valid declaration: slug `billing/terms`, custom namespace `billing`, part name `invoice` |
-| `@term segment=` | invalid: no label after `=` |
-| `@term segment=*` | invalid: the revision of a declaration is a label |
-| `@term term:segment=v1` | invalid: the target of a declaration holds no kind word |
-| `@term #segment=v1` | invalid: the target of `@term` is a slug or a full name |
-| `@term gh` | invalid: the target is external, and the target of a declaration is never an external id |
-| `@term gh/42` | invalid: the target is external, and the target of a declaration is never an external id |
-| `@term gh/42#x` | invalid: the target is external, and the target of a declaration is never an external id |
-| `@term {segment=v1}` | invalid: only a citation has a target list |
-| `@Term segment=v1` | other tag word: `@Term` |
-| `@cites -docs=v1` | invalid: `-docs` is not a segment |
-| `@cites docs--x=v1` | invalid: `docs--x` is not a segment |
-| `@cites my_docs.v2=v1` | valid citation: slug `my_docs.v2`, revision `v1` |
-| `@cites docs=*` | valid citation: slug `docs`, revision `*` |
-| `@cites docs#size=v2` | valid citation: slug `docs`, part name `size`, revision `v2` |
-| `@cites docs#size=*` | valid citation: slug `docs`, part name `size`, revision `*` |
-| `@cites #size=v2` | valid citation: part name `size`, revision `v2` |
-| `@cites req:#size=v2` | valid citation: kind word `req`, part name `size`, revision `v2` |
-| `@cites billing/auth=v3` | valid citation: slug `billing/auth`, custom namespace `billing`, revision `v3` |
-| `@cites billing/auth` | invalid: no revision |
-| `@cites docs` | invalid: no revision |
-| `@cites docs=` | invalid: no label after `=` |
-| `@cites docs=v1.2.0` | valid citation: slug `docs`, revision `v1.2.0` |
-| `@cites docs=v1; and more` | valid citation: slug `docs`, revision `v1;`, inline description `and more` |
-| `@cites docs=v1, and more` | invalid: a label holds no `,` |
-| `@cites docs=v{1}` | invalid: a label holds no `{` |
-| `@cites docs=v@1` | invalid: a label holds no `@` |
-| `@cites docs=v=1` | invalid: a label holds no `=` |
-| `@cites docs=v3#size=v2` | invalid: a single target carries one revision at most |
-| `@cites docs@3f2a9c=*` | invalid: a slug holds no `@` |
-| `@cites docs=v3#size` | invalid: the revision of the part name `size` follows `size`, and a label holds no `#` |
-| `@cites docs#a/b=v1` | invalid: `a/b` is not a part name |
-| `@cites docs#a#b=v1` | invalid: a second `#` |
-| `@cites plan:upkeep=*` | invalid: `plan` is not a kind word, and a slug holds no `:` |
-| `@cites spec:docs=v2` | valid citation: kind word `spec`, slug `docs`, revision `v2` |
-| `@cites term:docs#segment=v1` | valid citation: kind word `term`, slug `docs`, part name `segment`, revision `v1` |
-| `@refines docs#size=v2` | valid citation: slug `docs`, part name `size`, revision `v2` |
-| `@refines docs=*` | invalid: only `@cites` allows the revision `*` |
-| `@satisfies docs#size=*` | invalid: only `@cites` allows the revision `*` |
-| `@verifies spec:docs#size=v1` | valid citation: kind word `spec`, slug `docs`, part name `size`, revision `v1` |
-| `@supersedes docs=v3#*` | valid citation: slug `docs`, revision `v3`, every part |
-| `@supersedes docs#*=v3` | invalid: in an every-part target, the revision follows the slug |
-| `@supersedes docs=*#*` | invalid: the revision of an every-part target is a label |
-| `@cites docs=v3#*` | invalid: only `@supersedes` allows an every-part target |
-| `@supersedes design:docs=v3#*` | invalid: an every-part target holds no kind word |
-| `@cites gh/42` | valid citation: namespace name `gh`, id `42` |
-| `@verifies gh/42` | valid citation: namespace name `gh`, id `42` |
-| `@cites spec:rfc/8259#section-6` | valid citation: kind word `spec`, namespace name `rfc`, id `8259`, part name `section-6` |
-| `@cites gh/0` | invalid: `0` does not fit the id pattern of `gh` |
-| `@cites gh/42=v1` | invalid: the target is external, and an id holds no `=` |
-| `@cites gh/42/x` | invalid: the target is external, and an id holds no `/` |
-| `@cites gh` | invalid: the target is external, and no `/` and id follow `gh` |
-| `@cites gh=v1` | invalid: the head is `gh`, so the target is external, and no `/` and id follow `gh` |
-| `@supersedes gh/42#*` | invalid: the target is external, and `*` is not a part name |
-| `@cites jira/PROJ-1=*` | valid citation: slug `jira/PROJ-1`, custom namespace `jira`, revision `*` |
-| `@cites gh/4,2` | invalid: the target is external, and an id holds no `,` |
-| `@cites packs#descriptor[12]=v1` | valid citation: slug `packs`, part name `descriptor`, vector number `12`, revision `v1` |
-| `@cites packs#descriptor[offsets][*]=v2` | valid citation: slug `packs`, part name `descriptor`, group name `offsets`, every vector, revision `v2` |
-| `@cites packs#descriptor[utf-8][*]=v1` | valid citation: slug `packs`, part name `descriptor`, group name `utf-8`, every vector, revision `v1` |
-| `@cites packs#descriptor[12][*]=v1` | invalid: a group name starts with a lower-case letter |
-| `@cites packs#descriptor[Offsets][*]=v1` | invalid: a group name holds no upper-case letter |
-| `@cites packs#descriptor[off_sets][*]=v1` | invalid: a group name holds no `_` |
-| `@cites packs#descriptor[off.sets][*]=v1` | invalid: a group name holds no `.` |
-| `@cites packs#descriptor[off--sets][*]=v1` | invalid: a group name holds one `-` at most between two letters or digits |
-| `@cites packs#descriptor[*]=v3` | valid citation: slug `packs`, part name `descriptor`, every vector, revision `v3` |
-| `@cites packs[37]=v1` | valid citation: slug `packs`, vector number `37`, revision `v1` |
-| `@cites #descriptor[1]=v1` | valid citation: part name `descriptor`, vector number `1`, revision `v1` |
-| `@cites #descriptor[0]=v1` | invalid: a vector number is 1 or more |
-| `@cites spec:packs#descriptor[12]=*` | valid citation: kind word `spec`, slug `packs`, part name `descriptor`, vector number `12`, revision `*` |
-| `@verifies packs#descriptor[12]=v1` | valid citation: slug `packs`, part name `descriptor`, vector number `12`, revision `v1` |
-| `@verifies packs#descriptor[offsets][*]=v2` | valid citation: slug `packs`, part name `descriptor`, group name `offsets`, every vector, revision `v2` |
-| `@verifies packs#descriptor[12]=*` | invalid: only `@cites` allows the revision `*` |
-| `@refines packs#descriptor[12]=v1` | invalid: only `@cites` and `@verifies` allow a vector selection |
-| `@satisfies packs#descriptor[*]=v1` | invalid: only `@cites` and `@verifies` allow a vector selection |
-| `@supersedes packs[12]=v1` | invalid: only `@cites` and `@verifies` allow a vector selection |
-| `@spec descriptor[12]=v1` | invalid: a declaration allows no vector selection |
-| `@cites packs#descriptor[offsets]=v2` | invalid: a group name alone is not a vector selection |
-| `@cites packs#descriptor[*][*]=v1` | invalid: `[*]` follows a name or a group name |
-| `@cites packs#descriptor[012]=v1` | invalid: the first digit of a vector number is not `0` |
-| `@cites packs#descriptor[01]=v1` | invalid: the first digit of a vector number is not `0` |
-| `@cites packs#descriptor[]=v1` | invalid: `[]` is not a vector selection |
-| `@cites packs#descriptor[12]` | invalid: no revision |
-| `@cites packs#descriptor=v1[12]` | invalid: a label holds no `[` |
-| `@cites gh/42[3]` | invalid: the target is external, and an id holds no `[` |
-| `@cites gh[3]=v1` | invalid: the head is `gh`, so the target is external, and no `/` and id follow `gh` |
-| `@cites {#notation=v1, #characters=v1, docs#size=v2}` | valid citation: entry 1: part name `notation`, revision `v1`; entry 2: part name `characters`, revision `v1`; entry 3: slug `docs`, part name `size`, revision `v2` |
-| `@cites {docs=v1}` | valid citation: slug `docs`, revision `v1` |
-| `@cites { docs=v1 ,spec:docs#size=* } See both.` | valid citation: inline description `See both.`; entry 1: slug `docs`, revision `v1`; entry 2: kind word `spec`, slug `docs`, part name `size`, revision `*` |
-| `@cites {gh/42, rfc/8259#section-6}` | valid citation: entry 1: namespace name `gh`, id `42`; entry 2: namespace name `rfc`, id `8259`, part name `section-6` |
-| `@refines {#size=v2, gh/42}` | valid citation: entry 1: part name `size`, revision `v2`; entry 2: namespace name `gh`, id `42` |
-| `@supersedes {docs=v3#*, other#size=v2}` | valid citation: entry 1: slug `docs`, revision `v3`, every part; entry 2: slug `other`, part name `size`, revision `v2` |
-| `@cites packs#{size=v1, descriptor=v2}` | valid citation: entry 1: slug `packs`, part name `size`, revision `v1`; entry 2: slug `packs`, part name `descriptor`, revision `v2` |
-| `@cites req:packs#{size=v1, descriptor=*}` | valid citation: entry 1: kind word `req`, slug `packs`, part name `size`, revision `v1`; entry 2: kind word `req`, slug `packs`, part name `descriptor`, revision `*` |
-| `@cites #{notation=v1, characters=v1}` | valid citation: entry 1: part name `notation`, revision `v1`; entry 2: part name `characters`, revision `v1` |
-| `@cites {identifiers#{segments=v1, notation=v1}, gh/42}` | valid citation: entry 1: slug `identifiers`, part name `segments`, revision `v1`; entry 2: slug `identifiers`, part name `notation`, revision `v1`; entry 3: namespace name `gh`, id `42` |
-| `@verifies billing/auth#{lockout=v2}` | valid citation: slug `billing/auth`, custom namespace `billing`, part name `lockout`, revision `v2` |
-| `@cites {packs#descriptor[12]=v1, packs#descriptor[13]=v1}` | valid citation: entry 1: slug `packs`, part name `descriptor`, vector number `12`, revision `v1`; entry 2: slug `packs`, part name `descriptor`, vector number `13`, revision `v1` |
-| `@cites {packs#descriptor=v1, packs#descriptor[*]=v1}` | valid citation: entry 1: slug `packs`, part name `descriptor`, revision `v1`; entry 2: slug `packs`, part name `descriptor`, every vector, revision `v1` |
-| `@verifies packs#{descriptor[12]=v1, size[offsets][*]=v2}` | valid citation: entry 1: slug `packs`, part name `descriptor`, vector number `12`, revision `v1`; entry 2: slug `packs`, part name `size`, group name `offsets`, every vector, revision `v2` |
-| `@cites {packs#descriptor[12]=v1, packs#descriptor[12]=v2}` | invalid: two citation entries have the entry name `packs#descriptor` and the vector selection `[12]` |
-| `@cites packs#{descriptor[*]=v1, descriptor[*]=v2}` | invalid: two citation entries have the entry name `packs#descriptor` and the vector selection `[*]` |
-| `@refines packs#{descriptor[12]=v1}` | invalid: only `@cites` and `@verifies` allow a vector selection |
-| `@cites {}` | invalid: a target list holds one single target or scoped list at least |
-| `@cites {docs=v1,}` | valid citation: slug `docs`, revision `v1` |
-| `@cites packs#{size=v1, descriptor=v2,}` | valid citation: entry 1: slug `packs`, part name `size`, revision `v1`; entry 2: slug `packs`, part name `descriptor`, revision `v2` |
-| `@cites {docs=v1,,}` | invalid: a single target or a scoped list stands between each two `,` |
-| `@cites {,}` | invalid: a target list holds one single target or scoped list at least |
-| `@cites {docs=v1 docs#size=v2}` | invalid: a `,` separates two single targets |
-| `@cites {#a=v1, req:#a=v2}` | invalid: two citation entries have the entry name `#a` and no vector selection |
-| `@cites packs#{size=v1, size=v2}` | invalid: two citation entries have the entry name `packs#size` and no vector selection |
-| `@cites {packs#size=v1, packs#{size=v2}}` | invalid: two citation entries have the entry name `packs#size` and no vector selection |
-| `@supersedes {docs=v3#*, docs=v1}` | invalid: two citation entries have the entry name `docs` and no vector selection |
-| `@cites {gh/42, spec:gh/42}` | invalid: two citation entries have the entry name `gh/42` and no vector selection |
-| `@cites {docs=v1` | invalid: there is no next line to close the target list |
-| `@cites {docs=v1}x` | invalid: no space or tab after the `}` |
-| `@cites {{docs=v1}}` | invalid: a target list holds no target list |
-| `@cites packs#{size=v1, {docs=v1}}` | invalid: a scoped list holds no target list |
-| `@cites packs#{req:size=v1}` | invalid: a scoped list holds no kind word between its braces |
-| `@cites packs#{size}` | invalid: each part of a scoped list has `=` and a revision |
-| `@cites packs#{}` | invalid: a scoped list holds one part at least |
-| `@refines {docs=*}` | invalid: only a citation entry of `@cites` carries `*` |
-| `@refines packs#{size=*}` | invalid: only a citation entry of `@cites` carries `*` |
-| `@verifies {gh/42=v1}` | invalid: the citation entry is external, and an id holds no `=` |
-| `@cites gh#{size=v1}` | invalid: the citation entry `gh#size=v1` is external, and no `/` and id follow `gh` |
-| `@cites {docs=v3#*}` | invalid: only `@supersedes` allows an every-part target |
-| `@supersedes docs#{*=v3}` | invalid: `*` is not a part name |
-| `@design {docs=v1}` | invalid: only a citation has a target list |
-| `@req packs#{size=v1}` | invalid: only a citation has a scoped list |
-| `@extern spec:descriptor` | valid directive: kind word `spec`, part name `descriptor` |
-| `@extern spec:gh` | valid directive: kind word `spec`, part name `gh` |
-| `@extern spec:descriptor=v1` | invalid: the target of `@extern` carries no revision |
-| `@extern descriptor` | invalid: no kind word |
-| `@extern spec:packs#descriptor` | invalid: the target of `@extern` holds no `#` |
-| `@ack retired docs#size=v2 3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash prefix `3f2a9c1d` |
-| `@ack unexercised 3f2a9c1d0b7e` | valid directive: slug `unexercised`, empty subject, hash prefix `3f2a9c1d0b7e` |
-| `@ack retired a @b 3f2a9c1d` | valid directive: slug `retired`, subject `a @b`, hash prefix `3f2a9c1d` |
-| `@ack retired 3f2a9c1d`, a space written 2 times | valid directive: slug `retired`, empty subject, hash prefix `3f2a9c1d` |
-| `@ack retired docs#size=v2`, a space written 2 times, `3f2a9c1d` | valid directive: slug `retired`, subject `docs#size=v2`, hash prefix `3f2a9c1d` |
-| `@ack retired`, a space, `0123456789abcdef` written 4 times | valid directive: slug `retired`, empty subject, hash prefix `0123456789abcdef` written 4 times |
-| `@ack retired`, a space, `0123456789abcdef` written 4 times, `0` | invalid: the hash prefix has more than 64 digits |
-| `@ack retired 3F2A9C1D` | invalid: the hash prefix holds upper-case letters |
-| `@ack retired 3f2a9c` | invalid: the hash prefix has fewer than 8 digits |
-| `@ack 3f2a9c1d` | invalid: `3f2a9c1d` is the slug, and no hash prefix follows it |
+- The group `tag-words` holds lines that are not tag lines, and tag lines
+  whose tag word is not a Sinter tag word.
+- The group `declarations` holds declarations.
+- The group `citations` holds citations.
+- The group `status-tags` holds status tags.
+- The group `directives` holds directives: `@extern` lines and `@ack`
+  lines.
+
+The vectors of these groups follow from the requirements
+`reject-unmatched-inputs`, `reject-repeated-entries`, `give-tag-words`,
+`give-values`, `give-no-other-values`, `give-results`, and
+`accept-inputs`. Each vector gives a text of one line, and what a
+conforming program gives for that line.
+
+- `input`: the binding and the text, as described above. The text has
+  one line.
+- `result`: the result of the line: "not a tag line" or "other tag word"
+  in the group `tag-words`, and "valid" or "invalid" in the other four
+  groups.
+- `values`: the values of the line:
+  - For a line that is not a tag line, the empty JSON object, `{}`.
+  - For a tag line with the result "other tag word" or "invalid", a JSON
+    object with one member, `tag-word`.
+  - For a tag line with the result "valid", a JSON object with the
+    members `tag-word` and `type-of-tag-line`, and with each other value
+    that the requirement `give-values` states for the line. A
+    declaration, a citation, a status tag, and an `@extern` line have
+    the member `inline-description`, which is `""` when the inline
+    description is empty. An `@ack` line has the members `subject` and
+    `hash-prefix`. The values of the match of a declaration, an
+    `@extern` line, or an `@ack` line are members of the JSON object
+    itself. The values of the citation entries of a citation are in its
+    member `entries`.
+
+For the line `@cites gh/42`, a conforming program gives no result for
+the id pattern `[1-9][0-9]*` of `gh`, and none for the pair of that id
+pattern and the id `42`, because neither is an input.
+
+```
+{"group":"declarations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@req size-limit=v2 A descriptor has at most 1 MiB."},"n":1,"result":"valid","rev":"v1","values":{"inline-description":"A descriptor has at most 1 MiB.","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}
+{"group":"citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {gh/42, rfc/8259#section-6}"},"n":124,"result":"valid","rev":"v1","values":{"entries":[{"id":"42","namespace-name":"gh"},{"id":"8259","namespace-name":"rfc","part-name":"section-6"}],"inline-description":"","tag-word":"@cites","type-of-tag-line":"citation"}}
+{"group":"citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {docs=v1}x"},"n":150,"note":"no space or tab after the `}`","result":"invalid","rev":"v1","values":{"tag-word":"@cites"}}
+```
 
 ### 6.2 Citations over several lines
 
-Each row gives the lines of a text that the program reads, in their
-order, with semicolons between them. The text has no other line. A
-citation and its continuation lines are one input, and a continuation
-line gets no result of its own. When a row holds another input after the
-citation, its result names that input. In a result, "; then" starts the
-result of the next input. What follows it names that input and gives its
-result, and it is not an explanation.
+The group `continuation-lines` holds texts of several lines, in which a
+citation can have continuation lines. Its vectors follow from the
+requirements of the groups of section 6.1. Each vector gives a text and
+what a conforming program gives for the inputs that the lines of the
+text make. A citation and its continuation lines are one input, and each
+other line is an input of its own.
 
-| lines | result |
-|---|---|
-| `@cites {`; `#notation=v1,`; `#characters=v1`; `}` | valid citation: entry 1: part name `notation`, revision `v1`; entry 2: part name `characters`, revision `v1` |
-| `@cites #{`; a space written 4 times, `notation=v1, characters=v1,`; a space written 4 times, `segments=v1,`; `}` | valid citation: entry 1: part name `notation`, revision `v1`; entry 2: part name `characters`, revision `v1`; entry 3: part name `segments`, revision `v1` |
-| `@cites {docs=v1,`; `docs#size=v2,`; `} The docs.` | valid citation: inline description `The docs.`; entry 1: slug `docs`, revision `v1`; entry 2: slug `docs`, part name `size`, revision `v2` |
-| `@cites {identifiers#{`; `segments=v1,`; `notation=v1}, gh/42}` | valid citation: entry 1: slug `identifiers`, part name `segments`, revision `v1`; entry 2: slug `identifiers`, part name `notation`, revision `v1`; entry 3: namespace name `gh`, id `42` |
-| `@cites {`; the empty text; `docs=v1}` | invalid: the target list is not closed, and the next line is a blank line; then the blank line is an input of its own: not a tag line; then the line `docs=v1}` is an input of its own: not a tag line |
-| `@cites {`; a space written 2 times; `docs=v1}` | invalid: the target list is not closed, and the next line is a blank line; then the blank line is an input of its own: not a tag line; then the line `docs=v1}` is an input of its own: not a tag line |
-| `@cites {docs`; `=v1}` | invalid: a citation entry does not break across lines |
-| `@cites {docs=v1,` | invalid: there is no next line to close the target list |
-| `@cites {docs=v1,`; `@req size-limit=v2` | invalid: the target list is not closed, and the next line is a tag line; then the line `@req size-limit=v2` is an input of its own: valid declaration: slug `size-limit`, revision `v2` |
-| `@cites`; `{docs=v1}` | invalid: no target; then the line `{docs=v1}` is an input of its own: not a tag line |
-| `@cites{docs=v1,`; `docs#size=v2}` | invalid: no space or tab after `@cites`; then the line `docs#size=v2}` is an input of its own: not a tag line |
-| `@cites docs=v1 {`; `x}` | valid citation: slug `docs`, revision `v1`, inline description `{`; then the line `x}` is an input of its own: not a tag line |
+- `input`: the binding and the text, as described above.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `inputs`: a JSON array with
+  one element for each input that the lines of the text make, in the
+  order of the first lines of these inputs. Each element is a JSON
+  object with two members: `result`, the result of the input, and
+  `values`, the values of the input. These two members have the form
+  that `result` and `values` have in the groups of section 6.1.
+
+For the k-th input, a conforming program gives the result of the k-th
+element of `inputs`, and the values of that element with it. It gives no
+result for a continuation line on its own.
+
+```
+{"group":"continuation-lines","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {docs=v1,\n@req size-limit=v2"},"n":187,"note":"the target list is not closed, and the next line is a tag line; the line `@req size-limit=v2` is an input of its own","rev":"v1","values":{"inputs":[{"result":"invalid","values":{"tag-word":"@cites"}},{"result":"valid","values":{"inline-description":"","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}]}}
+```
 
 ### 6.3 Inline citations
 
-Each row gives a text that the program reads. The markdown document of
-the text holds one link or one image, a link inside the link text of
-another link, or no link and no image. The lines of each text are inputs
-too. None of these lines is a tag line, so each of them gets the result
-"not a tag line", which no row repeats. When a row holds a link inside
-the link text of another link, the result is the result of the outer
-link. The inner link gets a result of its own, which the row does not
-repeat: `<https://example.com>` gets the result "not an inline
-citation".
+The group `inline-citations` holds texts whose markdown documents hold
+links and images. Its vectors follow from the requirements
+`reject-unmatched-inputs`, `reject-blank-link-text`, `give-values`,
+`give-no-other-values`, `give-results`, and `accept-inputs`. Each vector
+gives a text and what a conforming program gives for the links and the
+images of the markdown document of the text.
 
-| text | result |
-|---|---|
-| `[the size limit](sinter:req:packs#size-limit=v2)` | valid: link text `the size limit`, kind word `req`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[the size limit](sinter:req:packs#size-limit)` | invalid: no revision |
-| `[any revision](sinter:packs#size-limit=*)` | valid: link text `any revision`, slug `packs`, part name `size-limit`, revision `*` |
-| `[](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is empty |
-| `[ ](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is one space |
-| `[&nbsp;](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+00A0, a blank character |
-| `[<!-- -->](sinter:packs#size-limit=v2)` | invalid: raw HTML gives no plain string content |
-| `> [`, a line feed, `> ](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is a line feed |
-| `> [the`, a line feed, `> limit](sinter:packs#size-limit=v2)` | valid: link text `the`, a line feed, and `limit`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[the`, a line feed, a space written 3 times, `limit](sinter:packs#size-limit=v2)` | valid: link text `the`, a line feed, and `limit`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[the`, a carriage return, `limit](sinter:packs#size-limit=v2)` | valid: link text `the`, a line feed, and `limit`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[<https://example.com>](sinter:packs#size-limit=v2)` | valid: link text `<https://example.com>`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[`, U+200B, `](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+200B, a blank character |
-| `[`, U+200C, `](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+200C, a blank character |
-| `[`, U+200D, `](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+200D, a blank character |
-| `[`, U+2060, `](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+2060, a blank character |
-| `[`, U+FEFF, `](sinter:packs#size-limit=v2)` | invalid: the plain string content of the link text is U+FEFF, a blank character |
-| `[`, U+200B, `x](sinter:packs#size-limit=v2)` | valid: link text U+200B and `x`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[`, U+0000, `](sinter:docs=v1)` | valid: link text U+FFFD, slug `docs`, revision `v1` |
-| `[x](sinter:docs=v1`, U+0000, `)` | invalid: the destination ends with U+FFFD, and a label holds only printable ASCII characters |
-| `[**](sinter:packs#size-limit=v2)` | valid: link text `**`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[the limit](sinter:#size-limit=v2)` | valid: link text `the limit`, part name `size-limit`, revision `v2` |
-| `[RFC 8259](sinter:spec:rfc/8259)` | valid: link text `RFC 8259`, kind word `spec`, namespace name `rfc`, id `8259` |
-| `[x](sinter:gh/42=v2)` | invalid: the target is external, and an id holds no `=` |
-| `[auth](sinter:billing/auth=v3)` | valid: link text `auth`, slug `billing/auth`, custom namespace `billing`, revision `v3` |
-| `[auth](sinter:billing/auth)` | invalid: no revision |
-| `[auth][r]`, a line feed, a line feed, `[r]: sinter:billing/auth=v3` | valid: link text `auth`, slug `billing/auth`, custom namespace `billing`, revision `v3` |
-| `<sinter:req:packs#size-limit=v2>` | valid: link text `sinter:req:packs#size-limit=v2`, kind word `req`, slug `packs`, part name `size-limit`, revision `v2` |
-| `<sinter:&#65;uth=v1>` | invalid: in an autolink, `&#65;` is five characters, and a slug holds no `&` |
-| `<sinter:packs\#size-limit=v2>` | invalid: a backslash escape does not apply in an autolink, and a slug holds no `\` |
-| `[*the* limit](sinter:packs#size-limit=v2)` | valid: link text `*the* limit`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[x](sinter:packs\#size-limit=v2)` | valid: link text `x`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[x](sinter:packs&#35;size-limit=v2)` | valid: link text `x`, slug `packs`, part name `size-limit`, revision `v2` |
-| `[x](sinter:&#65;uth=v1)` | valid: link text `x`, slug `Auth`, revision `v1` |
-| `[x](sinter:packs%23size-limit=v2)` | invalid: `%23` is three characters, and a segment holds no `%` |
-| `[x](sinter:docs=v3#*)` | invalid: only `@supersedes` allows an every-part target |
-| `[x](sinter:)` | invalid: no target |
-| `[x](sinter:plan:upkeep=v1)` | invalid: `plan` is not a kind word, and a slug holds no `:` |
-| `[x](sinter:docs@3f2a9c=v1)` | invalid: a slug holds no `@` |
-| `[x](sinter:gh)` | invalid: the target is external, and no `/` and id follow `gh` |
-| `[x](sinter:{docs=v1})` | invalid: an inline citation cites one target |
-| `[x](sinter:packs#{size=v1})` | invalid: an inline citation cites one target |
-| `[x](sinter:packs#descriptor[12]=v1)` | invalid: an inline citation allows no vector selection |
-| `[x](Sinter:req:packs#size-limit=v2)` | not an inline citation: the destination does not start with `sinter:` |
-| `![x](sinter:packs#size-limit=v2)` | not an inline citation: an image is not a link |
-| U+FEFF, a space written 4 times, `[x](sinter:docs=v1)` | no link and no image: the markdown document is the body of the text, which is an indented code block |
+- `input`: the binding and the text, as described above.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `links`: a JSON array with
+  one element for each link and each image of the markdown document of
+  the text, in the order in which they start in the markdown document.
+  So a link in the link text of another link comes after that other
+  link. When the markdown document holds no link and no image, `links`
+  is the empty JSON array. Each element is a JSON object with two
+  members:
+  - `result`: the result of the link or the image: "valid", "invalid",
+    or "not an inline citation".
+  - `values`: for an inline citation with the result "valid", a JSON
+    object with the member `link-text` and with each value that the
+    requirement `give-values` states for the match of the inline
+    citation. For each other link and image, the empty JSON object,
+    `{}`.
+
+No line of these texts is a tag line. So a conforming program gives the
+result "not a tag line" for each line of the text, and the vectors do
+not state these results.
+
+```
+{"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[the size limit](sinter:req:packs#size-limit=v2)"},"n":191,"rev":"v1","values":{"links":[{"result":"valid","values":{"kind-word":"req","link-text":"the size limit","part-name":"size-limit","revision":"v2","slug":"packs"}}]}}
+{"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[<https://example.com>](sinter:packs#size-limit=v2)"},"n":202,"note":"the autolink `<https://example.com>` in the link text is a link of its own, and it is not an inline citation","rev":"v1","values":{"links":[{"result":"valid","values":{"link-text":"<https://example.com>","part-name":"size-limit","revision":"v2","slug":"packs"}},{"result":"not an inline citation","values":{}}]}}
+```
 
 ### 6.4 Id patterns
 
-Each item gives an id pattern, as an input, and its result. For a
-valid id pattern, it also gives ids that fit it and ids that do not fit
-it. For the pair of the id pattern and an id that fits it, the program
-gives the result "fits". For the pair of the id pattern and an id that
-does not fit it, the program gives the result "does not fit".
+The group `id-patterns` holds id patterns that a program takes on their
+own. Its vectors follow from the requirements
+`reject-unmatched-id-patterns`, `reject-reversed-ranges`,
+`reject-large-counts`, `reject-reversed-bounds`, `reject-empty-id-fit`,
+`reject-oversized-id-patterns`, `reject-long-id-patterns`,
+`give-no-other-values`, `give-results`, and `accept-inputs`.
 
-- `[1-9][0-9]*`: valid; ids that fit: `42`; ids that do not fit: `0`,
-  `042`, `４２`.
-- `[A-Z]+-[1-9][0-9]*`: valid; ids that fit: `PROJ-1`; ids that do not
-  fit: `proj-1`.
-- `[.]x`: valid; ids that fit: `.x`; ids that do not fit: `ax`.
-- `[a-]+`: valid; ids that fit: `a-a`, `-`; ids that do not fit: `b`.
-- `[-]`: valid; ids that fit: `-`; ids that do not fit: `a`.
-- `ab|c`: valid; ids that fit: `ab`, `c`; ids that do not fit: `ac`.
-- `a{0}b`: valid; ids that fit: `b`; ids that do not fit: `ab`.
-- `a{2,}`: valid; ids that fit: `aa`, `aaa`; ids that do not fit: `a`.
-- `ab?`: valid; ids that fit: `a`, `ab`.
-- `([0-9]{3}-){10}`: valid; ids that fit:
-  `123-123-123-123-123-123-123-123-123-123-`; ids that do not fit:
-  `123-`.
-- `([0-9]{250}){4}`: valid.
-- the character class `[0123456789]` written 83 times, then `[01]`,
-  which is 1,000 characters: valid.
-- `^[0-9]+$`: invalid: `^` and `$` are not literals.
-- `.+`: invalid: `.` is not a literal.
-- `é+`: invalid: `é` is not a literal.
-- `[#0-9]+`: invalid: `#` is not a member of a character class.
-- `x=[0-9]+`: invalid: `=` is not a literal.
-- `[0-9=]+`: invalid: `=` is not a member of a character class.
-- `[0-9]+,[0-9]+`: invalid: `,` is not a literal.
-- `[0-9,]+`: invalid: `,` is not a member of a character class.
-- `[a-z{]+`: invalid: `{` is not a member of a character class.
-- `[a-z]+/[1-9]`: invalid: `/` is not a literal.
-- `()`: invalid: a subpattern holds a pattern.
-- `[a-c-e]`: invalid: the second `-` is not first or last in the
-  character class, and it is not the `-` of a range.
-- `[z-a]`: invalid: the first character of the range comes after its
-  last character.
-- `x{3,2}`: invalid: in the quantifier `{n,m}`, `n` is greater than
-  `m`.
-- `[0-9]{256}`: invalid: a `count` has a number greater than 255.
-- `a{01}`: invalid: a `count` other than `0` does not start with `0`.
-- `a**`: invalid: a second quantifier.
-- `a|`: invalid: an empty branch.
-- `[0-9]*`: invalid: the empty id fits it.
-- `([0-9]{143}){7}`: invalid: its size is 1,001.
-- `((a{0,255}){0,255})b`: invalid: its size is 65,026.
-- `(a{250,}){4}`: invalid: its size is 1,004.
-- `((a{0}){255}){4}b`: invalid: its size is 1,021.
-- `(` written 8 times, then `a{255}`, then `){255}` written 8 times,
-  then `b`, which has nine nested quantifiers `{255}`: invalid: its
-  size is 4,558,916,353,692,287,109,376.
-- the character class `[0123456789]` written 83 times, then `[01]0`,
-  which is 1,001 characters: invalid: it holds more than 1,000
-  characters.
+- `input`: the id pattern, as a text.
+- `result`: "valid" or "invalid".
+- `values`: the empty JSON object, `{}`.
+
+The group `fit` holds pairs of an id pattern and an id that a program
+takes. Its vectors follow from the requirements `decide-fit`,
+`give-no-other-values`, and `give-results`. The id pattern of each pair
+is valid, and the group `id-patterns` holds a vector of it, with the
+result "valid".
+
+- `input`: a JSON object with two members: `id-pattern`, the id pattern,
+  and `id`, the id. Each is a text.
+- `result`: "fits" or "does not fit".
+- `values`: the empty JSON object, `{}`.
+
+```
+{"group":"id-patterns","input":"[1-9][0-9]*","n":237,"result":"valid","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"42","id-pattern":"[1-9][0-9]*"},"n":238,"result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"042","id-pattern":"[1-9][0-9]*"},"n":240,"result":"does not fit","rev":"v1","values":{}}
+```
 
 ### 6.5 Bindings of `external-namespaces`
 
-| binding | result |
-|---|---|
-| the empty set | valid |
-| `gh` with `[1-9][0-9]*` | valid |
-| `my-tracker` with `[A-Z]+-[1-9][0-9]*` | valid |
-| `GH` with `[1-9][0-9]*` | invalid: `GH` does not match `namespace-name` |
-| `my--tracker` with `[1-9][0-9]*` | invalid: `my--tracker` does not match `namespace-name` |
-| `9ns` with `[1-9][0-9]*` | invalid: `9ns` does not match `namespace-name` |
-| `gh` with `[1-9][0-9]*`, and `gh` with `[a-z]+` | invalid: two pairs of the binding have the namespace name `gh` |
-| `gh` with `[0-9]*` | invalid: the empty id fits the id pattern; the id pattern `[0-9]*` gets no result of its own, because it is not an input |
+The group `bindings` holds bindings of `external-namespaces` that a
+program takes. Its vectors follow from the requirements
+`reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
+`reject-invalid-binding-patterns`, `give-no-other-values`,
+`give-results`, and `accept-inputs`. The id patterns of a binding are
+not inputs, so a conforming program gives them no result of their own.
 
-Each row of the next table gives a binding, which the program takes,
-and a line, which the program reads under that binding. The row gives
-the result of the binding and what the program gives for the line.
+- `input`: the binding.
+- `result`: "valid" or "invalid".
+- `values`: the empty JSON object, `{}`.
 
-| binding | line | result of the binding | what the program gives for the line |
-|---|---|---|---|
-| `GH` with `[1-9][0-9]*` | `@req size-limit=v2` | invalid | no result and no value |
+The group `rejected-bindings` holds texts that a program reads under a
+binding of `external-namespaces` that it rejects. Its vectors follow
+from the requirements `give-no-results-under-rejected-bindings`,
+`reject-malformed-namespace-names`, and `give-results`.
+
+- `input`: a JSON object with two members: `binding`, the binding, and
+  `text`, the text. The program takes the binding, and it reads the
+  text under that binding.
+- `result`: the result of the binding: "invalid".
+- `values`: the empty JSON object, `{}`. So a conforming program gives
+  no result and no value for a line, a link, or an image of the text.
+
+```
+{"group":"bindings","input":[],"n":300,"result":"valid","rev":"v1","values":{}}
+{"group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"n":303,"note":"`GH` does not match `namespace-name`","result":"invalid","rev":"v1","values":{}}
+{"group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"n":308,"result":"invalid","rev":"v1","values":{}}
+```
