@@ -2049,10 +2049,11 @@ group has a name, such as `citations`. The subsections below name the
 requirements that the vectors of each group follow from, and they
 describe the inputs, the results, and the values of these vectors.
 
-The file is valid UTF-8. Its text has no byte order mark and no carriage
-return, and it ends with a line feed. Each line of the text of the file
-is a JSON text, as RFC 8259 defines it, that holds one JSON object. Only
-a line feed ends a line of the file. A JSON string of the file can hold
+The file is valid UTF-8. Its text does not start with U+FEFF, it holds
+no carriage return, and it ends with a line feed. Each line of the text
+of the file is a JSON text, as RFC 8259 defines it, that holds one JSON
+object. No JSON object of the file has two members with the same name.
+Only a line feed ends a line of the file. A JSON string of the file can hold
 U+0085, U+2028, or U+2029, and these characters do not end a line. The
 file has three kinds of line, in this order:
 
@@ -2060,31 +2061,38 @@ file has three kinds of line, in this order:
    `rev`: the revision of the whole set of vectors.
 2. Then each group has a group line, in this order: `bindings`,
    `citations`, `continuation-lines`, `declarations`, `directives`,
-   `fit`, `id-patterns`, `inline-citations`, `rejected-bindings`,
-   `status-tags`, `tag-words`. Its JSON object has two members: `group`,
-   the name of the group, as a JSON string, and `rev`, the revision of
-   the group.
+   `fit`, `id-patterns`, `inline-citations`, `other-lines`,
+   `rejected-bindings`, `status-tags`. Its JSON object has two members:
+   `group`, the name of the group, as a JSON string, and `rev`, the
+   revision of the group.
 3. Then each vector has a vector line, in increasing order of the
    numbers of the vectors.
 
 The JSON object of a vector line has these members:
 
 - `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
+  numeral of a whole number from 1 to 9,007,199,254,740,991. No other vector of the file
   has this number. A number is given to one vector only: when a vector
   leaves the file, no later vector gets its number, and a new vector
   gets a number greater than each number before it.
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `result`: the result that a conforming program gives for the input,
-  as a JSON string that holds the characters of the result without its
-  double quotes. The subsection of each group says whether the vectors
-  of the group have this member.
-- `values`: a JSON object that holds what a conforming program gives
-  for the input, other than the result that the member `result` holds.
-  Each vector has this member. The subsection of the group gives the
-  members of this JSON object.
+- `input`: the input of the vector: what a conforming program takes or
+  reads. The subsection of each group gives its form. The input of a
+  vector can hold more than one input of the program: for example, a
+  binding and a text, whose lines are inputs too.
+- `result`: a result that a conforming program gives for one input that
+  the input of the vector holds, as a JSON string that holds the
+  characters of the result without its double quotes. The subsection of
+  each group says whether the vectors of the group have this member,
+  and for which input.
+- `values`: a JSON object. In a vector with the member `result`, it
+  holds what a conforming program gives together with that result. In a
+  vector without the member `result`, it holds what a conforming program
+  gives for the input of the vector, as the subsection of the group
+  describes. Each vector has this member. The subsection of each group
+  gives the members of this JSON object, and it names each result that
+  the vectors of the group do not state.
 - `note`: an explanation of the vector, as a JSON string, which a
   conforming program does not give. A vector has this member only when
   it has an explanation.
@@ -2115,10 +2123,11 @@ sequence has this form:
 - A sequence, such as the citation entries of a citation, is a JSON
   array of its elements, in order.
 
-In the groups `tag-words`, `declarations`, `citations`, `status-tags`,
-`directives`, `continuation-lines`, and `inline-citations`, a program
-reads a text under a binding of `external-namespaces`. The `input` of
-each vector of these groups is a JSON object with two members:
+In the groups `other-lines`, `declarations`, `citations`,
+`status-tags`, `directives`, `continuation-lines`, and
+`inline-citations`, a program reads a text under a binding of
+`external-namespaces`. The input of each vector of these groups is a
+JSON object with two members:
 `binding`, the binding, and `text`, the text. The program takes the
 binding, and it reads the text under that binding. In the file, the
 binding of each vector of these groups holds two pairs: the namespace
@@ -2156,8 +2165,8 @@ and not in the JSON object itself. These are the members:
 | `id` | the id | a text |
 | `revision` | the revision | a text |
 
-For a citation that the program accepts, the member `entries` is a JSON
-array with one element for each citation entry, in the order of the
+For a citation for which the program gives the result "valid", the
+member `entries` is a JSON array with one element for each citation entry, in the order of the
 citation entries. Each element is a JSON object that holds the values of
 the list of that citation entry, with the keys of the table. A citation
 with one citation entry also has the member `entries`, with one element.
@@ -2165,18 +2174,18 @@ The values `tag-word`, `type-of-tag-line`, and `inline-description` of a
 citation are members of the JSON object of the citation, and not of an
 element of `entries`.
 
-For the input, a conforming program gives each value that the JSON
-object holds, together with its value name, and no other value. An
-empty JSON object, `{}`, says that a conforming program gives no value
-for the input.
+For the tag line or the inline citation, a conforming program gives
+each value that the JSON object holds, together with its value name,
+and no other value. An empty JSON object, `{}`, says that a conforming
+program gives no value for it.
 
 ### 6.1 Tag lines
 
 Five groups hold the vectors of texts that have one line each. Each
 group holds one kind of line:
 
-- The group `tag-words` holds lines that are not tag lines, and tag lines
-  whose tag word is not a Sinter tag word.
+- The group `other-lines` holds lines that are not tag lines, and tag
+  lines whose tag word is not a Sinter tag word.
 - The group `declarations` holds declarations.
 - The group `citations` holds citations.
 - The group `status-tags` holds status tags.
@@ -2185,14 +2194,15 @@ group holds one kind of line:
 
 The vectors of these groups follow from the requirements
 `reject-unmatched-inputs`, `reject-repeated-entries`, `give-tag-words`,
-`give-values`, `give-no-other-values`, `give-results`, and
-`accept-inputs`. Each vector gives a text of one line, and what a
-conforming program gives for that line.
+`give-values`, `give-no-other-values`, `give-results`,
+`give-no-results-for-non-inputs`, and `accept-inputs`. Each vector gives
+a text of one line, and what a conforming program gives for that line.
 
 - `input`: the binding and the text, as described above. The text has
-  one line.
+  one line. The markdown document of the text holds no link and no
+  image.
 - `result`: the result of the line: "not a tag line" or "other tag word"
-  in the group `tag-words`, and "valid" or "invalid" in the other four
+  in the group `other-lines`, and "valid" or "invalid" in the other four
   groups.
 - `values`: the values of the line:
   - For a line that is not a tag line, the empty JSON object, `{}`.
@@ -2221,14 +2231,17 @@ pattern and the id `42`, because neither is an input.
 
 ### 6.2 Citations over several lines
 
-The group `continuation-lines` holds texts of several lines, in which a
-citation can have continuation lines. Its vectors follow from the
-requirements of the groups of section 6.1. Each vector gives a text and
-what a conforming program gives for the inputs that the lines of the
-text make. A citation and its continuation lines are one input, and each
-other line is an input of its own.
+The group `continuation-lines` holds texts that start with a citation.
+Each text tests which lines after the line of the citation are its
+continuation lines, and which lines are inputs of their own. A text of
+the group can have one line. Its vectors follow from the requirements of
+the groups of section 6.1. Each vector gives a text and what a
+conforming program gives for the inputs that the lines of the text make.
+A citation and its continuation lines are one input, and each other line
+is an input of its own.
 
-- `input`: the binding and the text, as described above.
+- `input`: the binding and the text, as described above. The markdown
+  document of the text holds no link and no image.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `inputs`: a JSON array with
   one element for each input that the lines of the text make, in the
@@ -2291,18 +2304,21 @@ own. Its vectors follow from the requirements
 
 - `input`: the id pattern, as a text.
 - `result`: "valid" or "invalid".
-- `values`: the empty JSON object, `{}`.
+- `values`: the empty JSON object, `{}`: a conforming program gives no
+  value with the result.
 
 The group `fit` holds pairs of an id pattern and an id that a program
 takes. Its vectors follow from the requirements `decide-fit`,
-`give-no-other-values`, and `give-results`. The id pattern of each pair
-is valid, and the group `id-patterns` holds a vector of it, with the
-result "valid".
+`give-no-other-values`, `give-results`, and `accept-inputs`. The id
+pattern of each pair is valid, and the group `id-patterns` holds a
+vector of it, with the result "valid". The id pattern of a pair is an
+input too, and the vectors of the group `fit` do not state its result.
 
 - `input`: a JSON object with two members: `id-pattern`, the id pattern,
   and `id`, the id. Each is a text.
-- `result`: "fits" or "does not fit".
-- `values`: the empty JSON object, `{}`.
+- `result`: the result of the pair: "fits" or "does not fit".
+- `values`: the empty JSON object, `{}`: a conforming program gives no
+  value with the result.
 
 ```
 {"group":"id-patterns","input":"[1-9][0-9]*","n":237,"result":"valid","rev":"v1","values":{}}
@@ -2316,24 +2332,30 @@ The group `bindings` holds bindings of `external-namespaces` that a
 program takes. Its vectors follow from the requirements
 `reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
 `reject-invalid-binding-patterns`, `give-no-other-values`,
-`give-results`, and `accept-inputs`. The id patterns of a binding are
-not inputs, so a conforming program gives them no result of their own.
+`give-results`, `give-no-results-for-non-inputs`, and `accept-inputs`.
+The id patterns of a binding are not inputs, so a conforming program
+gives them no result of their own.
 
 - `input`: the binding.
 - `result`: "valid" or "invalid".
-- `values`: the empty JSON object, `{}`.
+- `values`: the empty JSON object, `{}`: a conforming program gives no
+  value with the result.
 
 The group `rejected-bindings` holds texts that a program reads under a
-binding of `external-namespaces` that it rejects. Its vectors follow
-from the requirements `give-no-results-under-rejected-bindings`,
-`reject-malformed-namespace-names`, and `give-results`.
+binding of `external-namespaces` for which it gives the result
+"invalid". Its vectors follow from the requirements
+`give-no-results-under-rejected-bindings`,
+`reject-malformed-namespace-names`, `give-no-other-values`, and
+`give-results`.
 
 - `input`: a JSON object with two members: `binding`, the binding, and
   `text`, the text. The program takes the binding, and it reads the
   text under that binding.
 - `result`: the result of the binding: "invalid".
-- `values`: the empty JSON object, `{}`. So a conforming program gives
-  no result and no value for a line, a link, or an image of the text.
+- `values`: the empty JSON object, `{}`. In this group, it says that,
+  with the result of the binding, a conforming program gives nothing
+  more: it gives no result and no value for a line, a link, or an image
+  of the text.
 
 ```
 {"group":"bindings","input":[],"n":300,"result":"valid","rev":"v1","values":{}}
