@@ -2095,7 +2095,9 @@ The JSON object of a vector line has these members:
   each group says whether the vectors of the group have this member,
   and for which input.
 - `values`: a JSON object. In a vector with the member `result`, it
-  holds what a conforming program gives together with that result. In a
+  holds what a conforming program gives other than that result: what it
+  gives together with that result, or, in the group `rejected-bindings`,
+  what it gives for the lines, the links, and the images of the text. In a
   vector without the member `result`, it holds what a conforming program
   gives for the input of the vector, as the subsection of the group
   describes. Each vector has this member. The subsection of each group
@@ -2110,8 +2112,9 @@ number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when a
-vector that it covers changes, joins, or leaves, and a change of a note
-alone changes no revision. A program does not need the revisions to run
+vector that it covers changes, joins, or leaves. When the text of this
+section changes, the revisions of every vector, every group, and the
+set rise. A change of a note alone changes no revision. A program does not need the revisions to run
 the vectors.
 
 A vector writes each input and each value in one fixed form. A text is
@@ -2149,8 +2152,8 @@ name `gh` with the id pattern `[1-9][0-9]*`, and the namespace name
 result "valid" for this binding, as a vector of the group `bindings`
 states. The vectors of these seven groups do not state this result.
 
-In a vector, the values that a conforming program gives for a tag line
-or for an inline citation stand in a JSON object. For each value that
+In a vector, the values that a conforming program gives for a line, a
+link, or an image stand in a JSON object. For each value that
 the program gives, the JSON object has one member, which holds the
 value. The key of
 the member is the value name of the value, without the word "the" at
@@ -2187,13 +2190,14 @@ The values `tag-word`, `type-of-tag-line`, and `inline-description` of a
 citation are members of the JSON object of the citation, and not of an
 element of `entries`.
 
-For the tag line or the inline citation, a conforming program gives
-each value that the JSON object holds, and, for a citation, each value
-that an element of `entries` holds, in the list of that citation entry.
-It gives each of these values together with its value name, and it
-gives no other value. An empty JSON object, `{}`, says that a
-conforming program gives no value for the tag line or the inline
-citation.
+For the line, the link, or the image, a conforming program gives each
+value that the JSON object holds, exactly once. For a citation, it also
+gives one list of values for each element of `entries`, in the order of
+the elements, and the list of an element holds each value of that
+element, exactly once. It gives each of these values together with its
+value name, and it gives no other value. An empty JSON object, `{}`,
+says that a conforming program gives no value for the line, the link,
+or the image.
 
 ### 6.1 Tag lines
 
@@ -2281,7 +2285,8 @@ result for a continuation line on its own.
 The group `inline-citations` holds texts whose markdown documents can
 hold links and images. Its vectors follow from the requirements
 `reject-unmatched-inputs`, `reject-blank-link-text`, `give-values`,
-`give-no-other-values`, `give-results`, and `accept-inputs`. Each vector
+`give-no-other-values`, `give-results`,
+`give-no-results-for-non-inputs`, and `accept-inputs`. Each vector
 gives a text and what a conforming program gives for the links and the
 images of the markdown document of the text.
 
@@ -2301,6 +2306,12 @@ images of the markdown document of the text.
     requirement `give-values` states for the match of the inline
     citation. For each other link and image, the empty JSON object,
     `{}`.
+
+For the k-th link or image, a conforming program gives the result of the
+k-th element of `links`, and the values of that element with it. It
+gives a result as the result of a link or an image only for these links
+and images, so it gives no result for a text in an indented code block
+that has the form of a link.
 
 No line of these texts is a tag line. So a conforming program gives the
 result "not a tag line" for each line of the text, and the vectors do
