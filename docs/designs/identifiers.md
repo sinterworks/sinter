@@ -88,7 +88,7 @@ replacement of U+0000 by U+FFFD.
 | [every-part target](sinter:#citation-line=v1) | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
 | [vector selection](sinter:#vector-selection=v1) | `[`, a vector number, and `]`; or `[`, a group name, `]`, and `[*]`; or `[*]`; it can follow the name in a single target of `@cites` or `@verifies`, such as `[12]` in `packs#descriptor[12]=v1`, and it gives a vector number, a group name and every vector, or every vector |
 | [vector number](sinter:#vector-selection=v1) | the digits of a vector selection, which write a whole number of 1 or more with no leading `0`, such as `12` in `[12]` |
-| [group name](sinter:#vector-selection=v1) | the segment of a vector selection before `[*]`, such as `offsets` in `[offsets][*]` |
+| [group name](sinter:#vector-selection=v1) | the name of a vector selection before `[*]`: lower-case ASCII letters and ASCII digits that start with a letter, with one `-` at most between two of them, such as `offsets` in `[offsets][*]` |
 | [scoped list](sinter:#citation-entry=v1) | an optional kind word and `:`, an optional slug, `#{`, part names, each with an optional vector selection and with its revision, separated by `,`, and `}`, such as `packs#{size=v1, descriptor=v2}`, which stands for `packs#size=v1` and `packs#descriptor=v2` |
 | target list | `{`, one or more single targets or scoped lists separated by `,`, and `}`: a target of a citation, such as `{#notation=v1, gh/42}` |
 | [single target](sinter:#citation-entry=v1) | a target, or an element of a target list, that is neither a target list nor a scoped list, such as `packs#size=v1` |
@@ -99,7 +99,7 @@ replacement of U+0000 by U+FFFD.
 | [external namespace](sinter:#external-namespace=v1) | a pair of a binding, with its namespace name and its id pattern; the external namespaces of a line, a link, or an image are those of the binding under which a conforming program reads it |
 | [namespace name](sinter:#binding=v1) | the text of a pair of a binding that names its external namespace, such as `gh`; it can match the production [`namespace-name`](sinter:#namespace-name=v1) or not |
 | [external id](sinter:#external-id=v1) | a namespace name, `/`, and an id, such as `gh/42` |
-| [id](sinter:#id=v1) | a text that a conforming program tests against an id pattern, such as `42` in `gh/42` |
+| [id](sinter:#id=v1) | a text for which a conforming program decides whether it has the form that an id pattern gives, such as `42` in `gh/42` |
 | [id pattern](sinter:#id-pattern=v1) | a text that a conforming program takes as a pattern, on its own or with other texts, such as an id, or a namespace name in a pair of a binding; it is an id pattern whether or not it matches the production `pattern` |
 | [class member](sinter:#id-pattern=v1) | one element of a character class of an id pattern: a character, or a range such as `0-9` |
 | [fit](sinter:#fit=v1) | an id fits an id pattern when the id has the form that the id pattern gives, such as `42` for `[1-9][0-9]*` |
@@ -329,9 +329,11 @@ vector:
 
 A vector number is one or more of the digits `0` to `9`, with a first
 digit that is not `0`, such as `12`. So `[0]` and `[012]` are not
-vector selections. A group name is a segment, such as `offsets`. A
-group name alone is not a vector selection, so
-`@cites packs#descriptor[offsets]=v2` is invalid. The revision follows
+vector selections. A group name is a text of lower-case ASCII letters
+and ASCII digits that starts with a letter, with one `-` at most between
+two of them, such as `offsets` or `utf-8`. So `[12][*]` and
+`[Offsets][*]` are not vector selections. A group name alone is not a
+vector selection, so `@cites packs#descriptor[offsets]=v2` is invalid. The revision follows
 the vector selection, and it follows the rules of its tag word: a label
 or `*` for `@cites`, and a label for `@verifies`.
 
@@ -654,8 +656,8 @@ pair of an id pattern and an id is an input only when the program
 accepts its id pattern. A conforming program gives one result for each
 input, and no result for anything that is not an input. So the id
 patterns of a binding get no results of their own: the binding gets one
-result. The program also gives no result when it tests the id of an
-external target against an id pattern of the binding.
+result. The program also gives no result when it decides whether the
+id of an external target fits an id pattern of the binding.
 
 A line gets one of four results: "not a tag line", "other tag word",
 "valid", or "invalid". A link or an image gets one of three results:
@@ -936,7 +938,7 @@ The revision `*` stands for any label.
 ### 4.18 Vector selections
 
 @term vector-selection=v1
-@cites {#{segment=v1}, text#{text=v1, code-span=v1, production=v1, rule-name=v1}}
+@cites text#{text=v1, code-span=v1, production=v1, rule-name=v1}
 
 A vector selection is a text that matches the production
 `vector-selection`:
@@ -945,7 +947,8 @@ A vector selection is a text that matches the production
 vector-selection  = "[" vector-number "]"
                   / [ "[" group-name "]" ] every-vector
 vector-number     = %x31-39 *DIGIT
-group-name        = segment
+group-name        = %x61-7A *( %x61-7A / DIGIT )
+                    *( "-" 1*( %x61-7A / DIGIT ) )
 every-vector      = "[*]"
 ```
 
@@ -1157,7 +1160,8 @@ second `count`.
 @term id=v1
 @cites {#{id-pattern=v1}, text#{text=v1, conforming-program=v1}}
 
-An id is a text that a conforming program tests against an id pattern.
+An id is a text for which a conforming program decides whether it has
+the form that an id pattern gives.
 
 ### 4.29 Fit
 
@@ -1696,9 +1700,9 @@ A conforming program must give the result "invalid" for each id pattern
 that is an input and that uses, by `pattern`, a quantifier `{n,m}` in
 which `n` is greater than `m`.
 
-### 5.6 Tests of ids
+### 5.6 The fit of ids
 
-@req test-ids=v1
+@req decide-fit=v1
 @cites {
     #{input=v1, id-pattern=v1, id=v1, fit=v1},
     text#{conforming-program=v1, requirement=v1, result=v1},
@@ -2173,7 +2177,12 @@ and the id `42`, because neither is an input.
 | `@cites gh/4,2` | invalid: the target is external, and an id holds no `,` |
 | `@cites packs#descriptor[12]=v1` | valid citation: slug `packs`, part name `descriptor`, vector number `12`, revision `v1` |
 | `@cites packs#descriptor[offsets][*]=v2` | valid citation: slug `packs`, part name `descriptor`, group name `offsets`, every vector, revision `v2` |
-| `@cites packs#descriptor[12][*]=v1` | valid citation: slug `packs`, part name `descriptor`, group name `12`, every vector, revision `v1` |
+| `@cites packs#descriptor[utf-8][*]=v1` | valid citation: slug `packs`, part name `descriptor`, group name `utf-8`, every vector, revision `v1` |
+| `@cites packs#descriptor[12][*]=v1` | invalid: a group name starts with a lower-case letter |
+| `@cites packs#descriptor[Offsets][*]=v1` | invalid: a group name holds no upper-case letter |
+| `@cites packs#descriptor[off_sets][*]=v1` | invalid: a group name holds no `_` |
+| `@cites packs#descriptor[off.sets][*]=v1` | invalid: a group name holds no `.` |
+| `@cites packs#descriptor[off--sets][*]=v1` | invalid: a group name holds one `-` at most between two letters or digits |
 | `@cites packs#descriptor[*]=v3` | valid citation: slug `packs`, part name `descriptor`, every vector, revision `v3` |
 | `@cites packs[37]=v1` | valid citation: slug `packs`, vector number `37`, revision `v1` |
 | `@cites #descriptor[1]=v1` | valid citation: part name `descriptor`, vector number `1`, revision `v1` |
