@@ -11,7 +11,7 @@
 @cites toml-lang/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
-Specifies the canonical form of JSON values and canonical lines; the TOML documents that Sinter reads, with the spans of their keys and values and the starts of their errors; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and test them.
+Specifies the canonical form of JSON values and canonical lines; the TOML documents that Sinter reads, with the spans of their keys and values and the starts of their errors; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259 defines
@@ -157,7 +157,7 @@ its letters only in the same case.
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
-| [vector](sinter:#vector-meaning=v1) | an input and what a conforming program gives for it, which the object of a vector line states |
+| [vector](sinter:#vector-meaning=v1) | an input and what a conforming program of a specification, or of a design, gives for it, which the object of a vector line states |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for texts x and a, the text x, `.`, a, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for a text x alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [test-vector revision](sinter:#test-vector-revision=v1) | a text of `v` and the decimal numeral of a whole number of 1 or more, such as `v2` |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z` and the digits `0` to `9` that starts with a letter, with one `-` at most between two of them, such as `offsets` or `g-2` |
@@ -3072,14 +3072,14 @@ text as a hash id.
 ## 8. Test vectors
 @spec test-vectors=v1
 
-A vector is an input and what a conforming program gives for it. A
-test-vector set is a byte sequence that holds the vectors of one
-specification of a design, or of the requirements that a design holds
-outside its specifications. A conforming program reads a byte sequence
-as a test-vector set, and it tests whether a sequence of byte sequences
-is a version sequence: a sequence of versions of the vectors of a
-specification, each version a test-vector set, whose revisions follow
-the changes of the vectors.
+A vector of a specification is an input and what a conforming program
+of that specification gives for it. A test-vector set is a byte
+sequence that holds vectors of one specification of a design, or of the
+requirements that a design holds outside its specifications. A
+conforming program reads a byte sequence as a test-vector set, and it
+validates a sequence of byte sequences as a version sequence: a sequence
+of test-vector sets, its versions, from the earliest to the latest,
+whose revisions follow the changes of the vectors.
 
 The test-vector file name of two texts, such as `a` and `b`, is
 `a.b.test-vectors.jsonl`, and the test-vector file name of one text,
@@ -3098,22 +3098,27 @@ The objects of the vector lines can hold any JSON value in `input` and
 in `values`, so a vector object need not be a line object.
 
 The object of a vector line states one vector. The value of `input` is
-the input of the vector. The value of `result` is the result that a
-conforming program gives for that input, without its double quotes. The
-value of `values` is what the program gives with that result. When the
-object has no member `result`, as for a requirement that has no results,
-the value of `values` is the output that the program gives for the
-input. A vector with `result` and without `values` states the result,
-and states nothing about what the program gives with it. Each vector has
-`result` or `values`, or both, so each vector states what a program
-must give. The value
-of `note` explains the vector, and it is no part of the input, the
-result, or the values.
+the input of the vector. When the input is not a JSON value, such as a
+byte sequence, the value of `input` is a JSON value that stands for the
+input in a fixed form, which the design of the vectors states in its
+Conformance section, such as the hex text of a byte sequence. The value
+of `result` is the result that a conforming program of the
+specification gives for that input, without its double quotes. The
+value of `values` is what the program gives with that result, or a JSON
+value that stands for it in such a fixed form. When the object has no
+member `result`, as for a requirement that has no results, the value of
+`values` is the output that the program gives for the input, or a JSON
+value that stands for it. A vector with `result` and without `values`
+states the result, and states nothing about what the program gives with
+it. Each vector has `result` or `values`, or both, so each vector states
+what a program must give. The value of `note` explains the vector, and
+it is no part of the input, the result, or the values.
 
 Each vector, each group, and the whole set have a revision, such as
 `v2`. When the group, the input, the result, or the values of a vector
 change, the revision of the vector rises, and so do the revision of each
-group that holds it in either version and the revision of the set. When
+group that holds it in either version and is in both versions, and the
+revision of the set. When
 a vector joins or leaves, the revision of the set rises, and so does the
 revision of its group when its group is in both versions. Without such a
 change, no revision changes, so a change of a note alone changes no
@@ -3235,19 +3240,34 @@ revision of its set line.
 
 @term vector-meaning=v1
 @cites {
-    text#{conforming-program=v1, input=v1, result=v1, code-span=v1},
-    #{json-value=v1, vector-object=v1, test-vector-line=v1},
+    text#{
+        design=v1, specification=v1, requirement=v1,
+        conforming-program=v1, input=v1, result=v1, code-span=v1,
+    },
+    #{
+        json-value=v1, vector-object=v1, test-vector-line=v1,
+        test-vector-set=v1,
+    },
 }
 
-A vector is an input and what a conforming program gives for it. The
-object of a vector line states one vector:
+For a specification S of a design, a vector of S is an input and what a
+conforming program of S gives for it, and a test-vector set of S is a
+test-vector set that holds vectors of S. For a design D, a vector of D
+is an input and what a conforming program of D gives for it by the
+requirements that D holds outside its specifications, and a test-vector
+set of D is a test-vector set that holds vectors of D. The object of a
+vector line of a test-vector set of S, or of D, states one vector of S,
+or of D:
 
-- The value of `input` is the input of the vector.
-- The value of `result` is the result that a conforming program gives
-  for that input.
-- The value of `values` is what the program gives with that result, or,
-  when the object has no member `result`, the output that the program
-  gives for that input.
+- The value of `input` is the input of the vector. When the input is
+  not a JSON value, the value of `input` is a JSON value that stands for
+  the input in a fixed form.
+- The value of `result` is the result that a conforming program of S,
+  or of D, gives for that input.
+- The value of `values` is what that program gives with that result,
+  or, when the object has no member `result`, the output that it gives
+  for that input; or, when that is not a JSON value, a JSON value that
+  stands for it in a fixed form.
 - The value of `note` explains the vector, and it is no part of the
   input, the result, or the values.
 
@@ -3494,9 +3514,9 @@ it as a test-vector set.
 
 #### 8.4.2 Version sequences
 
-Each item gives a sequence of byte sequences, by the names of its byte
-sequences in this table, in order, between parentheses, with commas
-between them, and the result that a conforming program gives when it
+Each item gives a sequence of byte sequences, by the names that are
+given below to its byte sequences, in order, between parentheses, with
+commas between them, and the result that a conforming program gives when it
 validates the sequence as a version sequence.
 
 | name | byte sequence |
