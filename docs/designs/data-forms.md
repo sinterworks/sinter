@@ -7,10 +7,11 @@
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
+@cites rfc/8259
 @cites toml/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
-Specifies the canonical form of JSON values and of canonical lines, the TOML documents that Sinter reads, SHA-256 hashes, and hash ids, and the requirements for conforming implementations that write, read, compute, and check them.
+Specifies the canonical form of JSON values and of canonical lines, the TOML documents that Sinter reads, SHA-256 hashes, and hash ids, and the requirements for conforming implementations that write, read, compute, and test them.
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259
@@ -22,13 +23,13 @@ canonical lines holds one line object on each line, and two programs
 that write the same line objects in the same order write the same bytes.
 
 A TOML document is a sequence of bytes that TOML 1.1.0 reads as a valid
-document, with some further rules on tables. At each point where
-TOML 1.1.0 lets an implementation choose, such as the range of a TOML
-integer, a conforming implementation makes one fixed choice. SHA-256 is
-a hash function: it gives a digest of 32 bytes for a sequence of bytes.
-The hash of a sequence of bytes is its digest as 64 hex digits. A hash
-id is an id prefix, such as `e-`, and then the first hex digits of a
-hash.
+document, with the further rules of sections 2.5 and 2.6. At each point
+where TOML 1.1.0 lets an implementation choose, such as the range of a
+TOML integer, a conforming implementation makes one fixed choice.
+SHA-256 is a hash function: it gives a digest of 32 bytes for a
+sequence of bytes. The hash of a sequence of bytes is its digest as 64
+hex digits. A hash id is an id prefix, such as `e-`, and then the first
+hex digits of a hash.
 
 The productions in section 3 use ABNF, the notation of RFC 5234. A
 production, such as `hash = 64hex-digit`, gives the texts that its name
@@ -46,6 +47,7 @@ From the standards that it cites, the design takes these parts:
 | RFC 3339 | the meaning of the offset of an offset date-time |
 | RFC 3629 | the UTF-8 encoding of a text |
 | RFC 5234, RFC 7405 | the notation of the productions |
+| RFC 8259 | JSON texts, in which the conformance vectors write JSON values |
 | TOML 1.1.0 | TOML documents, their tables, their TOML keys, and their TOML values |
 | IEEE 754-2019 | the binary64 format of floating-point numbers, and rounding to nearest with ties to even |
 | FIPS 180-4 | the hash function SHA-256 |
@@ -64,7 +66,7 @@ From the standards that it cites, the design takes these parts:
 | UTF-8 encoding | the sequence of bytes that RFC 3629 gives for a text |
 | byte order mark | the bytes 0xEF, 0xBB, and 0xBF, which are the UTF-8 encoding of the character U+FEFF |
 | line feed | the character U+000A, whose UTF-8 encoding is the byte 0x0A |
-| result | what a conforming implementation gives for an input that it reads or checks: valid or invalid |
+| result | what a conforming implementation gives for an input that it reads or tests: valid or invalid |
 | JSON value | a string, an integer, a boolean, an array, or an object |
 | string | a text, as a JSON value |
 | integer | a whole number from −(2^53 − 1) to 2^53 − 1, as a JSON value |
@@ -87,15 +89,17 @@ From the standards that it cites, the design takes these parts:
 | TOML document | a sequence of bytes that TOML 1.1.0 reads as a valid document, with all the rules of TOML 1.1.0 and with the rules of sections 2.5 and 2.6, which add to them |
 | key/value pair, inline table, table header, array of tables, quoted key, basic string, multi-line basic string, literal string, multi-line literal string | the parts of a document that TOML 1.1.0 calls by these names |
 | integer of TOML 1.1.0, float of TOML 1.1.0 | the parts of a document that TOML 1.1.0 calls integers and floats, such as `-17` and `1e400` |
-| TOML key | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"`; it is the key of a TOML value in a table |
+| TOML key | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"`; a table holds its text beside a TOML value |
 | dotted key | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; these are the TOML keys of the dotted key |
+| key of a key/value pair, key of a table header | the key of TOML 1.1.0 in it: a TOML key or a dotted key |
 | TOML value | a value of a TOML document, of one of ten kinds: a TOML string, a TOML integer, a TOML float, a TOML boolean, a local date, a local time, a local date-time, an offset date-time, a TOML array, or a table |
 | TOML string, TOML integer, TOML float, TOML boolean, TOML array | a TOML value of the type string, integer, float, boolean, or array of TOML 1.1.0 |
 | local date, local time, local date-time, offset date-time | the TOML values of TOML 1.1.0 that have these names |
 | table | a TOML value that is a set of pairs, each the text of a TOML key and its TOML value, with no order |
 | equal | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
 | newline | in a TOML document, the character U+000A, or the characters U+000D and U+000A |
-| line ending backslash | in a multi-line basic string, a `\` that starts no escape sequence and is the last character on its line apart from tabs and spaces |
+| line ending backslash | in a multi-line basic string, a `\` that is not part of an escape sequence and is the last character on its line apart from tabs and spaces |
+| reading rules of TOML | the rules that a conforming implementation adds to TOML 1.1.0: the rule on the byte order mark, the choices at the points where TOML 1.1.0 lets an implementation choose, and the rules on offsets and on newlines in strings |
 | root table | the top-level table of a TOML document |
 | place | a position before, between, or after the characters of a document |
 | location | the sequence of steps from the root table to a table: texts of TOML keys and positions in TOML arrays; two tables with the same location are the same table |
@@ -232,9 +236,9 @@ form. Each canonical form is a JSON text, as RFC 8259 defines it.
 
 A noncharacter is a character from U+FDD0 to U+FDEF, or a character
 whose code point ends in FFFE or FFFF in hex, such as U+FFFF or
-U+10FFFE. For a JSON value in whose strings and keys no character is a
-noncharacter, the canonical form is also the text that the JSON
-Canonicalization Scheme of RFC 8785 gives for the JSON value.
+U+10FFFE. For a JSON value whose strings and keys hold no noncharacter,
+this canonical form is the same text as the output of the JSON
+Canonicalization Scheme of RFC 8785.
 
 In these examples, a JSON text gives each JSON value:
 
@@ -308,7 +312,7 @@ pairs of a table have no order. A TOML value is of one of ten kinds:
 |---|---|
 | TOML string | a text |
 | TOML integer | a whole number from −2^63 to 2^63 − 1 |
-| TOML float | an IEEE 754 binary64 value |
+| TOML float | an IEEE 754-2019 binary64 value |
 | TOML boolean | true or false |
 | local date | a year, a month, and a day |
 | local time | an hour, a minute, a second, and a fraction of a second |
@@ -319,9 +323,9 @@ pairs of a table have no order. A TOML value is of one of ten kinds:
 
 A document gives each TOML value in the syntax of TOML 1.1.0. For
 example, the integer `0x1F` of TOML 1.1.0 gives the TOML integer 31,
-and the float `1e3` of TOML 1.1.0 gives a TOML float. A basic string, a multi-line
-basic string, a literal string, or a multi-line literal string gives a
-TOML string.
+and the float `1e3` of TOML 1.1.0 gives a TOML float. A basic string, a
+multi-line basic string, a literal string, or a multi-line literal
+string gives a TOML string.
 
 At some points, TOML 1.1.0 lets an implementation choose. A conforming
 implementation makes these choices:
@@ -330,16 +334,18 @@ implementation makes these choices:
 |---|---|
 | bytes that are not the UTF-8 encoding of a text | the bytes are not a TOML document, and a conforming implementation replaces no byte with U+FFFD |
 | the range of a TOML integer | from −9223372036854775808 to 9223372036854775807, which is from −2^63 to 2^63 − 1; an integer of TOML 1.1.0 that stands for a number outside the range makes the bytes not a TOML document |
-| the TOML float of a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` | the IEEE 754 binary64 value that rounding to nearest, with ties to even, gives for the number that the float of TOML 1.1.0 stands for; its sign bit is 1 when, and only when, the float of TOML 1.1.0 starts with `-`, so `-0.0` gives negative zero |
+| the TOML float of a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` | the IEEE 754-2019 binary64 value that rounding to nearest, with ties to even, gives for the number that the float of TOML 1.1.0 stands for; its sign bit is 1 when, and only when, the float of TOML 1.1.0 starts with `-`, so `-0.0` gives negative zero |
 | a float of TOML 1.1.0 that rounds to an infinity, such as `1e400` | the bytes are not a TOML document |
 | the floats `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` of TOML 1.1.0 | `inf` and `+inf` give positive infinity, and `-inf` gives negative infinity; `nan`, `+nan`, and `-nan` each give a TOML float that is NaN |
 | more than nine digits in the fraction of a second | a local time, a local date-time, and an offset date-time keep the first nine digits, and the further digits do not change the fraction |
 | the second 60 | a valid second of a local time, a local date-time, and an offset date-time, on every date and at every hour and minute |
 | a newline in a multi-line basic string or a multi-line literal string | each newline that TOML 1.1.0 does not trim stays in the TOML string as its characters: U+000A, or U+000D and U+000A |
-| an escape sequence that TOML 1.1.0 reserves, such as `\q`, in a basic string or a multi-line basic string | the bytes are not a TOML document |
+| an escape sequence that TOML 1.1.0 reserves, such as `\q`, in a basic string, a multi-line basic string, or a quoted key | the bytes are not a TOML document |
 
-So `00:00:00.123456789123` and `00:00:00.123456789` give equal local
-times.
+The fraction of a second is the number that the first nine digits after
+the `.` stand for as a decimal fraction. So `12:30:00.5` and
+`12:30:00.50` give equal local times, and so do `00:00:00.123456789123`
+and `00:00:00.123456789`.
 
 TOML 1.1.0 writes an offset date-time in the form of RFC 3339, and
 RFC 3339, section 4.3, gives the meaning of its offset. The offset of an
@@ -364,6 +370,10 @@ s = """a\
   b"""
 ```
 
+The rule on the byte order mark, the choices in the table above, and the
+rules on offsets and on newlines in strings are the reading rules of
+TOML.
+
 The text of a TOML string is the text that TOML 1.1.0 gives for its
 basic string, multi-line basic string, literal string, or multi-line
 literal string after the escape sequences resolve, with no other change.
@@ -378,11 +388,11 @@ number, and TOML values in them are equal. Two TOML floats are equal
 when, and only when, their binary64 values have the same bits, or both
 are NaN. So `-0.0` and `0.0` give two TOML floats that are not equal.
 
-The root table depends only on the TOML keys and the TOML values, and
-not on the syntax of TOML 1.1.0 that gives them. A table header, a
-dotted key, and an inline table each give a table. So these three texts
-give equal root tables, in which the TOML key `a` holds a table that
-holds the TOML key `b` with the TOML integer 1:
+The root table depends only on the texts of the TOML keys and on the
+TOML values, and not on the syntax of TOML 1.1.0 that gives them. A
+table header, a dotted key, and an inline table each give a table. So
+these three texts give equal root tables, in which `a` holds a table in
+which `b` holds the TOML integer 1:
 
 ```toml
 [a]
@@ -399,8 +409,8 @@ a = { b = 1 }
 
 Both the table headers of an array of tables and the brackets `[` and
 `]` around TOML values give a TOML array. So these two texts give equal
-root tables, in which the TOML key `a` holds a TOML array of one table,
-and that table holds the TOML key `b` with the TOML integer 1:
+root tables, in which `a` holds a TOML array of one table, in which `b`
+holds the TOML integer 1:
 
 ```toml
 a = [{ b = 1 }]
@@ -420,14 +430,17 @@ are a TOML document, and the result invalid otherwise.
 A place in a document is a position before, between, or after its
 characters. The tables and TOML values at a place are those that the
 text before that place makes, as TOML 1.1.0 reads that text in its
-order. So a table can hold more TOML keys at a later place than at an
-earlier place.
+order. So a table can hold more texts at a later place than at an
+earlier place. The table of an inline table exists at each place after
+its `{`. At a place between its braces, that table holds only the texts
+that the key/value pairs between its braces that end before that place
+add to it.
 
 The location of a table is the sequence of steps that leads to it from
 the root table. Each step is the text of a TOML key, or the position of
-a table in a TOML array. Two tables of a document are the same table
-when, and only when, they have the same location. So two empty tables
-with different locations are two different tables.
+a TOML value in a TOML array. Two tables of a document are the same
+table when, and only when, they have the same location. So two empty
+tables with different locations are two different tables.
 
 A table header names one table. The table header `[a.b.c]` names the
 table at the TOML keys `a`, `b`, `c` from the root table. It also makes
@@ -457,20 +470,24 @@ key/value pair: the table of the innermost inline table that holds the
 key/value pair, or else the table that the last table header before it
 names, or else the root table. An inline table holds each key/value
 pair and each inline table between its braces. The key of a key/value
-pair can be a dotted key, such as `b.c.x` in `b.c.x = 1`. Each TOML key of the dotted key before its last TOML key
-leads to the next table of the path of the dotted key. Under the table
-header `[a]`, the dotted key `b.c.x` has the path `a.b`, `a.b.c`, and
-its last TOML key is `x`.
+pair can be a dotted key, such as `b.c.x` in `b.c.x = 1`. Each TOML key
+of the dotted key before its last TOML key leads to the next table of
+the path of the dotted key. Under the table header `[a]`, the dotted key
+`b.c.x` has the path `a.b`, `a.b.c`, and its last TOML key is `x`.
 
 TOML 1.1.0 itself has these rules on tables:
 
 - A document defines no table twice, and it adds no TOML key twice to
   one table.
-- An inline table defines all the TOML keys and tables in it, and no
-  TOML key or table is added to it outside its braces. So an inline
-  table, and each table in it, holds no table that a table header names.
-- A dotted key does not define again a table that a table header defines.
+- An inline table holds all the TOML keys and tables between its
+  braces, and no TOML key or table is added to it outside its braces.
+  So an inline table, and each table in it, holds no table that a table
+  header names.
+- A dotted key does not define again a table that a table header
+  defines.
 - A table header can define a table in a table that dotted keys define.
+- A table that dotted keys define has all its key/value pairs under the
+  current table header, in the root table, or in one inline table.
 
 These rules of TOML 1.1.0 do not say exactly which table header,
 key/value pair, or inline table defines a table. A conforming
@@ -478,27 +495,36 @@ implementation reads a document with these further rules:
 
 - A table header defines the table that it names, and no other table.
   So a table header does not define the super-tables that it makes.
-- At a place in a document, an undefined super-table is a table that is
-  a super-table of a table that a table header before that place names,
-  and that no table header, no key/value pair, and no inline table
-  before that place defines.
+- At a place in a document, a super-table t of a table that a table
+  header before that place names is an undefined super-table when no
+  table header before that place names t, t is not the table of an
+  inline table before that place, and t is not a table of the path of
+  the dotted key of a key/value pair before that place.
 - A key/value pair defines each table of the path of its dotted key
   that, at the place right before the key/value pair, does not exist yet
-  or is an undefined super-table. Through its dotted key, a key/value
-  pair defines no other table.
-- An inline table defines its table.
+  or is an undefined super-table. A key/value pair defines no other
+  table.
+- An inline table defines its table, and no other table.
 - No two of the table headers, the key/value pairs, and the inline
-  tables of a document define the same table.
-- At the place right before a key/value pair, the TOML keys of its key
-  lead from its holding table to no TOML value: the key/value pair adds
-  a TOML key that the table does not hold yet.
+  tables of a document define the same table by these rules.
+- At the place right before a key/value pair, the TOML keys of the key
+  of the key/value pair lead from its holding table to no TOML value:
+  the key/value pair adds the text of its last TOML key to a table that
+  does not hold that text yet.
 - No table of the path of a dotted key is a table that a table header
   before the key/value pair of the dotted key names.
-- When no inline table holds a key/value pair, a document is not invalid
-  only because a table that the key/value pair defines holds a table
-  that a table header names, before or after the key/value pair.
+- When no inline table holds a key/value pair, the rule of TOML 1.1.0
+  that a table that dotted keys define has all its key/value pairs under
+  the current table header, in the root table, or in one inline table
+  does not apply to a TOML value that a table header before or after the
+  key/value pair makes: the table that the table header names, a
+  super-table of that table, or the TOML array to which the table header
+  of an array of tables adds a table.
 
-So this text is a TOML document. Before line 2, the table `a` is an
+By these rules, no table header, no key/value pair, and no inline table
+before a place defines an undefined super-table at that place.
+
+This text is a TOML document. Before line 2, the table `a` is an
 undefined super-table, and the table header on line 2 defines it:
 
 ```toml
@@ -555,9 +581,9 @@ x = { b.c = 1 }
 ```
 
 This text is not a TOML document, because the table `a` already holds
-the TOML key `b` before line 3. The table header on line 1 makes the
-super-table `a.b`, so the key/value pair on line 3 cannot add the TOML
-key `b` to the table `a`:
+the text `b` before line 3. The table header on line 1 makes the
+super-table `a.b`, so the key/value pair on line 3 cannot add the text
+`b` to the table `a`:
 
 ```toml
 [a.b.c]
@@ -577,8 +603,8 @@ z = 9
 b.c.x = 1
 ```
 
-To add the TOML key `x` to the table `a.b.c`, put it under the table
-header that names the table:
+To add the text `x` to the table `a.b.c`, put the key/value pair
+`x = 1` under the table header that names the table:
 
 ```toml
 [a.b.c]
@@ -599,12 +625,12 @@ b.y = 2
 
 The key of a table header can be a dotted key too, such as `q.r` in
 `[q.r]`. The table header names a table from the root table, so that
-dotted key has no holding table and no path. If the dotted key `q.r` in
-this text started at the table `p`, its path would hold the table `p.q`,
-which the table header on line 1 names. But the table header `[q.r]`
-names the table `q.r` from the root table. The tables `p.q` and `q.r`
-are both empty, and they have different locations, so they are two
-different tables. The text is a TOML document:
+dotted key has no holding table and no path.
+
+The table header `[q.r]` names the table `q.r` from the root table, also
+when it stands after the table header `[p]`. In this text, the tables
+`p.q` and `q.r` are both empty, and they have different locations, so
+they are two different tables. The text is a TOML document:
 
 ```toml
 [p.q]
@@ -613,14 +639,14 @@ different tables. The text is a TOML document:
 ```
 
 When no inline table holds a key/value pair, a table that the key/value
-pair defines can hold tables that table headers name, before or after
-the key/value pair. In this text, the table header on line 1 makes the
-table `a.b` as a super-table of `a.b.c`. Before line 4, `a.b` is an
+pair defines can hold TOML values that table headers make, before or
+after the key/value pair. In this text, the table header on line 1 makes
+the table `a.b` as a super-table of `a.b.c`. Before line 4, `a.b` is an
 undefined super-table, so the key/value pair on line 4 defines `a.b` and
-adds the TOML key `ct` to it. Then `a.b` holds both the TOML key `ct`
-and the table `a.b.c`, which a table header names. The key/value pair on
-line 5 makes and defines the new table `a.b.x`. The text is a TOML
-document:
+adds the text `ct` to it. Then `a.b` holds two texts: `ct`, and `c`,
+whose TOML value is the table `a.b.c` that the table header on line 1
+names. The key/value pair on line 5 makes and defines the new table
+`a.b.x`. The text is a TOML document:
 
 ```toml
 [a.b.c]
@@ -640,6 +666,18 @@ z = 9
 [a]
 b.ct = 1
 [a.b]
+```
+
+The TOML value that a table header makes can also be a super-table of
+the table that the table header names. In this text, the key/value pair
+on line 3 defines the table `a.b`. The table `a.b` holds the super-table
+`a.b.c` of the table `a.b.c.d`, which the table header on line 1 names.
+The text is a TOML document:
+
+```toml
+[a.b.c.d]
+[a]
+b.e = 1
 ```
 
 ### 2.7 Hashes
@@ -683,6 +721,7 @@ do not.
 | input | what a conforming implementation gives |
 |---|---|
 | a JSON value | its canonical bytes |
+| a line object | its canonical line |
 | a sequence of bytes, as a canonical line | valid and the line object, or invalid |
 | a sequence of bytes, as a TOML document | valid and the root table, or invalid |
 | a sequence of fewer than 2^61 bytes | its hash |
@@ -713,7 +752,7 @@ text, in their order, and no other bytes.
 ### 3.3 The byte order mark
 
 @req byte-order-mark=v1
-@cites #bytes=v1
+@cites #{bytes=v1}
 
 The byte order mark is the sequence of the three bytes 0xEF, 0xBB, and
 0xBF, in that order.
@@ -731,9 +770,9 @@ only when, the production matches the whole of the text.
 
 ### 3.5 Results
 
-@req results=v1
+@req result-list=v1
 
-A result is one of two values: valid and invalid.
+The results are these two: valid and invalid.
 
 ### 3.6 Hex digits
 
@@ -763,7 +802,7 @@ order, one after another.
 ### 3.8 JSON values
 
 @req json-values=v1
-@cites #characters=v1
+@cites #{characters=v1}
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 A string is a text. An integer is a whole number from
@@ -776,7 +815,7 @@ members of one object have the same key.
 ### 3.9 Key order
 
 @req key-order=v1
-@cites #characters=v1
+@cites #{characters=v1}
 
 The UTF-16 code units of a character whose code point c is less than
 0x10000 are the one number c. The UTF-16 code units of a character
@@ -796,8 +835,8 @@ holds:
 
 @req canonical-form=v1
 @cites #{
-    json-values=v1, characters=v1, hex-text=v1, key-order=v1,
-    bytes=v1,
+    json-values=v1, characters=v1, hex-text=v1, bytes=v1,
+    key-order=v1,
 }
 
 The canonical form of a JSON value is a text that these rules give:
@@ -825,21 +864,26 @@ The canonical form of a JSON value is a text that these rules give:
   form of its key as a string, then `:`, then the canonical form of its
   value.
 
+### 3.11 Canonical bytes
+
+@req canonical-bytes=v1
+@cites #{json-values=v1, bytes=v1, canonical-form=v1}
+
 The canonical bytes of a JSON value are the UTF-8 encoding of its
 canonical form.
 
-### 3.11 Writing the canonical form
+### 3.12 Canonical bytes as output
 
 @req write-canonical-json=v1
-@cites #{json-values=v1, canonical-form=v1}
+@cites #{json-values=v1, canonical-bytes=v1}
 
 For each JSON value, a conforming implementation must give its
 canonical bytes.
 
-### 3.12 Line objects
+### 3.13 Line objects
 
 @req line-objects=v1
-@cites #json-values=v1
+@cites #{json-values=v1}
 
 A scalar is a string, an integer, or a boolean. A flat object is an
 object in which the value of each member is a scalar. A line object is
@@ -849,33 +893,43 @@ an object in which the value of each member is one of these three:
 - an array in which each element is a scalar;
 - an array in which each element is a flat object.
 
-### 3.13 Canonical lines
+### 3.14 Canonical lines
 
 @req canonical-lines=v1
-@cites #{line-objects=v1, canonical-form=v1, bytes=v1}
+@cites #{line-objects=v1, canonical-bytes=v1, bytes=v1}
 
 The canonical line of a line object is the canonical bytes of the line
 object, then the byte 0x0A.
 
-### 3.14 Reading canonical lines
+### 3.15 Canonical lines as output
+
+@req write-canonical-line=v1
+@cites #{line-objects=v1, canonical-lines=v1}
+
+For each line object, a conforming implementation must give its
+canonical line.
+
+### 3.16 Canonical lines as input
 
 @req read-canonical-line=v1
-@cites #{bytes=v1, results=v1, line-objects=v1, canonical-lines=v1}
+@cites #{bytes=v1, result-list=v1, line-objects=v1, canonical-lines=v1}
 
 For each sequence of bytes, a conforming implementation must give the
 result valid and the line object whose canonical line the bytes are,
 when the bytes are the canonical line of a line object. For every other
 sequence of bytes, it must give the result invalid.
 
-### 3.15 TOML keys
+### 3.17 TOML keys
 
 @req toml-keys=v1
 @cites {toml/1.1.0, #{characters=v1}}
 
-These definitions use the terms key, dotted key, and escape sequence of
-TOML 1.1.0.
+These definitions use the terms key, dotted key, key/value pair, table
+header, and escape sequence of TOML 1.1.0.
 
 - A TOML key is a key of TOML 1.1.0 that is not a dotted key.
+- The key of a key/value pair or of a table header is the key of
+  TOML 1.1.0 in it.
 - The TOML keys of a key of TOML 1.1.0 are the key itself when it is a
   TOML key. When it is a dotted key, they are the TOML keys that the
   dotted key joins with `.`, in their order.
@@ -884,7 +938,7 @@ TOML 1.1.0.
 - Two TOML keys are the same key of TOML 1.1.0 when, and only when,
   their texts are the same text.
 
-### 3.16 TOML values
+### 3.18 TOML values
 
 @req toml-values=v1
 @cites {toml/1.1.0, ieee/754-2019, #{characters=v1, toml-keys=v1}}
@@ -897,19 +951,20 @@ table of TOML 1.1.0.
   a TOML float, a TOML boolean, and a TOML array are the TOML values of
   the types string, integer, float, boolean, and array of TOML 1.1.0.
 - Each TOML value is of one of these ten kinds: a TOML string, which is
-  a text; a TOML integer, which is a whole number; a TOML float, which
-  is an IEEE 754 binary64 value; a TOML boolean, which is true or false;
-  a local date, which is a year, a month, and a day; a local time, which
-  is an hour, a minute, a second, and a fraction of a second; a local
-  date-time, which is a local date and a local time; an offset
-  date-time, which is a local date-time and an offset; a TOML array,
-  which is a sequence of TOML values; and a table.
+  a text; a TOML integer, which is a whole number from
+  −9223372036854775808 to 9223372036854775807; a TOML float, which is
+  an IEEE 754-2019 binary64 value; a TOML boolean, which is true or
+  false; a local date, which is a year, a month, and a day; a local
+  time, which is an hour, a minute, a second, and a fraction of a
+  second; a local date-time, which is a local date and a local time; an
+  offset date-time, which is a local date-time and an offset; a TOML
+  array, which is a sequence of TOML values; and a table.
 - A table is a set of pairs. Each pair is the text of a TOML key and a
   TOML value, which is the TOML value of that text in the table. No two
   pairs of one table have the same text. The pairs of a table have no
   order.
 
-### 3.17 Equal TOML values
+### 3.19 Equal TOML values
 
 @req toml-value-equality=v1
 @cites {ieee/754-2019, #{toml-values=v1, characters=v1}}
@@ -931,47 +986,56 @@ and one of these holds:
 - They are tables with the same texts of TOML keys, and their TOML
   values of each of these texts are equal.
 
-### 3.18 The encoding of a TOML document
+### 3.20 The encoding of a TOML document
 
 @req toml-encoding=v1
 @cites {toml/1.1.0, #{bytes=v1, characters=v1}}
 
-A sequence of bytes that is not the UTF-8 encoding of a text is not a
-valid document of TOML 1.1.0.
+By this rule, a sequence of bytes that is not the UTF-8 encoding of a
+text is not a valid document of TOML 1.1.0.
 
-### 3.19 The byte order mark in TOML
+### 3.21 The byte order mark in TOML
 
 @req toml-byte-order-mark=v1
 @cites {toml/1.1.0, #{bytes=v1, byte-order-mark=v1}}
 
-When a sequence of bytes starts with the byte order mark, a conforming
-implementation reads only the bytes after the byte order mark by the
-rules of TOML 1.1.0.
+When a sequence of bytes starts with the byte order mark, the bytes that
+TOML 1.1.0 reads for it are the bytes after the byte order mark.
 
-### 3.20 The range of a TOML integer
+### 3.22 The range of a TOML integer
 
 @req toml-integer-range=v1
-@cites {toml/1.1.0, #{toml-values=v1}}
+@cites toml/1.1.0
 
-A TOML integer is a whole number from −9223372036854775808 to
-9223372036854775807. When an integer of TOML 1.1.0 in a document stands
-for a number outside that range, the document is not a valid document
-of TOML 1.1.0.
+By this rule, a document that holds an integer of TOML 1.1.0 that stands
+for a number less than −9223372036854775808 or greater than
+9223372036854775807 is not a valid document of TOML 1.1.0.
 
-### 3.21 The values of TOML floats
+### 3.23 The values of TOML floats
 
 @req toml-float-values=v1
 @cites {toml/1.1.0, ieee/754-2019, #{toml-values=v1}}
 
 For a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`,
-`+nan`, and `-nan`, the TOML float that it gives is the IEEE 754
+`+nan`, and `-nan`, the TOML float that it gives is the IEEE 754-2019
 binary64 value that rounding to nearest, with ties to even, gives for
 the number that the float of TOML 1.1.0 stands for. The sign bit of that
 binary64 value is 1 when, and only when, the float of TOML 1.1.0 starts
-with `-`. When that binary64 value is an infinity, the document that
-holds the float of TOML 1.1.0 is not a valid document of TOML 1.1.0.
+with `-`.
 
-### 3.22 Infinities and NaN in TOML
+### 3.24 Floats that round to an infinity
+
+@req toml-float-overflow=v1
+@cites {
+    toml/1.1.0, ieee/754-2019,
+    #{toml-values=v1, toml-float-values=v1},
+}
+
+By this rule, a document that holds a float of TOML 1.1.0 whose TOML
+float, by `toml-float-values`, is an infinity is not a valid document of
+TOML 1.1.0.
+
+### 3.25 Infinities and NaN in TOML
 
 @req toml-special-floats=v1
 @cites {toml/1.1.0, ieee/754-2019, #{toml-values=v1}}
@@ -981,17 +1045,18 @@ infinity, and the float `-inf` of TOML 1.1.0 gives the TOML float
 negative infinity. The floats `nan`, `+nan`, and `-nan` of TOML 1.1.0
 each give a TOML float that is NaN.
 
-### 3.23 Fractions of a second in TOML
+### 3.26 Fractions of a second in TOML
 
 @req toml-second-fractions=v1
 @cites {toml/1.1.0, #{toml-values=v1}}
 
 In a document, the digits after the `.` of the second of a local time, a
 local date-time, or an offset date-time give its fraction of a second.
-When there are more than nine of these digits, only the first nine of
-them give the fraction.
+When these digits are d1 to dk, the fraction of a second is the sum of
+the numbers di / 10^i for each i from 1 to m, where m is the smaller of
+k and 9.
 
-### 3.24 Leap seconds in TOML
+### 3.27 Leap seconds in TOML
 
 @req toml-leap-seconds=v1
 @cites {toml/1.1.0, #{toml-values=v1}}
@@ -1000,7 +1065,7 @@ Each second from 0 to 60 is a valid second of a local time, a local
 date-time, and an offset date-time, on every date and at every hour and
 minute.
 
-### 3.25 Offsets in TOML
+### 3.28 Offsets in TOML
 
 @req toml-offsets=v1
 @cites {toml/1.1.0, rfc/3339, #{toml-values=v1}}
@@ -1012,7 +1077,7 @@ gives the offset as `Z` or `z`, and the number of minutes that the
 document gives for each other offset, such as 0 for `+00:00` and −420
 for `-07:00`. The unknown local offset is not a number of minutes.
 
-### 3.26 Newlines in TOML strings
+### 3.29 Newlines in TOML strings
 
 @req toml-string-newlines=v1
 @cites {toml/1.1.0, #{toml-values=v1, characters=v1}}
@@ -1029,68 +1094,118 @@ string, newline, and line ending backslash of TOML 1.1.0.
   literal string stays in the TOML string as its characters: U+000A, or
   U+000D and then U+000A.
 
-### 3.27 Escape sequences in TOML
+### 3.30 Escape sequences in TOML
 
 @req toml-escapes=v1
 @cites toml/1.1.0
 
-These rules use the terms basic string, multi-line basic string, and
-escape sequence of TOML 1.1.0. When a basic string or a multi-line basic
-string in a document holds an escape sequence that TOML 1.1.0 reserves,
-such as `\q`, the document is not a valid document of TOML 1.1.0.
+This rule uses the terms basic string, multi-line basic string, quoted
+key, and escape sequence of TOML 1.1.0. By this rule, a document that
+holds a basic string, a multi-line basic string, or a quoted key with an
+escape sequence that TOML 1.1.0 reserves, such as `\q`, is not a valid
+document of TOML 1.1.0.
 
-### 3.28 Places in a TOML document
+### 3.31 The reading rules of TOML
+
+@req toml-reading-rules=v1
+@cites #{
+    toml-byte-order-mark=v1, toml-encoding=v1, toml-integer-range=v1,
+    toml-float-values=v1, toml-float-overflow=v1,
+    toml-special-floats=v1, toml-second-fractions=v1,
+    toml-leap-seconds=v1, toml-offsets=v1, toml-string-newlines=v1,
+    toml-escapes=v1,
+}
+
+The reading rules of TOML are the rules of `toml-byte-order-mark`,
+`toml-encoding`, `toml-integer-range`, `toml-float-values`,
+`toml-float-overflow`, `toml-special-floats`, `toml-second-fractions`,
+`toml-leap-seconds`, `toml-offsets`, `toml-string-newlines`, and
+`toml-escapes`.
+
+### 3.32 Places in a TOML document
 
 @req toml-places=v1
-@cites {toml/1.1.0, #{characters=v1, toml-values=v1, toml-keys=v1}}
+@cites {toml/1.1.0, #{characters=v1, toml-values=v1}}
 
-These definitions use the terms document, root table, table header, and
-array of tables of TOML 1.1.0.
+These definitions use the terms document, inline table, and key/value
+pair of TOML 1.1.0.
 
 - A place in a document is a position before, between, or after the
   characters of the document.
 - The tables and TOML values at a place are those that the text of the
   document before that place makes, as TOML 1.1.0 reads that text in its
   order.
-- The location of a table of a document is the sequence of steps that
-  leads to it from the root table. Each step is the text of a TOML key,
-  or the position of a table in a TOML array. Two tables of a document
-  are the same table when, and only when, they have the same location.
-- At a place in a document, the TOML keys k1 to kn lead from a table v0
-  to a TOML value vn when, and only when, for each i from 1 to n, the
-  TOML value v(i−1) is a table that holds the text of ki, and vi is the
-  TOML value of that text in v(i−1) at that place. When the table
-  headers of an array of tables make that TOML value, vi is instead the
-  last table that a table header before that place adds to that TOML
-  array. When no such TOML values exist, the TOML keys k1 to kn lead
-  from v0 to no TOML value.
+- The table of an inline table whose `{` stands before a place exists at
+  that place, and at that place it holds only the texts that the
+  key/value pairs between its braces that end before that place add to
+  it.
 
-### 3.29 Table headers in TOML
+### 3.33 The locations of tables
 
-@req toml-table-headers=v1
-@cites {toml/1.1.0, #{toml-values=v1, toml-keys=v1, toml-places=v1}}
+@req toml-locations=v1
+@cites {toml/1.1.0, #{toml-values=v1, toml-keys=v1}}
 
-These definitions use the terms table header, array of tables, and root
+These definitions use the terms document and root table of TOML 1.1.0.
+
+The location of a table of a document is the sequence of steps that
+leads to it from the root table. Each step is the text of a TOML key, or
+the position of a TOML value in a TOML array. Two tables of a document
+are the same table when, and only when, they have the same location.
+
+### 3.34 TOML keys that lead to a TOML value
+
+@req toml-leads=v1
+@cites {toml/1.1.0, #{toml-places=v1, toml-keys=v1, toml-values=v1}}
+
+These definitions use the terms document, table header, and array of
+tables of TOML 1.1.0.
+
+At a place in a document, the TOML keys k1 to kn lead from a table v0 to
+a TOML value vn when, and only when, for each i from 1 to n, the TOML
+value v(i−1) is a table that holds the text of ki, and vi is the TOML
+value of that text in v(i−1) at that place. When the table headers of an
+array of tables make that TOML value, vi is instead the last table that
+a table header before that place adds to that TOML array. When no such
+TOML values exist, the TOML keys k1 to kn lead from v0 to no TOML value.
+
+### 3.35 The tables that table headers name
+
+@req toml-header-names=v1
+@cites {
+    toml/1.1.0,
+    #{toml-values=v1, toml-keys=v1, toml-leads=v1, toml-places=v1},
+}
+
+This definition uses the terms table header, array of tables, and root
 table of TOML 1.1.0.
 
-- A table header `[k1.k2.….kn]` or `[[k1.k2.….kn]]` names the table that
-  the TOML keys k1 to kn lead to from the root table at the place right
-  after the table header.
-- The super-tables of the table that a table header `[k1.k2.….kn]` or
-  `[[k1.k2.….kn]]` names are the tables that the TOML keys k1 to ki lead
-  to from the root table at the place right after the table header, for
-  each i from 1 to n − 1.
+A table header `[k1.k2.….kn]` or `[[k1.k2.….kn]]` names the table that
+the TOML keys k1 to kn lead to from the root table at the place right
+after the table header.
 
-### 3.30 Paths in TOML
+### 3.36 Super-tables
 
-@req toml-paths=v1
+@req toml-super-tables=v1
 @cites {
     toml/1.1.0,
     #{
-        toml-values=v1, toml-table-headers=v1, toml-keys=v1,
-        toml-places=v1,
+        toml-values=v1, toml-header-names=v1, toml-keys=v1,
+        toml-leads=v1, toml-places=v1,
     },
 }
+
+This definition uses the terms table header and root table of
+TOML 1.1.0.
+
+The super-tables of the table that a table header `[k1.k2.….kn]` or
+`[[k1.k2.….kn]]` names are the tables that the TOML keys k1 to ki lead
+to from the root table at the place right after the table header, for
+each i from 1 to n − 1.
+
+### 3.37 Holding tables
+
+@req toml-holding-tables=v1
+@cites {toml/1.1.0, #{toml-values=v1, toml-header-names=v1}}
 
 These definitions use the terms key/value pair, inline table, table
 header, and root table of TOML 1.1.0.
@@ -1102,23 +1217,61 @@ header, and root table of TOML 1.1.0.
   the key/value pair, the holding table is the table that the last table
   header before the key/value pair names. When no table header comes
   before the key/value pair, the holding table is the root table.
-- The path of the dotted key `k1.k2.….kn` of a key/value pair is the
-  sequence of the tables that the TOML keys k1 to ki lead to from the
-  holding table of the key/value pair at the place right after the
-  key/value pair, for each i from 1 to n − 1, in that order.
 
-### 3.31 TOML documents
+### 3.38 The paths of dotted keys
+
+@req dotted-key-paths=v1
+@cites {
+    toml/1.1.0,
+    #{
+        toml-keys=v1, toml-values=v1, toml-leads=v1,
+        toml-holding-tables=v1, toml-places=v1,
+    },
+}
+
+This definition uses the terms dotted key and key/value pair of
+TOML 1.1.0.
+
+The path of the dotted key `k1.k2.….kn` of a key/value pair is the
+sequence of the tables that the TOML keys k1 to ki lead to from the
+holding table of the key/value pair at the place right after the
+key/value pair, for each i from 1 to n − 1, in that order.
+
+### 3.39 Undefined super-tables
+
+@req undefined-super-tables=v1
+@cites {
+    toml/1.1.0,
+    #{
+        toml-places=v1, toml-values=v1, toml-super-tables=v1,
+        toml-header-names=v1, toml-locations=v1, dotted-key-paths=v1,
+    },
+}
+
+This definition uses the terms document, table header, inline table,
+and key/value pair of TOML 1.1.0.
+
+At a place in a document, a table t is an undefined super-table when,
+and only when, all of these hold:
+
+- t is a super-table of a table that a table header before that place
+  names.
+- No table header before that place names t.
+- t is not the table of an inline table before that place.
+- t is not a table of the path of the dotted key of a key/value pair
+  before that place.
+
+### 3.40 TOML documents
 
 @req toml-documents=v1
 @cites {
     toml/1.1.0,
     #{
-        bytes=v1, toml-byte-order-mark=v1, toml-encoding=v1,
-        toml-integer-range=v1, toml-float-values=v1,
-        toml-special-floats=v1, toml-second-fractions=v1,
-        toml-leap-seconds=v1, toml-offsets=v1, toml-string-newlines=v1,
-        toml-escapes=v1, toml-table-headers=v1, toml-places=v1,
-        toml-keys=v1, toml-paths=v1, toml-values=v1,
+        bytes=v1, toml-reading-rules=v1, toml-values=v1,
+        toml-header-names=v1, toml-keys=v1, toml-leads=v1,
+        toml-holding-tables=v1, toml-places=v1,
+        undefined-super-tables=v1, toml-locations=v1,
+        toml-super-tables=v1, dotted-key-paths=v1,
     },
 }
 
@@ -1126,59 +1279,49 @@ A TOML document is a sequence of bytes that meets both of these
 conditions:
 
 1. TOML 1.1.0 reads the bytes as a valid document, with all its rules,
-   with the rules of `toml-byte-order-mark`, `toml-encoding`,
-   `toml-integer-range`, `toml-float-values`, `toml-special-floats`,
-   `toml-second-fractions`, `toml-leap-seconds`, `toml-offsets`,
-   `toml-string-newlines`, and `toml-escapes`, and with these rules,
-   which add to the rules of TOML 1.1.0:
+   with the reading rules of TOML, and with these rules, which add to
+   the rules of TOML 1.1.0:
    - A table header defines the table that it names, and no other
      table.
-   - At a place in the document, an undefined super-table is a table
-     that is a super-table of a table that a table header before that
-     place names, and that no table header, no key/value pair, and no
-     inline table before that place defines.
    - For a key/value pair whose key is the dotted key `k1.k2.….kn`, and
      for each i from 1 to n − 1, the key/value pair defines the table
      that the TOML keys k1 to ki lead to from the holding table of the
      key/value pair at the place right after the key/value pair when,
      and only when, at the place right before the key/value pair, the
      TOML keys k1 to ki lead from that holding table to no TOML value or
-     to an undefined super-table. Through its dotted key, a key/value
-     pair defines no other table.
-   - An inline table defines its table.
+     to an undefined super-table. A key/value pair defines no other
+     table.
+   - An inline table defines its table, and no other table.
    - No two of the table headers, the key/value pairs, and the inline
-     tables of the document define the same table.
-   - At the place right before a key/value pair, the TOML keys of its
-     key lead from the holding table of the key/value pair to no TOML
-     value.
-   - When no inline table holds a key/value pair, the document is not
-     invalid only because a table that the key/value pair defines holds
-     a table that a table header names, before or after the key/value
-     pair.
+     tables of the document define the same table by these rules.
+   - At the place right before a key/value pair, the TOML keys of the
+     key of the key/value pair lead from the holding table of the
+     key/value pair to no TOML value.
+   - When no inline table holds a key/value pair, the rule of TOML 1.1.0
+     that a table that dotted keys define has all its key/value pairs
+     under the current table header, in the root table, or in one
+     inline table does not apply to a TOML value that a table header
+     before or after the key/value pair makes: the table that the table
+     header names, a super-table of that table, or the TOML array to
+     which the table header of an array of tables adds a table.
 2. No table of the path of the dotted key of a key/value pair is a table
    that a table header before that key/value pair names.
 
-### 3.32 Root tables
+### 3.41 Root tables
 
 @req root-tables=v1
 @cites {
     toml/1.1.0,
     #{
-        toml-documents=v1, toml-byte-order-mark=v1, toml-encoding=v1,
-        toml-integer-range=v1, toml-float-values=v1,
-        toml-special-floats=v1, toml-second-fractions=v1,
-        toml-leap-seconds=v1, toml-offsets=v1, toml-string-newlines=v1,
-        toml-escapes=v1, toml-values=v1, characters=v1,
+        toml-documents=v1, toml-reading-rules=v1, toml-values=v1,
+        characters=v1,
     },
 }
 
 The root table of a TOML document is the root table that TOML 1.1.0
-gives for the document, with all its rules and with the rules of
-`toml-byte-order-mark`, `toml-encoding`, `toml-integer-range`,
-`toml-float-values`, `toml-special-floats`, `toml-second-fractions`,
-`toml-leap-seconds`, `toml-offsets`, `toml-string-newlines`, and
-`toml-escapes`. These rules give the tables and the TOML values in the
-root table:
+gives for the document, with all its rules and with the reading rules
+of TOML. These rules give the tables and the TOML values in the root
+table:
 
 - A table header, a dotted key, and an inline table each give a table.
   Both the table headers of an array of tables and the brackets `[` and
@@ -1193,11 +1336,11 @@ root table:
   date-time, or an offset date-time, its second is 0. When the document
   gives no fraction of a second for it, its fraction of a second is 0.
 
-### 3.33 Reading TOML documents
+### 3.42 TOML documents as input
 
 @req read-toml=v1
 @cites #{
-    bytes=v1, results=v1, toml-values=v1, toml-value-equality=v1,
+    bytes=v1, result-list=v1, toml-values=v1, toml-value-equality=v1,
     root-tables=v1, toml-documents=v1,
 }
 
@@ -1206,7 +1349,7 @@ result valid and a table that is equal to the root table of the TOML
 document when the bytes are a TOML document. For every other sequence
 of bytes, it must give the result invalid.
 
-### 3.34 Hashes
+### 3.43 Hashes
 
 @req hashes=v1
 @cites {fips/180-4, #{bytes=v1, hex-text=v1}}
@@ -1219,7 +1362,7 @@ that message, as 32 bytes: 8 bits for each byte, in their order, the
 most significant bit of each byte first. The hash of the sequence of
 bytes is the hex text of its digest.
 
-### 3.35 Computing hashes
+### 3.44 Hashes as output
 
 @req compute-hash=v1
 @cites #{bytes=v1, hashes=v1}
@@ -1227,7 +1370,7 @@ bytes is the hex text of its digest.
 For each sequence of fewer than 2^61 bytes, a conforming implementation
 must give its hash.
 
-### 3.36 The grammar of a hash
+### 3.45 The grammar of a hash
 
 @req hash-grammar=v1
 @cites #{notation=v1, hex-digits=v1}
@@ -1238,15 +1381,15 @@ This production gives the form of a hash:
 hash  = 64hex-digit
 ```
 
-### 3.37 Checking the form of a hash
+### 3.46 Tests of the form of a hash
 
-@req check-hash=v1
-@cites #{characters=v1, results=v1, notation=v1, hash-grammar=v1}
+@req test-hash=v1
+@cites #{characters=v1, result-list=v1, notation=v1, hash-grammar=v1}
 
 For each text, a conforming implementation must give the result valid
 when the text matches `hash`, and the result invalid when it does not.
 
-### 3.38 Id prefixes
+### 3.47 Id prefixes
 
 @req id-prefixes=v1
 @cites #{notation=v1, characters=v1}
@@ -1259,7 +1402,7 @@ id-prefix  = 1*%x61-7A "-"
 
 An id prefix is a text that matches `id-prefix`.
 
-### 3.39 Hash ids
+### 3.48 Hash ids
 
 @req hash-ids=v1
 @cites #{id-prefixes=v1, bytes=v1, characters=v1, hashes=v1}
@@ -1268,7 +1411,7 @@ For an id prefix p, a whole number n from 1 to 64, and a sequence b of
 fewer than 2^61 bytes, the hash id of b with p and n is the text p,
 then the first n characters of the hash of b.
 
-### 3.40 Computing hash ids
+### 3.49 Hash ids as output
 
 @req compute-hash-id=v1
 @cites #{id-prefixes=v1, bytes=v1, hash-ids=v1}
@@ -1277,7 +1420,7 @@ For each id prefix p, each whole number n from 1 to 64, and each
 sequence b of fewer than 2^61 bytes, a conforming implementation must
 give the hash id of b with p and n.
 
-### 3.41 The form of a hash id
+### 3.50 The form of a hash id
 
 @req hash-id-forms=v1
 @cites #{id-prefixes=v1, characters=v1, notation=v1, hex-digits=v1}
@@ -1286,10 +1429,12 @@ For an id prefix p and a whole number n from 1 to 64, a text has the
 form of a hash id with p and n when, and only when, it is the text p,
 then exactly n characters that each match `hex-digit`.
 
-### 3.42 Checking the form of a hash id
+### 3.51 Tests of the form of a hash id
 
-@req check-hash-id=v1
-@cites #{characters=v1, id-prefixes=v1, results=v1, hash-id-forms=v1}
+@req test-hash-id=v1
+@cites #{
+    characters=v1, id-prefixes=v1, result-list=v1, hash-id-forms=v1,
+}
 
 For each text t, each id prefix p, and each whole number n from 1 to
 64, a conforming implementation must give the result valid when t has
@@ -1311,9 +1456,9 @@ gives for it. These conventions apply:
   UTF-8 encodings, and as bytes in hex numbers, such as 0x0A.
 - A vector gives each character that does not show, such as U+E000, by
   its code point.
-- The text after "valid:" describes the value, and the text after
-  "invalid:" explains the result. An implementation does not give these
-  texts.
+- The text after "valid:" describes what the implementation gives with
+  the result, and the text after "invalid:" explains the result. An
+  implementation does not give these texts.
 
 ### 4.1 Canonical forms
 
@@ -1438,9 +1583,9 @@ root table.
   and `A` holds the TOML integer 2.
 - The lines `a = 1` and `"a" = 2`: invalid: the TOML keys `a` and `"a"`
   are the same key of TOML 1.1.0.
-- The lines `"\u00e9" = 1` and `"e\u0301" = 2`: valid: the TOML key
-  U+00E9 holds the TOML integer 1, and the TOML key of U+0065 and U+0301
-  holds the TOML integer 2.
+- The lines `"\u00e9" = 1` and `"e\u0301" = 2`: valid: U+00E9 holds the
+  TOML integer 1, and the text of U+0065 and U+0301 holds the TOML
+  integer 2.
 - `a = "e\u0301"`: valid: `a` holds the TOML string of U+0065 and
   U+0301.
 - The bytes 0xEF, 0xBB, and 0xBF, then `a = 1`: valid: `a` holds the
@@ -1454,6 +1599,13 @@ root table.
   TOML integer 1.
 - `a = { b = 1, }`: valid: `a` holds a table in which `b` holds the TOML
   integer 1.
+- `x = { y = { z = 1 } }`: valid: `x` holds a table in which `y` holds a
+  table in which `z` holds the TOML integer 1.
+- `a = [[{ b.c = 1 }], [{ b.c = 2 }]]`: valid: `a` holds a TOML array of
+  two TOML arrays. The first of these TOML arrays holds one table, in
+  which `b` holds a table in which `c` holds the TOML integer 1. The
+  second holds one table, in which `b` holds a table in which `c` holds
+  the TOML integer 2.
 - Each of these three texts: valid, with equal root tables: `t` holds
   the local time with the hour 12, the minute 30, the second 0, and the
   fraction of a second 0.
@@ -1482,6 +1634,18 @@ root table.
 - `a = -nan`: valid: `a` holds the TOML float NaN.
 - `t = 00:00:00.123456789123`: valid: `t` holds the local time
   00:00:00.123456789.
+- Each of these two texts: valid, with equal root tables: `t` holds the
+  local time with the hour 12, the minute 30, the second 0, and the
+  fraction of a second 0.5.
+
+  ```toml
+  t = 12:30:00.5
+  ```
+
+  ```toml
+  t = 12:30:00.50
+  ```
+
 - `t = 12:00:60`: valid: `t` holds the local time 12:00:60.
 - `t = 23:59:60`: valid: `t` holds the local time 23:59:60.
 - `a = 1979-05-27T07:32:00-00:00`: valid: `a` holds the offset date-time
@@ -1504,7 +1668,10 @@ root table.
   valid: `s` holds the TOML string of `a`, U+000D, U+000A, and `b`.
 - `s = """a\`, the byte 0x0A, then `  b"""` and the byte 0x0A: valid:
   `s` holds the TOML string `ab`.
+- `s = """a\\`, the byte 0x0A, then `b"""` and the byte 0x0A: valid: `s`
+  holds the TOML string of `a`, `\`, U+000A, and `b`.
 - `s = "\q"`: invalid: TOML 1.1.0 reserves the escape sequence `\q`.
+- `"\q" = 1`: invalid: TOML 1.1.0 reserves the escape sequence `\q`.
 - This text: invalid: the table `a.b.c`, which the table header on
   line 1 names, is in the path of the dotted key `b.c.x`.
 
@@ -1566,10 +1733,10 @@ root table.
   b.x = 1
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `c` holds a table in which `z` holds the TOML integer 9,
-  `ct` holds the TOML integer 1, and `x` holds a table in which `y`
-  holds the TOML integer 1.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds three texts: `c`, which holds a table in which `z` holds the
+  TOML integer 9; `ct`, which holds the TOML integer 1; and `x`, which
+  holds a table in which `y` holds the TOML integer 1.
 
   ```toml
   [a.b.c]
@@ -1579,9 +1746,9 @@ root table.
   b.x.y = 1
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `c` holds the TOML integer 1, and `d` holds a table in
-  which `e` holds the TOML integer 2.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds the TOML integer 1; and `d`, which
+  holds a table in which `e` holds the TOML integer 2.
 
   ```toml
   [a]
@@ -1590,18 +1757,18 @@ root table.
   e = 2
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `x` holds the TOML integer 1, and `c` holds an empty
-  table.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `x`, which holds the TOML integer 1; and `c`, which
+  holds an empty table.
 
   ```toml
   a.b.x = 1
   [a.b.c]
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `c` and `e` each hold an empty table, and `x` holds the
-  TOML integer 1.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds three texts: `c`, which holds an empty table; `e`, which holds
+  an empty table; and `x`, which holds the TOML integer 1.
 
   ```toml
   [a.b.c]
@@ -1610,9 +1777,9 @@ root table.
   [a.b.e]
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `c` holds a table in which `d` holds an empty table, and
-  `x` holds the TOML integer 1.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds a table in which `d` holds an empty
+  table; and `x`, which holds the TOML integer 1.
 
   ```toml
   [a.b.c]
@@ -1621,15 +1788,46 @@ root table.
   [a.b.c.d]
   ```
 
-- This text: valid: `a` holds a table in which `b` holds a table. In
-  that table, `c` holds a table in which `d` holds an empty table and
-  `e` holds the TOML integer 1, and `f` holds an empty table.
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds a table that holds two texts; and
+  `f`, which holds an empty table. In the table `a.b.c`, `d` holds an
+  empty table, and `e` holds the TOML integer 1.
 
   ```toml
   [a.b.c.d]
   [a]
   b.c.e = 1
   [a.b.f]
+  ```
+
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds a table in which `d` holds an empty
+  table; and `e`, which holds the TOML integer 1.
+
+  ```toml
+  [a.b.c.d]
+  [a]
+  b.e = 1
+  ```
+
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds the TOML integer 1; and `d`, which
+  holds a table in which `e` holds an empty table.
+
+  ```toml
+  [a]
+  b.c = 1
+  [a.b.d.e]
+  ```
+
+- This text: valid: `a` holds a table in which `b` holds a table that
+  holds two texts: `c`, which holds a TOML array of one empty table; and
+  `e`, which holds the TOML integer 1.
+
+  ```toml
+  [[a.b.c]]
+  [a]
+  b.e = 1
   ```
 
 - This text: valid: `a` holds a table in which `x` holds a table, in
@@ -1723,7 +1921,7 @@ root table.
   ```
 
 - This text: invalid: before line 3, the table `x` already holds the
-  TOML key `a`, because the table header on line 1 makes the super-table
+  text `a`, because the table header on line 1 makes the super-table
   `x.a`.
 
   ```toml
@@ -1733,7 +1931,7 @@ root table.
   ```
 
 - This text: invalid: before line 3, the table `a` already holds the
-  TOML key `b`, because the table header on line 1 makes the super-table
+  text `b`, because the table header on line 1 makes the super-table
   `a.b`.
 
   ```toml
@@ -1742,8 +1940,8 @@ root table.
   b = { d = 1 }
   ```
 
-- This text: valid: `a` holds a table in which `b` holds an empty table,
-  and `x` holds the TOML integer 1.
+- This text: valid: `a` holds a table that holds two texts: `b`, which
+  holds an empty table; and `x`, which holds the TOML integer 1.
 
   ```toml
   [a.b]
@@ -1776,8 +1974,9 @@ root table.
   c.x = 1
   ```
 
-- This text: valid: `p` holds a table in which `q` holds an empty table,
-  and `q` holds a table in which `r` holds an empty table.
+- This text: valid: the root table holds two texts: `p`, which holds a
+  table in which `q` holds an empty table; and `q`, which holds a table
+  in which `r` holds an empty table.
 
   ```toml
   [p.q]
