@@ -2945,7 +2945,8 @@ result, a vector gives the result that a conforming program gives for
 that input, in `result`, without double quotes, and it can give, in
 `values`, what the program gives with the result. A vector without
 `result` is a vector of an obligation that gives an output and no
-result, and `values` holds that output. A vector can also give, in
+result, and `values` holds that output. A vector has `result` or
+`values`, or both, so each vector tests something. A vector can also give, in
 `note`, an explanation, which is no part of the input, the result, or
 the values.
 
@@ -3022,8 +3023,8 @@ member `n`, is the member whose key is the text of the code span, and
 the value of `n` is the value of the member `n`.
 
 - A vector object is an object that has the members `n`, `rev`, `group`,
-  and `input`, can have the members `result`, `values`, and `note`, and
-  has no other member. The value of `n` is an integer of 1 or more. The
+  and `input`, has the member `result` or the member `values` or both,
+  can have the member `note`, and has no other member. The value of `n` is an integer of 1 or more. The
   value of `rev` is a string that is a test-vector revision. The value
   of `group` is a string that is a group name. The value of `input` is a
   JSON value. The value of `result` is a string. The value of `values`
@@ -3210,6 +3211,10 @@ it as a test-vector set.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","n":1,"result":"valid","rev":"v1"}`, 0x0A: "invalid":
   the vector object has no member `input`.
+- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
+  `{"group":"a","input":"x","n":1,"note":"n","rev":"v1"}`, 0x0A:
+  "invalid": the vector object has neither the member `result` nor the
+  member `values`.
 - `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
   `{"group":"a","input":"x","n":1,"result":true,"rev":"v1"}`, 0x0A:
   "invalid": the value of `result` is not a string.
