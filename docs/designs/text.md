@@ -49,7 +49,8 @@ text.
 | term | a definition that a design declares under a name, such as `whole-number`; every definition of a design is a term |
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
 | [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions; a definition of a design is a definition that the design declares under a name |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
 | [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
 | decode | a conforming program decodes a byte sequence as UTF-8 when it tests whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
@@ -922,18 +923,32 @@ The UTF-8 encoding of a text is the byte sequence that holds, for each
 character of the text in its order, the bytes that encode that
 character, as RFC 3629 defines UTF-8, and no other bytes.
 
-### 3.34 Conforming programs
+### 3.34 Specifications
+
+@term specification=v1
+@cites #{design=v1}
+
+A specification of a design is a part of the design that has a name of
+its own and that declares some of the obligations and definitions of
+the design.
+
+### 3.35 Conforming programs
 
 @term conforming-program=v1
-@cites #{design=v1, requirement=v1}
+@cites #{design=v1, requirement=v1, specification=v1}
 
 A conforming program of a design is a program, or a part of a program,
-that meets every requirement of the design. In a design, a conforming
-program is a conforming program of that design, and each obligation
-that a requirement of that design states with the word must is an
-obligation of each conforming program of that design.
+that meets every requirement of the design. A conforming program of a
+specification of a design is a program, or a part of a program, that
+meets every requirement that the specification declares. In a
+specification of a design, a conforming program is a conforming program
+of that specification. Elsewhere in a design, a conforming program is a
+conforming program of that design. Each obligation that a requirement of
+a design states with the word must is an obligation of each conforming
+program of that design and, when a specification of that design declares
+the requirement, of each conforming program of that specification.
 
-### 3.35 Inputs
+### 3.36 Inputs
 
 @term input=v1
 @cites #{conforming-program=v1, byte-sequence=v1, text=v1}
@@ -941,7 +956,7 @@ obligation of each conforming program of that design.
 An input is a thing that a conforming program takes, such as a byte
 sequence or a text.
 
-### 3.36 Results
+### 3.37 Results
 
 @term result=v1
 @cites #{
