@@ -7,31 +7,32 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites posix/2024
-A program reads the regular file at a path in a tree as a text in UTF-8, with no symbolic link followed, tests paths against globs and path sets, and gives the line and the column of each character of a text except its byte order mark.
+A program reads the regular file at a path in a tree as a text in UTF-8, with no symbolic link followed, tests paths against globs and path sets, and gives the line number and the column of each character of a text except its byte order mark.
 
 A tree is a folder, its root, with every file under it. A path, such as
 `docs/guide/a.md`, names a file of a tree: the file names that lead
 from the root to the file, joined by `/`. A glob, such as
-`docs/**/*.md`, is a pattern for paths. A path set is a list of texts,
-its members, such as `docs/` and `!docs/old/`, that gives a set of
-paths. A position, such as line 3, column 7, gives the line and the
-column of a character of a text.
+`docs/**/*.md`, is a pattern for paths. A path set is a finite sequence
+of texts, its members, such as `docs/` and `!docs/old/`, that gives a
+set of paths. A position, such as line 3, column 7, is a line number
+and a column.
 
 The productions in section 3 are written in ABNF, the notation of
 RFC 5234, with the case-sensitive strings of RFC 7405. A production,
 such as `path = file-name *( "/" file-name )`, gives the texts that its
 name matches. In a production, `/` separates two alternatives. The
 quoted string `"/"` is the character `/`. `( )` groups elements, and
-`[ ]` makes an element optional. `*` repeats the element after it any
-number of times, `1*` repeats it one or more times, and `3*` repeats it
+`[ ]` makes an element optional. `*` repeats the element after it zero
+or more times, `1*` repeats it one or more times, and `3*` repeats it
 three or more times. `%x2F` is the character U+002F, and `%x30-3E` is
 any one character from U+0030 to U+003E.
 
 From RFC 3629, the design takes UTF-8: how a byte sequence encodes a
 text, and the rule `UTF8-octets`, which gives the byte sequences that
-are valid UTF-8. From POSIX.1-2024, the design takes the file types of
-a file system: a directory, a regular file, a symbolic link, and the
-other types.
+are valid UTF-8. From POSIX.1-2024, the design takes what a file system
+is; the file types, such as a directory, a regular file, and a symbolic
+link; the names `.` and `..` in a directory; and the search
+permission and the read permission of a process for a file.
 
 ## 1. Terms
 
@@ -42,15 +43,15 @@ other types.
 | ABNF | the notation for grammars of RFC 5234, with the case-sensitive strings of RFC 7405 |
 | production | a rule of ABNF, such as `path = file-name *( "/" file-name )`, which gives the texts that its name matches |
 | character | one Unicode scalar value: a code point that is not from U+D800 to U+DFFF |
-| text | a sequence of characters |
+| text | a finite sequence of characters |
 | place | the number of a character in the order of a text, counted from 1 |
 | run | the characters of a text at the places from one place to another, such as `cd` in `abcde`; a run can be empty |
 | Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9 |
 | byte | an integer from 0 to 255 |
-| byte sequence | a sequence of bytes |
+| byte sequence | a finite sequence of bytes |
 | valid UTF-8 | a byte sequence is valid UTF-8 when it encodes a text in UTF-8, as RFC 3629 defines UTF-8 |
 | UTF-8 encoding | the byte sequence that encodes a text in UTF-8 |
-| file system | the files that an operating system keeps in folders and gives to programs, such as the files on a disk |
+| file system | the part of an operating system that keeps files in folders and gives them to programs |
 | tree | a folder, its root, with every file under it |
 | root | the folder at the top of a tree |
 | file | a folder, a regular file, a symbolic link, or a file of another kind |
@@ -63,24 +64,30 @@ other types.
 | symbolic link | a file that holds a reference, which can lead to a file or to no file, such as a link that `ln -s` makes |
 | file of another kind | a file that is not a folder, a regular file, or a symbolic link, such as a pipe, a device, or a socket |
 | path | one or more file names joined by `/`, such as `docs/a.md` |
-| file name | a text that names one entry on a path, such as `docs` or `a.md` in `docs/a.md` |
-| lookup | the step that takes, from a folder, the entry that the folder gives for a byte sequence |
-| refuse | the tree refuses to look up a file name when the lookup fails for a reason other than that the folder gives no entry for it |
-| walk | the lookups of the file names of a path, one at a time, from the root |
-| outcome | how a walk ends, such as "regular file" or "no entry" |
-| byte order mark | the character U+FEFF when it is the first character of a text |
+| file name | a text that names one entry on a path, such as `docs` or `a.md` in `docs/a.md`; the file names of a path are numbered from 1, so `docs` is file name 1 of `docs/a.md` |
+| lookup | the action in which the file system looks for the entry that a folder gives for a byte sequence, for a program |
+| refuse | the file system refuses a lookup when the lookup fails for a reason other than that the folder gives no entry for the byte sequence |
+| search permission | the permission of a program, as POSIX.1-2024 defines it, to look up entries in a folder |
+| read permission | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a file |
+| take bytes from a file | copy into the program bytes of the content of a regular file, of the entry names of a folder, or of the reference of a symbolic link |
+| read a text as a path in a tree | test the text as a path, look up its file names one at a time from the root, and give a result, such as "found" with the text of a regular file; a read is one such operation |
+| step of a read | an action that a program does to give the result of a read, such as a lookup |
+| walk | the lookups that a program makes as steps of a read |
+| outcome | what the latest lookup of a file name in a walk gives, such as "regular file" or "no entry"; the outcome of a walk is the outcome of the file name with the lowest number that has one |
+| byte order mark | the character U+FEFF when it is at place 1 of a text |
 | body | the run of a text without its byte order mark |
 | line feed | the character U+000A |
 | carriage return | the character U+000D |
 | line ending | a line feed of a body, with the carriage return right before it when there is one |
 | line | one of the runs into which the line endings divide a body, except an empty run at the end; it holds no line feed |
 | position | a line number and a column, such as line 3, column 7 |
-| column | the number of a character in the order of its line, counted from 1 |
-| span | a run of a body that holds a character of a line, given by its start and its end |
+| line number | the first number of a position: the number of a line, counted from 1 |
+| column | the second number of a position |
+| span | a run of a body that holds a character of a line; it has a start and an end |
 | glob | a pattern for paths, such as `docs/**/*.md` |
-| glob segment | one of the parts of a glob that `/` separates, such as `docs`, `**`, or `*.md` in `docs/**/*.md`, or the `**` that a final `/` adds |
+| glob segment | one of the parts of a glob that `/` separates, such as `docs`, `**`, or `*.md` in `docs/**/*.md`, or the `**` that a final `/` adds; the glob segments of a glob are numbered from 1 |
 | fit | a path fits a glob when the path has the form that the glob gives |
-| path set | a list of texts, its members, such as `docs/` and `!docs/old/`, that gives a set of paths |
+| path set | a finite sequence of texts, its members, such as `docs/` and `!docs/old/`, that gives a set of paths |
 | member | one text of a path set |
 | plain glob | a member that does not start with `!` |
 | `!` glob | a member that starts with `!`, such as `!docs/old/` |
@@ -104,30 +111,34 @@ four kinds:
 
 An entry name is a byte sequence. No two entries of one folder have the
 same entry name. A folder gives at most one entry for a byte sequence.
-On a file system that treats each byte sequence as a different name, it
-is the entry whose entry name is that byte sequence. A file system that
-treats two different byte sequences as the same name, such as a file
-system that ignores case, can also give the entry whose entry name it
-treats as the same: on such a file system, a lookup of `A.md` can give
-the entry `a.md`.
+On a file system that treats each byte sequence as a different name,
+that entry is the entry whose entry name is that byte sequence. On a
+file system that treats two different byte sequences as the same name,
+such as a file system that ignores case, a folder can instead give the
+entry whose entry name the file system treats as the same name: on such
+a file system, a folder that holds the entry `a.md` gives that entry
+for `A.md`.
 
-On a file system, the kind of a file follows its file type, as
+On a file system, the file type of a file gives its kind, as
 POSIX.1-2024 defines the file types. A file of the type directory is a
 folder. A file of the type regular file is a regular file. A file of the
 type symbolic link is a symbolic link. A file of each other type, such
 as a FIFO special file (a pipe), a character special file, a block
 special file, or a socket, is a file of another kind.
 
-POSIX gives each directory the entries `.` and `..`, which lead to the
-directory itself and to the directory above it. These two entries are
-not entries of a folder. So a tree holds no file above its root.
+In POSIX.1-2024, the names `.` and `..` in a directory lead to the
+directory itself and to the directory above it. The entries of a folder
+do not include `.` or `..`. So a tree holds no file above its root.
 
 ### 2.2 Paths
 
 A path is one or more file names joined by `/`. A file name is a text
 that is not empty, that holds no `/` and no U+0000, and that is not `.`
 or `..`. So a path never starts or ends with `/`, and it never holds two
-`/` together.
+`/` together. The file names of a path are numbered from 1, in order:
+in `docs/guide/a.md`, file name 1 is `docs`, and file name 3, the file
+name with the highest number, is `a.md`. Two file names of one path can
+be the same text, as in `a/a`.
 
 | text | result |
 |---|---|
@@ -146,110 +157,148 @@ or `..`. So a path never starts or ends with `/`, and it never holds two
 are not file names, so `docs/../a.md` does not lead to `a.md`: it is not
 a path.
 
-A path is a text, and a program compares two paths by their
-characters. Case matters, so `Docs/a.md` and `docs/a.md` are two
+A path is a text. Two paths are the same path only when they are the
+same text. So case matters: `Docs/a.md` and `docs/a.md` are two
 different paths. No Unicode normalization applies, so a path with `é`
 written as U+00E9 and a path with `e` and U+0301 are two different
 paths, though they look the same.
 
 ### 2.3 Reading a file
 
-To read a text as a path in a tree, a program first tests the text as a
-path. For a text that is not a valid path, the read gives the result
-"invalid", and the program looks up nothing and reads nothing. So a
-text such as `../a.md` or `/etc/passwd` never leads the program out of
-the tree.
+To read a text as a path in a tree is to give a result for the text in
+that tree, such as "found" with the text of a regular file, or "no
+file". A read is one such operation of a program. A step of a read is
+an action that the program does to give the result of that read, such
+as a lookup.
 
-For a valid path, the program walks the path. The walk takes the file
-names of the path in order. It looks up the first file name in the
-root, and each later file name in the folder that it found for the file
-name before it. To look up a file name in a folder, the walk takes the
-entry that the folder gives for the UTF-8 encoding of the file name. So
-no path reaches an entry whose entry name is not valid UTF-8, except on
-a file system that treats two different byte sequences as the same
-name.
+A lookup of a byte sequence in a folder is the action in which the file
+system looks for the entry that the folder gives for that byte
+sequence. At the moment of the lookup, exactly one of these holds:
 
-A lookup can fail. The tree refuses to look up a file name when the
-lookup fails for a reason other than that the folder gives no entry for
-it, such as a lack of permission to search the folder or a file name
-longer than the file system allows. A lookup needs only the permission
-to search the folder, as in POSIX.1-2024. A lookup does not need the
-permission to read the folder.
+- The lookup finds the file of that entry. A lookup follows no symbolic
+  link: when the file of the entry is a symbolic link, the lookup finds
+  that symbolic link.
+- The lookup finds no entry, because the folder gives no entry for the
+  byte sequence.
+- The file system refuses the lookup: the lookup fails for another
+  reason, such as a lack of the search permission of the program for
+  the folder, or a byte sequence longer than the file system allows in
+  an entry name.
 
-For each file name, the walk takes the first row of this table whose
-condition holds. When no row holds, the entry is a folder and the file
-name is not the last. The walk then goes on to the next file name.
+A conforming program makes each lookup of a read in a way that needs
+only the search permission of the program for the folder. So a read can
+find a file in a folder for which the program has the search permission
+and not the read permission.
+
+For a text that is not a valid path, the read gives the result
+"invalid". The program looks up nothing in the tree and takes no bytes
+from a file. So a text such as `../a.md` or `/etc/passwd` never leads
+the program out of the tree.
+
+For a valid path, the program looks up the file names of the path one
+at a time, from file name 1. A lookup of a file name is a lookup of the
+UTF-8 encoding of that file name. A lookup of file name 1 is a lookup in
+the root. A lookup of file name 2 is a lookup in a folder that a lookup
+of file name 1, in the same read, found. A lookup of file name 3 is a
+lookup in a folder that a lookup of file name 2, in the same read,
+found, and so on for each later file name. As a step of the read, the
+program makes no lookup other than these lookups. The walk of the read
+is the lookups that the program makes as steps of the read. So no path
+reaches an entry whose entry name is not valid UTF-8, except on a file
+system that treats two different byte sequences as the same name.
+
+A file name that the walk looks up can have an outcome. The outcome of
+a file name comes from the latest lookup of that file name in the walk:
+it is the first row of this table whose condition holds for that
+lookup.
 
 | outcome | condition |
 |---|---|
-| "refused" | the tree refuses to look up the file name |
-| "no entry" | the folder gives no entry for the file name |
-| "symbolic link" | the file of the entry is a symbolic link |
-| "not a folder" | the file name is not the last, and the file of the entry is a regular file or a file of another kind |
-| "regular file" | the file name is the last, and the file of the entry is a regular file |
-| "not a regular file" | the file name is the last, and the file of the entry is a folder or a file of another kind |
+| "refused" | the file system refuses the lookup |
+| "no entry" | the lookup finds no entry |
+| "symbolic link" | the lookup finds a symbolic link |
+| "not a folder" | the file name does not have the highest number, and the lookup finds a regular file or a file of another kind |
+| "regular file" | the file name has the highest number, and the lookup finds a regular file |
+| "not a regular file" | the file name has the highest number, and the lookup finds a folder or a file of another kind |
 
-The walk ends at the first file name that gives an outcome. With the
-outcome "regular file", the walk finds the regular file of the entry.
+When no row holds, the lookup finds a folder, and the file name does not
+have the highest number. Then the file name has no outcome, and the
+program looks up the file name with the next number in that folder. The
+outcome of the walk is the outcome of the file name with the lowest
+number that has an outcome. The read gives its result from the outcome
+of the walk, so the program looks up file names until one of them has an
+outcome. With the outcome "regular file", the walk finds the regular
+file that the latest lookup of the file name with the highest number
+found.
 
-Apart from the lookups that find the root, the program looks up only
-what the walk looks up, each file name in the folder in which the walk
-looks it up. It looks up each file name after
-the first in the folder that its own lookup of the file name before it
-found. It reads only the content of the regular file that its own
-lookup of the last file name found. So a change to the tree during the
-read, such as a folder of the path that another process replaces with a
-symbolic link, cannot make the program read another file.
+The program can look up a file name more than once. On a tree that does
+not change during the read, each lookup of a file name finds the same
+entry, so the outcome of the walk depends only on the tree and the path.
+Example: in a tree with the regular file `a`, the lookup of file name 1
+of `a/a` finds a regular file, and file name 1 does not have the highest
+number. So the outcome of the walk is "not a folder", and the read gives
+"no file".
+
+Another process can change the tree during the read. As a step of the
+read, the program takes bytes only from the content of a regular file
+that a lookup of the file name with the highest number found. So a
+change to the tree during the read, such as a folder of the path that
+another process replaces with a symbolic link, cannot make the program
+take bytes from another file.
 
 The walk never follows a symbolic link. A symbolic link ends the walk,
-wherever it is on the path, and the program reads nothing that the
-reference of the link leads to. So a path cannot lead out of the tree
-through a symbolic link. A symbolic link that is not on the path does
-not change the read: in a tree with a symbolic link `self`, whose
-reference leads to the root, the read of `a.md` finds the regular file
-`a.md`.
+wherever it is on the path, and the program takes no bytes from the file
+that the reference of the link leads to. So a path cannot lead out of
+the tree through a symbolic link. A symbolic link that is not on the
+path does not change the read: in a tree with a symbolic link `self`,
+whose reference leads to the root, the read of `a.md` finds the regular
+file `a.md`.
 
-When the walk ends at a file of another kind, the program gives the
-result without waiting for any event outside the program. So a pipe that
-no process opens does not stop the read.
+As a step of a read, the program does not wait for another process or
+for a device to act on a file of another kind, such as for a process to
+open the other end of a pipe.
 
-The read gives one of these results:
+The read gives the result of the first row of this table whose
+conditions hold. An empty cell sets no condition.
 
-| outcome of the walk | content of the regular file | result |
-|---|---|---|
-| "refused" | | "cannot read" |
-| "no entry" | | "no file" |
-| "not a folder" | | "no file" |
-| "symbolic link" | | "symbolic link" |
-| "not a regular file" | | "not a regular file" |
-| "regular file" | the tree refuses to give it: reading the content fails, such as for a lack of permission to read the file or an error of the device | "cannot read" |
-| "regular file" | not valid UTF-8 | "not UTF-8" |
-| "regular file" | valid UTF-8 | "found" |
+| text | outcome of the walk | regular file that the walk finds | result |
+|---|---|---|---|
+| not a valid path | | | "invalid" |
+| a valid path | "refused" | | "cannot read" |
+| a valid path | "no entry" | | "no file" |
+| a valid path | "not a folder" | | "no file" |
+| a valid path | "symbolic link" | | "symbolic link" |
+| a valid path | "not a regular file" | | "not a regular file" |
+| a valid path | "regular file" | taking bytes from the regular file fails, such as for a lack of the read permission of the program for the regular file, or an error of the device | "cannot read" |
+| a valid path | "regular file" | its content is not valid UTF-8 | "not UTF-8" |
+| a valid path | "regular file" | its content is valid UTF-8 | "found" |
 
 With the result "found", the read also gives the text of the content.
-The text holds every character that the content encodes, in order. The
-program adds no character, removes no character, and changes no
-character. So the text keeps a byte order mark, keeps each carriage
-return, and keeps each character in the form that the content encodes,
-with no Unicode normalization.
+The text holds one character for each character that the content
+encodes, in order. The program adds no character, removes no character,
+and changes no character. So the text keeps a byte order mark, keeps
+each carriage return, and keeps each character in the form that the
+content encodes, with no Unicode normalization.
 
 ### 2.4 Lines and positions
 
-A position gives a line number and a column for a character of a text,
-both counted from 1.
+A position is a line number and a column, both counted from 1. Each
+character of a text, except its byte order mark, has a position.
 
-The byte order mark of a text is its first character when that
+The byte order mark of a text is the character at place 1 when that
 character is U+FEFF. The body of a text is the text without its byte
 order mark. The byte order mark is on no line, so it has no position. A
 U+FEFF at any other place is a character like any other.
 
 A line ending is a line feed of the body, together with the carriage
-return right before that line feed when there is one. The line endings
-divide the body into runs: the run before the first line ending, the
-run between each line ending and the next line ending, and the run
-after the last line ending. A body with no line ending is one run. The
-lines of the text are these runs, in order, except the last run when it
-is empty.
+return at the place right before that line feed when there is one. The
+line endings divide the body into runs: the run before the first line
+ending, the run between each line ending and the next line ending, and
+the run after the last line ending. A body with no line ending is one
+run. The lines of the text are these runs, in order, except the last run
+when it is empty. The lines are numbered from 1. A conforming program
+that gives the lines of a text gives each line, in order, and no other
+run.
 
 A line never holds a line feed. A body that ends with a line feed has no
 empty line after that line feed. The empty body has no line. A carriage
@@ -258,7 +307,7 @@ Only a line feed ends a line: U+000B, U+000C, U+0085, U+2028, and
 U+2029 are characters of their line.
 
 The tables write a text as its parts in order, separated by commas,
-such as `ab`, a line feed, `c`. In a column of lines, a semicolon
+such as `ab`, a line feed, `c`. In the cells under "lines", a semicolon
 separates two lines, "the empty text" is an empty line, and "none"
 means that the text has no line.
 
@@ -273,14 +322,14 @@ means that the text has no line.
 | U+FEFF, `x` | `x` |
 | `a`, U+2028, `b` | `a`, U+2028, `b` |
 
-The column of a character of a line is 1 more than the number of
-characters that come before it in its line. A line ending is not part
-of its line, so its characters add nothing to the columns of the line.
-Each character of a line ending has the line number of the line that
-ends at that line ending. Its column is 1 more than the number of
-characters of that line. A column counts characters, not bytes: `é`
-written as U+00E9 is one character, written in two bytes of UTF-8. A
-tab is one character, so it counts as one column.
+The column of the character at a place of a line is 1 more than the
+number of characters of the line at places before that place. A line
+ending is not part of its line, so its characters add nothing to the
+columns of the line. Each character of a line ending has the line
+number of the line that ends at that line ending. Its column is 1 more
+than the number of characters of that line. A column counts characters,
+not bytes: `é` written as U+00E9 is one character, written in two bytes
+of UTF-8. A tab is one character, so it counts as one column.
 
 | text | character | position |
 |---|---|---|
@@ -293,38 +342,42 @@ tab is one character, so it counts as one column.
 | U+FEFF, `x` | U+FEFF | no position |
 
 A span is a run of the body that holds at least one character of a
-line. The start of a span is the position of its first character. The
-end of a span is one column past the last character of a line in the
-span, on the line of that character. So a line ending at the end of a
-span does not move the end of the span. Example: in the text `ab`, a
-carriage return, a line feed, `cd`, the span `b`, the carriage return,
-the line feed, `c` starts at line 1, column 2, and ends at line 2,
-column 2.
+line. The start of a span is the position of the character at its first
+place. The end of a span is one column past the last character in the
+span that is a character of a line, on the line of that character. So a
+line ending at the end of a span does not move the end of the span.
+Example: in the text `ab`, a carriage return, a line feed, `cd`, the
+span `b`, the carriage return, the line feed, `c` starts at line 1,
+column 2, and ends at line 2, column 2.
 
 ### 2.5 Globs
 
 A glob is a pattern for paths. A glob is one or more glob segments
 joined by `/`, and it can end with `/`. A glob segment is `**`, or a
 text in which `*` stands for any run of characters inside one file name.
-A path fits a glob when the path has the form that the glob gives, by
-these rules:
+The glob segments of a glob are numbered from 1, in order. A path fits a
+glob when the path has the form that the glob gives, by these rules:
 
-1. A glob fits the whole path, from its first file name. `Cargo.lock`
-   fits only the path `Cargo.lock`. `**/Cargo.lock` fits `Cargo.lock`
-   at any depth.
-2. `*` fits any run of characters inside one file name, the empty run
-   included. It never fits a `/`, because a file name holds none.
-3. A glob segment `**` that is not the last glob segment fits any number
-   of file names, zero included. So `**/x.md` fits `x.md` and
-   `a/b/x.md`, and `a/**/b` fits `a/b`.
-4. A glob segment `**` that is the last glob segment fits one or more
-   file names: everything inside the folder before it. `docs/**` fits
-   `docs/a.md` and `docs/a/b.md`. It does not fit the path `docs`.
+1. A path fits a glob only as a whole, from file name 1. Only the path
+   `Cargo.lock` fits `Cargo.lock`. A path whose file name with the
+   highest number is `Cargo.lock` fits `**/Cargo.lock`, at any depth.
+2. Any run of characters inside one file name fits `*`, the empty run
+   included. No `/` fits `*`, because a file name holds no `/`.
+3. Any number of file names, zero included, fit a glob segment `**`
+   that does not have the highest number. So `x.md` and `a/b/x.md` fit
+   `**/x.md`, and `a/b` fits `a/**/b`.
+4. One or more file names fit a glob segment `**` that has the highest
+   number. So every path inside the folder `docs`, such as `docs/a.md`
+   and `docs/a/b.md`, fits `docs/**`. The path `docs` does not fit
+   `docs/**`.
+   In `**/x/**`, glob segment 1 is a `**` that does not have the highest
+   number, and glob segment 3 is a `**` that has the highest number. So
+   `x/a` fits `**/x/**`, and `x` does not.
 5. A glob that ends with `/` has the glob segment `**` after that `/`.
    So `docs/` means `docs/**`.
-6. `*` and `**` fit file names that start with `.`.
-7. Every other character fits only itself. Case always matters, so
-   `Docs/*` does not fit `docs/a.md`.
+6. File names that start with `.` fit `*` and `**`.
+7. Only the same character fits each other character of a glob segment.
+   Case always matters, so `docs/a.md` does not fit `Docs/*`.
 
 These texts are not globs:
 
@@ -336,8 +389,8 @@ These texts are not globs:
   such as `src/**.ts`; `src/**/*.ts` is a glob;
 - a text that holds `?`, `[`, `]`, `{`, `}`, or `\`.
 
-A glob can hold U+0000, but no file name holds U+0000. So a glob segment
-that holds U+0000 fits no file name.
+A glob can hold U+0000, but no file name holds U+0000. So no file name
+fits a glob segment that holds U+0000.
 
 | glob | paths that fit it | paths that do not fit it |
 |---|---|---|
@@ -347,9 +400,9 @@ that holds U+0000 fits no file name.
 
 ### 2.6 Path sets
 
-A path set is a list of texts, its members. A member that starts with
-`!` is a `!` glob, and the text after that `!` is its glob. Every other
-member is a plain glob, and the member is its glob.
+A path set is a finite sequence of texts, its members. A member that
+starts with `!` is a `!` glob, and the text after that `!` is its glob.
+Every other member is a plain glob, and the member is its glob.
 
 A path set is valid when:
 
@@ -358,14 +411,15 @@ A path set is valid when:
 3. at least one member is a plain glob, when the path set holds at
    least one member.
 
-A path is in a valid path set when the glob of a plain glob fits the
-path, and the glob of no `!` glob fits it. So a `!` glob takes paths out
-of the set. The order of the members does not change the set. The empty
-path set is valid, and no path is in it.
+A path is in a valid path set when the path fits the glob of a plain
+glob, and the path fits the glob of no `!` glob. So a `!` glob removes
+paths from the set. The order of the members does not change the set.
+The empty path set is valid, and no path is in it.
 
 Example: with the members `docs/` and `!docs/old/`, the path
 `docs/a.md` is in the set, and `docs/old/a.md` and `a.md` are not. A
-member `!!x` is a `!` glob whose glob is `!x`, which fits the path `!x`.
+member `!!x` is a `!` glob whose glob is `!x`, and the path `!x` fits
+that glob.
 
 ### 2.7 Results
 
@@ -390,12 +444,13 @@ reads:
 A character is a Unicode scalar value: a code point from U+0000 to
 U+D7FF, or from U+E000 to U+10FFFF. A text is a finite sequence of
 characters. The empty text is the text of no characters. Two texts are
-the same text when they have the same characters in the same order.
-Each character of a text has a place: its number in the order of the
-text, counted from 1. A run of a text is the characters of the text at
-the places from one place to the same place or a later place, in order.
-A run can also be empty, and then it holds no character. A line feed is
-U+000A, and a carriage return is U+000D.
+the same text when they have the same characters in the same order. The
+places of a text are numbered from 1, one place for each character of
+the text, in the order of the text: the character at place 1 is the
+first character of the text. A run of a text is the characters of the
+text at the places from one place to the same place or a later place,
+in order, each at its place. A run can also be empty, and then it holds
+no character. A line feed is U+000A, and a carriage return is U+000D.
 
 ### 3.2 Notation
 
@@ -425,17 +480,20 @@ A byte is an integer from 0 to 255. A byte sequence is a finite
 sequence of bytes. A byte sequence is valid UTF-8 when the rule
 `UTF8-octets` of RFC 3629 matches the whole byte sequence, with each
 byte as one terminal value of that rule. The text of a byte sequence
-that is valid UTF-8 is the text that the byte sequence encodes, as
-RFC 3629 defines UTF-8. The UTF-8 encoding of a text is the byte
-sequence that encodes the text, as RFC 3629 defines UTF-8.
+that is valid UTF-8 holds one character for each `UTF8-char` that the
+rule `UTF8-octets` matches in the byte sequence, in order, a leading
+U+FEFF included: the character that the bytes of that `UTF8-char`
+encode, as RFC 3629 defines UTF-8. The UTF-8 encoding of a text is the
+byte sequence that encodes the text, as RFC 3629 defines UTF-8.
 
 ### 3.5 Trees
 
 @req trees=v1
 @cites {posix/2024, #utf-8=v1}
 
-A tree is a folder, its root, together with each file that the root
-holds and each file that a folder of the tree holds. Each file is of
+A file system is a file system as POSIX.1-2024 defines the term. A tree
+is a folder, its root, together with the file of each entry of the root
+and the file of each entry of each folder of the tree. Each file is of
 exactly one of four kinds: a folder, a regular file, a symbolic link,
 or a file of another kind. A folder holds entries. Each entry of a
 folder has an entry name, which is a byte sequence, and a file. No two
@@ -450,17 +508,40 @@ treats as the same name as that byte sequence.
 ### 3.6 File types
 
 @req file-types=v1
-@cites {posix/2024, #trees=v1}
+@cites {posix/2024, #{trees=v1, utf-8=v1, characters=v1}}
 
-On a file system, the kind of a file follows its file type, as
+On a file system, the file type of a file gives its kind, as
 POSIX.1-2024 defines the file types: a file of the type directory is a
 folder, a file of the type regular file is a regular file, a file of
 the type symbolic link is a symbolic link, and a file of each other
 type is a file of another kind. The entries of a folder on a file
-system are the entries of its directory other than the entries `.` and
-`..`.
+system are the entries of its directory, except any entry whose entry
+name is the UTF-8 encoding of the text `.` or of the text `..`.
 
-### 3.7 The grammar of paths
+### 3.7 Lookups and permissions
+
+@req file-access=v1
+@cites {posix/2024, #{trees=v1, utf-8=v1}}
+
+A lookup of a byte sequence in a folder is an action of a program in
+which the file system looks for the entry that the folder gives for
+that byte sequence. At the moment of the lookup, exactly one of these
+holds: the lookup finds the file of that entry; the lookup finds no
+entry, because the folder gives no entry for the byte sequence; or the
+file system refuses the lookup. The file system refuses a lookup when
+the lookup fails for a reason other than that the folder gives no entry
+for the byte sequence, such as a lack of the search permission of the
+program for the folder, or a byte sequence longer than the file system
+allows in an entry name. A lookup follows no symbolic link: when the
+file of the entry is a symbolic link, the lookup finds that symbolic
+link. The search permission and the read permission of a program for a
+file are the search permission and the read permission of the process
+of the program for that file, as POSIX.1-2024 defines them. To take
+bytes from a file is to copy into the program bytes of the content of a
+regular file, of the entry names of a folder, or of the reference of a
+symbolic link. A lookup takes no bytes from a file.
+
+### 3.8 The grammar of paths
 
 @req paths=v1
 @cites #{notation=v1, characters=v1}
@@ -475,153 +556,152 @@ non-dot    = %x1-2D / %x30-D7FF / %xE000-10FFFF
 ```
 
 A valid path is a text that matches `path`. The file names of a valid
-path are the texts that its `file-name` elements match, in order.
+path are the texts that its `file-name` elements match. They are
+numbered from 1, in the order of the `file-name` elements: file name 1
+is the text that the first `file-name` element matches.
 
-### 3.8 The form of a path
+### 3.9 Testing a text as a path
 
-@req path-form=v1
+@req test-paths=v1
 @cites #{characters=v1, paths=v1, result-list=v1, notation=v1}
 
 For each text that it tests as a path, a conforming program must give
 the result "valid" when the text matches `path`, and the result
-"invalid" when it does not.
+"invalid" when the text does not match `path`.
 
-### 3.9 The walk
+### 3.10 Reads and walks
 
 @req walk=v1
-@cites {posix/2024, #{paths=v1, trees=v1, utf-8=v1, characters=v1}}
+@cites #{
+    characters=v1, utf-8=v1, trees=v1, file-access=v1, paths=v1,
+    result-list=v1,
+}
 
-The walk of a valid path in a tree takes the file names of the path in
-order. For each file name, it looks up the UTF-8 encoding of the file
-name in a folder: the first file name in the root, and each other file
-name in the folder that the walk found for the file name before it. To
-look up a byte sequence in a folder is to take the entry that the
-folder gives for that byte sequence. A lookup in a folder needs the
-permission to search the folder, and not the permission to read it.
-The tree refuses to look up a file name in a folder when the lookup
-fails for a reason other than that the folder gives no entry for the
-UTF-8 encoding of the file name, such as a lack of permission to search
-the folder or a file name longer than the file system allows. For each
-file name, the outcome is the first row of this table whose condition
-holds:
+To read a text as a path in a tree is to give a result for that text
+and that tree. A read is one such operation of a program. A step of a
+read is an action that the program does to give the result of that read,
+such as a lookup. When the text is a valid path, a
+lookup of file name 1 of the read is a lookup of the UTF-8 encoding of
+file name 1 of the text in the root of the tree. A lookup of each later
+file name of the read is a lookup of the UTF-8 encoding of that later
+file name in a folder that a lookup of the file name with the number
+before the number of that later file name, as a step of the same read,
+found. The walk of a read is the lookups that the program makes as steps
+of that read. For each file name of which the walk holds a lookup, the
+outcome of that file name is the first row of this table whose
+condition holds for the latest lookup of that file name in the walk:
 
 | outcome | condition |
 |---|---|
-| "refused" | the tree refuses to look up the file name in the folder |
-| "no entry" | the folder gives no entry for the UTF-8 encoding of the file name |
-| "symbolic link" | the file of the entry is a symbolic link |
-| "not a folder" | the file name is not the last file name of the path, and the file of the entry is a regular file or a file of another kind |
-| "regular file" | the file name is the last file name of the path, and the file of the entry is a regular file |
-| "not a regular file" | the file name is the last file name of the path, and the file of the entry is a folder or a file of another kind |
+| "refused" | the file system refuses the lookup |
+| "no entry" | the lookup finds no entry |
+| "symbolic link" | the lookup finds a symbolic link |
+| "not a folder" | the file name does not have the highest number of the file names of the text, and the lookup finds a regular file or a file of another kind |
+| "regular file" | the file name has the highest number, and the lookup finds a regular file |
+| "not a regular file" | the file name has the highest number, and the lookup finds a folder or a file of another kind |
 
-When no row holds, the file of the entry is a folder, and the walk finds
-that folder for the file name. The walk ends at the first file name
-that has an outcome, and the outcome of the walk is that outcome. With
-the outcome "regular file", the walk finds the regular file of the
-entry. A text that is not a valid path has no walk.
-
-### 3.10 Reading a text that is not a path
-
-@req read-invalid=v1
-@cites #{characters=v1, paths=v1, trees=v1, result-list=v1}
-
-For each text that it reads as a path in a tree and that is not a valid
-path, a conforming program must give the result "invalid".
+When no row holds, or when the walk holds no lookup of the file name,
+the file name has no outcome. The outcome of the walk is the outcome of
+the file name with the lowest number that has an outcome. A walk in
+which no file name has an outcome has no outcome. With the outcome
+"regular file", the walk finds the regular file that the latest lookup
+of the file name with the highest number found.
 
 ### 3.11 The lookups of a read
 
-@req read-lookups=v1
-@cites #{characters=v1, paths=v1, trees=v1, walk=v1, utf-8=v1}
+@req limit-lookups=v1
+@cites #{characters=v1, paths=v1, trees=v1, file-access=v1, walk=v1}
 
-When it reads a text as a path in a tree, a conforming program must
-look up no byte sequence in a folder, except the lookups that find the
-root of the tree, and the UTF-8 encoding of a file name that the walk
-of the text looks up, in the folder in which the walk looks it up.
+As a step of a read of a text as a path in a tree, a conforming program
+must make no lookup other than a lookup of a file name of that read.
 
-### 3.12 Each lookup from the lookup before it
+### 3.12 The permission that a lookup needs
 
-@req read-chain=v1
-@cites #{characters=v1, paths=v1, trees=v1, walk=v1}
+@req search-without-read-permission=v1
+@cites #{trees=v1, file-access=v1, walk=v1}
 
-When it reads a text as a path in a tree, a conforming program must
-look up each file name after the first only in the folder that its own
-lookup of the file name before it found, and it must read a content
-only from the regular file that its own lookup of the last file name
-found.
+A conforming program must make each lookup of the walk of a read in a
+way that needs no permission of the program for the folder of the
+lookup other than the search permission.
 
 ### 3.13 The bytes of a read
 
-@req read-bytes=v1
-@cites #{characters=v1, paths=v1, trees=v1, utf-8=v1, walk=v1}
-
-When it reads a text as a path in a tree, a conforming program must
-read no byte other than the bytes of the content of the regular file
-that the walk of the text finds.
-
-### 3.14 Files of another kind
-
-@req read-other-kinds=v1
-@cites #{characters=v1, paths=v1, trees=v1, walk=v1, result-list=v1}
-
-When it reads a text as a path in a tree and the walk of the text ends
-at an entry whose file is a file of another kind, a conforming program
-must give the result of the read without waiting, after its lookup of
-that entry, for any event outside the program.
-
-### 3.15 The result of a read
-
-@req read-results=v1
+@req limit-bytes=v1
 @cites #{
-    characters=v1, paths=v1, trees=v1, result-list=v1, walk=v1,
-    utf-8=v1,
-}
-
-When it reads a text as a path in a tree and the text is a valid path,
-a conforming program must give the result of the first row of this
-table whose conditions hold for the outcome of the walk of the text
-and, for the outcome "regular file", for the content of the regular
-file that the walk finds:
-
-| outcome of the walk | content of the regular file | result |
-|---|---|---|
-| "refused" | | "cannot read" |
-| "no entry" | | "no file" |
-| "not a folder" | | "no file" |
-| "symbolic link" | | "symbolic link" |
-| "not a regular file" | | "not a regular file" |
-| "regular file" | the tree refuses to give the content: reading the content fails, such as for a lack of permission to read the file or an error of the device | "cannot read" |
-| "regular file" | a byte sequence that is not valid UTF-8 | "not UTF-8" |
-| "regular file" | a byte sequence that is valid UTF-8 | "found" |
-
-### 3.16 The text of a file
-
-@req read-text=v1
-@cites #{
-    characters=v1, paths=v1, trees=v1, result-list=v1, utf-8=v1,
+    characters=v1, utf-8=v1, trees=v1, file-access=v1, paths=v1,
     walk=v1,
 }
 
+As a step of a read of a text as a path in a tree, a conforming program
+must take no bytes from a file other than bytes of the content of a
+regular file that a lookup of the file name with the highest number of
+that read, in the walk of that read, found.
+
+### 3.14 No wait for another process
+
+@req never-wait=v1
+@cites #{characters=v1, paths=v1, trees=v1, walk=v1}
+
+A conforming program must not, as a step of a read of a text as a path
+in a tree, wait for another process or for a device to act on a file of
+another kind, such as for a process to open the other end of a pipe.
+
+### 3.15 The result of a read
+
+@req give-read-result=v1
+@cites #{
+    characters=v1, utf-8=v1, trees=v1, file-access=v1, paths=v1,
+    walk=v1, result-list=v1,
+}
+
+When it reads a text as a path in a tree, a conforming program must
+give the result of the first row of this table whose conditions hold
+for the text, for the outcome of the walk of the read, and for the
+regular file that the walk finds, where an empty cell sets no
+condition:
+
+| text | outcome of the walk | regular file that the walk finds | result |
+|---|---|---|---|
+| not a valid path | | | "invalid" |
+| a valid path | "refused" | | "cannot read" |
+| a valid path | "no entry" | | "no file" |
+| a valid path | "not a folder" | | "no file" |
+| a valid path | "symbolic link" | | "symbolic link" |
+| a valid path | "not a regular file" | | "not a regular file" |
+| a valid path | "regular file" | taking bytes from the regular file fails, such as for a lack of the read permission of the program for the regular file, or an error of the device | "cannot read" |
+| a valid path | "regular file" | its content is not valid UTF-8 | "not UTF-8" |
+| a valid path | "regular file" | its content is valid UTF-8 | "found" |
+
+### 3.16 The text of a file
+
+@req give-file-text=v1
+@cites #{
+    characters=v1, utf-8=v1, trees=v1, paths=v1, walk=v1,
+    result-list=v1,
+}
+
 When it reads a text as a path in a tree and gives the result "found",
-a conforming program must give with that result the text of the
-content of the regular file that the walk of the text finds, with no
-character added, removed, or changed.
+a conforming program must give with that result the text of the content
+of the regular file that the walk of the read finds.
 
 ### 3.17 Lines
 
 @req lines=v1
 @cites #characters=v1
 
-The byte order mark of a text is its first character when that
-character is U+FEFF. The body of a text is the run of the text that
-holds every character of the text except its byte order mark. A line
-ending is a line feed of the body, together with the carriage return at
-the place right before that line feed when there is one. The line
-endings divide the body into runs: the run before the first line
-ending, the run between each line ending and the next line ending, and
-the run after the last line ending; a body with no line ending is one
-run. The lines of the text are these runs, in the order of the body,
-except the last run when it is empty. The lines are numbered from 1. A
-character of a line is a character that the line holds.
+The byte order mark of a text is the character at place 1 of the text
+when that character is U+FEFF. The body of a text is the run of the
+text that holds every character of the text except its byte order mark.
+A line ending is the line feed at a place of the body, together with the
+character at the place right before that place when that character is
+a carriage return. The line endings divide the body into runs: the run
+before the first line ending, the run between each line ending and the
+next line ending, and the run after the last line ending; a body with no
+line ending is one run. The lines of the text are these runs, in the
+order of the body, except the last run when it is empty. The lines are
+numbered from 1. The line that ends at a line ending is the run right
+before that line ending. A character of a line is the character at a
+place of the body that the line holds.
 
 ### 3.18 Positions
 
@@ -629,13 +709,13 @@ character of a line is a character that the line holds.
 @cites #{lines=v1, characters=v1}
 
 A position is a pair of numbers: a line number and a column. The
-position of a character of a line has the number of that line as its
-line number, and, as its column, 1 more than the number of the
-characters of that line at places before the place of that character.
-The position of a character of a line ending has the number of the line
-that ends at that line ending as its line number, and 1 more than the
-number of characters of that line as its column. A byte order mark has
-no position.
+position of the character at a place of a line has the number of that
+line as its line number, and, as its column, 1 more than the number of
+the places of that line before that place. The position of the
+character at a place of a line ending has, as its line number, the
+number of the line that ends at that line ending, and, as its column, 1
+more than the number of the characters of that line. A byte order mark
+has no position.
 
 ### 3.19 Spans
 
@@ -645,36 +725,44 @@ no position.
 A span of a text is a run of the body of the text that holds at least
 one character of a line. The start of a span is the position of the
 character at the first place of the span. The end of a span comes from
-the character of a line that the span holds at its latest place: the
-end has the line number of that character, and a column 1 more than the
-column of that character.
+the last place of the span that holds a character of a line: the end
+has the line number of the position of the character at that place, and
+a column 1 more than the column of that position.
 
-### 3.20 The positions that a program gives
+### 3.20 The lines that a program gives
 
-@req position-values=v1
+@req give-lines=v1
+@cites #{lines=v1, characters=v1}
+
+When a conforming program gives the lines of a text, it must give each
+line of the text, in order, and no other run.
+
+### 3.21 The positions that a program gives
+
+@req give-positions=v1
 @cites #{positions=v1, characters=v1, lines=v1}
 
 When a conforming program gives the position of the character at a
-place of the body of a text, it must give the position of that
-character.
+place of the body of a text, it must give the position of the character
+at that place.
 
-### 3.21 No position for a byte order mark
+### 3.22 No position for a byte order mark
 
-@req bom-position=v1
+@req omit-bom-position=v1
 @cites #{positions=v1, lines=v1, characters=v1}
 
 A conforming program must give no position for the byte order mark of a
 text.
 
-### 3.22 The spans that a program gives
+### 3.23 The spans that a program gives
 
-@req span-values=v1
+@req give-span-ends=v1
 @cites #{spans=v1, characters=v1, positions=v1}
 
 When a conforming program gives the start and the end of a span of a
 text, it must give the start of that span and the end of that span.
 
-### 3.23 The grammar of globs
+### 3.24 The grammar of globs
 
 @req glob-grammar=v1
 @cites #{notation=v1, characters=v1}
@@ -694,74 +782,78 @@ glob-non-dot   = %x0-29 / %x2B-2D / %x30-3E / %x40-5A / %x5E-7A / %x7C
 
 A valid glob is a text that matches `glob`. The glob segments of a
 valid glob are the texts that its `glob-segment` elements match, in
-order, and then the text `**` when the glob ends with `/`.
+order, and then the text `**` when the glob ends with `/`. They are
+numbered from 1, in that order.
 
-### 3.24 The form of a glob
+### 3.25 Testing a text as a glob
 
-@req glob-form=v1
+@req test-globs=v1
 @cites #{characters=v1, glob-grammar=v1, result-list=v1, notation=v1}
 
 For each text that it tests as a glob, a conforming program must give
 the result "valid" when the text matches `glob`, and the result
-"invalid" when it does not.
+"invalid" when the text does not match `glob`.
 
-### 3.25 The meaning of a glob
+### 3.26 The meaning of a glob
 
 @req glob-meaning=v1
 @cites #{paths=v1, glob-grammar=v1, characters=v1}
 
 A valid path fits a valid glob when the file names of the path can be
 divided into groups, one group for each glob segment of the glob, such
-that the groups, in the order of the glob segments, hold the file names
-in the order of the path, and each group fits its glob segment:
+that the file names of the groups, group after group in the order of
+the numbers of the glob segments, are the file names of the path in the
+order of their numbers, and each group fits its glob segment:
 
-- A group fits a glob segment `**` that is the last glob segment of the
-  glob when the group holds one or more file names.
-- A group fits a glob segment `**` that is not the last glob segment of
-  the glob when the group holds zero or more file names.
+- When the glob segment with the highest number is `**`, a group fits
+  that glob segment when the group holds one or more file names.
+- A group fits a glob segment `**` that does not have the highest
+  number when the group holds zero or more file names.
 - A group fits each other glob segment when the group holds exactly one
   file name, and that file name fits the glob segment.
 
 A file name fits a glob segment other than `**` when the file name can
-be divided into runs, one run for each character of the glob segment,
-such that the runs, in the order of the characters of the glob segment,
-hold the characters of the file name in order, and each run fits its
-character. A run fits the character `*`, whatever characters it holds,
-the empty run included. A run fits each other character when the run is
-that one character.
+be divided into runs, one run for each place of the glob segment, such
+that the characters of the runs, run after run in the order of the
+places of the glob segment, are the characters of the file name in
+order, and each run fits its place of the glob segment. A run fits a
+place that holds `*`, whatever characters the run holds, the empty run
+included. A run fits a place that holds another character when the run
+holds exactly that character and no other character.
 
-### 3.26 Testing a path against a glob
+### 3.27 Testing a path against a glob
 
-@req glob-fit=v1
+@req test-glob-fit=v1
 @cites #{glob-grammar=v1, paths=v1, result-list=v1, glob-meaning=v1}
 
 For each valid glob and each valid path that it tests together, a
 conforming program must give the result "fits" when the path fits the
-glob, and the result "does not fit" when it does not.
+glob, and the result "does not fit" when the path does not fit the
+glob.
 
-### 3.27 Path sets
+### 3.28 Path sets
 
 @req path-sets=v1
 @cites #{characters=v1, glob-grammar=v1}
 
 A path set is a finite sequence of texts, its members. A member whose
-first character is `!` is a `!` glob, and the glob of that member is the
-text of the member after that `!`. Each other member is a plain glob,
-and the glob of that member is the member. A path set is valid when the
-glob of each member is a valid glob, no two members are the same text,
-and at least one member is a plain glob when the path set holds at
-least one member.
+character at place 1 is `!` is a `!` glob, and the glob of that member
+is the text of the characters of the member at the places after
+place 1. Each other member is a plain glob, and the glob of that member
+is the member. A path set is valid when the glob of each member is a
+valid glob, no two members are the same text, and at least one member
+is a plain glob when the path set holds at least one member.
 
-### 3.28 The form of a path set
+### 3.29 Testing a path set
 
-@req path-set-form=v1
+@req test-path-sets=v1
 @cites #{path-sets=v1, result-list=v1}
 
 For each path set that it tests, a conforming program must give the
 result "valid" when the path set is valid, and the result "invalid"
-when it is not.
+when the path set is not valid.
 
-### 3.29 The meaning of a path set
+### 3.30 The meaning of a path set
 
 @req path-set-meaning=v1
 @cites #{paths=v1, path-sets=v1, glob-meaning=v1, glob-grammar=v1}
@@ -770,21 +862,22 @@ A valid path is in a valid path set when the path fits the glob of at
 least one plain glob of the path set, and the path fits the glob of no
 `!` glob of the path set.
 
-### 3.30 Testing a path against a path set
+### 3.31 Testing a path against a path set
 
-@req path-set-membership=v1
+@req test-path-set-membership=v1
 @cites #{path-sets=v1, paths=v1, result-list=v1, path-set-meaning=v1}
 
 For each valid path set and each valid path that it tests together, a
 conforming program must give the result "in the set" when the path is
-in the path set, and the result "not in the set" when it is not.
+in the path set, and the result "not in the set" when the path is not
+in the path set.
 
-### 3.31 One result for each input
+### 3.32 One result for each input
 
-@req results=v1
+@req give-one-result=v1
 @cites #{
     result-list=v1, characters=v1, paths=v1, glob-grammar=v1,
-    path-sets=v1, trees=v1,
+    path-sets=v1, trees=v1, walk=v1,
 }
 
 A conforming program must give exactly one result for each input of
@@ -825,6 +918,7 @@ program gives for it. These conventions apply:
 | `..a` | valid |
 | `a b/c\d.md` | valid |
 | `Docs/A.MD` | valid |
+| `a/a` | valid |
 | U+00E9, `.md` | valid |
 | the empty text | invalid: a path holds at least one file name |
 | `/a.md` | invalid: it starts with `/` |
@@ -853,7 +947,11 @@ digits.
 | the regular file `a.md`, whose content is empty | `a.md` | found, with the empty text |
 | the regular file `a.md`, whose content is the text `hi` | `b.md` | no file |
 | the regular file `a.md`, whose content is the text `hi` | `a.md/b.md` | no file: `a.md` is not a folder |
+| the regular file `a`, whose content is the text `hi` | `a/a` | no file: file name 1, `a`, is not a folder |
+| a chain of 200 folders, each with the name `ddddddddddddddddddddddddd`, in which the root holds the first folder, each folder except the last holds the next folder, and the last folder holds the regular file `a.md`, whose content is the text `hi` | `ddddddddddddddddddddddddd/` 200 times, then `a.md` | found, with the text `hi`: the path holds 5204 characters, more than many systems allow in a path |
 | the regular file `a.md`, whose content is the text `hi`, on a file system that treats each byte sequence as a different name | `A.md` | no file |
+| the regular file `a.md`, whose content is the text `hi`, on a file system that treats `A.md` and `a.md` as the same name | `A.md` | found, with the text `hi` |
+| the regular file `café.md`, with `é` as U+00E9, whose content is the text `hi`, on a file system that treats each byte sequence as a different name | `cafe`, U+0301, `.md` | no file: the UTF-8 encoding of the text is not the entry name |
 | the folder `docs` | `docs` | not a regular file |
 | the pipe `p`, which no process opens | `p` | not a regular file: the program does not wait for a process to open the pipe |
 | the symbolic link `a.md`, whose reference leads to the regular file `b.md`, and the regular file `b.md`, whose content is the text `hi` | `a.md` | symbolic link |
@@ -870,11 +968,11 @@ digits.
 | the regular file `a.md`, whose content is the bytes `EF BB BF 78` | `a.md` | found, with the text U+FEFF, `x` |
 | the regular file `a.md`, whose content is the bytes `61 0D 0A 62` | `a.md` | found, with the text `a`, a carriage return, a line feed, `b` |
 | the regular file `a.md`, whose content is the bytes `65 CC 81` | `a.md` | found, with the text `e`, U+0301 |
-| the folder `docs`, which the program can search but not read, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | found, with the text `hi` |
-| the folder `docs`, which the program has no permission to read or to search, and which holds the regular file `a.md`, whose content is the text `hi` | `docs` | not a regular file |
-| the folder `docs`, which the program has no permission to read or to search, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | cannot read |
-| the regular file `a.md`, which the program has no permission to read | `a.md` | cannot read |
-| a tree whose root holds no entry, on a file system that allows at most 255 bytes in an entry name | `a` 300 times | cannot read |
+| the folder `docs`, for which the program has the search permission and not the read permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | found, with the text `hi` |
+| the folder `docs`, for which the program has neither the read permission nor the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs` | not a regular file |
+| the folder `docs`, for which the program has neither the read permission nor the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | cannot read: the file system refuses the lookup of `a.md` |
+| the regular file `a.md`, whose content is the text `hi`, and for which the program has no read permission | `a.md` | cannot read |
+| a tree whose root holds no entry, on a file system that allows at most 255 bytes in an entry name | `a` 300 times | cannot read: the file system refuses the lookup |
 | any tree | `../a.md` | invalid |
 | any tree | `/etc/passwd` | invalid |
 
@@ -944,6 +1042,7 @@ result "does not fit".
 - `**/`: valid; fit: `a`, `a/b`.
 - `a/**/b`: valid; fit: `a/b`, `a/x/b`, `a/x/y/b`; do not fit: `b`,
   `a/b/c`.
+- `**/x/**`: valid; fit: `x/a`, `a/x/b`, `x/x/x`; do not fit: `x`, `a/x`.
 - `docs/**/*.md`: valid; fit: `docs/a.md`, `docs/x/y/a.md`; do not fit:
   `a.md`, `docs/a.txt`.
 - `a*b*c`: valid; fit: `abc`, `aXbYc`, `abbc`; do not fit: `ab`, `acb`.
