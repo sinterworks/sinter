@@ -6,6 +6,7 @@
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
+@cites rfc/8259
 Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; conforming programs, inputs, and results; and requirements for conforming programs that test and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
@@ -36,6 +37,9 @@ From RFC 3629, the design takes UTF-8: how a byte sequence encodes a
 text, the rule `UTF8-char`, which matches the bytes that encode one
 character, and the rule `UTF8-octets`, which matches the byte
 sequences that are valid UTF-8.
+
+From RFC 8259, the design takes JSON texts: each line of the file that
+holds the conformance vectors of the design is a JSON text.
 
 ## 1. Glossary
 
@@ -1093,205 +1097,155 @@ text.
 A program, or a part of a program, conforms to this design when it
 meets every requirement of the section Requirements.
 
-Each row of the tables below is a vector: an input and what a
-conforming program gives for it. The cells follow these conventions:
+The conformance vectors of this design are in the file
+[`text.test-vectors.jsonl`](text.test-vectors.jsonl), in the same
+directory as this design. A vector is an input and what a conforming
+program gives for it. Each vector follows from the requirements and adds
+nothing to them. The vectors are in groups. A group is a set of vectors
+that test the same requirements, and it has a name, such as `decode`.
 
-- A cell shows a text as its parts, in order, with commas between them.
-  A part is characters between backticks; a space, a tab, a line feed,
-  or a carriage return; a U+ numeral, for the character that it names;
-  or a part, then "written", a decimal numeral, and "times", for that
-  part as many times in a row as the numeral writes. "The empty text" is
-  the text of no characters.
-- A cell shows a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes, or
-  characters between backticks, for the UTF-8 encoding of those
-  characters. "The empty byte sequence" is the byte sequence of no
-  bytes.
-- A cell shows the lines of a text, in order, with semicolons between
-  them, each line as its text or as a run, or as "no line" when the text
-  has no line.
-- A cell shows a place as its decimal numeral, and a position as "line",
-  the line number of the position, a comma, "column", and the column of
-  the position, as in "line 3, column 7".
-- A cell shows a run, such as a span, as the decimal numeral of the
-  boundary where it starts, "to", and the decimal numeral of the
-  boundary where it ends, as in "1 to 4".
-- A cell that holds "valid, with the text" and a text, or "valid, with
-  the empty text", gives the result "valid", which a conforming program
-  gives when it tests whether the byte sequence is valid UTF-8, and that
-  text, which a conforming program gives as the text of the byte
-  sequence.
-- A cell that holds "invalid" gives the result "invalid", which a
-  conforming program gives when it tests whether the byte sequence is
-  valid UTF-8. A conforming program gives no text as the text of that
-  byte sequence.
-- The text after a colon, when that colon is not between backticks,
-  explains the row. A conforming program does not give it.
+The file is valid UTF-8, and each line of the file is a JSON text, as
+RFC 8259 defines it, then a line feed. The JSON text of each line holds
+one object. The file has three kinds of line, in this order:
+
+1. The first line is the set line. Its object has one member, `rev`:
+   the revision of the whole set of vectors, such as `v1`.
+2. Then each group has a group line. Its object has two members:
+   `group`, the name of the group, and `rev`, the revision of the group.
+3. Then each vector has a vector line, in increasing order of the
+   numbers of the vectors.
+
+The object of a vector line has these members:
+
+- `n`: the number of the vector, a whole number of 1 or more. No other
+  vector of the file has this number.
+- `rev`: the revision of the vector.
+- `group`: the name of the group of the vector.
+- `input`: the input.
+- `result`: the result that a conforming program gives for the input.
+  Only a vector of the group `decode` has this member.
+- `values`: what a conforming program gives for the input, other than
+  the result. A vector of the group `decode` with the result "invalid"
+  does not have this member. Each other vector has it.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. A vector has this member only when it has an explanation.
+
+In the members `input`, `result`, and `values`, a JSON value stands for
+a text, a byte sequence, a whole number, a run, a position, or a
+sequence, in these forms:
+
+- A text, such as a result, is a string whose characters are the
+  characters of the text, in order. So the text `a`, a line feed, `b` is
+  `"a\nb"`, and the empty text is `""`.
+- A byte sequence is a string of hex digits: for each byte, in order,
+  the hex digit of the quotient of the byte divided by 16, then the hex
+  digit of the remainder. So the byte sequence 0xC3, 0xA9 is `"c3a9"`,
+  and the empty byte sequence is `""`.
+- A whole number, such as a place, a boundary, a line number, or a
+  column, is a number written as its decimal numeral, such as `12`.
+- A run is an object with two members: `from`, the boundary where the
+  run starts, and `to`, the boundary where the run ends. So the run that
+  starts at boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
+- A position is an object with two members: `line`, the line number of
+  the position, and `column`, the column of the position. So the
+  position line 3, column 7 is `{"column":7,"line":3}`.
+- A sequence, such as the lines of a text, is an array of its elements,
+  in order.
 
 ### 5.1 Byte sequences that a program decodes
 
-| byte sequence | what a conforming program gives |
-|---|---|
-| `hi` | valid, with the text `hi` |
-| the empty byte sequence | valid, with the empty text |
-| 0x00 | valid, with the text U+0000 |
-| 0x7F | valid, with the text U+007F |
-| 0xC2, 0x80 | valid, with the text U+0080 |
-| 0xC3, 0xA9 | valid, with the text U+00E9 |
-| 0x65, 0xCC, 0x81 | valid, with the text `e`, U+0301: the bytes encode two characters |
-| 0xE0, 0xA0, 0x80 | valid, with the text U+0800 |
-| 0xED, 0x9F, 0xBF | valid, with the text U+D7FF |
-| 0xEE, 0x80, 0x80 | valid, with the text U+E000 |
-| 0xEF, 0xBF, 0xBF | valid, with the text U+FFFF |
-| 0xF0, 0x9F, 0x98, 0x80 | valid, with the text U+1F600 |
-| 0xF4, 0x8F, 0xBF, 0xBF | valid, with the text U+10FFFF |
-| 0xEF, 0xBB, 0xBF, `x` | valid, with the text U+FEFF, `x`: the text keeps its byte order mark |
-| 0xEF, 0xBB, 0xBF, 0xEF, 0xBB, 0xBF | valid, with the text U+FEFF, U+FEFF |
-| `a`, 0x0D, 0x0A, `b` | valid, with the text `a`, a carriage return, a line feed, `b` |
-| 0xFF | invalid: the UTF-8 encoding of no character holds the byte 0xFF |
-| 0xFF, 0xFE | invalid: the UTF-8 encoding of no character holds the byte 0xFF |
-| 0x80 | invalid: the UTF-8 encoding of no character has 0x80 as its first byte |
-| 0xC3 | invalid: the first byte of the UTF-8 encoding of a character, with no byte after it |
-| `a`, 0xC3 | invalid: the first byte of the UTF-8 encoding of a character, with no byte after it |
-| 0xC0, 0xAF | invalid: an overlong encoding |
-| 0xC1, 0xBF | invalid: an overlong encoding |
-| 0xE0, 0x80, 0xAF | invalid: an overlong encoding |
-| 0xF0, 0x80, 0x80, 0xAF | invalid: an overlong encoding |
-| 0xED, 0xA0, 0x80 | invalid: the three-byte form of RFC 3629 for the number 55,296, which is not the code point of a character |
-| 0xED, 0xBF, 0xBF | invalid: the three-byte form of RFC 3629 for the number 57,343, which is not the code point of a character |
-| 0xF4, 0x90, 0x80, 0x80 | invalid: the four-byte form of RFC 3629 for the number 1,114,112, which is not a code point |
-| 0xF8, 0x88, 0x80, 0x80, 0x80 | invalid: the UTF-8 encoding of no character has five bytes |
+The group `decode` holds the vectors of the requirements `test-utf-8`,
+`give-texts-of-byte-sequences`, and
+`omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
+sequence and what a conforming program gives when it decodes the byte
+sequence as UTF-8.
+
+- `input`: the byte sequence.
+- `result`: "valid" when the byte sequence is valid UTF-8, and "invalid"
+  when it is not.
+- `values`: only with the result "valid", an object with one member,
+  `text`: the text of the byte sequence. With the result "invalid", the
+  vector has no `values`: a conforming program gives no text as the text
+  of the byte sequence.
+
+```
+{"group":"decode","input":"6869","n":1,"result":"valid","rev":"v1","values":{"text":"hi"}}
+{"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1"}
+```
 
 ### 5.2 The UTF-8 encodings that a program gives
 
-Each row gives a text and the byte sequence that a conforming program
-gives as its UTF-8 encoding.
+The group `encode` holds the vectors of the requirement
+`give-utf-8-encodings`. Each vector gives a text and its UTF-8 encoding.
 
-| text | UTF-8 encoding |
-|---|---|
-| `hi` | 0x68, 0x69 |
-| the empty text | the empty byte sequence |
-| U+0000 | 0x00 |
-| U+007F | 0x7F |
-| U+0080 | 0xC2, 0x80 |
-| U+00E9 | 0xC3, 0xA9 |
-| `e`, U+0301 | 0x65, 0xCC, 0x81 |
-| U+07FF | 0xDF, 0xBF |
-| U+0800 | 0xE0, 0xA0, 0x80 |
-| U+D7FF | 0xED, 0x9F, 0xBF |
-| U+E000 | 0xEE, 0x80, 0x80 |
-| U+FEFF, `x` | 0xEF, 0xBB, 0xBF, 0x78 |
-| U+FFFF | 0xEF, 0xBF, 0xBF |
-| U+10000 | 0xF0, 0x90, 0x80, 0x80 |
-| U+1F600 | 0xF0, 0x9F, 0x98, 0x80 |
-| U+10FFFF | 0xF4, 0x8F, 0xBF, 0xBF |
-| `a`, a carriage return, a line feed | 0x61, 0x0D, 0x0A |
+- `input`: the text.
+- `result`: no vector of the group has this member.
+- `values`: an object with one member, `encoding`: the byte sequence
+  that a conforming program gives as the UTF-8 encoding of the text.
+
+```
+{"group":"encode","input":"hi","n":30,"rev":"v1","values":{"encoding":"6869"}}
+```
 
 ### 5.3 The lines that a program gives
 
-Each row gives a text and the lines of that text, in the order of their
-line numbers, as their texts and as runs. When a conforming program
-gives the lines of that text, it gives these runs, or their texts, in
-this order. When a conforming program gives one of these lines, as a
-run or as its text, together with a line number, that line number is 1
-for the first line of the row, and 1 more for each later line.
+The group `lines` holds the vectors of the requirements `give-lines`,
+`give-numbered-lines`, and `give-only-lines`. Each vector gives a text
+and the lines of the text.
 
-| text | lines | runs of the lines |
-|---|---|---|
-| `a` | `a` | 0 to 1 |
-| `a`, a line feed, `b` | `a`; `b` | 0 to 1; 2 to 3 |
-| `a`, a line feed | `a` | 0 to 1 |
-| `a`, a line feed, a line feed | `a`; the empty text | 0 to 1; 2 to 2 |
-| a line feed | the empty text | 0 to 0 |
-| a line feed written 2 times | the empty text; the empty text | 0 to 0; 1 to 1 |
-| the empty text | no line | no line |
-| U+FEFF | no line | no line |
-| U+FEFF, a line feed | the empty text | 1 to 1 |
-| U+FEFF, `x` | `x` | 1 to 2 |
-| `x`, U+FEFF | `x`, U+FEFF | 0 to 2 |
-| U+FEFF, U+FEFF, `x` | U+FEFF, `x` | 1 to 3 |
-| `ab`, a carriage return, a line feed, `c` | `ab`; `c` | 0 to 2; 4 to 5 |
-| `ab`, a carriage return, a line feed | `ab` | 0 to 2 |
-| a carriage return, a line feed | the empty text | 0 to 0 |
-| `a`, a carriage return | `a`, a carriage return | 0 to 2 |
-| `a`, a carriage return, `b` | `a`, a carriage return, `b` | 0 to 3 |
-| `a`, a carriage return, a carriage return, a line feed | `a`, a carriage return | 0 to 2 |
-| `a`, a line feed, a carriage return | `a`; a carriage return | 0 to 1; 2 to 3 |
-| a tab, `x`, a space | a tab, `x`, a space | 0 to 3 |
-| `a`, U+000B, `b` | `a`, U+000B, `b` | 0 to 3 |
-| `a`, U+000C, `b` | `a`, U+000C, `b` | 0 to 3 |
-| `a`, U+0085, `b` | `a`, U+0085, `b` | 0 to 3 |
-| `a`, U+2028, `b` | `a`, U+2028, `b` | 0 to 3 |
-| `a`, U+2029, `b` | `a`, U+2029, `b` | 0 to 3 |
+- `input`: the text.
+- `result`: no vector of the group has this member.
+- `values`: an object with two members. `runs` is an array of the lines
+  of the text, as runs, in the order of their line numbers. `texts` is
+  an array of the texts of these lines, in the same order. So the k-th
+  element of each array is the line with the line number k, or its
+  text. When the text has no line, both arrays are empty.
+
+When a conforming program gives the lines of the text, it gives the runs
+of `runs`, or the texts of `texts`, in their order. When it gives one of
+these lines, as a run or as its text, together with a line number, that
+line number is k for the k-th element.
+
+```
+{"group":"lines","input":"a\nb","n":48,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
+```
 
 ### 5.4 The positions that a program gives
 
-Each row gives a text, a place of that text, and the position, or none,
-that a conforming program gives for the character at that place. "None"
-means that a conforming program gives no line number and no column for
-that character.
+The group `positions` holds the vectors of the requirements
+`give-character-positions` and `omit-byte-order-mark-positions`. Each
+vector gives a text, a place of the text, and the position of the
+character at that place, when that character has a position.
 
-| text | place | position |
-|---|---|---|
-| `abc` | 1 | line 1, column 1 |
-| `abc` | 3 | line 1, column 3 |
-| `a`, a line feed, `b` | 2 | line 1, column 2 |
-| `a`, a line feed, `b` | 3 | line 2, column 1 |
-| a line feed | 1 | line 1, column 1 |
-| a line feed written 2 times | 2 | line 2, column 1 |
-| `ab`, a carriage return, a line feed, `c` | 3 | line 1, column 3 |
-| `ab`, a carriage return, a line feed, `c` | 4 | line 1, column 3 |
-| `ab`, a carriage return, a line feed, `c` | 5 | line 2, column 1 |
-| `aa`, a carriage return, a line feed, `b` | 4 | line 1, column 3 |
-| `a`, a carriage return | 2 | line 1, column 2 |
-| `a`, a carriage return, a carriage return, a line feed | 2 | line 1, column 2 |
-| `a`, a carriage return, a carriage return, a line feed | 3 | line 1, column 3 |
-| `a`, a carriage return, a carriage return, a line feed | 4 | line 1, column 3 |
-| `a`, a carriage return, `b` | 3 | line 1, column 3 |
-| U+FEFF | 1 | none: the byte order mark is at place 1 |
-| U+FEFF, `x` | 1 | none: the byte order mark is at place 1 |
-| U+FEFF, `x` | 2 | line 1, column 1 |
-| U+FEFF, a line feed | 2 | line 1, column 1 |
-| `x`, U+FEFF | 2 | line 1, column 2 |
-| U+FEFF, U+FEFF, `x` | 2 | line 1, column 1 |
-| U+FEFF, U+FEFF, `x` | 3 | line 1, column 2 |
-| U+00E9, `x` | 2 | line 1, column 2 |
-| `e`, U+0301, `x` | 3 | line 1, column 3 |
-| U+1F600, `x` | 2 | line 1, column 2 |
-| a tab, `x` | 2 | line 1, column 2 |
-| `a`, U+2028, `b` | 3 | line 1, column 3 |
-| `ab`, a line feed, `c`, a line feed, `de` | 7 | line 3, column 2 |
+- `input`: an object with two members: `text`, the text, and `place`,
+  the place.
+- `result`: no vector of the group has this member.
+- `values`: when the character at the place has a position, an object
+  with one member, `position`: that position. A conforming program gives
+  its line number as the line number of the character, and its column
+  as the column of the character. When the character has no position,
+  `values` is the empty object, `{}`: a conforming program gives no line
+  number and no column for the character.
+
+```
+{"group":"positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+```
 
 ### 5.5 The starts and ends of spans that a program gives
 
-Each row gives a text, a run of that text, and, when the run is a span,
-the start and the end of that span that a conforming program gives.
-When the run is not a span, the row gives "none" for both: a conforming
-program gives no line number and no column as the start or the end of
-that run.
+The group `spans` holds the vectors of the requirements
+`give-span-starts`, `give-span-ends`, and
+`give-positions-only-for-spans`. Each vector gives a text, a run of the
+text, and, when the run is a span, the start and the end of the span.
 
-| text | run | start | end |
-|---|---|---|---|
-| `abc` | 1 to 2 | line 1, column 2 | line 1, column 3 |
-| `abc` | 0 to 3 | line 1, column 1 | line 1, column 4 |
-| `ab`, a line feed, `cd` | 1 to 4 | line 1, column 2 | line 2, column 2 |
-| `ab`, a carriage return, a line feed, `cd` | 1 to 5 | line 1, column 2 | line 2, column 2 |
-| `ab`, a carriage return, a line feed, `cd` | 0 to 4 | line 1, column 1 | line 1, column 3: the line ending does not move the end |
-| `ab`, a carriage return, a line feed, `cd`, a line feed | 0 to 7 | line 1, column 1 | line 2, column 3 |
-| a line feed, `x` | 0 to 2 | line 1, column 1 | line 2, column 2 |
-| `a`, a line feed, a line feed, `b` | 0 to 3 | line 1, column 1 | line 1, column 2 |
-| U+FEFF, `ab` | 1 to 3 | line 1, column 1 | line 1, column 3 |
-| U+00E9, `x` | 1 to 2 | line 1, column 2 | line 1, column 3 |
-| `a =` | 3 to 3 | line 1, column 4 | line 1, column 4: an empty span after the last character |
-| `a =` | 0 to 0 | line 1, column 1 | line 1, column 1 |
-| `a`, a line feed | 1 to 1 | line 1, column 2 | line 1, column 2 |
-| `a`, a line feed | 1 to 2 | line 1, column 2 | line 1, column 2: no place of the span is a place of a line |
-| `a`, a line feed | 2 to 2 | line 2, column 1 | line 2, column 1: the boundary where the body ends, after a line ending |
-| a line feed written 2 times | 1 to 1 | line 2, column 1 | line 2, column 1 |
-| a line feed written 2 times | 2 to 2 | line 3, column 1 | line 3, column 1 |
-| `ab`, a carriage return, a line feed, `cd` | 3 to 3 | line 1, column 3 | line 1, column 3: the boundary between the carriage return and the line feed |
-| `ab`, a carriage return, a line feed, `cd` | 4 to 4 | line 2, column 1 | line 2, column 1 |
-| the empty text | 0 to 0 | line 1, column 1 | line 1, column 1 |
-| U+FEFF | 1 to 1 | line 1, column 1 | line 1, column 1 |
-| U+FEFF, `ab` | 0 to 2 | none | none: boundary 0 is not a boundary of the body, so the run is not a span |
-| U+FEFF | 0 to 0 | none | none: boundary 0 is not a boundary of the body, so the run is not a span |
+- `input`: an object with two members: `text`, the text, and `run`, the
+  run.
+- `result`: no vector of the group has this member.
+- `values`: when the run is a span, an object with two members: `start`,
+  the start of the span, and `end`, the end of the span. When the run is
+  not a span, `values` is the empty object, `{}`: a conforming program
+  gives no line number and no column as the start or the end of the run.
+
+```
+{"group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"n":100,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+```
