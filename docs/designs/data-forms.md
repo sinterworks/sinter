@@ -11,7 +11,7 @@
 @cites toml-lang/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
-Specifies the canonical form of JSON values and canonical lines; the TOML documents that Sinter reads, with the spans of their keys and values and the starts of their errors; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
+Specifies the canonical form of JSON values and canonical lines; the TOML documents that Sinter reads, with the spans of their keys and values; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259 defines
@@ -28,10 +28,9 @@ value that breaks a rule on values, no key that breaks a rule on keys,
 and no key/value pair or table header that breaks a rule on tables. At
 each point where TOML 1.1.0 lets an implementation choose, such as the
 range of a TOML integer, a conforming program makes one fixed choice.
-For a TOML document, a conforming program gives the root table and the
-spans of its keys and values, with their locations. For a byte sequence
-that is valid UTF-8 and is not a TOML document, it gives the position
-where an error starts.
+For a TOML document, a conforming program gives the result "valid", the
+root table, and the spans of its keys and values, with their locations.
+For every other byte sequence, it gives the result "invalid".
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is its digest as 64 hex digits. A
@@ -158,12 +157,10 @@ its letters only in the same case.
 | [holding table](sinter:#toml-boundary-state=v1) | the table at which the key of a key/value pair starts: the table of the innermost inline table that encloses the key/value pair, else the root table when no table header comes before it, else the table that the last table header before it names; when that table header names no table, the key/value pair has no holding table |
 | [path of a dotted key](sinter:#dotted-key-path=v1) | the tables to which the TOML keys of the dotted key of a key/value pair, apart from its last TOML key, lead from the holding table of the key/value pair at the boundary right after the key/value pair, one after another |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
-| [syntax error](sinter:#toml-syntax-error=v1) | the error of a byte sequence that is valid UTF-8 when the text of the body of its text does not match the rule `toml` of TOML 1.1.0; it starts at the greatest boundary b of the body for which a text that matches `toml` begins with the text of the body up to b |
-| [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer, or an array of TOML 1.1.0 or an inline table with the depth 65; a value error gives no TOML value, and neither does an array of TOML 1.1.0 with an element that gives no TOML value |
+| [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer, or an array of TOML 1.1.0 or an inline table with a depth greater than 64; a value error gives no TOML value, and neither does an array of TOML 1.1.0 with an element that gives no TOML value |
 | [key error](sinter:#toml-key-error=v1) | a key with more than 64 TOML keys, or a TOML key that has no text |
 | [structure rule](sinter:#toml-structure-rule=v1) | a table rule of TOML that a key/value pair or a table header can break, with the parts of a document before it: the rules of `single-definition`, `new-key`, `header-free-path`, `closed-inline-table`, `table-on-the-way`, `header-target`, and `array-header-target` |
 | [structure error](sinter:#toml-structure-error=v1) | a key/value pair or a table header that breaks a structure rule |
-| [error start](sinter:#toml-error-start=v1) | for a byte sequence that is valid UTF-8 and is not a TOML document, the empty span at the boundary where its syntax error starts, or else at the least of the boundaries where its value errors, its key errors, and its structure errors start |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
 | [id prefix](sinter:#id-prefix=v1) | one or more of the letters `a` to `z`, then `-`, such as `e-` |
@@ -695,8 +692,9 @@ A conforming program reads a byte sequence as a TOML document. When the
 byte sequence is a TOML document, the program gives the result "valid",
 the root table, and the spans of the keys of TOML 1.1.0 and of the
 values of TOML 1.1.0 in the document, with their locations. For every
-other byte sequence, it gives the result "invalid", and, when the byte
-sequence is valid UTF-8, the position where an error starts.
+other byte sequence, it gives the result "invalid". With the result
+"invalid", a conforming program may also give a position, and this
+specification does not specify that position.
 
 In this specification, a text in a code block stands for the UTF-8
 encoding of its lines, each line then the byte 0x0A.
@@ -830,6 +828,21 @@ The rules on the encoding, on the byte order mark, and on the second 60,
 the choices listed above, the limit on depths and on TOML keys,
 and the rules on offsets and on newlines in strings are the reading
 rules of TOML.
+
+A value error is one of these values of TOML 1.1.0: an integer of
+TOML 1.1.0 outside the range of a TOML integer, such as
+`9223372036854775808`; a float of TOML 1.1.0 that rounds to an
+infinity, such as `1e400`; a local date, a local time, a local
+date-time, or an offset date-time of TOML 1.1.0 with a year, a month, a
+day, an hour, a minute, a second, or an offset outside the range that
+RFC 3339 allows, such as the local date `1979-02-30`; a string of
+TOML 1.1.0 with an escape sequence whose digits in base 16 write a
+number that is not the code point of a character; and an array of
+TOML 1.1.0 or an inline table with a depth greater than 64. A key error
+is a key of a key/value pair or of a table header with more than 64
+TOML keys, or a quoted key with an escape sequence whose digits in base
+16 write a number that is not the code point of a character. Such a
+quoted key has no text.
 
 The text of a TOML string is the text that TOML 1.1.0 gives for its
 basic string, multi-line basic string, literal string, or multi-line
@@ -1292,64 +1305,6 @@ text `[[a]]`, the span of the key `a` of the table header is the span of
 the key of TOML 1.1.0 that leads to a location of two steps, the text
 `a` and the index 1. The span of its TOML key `a` is the span of the
 TOML key with the index 1 of that key of TOML 1.1.0.
-
-With the result "invalid", for a byte sequence that is valid UTF-8, a
-conforming program gives the error start: an empty span at one boundary
-of the body, by its line number and its column. For a byte sequence that
-is not valid UTF-8, it gives no line number and no column. The error
-start follows from four kinds of error:
-
-1. A syntax error: the text of the body does not match the rule `toml`
-   of the ABNF of TOML 1.1.0. It starts at the greatest boundary b of
-   the body for which a text that matches `toml` begins with the text
-   from the boundary where the body starts to b. So in the text
-   `a = 1 2`, the syntax error starts right before `2`, at line 1,
-   column 7: the text `a = 1 ` can go on as `a = 1 # c`, and no text
-   that matches `toml` starts with `a = 1 2`.
-2. A value error: an integer of TOML 1.1.0 outside the range of a TOML
-   integer, such as `9223372036854775808`; a float of TOML 1.1.0 that
-   rounds to an infinity, such as `1e400`; a local date, a local time, a
-   local date-time, or an offset date-time of TOML 1.1.0 with a year, a
-   month, a day, an hour, a minute, a second, or an offset outside the
-   range that RFC 3339 allows, such as the local date `1979-02-30`; a
-   string of TOML 1.1.0 with an escape sequence whose digits in base 16
-   write a number that is not the code point of a character; and each
-   array of TOML 1.1.0 and each inline table that has the depth 65. A
-   document has an array of TOML 1.1.0 or an inline table with a depth
-   greater than 64 exactly when it has one with the depth 65. A value
-   error starts where the span of the value starts.
-3. A key error: a key of a key/value pair or of a table header with
-   more than 64 TOML keys, which starts where the span of its 65th TOML
-   key starts; and a quoted key with an escape sequence whose digits in
-   base 16 write a number that is not the code point of a character,
-   which starts where its span starts. Such a quoted key has no text.
-4. A structure error: a key/value pair or a table header that breaks a
-   structure rule. A key/value pair breaks a structure rule only by its
-   key, because each key/value pair in its value is a part of its own. A
-   quoted key that has no text leads to no TOML value, and neither do
-   the TOML keys after it. So a key/value pair or a table header breaks
-   no structure rule by such a quoted key, or by the TOML keys after it.
-   A structure error starts where the span of the key of its key/value
-   pair or table header starts.
-
-A part makes its tables and TOML values also when it breaks a rule. So
-the tables and TOML values at the boundary right after a table header or
-a key/value pair that breaks a rule give the table that the table header
-names and the path of the dotted key of the key/value pair. For example,
-in the text of the lines `[a]`, `b = 1`, and `[a]`, the second table
-header names the table `a`, which the first table header defines, and
-the error start is at line 3, column 2.
-
-When the text of the body does not match `toml`, the error start is
-where the syntax error starts. Otherwise, it is at the least of the
-boundaries where the value errors, the key errors, and the structure
-errors start. So for the lines `a = 1` and `a = 99999999999999999999`,
-the error start is at line 2, column 1, where the key `a` of the second
-key/value pair adds the text `a` to the root table a second time, and
-not at line 2, column 5, where the integer of TOML 1.1.0 is out of
-range. After a final line ending, the error start can be at the boundary
-where the body ends: for the text `a = [` and a line feed, it is at
-line 2, column 1.
 
 ### 5.1 Definitions
 
@@ -2159,26 +2114,7 @@ sequence:
   dotted key, a TOML array that the table headers of an array of tables
   make, and the root table have no span.
 
-#### 5.1.41 Syntax errors
-
-@term toml-syntax-error=v1
-@cites {
-    toml-lang/1.1.0,
-    text#{
-        byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        text=v1, body=v1, boundary=v1, run=v1, code-span=v1,
-    },
-    #{toml-byte-order-mark=v1},
-}
-
-This definition uses the rule `toml` of the ABNF of TOML 1.1.0. A byte
-sequence that is valid UTF-8 has a syntax error when the text of the
-body of its text does not match the rule `toml`. The syntax error starts
-at the greatest boundary b of the body for which a text that matches
-`toml` begins with the text of the run from the boundary where the body
-starts to b.
-
-#### 5.1.42 Value errors
+#### 5.1.41 Value errors
 
 @term toml-value-error=v1
 @cites {
@@ -2186,20 +2122,19 @@ starts to b.
     rfc/3339,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        body=v1, boundary=v1, character=v1, code-point=v1,
-        code-span=v1,
+        body=v1, character=v1, code-point=v1, code-span=v1,
     },
     #{
-        toml-span=v1, toml-integer-range=v1, toml-float-overflow=v1,
+        toml-integer-range=v1, toml-float-overflow=v1,
         toml-leap-second=v1, toml-nesting-limit=v1, toml-value=v1,
     },
 }
 
 These definitions use the terms value, integer, float, local date, local
 time, local date-time, offset date-time, string, escape sequence, array,
-and inline table of TOML 1.1.0, and the rules `toml` and `val` of the
-ABNF of TOML 1.1.0. They apply to a byte sequence that is valid UTF-8
-and for which the text of the body of its text matches the rule `toml`.
+and inline table of TOML 1.1.0, and the rule `toml` of the ABNF of
+TOML 1.1.0. They apply to a byte sequence that is valid UTF-8 and for
+which the text of the body of its text matches the rule `toml`.
 
 - A value error of such a byte sequence is each value of TOML 1.1.0 in
   the body of its text that is one of these: an integer of TOML 1.1.0
@@ -2211,62 +2146,53 @@ and for which the text of the body of its text matches the rule `toml`.
   `toml-leap-second` in place of the statement of RFC 3339 on leap
   seconds; a string of TOML 1.1.0 that has an escape sequence whose
   digits in base 16 write a number that is not the code point of a
-  character; and an array of TOML 1.1.0 or an inline table that has the
-  depth 65.
-- A value error starts at the boundary where the span of its value of
-  TOML 1.1.0 starts.
+  character; and an array of TOML 1.1.0 or an inline table that has a
+  depth greater than 64.
 - A value error gives no TOML value, and neither does an array of
   TOML 1.1.0 that has an element that gives no TOML value.
 
-#### 5.1.43 Key errors
+#### 5.1.42 Key errors
 
 @term toml-key-error=v1
 @cites {
     toml-lang/1.1.0,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        body=v1, boundary=v1, code-span=v1,
+        body=v1, code-span=v1,
     },
-    #{
-        toml-key=v1, toml-key-text=v1, toml-span=v1,
-        toml-nesting-limit=v1,
-    },
+    #{toml-key=v1, toml-key-text=v1, toml-nesting-limit=v1},
 }
 
-These definitions use the terms key, key/value pair, and table header of
-TOML 1.1.0, and the rule `toml` of the ABNF of TOML 1.1.0. They apply to
+This definition uses the terms key, key/value pair, and table header of
+TOML 1.1.0, and the rule `toml` of the ABNF of TOML 1.1.0. It applies to
 a byte sequence that is valid UTF-8 and for which the text of the body
 of its text matches the rule `toml`. A key error of such a byte sequence
 is each of these:
 
 - the key of a key/value pair or of a table header with more than 64
-  TOML keys, which starts at the boundary where the span of its 65th
-  TOML key starts;
-- a TOML key that has no text, which starts at the boundary where the
-  span of that TOML key starts.
+  TOML keys;
+- a TOML key that has no text.
 
-#### 5.1.44 Structure errors
+#### 5.1.43 Structure errors
 
 @term toml-structure-error=v1
 @cites {
     toml-lang/1.1.0,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        body=v1, boundary=v1, code-span=v1,
+        body=v1, code-span=v1,
     },
-    #{toml-structure-rule=v1, toml-key=v1, toml-span=v1},
+    #{toml-structure-rule=v1},
 }
 
-These definitions use the terms key, key/value pair, and table header of
-TOML 1.1.0, and the rule `toml` of the ABNF of TOML 1.1.0. They apply to
+This definition uses the terms key/value pair and table header of
+TOML 1.1.0, and the rule `toml` of the ABNF of TOML 1.1.0. It applies to
 a byte sequence that is valid UTF-8 and for which the text of the body
 of its text matches the rule `toml`. A structure error of such a byte
 sequence is each key/value pair and each table header in the body of its
-text that breaks a structure rule. A structure error starts at the
-boundary where the span of the key of its key/value pair or table header
-starts.
+text that breaks a structure rule.
 
-#### 5.1.45 TOML documents
+#### 5.1.44 TOML documents
 
 @term toml-document=v1
 @cites {
@@ -2286,7 +2212,7 @@ document is a byte sequence that meets each of these conditions:
 - The byte sequence has no value error, no key error, and no structure
   error.
 
-#### 5.1.46 Root tables
+#### 5.1.45 Root tables
 
 @term root-table=v1
 @cites {
@@ -2311,29 +2237,6 @@ each inline table is a TOML value of the kind table, and each TOML array
 that the table headers of an array of tables make, and each TOML array
 that the brackets `[` and `]` around TOML values make, is a TOML value
 of the kind TOML array.
-
-#### 5.1.47 Error starts
-
-@term toml-error-start=v1
-@cites {
-    toml-lang/1.1.0,
-    text#{
-        byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        text=v1, body=v1, boundary=v1, span=v1, code-span=v1,
-    },
-    #{
-        toml-document=v1, toml-syntax-error=v1, toml-value-error=v1,
-        toml-key-error=v1, toml-structure-error=v1,
-    },
-}
-
-This definition uses the rule `toml` of the ABNF of TOML 1.1.0. It
-applies to a byte sequence that is valid UTF-8 and is not a TOML
-document. When the text of the body of its text does not match the rule
-`toml`, the error start of the byte sequence is the empty span at the
-boundary where its syntax error starts. Otherwise, its error start is
-the empty span at the least of the boundaries where its value errors,
-its key errors, and its structure errors start.
 
 ### 5.2 TOML documents as input
 
@@ -2399,38 +2302,7 @@ A conforming program gives a TOML value, a key, a TOML key, or a
 location of this list when it gives something that stands for it, and
 for no other TOML value, key, TOML key, or location.
 
-### 5.4 Error starts as output
-
-@req give-toml-error-start=v1
-@cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        valid-utf-8=v1, result=v1, span=v1, position=v1,
-    },
-    #{toml-document=v1, toml-error-start=v1},
-}
-
-When a conforming program gives the result "invalid" for a byte sequence
-that is valid UTF-8 as a TOML document, it must give with that result
-the error start of the byte sequence, as the line number and the column
-of its start, and no other line number and no other column.
-
-### 5.5 No position for a byte sequence that is not valid UTF-8
-
-@req omit-toml-error-positions=v1
-@cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        valid-utf-8=v1, result=v1,
-    },
-    #{toml-document=v1},
-}
-
-When a conforming program gives the result "invalid" for a byte sequence
-that is not valid UTF-8 as a TOML document, it must give no line number
-and no column with that result.
-
-### 5.6 Conformance
+### 5.4 Conformance
 
 A program conforms to the specification `toml` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -2538,15 +2410,14 @@ holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
 tables are equal when, and only when, their forms are the same JSON
 value.
 
-#### 5.6.1 TOML documents
+#### 5.4.1 TOML documents
 
-Each vector of the groups `give-root-table`, `give-error-start`, and
-`omit-positions` gives a byte sequence and what a conforming program
-gives for it as a TOML document. The byte sequence decides which of the
-three groups holds the vector. Together, the vectors of the three groups
-test the reading rules of TOML, the nesting limit of TOML, the table
-rules of TOML, the root tables of TOML documents, and the error starts
-of byte sequences that are not TOML documents.
+Each vector of the groups `give-root-table` and `reject-byte-sequence`
+gives a byte sequence and what a conforming program gives for it as a
+TOML document. The byte sequence decides which of the two groups holds
+the vector. Together, the vectors of the two groups test the reading
+rules of TOML, the nesting limit of TOML, the table rules of TOML, and
+the root tables of TOML documents.
 
 The group `give-root-table` holds the vectors that each give a TOML
 document and its root table. The requirement of the group is
@@ -2564,40 +2435,21 @@ is the form of `root-table`, and no other table.
 {"group":"give-root-table","input":"61203d20310a","n":1,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"1"}}}}
 ```
 
-The group `give-error-start` holds the vectors that each give a byte
-sequence that is valid UTF-8 and is not a TOML document, and the error
-start of the byte sequence. The requirements of the group are
-`read-toml` and `give-toml-error-start`.
-
-- `input`: the byte sequence.
-- `result`: "invalid".
-- `values`: an object with one member, `error-start`: the start of the
-  error start of the byte sequence, as a position.
-
-With the result "invalid", a conforming program gives no table. It gives
-the line number and the column of `error-start` as the start of the
-error start, and no other line number and no other column.
-
-```
-{"group":"give-error-start","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{"error-start":{"column":5,"line":1}}}
-```
-
-The group `omit-positions` holds the vectors that each give a byte
-sequence that is not valid UTF-8. The requirements of the group are
-`read-toml` and `omit-toml-error-positions`.
+The group `reject-byte-sequence` holds the vectors that each give a
+byte sequence that is not a TOML document. The requirement of the group
+is `read-toml`.
 
 - `input`: the byte sequence.
 - `result`: "invalid".
 - `values`: the empty object, `{}`.
 
-With the result "invalid", a conforming program gives no table, no line
-number, and no column.
+With the result "invalid", a conforming program gives no table.
 
 ```
-{"group":"omit-positions","input":"61203d2022ff220a","n":28,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"reject-byte-sequence","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{}}
 ```
 
-#### 5.6.2 Spans
+#### 5.4.2 Spans
 
 The group `give-span` holds the vectors that each give a TOML document
 and one of the spans that a conforming program gives for it with the
