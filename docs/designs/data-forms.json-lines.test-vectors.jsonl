@@ -1,0 +1,82 @@
+{"rev":"v1"}
+{"group":"canonical-lines","rev":"v1"}
+{"group":"json-values","rev":"v1"}
+{"group":"line-objects","rev":"v1"}
+{"group":"json-values","input":"{ \"b\": 1, \"a\": [true, false] }","n":1,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a5b747275652c66616c73655d2c2262223a317d"}}
+{"group":"json-values","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
+{"group":"json-values","input":"{}","n":3,"rev":"v1","values":{"canonical-byte-sequence":"7b7d"}}
+{"group":"json-values","input":"[]","n":4,"rev":"v1","values":{"canonical-byte-sequence":"5b5d"}}
+{"group":"json-values","input":"{ \"\": 0 }","n":5,"rev":"v1","values":{"canonical-byte-sequence":"7b22223a307d"}}
+{"group":"json-values","input":"{ \"z\": [{ \"b\": true, \"a\": false }], \"a\": [] }","n":6,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a5b5d2c227a223a5b7b2261223a66616c73652c2262223a747275657d5d7d"}}
+{"group":"json-values","input":"[1, [2, [3]], {\"k\": {\"j\": \"x\"}}]","n":7,"rev":"v1","values":{"canonical-byte-sequence":"5b312c5b322c5b335d5d2c7b226b223a7b226a223a2278227d7d5d"}}
+{"group":"json-values","input":"9007199254740991","n":8,"rev":"v1","values":{"canonical-byte-sequence":"39303037313939323534373430393931"}}
+{"group":"json-values","input":"-9007199254740991","n":9,"rev":"v1","values":{"canonical-byte-sequence":"2d39303037313939323534373430393931"}}
+{"group":"json-values","input":"0","n":10,"rev":"v1","values":{"canonical-byte-sequence":"30"}}
+{"group":"json-values","input":"\"a/b\"","n":11,"rev":"v1","values":{"canonical-byte-sequence":"22612f6222"}}
+{"group":"json-values","input":"\"\\\"\\\\\"","n":12,"rev":"v1","values":{"canonical-byte-sequence":"225c225c5c22"}}
+{"group":"json-values","input":"\"\\b\\t\\n\\f\\r\"","n":13,"rev":"v1","values":{"canonical-byte-sequence":"225c625c745c6e5c665c7222"}}
+{"group":"json-values","input":"\"\\u0000\\u000b\\u001F\"","n":14,"rev":"v1","values":{"canonical-byte-sequence":"225c75303030305c75303030625c753030316622"}}
+{"group":"json-values","input":"\"\\u0041\"","n":15,"rev":"v1","values":{"canonical-byte-sequence":"224122"}}
+{"group":"json-values","input":"\"\\u007f\"","n":16,"rev":"v1","values":{"canonical-byte-sequence":"227f22"}}
+{"group":"json-values","input":"\"\\u2028\"","n":17,"rev":"v1","values":{"canonical-byte-sequence":"22e280a822"}}
+{"group":"json-values","input":"\"\\ud83d\\ude00\"","n":18,"rev":"v1","values":{"canonical-byte-sequence":"22f09f988022"}}
+{"group":"json-values","input":"{ \"\\ue000\": 1, \"\\ud83d\\ude00\": 2 }","n":19,"rev":"v1","values":{"canonical-byte-sequence":"7b22f09f9880223a322c22ee8080223a317d"}}
+{"group":"json-values","input":"{ \"\\u00e9\": 1, \"e\\u0301\": 2 }","n":20,"rev":"v1","values":{"canonical-byte-sequence":"7b2265cc81223a322c22c3a9223a317d"}}
+{"group":"json-values","input":"{ \"B\": 1, \"a\": 2 }","n":21,"rev":"v1","values":{"canonical-byte-sequence":"7b2242223a312c2261223a327d"}}
+{"group":"json-values","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
+{"group":"json-values","input":"1.5","n":23,"note":"`1.5` is not an integer","rev":"v1","values":{}}
+{"group":"json-values","input":"9007199254740992","n":24,"note":"the number is greater than 9,007,199,254,740,991","rev":"v1","values":{}}
+{"group":"json-values","input":"{ \"a\": null }","n":25,"note":"the value of `a` is not a JSON value","rev":"v1","values":{}}
+{"group":"line-objects","input":"{ \"b\": 1, \"a\": 2 }","n":26,"rev":"v1","values":{"canonical-line":"7b2261223a322c2262223a317d0a"}}
+{"group":"line-objects","input":"{}","n":27,"rev":"v1","values":{"canonical-line":"7b7d0a"}}
+{"group":"line-objects","input":"{ \"t\": \"\\r\", \"s\": \"x\\ny\" }","n":28,"rev":"v1","values":{"canonical-line":"7b2273223a22785c6e79222c2274223a225c72227d0a"}}
+{"group":"line-objects","input":"{ \"z\": [{ \"b\": true, \"a\": 1 }], \"a\": [1, \"x\", false] }","n":29,"rev":"v1","values":{"canonical-line":"7b2261223a5b312c2278222c66616c73655d2c227a223a5b7b2261223a312c2262223a747275657d5d7d0a"}}
+{"group":"line-objects","input":"{ \"\\ue000\": 1, \"\\ud83d\\ude00\": 2 }","n":30,"rev":"v1","values":{"canonical-line":"7b22f09f9880223a322c22ee8080223a317d0a"}}
+{"group":"line-objects","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
+{"group":"line-objects","input":"{ \"a\": [1, { \"b\": 1 }] }","n":32,"note":"the value of `a` mixes a scalar and an object","rev":"v1","values":{}}
+{"group":"line-objects","input":"[1]","n":33,"note":"the JSON value is not an object","rev":"v1","values":{}}
+{"group":"line-objects","input":"{ \"a\": 1.5 }","n":34,"note":"the input is not a JSON value","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
+{"group":"canonical-lines","input":"7b7d0a","n":36,"result":"valid","rev":"v1","values":{"line-object":{}}}
+{"group":"canonical-lines","input":"7b2261223a5b312c2278222c747275655d7d0a","n":37,"result":"valid","rev":"v1","values":{"line-object":{"a":[1,"x",true]}}}
+{"group":"canonical-lines","input":"7b2261223a5b7b2262223a317d2c7b2263223a2278227d5d7d0a","n":38,"result":"valid","rev":"v1","values":{"line-object":{"a":[{"b":1},{"c":"x"}]}}}
+{"group":"canonical-lines","input":"7b2261223a5b7b2261223a317d5d7d0a","n":39,"result":"valid","rev":"v1","values":{"line-object":{"a":[{"a":1}]}}}
+{"group":"canonical-lines","input":"7b2261223a5b7b7d5d7d0a","n":40,"result":"valid","rev":"v1","values":{"line-object":{"a":[{}]}}}
+{"group":"canonical-lines","input":"7b2261223a5b5d7d0a","n":41,"result":"valid","rev":"v1","values":{"line-object":{"a":[]}}}
+{"group":"canonical-lines","input":"7b2261223a2d393030373139393235343734303939317d0a","n":42,"result":"valid","rev":"v1","values":{"line-object":{"a":-9007199254740991}}}
+{"group":"canonical-lines","input":"7b2261223a2d393030373139393235343734303939327d0a","n":43,"note":"the number is less than −9,007,199,254,740,991","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c7530303062227d0a","n":44,"result":"valid","rev":"v1","values":{"line-object":{"a":"\u000b"}}}
+{"group":"canonical-lines","input":"7b2261223a22f09f9880227d0a","n":45,"result":"valid","rev":"v1","values":{"line-object":{"a":"😀"}}}
+{"group":"canonical-lines","input":"7b22f09f9880223a322c22ee8080223a317d0a","n":46,"result":"valid","rev":"v1","values":{"line-object":{"😀":2,"":1}}}
+{"group":"canonical-lines","input":"7b22ee8080223a312c22f09f9880223a327d0a","n":47,"note":"the keys are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2262223a312c2261223a327d0a","n":48,"note":"the keys are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a5b7b2262223a312c2261223a327d5d7d0a","n":49,"note":"the keys of a flat object are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a312c2261223a317d0a","n":50,"note":"an object holds no key twice","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a5b7b2262223a312c2262223a327d5d7d0a","n":51,"note":"an object holds no key twice","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a322c2262223a317d","n":52,"note":"the byte sequence does not end with 0x0A","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a322c2262223a317d0d0a","n":53,"note":"the byte 0x0D stands before the byte 0x0A","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a327d0a7b2262223a317d0a","n":54,"note":"the byte sequence holds two canonical lines","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"efbbbf7b7d0a","n":55,"note":"the bytes 0xEF, 0xBB, 0xBF stand before `{`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a312e307d0a","n":57,"note":"`1.0` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a3165327d0a","n":58,"note":"`1e2` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a2d307d0a","n":59,"note":"`-0` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a30317d0a","n":60,"note":"the canonical form of an integer has no leading `0`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a393030373139393235343734303939327d0a","n":61,"note":"the number is greater than 9,007,199,254,740,991","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a6e756c6c7d0a","n":62,"note":"null is not a string, an integer, a boolean, an array, or an object","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a547275657d0a","n":63,"note":"`True` is not the canonical form of a boolean","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c7530303431227d0a","n":64,"note":"the string form of `A` is `A`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c2f227d0a","n":65,"note":"the string form of `/` is `/`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c7530303041227d0a","n":66,"note":"the string form of the line feed is `\\n`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c7530303042227d0a","n":67,"note":"the string form of U+000B is `\\u000b`, and `B` is not a hex digit","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c7530303766227d0a","n":68,"note":"the string form of U+007F is the character U+007F","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a225c75643833645c7564653030227d0a","n":69,"note":"the string form of U+1F600 is the character U+1F600","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a2209227d0a","n":70,"note":"the string form of the tab is `\\t`","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a22ff227d0a","n":71,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a22eda080227d0a","n":72,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"5b315d0a","n":73,"note":"the JSON value is not an object","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"2261220a","n":74,"note":"the JSON value is not an object","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a7b2262223a317d7d0a","n":75,"note":"the value of `a` is an object","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a5b5b315d5d7d0a","n":76,"note":"the value of `a` is an array that holds an array","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a5b312c7b2262223a317d5d7d0a","n":77,"note":"the value of `a` mixes a scalar and an object","result":"invalid","rev":"v1","values":{}}
+{"group":"canonical-lines","input":"7b2261223a5b7b2262223a5b315d7d5d7d0a","n":78,"note":"`{\"b\":[1]}` is not a flat object","result":"invalid","rev":"v1","values":{}}

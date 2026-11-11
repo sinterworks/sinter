@@ -1,0 +1,15 @@
+{"rev":"v1"}
+{"group":"hash-id-form","rev":"v1"}
+{"group":"hash-ids","rev":"v1"}
+{"group":"hash-ids","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"n":1,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01"}}
+{"group":"hash-ids","input":{"byte-sequence":"","id-prefix":"t-","number-of-hex-digits":12},"n":2,"rev":"v1","values":{"hash-id":"t-e3b0c44298fc"}}
+{"group":"hash-ids","input":{"byte-sequence":"616263","id-prefix":"run-","number-of-hex-digits":1},"n":3,"rev":"v1","values":{"hash-id":"run-b"}}
+{"group":"hash-ids","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":64},"n":4,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e11"},"n":5,"result":"valid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"n":6,"note":"11 hex digits","result":"invalid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e11a"},"n":7,"note":"13 hex digits","result":"invalid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5B1C0A9D2E11"},"n":8,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"t-5b1c0a9d2e11"},"n":9,"note":"the text does not start with `e-`","result":"invalid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"5b1c0a9d2e11"},"n":10,"note":"the text does not start with `e-`","result":"invalid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"run-","number-of-hex-digits":1,"text":"run-b"},"n":11,"result":"valid","rev":"v1"}
+{"group":"hash-id-form","input":{"id-prefix":"run-","number-of-hex-digits":64,"text":"run-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"},"n":12,"result":"valid","rev":"v1"}
