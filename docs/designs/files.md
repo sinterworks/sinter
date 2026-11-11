@@ -52,8 +52,8 @@ JSON text.
 | file | a file as POSIX.1-2024 defines a file: a folder, a regular file, a symbolic link, or a file of another kind |
 | [file type](sinter:#file-kind=v1) | the type of a file on a file system, such as a directory or a regular file, as POSIX.1-2024 defines the file types; it gives the kind of the file |
 | [folder](sinter:#folder=v1) | a file that holds folder entries; POSIX.1-2024 calls it a directory |
-| [listing](sinter:#folder=v1) | the names of the directory entries of a folder that the file system gives, for that folder at a moment, to a process that has the read permission for that folder |
-| [folder entry](sinter:#folder=v1) | an entry name and a file, which a folder holds: a directory entry of POSIX.1-2024 whose name the listing of the folder holds, other than `.` and `..` |
+| [listing](sinter:#folder=v1) | the names of the directory entries of a folder that the file system would give, for that folder at a moment, to the process of the program if that process had the read permission for that folder |
+| [folder entry](sinter:#folder=v1) | an entry name and a file, which a folder holds: a directory entry of POSIX.1-2024 whose name the listing of the folder holds, other than `.` and `..`; its file is the file that the file system finds for its entry name in the folder, as in a pathname resolution of POSIX.1-2024, such as the folder at the top of another file system that is mounted on the folder of that directory entry |
 | [entry name](sinter:#folder=v1) | the byte sequence that names a folder entry |
 | [hold a file](sinter:#folder=v1) | a folder holds a file when, and only when, that file is the file of a folder entry of the folder |
 | [regular file](sinter:#regular-file=v1) | a file that holds a content |
@@ -63,7 +63,7 @@ JSON text.
 | [search permission](sinter:#search-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to look up names in a folder |
 | [read permission](sinter:#read-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a regular file or the names of the directory entries of a folder |
 | [attribute](sinter:#attribute=v1) | a property of a file other than the content of a regular file, the folder entries of a folder, the reference of a symbolic link, and the data of a file of another kind, such as its file type, its size, its mode, its owner, its times, or its extended attributes |
-| [lookup](sinter:#lookup=v1), look up a name | an action in which the file system that a folder is on looks, for a program, for the directory entry of the folder for a name, which is a byte sequence; an action in which the file system does not look for the directory entry, such as because the program has no search permission for the folder, is not a lookup |
+| [lookup](sinter:#lookup=v1), look up a name | an action in which the file system that a folder is on looks, for a program, for the directory entry of the folder for a name, which is a byte sequence; when a program asks another process for a lookup, and that other process asks the file system for it, that lookup is a lookup for that program; a program looks up a name in a folder when a lookup of that name in that folder is a lookup for that program; an action in which the file system does not look for the directory entry, such as because the program has no search permission for the folder, is not a lookup |
 | [open a file](sinter:#open=v1) | get from the file system an open file description of the file, as POSIX.1-2024 defines open file descriptions, such as by a call of `openat` |
 | [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the names of the directory entries of a folder, of the reference of a symbolic link, or of the data of a file of another kind; a lookup takes no bytes, and copying an attribute of a file takes no bytes from it |
 | ignore case | treat two names that differ only in the case of their letters, such as `a.md` and `A.md`, as one name |
@@ -71,14 +71,14 @@ JSON text.
 | [valid path](sinter:#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [file name](sinter:#path=v1) | one of the texts of which a valid path is made, such as `docs` or `a.md` in `docs/a.md`; the file names of a valid path have numbers from 1, in order: `docs` is file name 1 of `docs/a.md`; a file name is a text, and an entry name is a byte sequence |
 | folder entry for a file name | the folder entry of a folder whose entry name is the UTF-8 encoding of the file name, byte for byte |
-| [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text and a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read"; it lasts from the moment at which the program starts it to the moment at which the program gives its result; its actions are the actions that the program makes to give its result, and not the actions of another file read or of other work that the program does at the same time |
+| [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text as a path in a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read"; it starts at the moment at which the program takes its text, and it ends at the moment at which the program gives its result; its actions are the actions that the program makes, from its start, to give its result or any other thing that it gives in it, such as a message, also after its end, and not an action that the program makes only for another file read or for other work |
 | [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
 | [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program at a moment, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read", "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
 | [file of the path](sinter:#path-file=v1) | in a file read of a valid path, for file name k: a file that, at a moment of the file read, is the file of the folder entry for file name k in the root, when k is 1, or in a folder that is a file of the path for the file name right before file name k |
 | [folder of the path](sinter:#path-file=v1) | in a file read of a valid path, the root, or a folder that is a file of the path for a file name other than the last |
-| [path change](sinter:#path-change=v1) | a change, during a file read, by another process, by the system, or by an action of the program that is not an action of the file read, of the content, the folder entries, the reference, or the file type of a folder of the path or a file of the path, or of the search permission or the read permission of the program for it; a change that the file system makes by itself when a process looks up a name in a file, opens it, or takes bytes from it, such as a change of the time of last access, is not a path change |
-| [file found from the folder tree](sinter:#file-found-from-a-folder-tree=v1) | in a file read, a file that the program finds, in an action of the file read, from a file of the folder tree or from another file found from the folder tree: by a lookup of a name in such a folder, or by the reference of such a symbolic link |
-| [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | look up a name in, open, or take bytes from a file that a program finds by the reference of the symbolic link |
+| [path change](sinter:#path-change=v1) | a change, during a file read, by another process, by the system, or by an action of the program that is not an action of the file read, of the content, the folder entries, the reference, or the file type of a folder of the path or a file of the path, or of the search permission or the read permission of the program for it |
+| [file found from the folder tree](sinter:#file-found-from-a-folder-tree=v1) | in a file read, a file that the program finds, in an action of the file read, from a file of the folder tree at a moment of the file read or from another file found from the folder tree: by a lookup of a name in such a folder, or by the reference of such a symbolic link, by which the program finds each file that a pathname resolution of the reference finds, from the folder at which it starts to the file to which the reference leads |
+| [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | make a pathname resolution of POSIX.1-2024 go on from the symbolic link, or look up a name in, open, take bytes from, or copy into the program an attribute of a file that a program finds by the reference of the symbolic link |
 | [valid glob](sinter:#glob=v1) | a pattern for valid paths, such as `docs/**/*.md` |
 | [glob segment](sinter:#glob=v1) | one of the texts that a valid glob joins with `/`, such as `docs`, `**`, or `*.md` in `docs/**/*.md`; when the valid glob ends with `/`, the text `**` is one more glob segment after them, so the glob segments of `docs/` are `docs` and `**`; the glob segments of a valid glob have numbers from 1, in order |
 | [fit](sinter:#glob-fit=v1) | a valid path fits a valid glob when the valid path has the form that the valid glob gives |
@@ -128,34 +128,45 @@ as a FIFO special file (a pipe), a character special file, a block
 special file, or a socket, is a file of another kind.
 
 The listing of a folder at a moment is the names of the directory
-entries of the folder that the file system that the folder is on gives,
-for that folder at that moment, to a process that has the read
-permission for the folder, as POSIX.1-2024 defines directory entries.
-The folder entries of a folder at a moment are the directory entries
-whose names the listing of the folder at that moment holds, other than
-`.` and `..`. In POSIX.1-2024, the names `.` and `..` in a directory
-lead to the directory itself and to the directory above it. So the name
-`..` does not make the folder above the root a file of the folder tree.
-Some file systems also have a name that a program can look up and that
-the listing does not hold, such as the name of a hidden folder of
-snapshots. Such a name is not the entry name of a folder entry.
+entries of the folder that the file system that the folder is on would
+give, for that folder at that moment, to the process of the program if
+that process had the read permission for the folder, as POSIX.1-2024
+defines directory entries. Some file systems give different names to
+different processes: for example, a file system can hide from a process
+the names of the files that the process cannot read. The folder entries
+of a folder at a moment are the directory entries whose names the
+listing of the folder at that moment holds, other than `.` and `..`. The
+file of a folder entry is the file that the file system finds for its
+entry name in the folder, as in a pathname resolution of POSIX.1-2024.
+So when another file system is mounted on the folder of a directory
+entry, the file of that folder entry is the folder at the top of the
+other file system, and not the folder on which it is mounted. In
+POSIX.1-2024, the names `.` and `..` in a directory lead to the
+directory itself and to the directory above it. So the name `..` does
+not make the folder above the root a file of the folder tree. Some file
+systems also have a name that a program can look up and that the listing
+does not hold, such as the name of a hidden folder of snapshots. Such a
+name is not the entry name of a folder entry.
 
 A lookup of a name, which is a byte sequence, in a folder is an action
 in which the file system that the folder is on looks, for a program, for
 the directory entry of the folder for that name, such as for a call of
 the function `fstatat` of POSIX.1-2024, or in a pathname resolution of
-POSIX.1-2024. To look up a name in a folder is to make a lookup of that
-name in that folder. An action in which the file system does not look
-for the directory entry, such as because the program has no search
-permission for the folder, is not a lookup. A program opens a file when
-the file system gives the program an open file description of that
-file, as POSIX.1-2024 defines open file descriptions, such as for a call
-of the function `openat`. A program takes a byte from a file when it
-copies into the program a byte that the file holds or gives: a byte of
-the content of a regular file, of the names of the directory entries of
-a folder, of the reference of a symbolic link, or of the data of a file
-of another kind. A lookup takes no bytes from a file, and copying an
-attribute of a file into the program takes no bytes from that file.
+POSIX.1-2024. When a program asks another process for a lookup, and that
+other process asks the file system for it, that lookup is a lookup for
+that program. A program looks up a name in a folder when a lookup of
+that name in that folder is a lookup for that program. An action in
+which the file system does not look for the directory entry, such as
+because the program has no search permission for the folder, is not a
+lookup. A program opens a file when the file system gives the program an
+open file description of that file, as POSIX.1-2024 defines open file
+descriptions, such as for a call of the function `openat`. A program
+takes a byte from a file when it copies into the program a byte that the
+file holds or gives: a byte of the content of a regular file, of the
+names of the directory entries of a folder, of the reference of a
+symbolic link, or of the data of a file of another kind. A lookup takes
+no bytes from a file, and copying an attribute of a file into the
+program takes no bytes from that file.
 
 The search permission of a program for a folder lets the program look
 up names in the folder. The read permission of a program for a regular
@@ -217,18 +228,23 @@ regular file, as POSIX.1-2024 defines hard links.
 
 ### 2.3 The file read
 
-A file read is an operation that a program makes to give, for a text and
-a folder tree, one of the results "invalid", "found", "no file",
-"symbolic link", "not a regular file", "not UTF-8", and "cannot read".
-An operation that a program makes to give one of these results for a
-text and a folder tree is a file read, also when the program gives
-another thing in it, or nothing. To read a text as a path in a folder
-tree is to make a file read of that text in that folder tree. A file
-read lasts from the moment at which the program starts it to the moment
-at which the program gives its result. The actions of a file read are
-the actions that the program makes to give its result. An action of
-another file read, or of other work that the program does at the same
-time, is not an action of that file read.
+A file read is an operation that a program makes to give, for a text as
+a path in a folder tree, one of the results "invalid", "found", "no
+file", "symbolic link", "not a regular file", "not UTF-8", and "cannot
+read". An operation that a program makes to give one of these results
+for a text as a path in a folder tree is a file read, also when the
+program gives another thing in it, or nothing. To read a text as a path
+in a folder tree is to make a file read of that text in that folder
+tree. A file read starts at the moment at which the program takes the
+text of the file read, and it ends at the moment at which the program
+gives the result of the file read. The actions of a file read are the
+actions that the program makes, from the start of the file read, to
+give the result of the file read or any other thing that it gives in
+the file read, such as a message, also after the end of the file read.
+So a message that the program gives after the result is also covered
+by the guarantees below. An action that the program makes only for
+another file read or for other work is not an action of that file
+read.
 
 A file read gives "invalid" when, and only when, its text is not a
 valid path. So a file read of the text `../a.md` or `/etc/passwd` gives
@@ -245,19 +261,17 @@ are the root and each folder that is a file of the path for a file name
 other than the last. A file read of a text that is not a valid path has
 no file of the path and no folder of the path.
 
-Another process, or the system, can change a file of the path during a
-file read, such as by a change of the content of a regular file, or by a
-replacement of a folder with a symbolic link. A path change is a change,
-during a file read, of a folder of the path or a file of the path, by
-another process, by the system, or by an action of the program that is
-not an action of the file read: a change of its content, its folder
-entries, its reference, or its file type, or of the search permission or
-the read permission of the program for it. A change that the file system
-makes by itself when a process looks up a name in a file, opens it, or
-takes bytes from it, such as a change of the time of last access, is not
-a path change. A change of another file of the folder tree, such as a
-new regular file in a folder that is not a folder of the path, is not a
-path change either. When the file read has no path change, each file
+Another process, or the system, can change a folder of the path or a
+file of the path during a file read, such as by a change of the content
+of a regular file, or by a replacement of a folder with a symbolic link.
+A path change is a change, during a file read, of a folder of the path
+or a file of the path, by another process, by the system, or by an
+action of the program that is not an action of the file read: a change
+of its content, its folder entries, its reference, or its file type, or
+of the search permission or the read permission of the program for it.
+A change of another file of the folder tree, such as a new regular file
+in a folder that is neither a folder of the path nor a file of the path,
+is not a path change. When the file read has no path change, each file
 name of the valid path has at most one file of the path.
 
 When the text is a valid path, and the file read has no path change,
@@ -316,16 +330,19 @@ valid path `docs` gives "not a regular file" when `docs` is a folder,
 also when the program has neither the search permission nor the read
 permission for `docs`.
 
-When the system fails during the file read for a cause other than the
-folder tree and the permissions of the program, such as an input or
-output error of a device, a lack of memory, or too many open files, the
-program can give "cannot read" instead of the file-read result. An error
-that the system gives because a name or a pathname that the program
-passes to the system is longer than the system allows is not a failure
-of the system. So, on a system that allows at most 1,024 bytes in a
-pathname, a file read of a valid path of 5,024 characters with no path
-change still gives the file-read result, unless the system fails for
-another cause.
+When the system fails, in an action of the file read, for a cause other
+than the folder tree and the permissions of the program for the files of
+the folder tree, such as an input or output error of a device, a lack of
+memory, or too many open files, the program can give "cannot read"
+instead of the file-read result. So when the program cannot reach the
+root because it has no search permission for a folder above the root, it
+can give "cannot read". An error that the system gives because a name or
+a pathname that the program passes to the system is longer than the
+system or the file system allows, or because the file system does not
+accept a name as an entry name, is not a failure of the system. So, on a
+system that allows at most 1,024 bytes in a pathname, a file read of a
+valid path of 5,024 characters with no path change still gives the
+file-read result, unless the system fails for another cause.
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -348,12 +365,18 @@ that is a file of the path for the last file name. Each guarantee below
 holds in each file read, also when the file read has a path change,
 unless the guarantee names a file read with no path change.
 
-In an action of a file read, the program can find a file from the
-folder tree in two ways. When the program looks up a name in a folder
-of the folder tree, the file of the directory entry that the file
-system finds for that name is a file found from the folder tree. When
-the program finds a file by the reference of a symbolic link of the
-folder tree, that file is a file found from the folder tree. A file that
+In an action of a file read, the program can find a file from the folder
+tree in two ways. When the program looks up a name in a folder that is a
+file of the folder tree at a moment of the file read, the file that the
+file system finds for that name is a file found from the folder tree.
+When the program finds a file by the reference of a symbolic link that
+is a file of the folder tree at a moment of the file read, that file is
+a file found from the folder tree. The files that the program finds by
+the reference of a symbolic link are the files that a pathname
+resolution of POSIX.1-2024 of that reference finds, from the folder at
+which the pathname resolution starts to the file to which the reference
+leads. For example, for the reference `/etc/passwd`, they are the folder
+`/`, the folder `/etc`, and the regular file `/etc/passwd`. A file that
 the program finds in one of these ways from a file found from the folder
 tree is also a file found from the folder tree. So when the program
 looks up the name `..` in the root, the folder above the root is a file
@@ -363,48 +386,56 @@ folder is also a file found from the folder tree.
 
 In the actions of a file read, a conforming program takes no byte from
 any file other than the folders of the path and the regular files of the
-path for the last file name. It follows no symbolic link that is a
-file of the folder tree or a file found from the folder tree: it does
-not look up a name in, open, or take a byte from a file that it finds by
+path for the last file name. It follows no symbolic link that is a file
+of the folder tree at a moment of the file read or a file found from the
+folder tree: it makes no pathname resolution of POSIX.1-2024 go on from
+that symbolic link, and it does not look up a name in, open, take a byte
+from, or copy into the program an attribute of a file that it finds by
 the reference of that symbolic link. Both guarantees hold also when the
 file read has a path change. A text that is not a valid path has no file
 of the path. So for a text such as `../a.md` or `/etc/passwd`, the
-program gives "invalid" and takes no byte from any file. A valid path cannot lead out of the folder tree through
-a symbolic link. Example: while the program reads `docs/a.md`, another
-process replaces the folder `docs` with a symbolic link whose reference
-leads to the folder `s`, which holds the regular file `a.md`. The root
-holds that symbolic link, and not `s`, as the file of the folder entry
-for `docs`. So `s` and the regular file `a.md` in `s` are not files of
-the path, and the program takes no byte from them. A symbolic link that
-the valid path does not name does not change the file read: in a folder
-tree with the symbolic link `self`, whose reference leads to the root,
-and the regular file `a.md`, the valid path `a.md` gives "found".
+program gives "invalid" and takes no byte from any file. A valid path
+cannot lead out of the folder tree through a symbolic link. Example:
+while the program reads `docs/a.md`, another process replaces the folder
+`docs` with a symbolic link whose reference leads to the folder `s`,
+which holds the regular file `a.md`. The root holds that symbolic link,
+and not `s`, as the file of the folder entry for `docs`. So `s` and the
+regular file `a.md` in `s` are not files of the path, and the program
+takes no byte from them. A symbolic link that the valid path does not
+name does not change the file read: in a folder tree with the symbolic
+link `self`, whose reference leads to the root, and the regular file
+`a.md`, the valid path `a.md` gives "found".
 
 In the actions of a file read, a conforming program does not wait for
 another process or for a device to act on a file of another kind that is
-a file found from the folder tree, such as for a process to open the
-other end of a pipe. When the file read has no path change, the program
-also opens no file of another kind that is a file found from the folder
-tree. An open of a file of another kind can act on another process or on
-a device: for example, an open of a pipe can let a process that waits
-for that open go on.
+a file of the folder tree at a moment of the file read or a file found
+from the folder tree, such as for a process to open the other end of a
+pipe. When the file read has no path change, the program also opens no
+file of another kind that is a file of the folder tree at a moment of
+the file read or a file found from the folder tree. An open of a file of
+another kind can act on another process or on a device: for example, an
+open of a pipe can let a process that waits for that open go on.
 
 In the actions of a file read, a conforming program changes no content,
-no folder entry, no reference, and no attribute of a file of the folder
-tree or of a file found from the folder tree. A change that the file
-system makes by itself when the program looks up a name in a file, opens
-it, or takes bytes from it, such as a change of the time of last access,
-is not a change by the program.
+no folder entry, no reference, no data of a file of another kind, and no
+attribute of a file of the folder tree at a moment of the file read or
+of a file found from the folder tree. A change that the file system
+makes by itself when the program looks up a name in a file, opens it, or
+takes bytes from it, such as a change of the time of last access, is not
+a change by the program.
 
 In the actions of a file read, a conforming program keeps to its own
-permissions. It takes no byte from a file of the folder tree, or from a
-file found from the folder tree, for which it has the read permission at
-no moment of the file read. It looks up no name in a folder of the
-folder tree, or in a folder found from the folder tree, for which it has
-the search permission at no moment of the file read. It does not change
-the user IDs or the group IDs of its process, and it gains no
-appropriate privilege, such as a capability of its process, as
-POSIX.1-2024 defines these.
+permissions. It takes no byte from a file of the folder tree at a moment
+of the file read, or from a file found from the folder tree, for which
+it has the read permission at no moment of the file read. It looks up no
+name in a folder that is a file of the folder tree at a moment of the
+file read or a file found from the folder tree, for which it has the
+search permission at no moment of the file read. It does not change the
+user IDs or the group IDs of its process, as POSIX.1-2024 defines these.
+It gives its process no appropriate privilege, as POSIX.1-2024 defines
+it, that the process did not have when the program took the text of the
+file read. A capability, on a system that gives capabilities to
+processes, is an example of an appropriate privilege.
 
 ### 2.4 Valid globs
 
@@ -558,16 +589,21 @@ A folder is a file that holds folder entries. Each folder entry of a
 folder has an entry name, which is a byte sequence, and a file. No two
 folder entries of one folder have the same entry name. A folder holds a
 file when, and only when, that file is the file of a folder entry of
-that folder. The listing of a folder at a moment is the names of the
-directory entries of that folder that the file system that the folder is
-on gives, for that folder at that moment, to a process that has the read
+that folder. In a statement about a program, the listing of a folder at
+a moment is the names of the directory entries of that folder that the
+file system that the folder is on would give, for that folder at that
+moment, to the process of that program if that process had the read
 permission for that folder, as POSIX.1-2024 defines directory entries
 and the read permission of a process. The folder entries of a folder at
 a moment are the directory entries of that folder whose names its
 listing at that moment holds, except each directory entry whose name is
 the UTF-8 encoding of the text `.` or of the text `..`. The entry name
-of a folder entry is the name of that directory entry, and the file of a
-folder entry is the file of that directory entry.
+of a folder entry is the name of that directory entry. The file of a
+folder entry is the file that the file system finds for that entry name
+in that folder, as in a pathname resolution of POSIX.1-2024: so when
+another file system is mounted on the folder of that directory entry,
+the file of that folder entry is the folder at the top of that other
+file system.
 
 ### 3.4 Regular files
 
@@ -665,11 +701,14 @@ A lookup of a name, which is a byte sequence, in a folder is an action
 in which the file system that the folder is on looks, for a program, for
 the directory entry of that folder for that name, as POSIX.1-2024
 defines directory entries, such as for a call of the function `fstatat`
-of POSIX.1-2024, or in a pathname resolution of POSIX.1-2024. To look up
-a name in a folder is to make a lookup of that name in that folder. An
-action in which the file system does not look for that directory entry,
-such as because the program has no search permission for that folder,
-is not a lookup.
+of POSIX.1-2024, or in a pathname resolution of POSIX.1-2024. When a
+program asks another process for a lookup, and that other process asks
+the file system for it, that lookup is a lookup for that program. A
+program looks up a name in a folder when, and only when, a lookup of
+that name in that folder is a lookup for that program. An action in
+which the file system does not look for that directory entry, such as
+because the program has no search permission for that folder, is not a
+lookup.
 
 ### 3.13 Opens
 
@@ -727,19 +766,21 @@ more than the file name right before it.
 @term file-read=v1
 @cites {#{folder-tree=v1, path=v1}, text#{text=v1, result=v1}}
 
-A file read is an operation that a program makes to give, for a text and
-a folder tree, one of the results "invalid", "found", "no file",
-"symbolic link", "not a regular file", "not UTF-8", and "cannot read".
-Such an operation is a file read also when the program gives another
-thing in it, or nothing. That text is the text of the file read, and
-that folder tree is the folder tree of the file read. To read a text as
-a path in a folder tree is to make a file read of that text in that
-folder tree. A file read lasts from the moment at which the program
-starts it to the moment at which the program gives its result. The
-actions of a file read are the actions that the program makes to give
-the result of that file read. An action of another file read, or of
-other work that the program does at the same time, is not an action of
-that file read.
+A file read is an operation that a program makes to give, for a text as
+a path in a folder tree, one of the results "invalid", "found", "no
+file", "symbolic link", "not a regular file", "not UTF-8", and "cannot
+read". Such an operation is a file read also when the program gives
+another thing in it, or nothing. That text is the text of the file read,
+and that folder tree is the folder tree of the file read. To read a text
+as a path in a folder tree is to make a file read of that text in that
+folder tree. A file read starts at the moment at which the program takes
+the text of that file read, and it ends at the moment at which the
+program gives the result of that file read. The actions of a file read
+are the actions that the program makes, from the start of that file
+read, to give the result of that file read or any other thing that it
+gives in that file read, such as a message, also after its end. An action that the
+program makes only for another file read or for other work is not an
+action of that file read.
 
 ### 3.17 The result of a file read
 
@@ -804,14 +845,10 @@ of the path and no folder of the path.
 ### 3.19 Path changes
 
 @term path-change=v1
-@cites {
-    #{
-        system=v1, file-system=v1, folder=v1, regular-file=v1,
-        symbolic-link=v1, file-kind=v1, search-permission=v1,
-        read-permission=v1, lookup=v1, open=v1, taken-byte=v1, path=v1,
-        file-read=v1, path-file=v1,
-    },
-    text#{byte=v1},
+@cites #{
+    system=v1, folder=v1, regular-file=v1, symbolic-link=v1,
+    file-kind=v1, search-permission=v1, read-permission=v1, path=v1,
+    file-read=v1, path-file=v1,
 }
 
 A path change of a file read is a change, during that file read, of a
@@ -819,11 +856,8 @@ folder of the path or a file of the path of that file read, by another
 process, by the system, or by an action of the program that is not an
 action of that file read: a change of its content, its folder entries,
 its reference, or its file type, or of the search permission or the read
-permission of the program for it. A change that the file system makes
-by itself when a process looks up a name in a file, opens it, or takes
-bytes from it, such as a change of the time of last access, is not a
-path change. A file read has a path change when, and only when, a path
-change of that file read happens.
+permission of the program for it. A file read has a path change when,
+and only when, a path change of that file read happens.
 
 ### 3.20 Files found from a folder tree
 
@@ -838,13 +872,15 @@ change of that file read happens.
 
 A file found from the folder tree of a file read is a file that the
 program finds, in an action of that file read, from a folder or a
-symbolic link that is a file of that folder tree or a file found from
-that folder tree, in one of two ways: the file is the file of the
-directory entry that the file system finds when the program looks up a
-name in that folder, as POSIX.1-2024 defines directory entries; or the
-program finds the file by the reference of that symbolic link, such as
-by a pathname resolution of POSIX.1-2024 that goes on from that symbolic
-link to the file to which its reference leads.
+symbolic link that is a file of that folder tree at a moment of that
+file read or a file found from that folder tree, in one of two ways: the
+file is the file that the file system finds for a name, as in a pathname
+resolution of POSIX.1-2024, when the program looks up that name in that
+folder; or the program finds the file by the reference of that symbolic
+link. The files that the program finds by the reference of a symbolic
+link are the files that a pathname resolution of POSIX.1-2024 of that
+reference finds, from the folder at which that pathname resolution
+starts to the file to which that reference leads.
 
 ### 3.21 Valid globs
 
@@ -977,8 +1013,8 @@ path.
 @cites {
     posix/2024,
     #{
-        system=v1, folder-tree=v1, path=v1, file-read=v1,
-        file-read-result=v1, path-change=v1,
+        system=v1, file-system=v1, folder=v1, folder-tree=v1, path=v1,
+        file-read=v1, file-read-result=v1, path-change=v1,
     },
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
@@ -987,12 +1023,14 @@ In each file read of a text in a folder tree, a conforming program must
 give exactly one result of the file read, which, when the text is a
 valid path and the file read has no path change, is the file-read result
 of that valid path in that folder tree for the program when the file
-read starts, or "cannot read" when the system fails during the file read
-for a cause other than the folder tree and the permissions of the
-program, such as an input or output error of a device, a lack of memory,
-or too many open files. An error that the system gives because a name,
-or a pathname of POSIX.1-2024, that the program passes to the system is
-longer than the system allows is not a failure of the system.
+read starts, or "cannot read" when the system fails, in an action of the
+file read, for a cause other than the folder tree and the permissions of
+the program for the files of the folder tree, such as an input or output
+error of a device, a lack of memory, or too many open files. An error
+that the system gives because a name, or a pathname of POSIX.1-2024,
+that the program passes to the system is longer than the system or the
+file system allows, or because the file system does not accept a name as
+an entry name, is not a failure of the system.
 
 ### 4.4 The text of a file
 
@@ -1051,20 +1089,20 @@ as the text of a file.
 @cites {
     posix/2024,
     #{
-        folder-tree=v1, symbolic-link=v1, lookup=v1, open=v1,
-        taken-byte=v1, file-read=v1, file-found-from-a-folder-tree=v1,
+        folder-tree=v1, symbolic-link=v1, attribute=v1, lookup=v1,
+        open=v1, taken-byte=v1, file-read=v1,
+        file-found-from-a-folder-tree=v1,
     },
     text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
 }
 
 In the actions of each file read of a text in a folder tree, a
 conforming program must follow no symbolic link that is a file of the
-folder tree or a file found from the folder tree, also when another
-process puts that symbolic link in the folder tree during the file read:
-it must not look up a name in, open, or take a byte from a file that it
-finds by the reference of that symbolic link, such as by a pathname
-resolution of POSIX.1-2024 that goes on from that symbolic link to the
-file to which its reference leads.
+folder tree at a moment of the file read or a file found from the folder
+tree: it must make no pathname resolution of POSIX.1-2024 go on from
+that symbolic link, and it must not look up a name in, open, take a byte
+from, or copy into the program an attribute of a file that it finds by
+the reference of that symbolic link.
 
 ### 4.8 Bytes only from the files that the path names
 
@@ -1096,8 +1134,9 @@ that text.
 
 In the actions of each file read of a text in a folder tree, a
 conforming program must not wait for another process or for a device to
-act on a file of another kind that is a file found from the folder tree,
-such as for a process to open the other end of a pipe.
+act on a file of another kind that is a file of the folder tree at a
+moment of the file read or a file found from the folder tree, such as
+for a process to open the other end of a pipe.
 
 ### 4.10 No open of a file of another kind
 
@@ -1112,7 +1151,8 @@ such as for a process to open the other end of a pipe.
 
 In the actions of each file read of a text in a folder tree, when the
 file read has no path change, a conforming program must open no file of
-another kind that is a file found from the folder tree.
+another kind that is a file of the folder tree at a moment of the file
+read or a file found from the folder tree.
 
 ### 4.11 No change to the files of the folder tree
 
@@ -1120,17 +1160,19 @@ another kind that is a file found from the folder tree.
 @cites {
     #{
         file-system=v1, folder-tree=v1, folder=v1, regular-file=v1,
-        symbolic-link=v1, attribute=v1, lookup=v1, open=v1,
-        taken-byte=v1, file-read=v1, file-found-from-a-folder-tree=v1,
+        symbolic-link=v1, file-of-another-kind=v1, attribute=v1,
+        lookup=v1, open=v1, taken-byte=v1, file-read=v1,
+        file-found-from-a-folder-tree=v1,
     },
     text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
 }
 
 In the actions of each file read of a text in a folder tree, a
 conforming program must not change the content, the folder entries, the
-reference, or an attribute of a file of the folder tree or of a file
-found from the folder tree, such as its mode, its owner, its times, or
-its extended attributes, other than by a change that the file system
+reference, the data of a file of another kind, or an attribute of a
+file of the folder tree at a moment of the file read or of a file found
+from the folder tree, such as its mode, its owner, its times, or its
+extended attributes, other than by a change that the file system
 makes by itself when the program looks up a name in that file, opens it,
 or takes bytes from it, such as a change of the time of last access.
 
@@ -1146,9 +1188,9 @@ or takes bytes from it, such as a change of the time of last access.
 }
 
 In the actions of each file read of a text in a folder tree, a
-conforming program must take no byte from a file of the folder tree, or
-from a file found from the folder tree, for which it has the read
-permission at no moment of the file read.
+conforming program must take no byte from a file of the folder tree at a
+moment of the file read, or from a file found from the folder tree, for
+which it has the read permission at no moment of the file read.
 
 ### 4.13 Lookups only with the search permission
 
@@ -1162,13 +1204,14 @@ permission at no moment of the file read.
 }
 
 In the actions of each file read of a text in a folder tree, a
-conforming program must look up no name in a folder of the folder tree,
-or in a folder found from the folder tree, for which it has the search
-permission at no moment of the file read.
+conforming program must look up no name in a folder that is a file of
+the folder tree at a moment of the file read or a file found from the
+folder tree, for which it has the search permission at no moment of the
+file read.
 
-### 4.14 The identities and the privileges of the process
+### 4.14 The identities of the process
 
-@req keep-ids-and-privileges=v1
+@req keep-ids=v1
 @cites {
     posix/2024,
     #{folder-tree=v1, file-read=v1},
@@ -1177,14 +1220,26 @@ permission at no moment of the file read.
 
 In the actions of each file read of a text in a folder tree, a
 conforming program must not change the user IDs or the group IDs of its
-process (its real user ID, its effective user ID, its saved
-set-user-ID, its real group ID, its effective group ID, its saved
-set-group-ID, or its supplementary group IDs), and must not give its
-process an appropriate privilege that it did not have when the file read
-started, such as a capability of the process, as POSIX.1-2024 defines
-these.
+process, as POSIX.1-2024 defines these: its real user ID, its effective
+user ID, its saved set-user-ID, its real group ID, its effective group
+ID, its saved set-group-ID, or its supplementary group IDs.
 
-### 4.15 The validation of texts as globs
+### 4.15 The privileges of the process
+
+@req gain-no-privileges=v1
+@cites {
+    posix/2024,
+    #{system=v1, folder-tree=v1, file-read=v1},
+    text#{conforming-program=v1, text=v1, requirement=v1},
+}
+
+In the actions of each file read of a text in a folder tree, a
+conforming program must not give its process an appropriate privilege
+(as POSIX.1-2024 defines it, such as a capability on a system that gives
+capabilities to processes) that the process did not have when the
+program took the text of the file read.
+
+### 4.16 The validation of texts as globs
 
 @req validate-globs=v1
 @cites {
@@ -1202,7 +1257,7 @@ it, or nothing, a conforming program must give exactly one result:
 "valid" when the text matches `glob`, and "invalid" when the text does
 not match `glob`.
 
-### 4.16 Whether valid paths fit valid globs
+### 4.17 Whether valid paths fit valid globs
 
 @req decide-glob-fit=v1
 @cites {
@@ -1217,7 +1272,7 @@ gives another thing in it, or nothing, a conforming program must give
 exactly one result: "fits" when the valid path fits the valid glob, and
 "does not fit" when the valid path does not fit the valid glob.
 
-### 4.17 The validation of path sets
+### 4.18 The validation of path sets
 
 @req validate-path-sets=v1
 @cites {
@@ -1231,7 +1286,7 @@ is valid, also when the program gives another thing in it, or nothing, a
 conforming program must give exactly one result: "valid" when the path
 set is valid, and "invalid" when the path set is not valid.
 
-### 4.18 Whether valid paths are in the sets of path sets
+### 4.19 Whether valid paths are in the sets of path sets
 
 @req decide-path-set-membership=v1
 @cites {
@@ -1397,8 +1452,10 @@ reads the text as a path in the folder tree.
   3. The system does not fail during the file read. This condition
      excludes only failures of the system. An error that the system
      gives because a name or a pathname that the program passes to the
-     system is longer than the system allows is not a failure of the
-     system, so the condition does not exclude such an error.
+     system is longer than the system or the file system allows, or
+     because the file system does not accept a name as an entry name, is
+     not a failure of the system, so the condition does not exclude such
+     an error.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
