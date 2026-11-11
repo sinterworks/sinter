@@ -32,7 +32,8 @@ directory entries of a directory, and the names `.` and `..` in a
 directory; hard links; pathname resolution; open file descriptions; the
 search permission, the read permission, and the write permission of a
 process for a file, the owner of a file, and the time of last access of
-a file; the user IDs and the group IDs of a process; and the functions
+a file; the user IDs, the group IDs, and the appropriate privileges of a
+process; and the functions
 `openat` and `fstatat`.
 
 ## 1. Glossary
@@ -349,17 +350,15 @@ found from the folder tree, though it is not a file of the folder tree.
 When the program looks up the name of a hidden folder of snapshots, that
 folder is also a file found from the folder tree.
 
-In the actions of a file read, a conforming program takes no byte from a
-file of the folder tree, or from a file found from the folder tree,
-other than from the folders of the path and from the regular files of
-the path for the last file name. It follows no symbolic link that is a
+In the actions of a file read, a conforming program takes no byte from
+any file other than the folders of the path and the regular files of the
+path for the last file name. It follows no symbolic link that is a
 file of the folder tree or a file found from the folder tree: it does
 not look up a name in, open, or take a byte from a file that it finds by
 the reference of that symbolic link. Both guarantees hold also when the
-file read has a path change. So for a text that is not a valid path,
-such as `../a.md` or `/etc/passwd`, the program gives "invalid" and
-takes no byte from a file of the folder tree or from a file found from
-the folder tree. A valid path cannot lead out of the folder tree through
+file read has a path change. A text that is not a valid path has no file
+of the path. So for a text such as `../a.md` or `/etc/passwd`, the
+program gives "invalid" and takes no byte from any file. A valid path cannot lead out of the folder tree through
 a symbolic link. Example: while the program reads `docs/a.md`, another
 process replaces the folder `docs` with a symbolic link whose reference
 leads to the folder `s`, which holds the regular file `a.md`. The root
@@ -392,8 +391,9 @@ file found from the folder tree, for which it has the read permission at
 no moment of the file read. It looks up no name in a folder of the
 folder tree, or in a folder found from the folder tree, for which it has
 the search permission at no moment of the file read. It does not change
-the user IDs or the group IDs of its process, as POSIX.1-2024 defines
-them.
+the user IDs or the group IDs of its process, and it gains no
+appropriate privilege, such as a capability of its process, as
+POSIX.1-2024 defines these.
 
 ### 2.4 Valid globs
 
@@ -1059,17 +1059,15 @@ file to which its reference leads.
     #{
         folder-tree=v1, folder=v1, regular-file=v1, taken-byte=v1,
         path=v1, file-read=v1, path-file=v1, path-change=v1,
-        file-found-from-a-folder-tree=v1,
     },
     text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
 }
 
 In the actions of each file read of a text in a folder tree, also when
 the file read has a path change, a conforming program must take no byte
-from a file of the folder tree, or from a file found from the folder
-tree, other than from the folders of the path of that file read and
-from each regular file that is a file of the path for the last file name
-of that text.
+from any file other than the folders of the path of that file read and
+each regular file that is a file of the path for the last file name of
+that text.
 
 ### 4.9 No wait for another process
 
@@ -1154,9 +1152,9 @@ conforming program must look up no name in a folder of the folder tree,
 or in a folder found from the folder tree, for which it has the search
 permission at no moment of the file read.
 
-### 4.14 The user IDs and the group IDs of the process
+### 4.14 The identities and the privileges of the process
 
-@req keep-user-and-group-ids=v1
+@req keep-ids-and-privileges=v1
 @cites {
     posix/2024,
     #{folder-tree=v1, file-read=v1},
@@ -1165,10 +1163,12 @@ permission at no moment of the file read.
 
 In the actions of each file read of a text in a folder tree, a
 conforming program must not change the user IDs or the group IDs of its
-process: its real user ID, its effective user ID, its saved
+process (its real user ID, its effective user ID, its saved
 set-user-ID, its real group ID, its effective group ID, its saved
-set-group-ID, or its supplementary group IDs, as POSIX.1-2024 defines
-them.
+set-group-ID, or its supplementary group IDs), and must not give its
+process an appropriate privilege that it did not have when the file read
+started, such as a capability of the process, as POSIX.1-2024 defines
+these.
 
 ### 4.15 The validation of texts as globs
 
