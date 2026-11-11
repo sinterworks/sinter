@@ -361,9 +361,27 @@ file-read result. Still, the file read gives "invalid" only for a text
 that is not a valid path. With "found", the file read gives exactly one
 text as the text of the content: the text of one byte sequence that the
 program took, in the actions of the file read, from one regular file
-that is a file of the path for the last file name. Each guarantee below
-holds in each file read, also when the file read has a path change,
-unless the guarantee names a file read with no path change.
+that is a file of the path for the last file name. Each other result
+also needs a reason in the folder tree, at a moment of the file read:
+
+- "symbolic link" only when a file of the path is a symbolic link;
+- "not a regular file" only when a file of the path for the last file
+  name is a folder or a file of another kind;
+- "no file" only when, at a moment of the file read, a folder of the
+  path holds no folder entry for the file name that the program looks
+  up in it, or a file of the path for a file name other than the last
+  is not a folder;
+- "not UTF-8" only when the byte sequence that the program took from a
+  regular file of the path for the last file name is not valid UTF-8;
+- "found" only when that byte sequence has as many bytes as the content
+  of that regular file has at a moment of the file read, and, at each of
+  its places, the byte that the content of that regular file has at that
+  place at a moment of the file read. So the text of a content that did
+  not change is the whole content.
+
+"cannot read" needs no such reason. Each guarantee below holds in each
+file read, also when the file read has a path change, unless the
+guarantee names a file read with no path change.
 
 In an action of a file read, the program can find a file from the folder
 tree in two ways. When the program looks up a name in a folder that is a
@@ -1050,7 +1068,45 @@ the file-read result of that valid path in that folder tree, for the
 program when the file read starts, gives with "found", and no other text
 as the text of the content.
 
-### 4.5 Texts only from the files that the path names
+### 4.5 Results with a path change
+
+@req limit-results-under-path-changes=v1
+@cites {
+    #{
+        folder=v1, regular-file=v1, symbolic-link=v1,
+        file-of-another-kind=v1, folder-tree=v1, taken-byte=v1, path=v1,
+        file-read=v1, path-file=v1, path-change=v1,
+    },
+    text#{
+        conforming-program=v1, result=v1, text=v1, byte=v1,
+        byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
+        utf-8-encoding=v1, place=v1, requirement=v1,
+    },
+}
+
+In each file read of a valid path in a folder tree that has a path
+change, a conforming program must give each of these results only when
+its condition holds:
+
+- "symbolic link": a file of the path is a symbolic link;
+- "not a regular file": a file of the path for the last file name of
+  the valid path is a folder or a file of another kind;
+- "no file": at a moment of the file read, the root of the folder tree
+  holds no folder entry whose entry name is the UTF-8 encoding of file
+  name 1, or a folder that is a file of the path for a file name k holds
+  no folder entry whose entry name is the UTF-8 encoding of file name
+  k + 1, or a file of the path for a file name other than the last is not
+  a folder;
+- "not UTF-8": a byte sequence that the program took, in the actions of
+  the file read, from a regular file that is a file of the path for the
+  last file name is not valid UTF-8;
+- "found": the byte sequence whose text the program gives with that
+  result has as many bytes as the content of the regular file from which
+  the program took it has at a moment of the file read, and, at each of
+  its places, the byte that the content of that regular file has at that
+  place at a moment of the file read.
+
+### 4.6 Texts only from the files that the path names
 
 @req give-texts-of-path-files=v1
 @cites {
@@ -1071,7 +1127,7 @@ the text of one byte sequence that it took, in the actions of that file
 read, from one regular file that is a file of the path for the last file
 name of that text.
 
-### 4.6 No text of a file with another result
+### 4.7 No text of a file with another result
 
 @req omit-texts-of-other-results=v1
 @cites {
@@ -1083,7 +1139,7 @@ When it reads a text as a path in a folder tree and gives a result other
 than "found", a conforming program must give, in that file read, no text
 as the text of a file.
 
-### 4.7 No symbolic link followed
+### 4.8 No symbolic link followed
 
 @req follow-no-symbolic-links=v1
 @cites {
@@ -1104,7 +1160,7 @@ that symbolic link, and it must not look up a name in, open, take a byte
 from, or copy into the program an attribute of a file that it finds by
 the reference of that symbolic link.
 
-### 4.8 Bytes only from the files that the path names
+### 4.9 Bytes only from the files that the path names
 
 @req read-only-named-files=v1
 @cites {
@@ -1121,7 +1177,7 @@ from any file other than the folders of the path of that file read and
 each regular file that is a file of the path for the last file name of
 that text.
 
-### 4.9 No wait for another process
+### 4.10 No wait for another process
 
 @req avoid-waits=v1
 @cites {
@@ -1138,7 +1194,7 @@ act on a file of another kind that is a file of the folder tree at a
 moment of the file read or a file found from the folder tree, such as
 for a process to open the other end of a pipe.
 
-### 4.10 No open of a file of another kind
+### 4.11 No open of a file of another kind
 
 @req avoid-opens-of-files-of-another-kind=v1
 @cites {
@@ -1154,7 +1210,7 @@ file read has no path change, a conforming program must open no file of
 another kind that is a file of the folder tree at a moment of the file
 read or a file found from the folder tree.
 
-### 4.11 No change to the files of the folder tree
+### 4.12 No change to the files of the folder tree
 
 @req keep-folder-trees-unchanged=v1
 @cites {
@@ -1176,7 +1232,7 @@ extended attributes, other than by a change that the file system
 makes by itself when the program looks up a name in that file, opens it,
 or takes bytes from it, such as a change of the time of last access.
 
-### 4.12 Bytes only with the read permission
+### 4.13 Bytes only with the read permission
 
 @req take-bytes-with-read-permission=v1
 @cites {
@@ -1192,7 +1248,7 @@ conforming program must take no byte from a file of the folder tree at a
 moment of the file read, or from a file found from the folder tree, for
 which it has the read permission at no moment of the file read.
 
-### 4.13 Lookups only with the search permission
+### 4.14 Lookups only with the search permission
 
 @req look-up-names-with-search-permission=v1
 @cites {
@@ -1209,7 +1265,7 @@ the folder tree at a moment of the file read or a file found from the
 folder tree, for which it has the search permission at no moment of the
 file read.
 
-### 4.14 The identities of the process
+### 4.15 The identities of the process
 
 @req keep-ids=v1
 @cites {
@@ -1224,7 +1280,7 @@ process, as POSIX.1-2024 defines these: its real user ID, its effective
 user ID, its saved set-user-ID, its real group ID, its effective group
 ID, its saved set-group-ID, or its supplementary group IDs.
 
-### 4.15 The privileges of the process
+### 4.16 The privileges of the process
 
 @req gain-no-privileges=v1
 @cites {
@@ -1239,7 +1295,7 @@ conforming program must not give its process an appropriate privilege
 capabilities to processes) that the process did not have when the
 program took the text of the file read.
 
-### 4.16 The validation of texts as globs
+### 4.17 The validation of texts as globs
 
 @req validate-globs=v1
 @cites {
@@ -1257,7 +1313,7 @@ it, or nothing, a conforming program must give exactly one result:
 "valid" when the text matches `glob`, and "invalid" when the text does
 not match `glob`.
 
-### 4.17 Whether valid paths fit valid globs
+### 4.18 Whether valid paths fit valid globs
 
 @req decide-glob-fit=v1
 @cites {
@@ -1272,7 +1328,7 @@ gives another thing in it, or nothing, a conforming program must give
 exactly one result: "fits" when the valid path fits the valid glob, and
 "does not fit" when the valid path does not fit the valid glob.
 
-### 4.18 The validation of path sets
+### 4.19 The validation of path sets
 
 @req validate-path-sets=v1
 @cites {
@@ -1286,7 +1342,7 @@ is valid, also when the program gives another thing in it, or nothing, a
 conforming program must give exactly one result: "valid" when the path
 set is valid, and "invalid" when the path set is not valid.
 
-### 4.19 Whether valid paths are in the sets of path sets
+### 4.20 Whether valid paths are in the sets of path sets
 
 @req decide-path-set-membership=v1
 @cites {
