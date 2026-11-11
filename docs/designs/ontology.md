@@ -1656,8 +1656,8 @@ A session is one execution of an agent on its work. The declared task
 of a session is the task that the agent declares as the work of that
 session. The brief of a session is the text about its work that a
 conforming program gives the agent of the session for that session. A
-conforming program must give the same output for two inputs that differ
-only in the declared task of a session, except for the brief of that
+conforming program must give the same texts for two inputs that differ
+only in the declared task of a session, except the brief of that
 session.
 
 ## 5. Conformance
