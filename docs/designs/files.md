@@ -367,10 +367,10 @@ also needs a reason in the folder tree, at a moment of the file read:
 - "symbolic link" only when a file of the path is a symbolic link;
 - "not a regular file" only when a file of the path for the last file
   name is a folder or a file of another kind;
-- "no file" only when, at a moment of the file read, a folder of the
-  path holds no folder entry for the file name that the program looks
-  up in it, or a file of the path for a file name other than the last
-  is not a folder;
+- "no file" only when, at a moment of the file read, the root holds no
+  folder entry for file name 1, or a folder of the path for one file
+  name holds no folder entry for the next file name, or a file of the
+  path for a file name other than the last is not a folder;
 - "not UTF-8" only when the byte sequence that the program took from a
   regular file of the path for the last file name is not valid UTF-8;
 - "found" only when that byte sequence has as many bytes as the content
@@ -796,9 +796,9 @@ the text of that file read, and it ends at the moment at which the
 program gives the result of that file read. The actions of a file read
 are the actions that the program makes, from the start of that file
 read, to give the result of that file read or any other thing that it
-gives in that file read, such as a message, also after its end. An action that the
-program makes only for another file read or for other work is not an
-action of that file read.
+gives in that file read, such as a message, also after its end. An
+action that the program makes only for another file read or for other
+work is not an action of that file read.
 
 ### 3.17 The result of a file read
 
@@ -1084,9 +1084,9 @@ as the text of the content.
     },
 }
 
-In each file read of a valid path in a folder tree that has a path
-change, a conforming program must give each of these results only when
-its condition holds:
+In each file read that has a path change and whose text is a valid
+path, a conforming program must give each of these results only when its
+condition holds:
 
 - "symbolic link": a file of the path is a symbolic link;
 - "not a regular file": a file of the path for the last file name of
@@ -1095,8 +1095,8 @@ its condition holds:
   holds no folder entry whose entry name is the UTF-8 encoding of file
   name 1, or a folder that is a file of the path for a file name k holds
   no folder entry whose entry name is the UTF-8 encoding of file name
-  k + 1, or a file of the path for a file name other than the last is not
-  a folder;
+  k + 1, or a file of the path for a file name other than the last is
+  not a folder;
 - "not UTF-8": a byte sequence that the program took, in the actions of
   the file read, from a regular file that is a file of the path for the
   last file name is not valid UTF-8;
