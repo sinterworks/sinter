@@ -74,7 +74,7 @@ vector.
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | the vector line that states the conformance vector |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [number of a conformance vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of the member `n` of its object, a whole number of 1 or more |
-| [group of a vector line](sinter:data-forms#test-vector-line=v1) | the value of the member `group` of the object of a vector line, or of a group line, which is a group name such as `offsets` |
+| [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, or of a group line, which is a group name such as `offsets` |
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
 | [test](sinter:#test=v1) | a unit of code that a test framework runs and reports as passed or failed, or a set of such units, with a name |
 | [code of a test](sinter:#test=v1) | the part of its file that a test takes up |
@@ -906,7 +906,7 @@ item in that tree, when the tree has one.
 @term conformance-vector=v1
 @cites {
     data-forms#{
-        test-vector-line=v1, vector-meaning=v1, group-form-list=v1,
+        vector-line=v1, vector-meaning=v1, group-form-list=v1,
     },
     text#{
         design=v1, specification=v1, requirement=v1,
@@ -932,7 +932,7 @@ number of its vector line.
 
 @term conformance-vector-group=v1
 @cites {
-    data-forms#{test-vector-line=v1, vector-object=v1},
+    data-forms#{vector-line=v1, vector-object=v1},
     #{vector-set=v1, conformance-vector=v1},
 }
 
@@ -1019,7 +1019,7 @@ external item too.
 @term revised-content=v1
 @cites {
     identifiers#{label=v1, declaration=v1},
-    data-forms#{test-vector-line=v1, group-form-list=v1},
+    data-forms#{vector-line=v1, group-form-list=v1},
     text#{text=v1},
     #{
         item=v1, declared-item=v1, containment=v1, term=v1,
