@@ -30,12 +30,11 @@ requirements, conforming programs, and results. From POSIX.1-2024, the
 design takes files, processes, and what a file system is; the file
 types, such as a directory, a regular file, and a symbolic link; the
 directory entries of a directory, and the names `.` and `..` in a
-directory; hard links; pathname resolution; open file descriptions; the
-search permission, the read permission, and the write permission of a
-process for a file, the owner of a file, and the time of last access of
-a file; the user IDs, the group IDs, and the appropriate privileges of a
-process; and the functions
-`openat` and `fstatat`.
+directory; hard links; pathnames and pathname resolution; open file
+descriptions; the search permission, the read permission, and the write
+permission of a process for a file, the owner of a file, and the time of
+last access of a file; the user IDs, the group IDs, and the appropriate
+privileges of a process; and the functions `openat` and `fstatat`.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`: each
@@ -320,7 +319,13 @@ permission for `docs`.
 When the system fails during the file read for a cause other than the
 folder tree and the permissions of the program, such as an input or
 output error of a device, a lack of memory, or too many open files, the
-program can give "cannot read" instead of the file-read result.
+program can give "cannot read" instead of the file-read result. An error
+that the system gives because a name or a pathname that the program
+passes to the system is longer than the system allows is not a failure
+of the system. So, on a system that allows at most 1,024 bytes in a
+pathname, a file read of a valid path of 5,024 characters with no path
+change still gives the file-read result, unless the system fails for
+another cause.
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -970,6 +975,7 @@ path.
 
 @req give-file-read-results=v1
 @cites {
+    posix/2024,
     #{
         system=v1, folder-tree=v1, path=v1, file-read=v1,
         file-read-result=v1, path-change=v1,
@@ -984,7 +990,9 @@ of that valid path in that folder tree for the program when the file
 read starts, or "cannot read" when the system fails during the file read
 for a cause other than the folder tree and the permissions of the
 program, such as an input or output error of a device, a lack of memory,
-or too many open files.
+or too many open files. An error that the system gives because a name,
+or a pathname of POSIX.1-2024, that the program passes to the system is
+longer than the system allows is not a failure of the system.
 
 ### 4.4 The text of a file
 
@@ -1249,14 +1257,16 @@ The vectors of this design are in the file
 [`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector
 file, in the same directory as this design. A vector is an input and
 what a conforming program gives for it. Each vector follows from the
-requirements and adds nothing to them. The vectors are in groups. Each
-group has a name, such as `paths`, and a subsection below. The
-subsection names the requirements that the vectors of the group follow
-from, and it describes their inputs, results, and values. Each vector of
-a group follows from one or more of these requirements. Section 5.7
-gives setups in which a conforming program reads a text as a path, and
-what it does not do in these file reads. The setups are not vectors, and
-the vector file does not hold them.
+requirements and adds nothing to them. The person or the program that
+runs the vectors, and compares what a program gives with them, is the
+runner. The vectors are in groups. Each group has a name, such as
+`paths`, and a subsection below. The subsection names the requirements
+that the vectors of the group follow from, and it describes their
+inputs, results, and values. Each vector of a group follows from one or
+more of these requirements. Section 5.7 gives setups in which a
+conforming program reads a text as a path, and what it does not do in
+these file reads. The setups are not vectors, and the vector file does
+not hold them.
 
 The vector file is valid UTF-8. Its text does not start with U+FEFF, it
 holds no carriage return, and it ends with a line feed. Each line of the
@@ -1286,39 +1296,49 @@ The JSON object of a vector line has these members:
   number before it.
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input of the vector: what a conforming program takes or
-  reads. The subsection of each group gives its form. The input of a
-  vector can hold more than one input of the program: for example, a
-  valid glob and a valid path.
-- `result`: the result that a conforming program gives for one input
-  that the input of the vector holds, as a JSON string that holds the
-  characters of the result without its double quotes. Each vector has
-  this member. The subsection of each group says for which input, and,
-  for the group `file-reads`, under which conditions.
-- `values`: a JSON object that holds what a conforming program gives
-  for the input of the vector, other than the result. Only the vectors
-  of the group `file-reads` have this member, and its subsection gives
-  the members of this JSON object. A vector without the member `values`
-  says nothing about what a conforming program gives for its input,
-  other than the result.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
+- `input`: the inputs of the vector: what a conforming program takes or
+  reads. The subsection of each group names these inputs and gives their
+  form. The input of a vector can hold more than one input of the
+  program: for example, a valid glob and a valid path. In the group
+  `file-reads`, the input also stands for conditions on the file read.
+- `result`: the result that a conforming program gives for the inputs
+  that the subsection of the group names, such as a valid glob and a
+  valid path together, as a JSON string that holds the characters of the
+  result without its double quotes. Each vector has this member. The
+  subsection of each group also names the operations on these inputs in
+  which a conforming program gives this result: each validation that it
+  makes, each time that it decides, or each file read that it makes. In
+  each such operation, a conforming program gives this result, and no
+  other result.
+- `values`: a JSON object that holds what a conforming program gives, or
+  does not give, for the inputs of the vector, other than the result.
+  Only the vectors of the group `file-reads` have this member, and its
+  subsection gives the members of this JSON object. A vector without the
+  member `values` says nothing about what a conforming program gives for
+  its inputs, other than the result.
+- `note`: an explanation of the vector, as a JSON string, which is no
+  part of the input, the result, or the values. A vector has this member
+  only when it has an explanation.
 
 A revision is a JSON string of `v`, then the decimal numeral of a whole
 number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when a
-vector that it covers changes, joins, or leaves. When the text of this
-section changes, the revisions of every vector, every group, and the
-set rise. A change of a note alone changes no revision. A program does
-not need the revisions to run the vectors.
+vector. A revision rises to a greater number after its `v`. The revision
+of a vector rises when its group, its input, its result, or its values
+change. The revision of a group rises when a vector joins the group,
+leaves it, or changes in it. The revision of the set rises when a vector
+joins the set, leaves it, or changes. A group that comes back after it
+left gets a revision with a greater number than each revision that it
+had before. When the text of this section changes, the revisions of
+every vector, every group, and the set rise. A change of a note alone
+changes no revision. The runner does not need the revisions to run the
+vectors.
 
-A vector writes each input and each value in one fixed form. Inside the
+A vector writes each input and each value in a fixed form. Inside the
 members `input` and `values`, each text, byte sequence, whole number,
 and sequence has this fixed form, and section 5.2 gives the fixed form
-of a folder tree:
+of a folder tree and of the pieces of a content or a text:
 
 - A text, such as a valid path, a valid glob, or a path set member, is a
   JSON string whose characters are the characters of the text, in
@@ -1343,12 +1363,12 @@ Each vector gives a text and the result that a conforming program gives
 when it validates the text as a path.
 
 - `input`: the text.
-- `result`: the result of the validation of the text as a path: "valid"
-  or "invalid".
+- `result`: the result of each validation of the text as a path that a
+  conforming program makes: "valid" or "invalid".
 - `values`: no vector of the group has this member.
 
-In each validation of the text as a path, a conforming program gives the
-result that `result` holds, and no other result.
+In each validation of the text as a path that it makes, a conforming
+program gives the result that `result` holds, and no other result.
 
 ```
 {"group":"paths","input":"docs/guide/a.md","n":2,"result":"valid","rev":"v1"}
@@ -1359,32 +1379,40 @@ result that `result` holds, and no other result.
 
 The group `file-reads` holds the vectors of the requirements
 `give-invalid-for-non-paths`, `give-file-read-results`,
-`give-file-text`, `give-texts-of-path-files`, and
-`omit-texts-of-other-results`. Each vector gives a text, a folder tree,
-and conditions on the file system that the folder tree is on, and what a
-conforming program gives when it reads the text as a path in the folder
-tree.
+`give-file-text`, and `omit-texts-of-other-results`. Each vector gives a
+text and a folder tree, and what a conforming program gives when it
+reads the text as a path in the folder tree.
 
-- `input`: a JSON object with three members: `text`, the text; `tree`,
-  the folder tree, in the form below; and `system`, the conditions on
-  the file system, in the form below.
-- `result`: the result of the file read of the text in the folder tree:
-  "invalid", "found", "no file", "symbolic link", "not a regular file",
-  "not UTF-8", or "cannot read". It is the result of a file read in
-  which three conditions hold: the file read has no path change; the
-  system does not fail during the file read; and the program has the
-  permissions that `tree` states. The person or the program that runs
-  the vectors sets up these conditions.
-- `values`: with the result "found", a JSON object with one member,
-  `text`: the text of the content, as pieces of a text (below). With
-  each other result, the empty JSON object, `{}`.
+- `input`: a JSON object with two members: `text`, the text, and
+  `tree`, the folder tree, in the form below. The input stands for the
+  text and the folder tree of a file read in which these conditions
+  hold:
+  1. A file system stores the folder tree, as defined below. So, when
+     the file read starts, the program has the permissions that `tree`
+     states.
+  2. The file read has no path change.
+  3. The system does not fail during the file read. This condition
+     excludes only failures of the system. An error that the system
+     gives because a name or a pathname that the program passes to the
+     system is longer than the system allows is not a failure of the
+     system, so the condition does not exclude such an error.
 
-In each file read of the text in the folder tree in which the three
-conditions hold, a conforming program gives the result that `result`
+  The runner makes these conditions true.
+- `result`: the result of each file read of the text in the folder tree
+  that a conforming program makes under these conditions: "invalid",
+  "found", "no file", "symbolic link", "not a regular file", "not
+  UTF-8", or "cannot read".
+- `values`: what a conforming program gives, or does not give, as the
+  text of a file in such a file read. With the result "found", a JSON
+  object with one member, `text`: the text of the content, as pieces of
+  a text (below). With each other result, the empty JSON object, `{}`.
+
+In each file read of the text in the folder tree that it makes under
+these conditions, a conforming program gives the result that `result`
 holds, and no other result. With the result "found", it gives the text
 that `text` holds as the text of the content, and no other text as the
-text of the content. When `values` is `{}`, it gives no text as the text
-of a file.
+text of the content. When `values` is `{}`, it gives no text as the
+text of a file.
 
 `tree` is the root of the folder tree, as a file object. A file object
 is a JSON object that describes one file. Its member `type` gives the
@@ -1447,26 +1475,40 @@ the JSON array. So `[{"bytes":"6869","times":1}]` is the content 0x68,
 `[]` is the empty content. The pieces of a text are the same, with the
 member `text`, a text, in place of `bytes`. So
 `[{"text":"hi","times":1}]` is the text `hi`, and `[]` is the empty
-text.
+text. Different lists of pieces can give the same byte sequence:
+`[{"bytes":"6161","times":1}]`, `[{"bytes":"61","times":2}]`, and
+`[{"bytes":"61","times":1},{"bytes":"61","times":1}]` all give the
+content 0x61, 0x61. Lists of pieces that give the same byte sequence
+stand for the same content, and lists of pieces that give the same text
+stand for the same text. So the runner compares the byte sequences and
+the texts that the pieces give, and not the pieces.
 
-`system` is a JSON object. Each of its members names a condition on the
-file system that the folder tree is on, and the value of each member is
-`true`. The member `ignores-space-at-end-of-name` says that the file
-system ignores a space at the end of a name: it treats a name, and that
-name followed by a space, as one name. When `system` is `{}`, the vector
-has no condition on the file system.
+A file system stores the folder tree of a vector when these conditions
+hold after the runner makes the folder tree and before the file read:
 
-A vector of the group can run only on a file system that can store its
-folder tree and that meets the conditions of its `system`. For example,
-some file systems do not allow the byte 0xE9 as an entry name, so they
-cannot store the folder tree of vector 41. The result and the values of
-a vector are the same on every file system that can store its folder
-tree and that meets the conditions of its `system`.
+1. The whole folder tree is on that file system.
+2. The listing of each folder of the folder tree holds the entry name of
+   each entry object of the file object of that folder, and no other
+   name except `.` and `..`.
+3. Each file of the folder tree has the file type, the content, the
+   reference, and the owner that its file object gives, and the program
+   has, for that file, the permissions that its file object gives.
+
+Some file systems change entry names, add folder entries of their own,
+or do not allow some entry names. For example, a file system that
+changes each entry name into a decomposed form of Unicode normalization
+lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 of
+vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64. Some
+file systems do not allow the entry name 0xE9 of vector 41. Such a file
+system does not store the folder tree of that vector. The runner makes
+sure that a file system stores the folder tree of a vector, and it runs
+the vector only on such a file system. The result and the values of a
+vector are the same on every file system that stores its folder tree.
 
 ```
-{"group":"file-reads","input":{"system":{},"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"n":20,"result":"found","rev":"v1","values":{"text":[{"text":"hi","times":1}]}}
-{"group":"file-reads","input":{"system":{},"text":"a.md","tree":{"entries":[{"file":{"reference":"622e6d64","type":"symbolic link"},"name":"612e6d64"},{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"622e6d64"}],"type":"directory"}},"n":34,"result":"symbolic link","rev":"v1","values":{}}
-{"group":"file-reads","input":{"system":{},"text":"docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"search":false,"type":"directory"},"name":"646f6373"}],"type":"directory"}},"n":51,"note":"the program has no search permission for folder 2, `docs`","result":"cannot read","rev":"v1","values":{}}
+{"group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"n":20,"result":"found","rev":"v1","values":{"text":[{"text":"hi","times":1}]}}
+{"group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"reference":"622e6d64","type":"symbolic link"},"name":"612e6d64"},{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"622e6d64"}],"type":"directory"}},"n":34,"result":"symbolic link","rev":"v1","values":{}}
+{"group":"file-reads","input":{"text":"docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"search":false,"type":"directory"},"name":"646f6373"}],"type":"directory"}},"n":51,"note":"the program has no search permission for folder 2, `docs`","result":"cannot read","rev":"v1","values":{}}
 ```
 
 ### 5.3 Globs
@@ -1476,12 +1518,12 @@ Each vector gives a text and the result that a conforming program gives
 when it validates the text as a glob.
 
 - `input`: the text.
-- `result`: the result of the validation of the text as a glob: "valid"
-  or "invalid".
+- `result`: the result of each validation of the text as a glob that a
+  conforming program makes: "valid" or "invalid".
 - `values`: no vector of the group has this member.
 
-In each validation of the text as a glob, a conforming program gives the
-result that `result` holds, and no other result.
+In each validation of the text as a glob that it makes, a conforming
+program gives the result that `result` holds, and no other result.
 
 ```
 {"group":"globs","input":"docs/**/*.md","n":111,"result":"valid","rev":"v1"}
@@ -1498,8 +1540,9 @@ group `fits`, with the result "valid".
 
 - `input`: a JSON object with two members: `glob`, the valid glob, and
   `path`, the valid path. Each is a text.
-- `result`: the result of the operation in which the program decides
-  whether the valid path fits the valid glob: "fits" or "does not fit".
+- `result`: the result of each operation in which a conforming program
+  decides whether the valid path fits the valid glob: "fits" or "does
+  not fit".
 - `values`: no vector of the group has this member.
 
 Each time it decides whether the valid path fits the valid glob, a
@@ -1518,12 +1561,12 @@ The group `path-sets` holds the vectors of the requirement
 conforming program gives when it validates the path set.
 
 - `input`: the path set, as the sequence of its path set members.
-- `result`: the result of the validation of the path set: "valid" or
-  "invalid".
+- `result`: the result of each validation of the path set that a
+  conforming program makes: "valid" or "invalid".
 - `values`: no vector of the group has this member.
 
-In each validation of the path set, a conforming program gives the
-result that `result` holds, and no other result.
+In each validation of the path set that it makes, a conforming program
+gives the result that `result` holds, and no other result.
 
 ```
 {"group":"path-sets","input":["docs/","!docs/old/"],"n":169,"result":"valid","rev":"v1"}
@@ -1543,9 +1586,9 @@ group `path-sets` holds a vector of each path set of the group
 - `input`: a JSON object with two members: `path-set`, the path set, as
   the sequence of its path set members, and `path`, the valid path, as a
   text.
-- `result`: the result of the operation in which the program decides
-  whether the valid path is in the set of the path set: "in the set" or
-  "not in the set".
+- `result`: the result of each operation in which a conforming program
+  decides whether the valid path is in the set of the path set: "in the
+  set" or "not in the set".
 - `values`: no vector of the group has this member.
 
 Each time it decides whether the valid path is in the set of the path
