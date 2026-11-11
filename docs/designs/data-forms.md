@@ -136,7 +136,7 @@ its letters only in the same case.
 | [TOML key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"` |
 | [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; these are the TOML keys of the dotted key |
 | [key of a key/value pair](sinter:#toml-key=v1), [key of a table header](sinter:#toml-key=v1) | the key of TOML 1.1.0 in it: a TOML key or a dotted key |
-| [TOML value](sinter:#toml-value=v1) | a value of the data that TOML 1.1.0 reads from a document: the value that a value of TOML 1.1.0 gives, the root table of a document, a table that a table header makes, a table of the path of a dotted key, a TOML array that the table headers of an array of tables make, or a TOML value in one of these; each TOML value is of one of ten kinds |
+| [TOML value](sinter:#toml-value=v1) | a value of the data that TOML 1.1.0 reads from a document: the value that a value of TOML 1.1.0 gives, the root table of a document, a table that a table header makes, a table that a dotted key makes, a TOML array that the table headers of an array of tables make, or a TOML value in one of these; each TOML value is of one of ten kinds |
 | [TOML string](sinter:#toml-value=v1), [TOML integer](sinter:#toml-value=v1), [TOML float](sinter:#toml-value=v1), [TOML boolean](sinter:#toml-value=v1), [TOML array](sinter:#toml-value=v1) | a TOML value of the type string, integer, float, boolean, or array of TOML 1.1.0 |
 | [local date](sinter:#toml-value=v1), [local time](sinter:#toml-value=v1), [local date-time](sinter:#toml-value=v1), [offset date-time](sinter:#toml-value=v1) | the TOML values of TOML 1.1.0 that have these names |
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
@@ -155,11 +155,11 @@ its letters only in the same case.
 | [super-table](sinter:#toml-super-table=v1) | a table on the way from the root table to the table that a table header names, such as `a` and `a.b` for `[a.b.c]` |
 | [undefined super-table](sinter:#undefined-super-table=v1) | at a boundary of a document, a super-table of a table that a table header before that boundary names, when no table header before that boundary names it, it is not the table of an inline table before that boundary, and it is not a table of the path of the dotted key of a key/value pair before that boundary |
 | [enclose](sinter:#inline-table-enclosure=v1) | the relation of an inline table to each key/value pair and each inline table between its braces |
-| [holding table](sinter:#toml-holding-table=v1) | the table at which the key of a key/value pair starts: the table of the innermost inline table that encloses the key/value pair, else the root table when no table header comes before it, else the table that the last table header before it names; when that table header names no table, the key/value pair has no holding table |
+| [holding table](sinter:#toml-boundary-state=v1) | the table at which the key of a key/value pair starts: the table of the innermost inline table that encloses the key/value pair, else the root table when no table header comes before it, else the table that the last table header before it names; when that table header names no table, the key/value pair has no holding table |
 | [path of a dotted key](sinter:#dotted-key-path=v1) | the tables to which the TOML keys of the dotted key of a key/value pair, apart from its last TOML key, lead from the holding table of the key/value pair at the boundary right after the key/value pair, one after another |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
 | [syntax error](sinter:#toml-syntax-error=v1) | the error of a byte sequence that is valid UTF-8 when the text of the body of its text does not match the rule `toml` of TOML 1.1.0; it starts at the greatest boundary b of the body for which a text that matches `toml` begins with the text of the body up to b |
-| [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer, or an array of TOML 1.1.0 or an inline table with the depth 65 |
+| [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer, or an array of TOML 1.1.0 or an inline table with the depth 65; a value error gives no TOML value, and neither does an array of TOML 1.1.0 with an element that gives no TOML value |
 | [key error](sinter:#toml-key-error=v1) | a key with more than 64 TOML keys, or a TOML key that has no text |
 | [structure rule](sinter:#toml-structure-rule=v1) | a table rule of TOML that a key/value pair or a table header can break, with the parts of a document before it: the rules of `single-definition`, `new-key`, `header-free-path`, `closed-inline-table`, `table-on-the-way`, `header-target`, and `array-header-target` |
 | [structure error](sinter:#toml-structure-error=v1) | a key/value pair or a table header that breaks a structure rule |
@@ -719,7 +719,7 @@ TOML 1.1.0 matches, such as the value of a key/value pair or an element
 of an array of TOML 1.1.0. A TOML value is a value of the data that
 TOML 1.1.0 reads from a document: the value that a value of TOML 1.1.0
 gives, the root table of a document, a table that a table header makes,
-a table of the path of a dotted key, a TOML array that the table headers
+a table that a dotted key makes, a TOML array that the table headers
 of an array of tables make, or a TOML value in one of these. A table
 holds a set of pairs. Each pair is the text of a TOML key and the TOML
 value of that TOML key. No two pairs that a table holds have the same
@@ -1375,10 +1375,7 @@ TOML 1.1.0.
     toml-lang/1.1.0,
     ieee/754-2019,
     text#{text=v1, whole-number=v1},
-    #{
-        toml-key=v1, toml-key-text=v1, toml-integer-range=v1,
-        dotted-key-path=v1,
-    },
+    #{toml-key=v1, toml-key-text=v1, toml-integer-range=v1},
 }
 
 These definitions use the terms document, root table, value, table
@@ -1388,8 +1385,8 @@ table of TOML 1.1.0.
 
 - A TOML value is a value of the data that TOML 1.1.0 reads from a
   document: the value that a value of TOML 1.1.0 gives, the root table
-  of a document, a table that a table header makes, a table of the path
-  of a dotted key, a TOML array that the table headers of an array of
+  of a document, a table that a table header makes, a table that a
+  dotted key makes, a TOML array that the table headers of an array of
   tables make, or a TOML value in one of these.
 - A TOML string, a TOML integer, a TOML float, a TOML boolean, and a
   TOML array are the TOML values of the types string, integer, float,
@@ -1646,7 +1643,18 @@ This definition uses the term document of TOML 1.1.0.
 - A part is before another part when it is before the boundary where the
   other part starts.
 
-#### 5.1.19 The tables and TOML values at a boundary
+#### 5.1.19 What inline tables enclose
+
+@term inline-table-enclosure=v1
+@cites toml-lang/1.1.0
+
+This definition uses the terms inline table and key/value pair of
+TOML 1.1.0.
+
+An inline table encloses each key/value pair and each inline table
+between its braces.
+
+#### 5.1.20 The tables and TOML values at a boundary, the TOML values that TOML keys lead to, and holding tables
 
 @term toml-boundary-state=v1
 @cites {
@@ -1654,8 +1662,7 @@ This definition uses the term document of TOML 1.1.0.
     text#{boundary=v1, code-span=v1},
     #{
         toml-boundary=v1, toml-part=v1, toml-key=v1, toml-key-text=v1,
-        toml-value=v1, toml-value-error=v1, toml-holding-table=v1,
-        inline-table-enclosure=v1,
+        toml-value=v1, inline-table-enclosure=v1,
     },
 }
 
@@ -1710,15 +1717,46 @@ TOML 1.1.0.
 - A key/value pair that has no holding table makes no table and adds no
   text. A key/value pair or a table header whose key has a TOML key that
   has no text makes no table and adds no text either.
-- The table of an inline table that is not a value error is the TOML
-  value that the inline table gives. A value of TOML 1.1.0 that is a
-  value error gives no TOML value, and neither does an array of
-  TOML 1.1.0 that has an element that gives no TOML value.
+- When an inline table gives a TOML value, the table of the inline table
+  is that TOML value.
 - So a part takes away no table and no TOML value that a part before it
   makes, and a part replaces the TOML value of no text that a table
   already holds.
 
-#### 5.1.20 The locations of TOML values
+At a boundary of a document, the TOML keys k1 to kn lead from a table v0
+to a TOML value vn when, and only when, there are TOML values v1 to vn
+for which these are true for each i from 1 to n:
+
+- At that boundary, v(i−1) is a table that holds the text of ki. Let wi
+  be the TOML value of that text in v(i−1) at that boundary.
+- When the table headers of an array of tables make wi, vi is the last
+  table that a table header that ends at that boundary or before it adds
+  to wi. Otherwise, vi is wi.
+
+When there are no such TOML values, the TOML keys k1 to kn lead from v0
+to no TOML value. So when one of k1 to kn has no text, they lead from v0
+to no TOML value.
+
+Each table header, also the table header of an array of tables, names
+the table to which the TOML keys of the key of the table header lead
+from the root table at the boundary right after the table header, when
+they lead to a table. When they lead to a TOML value that is not a
+table, or to no TOML value, the table header names no table.
+
+The holding table of a key/value pair is one of these:
+
+- When an inline table encloses the key/value pair, the holding table is
+  the table of the innermost inline table that encloses it.
+- When no inline table encloses the key/value pair and no table header
+  comes before it, the holding table is the root table.
+- When no inline table encloses the key/value pair and the last table
+  header before it names a table, the holding table is that table.
+- When no inline table encloses the key/value pair and the last table
+  header before it names no table, the key/value pair has no holding
+  table. Then the TOML keys of its key lead to no TOML value at any
+  boundary.
+
+#### 5.1.21 The locations of TOML values
 
 @term toml-location=v1
 @cites {
@@ -1746,59 +1784,14 @@ These definitions use the terms document and root table of TOML 1.1.0.
   locations are two different tables, also when they hold the same
   pairs.
 
-#### 5.1.21 The TOML values that TOML keys lead to
-
-@term toml-key-target=v1
-@cites {
-    toml-lang/1.1.0,
-    #{
-        toml-boundary=v1, toml-boundary-state=v1, toml-key=v1,
-        toml-value=v1, toml-key-text=v1,
-    },
-}
-
-These definitions use the terms document, table header, and array of
-tables of TOML 1.1.0.
-
-At a boundary of a document, the TOML keys k1 to kn lead from a table v0
-to a TOML value vn when, and only when, there are TOML values v1 to vn
-for which these are true for each i from 1 to n:
-
-- At that boundary, v(i−1) is a table that holds the text of ki. Let wi
-  be the TOML value of that text in v(i−1) at that boundary.
-- When the table headers of an array of tables make wi, vi is the last
-  table that a table header that ends at that boundary or before it adds
-  to wi. Otherwise, vi is wi.
-
-When there are no such TOML values, the TOML keys k1 to kn lead from v0
-to no TOML value. So when one of k1 to kn has no text, they lead from v0
-to no TOML value.
-
-#### 5.1.22 The tables that table headers name
-
-@term toml-named-table=v1
-@cites {
-    toml-lang/1.1.0,
-    #{toml-value=v1, toml-key=v1, toml-key-target=v1, toml-boundary=v1},
-}
-
-This definition uses the terms table header, array of tables, and root
-table of TOML 1.1.0.
-
-Each table header, also the table header of an array of tables, names
-the table to which the TOML keys of the key of the table header lead
-from the root table at the boundary right after the table header, when
-they lead to a table. When they lead to a TOML value that is not a
-table, or to no TOML value, the table header names no table.
-
-#### 5.1.23 Super-tables
+#### 5.1.22 Super-tables
 
 @term toml-super-table=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        toml-key=v1, toml-value=v1, toml-named-table=v1,
-        toml-key-target=v1, toml-boundary=v1,
+        toml-key=v1, toml-value=v1, toml-boundary-state=v1,
+        toml-boundary=v1,
     },
 }
 
@@ -1810,52 +1803,14 @@ k1 to kn, the super-tables of the table that the table header names are
 the tables that the TOML keys k1 to ki lead to from the root table at
 the boundary right after the table header, for each i from 1 to n − 1.
 
-#### 5.1.24 What inline tables enclose
-
-@term inline-table-enclosure=v1
-@cites toml-lang/1.1.0
-
-This definition uses the terms inline table and key/value pair of
-TOML 1.1.0.
-
-An inline table encloses each key/value pair and each inline table
-between its braces.
-
-#### 5.1.25 Holding tables
-
-@term toml-holding-table=v1
-@cites {
-    toml-lang/1.1.0,
-    #{
-        toml-value=v1, inline-table-enclosure=v1, toml-named-table=v1,
-        toml-key=v1, toml-key-target=v1, toml-boundary=v1,
-    },
-}
-
-This definition uses the terms key/value pair, inline table, table
-header, and root table of TOML 1.1.0.
-
-The holding table of a key/value pair is one of these:
-
-- When an inline table encloses the key/value pair, the holding table is
-  the table of the innermost inline table that encloses it.
-- When no inline table encloses the key/value pair and no table header
-  comes before it, the holding table is the root table.
-- When no inline table encloses the key/value pair and the last table
-  header before it names a table, the holding table is that table.
-- When no inline table encloses the key/value pair and the last table
-  header before it names no table, the key/value pair has no holding
-  table. Then the TOML keys of its key lead to no TOML value at any
-  boundary.
-
-#### 5.1.26 The paths of dotted keys
+#### 5.1.23 The paths of dotted keys
 
 @term dotted-key-path=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        toml-key=v1, toml-value=v1, toml-key-target=v1,
-        toml-holding-table=v1, toml-boundary=v1,
+        toml-key=v1, toml-value=v1, toml-boundary-state=v1,
+        toml-boundary=v1,
     },
 }
 
@@ -1868,14 +1823,14 @@ the TOML keys k1 to ki lead from the holding table of the key/value pair
 at the boundary right after the key/value pair, for each i from 1 to
 n − 1 for which they lead to a table, in the order of i.
 
-#### 5.1.27 Undefined super-tables
+#### 5.1.24 Undefined super-tables
 
 @term undefined-super-table=v1
 @cites {
     toml-lang/1.1.0,
     #{
         toml-boundary=v1, toml-value=v1, toml-super-table=v1,
-        toml-named-table=v1, toml-location=v1, dotted-key-path=v1,
+        toml-boundary-state=v1, toml-location=v1, dotted-key-path=v1,
     },
 }
 
@@ -1892,15 +1847,15 @@ and only when, all of these are true:
 - t is not a table of the path of the dotted key of a key/value pair
   before that boundary.
 
-#### 5.1.28 The tables that table headers define
+#### 5.1.25 The tables that table headers define
 
 @term header-definition=v1
-@cites {toml-lang/1.1.0, #{toml-named-table=v1}}
+@cites {toml-lang/1.1.0, #{toml-boundary-state=v1}}
 
 This rule uses the term table header of TOML 1.1.0. A table header
 defines the table that it names, and no other table.
 
-#### 5.1.29 The tables that key/value pairs define
+#### 5.1.26 The tables that key/value pairs define
 
 @term dotted-key-definition=v1
 @cites {
@@ -1916,7 +1871,7 @@ key/value pair defines the tables of the path of its dotted key that, at
 the boundary right before the key/value pair, do not exist or are
 undefined super-tables, and no other table.
 
-#### 5.1.30 The tables that inline tables define
+#### 5.1.27 The tables that inline tables define
 
 @term inline-table-definition=v1
 @cites toml-lang/1.1.0
@@ -1924,7 +1879,7 @@ undefined super-tables, and no other table.
 This rule uses the term inline table of TOML 1.1.0. An inline table
 defines its table, and no other table.
 
-#### 5.1.31 Single definitions of tables
+#### 5.1.28 Single definitions of tables
 
 @term single-definition=v1
 @cites {
@@ -1943,14 +1898,14 @@ table by the rules of `header-definition`, `dotted-key-definition`, and
 `inline-table-definition`. When two of them define the same table, the
 one of the two that starts at the later boundary breaks this rule.
 
-#### 5.1.32 New TOML keys
+#### 5.1.29 New TOML keys
 
 @term new-key=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        toml-boundary=v1, toml-key=v1, toml-key-target=v1,
-        toml-holding-table=v1, toml-value=v1,
+        toml-boundary=v1, toml-key=v1, toml-boundary-state=v1,
+        toml-value=v1,
     },
 }
 
@@ -1960,13 +1915,13 @@ the TOML keys of the key of the key/value pair lead from the holding
 table of the key/value pair to no TOML value. A key/value pair for which
 they lead to a TOML value breaks this rule.
 
-#### 5.1.33 Paths of dotted keys and named tables
+#### 5.1.30 Paths of dotted keys and named tables
 
 @term header-free-path=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        dotted-key-path=v1, toml-named-table=v1, toml-location=v1,
+        dotted-key-path=v1, toml-boundary-state=v1, toml-location=v1,
         toml-boundary=v1,
     },
 }
@@ -1977,15 +1932,14 @@ key of a key/value pair of a document is a table that a table header
 before that key/value pair names. A key/value pair for which a table of
 that path is such a table breaks this rule.
 
-#### 5.1.34 Closed inline tables
+#### 5.1.31 Closed inline tables
 
 @term closed-inline-table=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        toml-boundary=v1, toml-key=v1, toml-key-target=v1,
-        toml-holding-table=v1, inline-table-enclosure=v1,
-        toml-location=v1, toml-value=v1,
+        toml-boundary=v1, toml-key=v1, toml-boundary-state=v1,
+        inline-table-enclosure=v1, toml-location=v1, toml-value=v1,
     },
 }
 
@@ -2007,14 +1961,14 @@ for the key/value pairs and the table headers of a document:
 A key/value pair or a table header for which its statement does not hold
 breaks this rule.
 
-#### 5.1.35 Tables on the way of a key
+#### 5.1.32 Tables on the way of a key
 
 @term table-on-the-way=v1
 @cites {
     toml-lang/1.1.0,
     #{
-        toml-boundary=v1, toml-key=v1, toml-key-target=v1,
-        toml-holding-table=v1, toml-value=v1,
+        toml-boundary=v1, toml-key=v1, toml-boundary-state=v1,
+        toml-value=v1,
     },
 }
 
@@ -2032,12 +1986,15 @@ key/value pairs and the table headers of a document:
 A key/value pair or a table header for which its statement does not hold
 breaks this rule.
 
-#### 5.1.36 The TOML values to which table headers lead
+#### 5.1.33 The TOML values to which table headers lead
 
 @term header-target=v1
 @cites {
     toml-lang/1.1.0,
-    #{toml-boundary=v1, toml-key=v1, toml-key-target=v1, toml-value=v1},
+    #{
+        toml-boundary=v1, toml-key=v1, toml-boundary-state=v1,
+        toml-value=v1,
+    },
 }
 
 This rule uses the terms document, table header, array of tables, and
@@ -2047,12 +2004,15 @@ tables, the TOML keys of its key lead from the root table to a table or
 to no TOML value. A table header for which they lead to a TOML value
 that is not a table breaks this rule.
 
-#### 5.1.37 The TOML values to which headers of arrays of tables lead
+#### 5.1.34 The TOML values to which headers of arrays of tables lead
 
 @term array-header-target=v1
 @cites {
     toml-lang/1.1.0,
-    #{toml-boundary=v1, toml-key=v1, toml-key-target=v1, toml-value=v1},
+    #{
+        toml-boundary=v1, toml-key=v1, toml-boundary-state=v1,
+        toml-value=v1,
+    },
 }
 
 This rule uses the terms document, table header, array of tables, and
@@ -2062,7 +2022,7 @@ key lead from the root table to no TOML value, or to a table in a TOML
 array that table headers make. A table header of an array of tables for
 which they lead to another TOML value breaks this rule.
 
-#### 5.1.38 The table rules of TOML
+#### 5.1.35 The table rules of TOML
 
 @term toml-table-rule-list=v1
 @cites {
@@ -2092,7 +2052,7 @@ pair, table header, and root table of TOML 1.1.0.
   table that dotted keys define has all its key/value pairs under the
   current table header, in the root table, or in one inline table.
 
-#### 5.1.39 Structure rules
+#### 5.1.36 Structure rules
 
 @term toml-structure-rule=v1
 @cites {
@@ -2108,7 +2068,7 @@ The structure rules are the rules of `single-definition`, `new-key`,
 `header-free-path`, `closed-inline-table`, `table-on-the-way`,
 `header-target`, and `array-header-target`.
 
-#### 5.1.40 The texts of TOML strings
+#### 5.1.37 The texts of TOML strings
 
 @term toml-string-text=v1
 @cites {
@@ -2124,7 +2084,7 @@ for its basic string, multi-line basic string, literal string, or
 multi-line literal string after the escape sequences resolve, with no
 change other than the trims of `toml-string-newline`.
 
-#### 5.1.41 The local date-times of offset date-times
+#### 5.1.38 The local date-times of offset date-times
 
 @term toml-offset-date-time=v1
 @cites {toml-lang/1.1.0, #{toml-value=v1}}
@@ -2132,7 +2092,7 @@ change other than the trims of `toml-string-newline`.
 The local date-time of an offset date-time of a document is the local
 date-time that the document gives before the offset.
 
-#### 5.1.42 Omitted seconds in TOML
+#### 5.1.39 Omitted seconds in TOML
 
 @term toml-omitted-second=v1
 @cites {toml-lang/1.1.0, #{toml-value=v1, toml-second-fraction=v1}}
@@ -2142,7 +2102,7 @@ an offset date-time, its second is 0. When a document gives no fraction
 of a second for a local time, a local date-time, or an offset date-time,
 its fraction of a second is 0.
 
-#### 5.1.43 Spans in a TOML document
+#### 5.1.40 Spans in a TOML document
 
 @term toml-span=v1
 @cites {
@@ -2180,7 +2140,7 @@ sequence:
   dotted key, a TOML array that the table headers of an array of tables
   make, and the root table have no span.
 
-#### 5.1.44 Syntax errors
+#### 5.1.41 Syntax errors
 
 @term toml-syntax-error=v1
 @cites {
@@ -2199,7 +2159,7 @@ at the greatest boundary b of the body for which a text that matches
 `toml` begins with the text of the run from the boundary where the body
 starts to b.
 
-#### 5.1.45 Value errors
+#### 5.1.42 Value errors
 
 @term toml-value-error=v1
 @cites {
@@ -2212,7 +2172,7 @@ starts to b.
     },
     #{
         toml-span=v1, toml-integer-range=v1, toml-float-overflow=v1,
-        toml-leap-second=v1, toml-nesting-limit=v1,
+        toml-leap-second=v1, toml-nesting-limit=v1, toml-value=v1,
     },
 }
 
@@ -2236,8 +2196,10 @@ and for which the text of the body of its text matches the rule `toml`.
   depth 65.
 - A value error starts at the boundary where the span of its value of
   TOML 1.1.0 starts.
+- A value error gives no TOML value, and neither does an array of
+  TOML 1.1.0 that has an element that gives no TOML value.
 
-#### 5.1.46 Key errors
+#### 5.1.43 Key errors
 
 @term toml-key-error=v1
 @cites {
@@ -2264,7 +2226,7 @@ is each of these:
 - a TOML key that has no text, which starts at the boundary where the
   span of that TOML key starts.
 
-#### 5.1.47 Structure errors
+#### 5.1.44 Structure errors
 
 @term toml-structure-error=v1
 @cites {
@@ -2285,7 +2247,7 @@ text that breaks a structure rule. A structure error starts at the
 boundary where the span of the key of its key/value pair or table header
 starts.
 
-#### 5.1.48 TOML documents
+#### 5.1.45 TOML documents
 
 @term toml-document=v1
 @cites {
@@ -2305,7 +2267,7 @@ document is a byte sequence that meets each of these conditions:
 - The byte sequence has no value error, no key error, and no structure
   error.
 
-#### 5.1.49 Root tables
+#### 5.1.46 Root tables
 
 @term root-table=v1
 @cites {
@@ -2331,7 +2293,7 @@ that the table headers of an array of tables make, and each TOML array
 that the brackets `[` and `]` around TOML values make, is a TOML value
 of the kind TOML array.
 
-#### 5.1.50 Error starts
+#### 5.1.47 Error starts
 
 @term toml-error-start=v1
 @cites {
@@ -2387,8 +2349,8 @@ to that table.
     },
     #{
         toml-document=v1, toml-key=v1, toml-key-text=v1, toml-span=v1,
-        toml-value=v1, toml-location=v1, toml-holding-table=v1,
-        toml-named-table=v1, index=v1,
+        toml-value=v1, toml-location=v1, toml-boundary-state=v1,
+        index=v1,
     },
 }
 
@@ -3002,9 +2964,10 @@ it gives:
 2. what the value of `input` stands for: one input of a conforming
    program, such as a byte sequence as its hex text, or several inputs,
    such as a text and a place of that text;
-3. which of these inputs the value of `result` is the result of, and,
-   when the requirements oblige that result only when a conforming
-   program gives a result for that input, that condition;
+3. which of these inputs the value of `result` is the result of, and
+   the conditions under which the requirements oblige that result, if
+   any, such as that a conforming program gives a result for that input,
+   or a condition on the run of the program;
 4. what the value of `values` stands for, such as the results of the
    other inputs. It can stand for a thing that a conforming program
    gives when it gives a thing of that kind, for things of which a
@@ -3015,8 +2978,8 @@ By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
 give for that input. The value of `result` is the result that these
 requirements oblige a conforming program to give for the input that the
-forms name for `result`, or, under the condition that the forms name, to
-give whenever it gives a result for that input. The value of `values`
+forms name for `result`, whenever the conditions hold that the forms
+name for that result. The value of `values`
 stands for what these requirements oblige a conforming program to give
 for the input, other than the result that the value of `result` stands
 for, such as the results of the other inputs. A vector object without
@@ -3186,9 +3149,10 @@ Conformance part:
    the fixed form in which the value of `input` holds them, such as the
    hex text of a byte sequence;
 3. which of these inputs the value of `result` of such a vector object
-   is the result of; and, when the requirements of the group g oblige
-   that result only when a conforming program of S gives a result for
-   that input, that condition;
+   is the result of; and the conditions under which the requirements of
+   the group g oblige that result, if they oblige it only under some
+   conditions, such as that a conforming program of S gives a result for
+   that input, or a condition on the run of the program;
 4. what the value of `values` of such a vector object stands for: what
    a conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
@@ -3236,13 +3200,16 @@ object states this:
 
 - The input of the vector is what the value of `input` stands for: one
   input of a conforming program of S, or of D, or several.
+- The value of `result` is the text of a result, without the double
+  quotes that a requirement writes around that result, such as `valid`
+  for the result "valid".
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
-  `result` as its result for the input that the forms name for
-  `result`; or, when the forms name the condition of a result, to give
-  that value, and no other result, whenever it gives a result for that
-  input. The object states nothing about a result for another of these
-  inputs, other than what the value of `values` stands for.
+  `result`, and no other result, as its result for the input that the
+  forms name for `result`, whenever the conditions hold that the forms
+  name for that result; when the forms name no condition, they oblige
+  it always. The object states nothing about a result for another of
+  these inputs, other than what the value of `values` stands for.
 - When the object has the member `values`, the requirements of the
   group g oblige a conforming program of S, or of D, to give, for the
   input of the vector, what the value of `values` stands for.
