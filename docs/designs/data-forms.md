@@ -577,8 +577,8 @@ members:
 - `input`: the input of the vector.
 - `result`: a result, as a string of the characters of the result
   without its double quotes.
-- `values`: what a conforming program gives for the input, other than
-  the result of `result`.
+- `values`: what a conforming program gives, or does not give, for the
+  input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
 
@@ -594,23 +594,42 @@ UTF-8 encoding of `{}`, then the byte 0x0A.
 
 #### 4.6.1 Canonical byte sequences
 
-The group `json-values` holds the vectors of the requirements
-`write-canonical-json` and `omit-non-canonical-lines`. Each vector gives
-a JSON value, or a thing that is not a JSON value, and the canonical
-byte sequence that a conforming program gives for it.
+The group `write-json` holds the vectors that each give a JSON value, or
+a thing that is not a JSON value, and the canonical byte sequence that a
+conforming program gives for it. The requirements of the group are
+`write-canonical-json` and `omit-non-canonical-lines`.
 
 - `input`: a string whose characters are a JSON text, as RFC 8259
   defines it, that holds no key twice in one object. The input is what
-  the JSON text gives by RFC 8259. When that is a JSON value, the spaces
-  of the JSON text, and the order in which it writes the members of an
-  object, are no part of the input. A JSON text can also give a thing
-  that is not a JSON value: null; a number that is not an integer, such
-  as 1.5 or 9,007,199,254,740,992; or an array or an object that holds
-  such a thing.
+  the JSON text gives by RFC 8259 and by the rules below. When that is a
+  JSON value, the spaces of the JSON text, and the order in which it
+  writes the members of an object, are no part of the input.
 - `result`: no vector of the group has this member.
 - `values`: when the input is a JSON value, an object with one member,
   `canonical-byte-sequence`: the canonical byte sequence of the input.
   When the input is not a JSON value, the empty object, `{}`.
+
+These rules give what a JSON number and a string of the JSON text give:
+
+- A JSON number of the JSON text, as RFC 8259 defines it, gives an
+  integer when, and only when, it writes a whole number from −(2^53 − 1)
+  to 2^53 − 1, and that integer is the whole number that it writes. So
+  `1.0` gives the integer 1, `1e2` gives the integer 100, and `-0` gives
+  the integer 0. Every other JSON number, such as `1.5` or
+  `9007199254740992`, gives no integer.
+- In a string of the JSON text, an escape sequence of `\u` and four
+  digits in base 16 writes the number that these four digits write. When
+  that number is not from 0xD800 to 0xDFFF, the escape sequence writes
+  the character with that code point. Two escape sequences, one right
+  after the other, that write a number from 0xD800 to 0xDBFF and then a
+  number from 0xDC00 to 0xDFFF write the one character whose UTF-16 code
+  units are these two numbers. Each other escape sequence that writes a
+  number from 0xD800 to 0xDFFF, such as `\ud800` alone, writes no
+  character, and a string that holds it gives no text.
+
+So the JSON text gives a thing that is not a JSON value when one of
+these stands in it: `null`, a JSON number that gives no integer, or a
+string that gives no text.
 
 A conforming program gives the byte sequence of
 `canonical-byte-sequence` as the canonical byte sequence of the input,
@@ -618,20 +637,21 @@ and no other byte sequence. When `values` is `{}`, it gives no byte
 sequence as the canonical byte sequence of the input.
 
 ```
-{"group":"json-values","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
-{"group":"json-values","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
+{"group":"write-json","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
+{"group":"write-json","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
+{"group":"write-json","input":"1.0","n":79,"note":"the JSON number `1.0` writes the whole number 1, so it gives the integer 1","rev":"v1","values":{"canonical-byte-sequence":"31"}}
+{"group":"write-json","input":"\"\\ud800\"","n":80,"note":"the escape sequence `\\ud800` is not one of the two escape sequences of a character, so the string is not a text","rev":"v1","values":{}}
 ```
 
 #### 4.6.2 Canonical lines as output
 
-The group `line-objects` holds the vectors of the requirements
-`write-canonical-line` and `omit-non-canonical-lines`. Each vector gives
-a line object, or a thing that is not a line object, and the canonical
-line that a conforming program gives for it.
+The group `write-line` holds the vectors that each give a line object,
+or a thing that is not a line object, and the canonical line that a
+conforming program gives for it. The requirements of the group are
+`write-canonical-line` and `omit-non-canonical-lines`.
 
 - `input`: a string whose characters are a JSON text, as in the group
-  `json-values`. The input is what the JSON text gives, as in that
-  group.
+  `write-json`. The input is what the JSON text gives, as in that group.
 - `result`: no vector of the group has this member.
 - `values`: when the input is a line object, an object with one member,
   `canonical-line`: the canonical line of the input. When the input is
@@ -642,16 +662,15 @@ canonical line of the input, and no other byte sequence. When `values`
 is `{}`, it gives no byte sequence as the canonical line of the input.
 
 ```
-{"group":"line-objects","input":"{}","n":27,"rev":"v1","values":{"canonical-line":"7b7d0a"}}
-{"group":"line-objects","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
+{"group":"write-line","input":"{}","n":27,"rev":"v1","values":{"canonical-line":"7b7d0a"}}
+{"group":"write-line","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
 ```
 
 #### 4.6.3 Canonical lines as input
 
-The group `canonical-lines` holds the vectors of the requirement
-`read-canonical-line`. Each vector gives a byte sequence and what a
-conforming program gives when it reads the byte sequence as a canonical
-line.
+The group `read-line` holds the vectors that each give a byte sequence
+and what a conforming program gives when it reads the byte sequence as a
+canonical line. The requirement of the group is `read-canonical-line`.
 
 - `input`: the byte sequence.
 - `result`: "valid" when the byte sequence is the canonical line of a
@@ -665,8 +684,8 @@ With the result "valid", a conforming program gives the line object of
 no line object.
 
 ```
-{"group":"canonical-lines","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
-{"group":"canonical-lines","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
+{"group":"read-line","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
 ```
 
 ## 5. TOML
@@ -2441,8 +2460,8 @@ members:
 - `input`: the input of the vector.
 - `result`: a result, as a string of the characters of the result
   without its double quotes.
-- `values`: what a conforming program gives for the input, other than
-  the result of `result`.
+- `values`: what a conforming program gives, or does not give, for the
+  input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
 
@@ -2521,44 +2540,69 @@ value.
 
 #### 5.6.1 TOML documents
 
-The groups `documents`, `limits`, and `error-starts` hold the vectors of
-the requirements `read-toml`, `give-toml-error-start`, and
-`omit-toml-error-positions`. Each vector gives a byte sequence and what
-a conforming program gives for it as a TOML document. The vectors of the
-group `documents` test the reading rules of TOML, the table rules of
-TOML, and the root tables of TOML documents. The vectors of the group
-`limits` test the limit on depths and on TOML keys. The vectors of the
-group `error-starts` test the error starts of byte sequences that are
-not TOML documents. The three groups have the same forms:
+Each vector of the groups `give-root-table`, `give-error-start`, and
+`omit-positions` gives a byte sequence and what a conforming program
+gives for it as a TOML document. The byte sequence decides which of the
+three groups holds the vector. Together, the vectors of the three groups
+test the reading rules of TOML, the nesting limit of TOML, the table
+rules of TOML, the root tables of TOML documents, and the error starts
+of byte sequences that are not TOML documents.
 
-- `input`: the byte sequence.
-- `result`: "valid" when the byte sequence is a TOML document, and
-  "invalid" when it is not.
-- `values`: with the result "valid", an object with one member,
-  `root-table`: the form of the root table of the TOML document. With
-  the result "invalid", for a byte sequence that is valid UTF-8, an
-  object with one member, `error-start`: the start of the error start of
-  the byte sequence, as a position. With the result "invalid", for a
-  byte sequence that is not valid UTF-8, the empty object, `{}`.
+The group `give-root-table` holds the vectors that each give a TOML
+document and its root table. The requirement of the group is
+`read-toml`.
+
+- `input`: the byte sequence of the TOML document.
+- `result`: "valid".
+- `values`: an object with one member, `root-table`: the form of the
+  root table of the TOML document.
 
 With the result "valid", a conforming program gives a table whose form
-is the form of `root-table`, and no other table. With the result
-"invalid", it gives the line number and the column of `error-start` as
-the start of the error start, and no other line number and no other
-column. When `values` is `{}`, it gives no line number and no column.
+is the form of `root-table`, and no other table.
 
 ```
-{"group":"documents","input":"61203d20310a","n":1,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"1"}}}}
-{"group":"documents","input":"61203d2022ff220a","n":28,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
-{"group":"documents","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{"error-start":{"column":5,"line":1}}}
+{"group":"give-root-table","input":"61203d20310a","n":1,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"1"}}}}
+```
+
+The group `give-error-start` holds the vectors that each give a byte
+sequence that is valid UTF-8 and is not a TOML document, and the error
+start of the byte sequence. The requirements of the group are
+`read-toml` and `give-toml-error-start`.
+
+- `input`: the byte sequence.
+- `result`: "invalid".
+- `values`: an object with one member, `error-start`: the start of the
+  error start of the byte sequence, as a position.
+
+With the result "invalid", a conforming program gives no table. It gives
+the line number and the column of `error-start` as the start of the
+error start, and no other line number and no other column.
+
+```
+{"group":"give-error-start","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{"error-start":{"column":5,"line":1}}}
+```
+
+The group `omit-positions` holds the vectors that each give a byte
+sequence that is not valid UTF-8. The requirements of the group are
+`read-toml` and `omit-toml-error-positions`.
+
+- `input`: the byte sequence.
+- `result`: "invalid".
+- `values`: the empty object, `{}`.
+
+With the result "invalid", a conforming program gives no table, no line
+number, and no column.
+
+```
+{"group":"omit-positions","input":"61203d2022ff220a","n":28,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
 ```
 
 #### 5.6.2 Spans
 
-The group `spans` holds vectors of the requirements `read-toml` and
-`give-toml-spans`. Each vector gives a TOML document and one of the
-spans that a conforming program gives for it with the result "valid",
-together with what the span is the span of.
+The group `give-span` holds the vectors that each give a TOML document
+and one of the spans that a conforming program gives for it with the
+result "valid", together with what the span is the span of. The
+requirements of the group are `read-toml` and `give-toml-spans`.
 
 - `input`: the byte sequence of the TOML document.
 - `result`: "valid".
@@ -2581,13 +2625,13 @@ nothing about the other spans that a conforming program gives for the
 TOML document. The note of each vector gives the text of the span.
 
 ```
-{"group":"spans","input":"61203d20310a","n":104,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
-{"group":"spans","input":"61203d205b312c205b322c20335d5d0a","n":119,"note":"the text of the span is `1`","result":"valid","rev":"v1","values":{"end":{"column":7,"line":1},"location":["a",1],"of":"toml-value","start":{"column":6,"line":1}}}
+{"group":"give-span","input":"61203d20310a","n":104,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
+{"group":"give-span","input":"61203d205b312c205b322c20335d5d0a","n":119,"note":"the text of the span is `1`","result":"valid","rev":"v1","values":{"end":{"column":7,"line":1},"location":["a",1],"of":"toml-value","start":{"column":6,"line":1}}}
 ```
 
-The group `no-spans` holds vectors of the requirements `read-toml` and
-`give-toml-spans`. Each vector gives a TOML document and the location of
-a TOML value of it that has no span.
+The group `omit-span` holds the vectors that each give a TOML document
+and the location of a TOML value of it that has no span. The
+requirements of the group are `read-toml` and `give-toml-spans`.
 
 - `input`: the byte sequence of the TOML document.
 - `result`: "valid".
@@ -2597,7 +2641,7 @@ With the result "valid", a conforming program gives no span as the span
 of the TOML value at the location of `no-span-at`.
 
 ```
-{"group":"no-spans","input":"5b615d0a62203d20310a","n":140,"note":"a table header makes the table `a`","result":"valid","rev":"v1","values":{"no-span-at":["a"]}}
+{"group":"omit-span","input":"5b615d0a62203d20310a","n":140,"note":"a table header makes the table `a`","result":"valid","rev":"v1","values":{"no-span-at":["a"]}}
 ```
 
 ## 6. Hashes
@@ -2693,8 +2737,8 @@ members:
 - `input`: the input of the vector.
 - `result`: a result, as a string of the characters of the result
   without its double quotes.
-- `values`: what a conforming program gives for the input, other than
-  the result of `result`.
+- `values`: what a conforming program gives, or does not give, for the
+  input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
 
@@ -2712,8 +2756,8 @@ is its hex text, as a string, such as `"616263"` for the three bytes of
 
 #### 6.4.1 Hashes
 
-The group `hashes` holds the vectors of the requirement `compute-hash`.
-Each vector gives a byte sequence and its hash.
+The group `compute` holds the vectors that each give a byte sequence and
+its hash. The requirement of the group is `compute-hash`.
 
 - `input`: the byte sequence.
 - `result`: no vector of the group has this member.
@@ -2724,14 +2768,14 @@ A conforming program gives the text of `hash` as the hash of the byte
 sequence, and no other text.
 
 ```
-{"group":"hashes","input":"616263","n":2,"rev":"v1","values":{"hash":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
+{"group":"compute","input":"616263","n":2,"rev":"v1","values":{"hash":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
 ```
 
 #### 6.4.2 The hash form
 
-The group `hash-form` holds the vectors of the requirement
-`validate-hash`. Each vector gives a text and the result that a
-conforming program gives for it when it validates the text as a hash.
+The group `validate` holds the vectors that each give a text and the
+result that a conforming program gives for it when it validates the text
+as a hash. The requirement of the group is `validate-hash`.
 
 - `input`: the text.
 - `result`: "valid" when the text fits the hash form, and "invalid" when
@@ -2739,7 +2783,7 @@ conforming program gives for it when it validates the text as a hash.
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"hash-form","input":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD","n":6,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
+{"group":"validate","input":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD","n":6,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
 ```
 
 ## 7. Hash ids
@@ -2863,8 +2907,8 @@ members:
 - `input`: the input of the vector.
 - `result`: a result, as a string of the characters of the result
   without its double quotes.
-- `values`: what a conforming program gives for the input, other than
-  the result of `result`.
+- `values`: what a conforming program gives, or does not give, for the
+  input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
 
@@ -2883,10 +2927,10 @@ the text; and a whole number is an integer.
 
 #### 7.4.1 Hash ids
 
-The group `hash-ids` holds the vectors of the requirement
-`compute-hash-id`. Each vector gives an id prefix, a number of hex
-digits, a byte sequence, and the hash id of the byte sequence with that
-id prefix and that number of hex digits.
+The group `compute` holds the vectors that each give an id prefix, a
+number of hex digits, a byte sequence, and the hash id of the byte
+sequence with that id prefix and that number of hex digits. The
+requirement of the group is `compute-hash-id`.
 
 - `input`: an object with three members: `id-prefix`, the id prefix;
   `number-of-hex-digits`, the number of hex digits; and
@@ -2900,25 +2944,27 @@ byte sequence with the id prefix and the number of hex digits, and no
 other text.
 
 ```
-{"group":"hash-ids","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"n":1,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01"}}
+{"group":"compute","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"n":1,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01"}}
 ```
 
 #### 7.4.2 The hash-id form
 
-The group `hash-id-form` holds the vectors of the requirement
-`validate-hash-id`. Each vector gives a text, an id prefix, a number of
-hex digits, and the result that a conforming program gives for them
-when it validates the text as a hash id.
+The group `validate` holds the vectors that each give a text, an id
+prefix, a number of hex digits, and the result that a conforming program
+gives for these three inputs together when it validates the text as a
+hash id. The requirement of the group is `validate-hash-id`.
 
-- `input`: an object with three members: `text`, the text;
-  `id-prefix`, the id prefix; and `number-of-hex-digits`, the number of
-  hex digits.
-- `result`: "valid" when the text fits the hash-id form with the id
-  prefix and the number of hex digits, and "invalid" when it does not.
+- `input`: an object with three members, one for each of the three
+  inputs: `text`, the text; `id-prefix`, the id prefix; and
+  `number-of-hex-digits`, the number of hex digits.
+- `result`: the result that the requirement `validate-hash-id` obliges a
+  conforming program to give for the three inputs together: "valid" when
+  the text fits the hash-id form with the id prefix and the number of
+  hex digits, and "invalid" when it does not.
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"n":6,"note":"11 hex digits","result":"invalid","rev":"v1"}
+{"group":"validate","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"n":6,"note":"11 hex digits","result":"invalid","rev":"v1"}
 ```
 
 ## 8. Test vectors
@@ -3338,8 +3384,8 @@ members:
 - `input`: the input of the vector.
 - `result`: a result, as a string of the characters of the result
   without its double quotes.
-- `values`: what a conforming program gives for the input, other than
-  the result of `result`.
+- `values`: what a conforming program gives, or does not give, for the
+  input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
 
@@ -3357,10 +3403,9 @@ then the byte 0x0A.
 
 #### 8.4.1 Test-vector sets
 
-The group `test-vector-sets` holds the vectors of the requirement
-`read-test-vector-set`. Each vector gives a byte sequence and what a
-conforming program gives when it reads the byte sequence as a
-test-vector set.
+The group `read-set` holds the vectors that each give a byte sequence
+and what a conforming program gives when it reads the byte sequence as a
+test-vector set. The requirement of the group is `read-test-vector-set`.
 
 - `input`: the byte sequence.
 - `result`: "valid" when the byte sequence is a test-vector set, and
@@ -3375,16 +3420,16 @@ With the result "valid", a conforming program gives the objects of
 it gives no object.
 
 ```
-{"group":"test-vector-sets","input":"7b22726576223a227631227d0a","n":1,"result":"valid","rev":"v1","values":{"objects":[{"rev":"v1"}]}}
-{"group":"test-vector-sets","input":"","n":7,"note":"the byte sequence holds no set line","result":"invalid","rev":"v1","values":{}}
+{"group":"read-set","input":"7b22726576223a227631227d0a","n":1,"result":"valid","rev":"v1","values":{"objects":[{"rev":"v1"}]}}
+{"group":"read-set","input":"","n":7,"note":"the byte sequence holds no set line","result":"invalid","rev":"v1","values":{}}
 ```
 
 #### 8.4.2 Version sequences
 
-The group `version-sequences` holds the vectors of the requirement
-`validate-version-sequences`. Each vector gives a finite sequence of
-versions and the result that a conforming program gives for it when it
-validates the sequence as a version sequence.
+The group `validate-sequence` holds the vectors that each give a finite
+sequence of versions and the result that a conforming program gives for
+it when it validates the sequence as a version sequence. The requirement
+of the group is `validate-version-sequences`.
 
 - `input`: an array of the versions of the sequence, in their order.
   Each version is an object with two members:
@@ -3402,5 +3447,5 @@ validates the sequence as a version sequence.
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"version-sequences","input":[{"forms":{"a":"text 1"},"set":[{"rev":"v1"},{"group":"a","rev":"v1"},{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}]}],"n":46,"note":"a sequence of one version","result":"valid","rev":"v1"}
+{"group":"validate-sequence","input":[{"forms":{"a":"text 1"},"set":[{"rev":"v1"},{"group":"a","rev":"v1"},{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}]}],"n":46,"note":"a sequence of one version","result":"valid","rev":"v1"}
 ```

@@ -1,12 +1,12 @@
 {"rev":"v1"}
-{"group":"hash-form","rev":"v1"}
-{"group":"hashes","rev":"v1"}
-{"group":"hashes","input":"","n":1,"rev":"v1","values":{"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}
-{"group":"hashes","input":"616263","n":2,"rev":"v1","values":{"hash":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
-{"group":"hashes","input":"6162636462636465636465666465666765666768666768696768696a68696a6b696a6b6c6a6b6c6d6b6c6d6e6c6d6e6f6d6e6f706e6f7071","n":3,"rev":"v1","values":{"hash":"248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"}}
-{"group":"hashes","input":"0080ff","n":4,"rev":"v1","values":{"hash":"5240672d7b51756b829ad0ef8d9468b7a078afa2f410484fd3892dab47becb72"}}
-{"group":"hash-form","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad","n":5,"result":"valid","rev":"v1"}
-{"group":"hash-form","input":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD","n":6,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
-{"group":"hash-form","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015a","n":7,"note":"63 hex digits","result":"invalid","rev":"v1"}
-{"group":"hash-form","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad0","n":8,"note":"65 hex digits","result":"invalid","rev":"v1"}
-{"group":"hash-form","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ag","n":9,"note":"`g` is not a hex digit","result":"invalid","rev":"v1"}
+{"group":"compute","rev":"v1"}
+{"group":"validate","rev":"v1"}
+{"group":"compute","input":"","n":1,"rev":"v1","values":{"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}
+{"group":"compute","input":"616263","n":2,"rev":"v1","values":{"hash":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
+{"group":"compute","input":"6162636462636465636465666465666765666768666768696768696a68696a6b696a6b6c6a6b6c6d6b6c6d6e6c6d6e6f6d6e6f706e6f7071","n":3,"rev":"v1","values":{"hash":"248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"}}
+{"group":"compute","input":"0080ff","n":4,"rev":"v1","values":{"hash":"5240672d7b51756b829ad0ef8d9468b7a078afa2f410484fd3892dab47becb72"}}
+{"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad","n":5,"result":"valid","rev":"v1"}
+{"group":"validate","input":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD","n":6,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
+{"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015a","n":7,"note":"63 hex digits","result":"invalid","rev":"v1"}
+{"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad0","n":8,"note":"65 hex digits","result":"invalid","rev":"v1"}
+{"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ag","n":9,"note":"`g` is not a hex digit","result":"invalid","rev":"v1"}
