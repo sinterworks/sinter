@@ -173,12 +173,13 @@ its letters only in the same case.
 | [vector](sinter:#vector-meaning=v1) | an input and what requirements of a specification, or of a design, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name a of a specification of that design, the text x, `.`, a, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [test-vector revision](sinter:#test-vector-revision=v1) | a text of `v` and the decimal numeral of a whole number of 1 or more, such as `v2` |
-| [group name](sinter:#group-name=v1) | a text of the letters `a` to `z` and the digits `0` to `9` that starts with a letter, with one `-` at most between two of them, such as `offsets` or `g-2` |
-| [group](sinter:#test-vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets`; the vectors of a group are the vectors that have it |
+| [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
+| [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets` |
+| [the vectors of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
 | [forms of a group](sinter:#group-form-list=v1) | four things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group, what the value of `input` stands for, which input the value of `result` is the result of, and what the value of `values` stands for |
-| [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group of vectors, or of the whole test-vector set, each with fixed members |
-| [vector line](sinter:#test-vector-line=v1), [group line](sinter:#test-vector-line=v1), [set line](sinter:#test-vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
-| [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then the group lines, then the vector lines, in a fixed order |
+| [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group, or of the whole test-vector set, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the member `note` |
+| [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
+| [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
 | [version](sinter:#test-vector-version-sequence=v1) | a test-vector set together with a text for each of its groups, which gives the forms of that group; the elements of a version sequence are versions |
 | [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of versions, from the earliest to the latest, whose numbers and revisions change by fixed rules when the vectors or the forms of their groups change |
 
@@ -553,142 +554,120 @@ A program conforms to the specification `json-lines` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-Each vector gives an input and what a conforming program gives for it.
-These conventions apply:
+The vectors of this specification are in the file
+[`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
+in the same directory as this design. The file is a test-vector set, as
+section 8 defines it. Each line of the file is the canonical byte
+sequence of one object, then the byte 0x0A, so each line is a JSON text,
+as RFC 8259 defines it. Only a line feed ends a line of the file. A
+string of the file can hold U+0085, U+2028, or U+2029, and these
+characters do not end a line.
 
-- A vector gives a JSON value that a conforming program gives, such as
-  a line object, as its canonical form between backticks. When the
-  vector names a character of the canonical form by its code point, such
-  as a character that does not show, like U+E000, the vector gives the
-  canonical form as its parts, in order, with commas between them:
-  characters between backticks, and the U+ numeral of each character
-  that the vector names by its code point.
-- A vector gives a JSON value that is an input as a JSON text between
-  backticks, as RFC 8259 defines it, that holds no key twice in one
-  object and no number that is not an integer. The input is the JSON
-  value that the JSON text gives, so the order in which the JSON text
-  writes the members of an object is no part of the input.
-- A vector gives an input that is not a JSON value, such as null, as a
-  JSON text between backticks, as RFC 8259 defines it, that gives that
-  input.
-- A vector gives a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes;
-  characters between backticks, for the UTF-8 encoding of these
-  characters; or a U+ numeral, for the UTF-8 encoding of the character
-  that it names. A vector gives every byte of a byte sequence, each
-  final 0x0A included.
-- "No canonical byte sequence" and "no canonical line" stand for no byte
-  sequence that a conforming program gives as the canonical byte
-  sequence or as the canonical line of the input. Then, after a colon,
-  an explanation can stand, which a conforming program does not give.
-- A result stands between double quotes. After "valid", the word "with"
-  and the line object that follows it stand for what a conforming
-  program gives with the result. Then, after a colon, an explanation of
-  the result can stand, which a conforming program does not give.
+The first line of the file is the set line. Its object has one member,
+`rev`: the revision of the test-vector set. Then each group has one
+group line, in the key order of the group names. The object of a group
+line has two members: `group`, the group name, and `rev`, the revision
+of the group. Then each vector has one vector line, in increasing order
+of the numbers of the vectors. The object of a vector line has these
+members:
+
+- `n`: the number of the vector, an integer of 1 or more.
+- `rev`: the revision of the vector.
+- `group`: the group name of the vector.
+- `input`: the input of the vector.
+- `result`: a result, as a string of the characters of the result
+  without its double quotes.
+- `values`: what a conforming program gives for the input, other than
+  the result of `result`.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. Only some vectors have this member.
+
+A revision is a string of `v` and the decimal numeral of a whole number
+of 1 or more, such as `"v1"`. The vectors follow from the requirements
+of this specification and add nothing to them. Each subsection below
+gives the forms of one group, as section 8 defines them: the
+requirements of the group, and what the members `input`, `result`, and
+`values` of its vectors stand for, each in a fixed form. A vector
+without the member `result` states no result. In `input` and `values`, a
+byte sequence is its hex text, as a string, such as `"7b7d0a"` for the
+UTF-8 encoding of `{}`, then the byte 0x0A.
 
 #### 4.6.1 Canonical byte sequences
 
-Each row gives an input and the canonical byte sequence that a
-conforming program gives for it, or "no canonical byte sequence" when
-the input is not a JSON value.
+The group `json-values` holds the vectors of the requirements
+`write-canonical-json` and `omit-non-canonical-lines`. Each vector gives
+a JSON value, or a thing that is not a JSON value, and the canonical
+byte sequence that a conforming program gives for it.
 
-| input | canonical byte sequence |
-|---|---|
-| `{ "b": 1, "a": [true, false] }` | `{"a":[true,false],"b":1}` |
-| `{ "ab": 1, "a": 2 }` | `{"a":2,"ab":1}` |
-| `{}` | `{}` |
-| `[]` | `[]` |
-| `{ "": 0 }` | `{"":0}` |
-| `{ "z": [{ "b": true, "a": false }], "a": [] }` | `{"a":[],"z":[{"a":false,"b":true}]}` |
-| `[1, [2, [3]], {"k": {"j": "x"}}]` | `[1,[2,[3]],{"k":{"j":"x"}}]` |
-| `9007199254740991` | `9007199254740991` |
-| `-9007199254740991` | `-9007199254740991` |
-| `0` | `0` |
-| `"a/b"` | `"a/b"` |
-| `"\"\\"` | `"\"\\"` |
-| `"\b\t\n\f\r"` | `"\b\t\n\f\r"` |
-| `"\u0000\u000b\u001F"` | `"\u0000\u000b\u001f"` |
-| `"\u0041"` | `"A"` |
-| `"\u007f"` | `"`, U+007F, `"` |
-| `"\u2028"` | `"`, U+2028, `"` |
-| `"\ud83d\ude00"` | `"`, U+1F600, `"` |
-| `{ "\ue000": 1, "\ud83d\ude00": 2 }` | `{"`, U+1F600, `":2,"`, U+E000, `":1}` |
-| `{ "\u00e9": 1, "e\u0301": 2 }` | `{"e`, U+0301, `":2,"`, U+00E9, `":1}` |
-| `{ "B": 1, "a": 2 }` | `{"B":1,"a":2}` |
-| `null` | no canonical byte sequence: null is not a JSON value |
-| `1.5` | no canonical byte sequence: `1.5` is not an integer |
-| `9007199254740992` | no canonical byte sequence: the number is greater than 9,007,199,254,740,991 |
-| `{ "a": null }` | no canonical byte sequence: the value of `a` is not a JSON value |
+- `input`: a string whose characters are a JSON text, as RFC 8259
+  defines it, that holds no key twice in one object. The input is what
+  the JSON text gives by RFC 8259. When that is a JSON value, the spaces
+  of the JSON text, and the order in which it writes the members of an
+  object, are no part of the input. A JSON text can also give a thing
+  that is not a JSON value: null; a number that is not an integer, such
+  as 1.5 or 9,007,199,254,740,992; or an array or an object that holds
+  such a thing.
+- `result`: no vector of the group has this member.
+- `values`: when the input is a JSON value, an object with one member,
+  `canonical-byte-sequence`: the canonical byte sequence of the input.
+  When the input is not a JSON value, the empty object, `{}`.
+
+A conforming program gives the byte sequence of
+`canonical-byte-sequence` as the canonical byte sequence of the input,
+and no other byte sequence. When `values` is `{}`, it gives no byte
+sequence as the canonical byte sequence of the input.
+
+```
+{"group":"json-values","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
+{"group":"json-values","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
+```
 
 #### 4.6.2 Canonical lines as output
 
-Each row gives an input and the canonical line that a conforming program
-gives for it, or "no canonical line" when the input is not a line
-object.
+The group `line-objects` holds the vectors of the requirements
+`write-canonical-line` and `omit-non-canonical-lines`. Each vector gives
+a line object, or a thing that is not a line object, and the canonical
+line that a conforming program gives for it.
 
-| input | canonical line |
-|---|---|
-| `{ "b": 1, "a": 2 }` | `{"a":2,"b":1}`, 0x0A |
-| `{}` | `{}`, 0x0A |
-| `{ "t": "\r", "s": "x\ny" }` | `{"s":"x\ny","t":"\r"}`, 0x0A |
-| `{ "z": [{ "b": true, "a": 1 }], "a": [1, "x", false] }` | `{"a":[1,"x",false],"z":[{"a":1,"b":true}]}`, 0x0A |
-| `{ "\ue000": 1, "\ud83d\ude00": 2 }` | `{"`, U+1F600, `":2,"`, U+E000, `":1}`, 0x0A |
-| `{ "a": { "b": 1 } }` | no canonical line: the value of `a` is an object |
-| `{ "a": [1, { "b": 1 }] }` | no canonical line: the value of `a` mixes a scalar and an object |
-| `[1]` | no canonical line: the JSON value is not an object |
-| `{ "a": 1.5 }` | no canonical line: the input is not a JSON value |
+- `input`: a string whose characters are a JSON text, as in the group
+  `json-values`. The input is what the JSON text gives, as in that
+  group.
+- `result`: no vector of the group has this member.
+- `values`: when the input is a line object, an object with one member,
+  `canonical-line`: the canonical line of the input. When the input is
+  not a line object, the empty object, `{}`.
+
+A conforming program gives the byte sequence of `canonical-line` as the
+canonical line of the input, and no other byte sequence. When `values`
+is `{}`, it gives no byte sequence as the canonical line of the input.
+
+```
+{"group":"line-objects","input":"{}","n":27,"rev":"v1","values":{"canonical-line":"7b7d0a"}}
+{"group":"line-objects","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
+```
 
 #### 4.6.3 Canonical lines as input
 
-Each row gives a byte sequence and what a conforming program gives for
-it as a canonical line.
+The group `canonical-lines` holds the vectors of the requirement
+`read-canonical-line`. Each vector gives a byte sequence and what a
+conforming program gives when it reads the byte sequence as a canonical
+line.
 
-| byte sequence | what a conforming program gives |
-|---|---|
-| `{"a":2,"b":1}`, 0x0A | "valid" with the line object `{"a":2,"b":1}` |
-| `{}`, 0x0A | "valid" with the line object `{}` |
-| `{"a":[1,"x",true]}`, 0x0A | "valid" with the line object `{"a":[1,"x",true]}` |
-| `{"a":[{"b":1},{"c":"x"}]}`, 0x0A | "valid" with the line object `{"a":[{"b":1},{"c":"x"}]}` |
-| `{"a":[{"a":1}]}`, 0x0A | "valid" with the line object `{"a":[{"a":1}]}` |
-| `{"a":[{}]}`, 0x0A | "valid" with the line object `{"a":[{}]}` |
-| `{"a":[]}`, 0x0A | "valid" with the line object `{"a":[]}` |
-| `{"a":-9007199254740991}`, 0x0A | "valid" with the line object `{"a":-9007199254740991}` |
-| `{"a":-9007199254740992}`, 0x0A | "invalid": the number is less than −9,007,199,254,740,991 |
-| `{"a":"\u000b"}`, 0x0A | "valid" with the line object `{"a":"\u000b"}` |
-| `{"a":"`, U+1F600, `"}`, 0x0A | "valid" with the line object `{"a":"`, U+1F600, `"}` |
-| `{"`, U+1F600, `":2,"`, U+E000, `":1}`, 0x0A | "valid" with the line object `{"`, U+1F600, `":2,"`, U+E000, `":1}` |
-| `{"`, U+E000, `":1,"`, U+1F600, `":2}`, 0x0A | "invalid": the keys are not in key order |
-| `{"b":1,"a":2}`, 0x0A | "invalid": the keys are not in key order |
-| `{"a":[{"b":1,"a":2}]}`, 0x0A | "invalid": the keys of a flat object are not in key order |
-| `{"a":1,"a":1}`, 0x0A | "invalid": an object holds no key twice |
-| `{"a":[{"b":1,"b":2}]}`, 0x0A | "invalid": an object holds no key twice |
-| `{"a":2,"b":1}` | "invalid": the byte sequence does not end with 0x0A |
-| `{"a":2,"b":1}`, 0x0D, 0x0A | "invalid": the byte 0x0D stands before the byte 0x0A |
-| `{"a":2}`, 0x0A, `{"b":1}`, 0x0A | "invalid": the byte sequence holds two canonical lines |
-| 0xEF, 0xBB, 0xBF, `{}`, 0x0A | "invalid": the bytes 0xEF, 0xBB, 0xBF stand before `{` |
-| `{"a": 2}`, 0x0A | "invalid": a space stands outside a string |
-| `{"a":1.0}`, 0x0A | "invalid": `1.0` is not the canonical form of an integer |
-| `{"a":1e2}`, 0x0A | "invalid": `1e2` is not the canonical form of an integer |
-| `{"a":-0}`, 0x0A | "invalid": `-0` is not the canonical form of an integer |
-| `{"a":01}`, 0x0A | "invalid": the canonical form of an integer has no leading `0` |
-| `{"a":9007199254740992}`, 0x0A | "invalid": the number is greater than 9,007,199,254,740,991 |
-| `{"a":null}`, 0x0A | "invalid": null is not a string, an integer, a boolean, an array, or an object |
-| `{"a":True}`, 0x0A | "invalid": `True` is not the canonical form of a boolean |
-| `{"a":"\u0041"}`, 0x0A | "invalid": the string form of `A` is `A` |
-| `{"a":"\/"}`, 0x0A | "invalid": the string form of `/` is `/` |
-| `{"a":"\u000A"}`, 0x0A | "invalid": the string form of the line feed is `\n` |
-| `{"a":"\u000B"}`, 0x0A | "invalid": the string form of U+000B is `\u000b`, and `B` is not a hex digit |
-| `{"a":"\u007f"}`, 0x0A | "invalid": the string form of U+007F is the character U+007F |
-| `{"a":"\ud83d\ude00"}`, 0x0A | "invalid": the string form of U+1F600 is the character U+1F600 |
-| `{"a":"`, 0x09, `"}`, 0x0A | "invalid": the string form of the tab is `\t` |
-| `{"a":"`, 0xFF, `"}`, 0x0A | "invalid": the byte sequence is not valid UTF-8 |
-| `{"a":"`, 0xED, 0xA0, 0x80, `"}`, 0x0A | "invalid": the byte sequence is not valid UTF-8 |
-| `[1]`, 0x0A | "invalid": the JSON value is not an object |
-| `"a"`, 0x0A | "invalid": the JSON value is not an object |
-| `{"a":{"b":1}}`, 0x0A | "invalid": the value of `a` is an object |
-| `{"a":[[1]]}`, 0x0A | "invalid": the value of `a` is an array that holds an array |
-| `{"a":[1,{"b":1}]}`, 0x0A | "invalid": the value of `a` mixes a scalar and an object |
-| `{"a":[{"b":[1]}]}`, 0x0A | "invalid": `{"b":[1]}` is not a flat object |
+- `input`: the byte sequence.
+- `result`: "valid" when the byte sequence is the canonical line of a
+  line object, and "invalid" when it is not.
+- `values`: with the result "valid", an object with one member,
+  `line-object`: the line object whose canonical line the byte sequence
+  is. With the result "invalid", the empty object, `{}`.
+
+With the result "valid", a conforming program gives the line object of
+`line-object`, and no other line object. When `values` is `{}`, it gives
+no line object.
+
+```
+{"group":"canonical-lines","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
+{"group":"canonical-lines","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
+```
 
 ## 5. TOML
 @spec toml=v1
@@ -2477,808 +2456,187 @@ A program conforms to the specification `toml` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-Each vector gives an input and what a conforming program gives for it.
-These conventions apply:
+The vectors of this specification are in the file
+[`data-forms.toml.test-vectors.jsonl`](data-forms.toml.test-vectors.jsonl),
+in the same directory as this design. The file is a test-vector set, as
+section 8 defines it. Each line of the file is the canonical byte
+sequence of one object, then the byte 0x0A, so each line is a JSON text,
+as RFC 8259 defines it. Only a line feed ends a line of the file. A
+string of the file can hold U+0085, U+2028, or U+2029, and these
+characters do not end a line.
 
-- A vector gives a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes;
-  characters between backticks, for the UTF-8 encoding of these
-  characters; or a part, then "written", a decimal numeral, and "times",
-  for that part as many times in a row as the numeral writes. A code
-  block gives the UTF-8 encoding of its lines, without the spaces that
-  indent the block in its list item, each line then 0x0A. A vector gives
-  every byte of a byte sequence, each final 0x0A included.
-- A vector can give a character by its U+ numeral, such as a character
-  that does not show, like U+FEFF. It then writes a text as its parts,
-  in order, with commas between them: characters between backticks, or
-  a U+ numeral, for the character that it names.
-- A vector writes a local date, a local time, a local date-time, or the
-  local date-time of an offset date-time in the syntax of TOML 1.1.0,
-  such as 1979-05-27, 12:30:00, or 1979-05-27T07:32:00: with `T` between
-  the date and the time, and always with the second. When the fraction
-  of a second is not 0, a `.` and the digits of the fraction follow the
-  second, with no `0` at the end, such as 12:30:00.5. When the fraction
-  of a second is 0, nothing follows the second.
-- A result stands between double quotes. After "valid", the word "with"
-  and what follows it stand for what a conforming program gives with the
-  result: the root table, which the vector describes by the texts that
-  its tables hold and their TOML values, or no span as the span of a
-  TOML value. After "invalid", the word "at" and what follows it stand
-  for the error start that a conforming program gives with the result:
-  the position, written as "line", the line number, a comma, "column",
-  and the column; or "no position" when a conforming program gives no
-  line number and no column. Then, after a colon, an explanation of the
-  result can stand, which a conforming program does not give.
+The first line of the file is the set line. Its object has one member,
+`rev`: the revision of the test-vector set. Then each group has one
+group line, in the key order of the group names. The object of a group
+line has two members: `group`, the group name, and `rev`, the revision
+of the group. Then each vector has one vector line, in increasing order
+of the numbers of the vectors. The object of a vector line has these
+members:
+
+- `n`: the number of the vector, an integer of 1 or more.
+- `rev`: the revision of the vector.
+- `group`: the group name of the vector.
+- `input`: the input of the vector.
+- `result`: a result, as a string of the characters of the result
+  without its double quotes.
+- `values`: what a conforming program gives for the input, other than
+  the result of `result`.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. Only some vectors have this member.
+
+A revision is a string of `v` and the decimal numeral of a whole number
+of 1 or more, such as `"v1"`. The vectors follow from the requirements
+of this specification and add nothing to them. Each subsection below
+gives the forms of one or more groups, as section 8 defines them: the
+requirements of the group, and what the members `input`, `result`, and
+`values` of its vectors stand for, each in a fixed form.
+
+In `input` and `values`, these fixed forms apply:
+
+- A byte sequence is its hex text, as a string. So the UTF-8 encoding of
+  `a = 1` and a line feed is `"61203d20310a"`.
+- A position is an object with two members: `line`, the line number,
+  and `column`, the column, each as an integer. So the position line 2,
+  column 5 is `{"column":5,"line":2}`.
+- A location is an array of its steps, in order: the text of a TOML key
+  as a string, and an index as an integer. So the location of the TOML
+  integer 2 in the text `a = [1, { b = 2 }]` is `["a",2,"b"]`, and the
+  location of the root table is the empty array, `[]`.
+- The form of a table is an object with one member for each pair that
+  the table holds. The key of the member is the text of the TOML key of
+  the pair, and the value of the member is the form of the TOML value of
+  the pair.
+- The form of a TOML value is an object with one member. The key of
+  that member names the kind of the TOML value, and its value gives the
+  TOML value, as this table and the two paragraphs below it say.
+
+| kind of the TOML value | key of the member | value of the member |
+|---|---|---|
+| TOML string | `string` | the text of the TOML string, as a string |
+| TOML integer | `integer` | a string of the decimal numeral of the absolute value of the TOML integer, after `-` when the TOML integer is less than 0, such as `"-17"` |
+| TOML float | `float` | a string, in the form that the first paragraph below gives |
+| TOML boolean | `boolean` | `true` or `false` |
+| local date | `local-date` | a string, in the form that the second paragraph below gives |
+| local time | `local-time` | a string, in the form that the second paragraph below gives |
+| local date-time | `local-date-time` | a string, in the form that the second paragraph below gives |
+| offset date-time | `offset-date-time` | a string, in the form that the second paragraph below gives |
+| TOML array | `array` | an array of the forms of the TOML values of the TOML array, in the order of their indexes |
+| table | `table` | the form of the table |
+
+The string of a TOML float is `nan` for NaN, `inf` for positive
+infinity, `-inf` for negative infinity, and `-0` for negative zero. For
+each other TOML float, the string is the exact value of the TOML float
+in base 10: `-` when the value is less than 0; then the decimal numeral
+of the whole-number part of its absolute value; then, when the absolute
+value is not a whole number, `.` and the digits of the fractional part,
+with no `0` at the end. So positive zero is `"0"`, the TOML float 0.5 is
+`"0.5"`, and the TOML float 100,000,000,000,000,000,000 is
+`"100000000000000000000"`.
+
+The string of a local date is the year as four digits, `-`, the month
+as two digits, `-`, and the day as two digits, such as `"1600-02-29"`.
+The string of a local time is the hour, `:`, the minute, `:`, and the
+second, each as two digits; then, when the fraction of the second is not
+0, `.` and the digits of the fraction after the decimal point, with no
+`0` at the end. So the local time of `12:30` is `"12:30:00"`, and the
+local time of `12:30:00.50` is `"12:30:00.5"`. The string of a local
+date-time is the string of its local date, `T`, and the string of its
+local time. The string of an offset date-time is the string of its local
+date-time, then its offset: `+00:00` for the offset 0, and `-00:00` for
+the unknown local offset. For each other offset, the string of the
+offset is `+` when the offset is greater than 0, and `-` when it is less
+than 0; then the whole-number quotient of the absolute value of the
+offset divided by 60, and the remainder, each as two digits, with `:`
+between them. So the offset
+date-time of `1979-05-27T07:32:00Z` is `"1979-05-27T07:32:00+00:00"`,
+and the offset date-time of `1979-05-27T00:32:00-07:00` is
+`"1979-05-27T00:32:00-07:00"`.
+
+So the form of the root table in which `a` holds a table in which `b`
+holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
+tables are equal when, and only when, their forms are the same JSON
+value.
 
 #### 5.6.1 TOML documents
 
-Each item gives a byte sequence, or the texts of several byte sequences,
-and what a conforming program gives for each of them as a TOML document.
-
-- `a = 1`, 0x0A: "valid" with the root table in which `a` holds the TOML
-  integer 1.
-- Each of these three texts: "valid" with the root table in which `a`
-  holds a table in which `b` holds the TOML integer 1: the three texts
-  give equal root tables.
-
-  ```toml
-  [a]
-  b = 1
-  ```
-
-  ```toml
-  a.b = 1
-  ```
-
-  ```toml
-  a = { b = 1 }
-  ```
-
-- Each of these two texts: "valid" with the root table in which `a`
-  holds a TOML array of one table, in which `b` holds the TOML
-  integer 1: the two texts give equal root tables.
-
-  ```toml
-  a = [{ b = 1 }]
-  ```
-
-  ```toml
-  [[a]]
-  b = 1
-  ```
-
-- `a = 1`, 0x0A, `A = 2`, 0x0A: "valid" with the root table in which `a`
-  holds the TOML integer 1, and `A` holds the TOML integer 2.
-- `a = 1`, 0x0A, `"a" = 2`, 0x0A: "invalid" at line 2, column 1: the
-  TOML keys `a` and `"a"` are the same key of TOML 1.1.0, so the root
-  table already holds the text `a` before line number 2.
-- `"\u00e9" = 1`, 0x0A, `"e\u0301" = 2`, 0x0A: "valid" with the root
-  table in which U+00E9 holds the TOML integer 1, and the text `e`,
-  U+0301 holds the TOML integer 2.
-- `a = "e\u0301"`, 0x0A: "valid" with the root table in which `a` holds
-  the TOML string `e`, U+0301.
-- `"" = 1`, 0x0A: "valid" with the root table in which the empty text
-  holds the TOML integer 1: the quoted key `""` has the empty text.
-- `[""]`, 0x0A: "valid" with the root table in which the empty text
-  holds an empty table.
-- 0xEF, 0xBB, 0xBF, `a = 1`, 0x0A: "valid" with the root table in which
-  `a` holds the TOML integer 1.
-- 0xEF, 0xBB, 0xBF, 0xEF, 0xBB, 0xBF, `a = 1`, 0x0A: "invalid" at
-  line 1, column 1: TOML 1.1.0 reads the body of the text, and the body
-  starts with a U+FEFF, before the key `a` of the key/value pair, where
-  TOML 1.1.0 allows only spaces and tabs.
-- `a = 1`, 0xEF, 0xBB, 0xBF, 0x0A: "invalid" at line 1, column 6: a
-  syntax error; no text that matches `toml` begins with `a = 1`, U+FEFF.
-- `a = "`, 0xEF, 0xBB, 0xBF, `"`, 0x0A: "valid" with the root table in
-  which `a` holds the TOML string U+FEFF.
-- `a = 1 # `, 0xEF, 0xBB, 0xBF, 0x0A: "valid" with the root table in
-  which `a` holds the TOML integer 1.
-- `a = { b = 1, }`, 0x0A: "valid" with the root table in which `a` holds
-  a table in which `b` holds the TOML integer 1.
-- `x = { y = { z = 1 } }`, 0x0A: "valid" with the root table in which
-  `x` holds a table in which `y` holds a table in which `z` holds the
-  TOML integer 1.
-- `a = {`, 0x0A, `  b = 1, # c`, 0x0A, `}`, 0x0A: "valid" with the root
-  table in which `a` holds a table in which `b` holds the TOML
-  integer 1.
-- `x = { a`, 0x0A, `= 1 }`, 0x0A: "invalid" at line 1, column 8: a
-  newline stands between the key `a` of the key/value pair and `=`,
-  where TOML 1.1.0 allows only spaces and tabs.
-- `x = { b.c = 1, b.d = 2 }`, 0x0A: "valid" with the root table in
-  which `x` holds a table in which `b` holds a table that holds the
-  texts `c` and `d`; in that table, `c` holds the TOML integer 1, and
-  `d` holds the TOML integer 2.
-- `a = [[{ b.c = 1 }], [{ b.c = 2 }]]`, 0x0A: "valid" with the root
-  table in which `a` holds a TOML array of two TOML arrays; the first of
-  these TOML arrays holds one table, in which `b` holds a table in which
-  `c` holds the TOML integer 1, and the second holds one table, in which
-  `b` holds a table in which `c` holds the TOML integer 2.
-- Each of these three texts: "valid" with the root table in which `t`
-  holds the local time 12:30:00: the three texts give equal root tables.
-
-  ```toml
-  t = 12:30
-  ```
-
-  ```toml
-  t = 12:30:00
-  ```
-
-  ```toml
-  t = 12:30:00.000
-  ```
-
-- `s = "\x41\e"`, 0x0A: "valid" with the root table in which `s` holds
-  the TOML string `A`, U+001B.
-- `a = "`, 0xFF, `"`, 0x0A: "invalid" at no position: the byte sequence
-  is not valid UTF-8.
-- `a = 9223372036854775807`, 0x0A: "valid" with the root table in which
-  `a` holds the TOML integer 9,223,372,036,854,775,807.
-- `a = 9223372036854775808`, 0x0A: "invalid" at line 1, column 5: the
-  integer of TOML 1.1.0 stands for a number greater
-  than 9,223,372,036,854,775,807.
-- `a = -9223372036854775808`, 0x0A: "valid" with the root table in which
-  `a` holds the TOML integer −9,223,372,036,854,775,808.
-- `a = 0xFFFFFFFFFFFFFFFF`, 0x0A: "invalid" at line 1, column 5: the
-  integer of TOML 1.1.0 stands for 2^64 − 1, which is greater
-  than 9,223,372,036,854,775,807.
-- `a = 99999999999999999999.0`, 0x0A: "valid" with the root table in
-  which `a` holds the TOML float 100,000,000,000,000,000,000.
-- `a = 1e-99999999999999999999`, 0x0A: "valid" with the root table in
-  which `a` holds the TOML float positive zero.
-- `a = -0.0`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float negative zero.
-- `a = 1.0`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float 1: a TOML float and a TOML integer are of two kinds, so the
-  TOML float 1 is not equal to the TOML integer 1.
-- `a = 9007199254740993.0`, 0x0A: "valid" with the root table in which
-  `a` holds the TOML float 9,007,199,254,740,992: rounding to nearest,
-  with ties to even, gives this binary64 value for the
-  number 9,007,199,254,740,993.
-- `a = 1e-400`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float positive zero.
-- `a = -1e-400`, 0x0A: "valid" with the root table in which `a` holds
-  the TOML float negative zero.
-- `a = 1e400`, 0x0A: "invalid" at line 1, column 5: the float of
-  TOML 1.1.0 rounds to an infinity.
-- `a = -1e400`, 0x0A: "invalid" at line 1, column 5: the float of
-  TOML 1.1.0 rounds to an infinity.
-- `a = inf`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float positive infinity.
-- `a = -inf`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float negative infinity.
-- `a = -nan`, 0x0A: "valid" with the root table in which `a` holds the
-  TOML float NaN.
-- `t = 00:00:00.123456789123`, 0x0A: "valid" with the root table in
-  which `t` holds the local time 00:00:00.123456789.
-- Each of these two texts: "valid" with the root table in which `t`
-  holds the local time 12:30:00.5: the two texts give equal root tables.
-
-  ```toml
-  t = 12:30:00.5
-  ```
-
-  ```toml
-  t = 12:30:00.50
-  ```
-
-- `t = 12:00:60`, 0x0A: "valid" with the root table in which `t` holds
-  the local time 12:00:60.
-- `t = 23:59:60`, 0x0A: "valid" with the root table in which `t` holds
-  the local time 23:59:60.
-- `d = 1600-02-29`, 0x0A: "valid" with the root table in which `d` holds
-  the local date 1600-02-29: 1600 is a leap year, so February 1600 has
-  the day 29.
-- `a = 1979-05-27T12:00:60Z`, 0x0A: "valid" with the root table in which
-  `a` holds the offset date-time 1979-05-27T12:00:60 with the offset 0.
-- `a = 1979-05-27T07:32:00-00:00`, 0x0A: "valid" with the root table in
-  which `a` holds the offset date-time 1979-05-27T07:32:00 with the
-  unknown local offset: the unknown local offset is not the offset 0.
-- Each of these two texts: "valid" with the root table in which `a`
-  holds the offset date-time 1979-05-27T07:32:00 with the offset 0: the
-  two texts give equal root tables.
-
-  ```toml
-  a = 1979-05-27T07:32:00Z
-  ```
-
-  ```toml
-  a = 1979-05-27T07:32:00+00:00
-  ```
-
-- `s = """a`, 0x0D, 0x0A, `b"""`, 0x0A: "valid" with the root table in
-  which `s` holds the TOML string `a`, U+000D, U+000A, `b`.
-- `s = '''a`, 0x0D, 0x0A, `b'''`, 0x0A: "valid" with the root table in
-  which `s` holds the TOML string `a`, U+000D, U+000A, `b`.
-- `s = """a\`, 0x0A, `  b"""`, 0x0A: "valid" with the root table in
-  which `s` holds the TOML string `ab`.
-- `s = """a\\`, 0x0A, `b"""`, 0x0A: "valid" with the root table in which
-  `s` holds the TOML string `a`, `\`, U+000A, `b`.
-- `s = "\q"`, 0x0A: "invalid" at line 1, column 7: a syntax error;
-  TOML 1.1.0 reserves the escape sequence `\q`, and no text that
-  matches `toml` begins with `s = "\q`.
-- `"\q" = 1`, 0x0A: "invalid" at line 1, column 3: a syntax error;
-  TOML 1.1.0 reserves the escape sequence `\q`, and no text that
-  matches `toml` begins with `"\q`.
-- This text: "invalid" at line 4, column 1: the table `a.b.c`, which the
-  table header on line number 1 names, is in the path of the dotted key
-  `b.c.x`.
-
-  ```toml
-  [a.b.c]
-  z = 9
-  [a]
-  b.c.x = 1
-  ```
-
-- This text: "invalid" at line 4, column 1: the table `a.b.c.d`, which
-  the table header on line number 1 names, is in the path of the dotted
-  key `b.c.d.k.t`.
-
-  ```toml
-  [a.b.c.d]
-  z = 9
-  [a]
-  b.c.d.k.t = 1
-  ```
-
-- This text: "invalid" at line 5, column 1: the table `a.b.c`, which the
-  table header on line number 1 names, is in the path of the dotted key
-  `b.c.t`.
-
-  ```toml
-  [a.b.c]
-  z = 9
-  [[x]]
-  [a]
-  b.c.t = 1
-  ```
-
-- This text: "invalid" at line 3, column 1: the table header on line
-  number 1 names the last table of the TOML array `a.b`, and that table
-  is in the path of the dotted key `b.y`.
-
-  ```toml
-  [[a.b]]
-  [a]
-  b.y = 2
-  ```
-
-- This text: "invalid" at line 3, column 1: the table header on line
-  number 1 names the last table of the TOML array `a.b`, and that table
-  is in the path of the dotted key `b.c.y`.
-
-  ```toml
-  [[a.b]]
-  [a]
-  b.c.y = 2
-  ```
-
-- This text: "invalid" at line 4, column 1: the table `a.b`, which the
-  table header on line number 2 names, is in the path of the dotted key
-  `b.x`.
-
-  ```toml
-  [a.b.c]
-  [a.b]
-  [a]
-  b.x = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c`, `ct`, and `x`; in
-  that table, `c` holds a table in which `z` holds the TOML integer 9,
-  `ct` holds the TOML integer 1, and `x` holds a table in which `y`
-  holds the TOML integer 1.
-
-  ```toml
-  [a.b.c]
-  z = 9
-  [a]
-  b.ct = 1
-  b.x.y = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `d`; in that
-  table, `c` holds the TOML integer 1, and `d` holds a table in which
-  `e` holds the TOML integer 2.
-
-  ```toml
-  [a]
-  b.c = 1
-  [a.b.d]
-  e = 2
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `x` and `c`; in that
-  table, `x` holds the TOML integer 1, and `c` holds an empty table.
-
-  ```toml
-  a.b.x = 1
-  [a.b.c]
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c`, `e`, and `x`; in
-  that table, `c` and `e` each hold an empty table, and `x` holds the
-  TOML integer 1.
-
-  ```toml
-  [a.b.c]
-  [a]
-  b.x = 1
-  [a.b.e]
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `x`; in that
-  table, `c` holds a table in which `d` holds an empty table, and `x`
-  holds the TOML integer 1.
-
-  ```toml
-  [a.b.c]
-  [a]
-  b.x = 1
-  [a.b.c.d]
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `f`; in that
-  table, `c` holds a table in which `d` holds an empty table and `e`
-  holds the TOML integer 1, and `f` holds an empty table.
-
-  ```toml
-  [a.b.c.d]
-  [a]
-  b.c.e = 1
-  [a.b.f]
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `e`; in that
-  table, `c` holds a table in which `d` holds an empty table, and `e`
-  holds the TOML integer 1.
-
-  ```toml
-  [a.b.c.d]
-  [a]
-  b.e = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `d`; in that
-  table, `c` holds the TOML integer 1, and `d` holds a table in which
-  `e` holds an empty table.
-
-  ```toml
-  [a]
-  b.c = 1
-  [a.b.d.e]
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a table that holds the texts `c` and `e`; in that
-  table, `c` holds a TOML array of one empty table, and `e` holds the
-  TOML integer 1.
-
-  ```toml
-  [[a.b.c]]
-  [a]
-  b.e = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `x` holds a table, in which `b` holds a table, in which `c`
-  holds the TOML integer 1.
-
-  ```toml
-  [a]
-  x = { b.c = 1 }
-  ```
-
-- This text: "invalid" at line 3, column 2: the table header on line
-  number 3 defines the table `a.b`, which the key/value pair on line
-  number 2 defines.
-
-  ```toml
-  [a]
-  b.c = 1
-  [a.b]
-  ```
-
-- This text: "invalid" at line 3, column 2: the table headers on line
-  numbers 2 and 3 both define the table `a`.
-
-  ```toml
-  [a.b]
-  [a]
-  [a]
-  ```
-
-- This text: "invalid" at line 5, column 2: the table header on line
-  number 5 defines the table `a.b`, which the key/value pair on line
-  number 4 defines.
-
-  ```toml
-  [a.b.c]
-  z = 9
-  [a]
-  b.ct = 1
-  [a.b]
-  ```
-
-- This text: "invalid" at line 4, column 2: the table header on line
-  number 4 defines the table `a.b`, which the key/value pair on line
-  number 3 defines.
-
-  ```toml
-  [a.b.c.d]
-  [a]
-  b.c.e = 1
-  [a.b]
-  ```
-
-- This text: "invalid" at line 4, column 2: the table header on line
-  number 4 defines the table `a.b.c`, which the key/value pair on line
-  number 3 defines.
-
-  ```toml
-  [a.b.c.d]
-  [a]
-  b.c.e = 1
-  [a.b.c]
-  ```
-
-- This text: "invalid" at line 3, column 2: the table header on line
-  number 3 defines the table `a`, which the key/value pair on line
-  number 1 defines.
-
-  ```toml
-  a.b.x = 1
-  [a.b.c]
-  [a]
-  ```
-
-- This text: "invalid" at line 2, column 2: the table header on line
-  number 2 defines the table `a`, which the inline table on line
-  number 1 defines.
-
-  ```toml
-  a = {}
-  [a]
-  ```
-
-- This text: "invalid" at line 2, column 2: the table header on line
-  number 2 defines the table `a.b`, which the inline table on line
-  number 1 defines.
-
-  ```toml
-  a.b = {}
-  [a.b]
-  ```
-
-- This text: "invalid" at line 2, column 2: the TOML key `x` of the
-  table header on line number 2 leads to the table of the inline table
-  on line number 1.
-
-  ```toml
-  x = { b.c = 1 }
-  [x.b.d]
-  ```
-
-- This text: "invalid" at line 3, column 1: before line number 3, the
-  table `x` already holds the text `a`, because the table header on line
-  number 1 makes the super-table `x.a`.
-
-  ```toml
-  [x.a.b]
-  [x]
-  a = { c = 1 }
-  ```
-
-- This text: "invalid" at line 3, column 1: before line number 3, the
-  table `a` already holds the text `b`, because the table header on line
-  number 1 makes the super-table `a.b`.
-
-  ```toml
-  [a.b.c]
-  [a]
-  b = { d = 1 }
-  ```
-
-- This text: "invalid" at line 3, column 1: before line number 3, the
-  table `a` already holds the text `b`, because the table header on line
-  number 1 makes the super-table `a.b`.
-
-  ```toml
-  [a.b.c]
-  [a]
-  b = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table that
-  holds the texts `b` and `x`; in that table, `b` holds an empty table,
-  and `x` holds the TOML integer 1.
-
-  ```toml
-  [a.b]
-  [a]
-  x = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a TOML array
-  of two tables; in the first table, `b` holds a table in which `z`
-  holds the TOML integer 1, and in the second table, `b` holds a table
-  in which `x` holds the TOML integer 1.
-
-  ```toml
-  [[a]]
-  [a.b]
-  z = 1
-  [[a]]
-  b.x = 1
-  ```
-
-- This text: "valid" with the root table in which `a` holds a table in
-  which `b` holds a TOML array of two tables; in the first table, `c`
-  holds a table in which `z` holds the TOML integer 1, and in the second
-  table, `c` holds a table in which `x` holds the TOML integer 1.
-
-  ```toml
-  [[a.b]]
-  [a.b.c]
-  z = 1
-  [[a.b]]
-  c.x = 1
-  ```
-
-- This text: "valid" with the root table that holds the texts `p` and
-  `q`; in that table, `p` holds a table in which `q` holds an empty
-  table, and `q` holds a table in which `r` holds an empty table.
-
-  ```toml
-  [p.q]
-  [p]
-  [q.r]
-  ```
-
-#### 5.6.2 Depths and TOML keys
-
-Each item gives a byte sequence and what a conforming program gives for
-it as a TOML document.
-
-- `a = `, `[` written 64 times, `]` written 64 times, 0x0A: "valid" with
-  the root table in which `a` holds 64 nested TOML arrays, of which each
-  of the first 63 holds the next one and the 64th holds no TOML value:
-  the innermost array of TOML 1.1.0 has the depth 64.
-- `a = `, `[` written 65 times, `]` written 65 times, 0x0A: "invalid" at
-  line 1, column 69: the 65th `[` opens the array of TOML 1.1.0 with the
-  depth 65.
-- `a = `, `[` written 66 times, `]` written 66 times, 0x0A: "invalid" at
-  line 1, column 69: the 65th `[` opens the array of TOML 1.1.0 with the
-  depth 65.
-- `a = `, `{ b = ` written 63 times, `{}`, ` }` written 63 times, 0x0A:
-  "valid" with the root table in which `a` holds 64 nested tables, of
-  which each of the first 63 holds the next one under the text `b` and
-  the 64th is empty: the innermost inline table has the depth 64.
-- `a = `, `{ b = ` written 64 times, `{}`, ` }` written 64 times, 0x0A:
-  "invalid" at line 1, column 389: the inline table `{}` has the depth
-  65.
-- `a = [[1], `, `[` written 64 times, `]` written 64 times, `]`, 0x0A:
-  "invalid" at line 1, column 74: the second element of the value of `a`
-  opens 64 arrays of TOML 1.1.0, and the last of them has the depth 65.
-- `a.` written 63 times, `a = 1`, 0x0A: "valid" with the root table in
-  which `a` holds 63 nested tables, of which each of the first 62 holds
-  the next one under the text `a` and the 63rd holds the TOML integer 1
-  under the text `a`: the key of the key/value pair has 64 TOML keys.
-- `a.` written 64 times, `a = 1`, 0x0A: "invalid" at line 1, column 129:
-  the key of the key/value pair has 65 TOML keys, and its 65th TOML key
-  starts at column 129.
-- `[`, `a.` written 63 times, `a]`, 0x0A: "valid" with the root table in
-  which `a` holds 64 nested tables, of which each of the first 63 holds
-  the next one under the text `a` and the 64th is empty: the key of the
-  table header has 64 TOML keys.
-- `[`, `a.` written 64 times, `a]`, 0x0A: "invalid" at line 1,
-  column 130: the key of the table header has 65 TOML keys.
-
-#### 5.6.3 Spans
-
-Each row gives a byte sequence that is a TOML document and one span that
-a conforming program gives for it with the result "valid": what the span
-is the span of, a location, and the start and the end of the span.
-Under the heading "span of", "the TOML value" stands for the TOML value
-at the location, "the key" stands for the key of TOML 1.1.0 that leads
-to the location, and "the TOML key with the index i" stands for the TOML
-key with the index i of the key of TOML 1.1.0 that leads to the
-location. A location is written as its steps, in order, with semicolons
-between them: a text as characters between backticks, and an index as
-its decimal numeral. The cell under the heading "text of the span" gives
-the text of the span, which a conforming program does not give, as its
-parts, in order, with commas between them: characters between backticks,
-or a line feed.
-
-| byte sequence | span of | location | start | end | text of the span |
-|---|---|---|---|---|---|
-| `a = 1`, 0x0A | the key | `a` | line 1, column 1 | line 1, column 2 | `a` |
-| `a = 1`, 0x0A | the TOML key with the index 1 | `a` | line 1, column 1 | line 1, column 2 | `a` |
-| `a = 1`, 0x0A | the TOML value | `a` | line 1, column 5 | line 1, column 6 | `1` |
-| 0xEF, 0xBB, 0xBF, `a = 1`, 0x0A | the key | `a` | line 1, column 1 | line 1, column 2 | `a` |
-| 0xEF, 0xBB, 0xBF, `a = 1`, 0x0A | the TOML value | `a` | line 1, column 5 | line 1, column 6 | `1` |
-| `[a.b]`, 0x0A | the key | `a`; `b` | line 1, column 2 | line 1, column 5 | `a.b` |
-| `[a.b]`, 0x0A | the TOML key with the index 1 | `a`; `b` | line 1, column 2 | line 1, column 3 | `a` |
-| `[a.b]`, 0x0A | the TOML key with the index 2 | `a`; `b` | line 1, column 4 | line 1, column 5 | `b` |
-| `[ a . "b c" ]`, 0x0A | the key | `a`; `b c` | line 1, column 3 | line 1, column 12 | `a . "b c"` |
-| `[ a . "b c" ]`, 0x0A | the TOML key with the index 1 | `a`; `b c` | line 1, column 3 | line 1, column 4 | `a` |
-| `[ a . "b c" ]`, 0x0A | the TOML key with the index 2 | `a`; `b c` | line 1, column 7 | line 1, column 12 | `"b c"` |
-| `[[a]]`, 0x0A | the key | `a`; 1 | line 1, column 3 | line 1, column 4 | `a` |
-| `"a.b" = 'x'`, 0x0A | the key | `a.b` | line 1, column 1 | line 1, column 6 | `"a.b"` |
-| `"a.b" = 'x'`, 0x0A | the TOML key with the index 1 | `a.b` | line 1, column 1 | line 1, column 6 | `"a.b"` |
-| `"a.b" = 'x'`, 0x0A | the TOML value | `a.b` | line 1, column 9 | line 1, column 12 | `'x'` |
-| `a = [1, [2, 3]]`, 0x0A | the TOML value | `a` | line 1, column 5 | line 1, column 16 | `[1, [2, 3]]` |
-| `a = [1, [2, 3]]`, 0x0A | the TOML value | `a`; 1 | line 1, column 6 | line 1, column 7 | `1` |
-| `a = [1, [2, 3]]`, 0x0A | the TOML value | `a`; 2 | line 1, column 9 | line 1, column 15 | `[2, 3]` |
-| `a = [1, [2, 3]]`, 0x0A | the TOML value | `a`; 2; 2 | line 1, column 13 | line 1, column 14 | `3` |
-| `t = { x = 1, y.z = "s" }`, 0x0A | the TOML value | `t` | line 1, column 5 | line 1, column 25 | `{ x = 1, y.z = "s" }` |
-| `t = { x = 1, y.z = "s" }`, 0x0A | the key | `t`; `x` | line 1, column 7 | line 1, column 8 | `x` |
-| `t = { x = 1, y.z = "s" }`, 0x0A | the key | `t`; `y`; `z` | line 1, column 14 | line 1, column 17 | `y.z` |
-| `t = { x = 1, y.z = "s" }`, 0x0A | the TOML key with the index 2 | `t`; `y`; `z` | line 1, column 16 | line 1, column 17 | `z` |
-| `t = { x = 1, y.z = "s" }`, 0x0A | the TOML value | `t`; `y`; `z` | line 1, column 20 | line 1, column 23 | `"s"` |
-| `[t]`, 0x0A, `k = "v"`, 0x0A | the key | `t`; `k` | line 2, column 1 | line 2, column 2 | `k` |
-| `[t]`, 0x0A, `k = "v"`, 0x0A | the TOML value | `t`; `k` | line 2, column 5 | line 2, column 8 | `"v"` |
-| `a = 1`, 0x0D, 0x0A, `b = 2`, 0x0D, 0x0A | the TOML value | `b` | line 2, column 5 | line 2, column 6 | `2` |
-| `a = [`, 0x0A, `  1,`, 0x0A, `]`, 0x0A | the TOML value | `a` | line 1, column 5 | line 3, column 2 | `[`, a line feed, `  1,`, a line feed, `]` |
-| `a = [`, 0x0A, `  1,`, 0x0A, `]`, 0x0A | the TOML value | `a`; 1 | line 2, column 3 | line 2, column 4 | `1` |
-| `d = 1979-05-27 07:32:00 # c`, 0x0A | the TOML value | `d` | line 1, column 5 | line 1, column 24 | `1979-05-27 07:32:00` |
-| `[[a]]`, 0x0A, `b = 1`, 0x0A, `[[a]]`, 0x0A, `b = 2`, 0x0A | the key | `a`; 2 | line 3, column 3 | line 3, column 4 | `a` |
-| `[[a]]`, 0x0A, `b = 1`, 0x0A, `[[a]]`, 0x0A, `b = 2`, 0x0A | the key | `a`; 1; `b` | line 2, column 1 | line 2, column 2 | `b` |
-| `[[a]]`, 0x0A, `b = 1`, 0x0A, `[[a]]`, 0x0A, `b = 2`, 0x0A | the TOML value | `a`; 2; `b` | line 4, column 5 | line 4, column 6 | `2` |
-| `[[a]]`, 0x0A, `[a.b]`, 0x0A | the key | `a`; 1; `b` | line 2, column 2 | line 2, column 5 | `a.b` |
-| `a = [{ b = 1 }]`, 0x0A | the key | `a`; 1; `b` | line 1, column 8 | line 1, column 9 | `b` |
-| `a.b = { c = 1 }`, 0x0A | the TOML value | `a`; `b` | line 1, column 7 | line 1, column 16 | `{ c = 1 }` |
-| `a = { "1" = 2 }`, 0x0A | the TOML value | `a`; `1` | line 1, column 13 | line 1, column 14 | `2` |
-
-Each item gives a byte sequence that is a TOML document and a TOML value
-of the document for which a conforming program gives no span with the
-result "valid".
-
-- `[a]`, 0x0A, `b = 1`, 0x0A: "valid" with no span as the span of the
-  TOML value at `a`: a table header makes the table `a`.
-- `a.b = 1`, 0x0A: "valid" with no span as the span of the TOML value at
-  `a`: the dotted key `a.b` makes the table `a`.
-- `[[a]]`, 0x0A: "valid" with no span as the span of the TOML value at
-  `a`: the table headers of an array of tables make the TOML array `a`.
-- `a = 1`, 0x0A: "valid" with no span as the span of the root table.
-
-#### 5.6.4 Error starts
-
-Each item gives a byte sequence and what a conforming program gives for
-it as a TOML document.
-
-- `a = 1 2`, 0x0A: "invalid" at line 1, column 7: a syntax error; no
-  text that matches `toml` starts with `a = 1 2`.
-- `a =`: "invalid" at line 1, column 4: a syntax error at the end of the
-  text; a value can follow `a =`.
-- `a = [`, 0x0A: "invalid" at line 2, column 1: a syntax error at the
-  boundary where the body ends, after the final line ending.
-- `a = "b`, 0x0A: "invalid" at line 1, column 7: a syntax error; a basic
-  string holds no line feed.
-- `[a`, 0x0A: "invalid" at line 1, column 3: a syntax error; `]` or `.`
-  can follow `a`, and a line feed cannot.
-- `a = 1`, 0x0D, `b = 2`, 0x0A: "invalid" at line 1, column 7: a syntax
-  error; `a = 1` and a carriage return can go on with a line feed, and
-  no text that matches `toml` begins with `a = 1`, a carriage return,
-  `b`.
-- 0xEF, 0xBB, 0xBF, `a = 1 2`, 0x0A: "invalid" at line 1, column 7: a
-  syntax error; the byte order mark has no position.
-- `a = 1`, 0x0A, `a = 2`, 0x0A: "invalid" at line 2, column 1: a
-  structure error; the root table already holds the text `a` before line
-  number 2.
-- `a = 1`, 0x0A, `b = 99999999999999999999`, 0x0A: "invalid" at line 2,
-  column 5: a value error; the integer of TOML 1.1.0 stands for a number
-  greater than 9,223,372,036,854,775,807.
-- `a = 1`, 0x0A, `a = 99999999999999999999`, 0x0A: "invalid" at line 2,
-  column 1: the structure error at the key `a` of the key/value pair on
-  line number 2, where the root table already holds the text `a`, starts
-  before the value error at the integer.
-- `a = [1, 1e400]`, 0x0A: "invalid" at line 1, column 9: a value error;
-  the float `1e400` rounds to an infinity.
-- `d = 1979-02-30`, 0x0A: "invalid" at line 1, column 5: a value error;
-  February 1979 has no day 30.
-- `d = 1900-02-29`, 0x0A: "invalid" at line 1, column 5: a value error;
-  1900 is not a leap year, so February 1900 has no day 29.
-- `a = 1979-05-27T07:32:00+24:00`, 0x0A: "invalid" at line 1, column 5:
-  a value error; the hour of the offset is 24, and RFC 3339 allows the
-  hours 00 to 23 in an offset.
-- `s = "\uD800"`, 0x0A: "invalid" at line 1, column 5: a value error;
-  the escape sequence `\uD800` has digits in base 16 that write a number
-  that is not the code point of a character.
-- `a = { b = 1, b = 2 }`, 0x0A: "invalid" at line 1, column 14: a
-  structure error; at the boundary right before the second key/value
-  pair, the table of the inline table already holds the text `b`.
-- `a.b = 1`, 0x0A, `a.b.c = 2`, 0x0A: "invalid" at line 2, column 1: a
-  structure error; the TOML keys `a` and `b` before the last TOML key of
-  the dotted key `a.b.c` lead to the TOML integer 1, which is not a
-  table.
-- `[a]`, 0x0A, `b = 1`, 0x0A, `[a]`, 0x0A: "invalid" at line 3,
-  column 2: a structure error; the second table header `[a]` defines the
-  table `a` a second time.
-- `a."\uD800" = 1`, 0x0A: "invalid" at line 1, column 3: a key error,
-  and no structure error; the quoted key `"\uD800"` has an escape
-  sequence whose digits in base 16 write a number that is not the code
-  point of a character.
-- `a = { b = 1 }`, 0x0A, `a.c = 2`, 0x0A: "invalid" at line 2,
-  column 1: a structure error; the TOML key `a` of the key/value pair on
-  line number 2 leads to the table of the inline table on line number 1,
-  which does not enclose that key/value pair.
-- `[product]`, 0x0A, `type = { name = "Nail" }`, 0x0A,
-  `type.edible = false`, 0x0A: "invalid" at line 3, column 1: a
-  structure error; the TOML key `type` of the key/value pair on line
-  number 3 leads to the table of the inline table on line number 2,
-  which does not enclose that key/value pair.
-- `a = 1e400`, 0x0A, `b =`, 0x0A: "invalid" at line 2, column 4: a
-  syntax error; a value can follow `b =`, and a line feed cannot. When
-  the text does not match `toml`, the error start is where the syntax
-  error starts, also when a value error starts before it, as at `1e400`.
-- `x = { b.c = 1 }`, 0x0A, `[x.b]`, 0x0A: "invalid" at line 2,
-  column 2: a structure error; the key/value pair `b.c = 1` in the
-  inline table on line number 1 and the table header on line number 2
-  both define the table `x.b`.
-- `a = 1`, 0x0A, 0xFF, 0x0A: "invalid" at no position: the byte sequence
-  is not valid UTF-8.
-- `x = { b.c = 1, b = 2 }`, 0x0A: "invalid" at line 1, column 16: a
-  structure error; at the boundary right before the key/value pair
-  `b = 2`, the table of the inline table already holds the text `b`, the
-  first TOML key of the dotted key `b.c`.
-- `a = 1`, 0x0A, `a."\uD800" = 2`, 0x0A: "invalid" at line 2, column 1:
-  a structure error; the TOML key `a` before the quoted key leads to the
-  TOML integer 1, which is not a table, and the key error at the quoted
-  key starts later, at column 3.
-- `a = 1`, 0x0A, `[a."\uD800"]`, 0x0A: "invalid" at line 2, column 2: a
-  structure error; the TOML key `a` before the quoted key leads to the
-  TOML integer 1, which is not a table, and the key error at the quoted
-  key starts later, at column 4.
-- `a = 1`, 0x0A, `[a]`, 0x0A: "invalid" at line 2, column 2: a structure
-  error; the TOML key `a` of the table header on line number 2 leads to
-  the TOML integer 1, which is not a table.
-- `a = []`, 0x0A, `[[a]]`, 0x0A: "invalid" at line 2, column 3: a
-  structure error; the TOML key `a` of the table header on line number 2
-  leads to the TOML array that the value `[]` on line number 1 gives,
-  and not to a table in a TOML array that table headers make.
-- `[a.b]`, 0x0A, `[[a]]`, 0x0A: "invalid" at line 2, column 3: a
-  structure error; the TOML key `a` of the table header on line number 2
-  leads to the table `a`, which the table header on line number 1 makes,
-  and not to a table in a TOML array that table headers make.
-- `[a]`, 0x0A, `[[a]]`, 0x0A: "invalid" at line 2, column 3: a structure
-  error; the TOML key `a` of the table header on line number 2 leads to
-  the table `a`, which the table header on line number 1 names, and not
-  to a table in a TOML array that table headers make.
-- `[[a]]`, 0x0A, `[a]`, 0x0A: "invalid" at line 2, column 2: a structure
-  error; the table headers on line numbers 1 and 2 both define the table
-  that the table header on line number 1 adds to the TOML array `a`.
-- `[a]`, 0x0A, `b = 1`, 0x0A, `b.c = 2`, 0x0A: "invalid" at line 3,
-  column 1: a structure error; the TOML key `b` before the last TOML key
-  of the dotted key `b.c` leads to the TOML integer 1, which is not a
-  table.
-- `a = 1`, 0x0A, `a.b.c = 2`, 0x0A: "invalid" at line 2, column 1: a
-  structure error; the TOML key `a` before the last TOML key of the
-  dotted key `a.b.c` leads to the TOML integer 1, which is not a table.
-- `a = 1`, 0x0A, `a.b."\uD800" = 2`, 0x0A: "invalid" at line 2,
-  column 1: a structure error; the TOML key `a` before the quoted key
-  leads to the TOML integer 1, which is not a table, and the key error
-  at the quoted key starts later, at column 5.
-- `a = [1]`, 0x0A, `[a.b.c]`, 0x0A: "invalid" at line 2, column 2: a
-  structure error; the TOML key `a` before the last TOML key of the key
-  `a.b.c` of the table header leads to the TOML array that the value
-  `[1]` gives, which is not a table.
-- `x = { b.c = 1, b.c = 2 }`, 0x0A: "invalid" at line 1, column 16: a
-  structure error; at the boundary right before the second key/value
-  pair, the table `x.b` of the inline table already holds the text `c`.
-- `x = { b = { c = 1 }, b.d = 2 }`, 0x0A: "invalid" at line 1,
-  column 22: a structure error; the TOML key `b` of the key/value pair
-  `b.d = 2` leads to the table of the inline table `{ c = 1 }`, which
-  does not enclose that key/value pair.
+The groups `documents`, `limits`, and `error-starts` hold the vectors of
+the requirements `read-toml`, `give-toml-error-start`, and
+`omit-toml-error-positions`. Each vector gives a byte sequence and what
+a conforming program gives for it as a TOML document. The vectors of the
+group `documents` test the reading rules of TOML, the table rules of
+TOML, and the root tables of TOML documents. The vectors of the group
+`limits` test the limit on depths and on TOML keys. The vectors of the
+group `error-starts` test the error starts of byte sequences that are
+not TOML documents. The three groups have the same forms:
+
+- `input`: the byte sequence.
+- `result`: "valid" when the byte sequence is a TOML document, and
+  "invalid" when it is not.
+- `values`: with the result "valid", an object with one member,
+  `root-table`: the form of the root table of the TOML document. With
+  the result "invalid", for a byte sequence that is valid UTF-8, an
+  object with one member, `error-start`: the start of the error start of
+  the byte sequence, as a position. With the result "invalid", for a
+  byte sequence that is not valid UTF-8, the empty object, `{}`.
+
+With the result "valid", a conforming program gives a table whose form
+is the form of `root-table`, and no other table. With the result
+"invalid", it gives the line number and the column of `error-start` as
+the start of the error start, and no other line number and no other
+column. When `values` is `{}`, it gives no line number and no column.
+
+```
+{"group":"documents","input":"61203d20310a","n":1,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"1"}}}}
+{"group":"documents","input":"61203d2022ff220a","n":28,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"documents","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{"error-start":{"column":5,"line":1}}}
+```
+
+#### 5.6.2 Spans
+
+The group `spans` holds vectors of the requirements `read-toml` and
+`give-toml-spans`. Each vector gives a TOML document and one of the
+spans that a conforming program gives for it with the result "valid",
+together with what the span is the span of.
+
+- `input`: the byte sequence of the TOML document.
+- `result`: "valid".
+- `values`: an object with these members:
+  - `of`: a string that says what the span is the span of: `toml-value`
+    for the TOML value at the location of `location`; `key` for the key
+    of TOML 1.1.0 that leads to that location; or `toml-key` for the
+    TOML key with the index of `index` of the key of TOML 1.1.0 that
+    leads to that location.
+  - `location`: a location.
+  - `index`: an index, as an integer. Only a vector whose member `of`
+    holds `toml-key` has this member.
+  - `start`: the start of the span, as a position.
+  - `end`: the end of the span, as a position.
+
+With the result "valid", a conforming program gives the line numbers and
+the columns of `start` and `end` as the start and the end of the span of
+what `of`, `location`, and `index` name. A vector of the group states
+nothing about the other spans that a conforming program gives for the
+TOML document. The note of each vector gives the text of the span.
+
+```
+{"group":"spans","input":"61203d20310a","n":104,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
+{"group":"spans","input":"61203d205b312c205b322c20335d5d0a","n":119,"note":"the text of the span is `1`","result":"valid","rev":"v1","values":{"end":{"column":7,"line":1},"location":["a",1],"of":"toml-value","start":{"column":6,"line":1}}}
+```
+
+The group `no-spans` holds vectors of the requirements `read-toml` and
+`give-toml-spans`. Each vector gives a TOML document and the location of
+a TOML value of it that has no span.
+
+- `input`: the byte sequence of the TOML document.
+- `result`: "valid".
+- `values`: an object with one member, `no-span-at`: a location.
+
+With the result "valid", a conforming program gives no span as the span
+of the TOML value at the location of `no-span-at`.
+
+```
+{"group":"no-spans","input":"5b615d0a62203d20310a","n":140,"note":"a table header makes the table `a`","result":"valid","rev":"v1","values":{"no-span-at":["a"]}}
+```
 
 ## 6. Hashes
 @spec hashes=v1
@@ -3350,44 +2708,77 @@ A program conforms to the specification `hashes` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-Each vector gives an input and what a conforming program gives for it.
-These conventions apply:
+The vectors of this specification are in the file
+[`data-forms.hashes.test-vectors.jsonl`](data-forms.hashes.test-vectors.jsonl),
+in the same directory as this design. The file is a test-vector set, as
+section 8 defines it. Each line of the file is the canonical byte
+sequence of one object, then the byte 0x0A, so each line is a JSON text,
+as RFC 8259 defines it. Only a line feed ends a line of the file. A
+string of the file can hold U+0085, U+2028, or U+2029, and these
+characters do not end a line.
 
-- A vector gives a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes, or
-  characters between backticks, for the UTF-8 encoding of these
-  characters. A vector gives the byte sequence that has no bytes as the
-  empty byte sequence.
-- A vector gives a text, such as a hash, as its characters between
-  backticks.
-- A result stands between double quotes. Then, after a colon, an
-  explanation of the result can stand, which a conforming program does
-  not give.
+The first line of the file is the set line. Its object has one member,
+`rev`: the revision of the test-vector set. Then each group has one
+group line, in the key order of the group names. The object of a group
+line has two members: `group`, the group name, and `rev`, the revision
+of the group. Then each vector has one vector line, in increasing order
+of the numbers of the vectors. The object of a vector line has these
+members:
+
+- `n`: the number of the vector, an integer of 1 or more.
+- `rev`: the revision of the vector.
+- `group`: the group name of the vector.
+- `input`: the input of the vector.
+- `result`: a result, as a string of the characters of the result
+  without its double quotes.
+- `values`: what a conforming program gives for the input, other than
+  the result of `result`.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. Only some vectors have this member.
+
+A revision is a string of `v` and the decimal numeral of a whole number
+of 1 or more, such as `"v1"`. The vectors follow from the requirements
+of this specification and add nothing to them. Each subsection below
+gives the forms of one group, as section 8 defines them: the
+requirements of the group, and what the members `input`, `result`, and
+`values` of its vectors stand for, each in a fixed form. A vector
+without the member `result` states no result. A vector without the
+member `values` states nothing that a conforming program gives for the
+input, other than its result. In `input` and `values`, a byte sequence
+is its hex text, as a string, such as `"616263"` for the three bytes of
+`abc`, and a text is a string of the characters of the text.
 
 #### 6.4.1 Hashes
 
-Each row gives a byte sequence and the hash that a conforming program
-gives for it.
+The group `hashes` holds the vectors of the requirement `compute-hash`.
+Each vector gives a byte sequence and its hash.
 
-| byte sequence | hash |
-|---|---|
-| the empty byte sequence | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
-| `abc` | `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` |
-| `abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq` | `248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1` |
-| 0x00, 0x80, 0xFF | `5240672d7b51756b829ad0ef8d9468b7a078afa2f410484fd3892dab47becb72` |
+- `input`: the byte sequence.
+- `result`: no vector of the group has this member.
+- `values`: an object with one member, `hash`: the hash of the byte
+  sequence, as a text.
+
+A conforming program gives the text of `hash` as the hash of the byte
+sequence, and no other text.
+
+```
+{"group":"hashes","input":"616263","n":2,"rev":"v1","values":{"hash":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
+```
 
 #### 6.4.2 The hash form
 
-Each row gives a text and the result that a conforming program gives
-for it when it validates the text as a hash.
+The group `hash-form` holds the vectors of the requirement
+`validate-hash`. Each vector gives a text and the result that a
+conforming program gives for it when it validates the text as a hash.
 
-| text | result |
-|---|---|
-| `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` | "valid" |
-| `BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD` | "invalid": upper-case letters are not hex digits |
-| `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015a` | "invalid": 63 hex digits |
-| `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad0` | "invalid": 65 hex digits |
-| `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ag` | "invalid": `g` is not a hex digit |
+- `input`: the text.
+- `result`: "valid" when the text fits the hash form, and "invalid" when
+  it does not.
+- `values`: no vector of the group has this member.
+
+```
+{"group":"hash-form","input":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD","n":6,"note":"upper-case letters are not hex digits","result":"invalid","rev":"v1"}
+```
 
 ## 7. Hash ids
 @spec hash-ids=v1
@@ -3487,50 +2878,86 @@ A program conforms to the specification `hash-ids` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-Each vector gives an input and what a conforming program gives for it.
-These conventions apply:
+The vectors of this specification are in the file
+[`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
+in the same directory as this design. The file is a test-vector set, as
+section 8 defines it. Each line of the file is the canonical byte
+sequence of one object, then the byte 0x0A, so each line is a JSON text,
+as RFC 8259 defines it. Only a line feed ends a line of the file. A
+string of the file can hold U+0085, U+2028, or U+2029, and these
+characters do not end a line.
 
-- A vector gives a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes, or
-  characters between backticks, for the UTF-8 encoding of these
-  characters. A vector gives the byte sequence that has no bytes as the
-  empty byte sequence.
-- A vector gives a text, such as an id prefix or a hash id, as its
-  characters between backticks.
-- A vector gives a whole number, such as a number of hex digits, as its
-  decimal numeral.
-- A result stands between double quotes. Then, after a colon, an
-  explanation of the result can stand, which a conforming program does
-  not give.
+The first line of the file is the set line. Its object has one member,
+`rev`: the revision of the test-vector set. Then each group has one
+group line, in the key order of the group names. The object of a group
+line has two members: `group`, the group name, and `rev`, the revision
+of the group. Then each vector has one vector line, in increasing order
+of the numbers of the vectors. The object of a vector line has these
+members:
+
+- `n`: the number of the vector, an integer of 1 or more.
+- `rev`: the revision of the vector.
+- `group`: the group name of the vector.
+- `input`: the input of the vector.
+- `result`: a result, as a string of the characters of the result
+  without its double quotes.
+- `values`: what a conforming program gives for the input, other than
+  the result of `result`.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. Only some vectors have this member.
+
+A revision is a string of `v` and the decimal numeral of a whole number
+of 1 or more, such as `"v1"`. The vectors follow from the requirements
+of this specification and add nothing to them. Each subsection below
+gives the forms of one group, as section 8 defines them: the
+requirements of the group, and what the members `input`, `result`, and
+`values` of its vectors stand for, each in a fixed form. A vector
+without the member `result` states no result. A vector without the
+member `values` states nothing that a conforming program gives for the
+input, other than its result. In `input` and `values`, a byte sequence
+is its hex text, as a string, such as `"616263"` for the three bytes of
+`abc`; a text, such as an id prefix, is a string of the characters of
+the text; and a whole number is an integer.
 
 #### 7.4.1 Hash ids
 
-Each row gives an id prefix, a number of hex digits, a byte sequence,
-and the hash id that a conforming program gives for them.
+The group `hash-ids` holds the vectors of the requirement
+`compute-hash-id`. Each vector gives an id prefix, a number of hex
+digits, a byte sequence, and the hash id of the byte sequence with that
+id prefix and that number of hex digits.
 
-| id prefix | number of hex digits | byte sequence | hash id |
-|---|---|---|---|
-| `e-` | 12 | `abc` | `e-ba7816bf8f01` |
-| `t-` | 12 | the empty byte sequence | `t-e3b0c44298fc` |
-| `run-` | 1 | `abc` | `run-b` |
-| `e-` | 64 | `abc` | `e-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` |
+- `input`: an object with three members: `id-prefix`, the id prefix;
+  `number-of-hex-digits`, the number of hex digits; and
+  `byte-sequence`, the byte sequence.
+- `result`: no vector of the group has this member.
+- `values`: an object with one member, `hash-id`: the hash id, as a
+  text.
+
+A conforming program gives the text of `hash-id` as the hash id of the
+byte sequence with the id prefix and the number of hex digits, and no
+other text.
+
+```
+{"group":"hash-ids","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"n":1,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01"}}
+```
 
 #### 7.4.2 The hash-id form
 
-Each row gives a text, an id prefix, a number of hex digits, and the
-result that a conforming program gives for them when it validates the
-text as a hash id.
+The group `hash-id-form` holds the vectors of the requirement
+`validate-hash-id`. Each vector gives a text, an id prefix, a number of
+hex digits, and the result that a conforming program gives for them
+when it validates the text as a hash id.
 
-| text | id prefix | number of hex digits | result |
-|---|---|---|---|
-| `e-5b1c0a9d2e11` | `e-` | 12 | "valid" |
-| `e-5b1c0a9d2e1` | `e-` | 12 | "invalid": 11 hex digits |
-| `e-5b1c0a9d2e11a` | `e-` | 12 | "invalid": 13 hex digits |
-| `e-5B1C0A9D2E11` | `e-` | 12 | "invalid": upper-case letters are not hex digits |
-| `t-5b1c0a9d2e11` | `e-` | 12 | "invalid": the text does not start with `e-` |
-| `5b1c0a9d2e11` | `e-` | 12 | "invalid": the text does not start with `e-` |
-| `run-b` | `run-` | 1 | "valid" |
-| `run-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` | `run-` | 64 | "valid" |
+- `input`: an object with three members: `text`, the text;
+  `id-prefix`, the id prefix; and `number-of-hex-digits`, the number of
+  hex digits.
+- `result`: "valid" when the text fits the hash-id form with the id
+  prefix and the number of hex digits, and "invalid" when it does not.
+- `values`: no vector of the group has this member.
+
+```
+{"group":"hash-id-form","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"n":6,"note":"11 hex digits","result":"invalid","rev":"v1"}
+```
 
 ## 8. Test vectors
 @spec test-vectors=v1
@@ -3553,11 +2980,11 @@ the name `b`, the test-vector file name of `a` and `b` is
 A test-vector set holds JSON objects as their canonical byte sequences,
 each then the byte 0x0A, so a test-vector set has exactly one form for
 its objects. It starts with its set line, which holds the set object,
-such as `{"rev":"v3"}`, with the revision of the whole set. Then each
-group of vectors has a group line, such as
+such as `{"rev":"v3"}`, with the revision of the whole test-vector set.
+Then it holds one group line for each group, such as
 `{"group":"offsets","rev":"v2"}`, in the key order of the group names.
-Then each vector has a vector line, in increasing order of its number
-`n`, such as
+Then it holds one vector line for each vector, in increasing order of
+the numbers `n` of the vectors, such as
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`.
 The objects of the vector lines can hold any JSON value in `input` and
 in `values`, so a vector object need not be a line object.
@@ -3579,10 +3006,10 @@ it gives:
    when the requirements oblige that result only when a conforming
    program gives a result for that input, that condition;
 4. what the value of `values` stands for, such as the results of the
-   other inputs. It can stand for a thing that
-   a conforming program gives when it gives a thing of that kind, for
-   things of which a conforming program gives one in place of another,
-   and for a thing that a conforming program does not give.
+   other inputs. It can stand for a thing that a conforming program
+   gives when it gives a thing of that kind, for things of which a
+   conforming program gives one in place of another, and for a thing
+   that a conforming program does not give.
 
 By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
@@ -3596,30 +3023,33 @@ for, such as the results of the other inputs. A vector object without
 the member `result` states no result other than those that the value of
 `values` stands for, and a vector object without the member `values`
 states nothing about what a conforming program gives for the input,
-other than the result that the value of `result` stands for. Each vector object has the member `result` or the
-member `values`, or both. The value of `note` explains the vector, and
-it is no part of the input, the result, or the values.
+other than the result that the value of `result` stands for. Each vector
+object has the member `result` or the member `values`, or both. The
+value of `note` explains the vector, and it is no part of the input, the
+result, or the values.
 
-Each vector, each group, and the whole set have a revision, such as
-`v2`. The forms of a group are part of the meaning of each vector of the
-group. So a version of the vectors is a test-vector set together with
-the forms of each of its groups, given as texts: the whole text of the
-Conformance section or part that gives them. From one version to the
-next, when the group, the input, the result, or the values of a vector
-change, the revision of the vector rises, and so do the revision of each
-group that holds it in either version and is in both versions, and the
-revision of the set. When the forms of a group that is in both versions
-change, the revision of each vector that is in that group in both
-versions rises, and so do the revision of the group and the revision of
-the set. When a vector joins or leaves, the revision of the set rises,
-and so does the revision of its group when its group is in both
-versions. Without such a change, no revision changes, so a change of a
-note alone changes no revision. A revision can rise by more than 1. A
-new vector, and a group that is in no earlier version, can have any
-revision. A group that comes back after it left gets a revision higher
-than each revision that it had before. A number `n` is given once: a
-vector that leaves takes its number with it, and a new vector gets a
-number greater than each number before it.
+Each vector, each group, and the whole test-vector set have a revision,
+such as `v2`. The forms of a group are part of the meaning of each
+vector of the group. So a version of the vectors is a test-vector set
+together with the forms of each of its groups, given as texts: the whole
+text of the Conformance section or part that gives them. From one
+version to the next, when the group, the input, the result, or the
+values of a vector change, the revision of the vector rises. So does the
+revision of the group of the vector in each of the two versions, when
+that group is in both versions, and so does the revision of the
+test-vector set. When the forms of a group that is in both versions
+change, the revision of each vector that has that group in both versions
+rises, and so do the revision of the group and the revision of the
+test-vector set. When a vector joins or leaves the test-vector set, the
+revision of the test-vector set rises, and so does the revision of the
+group of the vector when that group is in both versions. Without such a
+change, no revision changes, so a change of a note alone changes no
+revision. A revision can rise by more than 1. A new vector, and a group
+that is in no earlier version, can have any revision. A group that comes
+back after it left gets a revision higher than each revision that it had
+before. A number `n` is given once: a vector that leaves takes its
+number with it, and a new vector gets a number greater than each number
+before it.
 
 ### 8.1 Definitions
 
@@ -3696,7 +3126,7 @@ value of the member `n`.
 
 #### 8.1.5 Vector lines, group lines, and set lines
 
-@term test-vector-line=v1
+@term vector-line=v1
 @cites {
     text#{byte=v1, 0x-numeral=v1, code-span=v1},
     #{json-value=v1, canonical-byte-sequence=v1, vector-object=v1},
@@ -3717,18 +3147,19 @@ line is the value of `rev` of its object.
 @term test-vector-set=v1
 @cites {
     text#{byte-sequence=v1, byte=v1, text=v1},
-    #{key-order=v1, test-vector-line=v1},
+    #{key-order=v1, vector-line=v1},
 }
 
 A test-vector set is a byte sequence that holds, in this order, and no
-other bytes: one set line; then group lines; then vector lines, each
-with a greater number than the vector line before it. The group lines
-are one group line for each text that is the group of one of these
-vector lines, and no other group line, in the key order of their groups.
-A group of a test-vector set is the group of one of its group lines. The
-revision of a group of a test-vector set is the revision of the group
-line of that group, and the revision of a test-vector set is the
-revision of its set line.
+other bytes: one set line; then zero or more group lines; then zero or
+more vector lines, each with a greater number than the vector line
+before it. The group lines are one group line for each text that is the
+group of one of these vector lines, and no other group line, in the key
+order of their groups. A group of a test-vector set is the group of one
+of its group lines. The vector lines of a group of a test-vector set are
+its vector lines whose group is that group. The revision of a group of a
+test-vector set is the revision of the group line of that group, and
+the revision of a test-vector set is the revision of its set line.
 
 #### 8.1.7 The forms of a group
 
@@ -3762,12 +3193,12 @@ Conformance part:
    a conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
    the results of the other inputs; and the fixed form in which the
-   value of `values` holds it. The value of `values` can stand for a thing that
-   the program gives when it gives a thing of that kind, such as the
-   text of a byte sequence when the program gives a text for that byte
-   sequence; for things of which the program gives one in place of
-   another, such as a line and the text of that line; and for a thing
-   that the program does not give.
+   value of `values` holds it. The value of `values` can stand for a
+   thing that the program gives when it gives a thing of that kind,
+   such as the text of a byte sequence when the program gives a text
+   for that byte sequence; for things of which the program gives one in
+   place of another, such as a line and the text of that line; and for
+   a thing that the program does not give.
 
 For a design D and a group name g, the forms of the group g of D are the
 same four things, which the Conformance section of D gives for g, with
@@ -3785,7 +3216,7 @@ whole text of the Conformance section of D.
         conforming-program=v1, input=v1, result=v1, code-span=v1,
     },
     #{
-        json-value=v1, vector-object=v1, test-vector-line=v1,
+        json-value=v1, vector-object=v1, vector-line=v1,
         test-vector-set=v1, group-form-list=v1,
     },
 }
@@ -3829,7 +3260,7 @@ object states this:
 @cites {
     text#{byte-sequence=v1, text=v1, code-span=v1},
     #{
-        json-value=v1, vector-object=v1, test-vector-line=v1,
+        json-value=v1, vector-object=v1, vector-line=v1,
         test-vector-set=v1, test-vector-revision=v1,
         canonical-byte-sequence=v1, group-form-list=v1,
     },
@@ -3838,10 +3269,10 @@ object states this:
 A version is a test-vector set together with a text for each group of
 that test-vector set: the text of the forms of that group in that
 version, which is the whole text of the Conformance section or part
-that gives these forms.
-The vector lines, the groups, and the revision of a version are those of
-its test-vector set, and the revision of a group in a version is the
-revision of that group of its test-vector set.
+that gives these forms. The vector lines, the groups, and the revision
+of a version are those of its test-vector set, and the revision of a
+group in a version is the revision of that group of its test-vector
+set.
 
 A version sequence is a finite sequence of versions, from the earliest
 to the latest, in which each of the rules of this definition holds for
@@ -3882,13 +3313,13 @@ These are the rules:
 
 ### 8.2 Test-vector sets as input
 
-@req read-test-vectors=v1
+@req read-test-vector-set=v1
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{json-value=v1, test-vector-line=v1, test-vector-set=v1},
+    #{json-value=v1, vector-line=v1, test-vector-set=v1},
 }
 
 For each byte sequence that is a test-vector set, a conforming program
@@ -3917,282 +3348,92 @@ A program conforms to the specification `test-vectors` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-Each vector gives an input and what a conforming program gives for it.
-These conventions apply:
+The vectors of this specification are in the file
+[`data-forms.test-vectors.test-vectors.jsonl`](data-forms.test-vectors.test-vectors.jsonl),
+in the same directory as this design. The file is a test-vector set, as
+section 8 defines it. Each line of the file is the canonical byte
+sequence of one object, then the byte 0x0A, so each line is a JSON text,
+as RFC 8259 defines it. Only a line feed ends a line of the file. A
+string of the file can hold U+0085, U+2028, or U+2029, and these
+characters do not end a line.
 
-- A vector gives a byte sequence as its parts, in order, with commas
-  between them. A part is a 0x numeral, for the byte that it writes, or
-  characters between backticks, for the UTF-8 encoding of these
-  characters. A vector gives every byte of a byte sequence, each final
-  0x0A included. A vector gives the byte sequence that has no bytes as
-  the empty byte sequence.
-- A vector gives a JSON value, such as an object, as its canonical form
-  between backticks.
-- A result stands between double quotes. After "valid", the word "with"
-  and the objects that follow it stand for what a conforming program
-  gives with the result: these objects, in their order. Then, after a
-  colon, an explanation of the result can stand, which a conforming
-  program does not give.
+The first line of the file is the set line. Its object has one member,
+`rev`: the revision of the test-vector set. Then each group has one
+group line, in the key order of the group names. The object of a group
+line has two members: `group`, the group name, and `rev`, the revision
+of the group. Then each vector has one vector line, in increasing order
+of the numbers of the vectors. The object of a vector line has these
+members:
+
+- `n`: the number of the vector, an integer of 1 or more.
+- `rev`: the revision of the vector.
+- `group`: the group name of the vector.
+- `input`: the input of the vector.
+- `result`: a result, as a string of the characters of the result
+  without its double quotes.
+- `values`: what a conforming program gives for the input, other than
+  the result of `result`.
+- `note`: an explanation of the vector, which a conforming program does
+  not give. Only some vectors have this member.
+
+A revision is a string of `v` and the decimal numeral of a whole number
+of 1 or more, such as `"v1"`. The vectors follow from the requirements
+of this specification and add nothing to them. Each subsection below
+gives the forms of one group, as section 8 defines them: the
+requirements of the group, and what the members `input`, `result`, and
+`values` of its vectors stand for, each in a fixed form. A vector
+without the member `values` states nothing that a conforming program
+gives for the input, other than its result. In `input` and `values`, a
+byte sequence is its hex text, as a string, such as
+`"7b22726576223a227631227d0a"` for the UTF-8 encoding of `{"rev":"v1"}`,
+then the byte 0x0A.
 
 #### 8.4.1 Test-vector sets
 
-Each item gives a byte sequence and what a conforming program gives for
-it as a test-vector set.
+The group `test-vector-sets` holds the vectors of the requirement
+`read-test-vector-set`. Each vector gives a byte sequence and what a
+conforming program gives when it reads the byte sequence as a
+test-vector set.
 
-- `{"rev":"v1"}`, 0x0A: "valid" with the object `{"rev":"v1"}`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "valid" with the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`.
-- `{"rev":"v3"}`, 0x0A, `{"group":"g-2","rev":"v2"}`, 0x0A,
-  `{"group":"g-2","input":{"b":[1,{"c":true}]},"n":7,"note":"a note","result":"invalid","rev":"v2","values":["e"]}`,
-  0x0A: "valid" with the objects `{"rev":"v3"}`,
-  `{"group":"g-2","rev":"v2"}`,
-  `{"group":"g-2","input":{"b":[1,{"c":true}]},"n":7,"note":"a note","result":"invalid","rev":"v2","values":["e"]}`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"b","rev":"v1"}`, 0x0A,
-  `{"group":"b","input":1,"n":1,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":2,"n":2,"result":"valid","rev":"v1"}`, 0x0A:
-  "valid" with the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
-  `{"group":"b","rev":"v1"}`,
-  `{"group":"b","input":1,"n":1,"result":"valid","rev":"v1"}`,
-  `{"group":"a","input":2,"n":2,"result":"valid","rev":"v1"}`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"abc","n":1,"rev":"v1","values":"ba7816bf"}`,
-  0x0A: "valid" with the objects `{"rev":"v1"}`,
-  `{"group":"a","rev":"v1"}`,
-  `{"group":"a","input":"abc","n":1,"rev":"v1","values":"ba7816bf"}`:
-  the vector object has no member `result`, and its member `values`
-  holds an output.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":9,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"y","n":10,"result":"valid","rev":"v1"}`, 0x0A:
-  "valid" with the objects `{"rev":"v1"}`, `{"group":"a","rev":"v1"}`,
-  `{"group":"a","input":"x","n":9,"result":"valid","rev":"v1"}`,
-  `{"group":"a","input":"y","n":10,"result":"valid","rev":"v1"}`: the
-  number 10 is greater than the number 9.
-- the empty byte sequence: "invalid": the byte sequence holds no set
-  line.
-- `{"group":"a","rev":"v1"}`, 0x0A, `{"rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the byte sequence does not start with a set line.
-- 0xEF, 0xBB, 0xBF, `{"rev":"v1"}`, 0x0A: "invalid": the byte sequence
-  does not start with a set line.
-- `{"rev":"v1"}`, 0x0A, `{"rev":"v1"}`, 0x0A: "invalid": the byte
-  sequence holds two set lines.
-- `{"rev":"v1"}`, 0x0A, 0x0A: "invalid": the second byte 0x0A is no part
-  of a set line, a group line, or a vector line.
-- `{"rev":"v1"}`, 0x0A, `{"group":"b","rev":"v1"}`, 0x0A,
-  `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":1,"n":1,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"b","input":2,"n":2,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the group lines are not in the key order of their groups.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": two group lines have the group `a`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","rev":"v2"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": two group lines have the group `a`, one with the revision
-  v1 and one with the revision v2.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"b","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": no vector line has the group `b`.
-- `{"rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": no group line has the group `a`.
-- `{"rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"a","rev":"v1"}`, 0x0A: "invalid": a group line stands after
-  a vector line.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the vector lines are not in increasing order of their
-  numbers.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"y","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": two vector lines have the number 1.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":0,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the value of `n` is less than 1.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":"1","result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the value of `n` is a string, not an integer.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":9007199254740992,"result":"valid","rev":"v1"}`,
-  0x0A: "invalid": the number 9,007,199,254,740,992 is greater than
-  9,007,199,254,740,991, so it is not an integer.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"extra":1,"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`,
-  0x0A: "invalid": a vector object has no member `extra`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1","x":1}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": a group object has no member `x`.
-- `{"note":"x","rev":"v1"}`, 0x0A: "invalid": a set object has no member
-  `note`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","n":1,"result":"valid","rev":"v1"}`, 0x0A: "invalid":
-  the vector object has no member `input`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"note":"n","rev":"v1"}`, 0x0A:
-  "invalid": the vector object has neither the member `result` nor the
-  member `values`.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":true,"rev":"v1"}`, 0x0A:
-  "invalid": the value of `result` is not a string.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"note":1,"result":"valid","rev":"v1"}`,
-  0x0A: "invalid": the value of `note` is not a string.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":null,"n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": null is not a JSON value.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":1.5,"n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": `1.5` is not the canonical form of a JSON value.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":{"b":1,"a":2},"n":1,"result":"valid","rev":"v1"}`,
-  0x0A: "invalid": the members of the value of `input` are not in key
-  order.
-- `{"rev":"v0"}`, 0x0A: "invalid": `v0` is not a test-vector revision.
-- `{"rev":"v01"}`, 0x0A: "invalid": `v01` is not a test-vector revision.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v0"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": `v0` is not a test-vector revision.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v01"}`, 0x0A:
-  "invalid": `v01` is not a test-vector revision.
-- `{"rev":"V1"}`, 0x0A: "invalid": `V1` is not a test-vector revision.
-- `{"rev":"v1"}`, 0x0A, `{"group":"a--b","rev":"v1"}`, 0x0A,
-  `{"group":"a--b","input":"x","n":1,"result":"valid","rev":"v1"}`,
-  0x0A: "invalid": `a--b` is not a group name.
-- `{"rev":"v1"}`, 0x0A, `{"group":"A","rev":"v1"}`, 0x0A,
-  `{"group":"A","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": `A` is not a group name.
-- `{"rev":"v1"}`, 0x0A, `{"group":"12","rev":"v1"}`, 0x0A,
-  `{"group":"12","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": `12` is not a group name.
-- `{"rev": "v1"}`, 0x0A: "invalid": a space stands outside a string, so
-  the byte sequence does not start with a set line.
-- `{"rev":"v1"}`, 0x0A, `{"rev":"v1","group":"a"}`, 0x0A,
-  `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A:
-  "invalid": the members of the group object are not in key order.
-- `{"rev":"v1"}`: "invalid": the byte sequence does not end with 0x0A.
-- `{"rev":"v1"}`, 0x0D, 0x0A: "invalid": the byte 0x0D stands before the
-  byte 0x0A.
+- `input`: the byte sequence.
+- `result`: "valid" when the byte sequence is a test-vector set, and
+  "invalid" when it is not.
+- `values`: with the result "valid", an object with one member,
+  `objects`: an array of the objects of the set line, the group lines,
+  and the vector lines of the byte sequence, in their order. With the
+  result "invalid", the empty object, `{}`.
+
+With the result "valid", a conforming program gives the objects of
+`objects`, in their order, and no other object. When `values` is `{}`,
+it gives no object.
+
+```
+{"group":"test-vector-sets","input":"7b22726576223a227631227d0a","n":1,"result":"valid","rev":"v1","values":{"objects":[{"rev":"v1"}]}}
+{"group":"test-vector-sets","input":"","n":7,"note":"the byte sequence holds no set line","result":"invalid","rev":"v1","values":{}}
+```
 
 #### 8.4.2 Version sequences
 
-Each item gives a sequence of versions, in order, between parentheses,
-with commas between them, and the result that a conforming program gives
-when it validates the sequence as a version sequence. The item gives
-each version by the name that the table below gives to the byte sequence
-of its test-vector set. Unless an item says otherwise, the forms of each
-group are one fixed text, the same in every version.
+The group `version-sequences` holds the vectors of the requirement
+`validate-version-sequences`. Each vector gives a finite sequence of
+versions and the result that a conforming program gives for it when it
+validates the sequence as a version sequence.
 
-| name | byte sequence |
-|---|---|
-| A | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| B | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"note":"a note","result":"valid","rev":"v1"}`, 0x0A |
-| C | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v2"}`, 0x0A |
-| D | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v1"}`, 0x0A |
-| E | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v2"}`, 0x0A |
-| F | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A |
-| G | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A |
-| H | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v3"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| I | `{"rev":"v4"}`, 0x0A, `{"group":"a","rev":"v4"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A |
-| J | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A |
-| K | `{"rev":"v2"}`, 0x0A, `{"group":"b","rev":"v1"}`, 0x0A, `{"group":"b","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A |
-| L | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
-| M | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
-| N | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"y","n":1,"result":"valid","rev":"v2"}`, 0x0A |
-| O | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"b","rev":"v2"}`, 0x0A, `{"group":"b","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
-| P | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v3"}`, 0x0A |
-| Q | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| R | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| S | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| T | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v2","values":[1]}`, 0x0A |
-| U | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v3"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v3","values":[2]}`, 0x0A |
-| V | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"b","rev":"v1"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
-| W | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"b","rev":"v2"}`, 0x0A, `{"group":"b","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"b","input":"z","n":3,"result":"valid","rev":"v1"}`, 0x0A |
-| X | `{"rev":"v5"}`, 0x0A, `{"group":"a","rev":"v3"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v4"}`, 0x0A |
-| Y | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":2,"result":"valid","rev":"v7"}`, 0x0A |
-| Z | `{"rev":"v3"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v3"}`, 0x0A |
-| AA | `{"rev":"v1"}`, 0x0A, `{"group":"a","rev":"v1"}`, 0x0A, `{"group":"a","input":"y","n":1,"result":"valid","rev":"v1"}`, 0x0A |
-| AB | `{"rev":"v9"}`, 0x0A, `{"group":"a","rev":"v9"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v9"}`, 0x0A |
-| AC | `{"rev":"v10"}`, 0x0A, `{"group":"a","rev":"v10"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"invalid","rev":"v10"}`, 0x0A |
-| AD | `{"rev":"v2"}`, 0x0A, `{"group":"a","rev":"v2"}`, 0x0A, `{"group":"a","input":"x","n":1,"result":"valid","rev":"v2"}`, 0x0A |
+- `input`: an array of the versions of the sequence, in their order.
+  Each version is an object with two members:
+  - `set`: an array of the objects of the set line, the group lines, and
+    the vector lines of the test-vector set of the version, in their
+    order. The test-vector set is the byte sequence of the canonical
+    byte sequences of these objects, in their order, each then the byte
+    0x0A.
+  - `forms`: an object with one member for each group of that
+    test-vector set. The key of the member is the group name, and its
+    value is the text of the forms of that group in the version, as a
+    string.
+- `result`: "valid" when the sequence is a version sequence, and
+  "invalid" when it is not.
+- `values`: no vector of the group has this member.
 
-- (): "valid": a sequence of no versions.
-- (A): "valid": a sequence of one version.
-- (A, A): "valid": no vector changes, and no revision changes.
-- (A, B): "valid": a change of a note alone changes no revision.
-- (A, C): "valid": vector 1 changes its result, and its revision, the
-  revision of the group `a`, and the revision of the set rise.
-- (A, X): "valid": vector 1 changes its result, its revision rises from
-  v1 to v4, the revision of the group `a` rises from v1 to v3, and the
-  revision of the set rises from v1 to v5; a revision can rise by more
-  than 1.
-- (A, N): "valid": only the input of vector 1 changes, and the revisions
-  of vector 1, of the group `a`, and of the set rise.
-- (A, AA): "invalid": only the input of vector 1 changes, and no
-  revision rises.
-- (AB, AC): "valid": vector 1 changes its result, and the revisions of
-  vector 1, of the group `a`, and of the set rise from v9 to v10, because
-  the number 10 is greater than the number 9.
-- (AC, AB): "invalid": vector 1 changes its result, and the revisions of
-  vector 1, of the group `a`, and of the set go from v10 to v9, because
-  the number 9 is less than the number 10.
-- (A, D): "invalid": vector 1 changes, and its revision does not rise.
-- (A, E): "invalid": vector 1 changes, and the revision of the set does
-  not rise.
-- (A, F): "valid": vector 2 joins the group `a`, and the revisions of
-  the group and of the set rise.
-- (A, Y): "valid": vector 2 joins the group `a` with the revision v7; a
-  new vector can have any revision.
-- (A, G): "invalid": vector 2 joins the group `a`, and the revision of
-  the group does not rise.
-- (A, F, H): "valid": vector 2 leaves the group `a`, and the revisions
-  of the group and of the set rise.
-- (A, F, H, I): "invalid": the number 2 of a vector that left comes
-  back.
-- (A, J): "invalid": the revision of vector 1 rises, and vector 1 does
-  not change.
-- (B, J): "invalid": only the note of vector 1 changes, and the revision
-  of vector 1 rises.
-- (A, K): "valid": vector 1 moves from the group `a` to the new group
-  `b`, its revision and the revision of the set rise, and the group `a`
-  leaves.
-- (L, M): "invalid": the new number 2 is not greater than the number 3
-  of an earlier version.
-- (A, K, P): "invalid": the group `a` comes back with the revision v1
-  that it had before.
-- (A, K, Z): "valid": vector 1 moves back to the group `a` and changes
-  its result, and the group `a` comes back with the revision v2, which
-  is higher than the revision v1 that it had before.
-- (A, Q): "invalid": the revision of the group `a` rises, and nothing in
-  the group `a` changes.
-- (A, R): "invalid": the revision of the set rises, and no vector
-  changes, joins, or leaves.
-- (A, F, S): "invalid": vector 2 leaves the group `a`, and the revision
-  of the group does not rise.
-- (A, T): "valid": vector 1 gets the member `values`, and its revision,
-  the revision of the group `a`, and the revision of the set rise.
-- (A, T, U): "valid": only the values of vector 1 change, and its
-  revision, the revision of the group `a`, and the revision of the set
-  rise.
-- (V, W): "valid": vector 1 moves from the group `a` to the group `b`,
-  and both groups are in both versions; the revisions of vector 1, of
-  both groups, and of the set rise.
-- (V, O): "invalid": vector 1 moves from the group `a` to the group `b`,
-  and the revision of the group `a` does not rise.
-- (A, AD), where the forms of the group `a` are one text in the first
-  version and a different text in the second version: "valid": the
-  forms of the group `a` change, and the revisions of vector 1, of the
-  group `a`, and of the set rise.
-- (A, A), where the forms of the group `a` are one text in the first
-  version and a different text in the second version: "invalid": the
-  forms of the group `a` change, and no revision rises.
+```
+{"group":"version-sequences","input":[{"forms":{"a":"text 1"},"set":[{"rev":"v1"},{"group":"a","rev":"v1"},{"group":"a","input":"x","n":1,"result":"valid","rev":"v1"}]}],"n":46,"note":"a sequence of one version","result":"valid","rev":"v1"}
+```
