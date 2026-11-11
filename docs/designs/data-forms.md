@@ -2951,16 +2951,15 @@ other text.
 
 The group `validate` holds the vectors that each give a text, an id
 prefix, a number of hex digits, and the result that a conforming program
-gives for these three inputs together when it validates the text as a
-hash id. The requirement of the group is `validate-hash-id`.
+gives for them when it validates the text as a hash id. The requirement
+of the group is `validate-hash-id`.
 
 - `input`: an object with three members, one for each of the three
   inputs: `text`, the text; `id-prefix`, the id prefix; and
   `number-of-hex-digits`, the number of hex digits.
-- `result`: the result that the requirement `validate-hash-id` obliges a
-  conforming program to give for the three inputs together: "valid" when
-  the text fits the hash-id form with the id prefix and the number of
-  hex digits, and "invalid" when it does not.
+- `result`: the result of the three inputs together: "valid" when the
+  text fits the hash-id form with the id prefix and the number of hex
+  digits, and "invalid" when it does not.
 - `values`: no vector of the group has this member.
 
 ```
@@ -3010,10 +3009,11 @@ it gives:
 2. what the value of `input` stands for: one input of a conforming
    program, such as a byte sequence as its hex text, or several inputs,
    such as a text and a place of that text;
-3. which of these inputs the value of `result` is the result of, and
-   the conditions under which the requirements oblige that result, if
-   any, such as that a conforming program gives a result for that input,
-   or a condition on the run of the program;
+3. which of these inputs, or which of them together, the value of
+   `result` is the result of, and the conditions under which the
+   requirements oblige that result, if any, such as that a conforming
+   program gives a result for that input, or a condition on the run of
+   the program;
 4. what the value of `values` stands for, such as the results of the
    other inputs. It can stand for a thing that a conforming program
    gives when it gives a thing of that kind, for things of which a
@@ -3023,19 +3023,19 @@ it gives:
 By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
 give for that input. The value of `result` is the result that these
-requirements oblige a conforming program to give for the input that the
-forms name for `result`, whenever the conditions hold that the forms
-name for that result. The value of `values`
-stands for what these requirements oblige a conforming program to give
-for the input, other than the result that the value of `result` stands
-for, such as the results of the other inputs. A vector object without
-the member `result` states no result other than those that the value of
-`values` stands for, and a vector object without the member `values`
-states nothing about what a conforming program gives for the input,
-other than the result that the value of `result` stands for. Each vector
-object has the member `result` or the member `values`, or both. The
-value of `note` explains the vector, and it is no part of the input, the
-result, or the values.
+requirements oblige a conforming program to give for the input, or for
+the inputs together, that the forms name for `result`, whenever the
+conditions hold that the forms name for that result. The value of
+`values` stands for what these requirements oblige a conforming program
+to give for the input, other than the result that the value of `result`
+stands for, such as the results of the other inputs. A vector object
+without the member `result` states no result other than those that the
+value of `values` stands for, and a vector object without the member
+`values` states nothing about what a conforming program gives for the
+input, other than the result that the value of `result` stands for. Each
+vector object has the member `result` or the member `values`, or both.
+The value of `note` explains the vector, and it is no part of the input,
+the result, or the values.
 
 Each vector, each group, and the whole test-vector set have a revision,
 such as `v2`. The forms of a group are part of the meaning of each
@@ -3194,11 +3194,12 @@ Conformance part:
    several inputs of it, such as a text and a place of that text; and
    the fixed form in which the value of `input` holds them, such as the
    hex text of a byte sequence;
-3. which of these inputs the value of `result` of such a vector object
-   is the result of; and the conditions under which the requirements of
-   the group g oblige that result, if they oblige it only under some
-   conditions, such as that a conforming program of S gives a result for
-   that input, or a condition on the run of the program;
+3. which of these inputs, or which of them together, the value of
+   `result` of such a vector object is the result of; and the conditions
+   under which the requirements of the group g oblige that result, if
+   they oblige it only under some conditions, such as that a conforming
+   program of S gives a result for that input, or a condition on the run
+   of the program;
 4. what the value of `values` of such a vector object stands for: what
    a conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
@@ -3251,11 +3252,12 @@ object states this:
   for the result "valid".
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
-  `result`, and no other result, as its result for the input that the
-  forms name for `result`, whenever the conditions hold that the forms
-  name for that result; when the forms name no condition, they oblige
-  it always. The object states nothing about a result for another of
-  these inputs, other than what the value of `values` stands for.
+  `result`, and no other result, as its result for the input, or for
+  the inputs together, that the forms name for `result`, whenever the
+  conditions hold that the forms name for that result; when the forms
+  name no condition, they oblige it always. The object states nothing
+  about a result for another of these inputs, other than what the value
+  of `values` stands for.
 - When the object has the member `values`, the requirements of the
   group g oblige a conforming program of S, or of D, to give, for the
   input of the vector, what the value of `values` stands for.
