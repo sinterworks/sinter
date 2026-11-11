@@ -6,6 +6,7 @@
 @cites text=v1
 @cites rfc/5234
 @cites rfc/7405
+@cites rfc/8259
 @cites posix/2024
 Specifies folder trees and files; valid paths; file reads of texts as paths in folder trees, their results, and what conforming programs guarantee in them; valid globs, and the valid paths that fit them; path sets, and the valid paths in their sets; and requirements for conforming programs that validate texts as paths, texts as globs, and path sets, that decide whether valid paths fit valid globs and whether valid paths are in the sets of path sets, and that make file reads.
 
@@ -35,6 +36,11 @@ process for a file, the owner of a file, and the time of last access of
 a file; the user IDs, the group IDs, and the appropriate privileges of a
 process; and the functions
 `openat` and `fstatat`.
+
+From RFC 8259, the design takes JSON texts, with their objects, members,
+arrays, strings, numbers, and the literal names `true` and `false`: each
+line of the file that holds the conformance vectors of the design is a
+JSON text.
 
 ## 1. Glossary
 
@@ -1239,139 +1245,342 @@ the set of the path set.
 A program, or a part of a program, conforms to this design when it
 meets every requirement of the section Requirements.
 
-Each vector below gives an input and what a conforming program gives
-for it. These conventions apply:
+The vectors of this design are in the file
+[`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector
+file, in the same directory as this design. A vector is an input and
+what a conforming program gives for it. Each vector follows from the
+requirements and adds nothing to them. The vectors are in groups. Each
+group has a name, such as `paths`, and a subsection below. The
+subsection names the requirements that the vectors of the group follow
+from, and it describes their inputs, results, and values. Each vector of
+a group follows from one or more of these requirements. Section 5.7
+gives setups in which a conforming program reads a text as a path, and
+what it does not do in these file reads. The setups are not vectors, and
+the vector file does not hold them.
 
-- A vector writes a text as its parts, in order, with commas between
-  them. A part is characters between backticks; a space, a tab, a line
-  feed, or a carriage return; a U+ numeral, for the character that it
-  names; or a part, then "written", a decimal numeral, and "times", for
-  that part as many times in a row as the numeral writes. "The empty
-  text" is the text of no characters. A note such as "with `é` as
-  U+00E9" says which characters a part between backticks holds.
-- A vector writes a byte sequence as "the byte" and a 0x numeral, for a
-  byte sequence of one byte, or as "the bytes" and its bytes, in order,
-  each as a 0x numeral, with commas between them. "The empty byte
-  sequence" is the byte sequence of no bytes.
-- A list of texts has a semicolon between each two texts, as in `a.md`;
-  `b.md`.
-- A row of a table gives the input in its first cells and the result in
-  its last cell. An item of a list gives the input, then a colon, then
-  the result.
-- In a result, each of the labels "Fit:", "Do not fit:", "In the set:",
-  and "Not in the set:" starts a list of valid paths that the vector
-  gives. The list ends at the next label or at the end of the result.
-- In a result, the text after each other colon that is not between
-  backticks explains the result, up to the next label or the end of the
-  result. A conforming program does not give that text.
-- A vector of a file read with the result "found" also gives the text
-  that a conforming program gives with that result, as in "found, with
-  the text `hi`". With each other result of a file read, a conforming
-  program gives no text as the text of a file.
+The vector file is valid UTF-8. Its text does not start with U+FEFF, it
+holds no carriage return, and it ends with a line feed. Each line of the
+text of the vector file is a JSON text, as RFC 8259 defines it, that
+holds one JSON object. No JSON object of the vector file has two members
+with the same name. Only a line feed ends a line of the vector file. A
+JSON string of the vector file can hold U+0085, U+2028, or U+2029, and
+these characters do not end a line. The vector file has three kinds of
+line, in this order:
+
+1. The first line is the set line. Its JSON object has one member,
+   `rev`: the revision of the whole set of vectors.
+2. Then each group has a group line, in this order: `file-reads`,
+   `fits`, `globs`, `memberships`, `path-sets`, `paths`. Its JSON object
+   has two members: `group`, the name of the group, as a JSON string,
+   and `rev`, the revision of the group.
+3. Then each vector has a vector line, in increasing order of the
+   numbers of the vectors.
+
+The JSON object of a vector line has these members:
+
+- `n`: the number of the vector, a JSON number written as the decimal
+  numeral of a whole number from 1 to 9,007,199,254,740,991. No other
+  vector of the vector file has this number. A number is given to one
+  vector only: when a vector leaves the vector file, no later vector
+  gets its number, and a new vector gets a number greater than each
+  number before it.
+- `rev`: the revision of the vector.
+- `group`: the name of the group of the vector, as a JSON string.
+- `input`: the input of the vector: what a conforming program takes or
+  reads. The subsection of each group gives its form. The input of a
+  vector can hold more than one input of the program: for example, a
+  valid glob and a valid path.
+- `result`: the result that a conforming program gives for one input
+  that the input of the vector holds, as a JSON string that holds the
+  characters of the result without its double quotes. Each vector has
+  this member. The subsection of each group says for which input, and,
+  for the group `file-reads`, under which conditions.
+- `values`: a JSON object that holds what a conforming program gives
+  for the input of the vector, other than the result. Only the vectors
+  of the group `file-reads` have this member, and its subsection gives
+  the members of this JSON object. A vector without the member `values`
+  says nothing about what a conforming program gives for its input,
+  other than the result.
+- `note`: an explanation of the vector, as a JSON string, which a
+  conforming program does not give. A vector has this member only when
+  it has an explanation.
+
+A revision is a JSON string of `v`, then the decimal numeral of a whole
+number of 1 or more, such as `"v1"`. The revision of the set line is the
+revision of the whole set, the revision of a group line is the revision
+of the group, and the revision of a vector line is the revision of the
+vector. A revision rises, to a greater number after its `v`, when a
+vector that it covers changes, joins, or leaves. When the text of this
+section changes, the revisions of every vector, every group, and the
+set rise. A change of a note alone changes no revision. A program does
+not need the revisions to run the vectors.
+
+A vector writes each input and each value in one fixed form. Inside the
+members `input` and `values`, each text, byte sequence, whole number,
+and sequence has this fixed form, and section 5.2 gives the fixed form
+of a folder tree:
+
+- A text, such as a valid path, a valid glob, or a path set member, is a
+  JSON string whose characters are the characters of the text, in
+  order. So the text `a`, U+0000, `.md` is `"a\u0000.md"`, and the empty
+  text is `""`.
+- A byte sequence, such as an entry name, is a JSON string of hex
+  digits: for each byte, in order, the hex digit of the whole-number
+  quotient of the byte divided by 16, then the hex digit of the
+  remainder. So the byte sequence 0xC3, 0xA9 is `"c3a9"`, and the empty
+  byte sequence is `""`.
+- A whole number is a JSON number written as its decimal numeral, such
+  as `12`.
+- A sequence, such as the path set members of a path set, is a JSON
+  array of its elements, in order. So the path set with the path set
+  members `docs/` and `!docs/old/` is `["docs/","!docs/old/"]`, and the
+  empty path set is `[]`.
 
 ### 5.1 Paths
 
-Each row gives a text and the result that a conforming program gives
+The group `paths` holds the vectors of the requirement `validate-paths`.
+Each vector gives a text and the result that a conforming program gives
 when it validates the text as a path.
 
-| text | result |
-|---|---|
-| `a.md` | valid |
-| `docs/guide/a.md` | valid |
-| `.github/workflows/ci.yml` | valid |
-| `...` | valid |
-| `..a` | valid |
-| `a b/c\d.md` | valid |
-| `Docs/A.MD` | valid |
-| `a/a` | valid |
-| U+00E9, `.md` | valid |
-| `ddddddddddddddddddddddddd/` written 200 times, `a.md` | valid |
-| the empty text | invalid: a valid path holds at least one file name |
-| `/a.md` | invalid: it starts with `/` |
-| `docs/` | invalid: it ends with `/` |
-| `docs//a.md` | invalid: two `/` together |
-| `.` | invalid: `.` is not a file name |
-| `./a.md` | invalid: `.` is not a file name |
-| `docs/../a.md` | invalid: `..` is not a file name |
-| `docs/..` | invalid: `..` is not a file name |
-| `a`, U+0000, `.md` | invalid: a file name holds no U+0000 |
+- `input`: the text.
+- `result`: the result of the validation of the text as a path: "valid"
+  or "invalid".
+- `values`: no vector of the group has this member.
+
+In each validation of the text as a path, a conforming program gives the
+result that `result` holds, and no other result.
+
+```
+{"group":"paths","input":"docs/guide/a.md","n":2,"result":"valid","rev":"v1"}
+{"group":"paths","input":"docs/../a.md","n":17,"note":"`..` is not a file name","result":"invalid","rev":"v1"}
+```
 
 ### 5.2 File reads
 
-Each row gives a folder tree, a text that a conforming program reads as
-a path in that folder tree, and the result. These conventions hold for
-each row:
+The group `file-reads` holds the vectors of the requirements
+`give-invalid-for-non-paths`, `give-file-read-results`,
+`give-file-text`, `give-texts-of-path-files`, and
+`omit-texts-of-other-results`. Each vector gives a text, a folder tree,
+and conditions on the file system that the folder tree is on, and what a
+conforming program gives when it reads the text as a path in the folder
+tree.
 
-- Except in a row with "any folder tree", the files of the folder tree
-  are only the root and the files that the row names. A file that a row
-  writes with a text, such as the regular file `a.md`, is the file of a
-  folder entry whose entry name is the UTF-8 encoding of that text. The
-  root holds each such file, unless the row names the folder that holds
-  it. A content written as "the text" and a text is the UTF-8 encoding
-  of that text.
-- The file read has no path change.
-- The system does not fail during the file read.
-- Unless a row says otherwise, the program has the search permission
-  for every folder of the folder tree, and the read permission for every
-  regular file and every folder of the folder tree.
-- A condition on the file system, when a row has one, ends the
-  description of the folder tree. A row with no condition on the file
-  system gives the same result on every file system that can store the
-  folder tree.
+- `input`: a JSON object with three members: `text`, the text; `tree`,
+  the folder tree, in the form below; and `system`, the conditions on
+  the file system, in the form below.
+- `result`: the result of the file read of the text in the folder tree:
+  "invalid", "found", "no file", "symbolic link", "not a regular file",
+  "not UTF-8", or "cannot read". It is the result of a file read in
+  which three conditions hold: the file read has no path change; the
+  system does not fail during the file read; and the program has the
+  permissions that `tree` states. The person or the program that runs
+  the vectors sets up these conditions.
+- `values`: with the result "found", a JSON object with one member,
+  `text`: the text of the content, as pieces of a text (below). With
+  each other result, the empty JSON object, `{}`.
 
-| folder tree | text | result |
-|---|---|---|
-| the regular file `a.md`, whose content is the text `hi` | `a.md` | found, with the text `hi` |
-| the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | found, with the text `hi` |
-| the regular file `a.md`, whose content is the empty byte sequence | `a.md` | found, with the empty text |
-| the regular file `a.md`, whose content is the text `hi` | `b.md` | no file |
-| the regular file `a.md`, whose content is the text `hi` | `a.md/b.md` | no file: file name 1, `a.md`, is not the last file name, and its file is not a folder |
-| the regular file `a`, whose content is the text `hi` | `a/a` | no file: file name 1, `a`, is not the last file name, and its file is not a folder |
-| a chain of 200 folders, each the folder `ddddddddddddddddddddddddd`, in which the root holds the first folder, each folder except the last holds the next folder, and the last folder holds the regular file `a.md`, whose content is the text `hi` | `ddddddddddddddddddddddddd/` written 200 times, `a.md` | found, with the text `hi`: the valid path holds 5,204 characters, more than many systems accept as one path name |
-| the regular file `a.md`, whose content is the text `hi` | `A.md` | no file: the root holds no folder entry for `A.md`, also on a file system that ignores case |
-| the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `Docs/a.md` | no file: the root holds no folder entry for file name 1, `Docs`, also on a file system that ignores case |
-| the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi`, on a file system that ignores a space at the end of a name | `docs/.. /docs/a.md` | no file: the folder `docs` holds no folder entry for file name 2, `..` followed by a space, also when a lookup of that name gives the directory entry `..` |
-| the regular file `café.md`, with `é` as U+00E9, whose content is the text `hi` | `cafe`, U+0301, `.md` | no file: the UTF-8 encoding of the text is not the entry name |
-| the folder `docs` | `docs` | not a regular file |
-| the pipe `p`, which no process opens | `p` | not a regular file: the program does not open the pipe, and does not wait for a process to open it |
-| the pipe `p`, which no process opens | `p/x` | no file: file name 1, `p`, is not the last file name, and its file is not a folder |
-| the symbolic link `a.md`, whose reference leads to the regular file `b.md`, and the regular file `b.md`, whose content is the text `hi` | `a.md` | symbolic link |
-| the symbolic link `a.md`, whose reference leads to the regular file `b.md`, and the regular file `b.md`, whose content is the text `hi` | `b.md` | found, with the text `hi` |
-| the symbolic link `d`, whose reference leads to the folder `docs`, and the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `d/a.md` | symbolic link |
-| the symbolic link `d`, whose reference leads to the folder `docs`, and the folder `docs`, which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | found, with the text `hi` |
-| the symbolic link `a.md`, whose reference leads to no file | `a.md` | symbolic link |
-| the symbolic link `self`, whose reference leads to the root, and the regular file `a.md`, whose content is the text `hi` | `a.md` | found, with the text `hi` |
-| the symbolic link `self`, whose reference leads to the root, and the regular file `a.md`, whose content is the text `hi` | `self/a.md` | symbolic link |
-| the folder of the folder entry of the root whose entry name is the byte 0xE9, and the regular file `x` in that folder, on a file system that allows the byte 0xE9 as an entry name | `é/x`, with `é` as U+00E9 | no file: the UTF-8 encoding of `é` is the bytes 0xC3, 0xA9 |
-| the regular file `a.md`, whose content is the bytes 0xFF, 0xFE | `a.md` | not UTF-8 |
-| the regular file `a.md`, whose content is the bytes 0xED, 0xA0, 0x80 | `a.md` | not UTF-8: the three-byte form of UTF-8 for 55,296, which is not the code point of a character |
-| the regular file `a.md`, whose content is the bytes 0xC0, 0xAF | `a.md` | not UTF-8: an overlong encoding |
-| the regular file `a.md`, whose content is the bytes 0xEF, 0xBB, 0xBF, 0x78 | `a.md` | found, with the text U+FEFF, `x` |
-| the regular file `a.md`, whose content is the bytes 0x61, 0x0D, 0x0A, 0x62 | `a.md` | found, with the text `a`, a carriage return, a line feed, `b` |
-| the regular file `a.md`, whose content is the bytes 0x65, 0xCC, 0x81 | `a.md` | found, with the text `e`, U+0301 |
-| the regular file `a.md`, whose content is the text `a` written 16777217 times | `a.md` | found, with the text `a` written 16777217 times: a conforming program sets no limit of its own on the size of a file |
-| the folder `docs`, for which the program has the search permission and not the read permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | cannot read: the program has no read permission for folder 2, `docs` |
-| the folder `docs`, for which the program has the search permission and not the read permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/b.md` | cannot read: the program has no read permission for folder 2, `docs` |
-| the folder `docs`, for which the program has the read permission and not the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | cannot read: the program has no search permission for folder 2, `docs` |
-| the folder `docs`, for which the program has the read permission and not the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/b.md` | cannot read: the program has no search permission for folder 2, `docs` |
-| the folder `docs`, for which the program has neither the read permission nor the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs` | not a regular file: the permissions of the program for a folder that the last file name names do not change the result |
-| the folder `docs`, for which the program has neither the read permission nor the search permission, and which holds the regular file `a.md`, whose content is the text `hi` | `docs/a.md` | cannot read: the program has neither permission for folder 2, `docs` |
-| the regular file `a.md`, whose content is the text `hi`, and for which the program has no read permission | `a.md` | cannot read: the program has no read permission for the regular file |
-| the regular file `a.md`, whose content is the text `hi`, and for which the program has the read permission and not the write permission | `a.md` | found, with the text `hi` |
-| the regular file `a.md`, whose content is the text `hi`, which another user owns, and for which the program has the read permission | `a.md` | found, with the text `hi` |
-| a folder tree whose root holds no folder entry | `a` written 300 times | no file: the root holds no folder entry for file name 1, also when the file system allows fewer bytes in an entry name |
-| a folder tree whose root holds no folder entry | `a` written 5000 times | no file: the root holds no folder entry for file name 1, also when the file system allows fewer bytes in an entry name |
-| any folder tree | `../a.md` | invalid |
-| any folder tree | `/etc/passwd` | invalid |
+In each file read of the text in the folder tree in which the three
+conditions hold, a conforming program gives the result that `result`
+holds, and no other result. With the result "found", it gives the text
+that `text` holds as the text of the content, and no other text as the
+text of the content. When `values` is `{}`, it gives no text as the text
+of a file.
 
-### 5.3 The guarantees of file reads
+`tree` is the root of the folder tree, as a file object. A file object
+is a JSON object that describes one file. Its member `type` gives the
+file type of the file, as POSIX.1-2024 defines the file types, in a JSON
+string: `"directory"` for a folder, `"regular file"` for a regular file,
+`"symbolic link"` for a symbolic link, and `"FIFO special file"` for a
+pipe, which is a file of another kind. No other process opens such a
+pipe during the file read. The type of `tree` is `"directory"`. The file
+object of a folder, a regular file, or a symbolic link also has a member
+for what the file holds:
+
+- A folder has `entries`: a JSON array with one entry object for each
+  folder entry of the folder. An entry object is a JSON object with two
+  members: `name`, the entry name of the folder entry, as a byte
+  sequence, and `file`, the file object of the file of the folder entry.
+  The entry objects are in increasing order of their entry names: one
+  entry name comes before another when, at the first byte at which they
+  differ, its byte is less, or when its bytes are fewer and they are the
+  first bytes of the other. A folder that holds no folder entry has
+  `"entries":[]`.
+- A regular file has `content`: its content, as pieces of a byte
+  sequence (below).
+- A symbolic link has `reference`: its reference, as a byte sequence.
+  The reference leads to a file as in a pathname resolution of
+  POSIX.1-2024, from the folder that holds the symbolic link. So the
+  reference `b.md`, which is `"622e6d64"`, leads to the file of the
+  folder entry `b.md` of that folder, and the reference `.`, which is
+  `"2e"`, leads to that folder.
+
+The file object of a pipe has no such member. The folder tree holds the
+files that `tree` describes, and no other file.
+
+A file object can also have these members, each a JSON boolean, `true`
+or `false`. When a file object does not have one of them, the value in
+brackets applies:
+
+- `read` (`true`): whether the program has the read permission for the
+  file.
+- `search` (`true`): whether the program has the search permission for
+  the file. Only a file object of the type `"directory"` can have this
+  member.
+- `write` (`true`): whether the program has the write permission for the
+  file, as POSIX.1-2024 defines it.
+- `owned-by-other` (`false`): whether a user other than the user of the
+  program owns the file: whether the user ID of the owner of the file,
+  as POSIX.1-2024 defines it, differs from the effective user ID of the
+  process of the program.
+
+A file object has one of these members only when its value differs from
+the value in brackets.
+
+The content of a regular file, and the text in `values`, stand as
+pieces, so that a long content or a long text can stand in a short
+line. The pieces of a byte sequence are a JSON array of JSON objects,
+each with two members: `bytes`, a byte sequence, and `times`, a whole
+number of 1 or more. The byte sequence of these pieces is the bytes of
+each piece, `times` times in a row, piece after piece in the order of
+the JSON array. So `[{"bytes":"6869","times":1}]` is the content 0x68,
+0x69, `[{"bytes":"61","times":3}]` is the content 0x61, 0x61, 0x61, and
+`[]` is the empty content. The pieces of a text are the same, with the
+member `text`, a text, in place of `bytes`. So
+`[{"text":"hi","times":1}]` is the text `hi`, and `[]` is the empty
+text.
+
+`system` is a JSON object. Each of its members names a condition on the
+file system that the folder tree is on, and the value of each member is
+`true`. The member `ignores-space-at-end-of-name` says that the file
+system ignores a space at the end of a name: it treats a name, and that
+name followed by a space, as one name. When `system` is `{}`, the vector
+has no condition on the file system.
+
+A vector of the group can run only on a file system that can store its
+folder tree and that meets the conditions of its `system`. For example,
+some file systems do not allow the byte 0xE9 as an entry name, so they
+cannot store the folder tree of vector 41. The result and the values of
+a vector are the same on every file system that can store its folder
+tree and that meets the conditions of its `system`.
+
+```
+{"group":"file-reads","input":{"system":{},"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"n":20,"result":"found","rev":"v1","values":{"text":[{"text":"hi","times":1}]}}
+{"group":"file-reads","input":{"system":{},"text":"a.md","tree":{"entries":[{"file":{"reference":"622e6d64","type":"symbolic link"},"name":"612e6d64"},{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"622e6d64"}],"type":"directory"}},"n":34,"result":"symbolic link","rev":"v1","values":{}}
+{"group":"file-reads","input":{"system":{},"text":"docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"search":false,"type":"directory"},"name":"646f6373"}],"type":"directory"}},"n":51,"note":"the program has no search permission for folder 2, `docs`","result":"cannot read","rev":"v1","values":{}}
+```
+
+### 5.3 Globs
+
+The group `globs` holds the vectors of the requirement `validate-globs`.
+Each vector gives a text and the result that a conforming program gives
+when it validates the text as a glob.
+
+- `input`: the text.
+- `result`: the result of the validation of the text as a glob: "valid"
+  or "invalid".
+- `values`: no vector of the group has this member.
+
+In each validation of the text as a glob, a conforming program gives the
+result that `result` holds, and no other result.
+
+```
+{"group":"globs","input":"docs/**/*.md","n":111,"result":"valid","rev":"v1"}
+{"group":"globs","input":"src/**.ts","n":156,"note":"`**` in a glob segment that holds other characters too","result":"invalid","rev":"v1"}
+```
+
+### 5.4 Valid paths that fit valid globs
+
+The group `fits` holds the vectors of the requirement `decide-glob-fit`.
+Each vector gives a valid glob and a valid path, and the result that a
+conforming program gives when it decides whether the valid path fits the
+valid glob. The group `globs` holds a vector of each valid glob of the
+group `fits`, with the result "valid".
+
+- `input`: a JSON object with two members: `glob`, the valid glob, and
+  `path`, the valid path. Each is a text.
+- `result`: the result of the operation in which the program decides
+  whether the valid path fits the valid glob: "fits" or "does not fit".
+- `values`: no vector of the group has this member.
+
+Each time it decides whether the valid path fits the valid glob, a
+conforming program gives the result that `result` holds, and no other
+result.
+
+```
+{"group":"fits","input":{"glob":"docs/**","path":"docs/a/b.md"},"n":89,"result":"fits","rev":"v1"}
+{"group":"fits","input":{"glob":"docs/**","path":"docs"},"n":90,"result":"does not fit","rev":"v1"}
+```
+
+### 5.5 Path sets
+
+The group `path-sets` holds the vectors of the requirement
+`validate-path-sets`. Each vector gives a path set and the result that a
+conforming program gives when it validates the path set.
+
+- `input`: the path set, as the sequence of its path set members.
+- `result`: the result of the validation of the path set: "valid" or
+  "invalid".
+- `values`: no vector of the group has this member.
+
+In each validation of the path set, a conforming program gives the
+result that `result` holds, and no other result.
+
+```
+{"group":"path-sets","input":["docs/","!docs/old/"],"n":169,"result":"valid","rev":"v1"}
+{"group":"path-sets","input":["!docs/"],"n":190,"note":"no plain member","result":"invalid","rev":"v1"}
+```
+
+### 5.6 Valid paths in the sets of path sets
+
+The group `memberships` holds the vectors of the requirement
+`decide-path-set-membership`. Each vector gives a path set in which the
+glob text of each path set member is a valid glob, a valid path, and the
+result that a conforming program gives when it decides whether the valid
+path is in the set of the path set. The path set need not be valid. The
+group `path-sets` holds a vector of each path set of the group
+`memberships`.
+
+- `input`: a JSON object with two members: `path-set`, the path set, as
+  the sequence of its path set members, and `path`, the valid path, as a
+  text.
+- `result`: the result of the operation in which the program decides
+  whether the valid path is in the set of the path set: "in the set" or
+  "not in the set".
+- `values`: no vector of the group has this member.
+
+Each time it decides whether the valid path is in the set of the path
+set, a conforming program gives the result that `result` holds, and no
+other result.
+
+```
+{"group":"memberships","input":{"path":"docs/a.md","path-set":["docs/","!docs/old/"]},"n":170,"result":"in the set","rev":"v1"}
+{"group":"memberships","input":{"path":"a/b","path-set":["a/","a/"]},"n":193,"result":"in the set","rev":"v1"}
+```
+
+### 5.7 Setups for the guarantees
 
 Each setup gives a folder tree, a text that a conforming program reads
 as a path in that folder tree, what a conforming program gives, and what
-it does not do. The conventions of section 5.2 hold, except that the
-file read has a path change where a setup says so. A writer of a pipe is
-a process that asks to open the pipe for writing, and that waits until a
-process opens the pipe for reading.
+it does not do. A setup gives its folder tree in words, and these
+conventions hold for each setup:
+
+- The files of the folder tree are only the root and the files that the
+  setup names. A file that a setup names with a text, such as the
+  regular file `a.md`, is the file of a folder entry whose entry name is
+  the UTF-8 encoding of that text. The root holds each such file, unless
+  the setup names the folder that holds it. A content that a setup
+  writes as a text, such as the text `hi`, is the UTF-8 encoding of that
+  text. A pipe is a FIFO special file.
+- Unless a setup says otherwise, the program has the search permission
+  for each folder of the folder tree, and the read permission for each
+  regular file and each folder of the folder tree, as in a file object
+  of the group `file-reads` without the members `read` and `search`.
+- The system does not fail during the file read. The file read has no
+  path change, except in a setup that says that it has one.
+- A writer of a pipe is a process that asks to open the pipe for
+  writing, and that waits until a process opens the pipe for reading.
+
+These are the setups:
 
 - The symbolic link `d`, whose reference leads to the folder `q`, and
   the folder `q`, which holds the pipe `p`, with a writer of `p`; the
@@ -1406,92 +1615,3 @@ process opens the pipe for reading.
   mode or its owner, other than by a change that the file system makes
   by itself when the program looks up a name in that file, opens it, or
   takes bytes from it, such as a change of the time of last access.
-
-### 5.4 Globs
-
-Each vector gives a text and the result that a conforming program gives
-when it validates the text as a glob. For a valid glob, the vector can
-also give, after "Fit:", valid paths for which a conforming program
-gives the result "fits" when it decides whether each of them fits the
-valid glob, and, after "Do not fit:", valid paths for which it gives the
-result "does not fit".
-
-- `Cargo.lock`: valid. Fit: `Cargo.lock`. Do not fit: `a/Cargo.lock`;
-  `cargo.lock`.
-- `**/Cargo.lock`: valid. Fit: `Cargo.lock`; `a/b/Cargo.lock`. Do not
-  fit: `Cargo.lock.bak`.
-- `*.md`: valid. Fit: `a.md`; `.md`; `.notes.md`. Do not fit: `a/b.md`;
-  `a.txt`.
-- `a.md`: valid. Fit: `a.md`. Do not fit: `aa.md`.
-- `*`: valid. Fit: `a`; `.gitignore`. Do not fit: `a/b`.
-- `**`: valid. Fit: `a`; `a/b/c`; `.git/x`.
-- `docs/**`: valid. Fit: `docs/a.md`; `docs/a/b.md`. Do not fit: `docs`;
-  `a/docs/a.md`.
-- `docs/`: valid. Fit: `docs/a.md`; `docs/a/b.md`. Do not fit: `docs`.
-- `**/`: valid. Fit: `a`; `a/b`.
-- `a/**/b`: valid. Fit: `a/b`; `a/x/b`; `a/x/y/b`. Do not fit: `b`;
-  `a/b/c`.
-- `**/x/**`: valid. Fit: `x/a`; `a/x/b`; `x/x/x`. Do not fit: `x`;
-  `a/x`.
-- `docs/**/*.md`: valid. Fit: `docs/a.md`; `docs/x/y/a.md`. Do not fit:
-  `a.md`; `docs/a.txt`.
-- `a*b*c`: valid. Fit: `abc`; `aXbYc`; `abbc`. Do not fit: `ab`; `acb`.
-- `*a*`: valid. Fit: `a`; `bab`. Do not fit: `b`.
-- `.*`: valid. Fit: `.env`; `...`. Do not fit: `env`.
-- `...`: valid. Fit: `...`. Do not fit: `a`.
-- `Docs/*`: valid. Fit: `Docs/a.md`. Do not fit: `docs/a.md`.
-- `café.md`, with `é` as U+00E9: valid. Fit: `café.md`, with `é` as
-  U+00E9. Do not fit: `cafe`, U+0301, `.md`.
-- `!x`: valid. Fit: `!x`. Do not fit: `x`.
-- `a b`: valid. Fit: `a b`. Do not fit: `ab`.
-- `a`, U+0000: valid. Do not fit: `a`.
-- `a` written 5000 times: valid. Fit: `a` written 5000 times. Do not
-  fit: `a` written 4999 times.
-- the empty text: invalid: a valid glob holds at least one glob segment.
-- `/docs`: invalid: it starts with `/`.
-- `docs//a.md`: invalid: two `/` together.
-- `/`: invalid: it starts with `/`.
-- `./a.md`: invalid: the glob segment `.`.
-- `docs/..`: invalid: the glob segment `..`.
-- `src/**.ts`: invalid: `**` in a glob segment that holds other
-  characters too.
-- `***`: invalid: `**` in a glob segment that holds other characters
-  too.
-- `a**`: invalid: `**` in a glob segment that holds other characters
-  too.
-- `a?.md`: invalid: `?`.
-- `[ab].md`: invalid: `[` and `]`.
-- `{a,b}.md`: invalid: `{` and `}`.
-- `a\b`: invalid: `\`.
-
-### 5.5 Path sets
-
-Each vector gives the path set members of a path set, in order, and the
-result that a conforming program gives when it validates the path set.
-When the glob text of each path set member is a valid glob, the vector
-can also give, after "In the set:", valid paths for which a conforming
-program gives the result "in the set" when it decides whether each of
-them is in the set of the path set, and, after "Not in the set:", valid
-paths for which it gives the result "not in the set".
-
-- no path set member: valid. Not in the set: `a.md`.
-- `docs/`: valid. In the set: `docs/a.md`. Not in the set: `a.md`;
-  `docs`.
-- `docs/`; `!docs/old/`: valid. In the set: `docs/a.md`. Not in the set:
-  `docs/old/a.md`; `a.md`.
-- `!docs/old/`; `docs/`: valid. In the set: `docs/a.md`. Not in the set:
-  `docs/old/a.md`.
-- `**`; `!**/*.tmp`: valid. In the set: `a.md`; `x/b.md`. Not in the
-  set: `a.tmp`; `x/b.tmp`.
-- `a`; `!a`: valid. Not in the set: `a`.
-- `**`; `!!x`: valid. In the set: `x`. Not in the set: `!x`.
-- `*.md`; `!a.md`; `!b.md`: valid. In the set: `c.md`. Not in the set:
-  `a.md`; `b.md`.
-- `!docs/`: invalid: no plain member.
-- `docs/`; `docs/`: invalid: two path set members are the same text.
-- `a/`; `a/`: invalid: two path set members are the same text. In the
-  set: `a/b`.
-- `docs/`; `!`: invalid: the glob text of `!` is the empty text, which
-  is not a valid glob.
-- `docs/`; `!/x`: invalid: the glob text of `!/x` starts with `/`.
-- `a?`: invalid: the glob text of `a?` holds `?`.
