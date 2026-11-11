@@ -1308,8 +1308,8 @@ The JSON object of a vector line has these members:
   subsection of each group also names the operations on these inputs in
   which a conforming program gives this result: each validation that it
   makes, each time that it decides, or each file read that it makes. In
-  each such operation, a conforming program gives this result, and no
-  other result.
+  each such operation, under the conditions that the subsection names,
+  if any, a conforming program gives this result, and no other result.
 - `values`: a JSON object that holds what a conforming program gives, or
   does not give, for the inputs of the vector, other than the result.
   Only the vectors of the group `file-reads` have this member, and its
@@ -1356,6 +1356,9 @@ of a folder tree and of the pieces of a content or a text:
   members `docs/` and `!docs/old/` is `["docs/","!docs/old/"]`, and the
   empty path set is `[]`.
 
+Each JSON object that a form of this section describes has the members
+that the form names, and no other member.
+
 ### 5.1 Paths
 
 The group `paths` holds the vectors of the requirement `validate-paths`.
@@ -1396,6 +1399,8 @@ reads the text as a path in the folder tree.
      gives because a name or a pathname that the program passes to the
      system is longer than the system allows is not a failure of the
      system, so the condition does not exclude such an error.
+  4. No other process opens a pipe of the folder tree during the file
+     read.
 
   The runner makes these conditions true.
 - `result`: the result of each file read of the text in the folder tree
@@ -1412,15 +1417,19 @@ these conditions, a conforming program gives the result that `result`
 holds, and no other result. With the result "found", it gives the text
 that `text` holds as the text of the content, and no other text as the
 text of the content. When `values` is `{}`, it gives no text as the
-text of a file.
+text of a file. A conforming program gives exactly one result in each
+file read, also when no process opens a pipe of the folder tree. So
+when a file read has given no result after a time that the runner
+chooses, the runner judges that the program did not give the result
+that `result` holds.
 
 `tree` is the root of the folder tree, as a file object. A file object
 is a JSON object that describes one file. Its member `type` gives the
 file type of the file, as POSIX.1-2024 defines the file types, in a JSON
 string: `"directory"` for a folder, `"regular file"` for a regular file,
 `"symbolic link"` for a symbolic link, and `"FIFO special file"` for a
-pipe, which is a file of another kind. No other process opens such a
-pipe during the file read. The type of `tree` is `"directory"`. The file
+pipe, which is a file of another kind. The type of `tree` is
+`"directory"`. The file
 object of a folder, a regular file, or a symbolic link also has a member
 for what the file holds:
 
@@ -1450,12 +1459,14 @@ or `false`. When a file object does not have one of them, the value in
 brackets applies:
 
 - `read` (`true`): whether the program has the read permission for the
-  file.
+  file. A file object of the type `"symbolic link"` cannot have this
+  member.
 - `search` (`true`): whether the program has the search permission for
   the file. Only a file object of the type `"directory"` can have this
   member.
 - `write` (`true`): whether the program has the write permission for the
-  file, as POSIX.1-2024 defines it.
+  file, as POSIX.1-2024 defines it. A file object of the type
+  `"symbolic link"` cannot have this member.
 - `owned-by-other` (`false`): whether a user other than the user of the
   program owns the file: whether the user ID of the owner of the file,
   as POSIX.1-2024 defines it, differs from the effective user ID of the
@@ -1484,15 +1495,19 @@ stand for the same text. So the runner compares the byte sequences and
 the texts that the pieces give, and not the pieces.
 
 A file system stores the folder tree of a vector when these conditions
-hold after the runner makes the folder tree and before the file read:
+hold from the moment at which the runner has made the folder tree to
+the moment at which the file read starts:
 
 1. The whole folder tree is on that file system.
 2. The listing of each folder of the folder tree holds the entry name of
    each entry object of the file object of that folder, and no other
    name except `.` and `..`.
-3. Each file of the folder tree has the file type, the content, the
-   reference, and the owner that its file object gives, and the program
-   has, for that file, the permissions that its file object gives.
+3. Each file of the folder tree has the file type, the content, and the
+   reference that its file object gives; its owner has a user ID that
+   differs from the effective user ID of the process of the program
+   when, and only when, its file object has `owned-by-other` with the
+   value `true`; and, for each file other than a symbolic link, the
+   program has the permissions that its file object gives.
 
 Some file systems change entry names, add folder entries of their own,
 or do not allow some entry names. For example, a file system that
@@ -1500,9 +1515,16 @@ changes each entry name into a decomposed form of Unicode normalization
 lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 of
 vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64. Some
 file systems do not allow the entry name 0xE9 of vector 41. Such a file
-system does not store the folder tree of that vector. The runner makes
-sure that a file system stores the folder tree of a vector, and it runs
-the vector only on such a file system. The result and the values of a
+system does not store the folder tree of that vector. Condition 3
+depends on the process of the program as well as on the file system: a
+process that has an appropriate privilege, as POSIX.1-2024 defines it,
+that gives it a permission that a file object takes away does not meet
+it. So the runner runs such a vector with a process of the program that
+has no such privilege, and it gives each file whose file object has
+`owned-by-other` with the value `true` an owner whose user ID differs
+from the effective user ID of that process. The runner makes sure that
+a file system stores the folder tree of a vector, and it runs the
+vector only when a file system stores its folder tree. The result and the values of a
 vector are the same on every file system that stores its folder tree.
 
 ```
