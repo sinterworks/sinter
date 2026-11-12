@@ -21,7 +21,7 @@
 {"group":"decode","input":"efbbbfefbbbf","n":15,"result":"valid","rev":"v1","values":{"text":"﻿﻿"}}
 {"group":"decode","input":"610d0a62","n":16,"result":"valid","rev":"v1","values":{"text":"a\r\nb"}}
 {"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
-{"group":"decode","input":"fffe","n":18,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"fffe","n":18,"note":"0xFF, 0xFE is the byte order mark of UTF-16 in little-endian order; the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
 {"group":"decode","input":"80","n":19,"note":"the UTF-8 encoding of no character has 0x80 as its first byte","result":"invalid","rev":"v1","values":{}}
 {"group":"decode","input":"c3","n":20,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
 {"group":"decode","input":"61c3","n":21,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
