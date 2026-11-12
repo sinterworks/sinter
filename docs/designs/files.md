@@ -321,12 +321,10 @@ conforming program keeps these guarantees:
 
 - It follows no symbolic link of the folder tree: it finds no file by
   the reference of such a symbolic link.
-- It takes bytes only from the folders of the path, from the regular
-  file that the last file name names, and from the files that hold the
-  program, the libraries and the runtime that it uses, and their data,
-  such as a catalog of messages. For a text that is not a valid path, it
-  takes bytes only from those files of the program. So it takes no byte
-  from another file outside the folder tree.
+- For a file read, it takes bytes only from the folders of the path and
+  from the regular file that the last file name names; for a text that
+  is not a valid path, it takes none. So, for a file read, it takes no
+  byte from a file outside the folder tree.
 - It does not wait for another process or for a device to act on a file
   of another kind of the folder tree, such as for a process to open the
   other end of a pipe.
@@ -913,12 +911,11 @@ no file by the reference of such a symbolic link.
     text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
 }
 
-In each file read of a text in a folder tree, a conforming program must
-take bytes from no file other than the files that hold the program, the
-libraries and the runtime that it uses, and their data, such as a
-catalog of messages, and, when the text is a valid path, the folders of
-the path of that text in that folder tree and the regular file that the
-last file name of that text names in that folder tree.
+For each file read of a text in a folder tree, a conforming program must
+take bytes only from the folders of the path of that text in that folder
+tree and from the regular file that the last file name of that text
+names in that folder tree; for a text that is not a valid path, it must
+take none.
 
 ### 4.8 No wait for another process
 
