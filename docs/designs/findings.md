@@ -8,7 +8,7 @@
 @cites files=v1
 @cites ontology=v1
 @cites rfc/8259
-Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots and their start and end positions; edits, edit descriptions, edit sets, and the edited texts that they give; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate edit sets.
+Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots and their start and end positions; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate edit sets.
 
 A finding reports one condition at one part of a repository, such as a
 requirement that no test cites. Each finding has a finding class, which
@@ -16,18 +16,21 @@ a slug names, and a subject, a text that names what the finding is
 about. The finding id of a finding is made from the slug and the
 subject, and two findings with the same slug and the same subject are
 the same finding, in any tree. A finding also has a message for people.
-It can have a spot, which is a file alone or a file with a span of its
-text; a mark; related messages; and a fix. A fix is a message and one
-or more edit sets. Each edit set changes the texts of files, and it
-corrects the finding or records that a person acknowledges it.
+It can have a spot, which is the valid path of a file, alone or with a
+span of the text of that file; a mark; related messages; and a fix. A
+fix is a message and one or more edit sets. Each edit set changes the
+texts of files, and it corrects the finding or records that a person
+acknowledges it.
 
-From Text and notation, the design takes texts, characters, line feeds,
-and carriage returns; runs, boundaries, bodies, line endings, lines,
-line numbers, positions, and spans; valid UTF-8, UTF-8 encodings, and
-the text of a byte sequence; and conforming programs, inputs, and
-results. From Identifiers, it takes slugs. From Files and paths, it
-takes valid paths. From the Ontology, it takes findings and finding
-classes, trees, persons, and the ledger.
+From Text and notation, the design takes whole numbers, decimal
+numerals, and hex digits; texts, characters, line feeds, carriage
+returns, and code spans; runs, boundaries, byte order marks, bodies,
+line endings, lines, line numbers, columns, positions, and spans, with
+the start and the end of a span; valid UTF-8, UTF-8 encodings, and the
+text of a byte sequence; and conforming programs, inputs, and results.
+From Identifiers, it takes slugs. From Files and paths, it takes valid
+paths and regular files. From the Ontology, it takes findings and
+finding classes, items, trees, persons, and the ledger.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, and numbers: each line of the file that holds the
@@ -39,20 +42,24 @@ conformance vectors of the design is a JSON text.
 |---|---|
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
+| [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as a requirement or a test |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | the set of the files of a repository, with their contents, at one commit or in one working tree |
 | [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
 | [person](sinter:ontology#person=v1) | a human who works on a repository |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
+| [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
 | [line feed](sinter:text#line-feed=v1), [carriage return](sinter:text#carriage-return=v1) | the characters U+000A and U+000D |
 | [boundary](sinter:text#boundary=v1) | a whole number from 0 to the number of characters of a text: boundary 0 is before the first character, and each other boundary k is right after the k-th character |
 | [run](sinter:text#run=v1) | the characters of a text from one boundary to the same boundary or a later boundary; a run can be empty |
-| [body](sinter:text#body=v1) | the run of a text after its byte order mark, the character U+FEFF at the start of the text, or the whole text when it has none |
+| [byte order mark](sinter:text#byte-order-mark=v1) | the character U+FEFF when it is the first character of a text |
+| [body](sinter:text#body=v1) | the run of a text after its byte order mark, or the whole text when it has no byte order mark |
 | [line ending](sinter:text#line-ending=v1) | a line feed of the body, with the carriage return right before it when there is one |
 | [line](sinter:text#line=v1) | one of the runs into which the line endings divide a body, except an empty run at the end of the body |
 | [position](sinter:text#position=v1) | a pair of whole numbers, the line number and the column, such as line 3, column 7; each boundary of the body has one |
 | [span](sinter:text#span=v1) | a run of a text that starts and ends at boundaries of the body |
+| [start of a span, end of a span](sinter:text#span=v1) | the position of the boundary where a span starts; and the position of the boundary right after the last character of the span that is a character of a line, or the start of the span when it has no such character |
 | [valid UTF-8](sinter:text#valid-utf-8=v1) | a byte sequence is valid UTF-8 when it is the UTF-8 encoding of a text |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [input](sinter:text#input=v1) | a thing that a conforming program takes |
@@ -61,25 +68,26 @@ conformance vectors of the design is a JSON text.
 | [subject of a finding](sinter:#finding-subject=v1) | the text, not empty, that names what a finding is about |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
-| [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of its text that starts and ends at no boundary inside a line ending |
+| [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the file is a regular file and its content is valid UTF-8, with a span of its text that starts and ends at no boundary inside a line ending |
 | [inside a line ending](sinter:#spot=v1) | a boundary is inside a line ending when a line ending starts before it and ends after it: the boundary between the carriage return and the line feed of a line ending |
 | [start position, end position](sinter:#spot-position=v1) | the positions of the boundaries where the span of a spot starts and ends |
 | [spot from one position to another](sinter:#spot-position=v1) | the spot at a valid path whose start position and end position are those two positions, when the tree has such a spot |
 | [related message](sinter:#related-message=v1) | a message, alone or with a spot, that helps to explain a finding; the related messages of a finding are a set |
-| [mark of a spot](sinter:#mark=v1) | a spot and a message, whose span lies in the span of that spot and on the line where that span starts |
-| [edit](sinter:#edit=v1) | a spot with a span, together with a text, its new text, which replaces the text of the span |
-| [new text](sinter:#edit=v1) | the text that an edit puts where the text of its span was |
+| [mark of a spot](sinter:#mark=v1) | a spot with a span, and a message, where that span lies in the span of the first spot and on the line where the span of the first spot starts |
+| [edit](sinter:#edit=v1) | a spot with a span, together with a text, its new text |
 | [edit set](sinter:#edit-set=v1) | one or more edits in one tree, in which, for each two edits of one file, exactly one of the two spans ends at or before the boundary where the other starts |
 | [edited text](sinter:#edited-text=v1) | the text of a file after the edits of an edit set: its text, with the text of the span of each edit of that file replaced by the new text of that edit |
-| [make the edits of an edit set](sinter:#edited-text=v1) | give the tree in which the content of each file that an edit of the set names is the UTF-8 encoding of its edited text, and each other file is as it was |
-| [edit description](sinter:#edit-description=v1) | a valid path, a first position, a second position, and a text, which can give the edit of the spot from the first position to the second, with that text as its new text |
+| [edited tree](sinter:#edited-tree=v1) | the tree in which the content of each file that an edit of an edit set names is the UTF-8 encoding of its edited text, and each other file is as it was |
+| [make the edits of an edit set](sinter:#edited-tree=v1) | change a tree into the edited tree of the edit set |
+| [edit description](sinter:#edit-description=v1) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
 | [fix](sinter:#fix=v1) | a message and one or more edit sets in one tree, no two the same, which have numbers from 1; to make a fix is to make the edits of exactly one of its edit sets |
-| [acknowledge](sinter:#acknowledgment=v1) | a person acknowledges a finding when the person says that they know of the finding and that it may stay; an edit set acknowledges a finding when making its edits records that a person acknowledges it |
-| [ackable](sinter:#ackable-finding=v1) | a finding is ackable when a person can acknowledge it with effect, so that it is then acknowledged |
-| [parts of a finding](sinter:#finding-part=v1) | its tree, its finding class, its subject, its message, its spot, its mark, its related messages, its fix, and whether it is ackable |
+| [acknowledge](sinter:#acknowledgment=v1) | a person acknowledges a finding when the person says that they know of the finding and that it may stay; an edit set acknowledges a finding when its edited tree records that a person acknowledges the finding |
+| [acknowledgment](sinter:#acknowledgment=v1) | what a person says when the person acknowledges a finding |
+| [ackable](sinter:#ackable-finding=v1) | a finding is ackable when an acknowledgment of it by a person can have effect |
+| [parts of a finding](sinter:#finding-part=v1) | its tree, its finding class, its subject, its message, its spot, its mark, its related messages, its fix, and whether it is ackable, with the parts of these parts |
 | [tree of a finding](sinter:#finding-part=v1) | the tree in which a finding reports its condition, or no tree |
-| [correct](sinter:#correction=v1) | an edit set corrects a finding of a tree when, after its edits are made in that tree, the condition that the finding reports no longer holds |
-| [mechanical fix](sinter:#mechanical-fix=v1) | the fix of a finding when it has exactly one edit set, which corrects the finding |
+| [correct](sinter:#correction=v1) | an edit set corrects a finding of a tree when, in its edited tree, the condition that the finding reports no longer holds for what the finding is about, wherever the edits move that thing |
+| [mechanical fix](sinter:#mechanical-fix=v1) | the fix of a finding when it has exactly one edit set, which corrects the finding and acknowledges no finding |
 
 ## 2. Findings, spots, edits, and fixes
 
@@ -95,11 +103,17 @@ has these parts:
 | finding class | the kind of the finding, by the slug that names it | exactly one |
 | subject | a text that names what the finding is about | exactly one |
 | message | a text for people that says what is wrong | exactly one |
-| spot | where the finding stands in its tree: a file, alone or with a span of its text | one or none; none for a finding of no tree |
+| spot | where the finding stands in its tree: the valid path of a file, alone or with a span of the text of that file | one or none; none for a finding of no tree |
 | mark | the part of the spot that is at fault, with a message | one or none; none when the finding has no spot with a span |
 | related messages | other messages that help to explain the finding, each alone or with a spot | zero or more |
 | fix | a message and one or more edit sets in the tree of the finding | one or none; none for a finding of no tree |
-| ackable | whether a person can acknowledge the finding with effect | exactly one: ackable or not ackable |
+| ackable | whether an acknowledgment of the finding by a person can have effect | exactly one: ackable or not ackable |
+
+Each part can have parts of its own. The parts of a spot are its valid
+path and its span. The parts of a mark and of a related message are a
+spot and a message. The parts of a fix are its message and its edit
+sets, each with its number. The parts of an edit set are its edits, and
+the parts of an edit are its spot and its new text.
 
 For example, a repository declares the finding class `no-test`, which
 reports a requirement that no test cites. In a tree, the requirement
@@ -135,7 +149,8 @@ as `docs/guide.md@L3C5`. Such a subject changes when lines move.
 A spot is a valid path of a file of a tree, alone or with a span of the
 text of the content of that file. A spot with a span shows a part of a
 file, such as one tag line. A spot without a span shows a whole file,
-such as a file whose content is not valid UTF-8 and so has no text.
+such as a file whose content is not valid UTF-8 and so has no text. Only
+a regular file whose content is valid UTF-8 has spots with spans.
 
 The span of a spot starts and ends at boundaries of the body, and at no
 boundary inside a line ending. A boundary is inside a line ending when
@@ -149,11 +164,12 @@ The start position of a spot is the position of the boundary where its
 span starts, and the end position of a spot is the position of the
 boundary where its span ends. The start position is always the start of
 the span. The end position is the end of the span, except when the span
-ends right after a line ending: then the end position has the column 1,
+ends right after a line ending. Then the end position has the column 1,
 and a line number 1 more than the line number of the line before that
-line ending. A valid path and two positions give the spot from the
-first position to the second position at that valid path, when the tree
-has such a spot, and the tree has at most one.
+line ending. The end of the span is the end of the line before that line
+ending. A valid path and two positions name the spot from the first
+position to the second position at that valid path, when the tree has
+such a spot, and the tree has at most one.
 
 The examples show a span as the boundary where it starts, "to", and the
 boundary where it ends, such as "1 to 4":
@@ -167,22 +183,25 @@ boundary where it ends, such as "1 to 4":
 | `a`, a line feed | 0 to 2 | line 1, column 1 | line 2, column 1 |
 | U+FEFF, `x` | 1 to 2 | line 1, column 1 | line 1, column 2 |
 
-In the text `ab`, a carriage return, a line feed, `cd`, boundary 3 is
-inside a line ending, so no span of a spot starts or ends there.
-Boundary 2 and boundary 3 have the same position, line 1, column 3, and
-that position names boundary 2. In the text `a`, a line feed, the end
-position of the span 0 to 2 is line 2, column 1, although the text has
-only one line.
+In the text `ab`, a line feed, `cd`, the span 0 to 3 ends right after
+the line ending, so its end position is line 2, column 1, and the end of
+the span is line 1, column 3. In the text `ab`, a carriage return, a
+line feed, `cd`, boundary 3 is inside a line ending, so no span of a
+spot starts or ends there. Boundary 2 and boundary 3 have the same
+position, line 1, column 3, and that position names boundary 2. In the
+text `a`, a line feed, the end position of the span 0 to 2 is line 2,
+column 1, although the text has only one line. A spot without a span
+has no start position and no end position.
 
 ### 2.3 Marks and related messages
 
-The mark of a finding is a mark of its spot: a spot and a message. The
-spot of the mark is the part of the spot of the finding that is at
-fault, such as the name or the revision of a tag line. It is in the
-same file. Its span starts and ends at boundaries of the span of the
-spot of the finding, and at boundaries of the line on which that span
-starts. The message of the mark says what is wrong there. A finding has
-a mark only when its spot has a span.
+The mark of a finding is a mark of its spot: a spot with a span, and a
+message. The spot of the mark is the part of the spot of the finding
+that is at fault, such as the name or the revision of a tag line. It is
+in the same file. Its span starts and ends at boundaries of the span of
+the spot of the finding, and at boundaries of the line on which the span
+of the spot of the finding starts. The message of the mark says what is
+wrong there. A finding has a mark only when its spot has a span.
 
 A related message of a finding is a message, alone or with a spot, that
 helps to explain the finding. For example, a finding about a citation
@@ -195,10 +214,10 @@ spot, or the same message with no spot.
 
 ### 2.4 Edits and edit sets
 
-An edit is a spot with a span, together with a text, its new text. The
-new text replaces the text of the span. An edit with an empty span
-inserts its new text at the boundary of the span. An edit with an empty
-new text removes the text of its span.
+An edit is a spot with a span, together with a text, its new text. In
+the edited text, the new text replaces the text of the span. An edit
+with an empty span inserts its new text at the boundary of the span. An
+edit with an empty new text removes the text of its span.
 
 An edit set is one or more edits in one tree. For each two edits of an
 edit set at the same valid path, exactly one of the two spans ends at or
@@ -214,21 +233,23 @@ comes after it.
 The edited text of a file for an edit set is its text, in which the text
 of the span of each edit of that file is replaced by the new text of
 that edit. The text before the first span, between each two spans, and
-after the last span stays as it was, a byte order mark included. To make
-the edits of an edit set in a tree is to give the tree in which the
-content of each file that an edit of the set names is the UTF-8 encoding
-of its edited text. The other files do not change.
+after the last span stays as it was, a byte order mark included. The
+edited tree of an edit set is the tree in which the content of each
+file that an edit of the set names is the UTF-8 encoding of its edited
+text. The other files do not change. To make the edits of an edit set is
+to change the tree into the edited tree.
 
-An edit description is a valid path, a first position, a second
-position, and a text. It gives an edit when the tree has the spot from
-the first position to the second position at the valid path: the edit
-is that spot, with the text as its new text. A sequence of edit
-descriptions gives an edit set when each of them gives an edit, no two
-give the same edit, and these edits are an edit set.
+An edit description is a text, its path, a first position, a second
+position, and a text, its new text. It describes an edit when the tree
+has the spot from the first position to the second position at the
+path: the edit is that spot, with the new text of the edit description.
+A sequence of edit descriptions describes an edit set when it has one
+or more edit descriptions, each of them describes an edit, no two
+describe the same edit, and these edits are an edit set.
 
 In the examples, each edit description has the valid path of the one
 file, and it shows its first position and its second position as
-"line:column", and its text:
+"line:column", and its new text:
 
 | text | edit descriptions | edited text |
 |---|---|---|
@@ -252,21 +273,26 @@ fix is to make the edits of exactly one of its edit sets. So when a fix
 has two or more edit sets, someone chooses one of them. The fix of a
 finding is a fix in the tree of the finding.
 
-An edit set corrects a finding of a tree when, after its edits are made
-in that tree, the condition that the finding reports no longer holds. A
-person acknowledges a finding when the person says that they know of the
-finding and that it may stay. An edit set acknowledges a finding when
-making its edits records that a person acknowledges the finding. A
-finding is ackable when a person can acknowledge it with effect: when a
-person acknowledges an ackable finding, the finding is then
-acknowledged. When a person acknowledges a finding that is not ackable,
-the finding is not acknowledged. Each edit set of the fix of a finding
-corrects the finding, or acknowledges it when the finding is ackable.
+An edit set corrects a finding of a tree when, in its edited tree, the
+condition that the finding reports no longer holds for what the finding
+is about. The edits can move that thing, such as a word that a new line
+above it moves down one line. A correction is judged at the thing,
+wherever the edits move it, so an edit set that only moves the thing
+does not correct the finding.
+
+A person acknowledges a finding when the person says that they know of
+the finding and that it may stay. What the person says is an
+acknowledgment of the finding. An edit set acknowledges a finding when
+its edited tree records that a person acknowledges the finding. A
+finding is ackable when an acknowledgment of it by a person can have
+effect. An acknowledgment of a finding that is not ackable has no
+effect. Each edit set of the fix of a finding corrects the finding, or
+acknowledges it when the finding is ackable.
 
 The fix of a finding is mechanical when it has exactly one edit set, and
-that edit set corrects the finding. So the edits of a mechanical fix
-can be made with no choice between edit sets, and they record no
-acknowledgment of a person.
+that edit set corrects the finding and acknowledges no finding. So the
+edits of a mechanical fix can be made with no choice between edit sets,
+and they record no acknowledgment of a person.
 
 For example, a repository declares the finding class `old-word`, which
 reports a word that its word list replaces. Line 3 of `docs/guide.md` is
@@ -291,14 +317,14 @@ Two findings are the same finding when the slugs that name their
 finding classes are the same text and their subjects are the same text.
 This holds for two findings of two trees, and for two findings that a
 program gives in two executions. The spot, the mark, the related
-messages, the message, and the fix of a finding do not change which
-finding it is. So when lines move in a file, a finding whose subject
-does not change stays the same finding.
+messages, the message, the fix, and whether a finding is ackable do not
+change which finding it is. So when lines move in a file, a finding
+whose subject does not change stays the same finding.
 
-For one input, a conforming program gives no two findings of one tree
-that are the same finding, and no two findings of no tree that are the
-same finding. So, in one tree, each subject names at most one finding of
-each finding class.
+In one execution, for one input, a conforming program gives no two
+findings of one tree that are the same finding, and no two findings of
+no tree that are the same finding. So, in one tree, each subject names
+at most one finding of each finding class.
 
 ## 3. Definitions
 
@@ -352,7 +378,7 @@ for two findings that a program gives in two different executions.
 
 @term spot=v1
 @cites {
-    files#{path=v1},
+    files#{path=v1, regular-file=v1},
     text#{
         text=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1, span=v1,
         boundary=v1, body=v1, line-ending=v1,
@@ -362,10 +388,10 @@ for two findings that a program gives in two different executions.
 
 A boundary of a text is inside a line ending when a line ending of the
 text starts before that boundary and ends after it. A spot in a tree is
-a valid path that is the path of a file of the tree, alone, or, when the
-content of that file is valid UTF-8, together with a span of the text of
-that content that starts at no boundary inside a line ending and ends
-at no boundary inside a line ending.
+a valid path that is the path of a file of the tree, alone, or, when
+that file is a regular file and its content is valid UTF-8, together
+with a span of the text of that content that starts at no boundary
+inside a line ending and ends at no boundary inside a line ending.
 
 ### 3.6 Start and end positions
 
@@ -379,7 +405,8 @@ at no boundary inside a line ending.
 
 The start position of a spot with a span is the position of the boundary
 where its span starts. The end position of a spot with a span is the
-position of the boundary where its span ends. For a valid path p and two
+position of the boundary where its span ends. A spot without a span has
+no start position and no end position. For a valid path p and two
 positions s and e, the spot from s to e at p in a tree is the spot in
 that tree with the valid path p whose start position is s and whose end
 position is e, when that tree has such a spot.
@@ -406,10 +433,11 @@ message with no spot.
 }
 
 A mark of a spot with a span is a spot and a message. The spot of the
-mark is in the same tree, and it has the valid path of that spot. Its
-span starts and ends at boundaries of the span of that spot, and at
-boundaries of the line that starts at or before the boundary where the
-span of that spot starts and ends at or after that boundary.
+mark is in the same tree, it has the valid path of that spot, and it has
+a span. That span starts and ends at boundaries of the span of that
+spot, and at boundaries of the line that starts at or before the
+boundary where the span of that spot starts and ends at or after that
+boundary.
 
 ### 3.9 Edits
 
@@ -441,7 +469,7 @@ other span starts.
 @cites {
     files#{path=v1},
     text#{
-        text=v1, run=v1, boundary=v1, span=v1, utf-8-encoding=v1,
+        text=v1, run=v1, boundary=v1, span=v1,
         text-of-a-byte-sequence=v1,
     },
     ontology#{tree=v1},
@@ -459,35 +487,47 @@ text of the run of t from the boundary where the span of ek ends to the
 boundary where the span of ek+1 starts, or, for k = n, to the last
 boundary of t.
 
-To make the edits of an edit set in a tree is to give the tree with the
-same files, in which the content of each file at a valid path of an edit
-of the set is the UTF-8 encoding of the edited text of that valid path,
-and the content of each other file is as it was.
+### 3.12 Edited trees
 
-### 3.12 Edit descriptions
+@term edited-tree=v1
+@cites {
+    files#{path=v1},
+    text#{utf-8-encoding=v1},
+    ontology#{tree=v1},
+    #{edit=v1, edit-set=v1, edited-text=v1},
+}
+
+The edited tree of an edit set in a tree is the tree with the same
+files, in which the content of each file at a valid path of an edit of
+the set is the UTF-8 encoding of the edited text of that valid path for
+the edit set, and the content of each other file is as it was. To make
+the edits of an edit set in a tree is to change that tree into the
+edited tree of the edit set.
+
+### 3.13 Edit descriptions
 
 @term edit-description=v1
 @cites {
-    files#{path=v1},
     text#{text=v1, position=v1},
     ontology#{tree=v1},
     #{spot-position=v1, edit=v1, edit-set=v1},
 }
 
-An edit description is a valid path, a first position, a second
-position, and a text. An edit description gives an edit in a tree when
-that tree has the spot from its first position to its second position
-at its valid path: the edit is that spot, with the text of the edit
-description as its new text. A finite sequence of one or more edit
-descriptions gives an edit set in a tree when each edit description of
-the sequence gives an edit in that tree, no two edit descriptions of the
-sequence give the same edit, and these edits are the edits of an edit
-set in that tree, which is the edit set that the sequence gives.
+An edit description is a text, its path; a first position; a second
+position; and a text, its new text. An edit description describes an
+edit in a tree when that tree has the spot from its first position to
+its second position at its path: the edit is that spot, with the new
+text of the edit description as its new text. A finite sequence of edit
+descriptions describes an edit set in a tree when it has one or more
+edit descriptions, each edit description of the sequence describes an
+edit in that tree, no two edit descriptions of the sequence describe the
+same edit, and these edits are the edits of an edit set in that tree,
+which is the edit set that the sequence describes.
 
-### 3.13 Fixes
+### 3.14 Fixes
 
 @term fix=v1
-@cites {ontology#{tree=v1}, #{message=v1, edit-set=v1, edited-text=v1}}
+@cites {ontology#{tree=v1}, #{message=v1, edit-set=v1, edited-tree=v1}}
 
 A fix in a tree is a message, which says what the fix does, and a finite
 sequence of one or more edit sets in that tree, in which no two edit
@@ -495,29 +535,30 @@ sets are the same set. The edit sets of a fix have numbers from 1, in
 their order. To make a fix in a tree is to make the edits of exactly one
 of its edit sets in that tree.
 
-### 3.14 Acknowledgments
+### 3.15 Acknowledgments
 
 @term acknowledgment=v1
 @cites {
     ontology#{finding-class=v1, person=v1},
-    #{edit-set=v1, edited-text=v1},
+    #{edit-set=v1, edited-tree=v1},
 }
 
 A person acknowledges a finding when the person says that they know of
-the finding and that it may stay. An edit set acknowledges a finding
-when making its edits records that a person acknowledges the finding.
+the finding and that it may stay, and what the person says is an
+acknowledgment of the finding by that person. An edit set acknowledges a
+finding when its edited tree records an acknowledgment of the finding
+by a person.
 
-### 3.15 Ackable findings
+### 3.16 Ackable findings
 
 @term ackable-finding=v1
 @cites {ontology#{finding-class=v1, person=v1}, #{acknowledgment=v1}}
 
-A finding is ackable when a person can acknowledge it with effect: when
-a person acknowledges an ackable finding, the finding is then
-acknowledged. When a person acknowledges a finding that is not ackable,
-the finding is not acknowledged.
+A finding is ackable when an acknowledgment of the finding by a person
+can have effect. An acknowledgment of a finding that is not ackable has
+no effect.
 
-### 3.16 The parts of a finding
+### 3.17 The parts of a finding
 
 @term finding-part=v1
 @cites {
@@ -525,7 +566,8 @@ the finding is not acknowledged.
     ontology#{finding-class=v1, tree=v1, ledger=v1},
     #{
         finding-subject=v1, message=v1, spot=v1, mark=v1,
-        related-message=v1, fix=v1, ackable-finding=v1,
+        related-message=v1, fix=v1, edit-set=v1, edit=v1,
+        ackable-finding=v1,
     },
 }
 
@@ -542,30 +584,39 @@ The parts of a finding are these:
 - its mark: one mark of its spot, the part of its spot that is at fault
   with what is wrong there, or no mark; a finding whose spot has no
   span, or that has no spot, has no mark;
-- its related messages;
+- each of its related messages;
 - its fix: one fix in its tree, or no fix; a finding of no tree has no
   fix;
 - whether it is ackable.
 
-### 3.17 Corrections
+Each part of a part of a finding is also a part of the finding. The
+parts of a spot are its valid path and its span, when it has one. The
+parts of a mark are its spot and its message. The parts of a related
+message are its message and its spot, when it has one. The parts of a
+fix are its message and each of its edit sets, each with its number.
+The parts of an edit set are its edits. The parts of an edit are its
+spot and its new text.
+
+### 3.18 Corrections
 
 @term correction=v1
 @cites {
     ontology#{finding-class=v1, tree=v1},
-    #{edit-set=v1, edited-text=v1, finding-part=v1},
+    #{edit-set=v1, edited-tree=v1, finding-part=v1},
 }
 
-An edit set corrects a finding of a tree when, in the tree that making
-the edits of the edit set in that tree gives, the condition that the
-finding reports no longer holds.
+An edit set corrects a finding of a tree when, in the edited tree of the
+edit set, the condition that the finding reports no longer holds for
+what the finding is about, wherever the edits of the edit set move that
+thing.
 
-### 3.18 Mechanical fixes
+### 3.19 Mechanical fixes
 
 @term mechanical-fix=v1
-@cites #{fix=v1, correction=v1, finding-part=v1}
+@cites #{fix=v1, correction=v1, acknowledgment=v1, finding-part=v1}
 
-The fix of a finding is mechanical when it has exactly one edit set and
-that edit set corrects the finding.
+The fix of a finding is mechanical when it has exactly one edit set, and
+that edit set corrects the finding and acknowledges no finding.
 
 ## 4. Requirements
 
@@ -575,16 +626,25 @@ that edit set corrects the finding.
 @cites {
     text#{conforming-program=v1},
     ontology#{finding-class=v1},
-    #{finding-part=v1, spot=v1, mark=v1, related-message=v1, fix=v1},
+    #{finding-part=v1},
 }
 
 When a conforming program gives a value as a part of a finding, it must
-give that part of that finding, and no other value, as that part. It
-must give no spot, no mark, and no fix as a part of a finding that has
-none, and no related message as a part of a finding that does not have
-that related message.
+give that part of that finding, and no other value, as that part.
 
-### 4.2 Finding ids
+### 4.2 No part that a finding does not have
+
+@req omit-absent-finding-parts=v1
+@cites {
+    text#{conforming-program=v1},
+    ontology#{finding-class=v1, tree=v1},
+    #{finding-part=v1, spot=v1, mark=v1, related-message=v1, fix=v1},
+}
+
+A conforming program must give no tree, no spot, no mark, no related
+message, and no fix as a part of a finding that does not have that part.
+
+### 4.3 Finding ids
 
 @req give-finding-ids=v1
 @cites {
@@ -597,7 +657,7 @@ When a conforming program gives a text as the finding id of a finding,
 it must give the finding id of that finding, and no other text, as the
 finding id of that finding.
 
-### 4.3 No finding given twice
+### 4.4 No finding given twice
 
 @req give-findings-once=v1
 @cites {
@@ -606,11 +666,11 @@ finding id of that finding.
     #{same-finding=v1, finding-part=v1},
 }
 
-For one input, a conforming program must give no two findings of one
-tree that are the same finding, and no two findings of no tree that are
-the same finding.
+In one execution, for one input, a conforming program must give no two
+findings of one tree that are the same finding, and no two findings of
+no tree that are the same finding.
 
-### 4.4 The start positions of spots
+### 4.5 The start positions of spots
 
 @req give-start-positions=v1
 @cites {
@@ -625,7 +685,7 @@ a column for the start position of a spot, it must give the column of
 the start position of that spot, and no other column, for that start
 position.
 
-### 4.5 The end positions of spots
+### 4.6 The end positions of spots
 
 @req give-end-positions=v1
 @cites {
@@ -639,7 +699,18 @@ and no other line number, for that end position. When it gives a column
 for the end position of a spot, it must give the column of the end
 position of that spot, and no other column, for that end position.
 
-### 4.6 The validation of edit sets
+### 4.7 No positions for a spot without a span
+
+@req omit-positions-without-spans=v1
+@cites {
+    text#{conforming-program=v1, position=v1, line-number=v1},
+    #{spot=v1, spot-position=v1},
+}
+
+A conforming program must give no line number and no column as the start
+position or the end position of a spot that has no span.
+
+### 4.8 The validation of edit sets
 
 @req validate-edit-sets=v1
 @cites {
@@ -648,12 +719,13 @@ position of that spot, and no other column, for that end position.
     #{edit-description=v1, edit-set=v1},
 }
 
-For each tree and each finite sequence of one or more edit descriptions,
-a conforming program that gives a result for whether the sequence gives
-an edit set in the tree must give exactly one result: "valid" when the
-sequence gives an edit set in the tree, and "invalid" when it does not.
+For each tree and each finite sequence of edit descriptions, a
+conforming program that gives a result for whether the sequence
+describes an edit set in the tree must give exactly one result: "valid"
+when the sequence describes an edit set in the tree, and "invalid" when
+it does not.
 
-### 4.7 The edited texts of edit sets
+### 4.9 The edited texts of edit sets
 
 @req give-edited-texts=v1
 @cites {
@@ -663,14 +735,13 @@ sequence gives an edit set in the tree, and "invalid" when it does not.
     #{edit-description=v1, edit-set=v1, edited-text=v1},
 }
 
-For each tree and each finite sequence of one or more edit descriptions
-that gives an edit set in the tree, when a conforming program gives a
-text as the edited text of a valid path for the sequence, that valid
-path must be the valid path of an edit description of the sequence, and
-the text must be the edited text of that valid path for the edit set
-that the sequence gives.
+For each tree and each finite sequence of edit descriptions that
+describes an edit set in the tree, when a conforming program gives a
+text as the edited text of a valid path for the sequence, it must give
+the edited text of that valid path for the edit set that the sequence
+describes, and no other text.
 
-### 4.8 No edited text without an edit set
+### 4.10 No edited text without an edit set
 
 @req omit-edited-texts=v1
 @cites {
@@ -679,11 +750,11 @@ that the sequence gives.
     #{edit-description=v1, edit-set=v1, edited-text=v1},
 }
 
-For each tree and each finite sequence of one or more edit descriptions
-that gives no edit set in the tree, a conforming program must give no
+For each tree and each finite sequence of edit descriptions that
+describes no edit set in the tree, a conforming program must give no
 text as an edited text for the sequence.
 
-### 4.9 The edit sets of fixes
+### 4.11 The edit sets of fixes
 
 @req limit-fix-edit-sets=v1
 @cites {
@@ -745,8 +816,9 @@ The JSON object of a vector line has these members:
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
-- `result`: the result that a conforming program gives for the input.
-  Only a vector of the group `edit-sets` has this member.
+- `result`: the result that a conforming program gives when it gives a
+  result for the input. Only a vector of the group `edit-sets` has this
+  member.
 - `values`: a JSON object that holds what a conforming program gives
   for the input, other than the result. Each vector has this member. An
   empty JSON object, `{}`, says that a conforming program gives none of
@@ -766,8 +838,8 @@ rise. A change of a note alone changes no revision. A program does not
 need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
-the subsection of a group names as a text, a valid path, a slug, a
-whole number, a run, a position, a sequence, or a tree has this form:
+the subsection of a group names as a text, a slug, a whole number, a
+run, a position, a sequence, or a tree has this form:
 
 - A text, such as a result, a valid path, or a slug, is a JSON string
   whose characters are the characters of the text, in order. So the
@@ -783,13 +855,13 @@ whole number, a run, a position, a sequence, or a tree has this form:
   position line 3, column 7 is `{"column":7,"line":3}`.
 - A sequence is a JSON array of its elements, in order.
 - A tree is a JSON object with one member for each file of the tree.
-  The key is the valid path of the file. When the content of the file is
-  valid UTF-8, the value is the text of that content, as a JSON string.
-  When it is not, the value is a JSON object with one member, `bytes`: a
-  JSON string of hex digits, for each byte of the content, in order, the
-  hex digit of the whole-number quotient of the byte divided by 16, then
-  the hex digit of the remainder. So the content 0xFF is
-  `{"bytes":"ff"}`.
+  Each file of the tree is a regular file. The key is the valid path of
+  the file. When the content of the file is valid UTF-8, the value is
+  the text of that content, as a JSON string. When it is not, the value
+  is a JSON object with one member, `bytes`: a JSON string of hex
+  digits, for each byte of the content, in order, the hex digit of the
+  whole-number quotient of the byte divided by 16, then the hex digit of
+  the remainder. So the content 0xFF is `{"bytes":"ff"}`.
 
 ### 5.1 The edits of edit sets
 
@@ -800,25 +872,25 @@ conforming program gives for them.
 
 - `input`: a JSON object with two members. `files` is the tree. `edits`
   is the sequence of edit descriptions: each is a JSON object with four
-  members, `path`, the valid path; `start`, the first position; `end`,
-  the second position; and `new-text`, the text.
+  members, `path`, the path of the edit description, as a text; `start`,
+  the first position; `end`, the second position; and `new-text`, the
+  new text.
 - `result`: the result of the tree and the sequence together, when a
-  conforming program gives a result for whether the sequence gives an
-  edit set in the tree: "valid" when it does, and "invalid" when it does
-  not.
+  conforming program gives a result for whether the sequence describes
+  an edit set in the tree: "valid" when it does, and "invalid" when it
+  does not.
 - `values`: with the result "valid", a JSON object with one member,
-  `edited-texts`: a JSON object with one member for each valid path of
-  an edit description of the sequence, whose key is that valid path and
-  whose value is the edited text of that valid path for the edit set
-  that the sequence gives. With the result "invalid", the empty JSON
-  object, `{}`.
+  `edited-texts`: a JSON object with one member for each path of an edit
+  description of the sequence, whose key is that path and whose value is
+  the edited text of that valid path for the edit set that the sequence
+  describes. With the result "invalid", the empty JSON object, `{}`.
 
-When a conforming program gives a result for whether the sequence gives
-an edit set in the tree, it gives the result that `result` holds, and no
-other result. When it gives a text as the edited text of a valid path
-for the sequence, the valid path is a key of `edited-texts`, and the
-text is the value of that key. When `values` is `{}`, it gives no text
-as an edited text for the sequence.
+When a conforming program gives a result for whether the sequence
+describes an edit set in the tree, it gives the result that `result`
+holds, and no other result. When it gives a text as the edited text of a
+valid path for the sequence, the valid path is a key of `edited-texts`,
+and the text is the value of that key. When `values` is `{}`, it gives
+no text as an edited text for the sequence.
 
 ```
 {"group":"edit-sets","input":{"edits":[{"end":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":2,"line":1}}],"files":{"a.md":"abc"}},"n":1,"result":"valid","rev":"v1","values":{"edited-texts":{"a.md":"aXc"}}}
@@ -846,22 +918,27 @@ it gives the text that `finding-id` holds, and no other text.
 ### 5.3 The positions of spots
 
 The group `spot-positions` holds the vectors of the requirements
-`give-start-positions` and `give-end-positions`. Each vector gives the
-text of the content of the file of a spot, the span of the spot, and the
-start position and the end position of the spot.
+`give-start-positions`, `give-end-positions`, and
+`omit-positions-without-spans`. Each vector gives the text of the
+content of the file of a spot and the span of the spot, when it has
+one, and the start position and the end position of the spot, when it
+has a span.
 
-- `input`: a JSON object with two members: `text`, the text, and `span`,
-  the span of the spot, as a run.
+- `input`: a JSON object with the member `text`, the text, and, for a
+  spot with a span, the member `span`, the span of the spot, as a run.
+  For a spot without a span, the object has no other member.
 - `result`: no vector of the group has this member.
-- `values`: a JSON object with two members: `start`, the start position
-  of the spot, and `end`, the end position of the spot.
+- `values`: for a spot with a span, a JSON object with two members:
+  `start`, the start position of the spot, and `end`, the end position
+  of the spot. For a spot without a span, the empty JSON object, `{}`.
 
 When a conforming program gives a line number for the start position of
 the spot, it gives the line number of `start`. When it gives a column
 for the start position, it gives the column of `start`. When it gives a
 line number for the end position of the spot, it gives the line number
 of `end`. When it gives a column for the end position, it gives the
-column of `end`.
+column of `end`. When `values` is `{}`, it gives no line number and no
+column as the start position or the end position of the spot.
 
 ```
 {"group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"n":47,"note":"the span ends right after a line ending, so the end position is in column 1 of line 2","rev":"v1","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":1}}}
