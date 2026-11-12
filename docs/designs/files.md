@@ -230,14 +230,14 @@ is folder k + 1. The files of the path are the root and each file that a
 file name of the valid path names. The folders of the path are the
 folders k.
 
-When the text is a valid path, and the folder tree does not change
-during the file read, the file read gives the file-read result of the
-valid path. The folder tree and the permissions of the program give the
-file-read result. For each file name k of the valid path in turn, from
-file name 1, the first row of this table whose condition holds gives the
-file-read result. When no row holds, file name k is not the last file
-name, and the file that it names is folder k + 1. File name k + 1 is
-next.
+When the text is a valid path, and no other process changes the folder
+tree during the file read, the file read gives the file-read result of
+the valid path. The folder tree and the permissions of the program give
+the file-read result. For each file name k of the valid path in turn,
+from file name 1, the first row of this table whose condition holds
+gives the file-read result. When no row holds, file name k is not the
+last file name, and the file that it names is folder k + 1. File name
+k + 1 is next.
 
 | condition | result |
 |---|---|
@@ -296,9 +296,9 @@ a pathname that the program passes to the system is longer than the
 system or the file system allows, or because the file system does not
 accept a name as an entry name, is not a failure of the system. So, on a
 system that allows at most 1,024 bytes in a pathname, a file read of a
-valid path of 5,024 characters in a folder tree that does not change
-still gives the file-read result, unless the system fails for another
-cause.
+valid path of 5,024 characters in a folder tree that no other process
+changes still gives the file-read result, unless the system fails for
+another cause.
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -459,10 +459,10 @@ result. Each time it decides whether a valid path fits a valid glob, or
 whether a valid path is in the set of a path set, a conforming program
 also gives exactly one result. So a program that, in a validation of a
 long text, gives an error in place of a result does not conform. In each
-file read that it makes in a folder tree that does not change during the
-file read, a conforming program gives exactly one of seven results:
-"invalid", "found", "no file", "symbolic link", "not a regular file",
-"not UTF-8", and "cannot read".
+file read that it makes in a folder tree that no other process changes
+during the file read, a conforming program gives exactly one of seven
+results: "invalid", "found", "no file", "symbolic link", "not a regular
+file", "not UTF-8", and "cannot read".
 
 ## 3. Definitions
 
@@ -844,12 +844,12 @@ and must not give the result "invalid" when the text is a valid path.
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
 
-In each file read of a valid path in a folder tree that does not change
-during the file read, a conforming program must give exactly one result,
-which is the file-read result of that valid path in that folder tree for
-the program, or "cannot read" when the system fails during the file read
-for a cause other than the folder tree and the permissions of the
-program for the files of the folder tree, such as an input or output
+In each file read of a valid path in a folder tree that no other process
+changes during the file read, a conforming program must give exactly one
+result, which is the file-read result of that valid path in that folder
+tree for the program, or "cannot read" when the system fails during the
+file read for a cause other than the folder tree and the permissions of
+the program for the files of the folder tree, such as an input or output
 error of a device, a lack of memory, too many open files, or the lack of
 the search permission of the program for a folder outside the folder
 tree through which the program finds the root. An error that the system
@@ -870,11 +870,11 @@ name, is not a failure of the system.
 }
 
 When it gives the result "found" in a file read of a valid path in a
-folder tree that does not change during the file read, a conforming
-program must give with that result, as the text of the content, the text
-that the file-read result of that valid path in that folder tree, for
-the program, gives with "found", and no other text as the text of the
-content.
+folder tree that no other process changes during the file read, a
+conforming program must give with that result, as the text of the
+content, the text that the file-read result of that valid path in that
+folder tree, for the program, gives with "found", and no other text as
+the text of the content.
 
 ### 4.5 No text of a content with another result
 
@@ -1175,7 +1175,7 @@ reads the text as a path in the folder tree.
   hold:
   1. A file system stores the folder tree, as defined below. So the
      program has the permissions that `tree` states.
-  2. The folder tree does not change during the file read.
+  2. No other process changes the folder tree during the file read.
   3. The system does not fail during the file read. This condition
      excludes only failures of the system. An error that the system
      gives because a name or a pathname that the program passes to the
