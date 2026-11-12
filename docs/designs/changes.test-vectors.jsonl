@@ -8,6 +8,7 @@
 {"group":"hunks","rev":"v1"}
 {"group":"merge-commits","rev":"v1"}
 {"group":"ranges","rev":"v1"}
+{"group":"reach","rev":"v1"}
 {"group":"working-tree-files","rev":"v1"}
 {"group":"branch-names","input":"main","n":1,"result":"valid","rev":"v1"}
 {"group":"branch-names","input":"feature/x","n":2,"result":"valid","rev":"v1"}
@@ -56,7 +57,7 @@
 {"group":"default-branch-commits","input":{"binding":"main","local":"l"},"n":45,"rev":"v1","values":{"commit":"l"}}
 {"group":"default-branch-commits","input":{"binding":"main"},"n":46,"note":"none of the three refs exists","rev":"v1","values":{}}
 {"group":"default-branch-commits","input":{"binding":"release/2.0","local":"l","remote":"r"},"n":47,"rev":"v1","values":{"commit":"l"}}
-{"group":"default-branch-commits","input":{"binding":"a..b","local":"l","remote":"r"},"n":48,"note":"the binding is not a branch name","rev":"v1","values":{}}
+{"group":"default-branch-commits","input":{"binding":"a..b"},"n":48,"note":"the binding is not a branch name","rev":"v1","values":{}}
 {"group":"default-branch-commits","input":{"binding":"refs/heads/main","local":"l"},"n":49,"note":"the binding is not a branch name","rev":"v1","values":{}}
 {"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"c","to":"e"},"n":50,"note":"the change of `e` while the default branch points to `c`","rev":"v1","values":{"order":["d","e"]}}
 {"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"b","to":"g"},"n":51,"note":"the walk from `g` takes the first parent `c` of `f` before its second parent `e`","rev":"v1","values":{"order":["c","d","e","f","g"]}}
@@ -157,3 +158,14 @@
 {"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"e","trees":{"a":{},"b":{"a.md":"x\n"},"c":{"a.md":"x\n"},"d":{"a.md":"x\n"},"e":{"a.md":"x\n"},"f":{"a.md":"x\n"},"g":{"a.md":"x\n"}}},"n":146,"note":"the change leaves every file as it was","rev":"v1","values":{"diff":[]}}
 {"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"e","last":"c","trees":{"a":{},"b":{"a.md":"x\n"},"c":{"b.md":"x\n"},"d":{},"e":{"a.md":"x\n"},"f":{},"g":{}}},"n":147,"note":"a file that moves gives the hunks of a removed file and of an added file","rev":"v1","values":{"diff":[{"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":1}],"path":"a.md"},{"hunks":[{"added":1,"new-start":1,"old-start":1,"removed":0}],"path":"b.md"}]}}
 {"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1","trees":{"a":{},"b":{"b.md":"b\n"},"c":{"c.md":"c\n"},"m1":{},"m2":{}}},"n":148,"note":"the change has no base, so it has no diff","rev":"v1","values":{}}
+{"group":"ranges","input":{"commits":{"a":[],"c":["x","y"],"x":["y"],"y":["a"]},"to":"c"},"n":149,"note":"the walk of the first parent `x` starts `y`, so the walk does not walk the second parent `y` again","rev":"v1","values":{"order":["a","y","x","c"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"300644","name":"a.md"},{"mode":"1100644","name":"b.md"}]},"n":150,"note":"only the bits 0170000 of a mode give its type","rev":"v1","values":{"paths":["a.md","b.md"]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"mode":"100644","name":"a.md"}],"mode":"1040000","name":"sub"}]},"n":151,"note":"a tree entry","rev":"v1","values":{"paths":["sub/a.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"200644","name":"z"},{"mode":"100644","name":"y.md"}]},"n":152,"note":"the type bits are 0, so a submodule entry","rev":"v1","values":{"paths":["y.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"ok.md"},{"entries":[{"mode":"100648","name":"bad.md"},{"mode":"100644","name":"c.md"}],"mode":"40000","name":"sub"}]},"n":153,"note":"git refuses the git tree object of `sub`, whose mode holds the digit 8","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"reach","input":{"commit":"g","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"d"},"n":154,"note":"through the second parent of `f`","result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"g","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"g"},"n":155,"note":"a commit reaches itself","result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"c","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"d"},"n":156,"result":"does not reach","rev":"v1"}
+{"group":"reach","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"g"},"n":157,"result":"does not reach","rev":"v1"}
+{"group":"reach","input":{"commit":"m1","commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"other":"a"},"n":158,"result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"x","commits":{"x":[],"y":[]},"other":"y"},"n":159,"result":"does not reach","rev":"v1"}
