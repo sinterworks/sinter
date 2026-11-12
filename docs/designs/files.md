@@ -63,7 +63,7 @@ JSON text.
 | [search permission](sinter:#search-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to look up names in a folder |
 | [read permission](sinter:#read-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a regular file or the names of the directory entries of a folder |
 | [attribute](sinter:#attribute=v1) | a property of a file other than the content of a regular file, the folder entries of a folder, the reference of a symbolic link, and the data of a file of another kind, such as its file type, its size, its mode, its owner, its times, or its extended attributes |
-| [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the names of the directory entries of a folder, of the reference of a symbolic link, or of the data of a file of another kind; copying an attribute of a file takes no bytes from it |
+| [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the names of the directory entries of a folder, of the reference of a symbolic link, of the data of a file of another kind, or of the value of an extended attribute of the file; copying another attribute of a file takes no bytes from it |
 | ignore case | treat two names that differ only in the case of their letters, such as `a.md` and `A.md`, as one name |
 | Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9; a file system that ignores differences of Unicode normalization treats two names that differ only in this way as one name |
 | [valid path](sinter:#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
@@ -144,9 +144,10 @@ snapshots. Such a name is not the entry name of a folder entry.
 A program takes a byte from a file when it copies into the program a
 byte that the file holds or gives: a byte of the content of a regular
 file, of the names of the directory entries of a folder, of the
-reference of a symbolic link, or of the data of a file of another kind.
-Copying an attribute of a file into the program takes no bytes from that
-file.
+reference of a symbolic link, of the data of a file of another kind, or
+of the value of an extended attribute of the file. Copying another
+attribute of a file into the program, such as its size or its mode,
+takes no bytes from that file.
 
 The search permission of a program for a folder lets the program look up
 names in the folder. The read permission of a program for a regular file
@@ -264,31 +265,31 @@ byte, on every file system. Some file systems ignore case or differences
 of Unicode normalization, so that a call of `openat` with the bytes of
 `A.md` can open the file of the folder entry `a.md`. Still, the valid
 path `A.md` gives "no file" in a folder tree whose root holds only the
-regular file `a.md`. A folder holds no folder entry for a file name
-that is longer than the file system allows in an entry name, or whose
-UTF-8 encoding the file system does not accept as an entry name, so
-such a file name gives "no file". A name that the listing of a folder
-does not hold names no folder entry: the name of a hidden folder of
-snapshots, and `..` followed by a space on a file system that ignores a
-space at the end of a name, are examples.
+regular file `a.md`. So a file name that is longer than the file system
+allows in an entry name gives "no file", because the listing of the
+folder holds no such name. A name that the listing of a folder does not
+hold names no folder entry: the name of a hidden folder of snapshots,
+and `..` followed by a space on a file system that ignores a space at
+the end of a name, are examples.
 
-Each file name names a folder entry in the root, or in the folder that
-the file name before it names. The result is "cannot read" when the
-program has no read permission for such a folder, also when the folder
-holds the folder entry for the file name, and on every file system.
-Without the read permission, the program cannot take the names of the
-listing of the folder, and so it cannot compare them with the UTF-8
-encoding of the file name, byte for byte. The permissions of the program
-for a folder that the last file name names do not change the result: the
-valid path `docs` gives "not a regular file" when `docs` is a folder,
-also when the program has neither the search permission nor the read
-permission for `docs`.
+Folder k is the folder that must hold the folder entry for file name k:
+the root for file name 1, and the folder that the file name before it
+names for each later file name. The result is "cannot read" when the
+program has no read permission for folder k, also when folder k holds
+the folder entry for file name k, and on every file system. Without the
+read permission, the program cannot take the names of the listing of the
+folder, and so it cannot compare them with the UTF-8 encoding of the
+file name, byte for byte. The permissions of the program for a folder
+that the last file name names do not change the result: the valid path
+`docs` gives "not a regular file" when `docs` is a folder, also when the
+program has neither the search permission nor the read permission for
+`docs`.
 
 When the system fails during the file read, for a cause other than the
 folder tree and the permissions of the program for the files of the
 folder tree, such as an input or output error of a device, a lack of
 memory, or too many open files, the program can give "cannot read"
-instead of the file-read result. So when the program cannot reach the
+instead of the file-read result. Also, when the program cannot reach the
 root because it has no search permission for a folder above the root, it
 can give "cannot read". An error that the system gives because a name or
 a pathname that the program passes to the system is longer than the
@@ -308,7 +309,7 @@ mark, keeps each carriage return, and keeps each character in the form
 that the content encodes, with no Unicode normalization. The text is the
 text of the whole content, whatever its size, so a conforming program
 sets no limit of its own on the size of a file. With each other result,
-the file read gives no text as the text of a file. A program can give
+the file read gives no text as the text of a content. A program can give
 other texts in a file read, such as a message.
 
 When another process changes the folder tree during a file read of a
@@ -320,20 +321,23 @@ conforming program keeps these guarantees:
 
 - It follows no symbolic link of the folder tree: it finds no file by
   the reference of such a symbolic link.
-- It takes bytes only from the folders of the path and from the regular
-  file that the last file name names. For a text that is not a valid
-  path, it takes no bytes from any file. So it takes no byte from a file
-  outside the folder tree.
+- It takes bytes only from the folders of the path, from the regular
+  file that the last file name names, and from the files that hold the
+  program, the libraries and the runtime that it uses, and their data,
+  such as a catalog of messages. For a text that is not a valid path, it
+  takes bytes only from those files of the program. So it takes no byte
+  from another file outside the folder tree.
 - It does not wait for another process or for a device to act on a file
   of another kind of the folder tree, such as for a process to open the
   other end of a pipe.
 - It changes no file of the folder tree. A change that the file system
   makes by itself, such as a change of the time of last access, is not a
   change by the program.
-- It uses no permission or privilege that its process did not have
-  before the file read: it does not change the user IDs or the group IDs
-  of its process, and it gives its process no appropriate privilege, as
-  POSIX.1-2024 defines these. A capability, on a system that gives
+- It uses only the permissions and the appropriate privileges, as
+  POSIX.1-2024 defines these, that its process has without a change by
+  the program: not one that it gets by a change of the user IDs, the
+  group IDs, or the appropriate privileges of its process, or through
+  another process that acts for it. A capability, on a system that gives
   capabilities to processes, is an example of an appropriate privilege.
 
 A valid path cannot lead out of the folder tree through a symbolic link.
@@ -609,9 +613,10 @@ A byte that a program takes from a file is a byte that the file holds or
 gives and that the program copies into the program: a byte of the
 content of a regular file, of the names of the directory entries of a
 folder, as POSIX.1-2024 defines directory entries, of the reference of a
-symbolic link, or of the data of a file of another kind. To take bytes
-from a file is to copy such bytes into the program. Copying an attribute
-of a file into the program takes no bytes from that file.
+symbolic link, of the data of a file of another kind, or of the value of
+an extended attribute of the file. To take bytes from a file is to copy
+such bytes into the program. Copying another attribute of a file into
+the program takes no bytes from that file.
 
 ### 3.13 Valid paths
 
@@ -690,18 +695,18 @@ name 1, the cases apply in order from case 1 to case 6:
 1. The program has no search permission or no read permission for folder
    k: "cannot read".
 2. Folder k holds no folder entry whose entry name is the UTF-8 encoding
-   of file name k: "no file". Folder k holds no such folder entry also
-   when file name k is longer than the file system that folder k is on
-   allows in an entry name, or when that file system does not accept the
-   UTF-8 encoding of file name k as an entry name.
+   of file name k: "no file". So folder k holds no folder entry for a
+   file name that is longer than the file system that folder k is on
+   allows in an entry name, because the listing of folder k holds no
+   such name.
 3. The file that file name k names is a symbolic link: "symbolic link".
 4. File name k is not the last file name of that valid path, and that
    file is not a folder: "no file".
 5. File name k is the last file name of that valid path, and that file
    is a folder or a file of another kind: "not a regular file".
 6. That file is a regular file: "cannot read" when the program has no
-   read permission for it; "not UTF-8" when its content is not valid
-   UTF-8; and otherwise "found", with the text of its content.
+   read permission for it; otherwise "not UTF-8" when its content is not
+   valid UTF-8; and otherwise "found", with the text of its content.
 
 ### 3.17 Valid globs
 
@@ -825,8 +830,8 @@ when the text does not match `path`.
 }
 
 In each file read of a text in a folder tree, a conforming program must
-give the result "invalid" when, and only when, the text is not a valid
-path.
+give exactly one result, "invalid", when the text is not a valid path,
+and must not give the result "invalid" when the text is a valid path.
 
 ### 4.3 The result of a file read
 
@@ -834,8 +839,9 @@ path.
 @cites {
     posix/2024,
     #{
-        system=v1, file-system=v1, folder=v1, folder-tree=v1, path=v1,
-        file-read=v1, file-read-result=v1,
+        system=v1, file-system=v1, folder=v1, folder-tree=v1,
+        search-permission=v1, path=v1, file-read=v1,
+        file-read-result=v1,
     },
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
@@ -846,13 +852,15 @@ which is the file-read result of that valid path in that folder tree for
 the program, or "cannot read" when the system fails during the file read
 for a cause other than the folder tree and the permissions of the
 program for the files of the folder tree, such as an input or output
-error of a device, a lack of memory, or too many open files. An error
-that the system gives because a name, or a pathname of POSIX.1-2024,
-that the program passes to the system is longer than the system or the
-file system allows, or because the file system does not accept a name as
-an entry name, is not a failure of the system.
+error of a device, a lack of memory, too many open files, or the lack of
+the search permission of the program for a folder outside the folder
+tree through which the program finds the root. An error that the system
+gives because a name, or a pathname of POSIX.1-2024, that the program
+passes to the system is longer than the system or the file system
+allows, or because the file system does not accept a name as an entry
+name, is not a failure of the system.
 
-### 4.4 The text of a file
+### 4.4 The text of the content
 
 @req give-file-text=v1
 @cites {
@@ -870,17 +878,17 @@ that the file-read result of that valid path in that folder tree, for
 the program, gives with "found", and no other text as the text of the
 content.
 
-### 4.5 No text of a file with another result
+### 4.5 No text of a content with another result
 
 @req omit-texts-of-other-results=v1
 @cites {
-    #{folder-tree=v1, path=v1, file-read=v1},
+    #{folder-tree=v1, regular-file=v1, path=v1, file-read=v1},
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
 
 When it reads a text as a path in a folder tree and gives a result other
 than "found", a conforming program must give, in that file read, no text
-as the text of a file.
+as the text of the content of a regular file.
 
 ### 4.6 No symbolic link followed
 
@@ -906,10 +914,11 @@ no file by the reference of such a symbolic link.
 }
 
 In each file read of a text in a folder tree, a conforming program must
-take bytes from no file other than the folders of the path of that text
-in that folder tree and the regular file that the last file name of that
-text names in that folder tree, and from no file at all when the text is
-not a valid path.
+take bytes from no file other than the files that hold the program, the
+libraries and the runtime that it uses, and their data, such as a
+catalog of messages, and, when the text is a valid path, the folders of
+the path of that text in that folder tree and the regular file that the
+last file name of that text names in that folder tree.
 
 ### 4.8 No wait for another process
 
@@ -954,11 +963,12 @@ file, such as a change of the time of last access.
 }
 
 In each file read of a text in a folder tree, a conforming program must
-use no permission or privilege that its process did not have before the
-file read: it must not change the user IDs or the group IDs of its
-process, and it must not give its process an appropriate privilege, as
-POSIX.1-2024 defines these, such as a capability on a system that gives
-capabilities to processes.
+use only the permissions and the appropriate privileges, as POSIX.1-2024
+defines these, such as a capability on a system that gives capabilities
+to processes, that its process has without a change by the program: not
+one that it gets by a change of the user IDs, the group IDs, or the
+appropriate privileges of its process, or through another process that
+acts for it.
 
 ### 4.11 The validation of texts as globs
 
@@ -1185,16 +1195,17 @@ reads the text as a path in the folder tree.
   "found", "no file", "symbolic link", "not a regular file", "not
   UTF-8", or "cannot read".
 - `values`: what a conforming program gives, or does not give, as the
-  text of a file in such a file read. With the result "found", a JSON
-  object with one member, `text`: the text of the content, as pieces of
-  a text (below). With each other result, the empty JSON object, `{}`.
+  text of the content in such a file read. With the result "found", a
+  JSON object with one member, `text`: the text of the content, as
+  pieces of a text (below). With each other result, the empty JSON
+  object, `{}`.
 
 In each file read of the text in the folder tree that it makes under
 these conditions, a conforming program gives the result that `result`
 holds, and no other result. With the result "found", it gives the text
 that `text` holds as the text of the content, and no other text as the
 text of the content. When `values` is `{}`, it gives no text as the
-text of a file. A conforming program gives exactly one result in each
+text of a content. A conforming program gives exactly one result in each
 file read, also when no process opens a pipe of the folder tree. So
 when a file read has given no result after a time that the runner
 chooses, the runner judges that the program did not give the result
@@ -1239,8 +1250,9 @@ brackets applies:
   file. A file object of the type `"symbolic link"` cannot have this
   member.
 - `search` (`true`): whether the program has the search permission for
-  the file. Only a file object of the type `"directory"` can have this
-  member.
+  the folder. Only a file object of the type `"directory"` can have this
+  member, and the value in brackets applies only to a file object of
+  that type.
 - `write` (`true`): whether the program has the write permission for the
   file, as POSIX.1-2024 defines it. A file object of the type
   `"symbolic link"` cannot have this member.
@@ -1425,10 +1437,11 @@ conventions hold for each setup:
 
 These are the setups:
 
-- The symbolic link `d`, whose reference leads to the folder `q`, and
-  the folder `q`, which holds the pipe `p`, with a writer of `p`; the
-  text `d/p`: "symbolic link". The program follows no symbolic link, so
-  it does not find `p`, and after the file read the writer still waits.
+- The symbolic link `d`, whose reference leads to a folder outside the
+  folder tree, which holds the pipe `p`, with a writer of `p`; the text
+  `d/p`: "symbolic link". The program follows no symbolic link, so it
+  does not find `p` by the reference of `d`, and after the file read the
+  writer still waits.
 - The pipe `p`, and no process that opens `p`; the text `p`: "not a
   regular file". The program does not wait for a process to open the
   other end of `p`, so the file read ends.
@@ -1443,8 +1456,8 @@ These are the setups:
   permission nor the search permission, and which holds the regular file
   `a.md`, whose content is the text `hi`; the text `docs/a.md`: "cannot
   read". In the file read, the program does not change the mode or the
-  owner of `docs`, and it does not change the user IDs or the group IDs
-  of its process.
+  owner of `docs`, and it gets no permission for `docs` by a change of
+  the user IDs or the group IDs of its process.
 - Any folder tree, and any text: in the file read, the program does not
   change the content, the folder entries, the reference, or an attribute
   of a file of the folder tree, such as its mode or its owner, other
