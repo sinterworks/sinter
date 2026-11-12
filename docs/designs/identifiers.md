@@ -687,6 +687,11 @@ subject and the hash prefix, and the link text. For a citation, it gives
 a separate list of values for each citation entry, in the order of the
 citation entries, and no list holds a value of another citation entry.
 It gives each value together with its value name, such as "the slug".
+A program can also give where an input stands in its text, such as the
+line numbers of a tag line or the run of a link, and why a result is
+what it is, such as which condition an id pattern does not meet, for
+example to report a finding. These are not values, and no requirement
+covers them.
 For each other input, it gives no value other than the tag word of a tag
 line. Each value of a tag line that is a text is the text of a run of
 the text of the tag line. Each value of the target of an inline citation
@@ -1633,7 +1638,7 @@ in which each of these conditions holds:
 ### 4.47 Values
 
 @term value=v1
-@cites {#{tag-line=v1}, text#{text=v1, conforming-program=v1, result=v1}}
+@cites {#{tag-line=v1, input=v1}, text#{text=v1, conforming-program=v1, result=v1}}
 
 A value is a text or a fact that a conforming program gives together
 with a result, under a value name, which tells what the value is. A
@@ -1641,7 +1646,8 @@ conforming program gives a value under a value name when it gives the
 value together with something that stands for that value name and for
 no other value name. It gives a value that is a fact, such as every part
 or the type of tag line, when it gives something that stands for that
-fact and for no other fact.
+fact and for no other fact. Where an input stands in its text, and an
+explanation of the result of an input, are not values.
 
 ## 5. Requirements
 
