@@ -454,3 +454,38 @@
 {"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[a ![i](y\n) b][r]\n\n[r]: sinter:docs=v1"},"n":442,"note":"a line ending inside the image of the link text of a reference link","rev":"v1","values":{"links":[{"result":"valid","values":{"link-text":"a ![i](y\n) b","revision":"v1","slug":"docs"}},{"result":"not an inline citation","values":{}}]}}
 {"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[x](sinter:docs=v1#*)"},"n":443,"note":"only `@supersedes` allows an every-part target","rev":"v1","values":{"links":[{"result":"invalid","values":{}}]}}
 {"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[x](sinter:%20docs=v1)"},"n":444,"note":"`%20` is three characters, and a segment holds no `%`","rev":"v1","values":{"links":[{"result":"invalid","values":{}}]}}
+{"group":"id-patterns","input":"[--]","n":445,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[-a-]","n":446,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[*+?().$|]","n":447,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"%&'!\"-:;<>_`~","n":448,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[a-a]","n":449,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{255}","n":450,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{0,0}b","n":451,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{2,3}","n":452,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(ab)+","n":453,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"x(a|bc)y","n":454,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(a|ab)(c|bcd)","n":455,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a+a","n":456,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[a-f]","n":457,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(a|aa)+b","n":458,"result":"valid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"","n":459,"note":"a pattern holds one branch at least, and a branch one piece at least","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[]","n":460,"note":"a character class holds one class member at least","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[^a]","n":461,"note":"`^` is not a member of a character class","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[a-Z]","n":462,"note":"the two ends of a range are of one kind: digits, upper-case letters, or lower-case letters","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{,3}","n":463,"note":"a quantifier holds a count before `,`","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{1,2,3}","n":464,"note":"a quantifier holds two counts at most","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"{1}","n":465,"note":"a quantifier follows an atom","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(|a)","n":466,"note":"an empty branch","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(a","n":467,"note":"a subpattern ends with `)`","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a b","n":468,"note":"a space is not a literal","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"[9-0]","n":469,"note":"the first character of the range comes after its last character","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{1,256}","n":470,"note":"a `count` has a number greater than 255","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{256,}","n":471,"note":"a `count` has a number greater than 255","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"((a|b){250}){2}c","n":472,"note":"its size is 1,001: the size of an alternation is the sum of the sizes of its branches","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(((a|b){250}){2}){1,}","n":473,"note":"its size is 2,000: `{1,}` counts as two copies","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"((a?){250}){4}b","n":474,"note":"its size is 1,001: `?` counts as one copy","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"((a+){250}){4}b","n":475,"note":"its size is 1,001: `+` counts as one copy","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"((a{0,0}){250}){4}b","n":476,"note":"its size is 1,001: `{0,0}` counts as one copy","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a|b*","n":477,"note":"the empty id fits its second branch","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"(a*)+","n":478,"note":"the empty id fits it","result":"invalid","rev":"v1","values":{}}
+{"group":"id-patterns","input":"a{0}","n":479,"note":"only the empty id fits it","result":"invalid","rev":"v1","values":{}}
