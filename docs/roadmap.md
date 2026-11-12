@@ -98,6 +98,27 @@
     `@ack`, clears the obligation.
   - It shares its design with `@pin` (`spec/vocabulary.md` section
     7.4) and with evidence import. Not designed.
+- **Assumptions about dependencies** — a design can rest on the
+  behavior of something that the project runs but does not control: a
+  library, a grammar, or a tool, each at a version. Today a design
+  states such behavior, with the version, in a term or a requirement.
+  Not designed.
+  - A new kind of declared item, an assumption, states one such fact and
+    names the dependency and its version.
+  - A test that observes the fact verifies the assumption with
+    `@verifies`, as a test verifies a requirement. When an update of the
+    dependency breaks the fact, the test fails, and Sinter reports the
+    assumption as not verified.
+  - Sinter reports an assumption that no test verifies, as it reports an
+    untraced requirement.
+  - An assumption has a revision, and citations pin it as they pin any
+    other item.
+  - A team that writes Sinter again from the designs (the item **A
+    clean-room implementation as the acceptance test of the designs**)
+    learns from the assumptions what each design takes from outside the
+    repository.
+  - It needs the design of test evidence, and a revision of the designs
+    Identifiers and Ontology for the new kind.
 - **Plans with their journals** — show each plan step with the
   journal entries for the step (record `plan-journals`): the step and
   its promises by default, the journal entries on request. Not
