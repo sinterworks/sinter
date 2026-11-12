@@ -6,21 +6,22 @@
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
+@cites data-forms=v1
 @cites ontology=v1
 @cites rfc/8259
 Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots and their start and end positions; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate edit sets.
 
-A finding reports one condition at one part of a repository, such as a
-requirement that no test cites. Each finding has a finding class, which
-a slug names, and a subject, a text that names what the finding is
-about. The finding id of a finding is made from the slug and the
-subject, and two findings with the same slug and the same subject are
-the same finding, in any tree. A finding also has a message for people.
-It can have a spot, which is the valid path of a file, alone or with a
-span of the text of that file; a mark; related messages; and a fix. A
-fix is a message and one or more edit sets. Each edit set changes the
-texts of files, and it corrects the finding or adds an acknowledgment of
-it by a person.
+A finding reports one condition at one part of a repository, such as an
+item of the kind requirement that no test cites. Each finding has a
+finding class, which a slug names, and a subject, a text that names what
+the finding is about. The finding id of a finding is made from the slug
+and the subject, and two findings with the same slug and the same
+subject are the same finding, in any tree. A finding also has a message
+for people. It can have a spot, which is the valid path of a file, alone
+or with a span of the text of that file; a mark; related messages; and a
+fix. A fix is a message and one or more edit sets. Each edit set changes
+the texts of files, and it corrects the finding or adds an
+acknowledgment of it by a person.
 
 From Text and notation, the design takes whole numbers, decimal
 numerals, and hex digits; texts, characters, line feeds, carriage
@@ -30,7 +31,9 @@ the start and the end of a span; valid UTF-8, UTF-8 encodings, and the
 text of a byte sequence; and conforming programs, inputs, and results.
 From Identifiers, it takes slugs. From Files and paths, it takes valid
 paths and regular files. From the Ontology, it takes findings and
-finding classes, items, trees, people, and the ledger.
+finding classes, items, trees, people, and the ledger. From the
+specification `test-vectors` of Data forms, it takes test-vector sets:
+the file that holds the conformance vectors of the design is one.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, and numbers: each line of the file that holds the
@@ -42,7 +45,7 @@ conformance vectors of the design is a JSON text.
 |---|---|
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
-| [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as a requirement or a test |
+| [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | the set of the files of a repository, with their contents, at one commit or in one working tree |
 | [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
@@ -104,7 +107,7 @@ has these parts:
 | finding class | the kind of the finding, by the slug that names it | exactly one |
 | subject | a text that names what the finding is about | exactly one |
 | message | a text for people that says what is wrong | exactly one |
-| spot | where the finding stands in its tree: the valid path of a file, alone or with a span of the text of that file | one or none; none for a finding of no tree |
+| spot | where the finding is in its tree: the valid path of a file, alone or with a span of the text of that file | one or none; none for a finding of no tree |
 | mark | the run of the span of the spot that is at fault, with a message | one or none; none when the finding has no spot with a span |
 | related messages | other messages that help to explain the finding, each alone or with a spot in the tree of the finding or in another tree | zero or more |
 | fix | a message and one or more edit sets in the tree of the finding | one or none; none for a finding of no tree |
@@ -117,19 +120,19 @@ sets, each with its number. The parts of an edit set are its edits, and
 the parts of an edit are its spot and its new text.
 
 For example, a repository declares the finding class `no-test`, which
-reports a requirement that no test cites. In a tree, the requirement
-`packs#limit-size` is declared on line 41 of `docs/designs/packs.md`, by
-the tag line `@req limit-size=v2`, and no test cites it. The finding has
-these parts:
+reports an item of the kind requirement that no test cites. In a tree,
+the item of the kind requirement `billing#due-date` is declared on line
+41 of `docs/designs/billing.md`, by the tag line `@req due-date=v2`, and
+no test cites it. The finding has these parts:
 
-| part | value |
+| part | this finding |
 |---|---|
 | tree | that tree |
 | finding class | `no-test` |
-| subject | `packs#limit-size` |
+| subject | `billing#due-date` |
 | message | `no test cites this requirement` |
-| spot | `docs/designs/packs.md`, from line 41, column 1 to line 41, column 19 |
-| mark | from line 41, column 6 to line 41, column 16, the text `limit-size`, with the message `cited by no test` |
+| spot | `docs/designs/billing.md`, from line 41, column 1 to line 41, column 17 |
+| mark | from line 41, column 6 to line 41, column 14, the text `due-date`, with the message `cited by no test` |
 | related messages | none |
 | fix | none |
 | ackable | ackable |
@@ -140,7 +143,7 @@ a message chooses its words, so two conforming programs can give the
 same finding with different messages.
 
 The subject of a finding names what the finding is about. A subject
-that names an item, such as `packs#limit-size`, stays the same when
+that names an item, such as `billing#due-date`, stays the same when
 lines move in a file. A thing that no name names, such as one word on
 one line, can have a subject that holds its path and its position, such
 as `docs/guide.md@L3C5`. Such a subject changes when lines move.
@@ -318,8 +321,8 @@ holds. So the fix is mechanical. If the word list gave two words for
 
 The finding id of a finding is the text `finding:`, then the slug that
 names its finding class, then `:`, then its subject. So the finding of
-the class `no-test` with the subject `packs#limit-size` has the finding
-id `finding:no-test:packs#limit-size`. A slug holds no `:`, so the first
+the class `no-test` with the subject `billing#due-date` has the finding
+id `finding:no-test:billing#due-date`. A slug holds no `:`, so the first
 `:` after `finding:` ends the slug, and the subject can hold `:`.
 
 Two findings are the same finding when the slugs that name their
@@ -330,10 +333,10 @@ messages, the message, the fix, and whether a finding is ackable do not
 change which finding it is. So when lines move in a file, a finding
 whose subject does not change stays the same finding.
 
-In one execution, for one input, a conforming program gives no two
-findings of one tree that are the same finding, and no two findings of
-no tree that are the same finding. So, in one tree, each subject names
-at most one finding of each finding class.
+In one execution, a conforming program gives no two findings of one tree
+that are the same finding, and no two findings of no tree that are the
+same finding. So, in one tree, each subject names at most one finding of
+each finding class.
 
 ## 3. Definitions
 
@@ -601,8 +604,8 @@ The parts of a finding are these:
 - its finding class, by the slug that names it;
 - its subject;
 - its message: a message that says what is wrong;
-- its spot: one spot in its tree, where the finding stands, or no spot;
-  a finding of no tree has no spot;
+- its spot: one spot in its tree, which shows where the finding is, or
+  no spot; a finding of no tree has no spot;
 - its mark: one mark of its spot, whose span is the run of the span of
   its spot that is at fault, with a message that says what is wrong
   there; or no mark; a finding whose spot has no span, or that has no
@@ -656,8 +659,8 @@ finding.
     #{finding-part=v1},
 }
 
-When a conforming program gives a value as a part of a finding, it must
-give that part of that finding, and no other value, as that part.
+When a conforming program gives something as a part of a finding, it
+must give that part of that finding, and nothing else, as that part.
 
 ### 4.2 No part that a finding does not have
 
@@ -668,8 +671,8 @@ give that part of that finding, and no other value, as that part.
     #{finding-part=v1},
 }
 
-A conforming program must give a value as a part of a finding only when
-the finding has that part.
+A conforming program must give nothing as a part of a finding that the
+finding does not have.
 
 ### 4.3 Finding ids
 
@@ -688,14 +691,14 @@ finding id of that finding.
 
 @req give-findings-once=v1
 @cites {
-    text#{conforming-program=v1, input=v1},
+    text#{conforming-program=v1},
     ontology#{finding-class=v1, tree=v1},
     #{same-finding=v1, finding-part=v1},
 }
 
-In one execution, for one input, a conforming program must give no two
-findings of one tree that are the same finding, and no two findings of
-no tree that are the same finding.
+In one execution, a conforming program must give no two findings of one
+tree that are the same finding, and no two findings of no tree that are
+the same finding.
 
 ### 4.5 The start positions of spots
 
@@ -805,24 +808,28 @@ section 4.
 
 The vectors of this design are in the file
 [`findings.test-vectors.jsonl`](findings.test-vectors.jsonl), in the
-same directory as this design. A vector is an input and what a
-conforming program gives for it. Each vector follows from the
+same folder as this design. The file is a
+[test-vector set](sinter:data-forms#test-vector-set=v1). A vector is an
+input and what a conforming program gives for it. Each vector follows from the
 requirements and adds nothing to them. The vectors are in groups. Each
 group has a name, such as `edit-sets`, and a subsection below. The
 subsection names the requirements that the vectors of the group follow
-from, and it describes their inputs, results, and values.
+from, and it describes their inputs, results, and values. These
+requirements have no vectors: `give-finding-parts`,
+`omit-absent-finding-parts`, `give-findings-once`, and
+`limit-fix-edit-sets`.
 
 Several requirements apply only when a program gives the thing that they
 name, such as a line number. So a vector holds a program only to what
 the program gives for the input: a program that gives a line number for
 a start position, and no column, is held only to the line number.
 
-The file is valid UTF-8. Its text has no byte order mark and no carriage
-return, and it ends with a line feed. Each line of the text of the file
-is a JSON text, as RFC 8259 defines it, that holds one JSON object. So
-only a line feed ends a line of the file. U+0085, U+2028, and U+2029 can
-be in JSON strings of the file, and they do not end a line. The file has
-three kinds of line, in this order:
+Each line of the file is the canonical byte sequence of one JSON object,
+then the byte 0x0A, so each line is a JSON text, as RFC 8259 defines it.
+So the file is valid UTF-8, its text has no byte order mark and no
+carriage return, and only a line feed ends a line of the file. U+0085,
+U+2028, and U+2029 can be in JSON strings of the file, and they do not
+end a line. The file has three kinds of line, in this order:
 
 1. The first line is the set line. Its JSON object has one member,
    `rev`: the revision of the whole set of vectors.
@@ -940,7 +947,7 @@ When a conforming program gives a text as the finding id of the finding,
 it gives the text that `finding-id` holds, and no other text.
 
 ```
-{"group":"finding-ids","input":{"class":"no-test","subject":"packs#limit-size"},"n":39,"rev":"v1","values":{"finding-id":"finding:no-test:packs#limit-size"}}
+{"group":"finding-ids","input":{"class":"no-test","subject":"billing#due-date"},"n":39,"rev":"v1","values":{"finding-id":"finding:no-test:billing#due-date"}}
 ```
 
 ### 5.3 The positions of spots
