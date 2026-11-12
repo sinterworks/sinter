@@ -7,8 +7,10 @@
 {"group":"head-commits","rev":"v1"}
 {"group":"hunks","rev":"v1"}
 {"group":"merge-commits","rev":"v1"}
+{"group":"parents","rev":"v1"}
 {"group":"ranges","rev":"v1"}
 {"group":"reach","rev":"v1"}
+{"group":"ref-commits","rev":"v1"}
 {"group":"working-tree-files","rev":"v1"}
 {"group":"branch-names","input":"main","n":1,"result":"valid","rev":"v1"}
 {"group":"branch-names","input":"feature/x","n":2,"result":"valid","rev":"v1"}
@@ -169,3 +171,16 @@
 {"group":"reach","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"g"},"n":157,"result":"does not reach","rev":"v1"}
 {"group":"reach","input":{"commit":"m1","commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"other":"a"},"n":158,"result":"reaches","rev":"v1"}
 {"group":"reach","input":{"commit":"x","commits":{"x":[],"y":[]},"other":"y"},"n":159,"result":"does not reach","rev":"v1"}
+{"group":"default-branch-commits","input":{"binding":"main","local":"l","upstream":{}},"n":160,"note":"the upstream exists and has no commit, so the local branch does not count","rev":"v1","values":{}}
+{"group":"parents","input":{"named":["a"],"shallow":false},"n":161,"rev":"v1","values":{"parents":["a"]}}
+{"group":"parents","input":{"named":["a","b"],"shallow":false},"n":162,"note":"the first parent comes first","rev":"v1","values":{"parents":["a","b"]}}
+{"group":"parents","input":{"named":["a"],"shallow":true},"n":163,"note":"the file `shallow` names the commit","rev":"v1","values":{"parents":[]}}
+{"group":"parents","input":{"graft":["x"],"named":["a"],"shallow":false},"n":164,"note":"a graft changes nothing","rev":"v1","values":{"parents":["a"]}}
+{"group":"parents","input":{"named":[],"shallow":false},"n":165,"note":"a commit with no parent","rev":"v1","values":{"parents":[]}}
+{"group":"ref-commits","input":{"ref":"refs/heads/main","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":166,"rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/alias","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":167,"note":"a symbolic ref","rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/alias2","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":168,"note":"a symbolic ref that names a symbolic ref","rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/dangling","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":169,"note":"a symbolic ref that names a ref that does not exist","rev":"v1","values":{}}
+{"group":"ref-commits","input":{"ref":"refs/tags/v1","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":170,"note":"an annotated tag is a git object that is not a commit","rev":"v1","values":{}}
+{"group":"ref-commits","input":{"ref":"refs/heads/none","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":171,"note":"a ref that does not exist","rev":"v1","values":{}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"ok.md"},{"entries":[{"mode":"100644","name":""},{"mode":"100644","name":"c.md"}],"mode":"40000","name":"sub"}]},"n":172,"note":"git refuses the git tree object of `sub`, which holds an empty name","rev":"v1","values":{"paths":["ok.md"]}}
