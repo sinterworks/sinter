@@ -2258,15 +2258,15 @@ not state this.
 
 ### 6.2 Citations over several lines
 
-The group `continuation-lines` holds texts that start with a citation.
-Each text tests which lines after the line of the citation are its
-continuation lines, and which lines are inputs of their own. A text of
-the group can have one line. Its vectors follow from the requirements of
-the groups of section 6.1 and from the requirement
-`give-no-results-for-non-inputs`. Each vector gives a text and what a
-conforming program gives for the inputs that the lines of the text make.
-A citation and its continuation lines are one input, and each other line
-is an input of its own.
+The group `continuation-lines` holds texts that start with a tag line.
+Each text tests which lines after that tag line are its continuation
+lines, and which lines are inputs of their own: only a citation has
+continuation lines. A text of the group can have one line. Its vectors
+follow from the requirements of the groups of section 6.1 and from the
+requirement `give-no-results-for-non-inputs`. Each vector gives a text
+and what a conforming program gives for the inputs that the lines of the
+text make. A citation and its continuation lines are one input, and each
+other line is an input of its own.
 
 - `input`: the binding and the text, as described above. The markdown
   document of the text holds no link and no image.
@@ -2380,8 +2380,9 @@ The group `rejected-bindings` holds texts that a program reads under a
 binding of `external-namespaces` for which it gives the result
 "invalid". Its vectors follow from the requirements
 `give-no-results-under-rejected-bindings`,
-`reject-malformed-namespace-names`, `give-no-other-values`, and
-`give-results`.
+`reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
+`reject-invalid-binding-patterns`, `reject-empty-id-fit`,
+`give-no-other-values`, and `give-results`.
 
 - `input`: a JSON object with two members: `binding`, the binding, and
   `text`, the text. The program takes the binding, and it reads the
