@@ -126,3 +126,11 @@
 {"group":"spans","input":{"run":{"from":1,"to":1},"text":"﻿"},"n":120,"rev":"v1","values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
 {"group":"spans","input":{"run":{"from":0,"to":2},"text":"﻿ab"},"n":121,"note":"boundary 0 is not a boundary of the body, so the run is not a span","rev":"v1","values":{}}
 {"group":"spans","input":{"run":{"from":0,"to":0},"text":"﻿"},"n":122,"note":"boundary 0 is not a boundary of the body, so the run is not a span","rev":"v1","values":{}}
+{"group":"decode","input":"dfbf","n":123,"note":"the largest two-byte form, U+07FF","result":"valid","rev":"v1","values":{"text":"߿"}}
+{"group":"decode","input":"f0908080","n":124,"note":"the smallest four-byte form, U+10000","result":"valid","rev":"v1","values":{"text":"𐀀"}}
+{"group":"decode","input":"e09fbf","n":125,"note":"an overlong encoding: the three-byte form for U+07FF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f08fbfbf","n":126,"note":"an overlong encoding: the four-byte form for U+FFFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f5808080","n":127,"note":"the UTF-8 encoding of no character has 0xF5 as its first byte","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"e282","n":128,"note":"the first two bytes of a three-byte form, with no byte after them","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f09f98","n":129,"note":"the first three bytes of a four-byte form, with no byte after them","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c3a980","n":130,"note":"a byte 0x80 after the UTF-8 encoding of a whole character","result":"invalid","rev":"v1","values":{}}
