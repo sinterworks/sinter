@@ -489,3 +489,17 @@
 {"group":"id-patterns","input":"a|b*","n":477,"note":"the empty id fits its second branch","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"(a*)+","n":478,"note":"the empty id fits it","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a{0}","n":479,"note":"only the empty id fits it","result":"invalid","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"abb","id-pattern":"ab?"},"n":480,"note":"`b?` gives one `b` at most","result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"aa","id-pattern":"a{2,3}"},"n":481,"result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"aaaa","id-pattern":"a{2,3}"},"n":482,"note":"more than three copies","result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"abab","id-pattern":"(ab)+"},"n":483,"result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"aba","id-pattern":"(ab)+"},"n":484,"result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"xbcy","id-pattern":"x(a|bc)y"},"n":485,"result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"xby","id-pattern":"x(a|bc)y"},"n":486,"result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"abcd","id-pattern":"(a|ab)(c|bcd)"},"n":487,"note":"only the second alternative of each subpattern gives the id","result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"aaa","id-pattern":"a+a"},"n":488,"note":"the last `a` is the literal after `a+`","result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"a","id-pattern":"a+a"},"n":489,"result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"A","id-pattern":"[a-f]"},"n":490,"note":"case matters","result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac","id-pattern":"(a|aa)+b"},"n":491,"note":"no `b` at the end; the id has many divisions into `a` and `aa`","result":"does not fit","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"-","id-pattern":"[--]"},"n":492,"result":"fits","rev":"v1","values":{}}
+{"group":"fit","input":{"id":"b","id-pattern":"a{0,0}b"},"n":493,"result":"fits","rev":"v1","values":{}}
