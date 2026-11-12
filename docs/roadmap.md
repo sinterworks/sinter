@@ -63,6 +63,50 @@
   approves the changes to a set of items since their last approval
   (design notes section 6.4). How to show those changes so that the
   person actually reads what they approve is open. Not designed.
+- **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
+  which an AI coding assistant, a program such as Claude Code that
+  writes code, writes a specification of each change before the
+  assistant writes the code. A person reviews the specification. The
+  checks of OpenSpec test only the form of the specifications, and
+  nothing ties a specification to the code or to the tests. The ideas
+  below are to explore when the work reaches them. Not designed, and
+  not decided.
+  - A view of the requirements that a change adds, changes, removes,
+    or replaces. In OpenSpec, the assistant writes this view by hand
+    for each change, as a "delta spec". Sinter knows each item and its
+    revision at the diff base and in the working tree, so it can
+    compute the view from the diff. The view can serve the item **Show
+    the approval delta so that a person reads it**.
+  - An example for each requirement. OpenSpec checks that each
+    requirement has at least one scenario: a condition and its outcome.
+    Sinter could report each requirement of a design that no group of
+    conformance vectors and no test with a `@verifies` covers.
+  - A reason when a requirement goes out of force. OpenSpec asks for a
+    reason and a migration for each requirement that a change removes.
+    Sinter could ask for one line of description on a status tag that
+    takes a requirement out of force, and on a `@supersedes` that
+    replaces a requirement. The line says why the requirement goes, and
+    what a user of the requirement does instead.
+  - A reader of OpenSpec repositories. The reader takes the
+    requirements and the scenarios of OpenSpec specifications as Sinter
+    items. A project that plans its changes with OpenSpec can then cite
+    those requirements from its code and its tests with Sinter's tags.
+    Sinter then reports the suspect citations of those requirements,
+    and it reads the test evidence for them. Which part of Sinter
+    reads OpenSpec specifications is undecided.
+  - Citations across repositories. In OpenSpec, a "store" keeps the
+    specifications in a repository of their own, and code repositories
+    refer to the store and only read it. Nothing copies a change from
+    one repository to another by itself. OpenSpec never finds a store
+    by its name alone, because two repositories in different
+    organizations can have the same name. The same shape could serve
+    citations from one repository to the items of another, and it
+    agrees with the rule that `sinter check` never reads the network.
+  - A guided first change. The `onboard` workflow of OpenSpec takes a
+    person through one small, real change in a repository that already
+    exists, from start to end, in about 15 minutes. The user manual
+    (plan `sinter-user-manual`) could start the same way, on a
+    repository that the reader already has.
 - **The coverage of each test for Rust and Go** — rung 4 of the
   evidence ladder needs the coverage of each test (design notes
   section 4). To run each test that carries a `@verifies` in its own
