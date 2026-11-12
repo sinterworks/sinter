@@ -100,7 +100,7 @@ its letters only in the same case.
 | [body](sinter:text#body=v1) | the run of a text without its byte order mark |
 | [line ending](sinter:text#line-ending=v1) | a run of a text that holds a line feed of the body and, when a carriage return of the body is right before that line feed, that carriage return, and that holds no other character |
 | [line](sinter:text#line=v1) | one of the runs into which the line endings divide a body, except an empty run that ends at the boundary where the body ends |
-| [line number](sinter:text#line-number=v1) | the number of a line: 1 for the first line of a text, and 1 more for each later line; the line number of a position can also be 1 more than the number of the lines of the text, a number that no line has, such as 2 for the position at the end of the text `a = [` and a line feed |
+| [line number](sinter:text#line-number=v1) | the number of a line: 1 for the first line of a text, and 1 more for each later line |
 | [position](sinter:text#position=v1) | a line number and a column, such as line 3, column 7 |
 | [span](sinter:text#span=v1) | a run of a text that starts and ends at boundaries of the body; its start and its end are positions |
 | ABNF | the notation for grammars of RFC 5234, with the case-sensitive strings of RFC 7405 |
@@ -693,7 +693,7 @@ byte sequence is a TOML document, the program gives the result "valid",
 the root table, and the spans of the keys of TOML 1.1.0 and of the
 values of TOML 1.1.0 in the document, with their locations. For every
 other byte sequence, it gives the result "invalid". With the result
-"invalid", a conforming program may also give a position, and this
+"invalid", a conforming program can also give a position, and this
 specification does not specify that position.
 
 In this specification, a text in a code block stands for the UTF-8
@@ -829,20 +829,27 @@ the choices listed above, the limit on depths and on TOML keys,
 and the rules on offsets and on newlines in strings are the reading
 rules of TOML.
 
-A value error is one of these values of TOML 1.1.0: an integer of
-TOML 1.1.0 outside the range of a TOML integer, such as
-`9223372036854775808`; a float of TOML 1.1.0 that rounds to an
-infinity, such as `1e400`; a local date, a local time, a local
-date-time, or an offset date-time of TOML 1.1.0 with a year, a month, a
-day, an hour, a minute, a second, or an offset outside the range that
-RFC 3339 allows, such as the local date `1979-02-30`; a string of
-TOML 1.1.0 with an escape sequence whose digits in base 16 write a
-number that is not the code point of a character; and an array of
-TOML 1.1.0 or an inline table with a depth greater than 64. A key error
-is a key of a key/value pair or of a table header with more than 64
-TOML keys, or a quoted key with an escape sequence whose digits in base
-16 write a number that is not the code point of a character. Such a
-quoted key has no text.
+These values of TOML 1.1.0 are value errors:
+
+- an integer of TOML 1.1.0 outside the range of a TOML integer, such as
+  `9223372036854775808`;
+- a float of TOML 1.1.0 that rounds to an infinity, such as `1e400`;
+- a local date, a local time, a local date-time, or an offset date-time
+  of TOML 1.1.0 with a year, a month, a day, an hour, a minute, a
+  second, or an offset outside the range that RFC 3339 allows, with the
+  second 60 on every date, such as the local date `1979-02-30`;
+- a string of TOML 1.1.0 with an escape sequence whose digits in base 16
+  write a number that is not the code point of a character;
+- an array of TOML 1.1.0 or an inline table with a depth greater than
+  64.
+
+These keys are key errors:
+
+- a key of a key/value pair or of a table header with more than 64
+  TOML keys;
+- a quoted key with an escape sequence whose digits in base 16 write a
+  number that is not the code point of a character. Such a quoted key
+  has no text.
 
 The text of a TOML string is the text that TOML 1.1.0 gives for its
 basic string, multi-line basic string, literal string, or multi-line
@@ -2415,9 +2422,12 @@ value.
 Each vector of the groups `give-root-table` and `reject-byte-sequence`
 gives a byte sequence and what a conforming program gives for it as a
 TOML document. The byte sequence decides which of the two groups holds
-the vector. Together, the vectors of the two groups test the reading
-rules of TOML, the nesting limit of TOML, the table rules of TOML, and
-the root tables of TOML documents.
+the vector. Together, the vectors of the two groups test which byte
+sequences are TOML documents, and the root tables of TOML documents.
+The vectors of the group `reject-byte-sequence` give byte sequences
+that are not valid UTF-8, byte sequences whose text does not match the
+rule `toml`, and byte sequences with a value error, a key error, or a
+structure error.
 
 The group `give-root-table` holds the vectors that each give a TOML
 document and its root table. The requirement of the group is
@@ -2443,7 +2453,9 @@ is `read-toml`.
 - `result`: "invalid".
 - `values`: the empty object, `{}`.
 
-With the result "invalid", a conforming program gives no table.
+When `values` is `{}`, a conforming program gives no table. A vector of
+the group states nothing about a position that a conforming program
+gives with the result "invalid".
 
 ```
 {"group":"reject-byte-sequence","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{}}
