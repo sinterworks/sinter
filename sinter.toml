@@ -15,7 +15,7 @@ namespaces.tree-sitter = "[a-z]+(-[a-z]+)*"
 namespaces.wasm-core = "[0-9]+([.][0-9]+)*"
 namespaces.wasm-conventions = "[a-z]+(-[a-z]+)*"
 namespaces.unicode = "[0-9]+([.][0-9]+)*"
-namespaces.git = "[0-9]+([.][0-9]+)*"
+namespaces.gitdoc = "[a-z][a-z0-9]*(-[a-z0-9]+)*"
 
 [paths]
 exempt = [
