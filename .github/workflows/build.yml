@@ -104,7 +104,9 @@ jobs:
       - name: Test the file reads as root
         if: ${{ !cancelled() && steps.build.outcome == 'success' && matrix.os == 'ubuntu-latest' }}
         working-directory: _build/default/test
-        run: sudo ./test_sinter.exe test '^file read$' -o "$RUNNER_TEMP/file-reads-as-root"
+        run: |
+          mkdir -p "$RUNNER_TEMP/file-reads-as-root"
+          sudo ./test_sinter.exe test '^file read$' -o "$RUNNER_TEMP/file-reads-as-root"
       - name: Check Sinter with Sinter
         if: ${{ !cancelled() && steps.build.outcome == 'success' && matrix.os == 'ubuntu-latest' }}
         run: |
