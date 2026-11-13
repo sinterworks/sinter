@@ -1423,7 +1423,8 @@ and each character of these texts keeps the place that it comes from.
    spaces and tabs after that sequence. Remove the longest run at the
    start of its heading text whose text is a section number.
 3. Remove the spaces and tabs at the end of the text of each line.
-4. Leave out each line whose text is a tag line whose tag word is `@ack`.
+4. Leave out each line that is a file line of a line of a tag text of
+   the file that is a tag line whose tag word is `@ack`.
 5. Replace the text of the file line of the declaration of d with the
    inline description of that declaration, without the spaces and tabs
    at its end.
@@ -1436,7 +1437,7 @@ and each character of these texts keeps the place that it comes from.
    a `=`: remove each character that comes from the place of that `=`,
    or from the place of a character of that run after that `=`, up to
    the end of that run or, when the citation entry is an every-part
-   target, up to the `#` after that `=`.
+   target, up to the `#` after that `=`, which stays.
 8. Join the texts of the lines that remain, in their order, each
    followed by one line feed.
 
@@ -1601,8 +1602,7 @@ nothing when the vector set has none:
   whose name is the text that `group-name` matches;
 - otherwise: the vector set.
 
-When its entry name names another item, or nothing, the citation entry
-names nothing.
+Otherwise, the citation entry names nothing.
 
 ### 4.38 The edges of a tree
 
@@ -2516,8 +2516,8 @@ followed by the byte 0x0A. So each line of the text of the file is a
 JSON text, as RFC 8259 defines it. The file is valid UTF-8, its text has
 no byte order mark and no carriage return, and only a line feed ends a
 line of the file. U+0085, U+2028, and U+2029 can be in JSON strings of
-the file, and they do not end a line. The file has three kinds of line,
-in this order:
+the file, and they do not end a line. No JSON value of the file is the
+literal name `null`. The file has three kinds of line, in this order:
 
 1. The first line is the set line. Its JSON object has one member,
    `rev`: the revision of the whole set of vectors.
@@ -2543,8 +2543,9 @@ The JSON object of a vector line has these members:
   conforming program does not give. A vector has this member only when
   it has an explanation.
 
-No vector has the member `result`, and no vector has the member `needs`:
-this design gives no need names.
+No vector has the member `result`, because no requirement of this
+design asks a question whose answer is one result, and no vector has the
+member `needs`: this design gives no need names.
 
 A revision is a JSON string of `v`, then the decimal numeral of a whole
 number of 1 or more, such as `"v1"`. The revision of the set line is the
@@ -2562,12 +2563,15 @@ subsection names as a text, a whole number, a run, a position, a path
 set, a binding of `external-namespaces`, or a tree has this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
-  string whose characters are the characters of the text, in order.
+  string whose characters are the characters of the text, in order. So
+  the text `a`, a line feed, `b` is `"a\nb"`.
 - A whole number, such as a boundary or an index, is a JSON number
   written as its decimal numeral, such as `12`.
 - A run of the text of a file is a JSON object with two members: `from`,
   the boundary where the run starts, and `to`, the boundary where the
-  run ends, such as `{"from":1,"to":4}`.
+  run ends, such as `{"from":1,"to":4}`. The boundaries are those of the
+  text of the file, so a byte order mark at place 1 is before boundary
+  1.
 - A position is a JSON object with two members: `line`, its line number,
   and `column`, its column, such as `{"column":7,"line":3}`.
 - A path set is a JSON array of its path set members, each a text, in
@@ -2589,9 +2593,13 @@ is a JSON object with the members of the list below, and an empty JSON
 array in one of them says that the tree has none of these things. In
 each JSON array, the elements stand in the order that the list gives,
 and the index of an element, as Data forms defines the
-[index](sinter:data-forms#index=v1), refers to it from other members. A
-file is given by its valid path. Positions are in the
+[index](sinter:data-forms#index=v1), refers to it from other members. So
+the first element of an array has the index 1. A file is given by its
+valid path. Positions are in the
 [order of positions](sinter:#position-order=v1).
+A member that the list gives only for some elements, such as `design` or
+`source`, is not in an element for which the list does not give it: the
+element of a thing that has no such item has no such member.
 
 - `read-files`: a JSON object with one member for each read file of the
   tree. Its key is the valid path of the file. Its value is the index,
@@ -2600,19 +2608,18 @@ file is given by its valid path. Positions are in the
   reader of the file.
 - `items`: a JSON array with one element for each declared item of the
   tree, in the code point order of the valid paths of their files and
-  then in the order of the origin positions of the texts of their
-  declarations. Each element is a JSON object with these members:
-  `kind`, the kind of item, one of the texts `design`, `specification`,
-  `requirement`, `term`, `decision record`, and `declared finding
-  class`; `name`, its name; `file`, its file; `at`, the origin position
-  of the text of its declaration;
-  `extent`, a JSON array of the file lines of its extent, each a run, in
-  their order; `extent-hash`, its extent hash; `design`, the index of
-  the item of the kind design to which it belongs, with no such member
-  when it belongs to none; `specification`, the index of the item of the
-  kind specification to which it belongs, with no such member when it
-  belongs to none; and, for an item of the kind design or specification
-  that has a vector file, `vector-file`, its vector file.
+  then in the order of the origin positions of their declarations. Each
+  element is a JSON object with these members: `kind`, the kind of item,
+  one of the texts `design`, `specification`, `requirement`, `term`,
+  `decision record`, and `declared finding class`; `name`, its name;
+  `file`, its file; `at`, the origin position of the text of its
+  declaration; `extent`, a JSON array of the file lines of its extent,
+  each a run, in their order; `extent-hash`, its extent hash; `design`,
+  the index of the item of the kind design to which it belongs, only
+  when it belongs to one; `specification`, the index of the item of the
+  kind specification to which it belongs, only when it belongs to one;
+  and `vector-file`, its vector file, only for an item of the kind
+  design or specification that has a vector file.
 - `sites`: a JSON array with one element for each site of each read file
   of the tree, in the code point order of the valid paths of their files
   and then in the order of the boundaries where their first file lines
@@ -2625,20 +2632,19 @@ file is given by its valid path. Positions are in the
   citations. Each element is a JSON object with these members: `kind`,
   the kind of edge, as a text; `file`, the file of its citation entry or
   inline citation; `at`, the origin position of that citation entry or
-  inline citation; `source`, its source, as a reference, or the JSON
-  value `null` when it has none; and `cited`, its cited item, as a
-  reference, or the JSON value `null` when it has none.
+  inline citation; `source`, its source, as a reference, only when it has
+  a source; and `cited`, its cited item, as a reference, only when it has
+  a cited item.
 - `status-tags`: a JSON array with one element for each accepted input
   of the tree that is a status tag, in the code point order of the valid
-  paths of their files and then in the order of the origin positions of
-  their texts. Each element is a JSON object with these members: `file`,
-  its file; `at`, the origin position of its text; and `item`, the item
-  in which it stands, as
-  a reference, or the JSON value `null` when it stands in no item.
-- `marks`: a JSON array with one element for each extern mark of the
-  tree, in the code point order of the valid paths of the files of their
-  `@extern` lines and then in the order of the origin positions of the
-  texts of these lines. Each element is a JSON object with these
+  paths of their files and then in the order of their origin positions.
+  Each element is a JSON object with these members: `file`, its file;
+  `at`, the origin position of its text; and `item`, the item in which
+  it stands, as a reference, only when it stands in an item.
+- `extern-marks`: a JSON array with one element for each extern mark of
+  the tree, in the code point order of the valid paths of the files of
+  their `@extern` lines and then in the order of the origin positions of
+  the texts of these lines. Each element is a JSON object with these
   members: `file`, the file of its `@extern` line; `at`, the origin
   position of the text of that line; `design`, the index of its item of
   the kind design in `items`; and `valid`, the JSON value `true` when
@@ -2688,8 +2694,9 @@ name is a JSON array of its pieces, in their order. A text piece is the
 JSON object `{"text":t}` and a placeholder is the JSON object
 `{"placeholder":t}`, where t is the text of the piece.
 
-For the input of a vector, a conforming program gives what `values`
-holds. When `values` is `{}`, it gives no part of the trace of the tree.
+For the input of a vector, a conforming program that reads the tree
+under the two bindings of the input gives what `values` holds. When
+`values` is `{}`, it gives no part of the trace of the tree.
 Otherwise, when it gives one of the things that a member names, it gives
 what that member holds for it:
 
@@ -2701,11 +2708,16 @@ what that member holds for it:
 - When it gives the extent, the extent hash, the item of the kind design
   or of the kind specification to which a declared item belongs, or the
   vector file of a declared item, it gives what the element of that item
-  holds.
+  holds, and for a member that the element does not have, that the item
+  belongs to no such item or has no vector file.
 - When it gives the sites, the edges, the items in which status tags
   stand, the extern marks, the tests, or the code hashes, it gives one
   for each element of the member, with what that element holds, and no
   other.
+  For an element of `edges` without `source` or without `cited`, it
+  gives that the edge has no source or no cited item. For an element of
+  `status-tags` without `item`, it gives that the status tag stands in no
+  item.
 - When it gives the tree findings of one of the classes that the
   requirement `give-tree-findings` names, it gives the elements of
   `findings` of that class, and no other tree finding of that class.
@@ -2728,6 +2740,14 @@ Its vectors follow from the requirements
 - `values`: as the section above describes, without the members `tests`
   and `code-hashes`.
 
+These lines of the file are vectors of the group:
+
+```
+{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/a.md":"# A\n@design a=v1\n"}},"n":2,"note":"a namespace name with an upper-case letter makes the binding of external-namespaces invalid","rev":"v1","values":{}}
+{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"README.md":"@cites b=v1\n","docs/bad.md":{"bytes":"4064657369676e20623d76310aff"}}},"n":8,"note":"a file that is not valid UTF-8 cannot be read: one parse-error finding, and no declared item","rev":"v1","values":{"edges":[{"at":{"column":8,"line":1},"file":"README.md","kind":"cites","source":{"site":1}}],"extern-marks":[],"findings":[{"class":"dangling","spot":{"path":"README.md","span":{"from":7,"to":11}},"subject":"README.md@L1C8"},{"class":"parse-error","spot":{"path":"docs/bad.md"},"subject":"docs/bad.md"}],"items":[],"read-files":{"README.md":1,"docs/bad.md":1},"sites":[{"file":"README.md","lines":[{"from":0,"to":11}]}],"status-tags":[]}}
+{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/top.md":"@design top=v1\nIntro.\n\n# Part\nMore.\n"}},"n":17,"note":"a declaration in the first paragraph of the section of level 0 claims that section","rev":"v1","values":{"edges":[],"extern-marks":[],"findings":[],"items":[{"at":{"column":1,"line":1},"extent":[{"from":0,"to":14},{"from":15,"to":21}],"extent-hash":"63b969dd84c36a464f6003892afe796144b01af0a813773b0126952b67ac6a2a","file":"docs/top.md","kind":"design","name":"top"}],"read-files":{"docs/top.md":1},"sites":[],"status-tags":[]}}
+```
+
 ### 6.2 Code files
 
 The group `code` holds the vectors of trees that can have code files.
@@ -2743,16 +2763,16 @@ from the requirements `give-tests` and `give-code-hashes`.
   valid pack. That JSON object has these members: `line`, `inner`, and
   `foreign-tags`, each a JSON array of texts: the line sigils, the inner
   sigils, and the foreign tag words of the descriptor of the pack, in
-  their order; `block`, a JSON array with one element for each block
-  pair of the descriptor, in their order, each a JSON array of two
-  texts, the opening sigil and the closing sigil; and `readings`, a JSON
-  object with one member for each read file of the tree whose content is
-  valid UTF-8 and whose valid path is in the set of the path set of this
-  pair and of no pair before it. The key of that member is the valid
-  path of the file, and its value is the reading of the text of the file
-  with the pack: a JSON object with the member `result`, the result of
-  the reading, as a text, and, when that result is "parsed", the member
-  `nodes`.
+  their order, each foreign tag word with its `@`; `block`, a JSON array
+  with one element for each block pair of the descriptor, in their
+  order, each a JSON array of two texts, the opening sigil and the
+  closing sigil; and `readings`, a JSON object with one member for each
+  read file of the tree whose content is valid UTF-8 and whose valid
+  path is in the set of the path set of this pair and of no pair before
+  it. The key of that member is the valid path of the file, and its
+  value is the reading of the text of the file with the pack: a JSON
+  object with the member `result`, the result of the reading, as a text,
+  and, only when that result is "parsed", the member `nodes`.
 - `nodes` is a JSON array with one element for each node of the reading
   that is a comment node, a definition node, a decoration node, or a
   test node, in the order of the parse tree. Each element is a JSON
@@ -2761,7 +2781,8 @@ from the requirements `give-tests` and `give-code-hashes`.
   `untagged`, for a comment node; `body`, a JSON array of the runs of its
   body nodes, in the order of the parse tree, for a definition node;
   `decoration`, the JSON value `true`, for a decoration node; and `test`,
-  its name path, for a test node.
+  its name path, for a test node. A node that is a definition node and a
+  test node has the members `body` and `test`.
 - `values`: as the section above describes, with the members `tests` and
   `code-hashes`.
 
@@ -2770,3 +2791,9 @@ these path sets, whose reader is `markdown` where the input gives
 `markdown`, and whose packs have descriptors with these comment sigils
 and foreign tag words and give these readings of these texts at these
 valid paths.
+
+This line of the file is a vector of the group:
+
+```
+{"group":"code","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[{"paths":["lib/"],"reader":{"block":[],"foreign-tags":[],"inner":[],"line":["//"],"readings":{"lib/a.rs":{"result":"parse failure"},"lib/b.rs":{"result":"no grammar"}}}}],"files":{"lib/a.rs":"// @req a=v1\n","lib/b.rs":"// @req b=v1\n","lib/c.rs":{"bytes":"2f2f20ff0a"}}},"n":66,"note":"a code file cannot be read when its reading has the result no grammar or parse failure, or when its content is not valid UTF-8","rev":"v1","values":{"code-hashes":[],"edges":[],"extern-marks":[],"findings":[{"class":"parse-error","spot":{"path":"lib/a.rs"},"subject":"lib/a.rs"},{"class":"parse-error","spot":{"path":"lib/b.rs"},"subject":"lib/b.rs"},{"class":"parse-error","spot":{"path":"lib/c.rs"},"subject":"lib/c.rs"}],"items":[],"read-files":{"lib/a.rs":1,"lib/b.rs":1,"lib/c.rs":1},"sites":[],"status-tags":[],"tests":[]}}
+```
