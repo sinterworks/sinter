@@ -87,6 +87,9 @@ JSON text.
 | [set of a path set](sinter:#path-set-membership=v1) | the valid paths that fit the glob text of a plain member of the path set and the glob text of no `!` member of it, when the glob text of each path set member is a valid glob |
 | validate | to validate a text as a path, a text as a glob, or a path set is to make an operation to give for it one of the results "valid" and "invalid", other than a file read; a validation is one such operation, also when the program gives another thing in it, or nothing |
 | decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob is to make an operation to give one of the results "in the set" and "not in the set"; the program decides in such an operation also when it gives another thing in it, or nothing |
+| [file object](sinter:#file-object=v1) | a JSON object that stands for a file, and for the permissions of a program for it: its member `type`, such as `"regular file"`, its member `entries`, `content`, or `reference`, and the members `read`, `search`, `write`, and `owned-by-other` when they differ from their defaults |
+| [folder tree object](sinter:#folder-tree-object=v1) | the file object of the root of a folder tree, which stands for that folder tree |
+| [store the folder tree of a folder tree object](sinter:#stored-folder-tree=v1) | for a file system: hold that folder tree, with its entry names, its file types, its contents, its references, its owners, and the permissions of the program, as the folder tree object gives them |
 | valid, invalid | the results of a validation of a text as a path, of a text as a glob, or of a path set; a file read also gives "invalid", when, and only when, its text is not a valid path |
 
 ## 2. Files, paths, globs, and path sets
@@ -799,6 +802,125 @@ when, the valid path fits the glob text of at least one plain member of
 the path set, and the valid path fits the glob text of no `!` member of
 the path set.
 
+### 3.22 File objects
+
+@term file-object=v1
+@cites {
+    rfc/8259,
+    posix/2024,
+    #{
+        folder=v1, regular-file=v1, symbolic-link=v1,
+        file-of-another-kind=v1, file-kind=v1, search-permission=v1,
+        read-permission=v1,
+    },
+    text#{
+        whole-number=v1, decimal-numeral=v1, hex-digit=v1, byte=v1,
+        byte-sequence=v1, code-span=v1,
+    },
+}
+
+A file object is a JSON object, as RFC 8259 defines JSON values, that
+stands for a file, and for the permissions of a program for that file.
+Its member `type` is a JSON string that names the file type of that
+file, as POSIX.1-2024 defines the file types: `"directory"` for a
+folder, `"regular file"` for a regular file, `"symbolic link"` for a
+symbolic link, and `"FIFO special file"` for a FIFO special file, which
+is a file of another kind. By its type, a file object also has one
+member for what its file holds, or none:
+
+- `"directory"`: `entries`, a JSON array of one entry object for each
+  folder entry of the folder, in increasing order of their entry names,
+  where one entry name comes before another when, at the first byte at
+  which they differ, its byte is less, or when its bytes are fewer and
+  they are the first bytes of the other. An entry object is a JSON
+  object with two members: `name`, the entry name of the folder entry,
+  as a hex byte sequence, and `file`, the file object of the file of the
+  folder entry. A folder that holds no folder entry has `"entries":[]`.
+- `"regular file"`: `content`, the content of the regular file, as
+  pieces of a byte sequence.
+- `"symbolic link"`: `reference`, the reference of the symbolic link, as
+  a hex byte sequence. The reference leads to a file as in a pathname
+  resolution of POSIX.1-2024, from the folder that holds the symbolic
+  link.
+- `"FIFO special file"`: no such member.
+
+A file object can also have the members `read`, `search`, `write`, and
+`owned-by-other`, each a JSON boolean, `true` or `false`. It has one of
+them only when its value differs from the value in brackets, which
+applies when the file object does not have that member:
+
+- `read` (`true`): whether the program has the read permission for the
+  file. A file object of the type `"symbolic link"` cannot have this
+  member.
+- `search` (`true`): whether the program has the search permission for
+  the folder. Only a file object of the type `"directory"` can have this
+  member, and the value in brackets applies only to a file object of
+  that type.
+- `write` (`true`): whether the program has the write permission for the
+  file, as POSIX.1-2024 defines it. A file object of the type
+  `"symbolic link"` cannot have this member.
+- `owned-by-other` (`false`): whether the user ID of the owner of the
+  file, as POSIX.1-2024 defines it, differs from the effective user ID
+  of the process of the program.
+
+A file object and an entry object have the members that this definition
+names, and no other member, and no JSON object of them has two members
+with the same name. A hex byte sequence is a JSON string of hex digits
+that holds, for each byte of the byte sequence, in order, the hex digit
+of the whole-number quotient of the byte divided by 16, then the hex
+digit of the remainder: so the byte sequence 0xC3, 0xA9 is `"c3a9"`, and
+the empty byte sequence is `""`. The pieces of a byte sequence are a
+JSON array of JSON objects, each with two members: `bytes`, a hex byte
+sequence, and `times`, a JSON number written as the decimal numeral of a
+whole number of 1 or more. The byte sequence of these pieces is the
+bytes of each piece, `times` times in a row, piece after piece in the
+order of the JSON array: so `[{"bytes":"61","times":3}]` is the byte
+sequence 0x61, 0x61, 0x61, and `[]` is the empty byte sequence. Pieces
+that give the same byte sequence stand for the same content.
+
+### 3.23 Folder tree objects
+
+@term folder-tree-object=v1
+@cites {
+    #{folder=v1, folder-tree=v1, file-object=v1},
+    text#{code-span=v1},
+}
+
+A folder tree object is a file object whose member `type` is
+`"directory"`, and that no other file object holds. It stands for the
+folder tree whose root is the folder that it stands for: the files of
+that folder tree are the files that the file objects in the folder tree
+object stand for, and no other file.
+
+### 3.24 Stored folder trees
+
+@term stored-folder-tree=v1
+@cites {
+    posix/2024,
+    #{
+        file-system=v1, folder=v1, regular-file=v1, symbolic-link=v1,
+        folder-tree=v1, file-kind=v1, file-object=v1,
+        folder-tree-object=v1,
+    },
+    text#{code-span=v1},
+}
+
+A file system stores the folder tree of a folder tree object, for a
+process of a program, while these conditions hold, and a stored folder
+tree is a folder tree that a file system stores in this way:
+
+1. The whole folder tree is on that file system.
+2. The listing of each folder of the folder tree, for that program,
+   holds the entry name of each entry object of the file object of that
+   folder, and no other name except `.` and `..`.
+3. Each file of the folder tree has the file type, the content, and the
+   reference that its file object gives; its owner has a user ID, as
+   POSIX.1-2024 defines it, that differs from the effective user ID of
+   that process when, and only when, its file object has
+   `owned-by-other` with the value `true`; and, for each file other than
+   a symbolic link, that process has the permissions that its file
+   object gives.
+
 ## 4. Requirements
 
 ### 4.1 The validation of texts as paths
@@ -1132,8 +1254,9 @@ vectors.
 
 A vector writes each input and each value in a fixed form. Inside the
 members `input` and `values`, each text, byte sequence, whole number,
-and sequence has this fixed form, and section 5.2 gives the fixed form
-of a folder tree and of the pieces of a content or a text:
+and sequence has this fixed form, the terms of sections 3.22 and 3.23
+give the fixed form of a folder tree and of the pieces of a content, and
+section 5.2 gives the fixed form of the pieces of a text:
 
 - A text, such as a valid path, a valid glob, or a path set member, is a
   JSON string whose characters are the characters of the text, in
@@ -1181,11 +1304,13 @@ The group `file-reads` holds the vectors of the requirements
 text and a folder tree, and what a conforming program gives when it
 reads the text as a path in the folder tree.
 
-- `input`: a JSON object with two members: `text`, the text, and
-  `tree`, the folder tree, in the form below. The input stands for the
-  text and the folder tree of a file read in which these conditions
-  hold:
-  1. A file system stores the folder tree, as defined below. So the
+- `input`: a JSON object with two members: `text`, the text, and `tree`,
+  the folder tree, as a folder tree object (section 3.23). The input
+  stands for the text and the folder tree of a file read in which these
+  conditions hold:
+  1. A file system stores the folder tree of `tree`, for the process of
+     the program, as section 3.24 defines it, from the time at which the
+     runner has made the folder tree to the end of the file read. So the
      program has the permissions that `tree` states.
   2. No other process changes the folder tree during the file read.
   3. The system does not fail during the file read. This condition
@@ -1221,92 +1346,25 @@ when a file read has given no result after a time that the runner
 chooses, the runner judges that the program did not give the result
 that `result` holds.
 
-`tree` is the root of the folder tree, as a file object. A file object
-is a JSON object that describes one file. Its member `type` gives the
-file type of the file, as POSIX.1-2024 defines the file types, in a JSON
-string: `"directory"` for a folder, `"regular file"` for a regular file,
-`"symbolic link"` for a symbolic link, and `"FIFO special file"` for a
-pipe, which is a file of another kind. The type of `tree` is
-`"directory"`. The file
-object of a folder, a regular file, or a symbolic link also has a member
-for what the file holds:
+`tree` is a folder tree object (section 3.23): a file object (section
+3.22) whose member `type` is `"directory"`, with the file objects, the
+entry objects, and the pieces of a byte sequence of the files of the
+folder tree. For example, the reference `b.md` of a symbolic link, which
+is `"622e6d64"`, leads to the file of the folder entry `b.md` of the
+folder that holds the symbolic link, and the reference `.`, which is
+`"2e"`, leads to that folder.
 
-- A folder has `entries`: a JSON array with one entry object for each
-  folder entry of the folder. An entry object is a JSON object with two
-  members: `name`, the entry name of the folder entry, as a byte
-  sequence, and `file`, the file object of the file of the folder entry.
-  The entry objects are in increasing order of their entry names: one
-  entry name comes before another when, at the first byte at which they
-  differ, its byte is less, or when its bytes are fewer and they are the
-  first bytes of the other. A folder that holds no folder entry has
-  `"entries":[]`.
-- A regular file has `content`: its content, as pieces of a byte
-  sequence (below).
-- A symbolic link has `reference`: its reference, as a byte sequence.
-  The reference leads to a file as in a pathname resolution of
-  POSIX.1-2024, from the folder that holds the symbolic link. So the
-  reference `b.md`, which is `"622e6d64"`, leads to the file of the
-  folder entry `b.md` of that folder, and the reference `.`, which is
-  `"2e"`, leads to that folder.
-
-The file object of a pipe has no such member. The folder tree holds the
-files that `tree` describes, and no other file.
-
-A file object can also have these members, each a JSON boolean, `true`
-or `false`. When a file object does not have one of them, the value in
-brackets applies:
-
-- `read` (`true`): whether the program has the read permission for the
-  file. A file object of the type `"symbolic link"` cannot have this
-  member.
-- `search` (`true`): whether the program has the search permission for
-  the folder. Only a file object of the type `"directory"` can have this
-  member, and the value in brackets applies only to a file object of
-  that type.
-- `write` (`true`): whether the program has the write permission for the
-  file, as POSIX.1-2024 defines it. A file object of the type
-  `"symbolic link"` cannot have this member.
-- `owned-by-other` (`false`): whether a user other than the user of the
-  program owns the file: whether the user ID of the owner of the file,
-  as POSIX.1-2024 defines it, differs from the effective user ID of the
-  process of the program.
-
-A file object has one of these members only when its value differs from
-the value in brackets.
-
-The content of a regular file, and the text in `values`, stand as
-pieces, so that a long content or a long text can stand in a short
-line. The pieces of a byte sequence are a JSON array of JSON objects,
-each with two members: `bytes`, a byte sequence, and `times`, a whole
-number of 1 or more. The byte sequence of these pieces is the bytes of
-each piece, `times` times in a row, piece after piece in the order of
-the JSON array. So `[{"bytes":"6869","times":1}]` is the content 0x68,
-0x69, `[{"bytes":"61","times":3}]` is the content 0x61, 0x61, 0x61, and
-`[]` is the empty content. The pieces of a text are the same, with the
+The text in `values` stands as pieces of a text, so that a long text can
+stand in a short line, as a long content does. The pieces of a text are
+the same as the pieces of a byte sequence of a file object, with the
 member `text`, a text, in place of `bytes`. So
 `[{"text":"hi","times":1}]` is the text `hi`, and `[]` is the empty
 text. Different lists of pieces can give the same byte sequence:
 `[{"bytes":"6161","times":1}]`, `[{"bytes":"61","times":2}]`, and
 `[{"bytes":"61","times":1},{"bytes":"61","times":1}]` all give the
-content 0x61, 0x61. Lists of pieces that give the same byte sequence
-stand for the same content, and lists of pieces that give the same text
-stand for the same text. So the runner compares the byte sequences and
-the texts that the pieces give, and not the pieces.
-
-A file system stores the folder tree of a vector when these conditions
-hold from the time at which the runner has made the folder tree to the
-end of the file read:
-
-1. The whole folder tree is on that file system.
-2. The listing of each folder of the folder tree holds the entry name of
-   each entry object of the file object of that folder, and no other
-   name except `.` and `..`.
-3. Each file of the folder tree has the file type, the content, and the
-   reference that its file object gives; its owner has a user ID that
-   differs from the effective user ID of the process of the program
-   when, and only when, its file object has `owned-by-other` with the
-   value `true`; and, for each file other than a symbolic link, the
-   program has the permissions that its file object gives.
+content 0x61, 0x61. Lists of pieces that give the same text stand for
+the same text. So the runner compares the byte sequences and the texts
+that the pieces give, and not the pieces.
 
 Some file systems change entry names, add folder entries of their own,
 or do not allow some entry names. For example, a file system that
@@ -1316,12 +1374,13 @@ vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64, so it
 does not store the folder tree of vector 30. Some file systems do not
 allow the entry name 0xE9 of vector 41, so they do not store the folder
 tree of vector 41. Some file systems allow fewer than 250 bytes in an
-entry name, so they do not store the folder tree of vector 26. Condition
-3 depends on the process of the program as well as on the file system: a
-process that has an appropriate privilege, as POSIX.1-2024 defines it,
-that gives it a permission that a file object takes away does not meet
-it. The result and the values of a vector are the same on every file
-system that stores its folder tree.
+entry name, so they do not store the folder tree of vector 26. Whether a
+file system stores a folder tree also depends on the process of the
+program: a process that has an appropriate privilege, as POSIX.1-2024
+defines it, that gives it a permission that a file object takes away
+does not have the permissions that the file object gives. The result and
+the values of a vector are the same on every file system that stores its
+folder tree.
 
 A need of a vector is a condition of its run that a runner can be unable
 to make true and that a need name of the vector file names: a condition
