@@ -802,9 +802,11 @@ A conforming program changes the ledger only by appending ledger
 entries, by making repairs, and by pulls of ledger entries and pushes
 of ledger entries between clones of the repository (section 4.3). So
 when an agent changes the ledger of each git repository only through a
-conforming program whose input says that an agent runs it, a statement
-of the agent changes a state only in one of these two ways (sections
-4.1, 4.3, 4.4, and 4.5):
+conforming program whose input says that an agent runs it, and changes
+neither the settings of git nor the environment that name the clone
+from which a clone pulls ledger entries and to which it pushes them, a
+statement of the agent changes a state only in one of these two ways
+(sections 4.1, 4.3, 4.4, and 4.5):
 
 1. through a state input, other than the ledger, that the statement
    alters, such as the tree of a working tree or of a commit, the
