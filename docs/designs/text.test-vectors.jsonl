@@ -1,0 +1,136 @@
+{"rev":"v1"}
+{"group":"character-positions","rev":"v1"}
+{"group":"decode","rev":"v1"}
+{"group":"encode","rev":"v1"}
+{"group":"lines","rev":"v1"}
+{"group":"spans","rev":"v1"}
+{"group":"decode","input":"6869","n":1,"result":"valid","rev":"v1","values":{"text":"hi"}}
+{"group":"decode","input":"","n":2,"result":"valid","rev":"v1","values":{"text":""}}
+{"group":"decode","input":"00","n":3,"result":"valid","rev":"v1","values":{"text":"\u0000"}}
+{"group":"decode","input":"7f","n":4,"result":"valid","rev":"v1","values":{"text":""}}
+{"group":"decode","input":"c280","n":5,"result":"valid","rev":"v1","values":{"text":""}}
+{"group":"decode","input":"c3a9","n":6,"result":"valid","rev":"v1","values":{"text":"é"}}
+{"group":"decode","input":"65cc81","n":7,"note":"the bytes encode two characters","result":"valid","rev":"v1","values":{"text":"é"}}
+{"group":"decode","input":"e0a080","n":8,"result":"valid","rev":"v1","values":{"text":"ࠀ"}}
+{"group":"decode","input":"ed9fbf","n":9,"result":"valid","rev":"v1","values":{"text":"퟿"}}
+{"group":"decode","input":"ee8080","n":10,"result":"valid","rev":"v1","values":{"text":""}}
+{"group":"decode","input":"efbfbf","n":11,"result":"valid","rev":"v1","values":{"text":"￿"}}
+{"group":"decode","input":"f09f9880","n":12,"result":"valid","rev":"v1","values":{"text":"😀"}}
+{"group":"decode","input":"f48fbfbf","n":13,"result":"valid","rev":"v1","values":{"text":"􏿿"}}
+{"group":"decode","input":"efbbbf78","n":14,"note":"the text keeps its byte order mark","result":"valid","rev":"v1","values":{"text":"﻿x"}}
+{"group":"decode","input":"efbbbfefbbbf","n":15,"result":"valid","rev":"v1","values":{"text":"﻿﻿"}}
+{"group":"decode","input":"610d0a62","n":16,"result":"valid","rev":"v1","values":{"text":"a\r\nb"}}
+{"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"fffe","n":18,"note":"0xFF, 0xFE is the byte order mark of UTF-16 in little-endian order; the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"80","n":19,"note":"the UTF-8 encoding of no character has 0x80 as its first byte","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c3","n":20,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"61c3","n":21,"note":"the first byte of the UTF-8 encoding of a character, with no byte after it","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c0af","n":22,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c1bf","n":23,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"e080af","n":24,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f08080af","n":25,"note":"an overlong encoding","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"eda080","n":26,"note":"the three-byte form of RFC 3629 for the number 55,296, which is not the code point of a character","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"edbfbf","n":27,"note":"the three-byte form of RFC 3629 for the number 57,343, which is not the code point of a character","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f4908080","n":28,"note":"the four-byte form of RFC 3629 for the number 1,114,112, which is not a code point","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f888808080","n":29,"note":"the UTF-8 encoding of no character has five bytes","result":"invalid","rev":"v1","values":{}}
+{"group":"encode","input":"hi","n":30,"rev":"v1","values":{"encoding":"6869"}}
+{"group":"encode","input":"","n":31,"rev":"v1","values":{"encoding":""}}
+{"group":"encode","input":"\u0000","n":32,"rev":"v1","values":{"encoding":"00"}}
+{"group":"encode","input":"","n":33,"rev":"v1","values":{"encoding":"7f"}}
+{"group":"encode","input":"","n":34,"rev":"v1","values":{"encoding":"c280"}}
+{"group":"encode","input":"é","n":35,"rev":"v1","values":{"encoding":"c3a9"}}
+{"group":"encode","input":"é","n":36,"rev":"v1","values":{"encoding":"65cc81"}}
+{"group":"encode","input":"߿","n":37,"rev":"v1","values":{"encoding":"dfbf"}}
+{"group":"encode","input":"ࠀ","n":38,"rev":"v1","values":{"encoding":"e0a080"}}
+{"group":"encode","input":"퟿","n":39,"rev":"v1","values":{"encoding":"ed9fbf"}}
+{"group":"encode","input":"","n":40,"rev":"v1","values":{"encoding":"ee8080"}}
+{"group":"encode","input":"﻿x","n":41,"rev":"v1","values":{"encoding":"efbbbf78"}}
+{"group":"encode","input":"￿","n":42,"rev":"v1","values":{"encoding":"efbfbf"}}
+{"group":"encode","input":"𐀀","n":43,"rev":"v1","values":{"encoding":"f0908080"}}
+{"group":"encode","input":"😀","n":44,"rev":"v1","values":{"encoding":"f09f9880"}}
+{"group":"encode","input":"􏿿","n":45,"rev":"v1","values":{"encoding":"f48fbfbf"}}
+{"group":"encode","input":"a\r\n","n":46,"rev":"v1","values":{"encoding":"610d0a"}}
+{"group":"lines","input":"a","n":47,"rev":"v1","values":{"runs":[{"from":0,"to":1}],"texts":["a"]}}
+{"group":"lines","input":"a\nb","n":48,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
+{"group":"lines","input":"a\n","n":49,"rev":"v1","values":{"runs":[{"from":0,"to":1}],"texts":["a"]}}
+{"group":"lines","input":"a\n\n","n":50,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":2}],"texts":["a",""]}}
+{"group":"lines","input":"\n","n":51,"rev":"v1","values":{"runs":[{"from":0,"to":0}],"texts":[""]}}
+{"group":"lines","input":"\n\n","n":52,"rev":"v1","values":{"runs":[{"from":0,"to":0},{"from":1,"to":1}],"texts":["",""]}}
+{"group":"lines","input":"","n":53,"rev":"v1","values":{"runs":[],"texts":[]}}
+{"group":"lines","input":"﻿","n":54,"rev":"v1","values":{"runs":[],"texts":[]}}
+{"group":"lines","input":"﻿\n","n":55,"rev":"v1","values":{"runs":[{"from":1,"to":1}],"texts":[""]}}
+{"group":"lines","input":"﻿x","n":56,"rev":"v1","values":{"runs":[{"from":1,"to":2}],"texts":["x"]}}
+{"group":"lines","input":"x﻿","n":57,"rev":"v1","values":{"runs":[{"from":0,"to":2}],"texts":["x﻿"]}}
+{"group":"lines","input":"﻿﻿x","n":58,"rev":"v1","values":{"runs":[{"from":1,"to":3}],"texts":["﻿x"]}}
+{"group":"lines","input":"ab\r\nc","n":59,"rev":"v1","values":{"runs":[{"from":0,"to":2},{"from":4,"to":5}],"texts":["ab","c"]}}
+{"group":"lines","input":"ab\r\n","n":60,"rev":"v1","values":{"runs":[{"from":0,"to":2}],"texts":["ab"]}}
+{"group":"lines","input":"\r\n","n":61,"rev":"v1","values":{"runs":[{"from":0,"to":0}],"texts":[""]}}
+{"group":"lines","input":"a\r","n":62,"rev":"v1","values":{"runs":[{"from":0,"to":2}],"texts":["a\r"]}}
+{"group":"lines","input":"a\rb","n":63,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["a\rb"]}}
+{"group":"lines","input":"a\r\r\n","n":64,"rev":"v1","values":{"runs":[{"from":0,"to":2}],"texts":["a\r"]}}
+{"group":"lines","input":"a\n\r","n":65,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","\r"]}}
+{"group":"lines","input":"\tx ","n":66,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["\tx "]}}
+{"group":"lines","input":"a\u000bb","n":67,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["a\u000bb"]}}
+{"group":"lines","input":"a\fb","n":68,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["a\fb"]}}
+{"group":"lines","input":"ab","n":69,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["ab"]}}
+{"group":"lines","input":"a b","n":70,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["a b"]}}
+{"group":"lines","input":"a b","n":71,"rev":"v1","values":{"runs":[{"from":0,"to":3}],"texts":["a b"]}}
+{"group":"character-positions","input":{"place":1,"text":"abc"},"n":72,"rev":"v1","values":{"position":{"column":1,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"abc"},"n":73,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"a\nb"},"n":74,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+{"group":"character-positions","input":{"place":1,"text":"\n"},"n":76,"rev":"v1","values":{"position":{"column":1,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"\n\n"},"n":77,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+{"group":"character-positions","input":{"place":3,"text":"ab\r\nc"},"n":78,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":4,"text":"ab\r\nc"},"n":79,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":5,"text":"ab\r\nc"},"n":80,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+{"group":"character-positions","input":{"place":4,"text":"aa\r\nb"},"n":81,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"a\r"},"n":82,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"a\r\r\n"},"n":83,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"a\r\r\n"},"n":84,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":4,"text":"a\r\r\n"},"n":85,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"a\rb"},"n":86,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":1,"text":"﻿"},"n":87,"note":"the byte order mark is at place 1","rev":"v1","values":{}}
+{"group":"character-positions","input":{"place":1,"text":"﻿x"},"n":88,"note":"the byte order mark is at place 1","rev":"v1","values":{}}
+{"group":"character-positions","input":{"place":2,"text":"﻿x"},"n":89,"rev":"v1","values":{"position":{"column":1,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"﻿\n"},"n":90,"rev":"v1","values":{"position":{"column":1,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"x﻿"},"n":91,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"﻿﻿x"},"n":92,"rev":"v1","values":{"position":{"column":1,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"﻿﻿x"},"n":93,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"éx"},"n":94,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"éx"},"n":95,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"😀x"},"n":96,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":2,"text":"\tx"},"n":97,"rev":"v1","values":{"position":{"column":2,"line":1}}}
+{"group":"character-positions","input":{"place":3,"text":"a b"},"n":98,"rev":"v1","values":{"position":{"column":3,"line":1}}}
+{"group":"character-positions","input":{"place":7,"text":"ab\nc\nde"},"n":99,"rev":"v1","values":{"position":{"column":2,"line":3}}}
+{"group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"n":100,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":3},"text":"abc"},"n":101,"rev":"v1","values":{"end":{"column":4,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":4},"text":"ab\ncd"},"n":102,"rev":"v1","values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":5},"text":"ab\r\ncd"},"n":103,"rev":"v1","values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":4},"text":"ab\r\ncd"},"n":104,"note":"the line ending does not move the end","rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":7},"text":"ab\r\ncd\n"},"n":105,"rev":"v1","values":{"end":{"column":3,"line":2},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":2},"text":"\nx"},"n":106,"rev":"v1","values":{"end":{"column":2,"line":2},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":3},"text":"a\n\nb"},"n":107,"rev":"v1","values":{"end":{"column":2,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":3},"text":"﻿ab"},"n":108,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":2},"text":"éx"},"n":109,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":3,"to":3},"text":"a ="},"n":110,"note":"an empty span after the last character","rev":"v1","values":{"end":{"column":4,"line":1},"start":{"column":4,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":0},"text":"a ="},"n":111,"rev":"v1","values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":1},"text":"a\n"},"n":112,"rev":"v1","values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":2},"text":"a\n"},"n":113,"note":"no place of the span is a place of a line","rev":"v1","values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
+{"group":"spans","input":{"run":{"from":2,"to":2},"text":"a\n"},"n":114,"note":"the boundary where the body ends, after a line ending","rev":"v1","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"group":"spans","input":{"run":{"from":1,"to":1},"text":"\n\n"},"n":115,"rev":"v1","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"group":"spans","input":{"run":{"from":2,"to":2},"text":"\n\n"},"n":116,"rev":"v1","values":{"end":{"column":1,"line":3},"start":{"column":1,"line":3}}}
+{"group":"spans","input":{"run":{"from":3,"to":3},"text":"ab\r\ncd"},"n":117,"note":"the boundary between the carriage return and the line feed","rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":3,"line":1}}}
+{"group":"spans","input":{"run":{"from":4,"to":4},"text":"ab\r\ncd"},"n":118,"rev":"v1","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"group":"spans","input":{"run":{"from":0,"to":0},"text":""},"n":119,"rev":"v1","values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":1,"to":1},"text":"﻿"},"n":120,"rev":"v1","values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"group":"spans","input":{"run":{"from":0,"to":2},"text":"﻿ab"},"n":121,"note":"boundary 0 is not a boundary of the body, so the run is not a span","rev":"v1","values":{}}
+{"group":"spans","input":{"run":{"from":0,"to":0},"text":"﻿"},"n":122,"note":"boundary 0 is not a boundary of the body, so the run is not a span","rev":"v1","values":{}}
+{"group":"decode","input":"dfbf","n":123,"note":"the largest two-byte form, U+07FF","result":"valid","rev":"v1","values":{"text":"߿"}}
+{"group":"decode","input":"f0908080","n":124,"note":"the smallest four-byte form, U+10000","result":"valid","rev":"v1","values":{"text":"𐀀"}}
+{"group":"decode","input":"e09fbf","n":125,"note":"an overlong encoding: the three-byte form for U+07FF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f08fbfbf","n":126,"note":"an overlong encoding: the four-byte form for U+FFFF","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f5808080","n":127,"note":"the UTF-8 encoding of no character has 0xF5 as its first byte","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"e282","n":128,"note":"the first two bytes of a three-byte form, with no byte after them","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"f09f98","n":129,"note":"the first three bytes of a four-byte form, with no byte after them","result":"invalid","rev":"v1","values":{}}
+{"group":"decode","input":"c3a980","n":130,"note":"a byte 0x80 after the UTF-8 encoding of a whole character","result":"invalid","rev":"v1","values":{}}
