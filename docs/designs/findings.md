@@ -9,7 +9,7 @@
 @cites data-forms=v1
 @cites ontology=v1
 @cites rfc/8259
-Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots and their start and end positions; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate edit sets.
+Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate edit sets.
 
 A finding reports one condition at one part of a repository, such as an
 item of the kind requirement that no test cites. Each finding has a
@@ -29,11 +29,11 @@ returns, and code spans; runs, boundaries, byte order marks, bodies,
 line endings, lines, line numbers, columns, positions, and spans, with
 the start and the end of a span; valid UTF-8, UTF-8 encodings, and the
 text of a byte sequence; and conforming programs, inputs, and results.
-From Identifiers, it takes slugs. From Files and paths, it takes valid
-paths and regular files. From the Ontology, it takes findings and
-finding classes, items, trees, people, and the ledger. From the
-specification `test-vectors` of Data forms, it takes test-vector sets:
-the file that holds the conformance vectors of the design is one.
+From Identifiers, it takes slugs and the form of `@ack` lines. From
+Files and paths, it takes valid paths. From the Ontology, it takes
+findings and finding classes, items, trees, people, and the ledger. From
+the specification `test-vectors` of Data forms, it takes test-vector
+sets: the file that holds the conformance vectors of the design is one.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, and numbers: each line of the file that holds the
@@ -47,11 +47,10 @@ conformance vectors of the design is a JSON text.
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
 | [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
-| [tree](sinter:ontology#tree=v1) | the set of the files of a repository, with their contents, at one commit or in one working tree |
+| [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, no two with the same valid path, such as the files at a commit or in a working tree |
 | [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
 | [person](sinter:ontology#person=v1) | a human who works on a repository |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
-| [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
 | [line feed](sinter:text#line-feed=v1), [carriage return](sinter:text#carriage-return=v1) | the characters U+000A and U+000D |
 | [boundary](sinter:text#boundary=v1) | a whole number from 0 to the number of characters of a text: boundary 0 is before the first character, and each other boundary k is right after the k-th character |
@@ -68,20 +67,22 @@ conformance vectors of the design is a JSON text.
 | [input](sinter:text#input=v1) | a thing that a conforming program takes |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input |
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
-| [subject of a finding](sinter:#finding-subject=v1) | the text, not empty, that names what a finding is about |
+| [`@ack` line](sinter:identifiers#ack-line=v1) | a tag line `@ack`, then a slug, then a subject, which can be empty, then a hash prefix, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; its subject is a text that does not start or end with a space or a tab |
+| [subject of a finding](sinter:#finding-subject=v1) | the text that names what a finding is about; it matches the rule `subject` of the form of `@ack` lines and holds no line feed |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
-| [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the file is a regular file and its content is valid UTF-8, with a span of its text that starts and ends at no boundary inside a line ending |
+| [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of its text that starts and ends at no boundary inside a line ending |
 | [inside a line ending](sinter:#spot=v1) | a boundary is inside a line ending when a line ending starts before it and ends after it: the boundary between the carriage return and the line feed of a line ending |
-| [start position, end position](sinter:#spot-position=v1) | the positions of the boundaries where the span of a spot starts and ends |
-| [spot from one position to another](sinter:#positioned-spot=v1) | the spot at a valid path whose start position and end position are those two positions, when the tree has such a spot |
+| [start position](sinter:#spot-position=v1) | the position of the boundary where the span of a spot starts |
+| [position after a spot](sinter:#spot-position=v1) | the position of the boundary where the span of a spot ends; it is not the end of the span |
+| [spot from one position to another](sinter:#positioned-spot=v1) | the spot at a valid path whose start position is the first position and the position after which is the second, when the tree has such a spot |
 | [related message](sinter:#related-message=v1) | a message, alone or with a spot in a tree, which can be another tree than the tree of the finding, that helps to explain a finding; the related messages of a finding are a set |
 | [mark of a spot](sinter:#mark=v1) | a spot with a span, and a message, where that span lies in the span of the first spot and on the line where the span of the first spot starts |
 | [edit](sinter:#edit=v1) | a spot with a span, together with a text, its new text |
 | [edit set](sinter:#edit-set=v1) | one or more edits in one tree, in which, for each two edits at the same valid path, exactly one of the two spans ends at or before the boundary where the other starts |
 | [edited text](sinter:#edited-text=v1) | the text of a file after the edits of an edit set: its text, with the text of the span of each edit of that file replaced by the new text of that edit |
-| [edited tree](sinter:#edited-tree=v1) | the tree of a working tree that holds the files of a tree, in which the content of each file that an edit of an edit set names is the UTF-8 encoding of its edited text, and each other file is as it was |
-| [make the edits of an edit set](sinter:#edited-tree=v1) | change a working tree that holds the files of a tree into one whose tree is the edited tree of the edit set |
+| [edited tree](sinter:#edited-tree=v1) | the tree with the same valid paths as the tree of an edit set, in which the content of each file that an edit of the set names is the UTF-8 encoding of its edited text, and each other file has its content |
+| [make the edits of an edit set](sinter:#edited-tree=v1) | give each file of the tree the content that it has in the edited tree |
 | [edit description](sinter:#edit-description=v1) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
 | [fix](sinter:#fix=v1) | a message and one or more edit sets in one tree, no two the same, which have numbers from 1; to make a fix is to make the edits of exactly one of its edit sets |
 | [acknowledge](sinter:#acknowledgment=v1) | a person acknowledges a finding when the person says that they know of the finding and that it may stay |
@@ -142,7 +143,10 @@ feed and no carriage return, so it is one line. The program that gives
 a message chooses its words, so two conforming programs can give the
 same finding with different messages.
 
-The subject of a finding names what the finding is about. A subject
+The subject of a finding names what the finding is about. It matches the
+rule `subject` of the form of `@ack` lines, and it holds no line feed,
+so an `@ack` line can hold the subject of each finding. So a subject is
+not empty, and it does not start or end with a space or a tab. A subject
 that names an item, such as `billing#due-date`, stays the same when
 lines move in a file. A thing that no name names, such as one word on
 one line, can have a subject that holds its path and its position, such
@@ -154,8 +158,7 @@ A spot is a valid path of a file of a tree, alone or with a span of the
 text of the content of that file. A spot with a span shows a run of the
 text of a file, such as one tag line. A spot without a span shows a
 whole file, such as a file whose content is not valid UTF-8 and so has
-no text. Only a regular file whose content is valid UTF-8 has spots with
-spans.
+no text. Only a file whose content is valid UTF-8 has spots with spans.
 
 The span of a spot starts and ends at boundaries of the body, and at no
 boundary inside a line ending. A boundary is inside a line ending when
@@ -166,20 +169,22 @@ position of each boundary where the span of a spot can start or end
 names that boundary alone.
 
 The start position of a spot is the position of the boundary where its
-span starts, and the end position of a spot is the position of the
+span starts, and the position after a spot is the position of the
 boundary where its span ends. The start position is always the start of
-the span. The end position is the end of the span when the span does not
-end right after a line ending. When the span ends right after a line
-ending, the end position has the column 1, and a line number 1 more than
-the line number of the line before that line ending. A valid path and
-two positions name the spot from the first position to the second
-position at that valid path, when the tree has such a spot, and the tree
-has at most one.
+the span. The position after a spot is not the end of the span, which
+is the position right after the last character of the span that is a
+character of a line. The two are the same position when the span does
+not end right after a line ending. When the span ends right after a line
+ending, the position after the spot has the column 1, and a line number
+1 more than the line number of the line before that line ending. A valid
+path and two positions name the spot from the first position to the
+second position at that valid path, when the tree has such a spot, and
+the tree has at most one.
 
 The examples show a span as the boundary where it starts, "to", and the
 boundary where it ends, such as "1 to 4":
 
-| text | span | start position | end position |
+| text | span | start position | position after the spot |
 |---|---|---|---|
 | `abc` | 1 to 2 | line 1, column 2 | line 1, column 3 |
 | `ab`, a line feed, `cd` | 1 to 4 | line 1, column 2 | line 2, column 2 |
@@ -189,14 +194,14 @@ boundary where it ends, such as "1 to 4":
 | U+FEFF, `x` | 1 to 2 | line 1, column 1 | line 1, column 2 |
 
 In the text `ab`, a line feed, `cd`, the span 0 to 3 ends right after
-the line ending, so its end position is line 2, column 1, and the end of
-the span is line 1, column 3. In the text `ab`, a carriage return, a
-line feed, `cd`, boundary 3 is inside a line ending, so no span of a
-spot starts or ends there. Boundary 2 and boundary 3 have the same
-position, line 1, column 3, and that position names boundary 2. In the
-text `a`, a line feed, the end position of the span 0 to 2 is line 2,
-column 1, although the text has only one line. A spot without a span
-has no start position and no end position.
+the line ending, so the position after the spot is line 2, column 1, and
+the end of the span is line 1, column 3. In the text `ab`, a carriage
+return, a line feed, `cd`, boundary 3 is inside a line ending, so no
+span of a spot starts or ends there. Boundary 2 and boundary 3 have the
+same position, line 1, column 3, and that position names boundary 2. In
+the text `a`, a line feed, the position after the spot with the span 0
+to 2 is line 2, column 1, although the text has only one line. A spot
+without a span has no start position and no position after it.
 
 ### 2.3 Marks and related messages
 
@@ -242,12 +247,11 @@ The edited text of a file for an edit set is its text, in which the text
 of the span of each edit of that file is replaced by the new text of
 that edit. The text before the first span, between each two spans, and
 after the last span stays as it was, a byte order mark included. The
-edited tree of an edit set in a tree is the tree of a working tree that
-holds the files of that tree, in which the content of each file that an
-edit of the set names is the UTF-8 encoding of its edited text. The
-other files do not change. To make the edits of an edit set is to change
-a working tree that holds the files of the tree into one whose tree is
-the edited tree.
+edited tree of an edit set in a tree is the tree with the same valid
+paths, in which the content of each file that an edit of the set names
+is the UTF-8 encoding of its edited text. The other files keep their
+contents. To make the edits of an edit set is to give each file of the
+tree the content that it has in the edited tree.
 
 An edit description is a text, its path, a first position, a second
 position, and a text, its new text. It describes an edit when the tree
@@ -258,8 +262,9 @@ or more edit descriptions, each of them describes an edit, no two
 describe the same edit, and these edits are an edit set.
 
 In the examples, each edit description has the valid path of the one
-file, and it shows its first position and its second position as
-"line:column", and its new text:
+file, and it shows its first position, the start position, and its
+second position, the position after the spot, as "line:column", and its
+new text:
 
 | text | edit descriptions | edited text |
 |---|---|---|
@@ -352,10 +357,15 @@ its words.
 ### 3.2 Subjects of findings
 
 @term finding-subject=v1
-@cites {text#{text=v1}, ontology#{finding-class=v1}}
+@cites {
+    identifiers#{ack-line=v1},
+    text#{text=v1, line-feed=v1, production=v1, code-span=v1},
+    ontology#{finding-class=v1},
+}
 
-Each finding has exactly one subject: a text that is not empty and that
-names what the finding is about.
+Each finding has exactly one subject: a text that names what the
+finding is about, that matches the production `subject` of the term
+`ack-line` of Identifiers, and that holds no line feed.
 
 ### 3.3 Finding ids
 
@@ -390,7 +400,7 @@ for two findings that a program gives in two different executions.
 
 @term spot=v1
 @cites {
-    files#{path=v1, regular-file=v1},
+    files#{path=v1},
     text#{
         text=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1, span=v1,
         boundary=v1, body=v1, line-ending=v1,
@@ -400,12 +410,12 @@ for two findings that a program gives in two different executions.
 
 A boundary of a text is inside a line ending when a line ending of the
 text starts before that boundary and ends after it. A spot in a tree is
-a valid path that is the path of a file of the tree, alone, or, when
-that file is a regular file and its content is valid UTF-8, together
-with a span of the text of that content that starts at no boundary
-inside a line ending and ends at no boundary inside a line ending.
+the valid path of a file of the tree, alone, or, when the content of
+that file is valid UTF-8, together with a span of the text of that
+content that starts at no boundary inside a line ending and ends at no
+boundary inside a line ending.
 
-### 3.6 Start and end positions
+### 3.6 Start positions and positions after spots
 
 @term spot-position=v1
 @cites {
@@ -416,9 +426,10 @@ inside a line ending and ends at no boundary inside a line ending.
 }
 
 The start position of a spot with a span is the position of the boundary
-where its span starts. The end position of a spot with a span is the
-position of the boundary where its span ends. A spot without a span has
-no start position and no end position.
+where its span starts. The position after a spot with a span is the
+position of the boundary where its span ends; it is not the end of that
+span. A spot without a span has no start position and no position after
+it.
 
 ### 3.7 Positioned spots
 
@@ -432,7 +443,7 @@ no start position and no end position.
 
 For a text p and two positions s and e, the spot from s to e at p in a
 tree is the spot in that tree with the valid path p whose start position
-is s and whose end position is e, when that tree has such a spot.
+is s and the position after which is e, when that tree has such a spot.
 
 ### 3.8 Related messages
 
@@ -491,7 +502,7 @@ other span starts.
 
 @term edited-text=v1
 @cites {
-    files#{path=v1, regular-file=v1},
+    files#{path=v1},
     text#{
         text=v1, run=v1, boundary=v1, span=v1,
         text-of-a-byte-sequence=v1,
@@ -515,19 +526,19 @@ boundary of t.
 
 @term edited-tree=v1
 @cites {
-    files#{path=v1, regular-file=v1},
+    files#{path=v1},
     text#{utf-8-encoding=v1},
     ontology#{tree=v1},
     #{edit=v1, edit-set=v1, edited-text=v1},
 }
 
-The edited tree of an edit set in a tree is the tree of a working tree
-that holds the files of that tree, in which the content of each file at
-a valid path of an edit of the set is the UTF-8 encoding of the edited
-text of that valid path for the edit set, and the content of each other
-file is as it was. To make the edits of an edit set in a tree is to
-change a working tree that holds the files of that tree into a working
-tree whose tree is the edited tree of the edit set.
+The edited tree of an edit set in a tree is the tree that has a file at
+each valid path at which that tree has a file, and no other file. The
+content of each file at a valid path of an edit of the set is the UTF-8
+encoding of the edited text of that valid path for the edit set, and the
+content of each other file is its content in that tree. To make the
+edits of an edit set in a tree is to give each file of that tree the
+content that it has in the edited tree of the edit set.
 
 ### 3.14 Edit descriptions
 
@@ -715,19 +726,19 @@ a column for the start position of a spot, it must give the column of
 the start position of that spot, and no other column, for that start
 position.
 
-### 4.6 The end positions of spots
+### 4.6 The positions after spots
 
-@req give-end-positions=v1
+@req give-positions-after-spots=v1
 @cites {
     text#{conforming-program=v1, position=v1, line-number=v1},
     #{spot=v1, spot-position=v1},
 }
 
-When a conforming program gives a line number for the end position of a
-spot, it must give the line number of the end position of that spot,
-and no other line number, for that end position. When it gives a column
-for the end position of a spot, it must give the column of the end
-position of that spot, and no other column, for that end position.
+When a conforming program gives a line number for the position after a
+spot, it must give the line number of the position after that spot, and
+no other line number, for that position. When it gives a column for the
+position after a spot, it must give the column of the position after
+that spot, and no other column, for that position.
 
 ### 4.7 No positions for a spot without a span
 
@@ -738,7 +749,7 @@ position of that spot, and no other column, for that end position.
 }
 
 A conforming program must give no line number and no column as the start
-position or the end position of a spot that has no span.
+position of a spot that has no span, or as the position after it.
 
 ### 4.8 The validation of edit sets
 
@@ -810,9 +821,10 @@ The vectors of this design are in the file
 [`findings.test-vectors.jsonl`](findings.test-vectors.jsonl), in the
 same folder as this design. The file is a
 [test-vector set](sinter:data-forms#test-vector-set=v1). A vector is an
-input and what a conforming program gives for it. Each vector follows from the
-requirements and adds nothing to them. The vectors are in groups. Each
-group has a name, such as `edit-sets`, and a subsection below. The
+input and what a conforming program gives for it. Each vector follows
+from the requirements and adds nothing to them. The vectors are in
+groups. Each group has a name, such as `edit-sets`, and a subsection
+below. The
 subsection names the requirements that the vectors of the group follow
 from, and it describes their inputs, results, and values. These
 requirements have no vectors: `give-finding-parts`,
@@ -889,13 +901,13 @@ run, a position, a sequence, or a tree has this form:
   position line 3, column 7 is `{"column":7,"line":3}`.
 - A sequence is a JSON array of its elements, in order.
 - A tree is a JSON object with one member for each file of the tree.
-  Each file of the tree is a regular file. The key is the valid path of
-  the file. When the content of the file is valid UTF-8, the value is
-  the text of that content, as a JSON string. When it is not, the value
-  is a JSON object with one member, `bytes`: a JSON string of hex
-  digits, for each byte of the content, in order, the hex digit of the
-  whole-number quotient of the byte divided by 16, then the hex digit of
-  the remainder. So the content 0xFF is `{"bytes":"ff"}`.
+  The key is the valid path of the file. When the content of the file is
+  valid UTF-8, the value is the text of that content, as a JSON string.
+  When it is not, the value is a JSON object with one member, `bytes`:
+  a JSON string of hex digits, for each byte of the content, in order,
+  the hex digit of the whole-number quotient of the byte divided by 16,
+  then the hex digit of the remainder. So the content 0xFF is
+  `{"bytes":"ff"}`.
 
 ### 5.1 The edits of edit sets
 
@@ -908,7 +920,7 @@ conforming program gives for them.
   is the sequence of edit descriptions, which can be empty: each is a
   JSON object with four
   members, `path`, the path of the edit description, as a text; `start`,
-  the first position; `end`, the second position; and `new-text`, the
+  the first position; `after`, the second position; and `new-text`, the
   new text.
 - `result`: the result of the tree and the sequence together, when a
   conforming program gives a result for whether the sequence describes
@@ -928,7 +940,7 @@ that text is then the value of that key. When `values` is `{}`, it gives
 no text as an edited text for the sequence.
 
 ```
-{"group":"edit-sets","input":{"edits":[{"end":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":2,"line":1}}],"files":{"a.md":"abc"}},"n":1,"result":"valid","rev":"v1","values":{"edited-texts":{"a.md":"aXc"}}}
+{"group":"edit-sets","input":{"edits":[{"after":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":2,"line":1}}],"files":{"a.md":"abc"}},"n":1,"result":"valid","rev":"v1","values":{"edited-texts":{"a.md":"aXc"}}}
 ```
 
 ### 5.2 Finding ids
@@ -953,28 +965,30 @@ it gives the text that `finding-id` holds, and no other text.
 ### 5.3 The positions of spots
 
 The group `spot-positions` holds the vectors of the requirements
-`give-start-positions`, `give-end-positions`, and
+`give-start-positions`, `give-positions-after-spots`, and
 `omit-positions-without-spans`. Each vector gives the text of the
 content of the file of a spot and the span of the spot, when it has
-one, and the start position and the end position of the spot, when it
-has a span.
+one, and the start position of the spot and the position after it, when
+it has a span.
 
 - `input`: a JSON object with the member `text`, the text, and, for a
   spot with a span, the member `span`, the span of the spot, as a run.
   For a spot without a span, the object has no other member.
 - `result`: no vector of the group has this member.
 - `values`: for a spot with a span, a JSON object with two members:
-  `start`, the start position of the spot, and `end`, the end position
-  of the spot. For a spot without a span, the empty JSON object, `{}`.
+  `start`, the start position of the spot, and `after`, the position
+  after the spot. For a spot without a span, the empty JSON object,
+  `{}`.
 
 When a conforming program gives a line number for the start position of
 the spot, it gives the line number of `start`. When it gives a column
 for the start position, it gives the column of `start`. When it gives a
-line number for the end position of the spot, it gives the line number
-of `end`. When it gives a column for the end position, it gives the
-column of `end`. When `values` is `{}`, it gives no line number and no
-column as the start position or the end position of the spot.
+line number for the position after the spot, it gives the line number
+of `after`. When it gives a column for the position after the spot, it
+gives the column of `after`. When `values` is `{}`, it gives no line
+number and no column as the start position of the spot or as the
+position after it.
 
 ```
-{"group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"n":47,"note":"the span ends right after a line ending, so the end position is in column 1 of line 2","rev":"v1","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":1}}}
+{"group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"n":47,"note":"the span ends right after a line ending, so the position after the spot is in column 1 of line 2","rev":"v1","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
 ```
