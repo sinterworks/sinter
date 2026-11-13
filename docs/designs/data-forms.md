@@ -173,9 +173,10 @@ its letters only in the same case.
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
 | [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets` |
 | [the vectors of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
-| [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group, what the value of `input` stands for, which input the value of `result` is the result of, what the value of `values` stands for, and the need names of the group |
-| [need](sinter:#group-form-list=v1), [need name](sinter:#group-form-list=v1) | a condition on the run of a program, such as a file system that stores a given entry name, which the forms of a group give together with its need name, a group name such as `no-privilege`; the member `needs` of a vector object names the needs of the vector |
-| [check of the vectors](sinter:#vector-meaning=v1) | a decision, for each vector, whether a program gives what the object of its vector line states; it can skip a vector only when it cannot make a need of the vector hold, and it then reports that need |
+| [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group, what the value of `input` stands for, which input the value of `result` is the result of, what the value of `values` stands for, and the need names, each with the need that it stands for |
+| [need](sinter:#group-form-list=v1) | a condition under which a program operates and which a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:#group-form-list=v1) | a group name, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds the need names of the needs of the vector |
+| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; it can skip a vector only when it cannot make a need of the vector hold, and only when it reports that need |
 | [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group, or of the whole test-vector set, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
@@ -2865,7 +2866,7 @@ Then it holds one vector line for each vector, in increasing order of
 the numbers `n` of the vectors, such as
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`.
 The objects of the vector lines can hold any JSON value in `input` and
-in `values`, so a vector object need not be a line object.
+in `values`, so a vector object is not always a line object.
 
 The forms of its group give the meaning of each vector line. The forms
 of a group are five things that the Conformance section of the design of
@@ -2883,16 +2884,18 @@ it gives:
 3. which of these inputs, or which of them together, the value of
    `result` is the result of, and the conditions under which the
    requirements oblige that result, if any, such as that a conforming
-   program gives a result for that input, or a condition on the run of
-   the program;
+   program gives a result for that input, or a condition under which
+   the program operates;
 4. what the value of `values` stands for, such as the results of the
    other inputs. It can stand for a thing that a conforming program
    gives when it gives a thing of that kind, for things of which a
    conforming program gives one in place of another, and for a thing
    that a conforming program does not give;
-5. the need names of the group, each a group name, and the need that
-   each of them stands for: a condition on the run of the program, such
-   as a file system that stores a given entry name.
+5. the need names, each a group name, and the need that each of them
+   stands for: a condition under which the program operates and which a
+   check of the vectors can be unable to make hold, such as that the
+   file system stores a given entry name. The Conformance section or
+   part gives them once, for all of its groups.
 
 By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
@@ -2911,18 +2914,20 @@ vector object has the member `result` or the member `values`, or both.
 The value of `note` explains the vector, and it is no part of the input,
 the result, or the values.
 
-A vector object can also have the member `needs`, such as
+A vector object can also have the member `needs`, with a value such as
 `["no-privilege"]`: the need names of the needs of the vector, in key
-order, with no name twice. A need is a condition on the run of the
-program that a check of the vectors can be unable to make true, such as
-a file system that stores a given entry name, or a process with no
-privilege to read a file that it has no permission to read. What the
-object states about the result and the values holds for each run of a
-conforming program in which each need of the vector holds. A check of
-the vectors decides, for each vector, whether a program gives what the
-object states. It can skip a vector only when it cannot make a need of
-the vector hold, and then it reports that need. A skip of any other
-vector is a failure of the check.
+order, with no name twice. A need is a condition under which the
+program operates and which a check of the vectors can be unable to make
+hold, such as that the file system stores a given entry name, or that
+the process of the program cannot read a file without the permission to
+read it. What the object states about the result and the values holds
+whenever the program operates while each need of the vector holds. A
+check of the vectors decides, for each vector, whether the program,
+when it operates while each need of the vector holds, gives what the
+object states. It can skip a vector, and decide nothing about it, only
+when it cannot make a need of the vector hold, and only when it reports
+that need. Each other skip of a vector counts as a decision that the
+program does not give what the object states.
 
 Each vector, each group, and the whole test-vector set have a revision,
 such as `v2`. The forms of a group are part of the meaning of each
@@ -2940,8 +2945,7 @@ test-vector set. When a vector joins or leaves the test-vector set, the
 revision of the test-vector set rises, and so does the revision of the
 group of the vector when that group is in both versions. Without such a
 change, no revision changes. So a change of the note of a vector alone
-changes no revision, and neither does a change of its needs alone: the
-needs say what a check of the vector needs, not what a program gives. A
+changes no revision, and neither does a change of its needs alone. A
 revision can rise by more than 1. A new vector, and a group that is in
 no earlier version, can have any revision. A group that comes back after
 it left gets a revision higher than each revision that it had before. A
@@ -3019,7 +3023,7 @@ value of the member `n`.
   value of `result` is a string. The value of `values` is a JSON value.
   The value of `note` is a string. The value of `needs` is an array of
   one or more strings, each a group name, in which each string comes
-  after the string before it in key order.
+  before the string after it in key order.
 - A group object is an object that has the members `group` and `rev`,
   and no other member. The value of `group` is a string that is a group
   name. The value of `rev` is a string that is a test-vector revision.
@@ -3091,8 +3095,8 @@ Conformance part:
    `result` of such a vector object is the result of; and the conditions
    under which the requirements of the group g oblige that result, if
    they oblige it only under some conditions, such as that a conforming
-   program of S gives a result for that input, or a condition on the run
-   of the program;
+   program of S gives a result for that input, or a condition under
+   which the program operates;
 4. what the value of `values` of such a vector object stands for: what
    a conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
@@ -3103,19 +3107,21 @@ Conformance part:
    for that byte sequence; for things of which the program gives one in
    place of another, such as a line and the text of that line; and for
    a thing that the program does not give;
-5. the need names of the group g, which are the group names that the
-   value of `needs` of such a vector object can hold, and for each need
-   name, the need that it stands for: a condition on the run of a
-   conforming program of S, such as a file system that stores a given
-   entry name. When the Conformance part of S gives no need name for g,
-   the group g has no need names.
+5. the need names of S, each a group name, and for each need name, the
+   need that it stands for: a condition under which a conforming program
+   of S operates and which someone who checks the vectors can be unable
+   to make hold, such as that the file system stores a given entry name.
+   The Conformance part of S gives them once, and they are the same for
+   each group of S. When the Conformance part of S gives no need name,
+   S has no need names.
 
 For a design D and a group name g, the forms of the group g of D are the
 same five things, which the Conformance section of D gives for g, with
 the requirements that D holds outside its specifications in place of the
-requirements that S declares, and with a conforming program of D in
-place of a conforming program of S. The text of these forms is the
-whole text of the Conformance section of D.
+requirements that S declares, with the need names of D in place of the
+need names of S, and with a conforming program of D in place of a
+conforming program of S. The text of these forms is the whole text of
+the Conformance section of D.
 
 #### 8.1.8 The meaning of a vector
 
@@ -3149,9 +3155,10 @@ object states this:
 - The value of `result` is the text of a result, without the double
   quotes that a requirement writes around that result, such as `valid`
   for the result "valid".
-- The needs of the vector are the needs that the strings of the value
-  of `needs` stand for: each string is a need name of the group g. A
-  vector whose object has no member `needs` has no needs.
+- The needs of the vector are the needs that the forms of the group g
+  give for the strings of the value of `needs`. A string for which these
+  forms give no need stands for a need that no check of the vectors can
+  make hold. A vector whose object has no member `needs` has no needs.
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
   `result`, and no other result, as its result for the input, or for
@@ -3171,13 +3178,15 @@ object states this:
   for the input of the vector, other than the result that the value of
   `result` stands for.
 - The value of `note` explains the vector, and it is no part of the
-  input, the result, or the values. Neither is the value of `needs`.
+  input, the result, or the values. The value of `needs` is also no
+  part of the input, the result, or the values.
 - A check of the vectors of a test-vector set of S, or of D, decides,
-  for each vector, whether a program gives what the object of its vector
-  line states. The check can skip a vector, and decide nothing about it,
-  only when it cannot make a need of the vector hold, and then it
-  reports that need. A skip of any other vector is a failure of the
-  check.
+  for each vector, whether a program, when it operates while each need
+  of the vector holds, gives what the object of its vector line states.
+  The check can skip a vector, and decide nothing about it, only when it
+  cannot make a need of the vector hold, and only when it reports that
+  need. Each other skip of a vector counts as a decision that the
+  program does not give what the object of its vector line states.
 
 #### 8.1.9 Version sequences
 
