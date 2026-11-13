@@ -3157,8 +3157,9 @@ object states this:
   for the result "valid".
 - The needs of the vector are the needs that the forms of the group g
   give for the strings of the value of `needs`. A string for which these
-  forms give no need stands for a need that no check of the vectors can
-  make hold. A vector whose object has no member `needs` has no needs.
+  forms give no need stands for no need, so a check of the vectors can
+  skip no vector because of it. A vector whose object has no member
+  `needs` has no needs.
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
   `result`, and no other result, as its result for the input, or for
