@@ -2366,8 +2366,9 @@ and the set rise. A change of a note alone changes no revision. A
 program does not need the revisions to run the vectors.
 
 Inside the members `input` and `values`, each JSON value that this
-section or its subsections name as a text, a whole number, a run, a position, a path
-set, a binding of `external-namespaces`, or a tree has this form:
+section or its subsections name as a text, a whole number, a run, a
+position, a path set, a binding of `external-namespaces`, or a tree has
+this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
   string whose characters are the characters of the text, in order. So
