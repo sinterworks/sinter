@@ -26,6 +26,7 @@
   sinter_file_read
   sinter_json_lines
   sinter_hashes
+  sinter_hash_ids
   digestif.c
   git_fixture
   sinter_bench
