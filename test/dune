@@ -33,6 +33,7 @@
   sinter_tree
   sinter_spots
   sinter_findings
+  sinter_branch_names
   digestif.c
   git_fixture
   sinter_bench
