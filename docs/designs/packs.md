@@ -148,7 +148,7 @@ functions that act on characters.
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are of a fixed list, with their kinds and their types; that has the memory information of a custom section `dylink.0`, and imports `memory`, the table, and their bases when its sizes need them, and `memory` when it imports `__stack_pointer`; whose export `tree_sitter_<g>` and initializer exports have fixed types; and in an instance of a grammar of which the program invokes the initializer exports in a fixed order and then `tree_sitter_<g>`, with no failure, and gets a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are of a fixed list, with their kinds and their types; that has the memory information of a custom section `dylink.0`, and imports `memory`, the table, and their bases when its sizes need them, and `memory` when it imports `__stack_pointer`; whose exports `tree_sitter_<g>`, `__wasm_apply_data_relocs`, `_initialize`, and `__wasm_call_ctors` have fixed types; and in an instance of a grammar of which the program invokes `__wasm_apply_data_relocs`, then `_initialize` or else `__wasm_call_ctors`, when the module exports them, and then `tree_sitter_<g>`, with no failure, and gets a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
 | [instance of a grammar, memory information](sinter:#grammar-instance=v1) | an instance of a WebAssembly module that has memory information and each of whose imports is an import of a fixed list, which a program makes to get the language of a grammar and to run its code, with values of its own choice for the imports, such as `__memory_base`, that have fixed properties; the memory information of the module is the sizes and the alignments of the parts of the memory and of the table that it needs, from its custom section `dylink.0` |
 | [failure for limits](sinter:#grammar-instance=v1) | a failure of the instantiation or of an invocation in an instance of a grammar that comes from a stop by the program for limits of its own, or from an exhausted call stack or stack of the module |
@@ -183,7 +183,7 @@ functions that act on characters.
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
 | [choice of the program in an instance of an adapter](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits on the resources of the instance and on the time that its code runs, or for the sizes of the memories and the tables that the instantiation makes; a refusal of a growth of a memory or of a table within its maximum; the depth of calls at which the call stack is exhausted; or the bits of a NaN |
 | [choice of the program in an instance of a grammar](sinter:#grammar-instance=v1) | an outcome in an instance of a grammar that the program decides: a failure for limits; the values that it gives for the imports, and with them the size of the stack of the module, the places of the own bytes and of the own elements, and the sizes of the memory and of the table; the places of the space that the allocation functions give, and the content of that space that they do not set; the content of the stack of the module when each invocation starts, and of the other bytes of the memory and elements of the table when the instantiation starts; the places through which the parsing gives values to the code; the use of an instance in which code ran for another text; or the bits of a NaN |
-| [pattern that never matches](sinter:#validate-packs=v1) | a pattern of a query file that matches no node of any parse tree that the language of its grammar can give; a program can give "invalid" for a pack with such a pattern, a choice of the program in a decision whether a pack is valid |
+| [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack with a query file that holds a pattern that matches no node of any parse tree that the language of its grammar can give |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
@@ -400,15 +400,16 @@ is a WebAssembly module, when each of its imports is one of a fixed
 list, such as `memory` or `malloc`, with its kind and its type, when its
 custom section `dylink.0` gives its memory information: the sizes and
 the alignments of its parts of the memory and of the table, when its
-export `tree_sitter_<g>` gives, in an instance of a grammar, a language
-in the format of tree-sitter, of an ABI version from 13 to 15, and when
-the name of each symbol of that language is valid UTF-8. In an instance
-of a grammar, the program gives the imports values of its own choice
-that have fixed properties: the functions that act on memory, strings,
-and characters give fixed results, the functions that allocate memory
-give space at places that the program chooses, and `abort`, `proc_exit`,
-and `__assert_fail` trap. In a valid pack, the hash of the file is the
-hash that the descriptor gives for the grammar.
+export `tree_sitter_<g>` gives, in an instance of a grammar and after
+the program invokes the exports that initialize the module in a fixed
+order, a language in the format of tree-sitter, of an ABI version from
+13 to 15, and when the name of each symbol of that language is valid
+UTF-8. In an instance of a grammar, the program gives the imports values
+of its own choice that have fixed properties: the functions that act on
+memory, strings, and characters give fixed results, the functions that
+allocate memory give space at places that the program chooses, and
+`abort`, `proc_exit`, and `__assert_fail` trap. In a valid pack, the
+hash of the file is the hash that the descriptor gives for the grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
 program runs the query over the parse tree of a text. A match is one
@@ -478,25 +479,25 @@ The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
 text with the language of the usable grammar, and it runs the code of
 that language in an instance of a grammar. The parsing of tree-sitter
-can give no parse tree, such as when an invocation of that code fails.
-The program ends each reading: when a failure for limits occurs in a
-reading, or when the program stops a reading for other limits of its
-own, the reading gives "parse failure". The requirements on readings
-apply to an undisturbed use of the pack, in which no choice of the
-program in an instance of a grammar, such as the addresses that the
-program gives the module or the bits of a NaN, changes, other than by a
-failure for limits, whether a byte sequence that the use takes as a
-grammar of the pack is a usable grammar with the name of that grammar,
-the language that such a byte sequence gives, or the parse tree of a
-text that the use reads. The text has a parse failure when the parsing
-gives no parse tree, or when the root node of the parse tree has an
-error: when the root node, or a node inside it, nodes of hidden symbols
-included, is an `ERROR` node or a `MISSING` node. A reading of a text
-with a parse failure gives the result "parse failure", and no node of
-the text. A parse tree with no error comes from the language and the
-functions that the grammar imports, so conforming programs agree on it
-in an undisturbed use of the pack; on a text with a parse failure, they
-agree only on the result.
+can give no parse tree, such as when the instantiation or an invocation
+in that instance fails. The program ends each reading: when a failure
+for limits occurs in a reading, or when the program stops a reading for
+other limits of its own, the reading gives "parse failure". The
+requirements on readings apply to an undisturbed use of the pack, in
+which no choice of the program in an instance of a grammar, such as the
+addresses that the program gives the module or the bits of a NaN,
+changes, other than by a failure for limits, whether a byte sequence
+that the use takes as a grammar of the pack is a usable grammar with the
+name of that grammar, the language that such a byte sequence gives, or
+the parse tree of a text that the use reads. The text has a parse
+failure when the parsing gives no parse tree, or when the root node of
+the parse tree has an error: when the root node, or a node inside it,
+nodes of hidden symbols included, is an `ERROR` node or a `MISSING`
+node. A reading of a text with a parse failure gives the result "parse
+failure", and no node of the text. A parse tree with no error comes from
+the language and the functions that the grammar imports, so conforming
+programs agree on it in an undisturbed use of the pack; on a text with a
+parse failure, they agree only on the result.
 
 Each other reading gives the result "parsed". The program runs each
 query file of the grammar over the parse tree. The query language of
@@ -625,8 +626,8 @@ interface. A module gives that version when the decision of the program
 runs, in a new instance of the module, the instantiation and then one
 invocation of `sinter_interface`, and nothing else in that instance, and
 these do not fail, and the invocation gives the value 1. Two decisions
-can differ when a choice of the program, such as a stop for its limits,
-changes them.
+can differ when a choice of the program in an instance of an adapter,
+such as a stop for its limits, changes them.
 
 A call runs one function of an adapter, with a request, a report
 content, and, for the function bind, its test entry ids. The report
@@ -673,7 +674,8 @@ Specification 2.0 defines, and the call goes on.
 The code of an adapter imports nothing, so it can read no file, use no
 network, see no clock, and start no process. No file, network, clock, or
 process gets to the code of an adapter; only the choices of the program
-can make two runs of one call give different results.
+in an instance of an adapter can make two runs of one call give
+different results.
 
 ### 2.8 Requests and responses
 
@@ -977,8 +979,10 @@ characters, are each taken as a whole number from 0 to 4,294,967,295:
   the type of their import, or no maximum when that type has none. A
   growth of one of them within its maximum succeeds, or the program
   stops the invocation that asks for it. The memory holds no byte at an
-  address of 4,294,901,760 or more: the program stops each growth that
-  would give it such a byte.
+  address of 4,294,901,760 or more: a growth by the code of the module
+  that would give it such a byte fails the instantiation or the
+  invocation that asks for it, in every program, as if the growth
+  trapped.
 - `malloc`, `calloc`, `realloc`, and `free` allocate and deallocate
   space as ISO/IEC 9899:2024 defines, at places that the program
   chooses, and they never give 0: when the program does not allocate
@@ -1046,15 +1050,16 @@ An instantiation or an invocation in an instance of a grammar fails when
 it traps, when its code exhausts the call stack or the stack of the
 module, or when the program stops it. The code exhausts the stack of the
 module when it sets `__stack_pointer` to a value greater than the value
-of `__stack_pointer` when the instantiation starts; the invocation then
-fails at that change, as if the change trapped. An invocation that fails
-with the stack of the module that the program gives, and that would not
-fail with a larger stack of the module, also exhausts that stack. A
-failure for limits is a failure of the instantiation or of an invocation
-in an instance of a grammar that comes from a stop by the program for
-limits of its own, such as on the time that the code runs, on the space
-that it allocates, or on the growth of a memory or a table, or that
-comes from an exhausted call stack or an exhausted stack of the module.
+of `__stack_pointer` when the instantiation starts; the instantiation or
+the invocation then fails at that change, as if the change trapped. An
+instantiation or an invocation that fails with the stack of the module
+that the program gives, and that would not fail with a larger stack of
+the module, also exhausts that stack. A failure for limits is a failure
+of the instantiation or of an invocation in an instance of a grammar
+that comes from a stop by the program for limits of its own, such as on
+the time that the code runs, on the space that it allocates, or on the
+growth of a memory or a table, or that comes from an exhausted call
+stack or an exhausted stack of the module.
 
 The choices of the program in an instance of a grammar are these:
 
@@ -1396,28 +1401,28 @@ This definition uses the parsing that the format of languages of
 tree-sitter defines, which gives, for a language and a byte sequence, a
 parse tree or no parse tree. This parsing runs the code of the language
 in the instance of a grammar in which its module gave that language, and
-it gives no parse tree when an invocation of that code fails. A parse
-tree has a root node, and the children of each node of a parse tree are
-its named and its anonymous child nodes, in their order. A node of a
-hidden symbol is no node of the parse tree, and its children stand in
-its place. A node that stands in the place of a node of a hidden symbol
-also stands in the place of each node in whose place that node stands.
-Each node has a symbol, and each symbol has a name. The supertypes of a
-node are the symbols that are supertypes among its own symbol and the
-symbols of the nodes in whose place it stands. Each node has a start
-byte and an end byte, which are whole numbers less than 4,294,967,296. A
-node has an error when it, or a node that the parsing gives inside it,
-nodes of hidden symbols included, is an `ERROR` node, a node of the
-symbol `ERROR`, or a `MISSING` node, a node that the parsing inserts for
-a token that the text lacks. For a text whose parse text has fewer than
-4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
-grammar name g, the parse tree is the parse tree that this parsing gives
-for the language of that usable grammar and the UTF-8 encoding of that
-parse text; such a text alone can have a parse tree. When this parsing
-gives no parse tree, the text has no parse tree with that usable
-grammar. The parse text of a text is that text, followed by a line feed
-when the text does not end with a line feed. So the parse text of the
-empty text is one line feed.
+it gives no parse tree when the instantiation or an invocation in that
+instance fails. A parse tree has a root node, and the children of each
+node of a parse tree are its named and its anonymous child nodes, in
+their order. A node of a hidden symbol is no node of the parse tree, and
+its children stand in its place. A node that stands in the place of a
+node of a hidden symbol also stands in the place of each node in whose
+place that node stands. Each node has a symbol, and each symbol has a
+name. The supertypes of a node are the symbols that are supertypes among
+its own symbol and the symbols of the nodes in whose place it stands.
+Each node has a start byte and an end byte, which are whole numbers less
+than 4,294,967,296. A node has an error when it, or a node that the
+parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
+node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
+parsing inserts for a token that the text lacks. For a text whose parse
+text has fewer than 4,294,967,296 bytes in its UTF-8 encoding, and a
+usable grammar with a grammar name g, the parse tree is the parse tree
+that this parsing gives for the language of that usable grammar and the
+UTF-8 encoding of that parse text; such a text alone can have a parse
+tree. When this parsing gives no parse tree, the text has no parse tree
+with that usable grammar. The parse text of a text is that text,
+followed by a line feed when the text does not end with a line feed. So
+the parse text of the empty text is one line feed.
 
 ### 4.15 The order of the parse tree
 
@@ -2227,7 +2232,8 @@ memory is the maximum of its memory type, or 65,536 pages when its
 memory type has none. The maximum of a table is the maximum of its table
 type, or 4,294,967,295 elements when its table type has none. A growth
 of a memory or of a table past its maximum gives −1 to the code, as that
-specification defines, and it is not a choice of the program.
+specification defines, and it is not a choice of the program in an
+instance of an adapter.
 
 #### 6.1.2 Valid adapters
 
@@ -2658,8 +2664,9 @@ byte sequence is a valid adapter. The requirements of the group are
   when the byte sequence is a valid adapter in that decision, and
   "invalid" when it is not. The requirements of the group oblige the
   result "valid" only for a decision in which no choice of the program
-  changes the instantiation or the invocation. The group holds no vector
-  with the result "invalid" whose result such a choice can change.
+  in an instance of an adapter changes the instantiation or the
+  invocation. The group holds no vector with the result "invalid" whose
+  result such a choice can change.
 - `values`: no vector of the group has this member.
 
 ```
@@ -2716,51 +2723,43 @@ the call. The requirements of the group are `give-call-results`,
   function recognise, and "bound" or "failed" for the function bind. The
   call is a call of an adapter that is valid in the decision that the
   call uses, whose invocation of the export of the function gives the
-  response, with no failure before it.
-- `values`: with "bound", an object with three members: `results`, an
-  array with one object for each test result of the call, in order, with
-  the members `name` and `status`, each a text, and the members `file`,
-  a text, `line`, and `ms`, each an integer, when the test result has
-  them; `bindings`, an array with one object for each binding object of
-  the call, in order, with the members `result`, 1 less than the index
-  of its test result in `results`, as an integer, `test`, a text, and
-  `reason`, a text; and `warnings`, an array of the warnings of the
-  call, as texts, in order. With "failed", when the call gives an error
-  text of the adapter, an object with one member, `error`, that error
-  text, as a text; otherwise the empty object, `{}`. With "recognised"
-  and "not recognised", the empty object, `{}`.
-
-When a conforming program gives the test results, the binding objects,
-the warnings, or the error text of the adapter of the call, it gives
-those of `values`. With `{}`, it gives none of these.
-
-```
-{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
-```
-
-#### 6.10.4 Calls
-
-The group `calls` holds the vectors that each give the things of a call:
-a byte sequence as the adapter, the function, the request, the report
-content, and, for the function bind, the test entry ids of the call; and
-what a conforming program gives for the call. The requirements of the
-group are `give-call-results`, `give-call-values`, `omit-call-values`,
-`omit-adapter-error-texts`, and `end-adapter-code`.
-
-- `input`: an object with these members: `adapter`, the byte sequence
-  of the adapter; `function`, the text `recognise` or `bind`; `request`,
-  the byte sequence of the request; `report-content`, the byte sequence
-  of the report content; and `ids`, for the function bind only, an array
-  of the test entry ids of the call, as texts.
-- `result`: the result of the call, when a conforming program gives a
-  result for it: "recognised", "not recognised", or "failed" for the
-  function recognise, and "bound" or "failed" for the function bind. The
-  requirements of the group oblige a result other than "failed" only for
-  a call in which no choice of the program changes the instantiation or
-  an invocation, in the instance of the call or in the instance of the
-  decision whether its adapter is a valid adapter that the call uses.
-  The group holds no vector with the result "failed" whose result such a
-  choice can change.
+  response, with no failure before it. - `values`: with "bound", an
+  object with three members: `results`, an array with one object for
+  each test result of the call, in order, with the members `name` and
+  `status`, each a text, and the members `file`, a text, `line`, and
+  `ms`, each an integer, when the test result has them; `bindings`, an
+  array with one object for each binding object of the call, in order,
+  with the members `result`, 1 less than the index of its test result in
+  `results`, as an integer, `test`, a text, and `reason`, a text; and
+  `warnings`, an array of the warnings of the call, as texts, in order.
+  With "failed", when the call gives an error text of the adapter, an
+  object with one member, `error`, that error text, as a text; otherwise
+  the empty object, `{}`. With "recognised" and "not recognised", the
+  empty object, `{}`. When a conforming program gives the test results,
+  the binding objects, the warnings, or the error text of the adapter of
+  the call, it gives those of `values`. With `{}`, it gives none of
+  these. ```
+  {"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
+  ``` #### 6.10.4 Calls The group `calls` holds the vectors that each
+  give the things of a call: a byte sequence as the adapter, the
+  function, the request, the report content, and, for the function bind,
+  the test entry ids of the call; and what a conforming program gives
+  for the call. The requirements of the group are `give-call-results`,
+  `give-call-values`, `omit-call-values`, `omit-adapter-error-texts`,
+  and `end-adapter-code`. - `input`: an object with these members:
+  `adapter`, the byte sequence of the adapter; `function`, the text
+  `recognise` or `bind`; `request`, the byte sequence of the request;
+  `report-content`, the byte sequence of the report content; and `ids`,
+  for the function bind only, an array of the test entry ids of the
+  call, as texts. - `result`: the result of the call, when a conforming
+  program gives a result for it: "recognised", "not recognised", or
+  "failed" for the function recognise, and "bound" or "failed" for the
+  function bind. The requirements of the group oblige a result other
+  than "failed" only for a call in which no choice of the program in an
+  instance of an adapter changes the instantiation or an invocation, in
+  the instance of the call or in the instance of the decision whether
+  its adapter is a valid adapter that the call uses. The group holds no
+  vector with the result "failed" whose result such a choice can change.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
@@ -2877,7 +2876,8 @@ that it gives "invalid" when a failure for limits occurs in that
 decision, or when it stops that decision for other limits of its own,
 and that it can give "invalid" when a query file of the pack holds a
 pattern that matches no node of any parse tree that the language of its
-grammar can give.
+grammar can give, a choice of the program in a decision whether a pack
+is valid.
 
 ### 7.9 The values of the descriptor of a valid pack
 
