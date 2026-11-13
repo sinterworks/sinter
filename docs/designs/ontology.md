@@ -791,15 +791,16 @@ of a file of a tree, a line of the message of a commit, a ledger entry,
 or a message to a person. When its input says that an agent runs it, a
 conforming program appends to the ledger no ledger entry other than a
 definition entry, and makes no repair (section 4.4). A conforming
-program appends a judgment only to record a decision that a person gives
-it by a confirmation that the standard input, the arguments, and the
-environment of the program cannot give (section 4.5). A conforming
-program changes the ledger only by appending ledger entries, by making
-repairs, and by taking in the ledger entries, voids included, of another
-clone of the repository (section 4.3). So when an agent changes the
-ledger of each clone of the repository only through a conforming program
-whose input says that an agent runs it, a statement of the agent changes
-a state only in one of these two ways (sections 4.1, 4.3, 4.4, and 4.5):
+program appends a judgment, or makes a repair, only to record a decision
+that a person gives it by a confirmation that the standard input, the
+arguments, and the environment of the program cannot give (section 4.5).
+A conforming program changes the ledger only by appending ledger
+entries, by making repairs, and by taking in the ledger entries, voids
+included, of another clone of the repository (section 4.3). So when an
+agent changes the ledger of each clone of the repository only through a
+conforming program whose input says that an agent runs it, a statement
+of the agent changes a state only in one of these two ways (sections
+4.1, 4.3, 4.4, and 4.5):
 
 1. through a state input, other than the ledger, that the statement
    alters, such as the tree of a working tree or of a commit, the
@@ -1941,17 +1942,18 @@ When its input says that an agent runs it, a conforming program must
 append to the ledger no ledger entry other than a definition entry, and
 make no repair.
 
-### 4.5 The judgments that persons give
+### 4.5 The judgments and repairs that persons give
 
 @req write-judgments-only-for-persons=v1
 @cites {
     text#{conforming-program=v1},
-    #{judgment=v1, person=v1, ledger=v1},
+    #{judgment=v1, person=v1, ledger=v1, repair=v1},
 }
 
-A conforming program must append a judgment to the ledger only to record
-a decision that a person gives it by a confirmation that the standard
-input, the arguments, and the environment of the program cannot give.
+A conforming program must append a judgment to the ledger, or make a
+repair, only to record a decision that a person gives it by a
+confirmation that the standard input, the arguments, and the environment
+of the program cannot give.
 
 ### 4.6 The use of declared tasks
 
