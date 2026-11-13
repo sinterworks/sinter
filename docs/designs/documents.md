@@ -58,18 +58,18 @@ a conforming program of Identifiers and the results that it gives. From
 Files and paths, it takes valid paths, path sets, valid path sets, and
 the set of a path set. From Data forms, it takes hashes, indexes, hex
 texts, canonical byte sequences, test-vector file names, test-vector
-sets, and vector lines. From
-the Ontology, it takes trees and their files; parameters; items and
-their kinds, declared items, containment, and the names of declared
-items; tests and comments on tests; sites; external items; vector sets,
-conformance vectors, and groups of conformance vectors; revised content;
-edges, their kinds, sources, and cited items, and the item in which a
-line, a citation, or an inline citation stands. From Language packs, it
-takes packs and valid packs; the reading of a text with a pack; comment
-nodes, definition nodes with their body nodes, decoration nodes, and
-test nodes with their name paths; the runs of nodes, enclosed nodes, and
-the order of the parse tree; and descriptors, with their comment sigils
-and foreign tag words. From Findings, it takes findings, their subjects,
+sets, and vector lines. From the Ontology, it takes trees and their
+files; parameters; items and their kinds, declared items, containment,
+and the names of declared items; tests and comments on tests; sites;
+external items; vector sets, conformance vectors, and groups of
+conformance vectors; revised content; edges, their kinds, sources, and
+cited items, and the item in which a line, a citation, or an inline
+citation stands; and findings and finding classes. From Language packs,
+it takes packs and valid packs; the reading of a text with a pack;
+comment nodes, definition nodes with their body nodes, decoration nodes,
+and test nodes with their name paths; the runs of nodes, enclosed nodes,
+and the order of the parse tree; and descriptors, with their comment
+sigils and foreign tag words. From Findings, it takes the subjects, the
 spots, and the other parts of a finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
@@ -125,7 +125,7 @@ the conformance vectors of the design is a JSON text.
 | [scope](sinter:#specification-scope=v1) | the file lines in which a specification gathers requirements and terms: in markdown, its claim; in code, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
 | [innermost](sinter:#innermost-item=v1) | of some declared items whose claims, or whose scopes, have a thing in them, the one whose claim, or scope, is a subset of that of each of the others, when exactly one is |
 | [design of a slug](sinter:#slug-design=v1) | the item of the kind design whose name is the slug, when no other item of the kind design and no decision record has that name |
-| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose claim a tag line or an inline citation is; otherwise, in a code file, when the innermost requirement or term in whose claim it is has a full name whose slug has a design, that design; otherwise, when the innermost specification in whose scope it is has a full name whose slug has a design, that design; otherwise none |
+| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose claim a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names it by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
@@ -158,7 +158,7 @@ the conformance vectors of the design is a JSON text.
 | [citation entry](sinter:identifiers#citation-entry=v1), [entry name](sinter:identifiers#citation-entry=v1) | one entry of the target of a citation, such as `billing#limit-amount=v2`; its entry name is its name or its external id, such as `billing#limit-amount` |
 | [declared item](sinter:ontology#declared-item=v1) | what a declaration declares: an item of the kind design, specification, or requirement, a term, a decision record, or a declared finding class |
 | [name of a declared item](sinter:ontology#item-name=v1) | the name in the target of its declaration, such as `billing` or `billing#limit-amount`; or, for an item of the kind specification, requirement, or term whose declaration names it by one segment and that belongs to an item of the kind design, the name of that design, `#`, and that segment |
-| [test](sinter:ontology#test=v1), [comment on a test](sinter:ontology#test=v1) | a unit of code that a test runner runs; a comment that is attached to the code of a test |
+| [test](sinter:ontology#test=v1), [comment on a test](sinter:ontology#test=v1) | a unit of code that a test runner runs, or a set of such units that the code groups under one name; a comment that is attached to the code of a test |
 | [edge](sinter:ontology#edge=v1), [stand in](sinter:ontology#edge-source=v1) | a relation of one kind of edge from its source to its cited item; a line, a citation, or an inline citation stands in the innermost declared item of which it is a part, otherwise in the innermost test such that a comment on that test has it, otherwise in the site that has it, otherwise in no item |
 | [every-part target](sinter:identifiers#citation-line=v1) | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
 | [line](sinter:text#line=v1), [line ending](sinter:text#line-ending=v1) | one of the runs into which the line endings of a text divide its body; a line ending is a line feed, with the carriage return right before it when there is one |
@@ -194,10 +194,10 @@ A markdown file can start with [front matter](sinter:#front-matter=v1),
 such as lines of metadata between two lines of `---`. The rest of its
 text is its markdown text, which CommonMark 0.31.2 parses into blocks.
 
-The tags of a markdown file count in its
-[tag texts](sinter:#tag-text=v1). For example, an inline citation in a
-heading is in no tag text, and it is an
-[input of the tree](sinter:#accepted-input=v1) all the same.
+The tags of a markdown file count only in its
+[tag texts](sinter:#tag-text=v1). Inline citations count in all of its
+markdown text: an inline citation in a heading is an
+[input of the tree](sinter:#accepted-input=v1).
 
 This file has three tag texts:
 
@@ -234,8 +234,8 @@ finding.
 A code file is read with its pack: the
 [reading of its text](sinter:packs#reading-of-a-text=v1) gives the nodes
 of its comments and of its code. Its comment nodes form
-[runs of comments](sinter:#comment-run=v1), the comments that stand next
-to each other in the file. For example, the lines `// a`, an empty line,
+[runs of comments](sinter:#comment-run=v1), the comments next to each
+other in the file. For example, the lines `// a`, an empty line,
 and `// b` give two runs of comments, and so do the lines `// a`,
 `f();`, and `// b`, where `f();` has
 [code characters](sinter:#code-character=v1).
@@ -284,9 +284,14 @@ A conforming program of the design Identifiers reads the tag texts and
 the markdown texts of a tree under a binding of `external-namespaces`,
 and it gives a result for each of their
 [inputs](sinter:#accepted-input=v1). The inputs with the result "valid",
-the accepted inputs, are the ones that count. Under bindings that are
-not valid, a conforming program gives nothing
-([`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)).
+the accepted inputs, give the [declared items](sinter:#item-file=v1),
+the [edges](sinter:#tree-edge=v1), the
+[extern marks](sinter:#extern-mark=v1), and the
+[status tags](sinter:#give-status-tag-items=v1) of the tree. Under
+bindings that are not valid, a conforming program gives none of the
+things that
+[`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)
+names.
 
 The [origin](sinter:#origin=v1) of a part of a tag text or of a markdown
 text is the places of the text of its file that it comes from, and its
@@ -329,7 +334,7 @@ tag text, with the file lines in the run of that module. The requirement
 `id-form` is declared by one segment. Its declaration is in no claim of
 an item of the kind design, and it is in the scope of the specification,
 whose declaration has the full name `ledger#entry-ids`. So, when the
-tree has the design `ledger`, that design is its
+slug `ledger` has a [design](sinter:#slug-design=v1), that design is its
 [home design](sinter:#home-design=v1), and the requirement belongs to
 that design and to the specification. Its name is `ledger#id-form`. The
 extent of the specification is its two comment lines and the two comment
@@ -340,13 +345,15 @@ lines of the requirement.
 Containment says to which design, and to which specification, a declared
 item belongs, as [containment in a tree](sinter:#tree-containment=v1)
 gives it. For example, `@req billing#limit-amount=v2` belongs to the
-design `billing`, when the tree has that design.
+design `billing`, when the slug `billing` has a
+[design](sinter:#slug-design=v1).
 
 Names come in [sets of names](sinter:#name-set=v1). A citation entry or
 an inline citation names an item as
-[what names name](sinter:#named-item=v1) says, and its kind word says
-what kinds of item it can name
-([what kind words state](sinter:#stated-kind=v1)). For example,
+[what names name](sinter:#named-item=v1) says. Its kind word
+[states](sinter:#stated-kind=v1) kinds of item, and a cited item of
+another kind is a finding of the class
+[`wrong-kind`](sinter:#wrong-kind-finding=v1). For example,
 `billing#limit-amount` names the item with that name in the set of the
 design of the slug `billing`, and `#limit-amount` names the item with
 the name `billing#limit-amount` when `billing` is the home design of the
@@ -371,14 +378,13 @@ is the home design of that citation.
 Each design, and each specification of a design, has a
 [vector path](sinter:#vector-file=v1) beside the file of the design. For
 example, for the design `billing` declared in `docs/billing.md`, the
-vector file of the design is the file `docs/billing.test-vectors.jsonl`,
-and that of its specification `billing#invoice` is the file
-`docs/billing.invoice.test-vectors.jsonl`, when the tree has these
-files. A citation entry with a vector selection names a
-[selected item](sinter:#selected-item=v1): for example,
-`billing#invoice[12]=v1` names the conformance vector whose vector line
-is the vector line with the number 12 of the vector set of that
-specification.
+vector path of the design is `docs/billing.test-vectors.jsonl`, and that
+of its specification `billing#invoice` is
+`docs/billing.invoice.test-vectors.jsonl`. A citation entry with a
+vector selection names a [selected item](sinter:#selected-item=v1): for
+example, `billing#invoice[12]=v1` names the conformance vector whose
+vector line is the vector line with the number 12 of the vector set of
+that specification.
 
 ### 2.8 Edges, sites, and status tags
 
@@ -408,8 +414,7 @@ line feed after it. Its extent hash is
 `39096d6a3499d398332a59e6882377d2f0b81e206429b16f163df9cb16c00656`.
 
 The [code hash](sinter:#code-hash=v1) of a run of comments is the hash
-of the code to which it attaches. For example, a change of the
-indentation of that code changes the code hash.
+of the code to which it attaches.
 
 ### 2.10 Findings
 
@@ -430,13 +435,6 @@ Each of these classes has a term that gives its findings, each a
 | `req-outside-design` | [`req-outside-design-finding`](sinter:#req-outside-design-finding=v1) |
 | `extern-mismatch` | [`extern-mismatch-finding`](sinter:#extern-mismatch-finding=v1) |
 
-### 2.11 Bindings and readings
-
-A binding of `file-readers` and a binding of `external-namespaces` are
-inputs of the program. The result of the
-[reading of a text](sinter:packs#reading-of-a-text=v1) with a pack is
-the result that Language packs defines for it.
-
 ## 3. Parameters
 
 ### 3.1 `file-readers`
@@ -444,10 +442,6 @@ the result that Language packs defines for it.
 The parameter `file-readers` gives the files of a tree that a conforming
 program reads, and the reader of each of them, by its
 [bindings](sinter:#file-reader-binding=v1).
-
-A conforming program also reads under a binding of the parameter
-`external-namespaces` of Identifiers, which gives the external
-namespaces of the tag texts and the markdown texts that it reads.
 
 ## 4. Definitions
 
@@ -1306,8 +1300,8 @@ and each character of these texts keeps the place that it comes from.
    holds and whose declaration has a `=` in its target, remove each
    character that comes from the place of a character of that target
    from its `=` to its end.
-7. For each accepted input of the tree that is a citation, and for each
-   of its citation entries whose run in the text of the citation has a
+7. For each accepted input whose file is the file of d and that is a
+   citation, and for each of its citation entries whose run in the text of the citation has a
    `=`: remove each character that comes from the place of that `=`,
    or from the place of a character of that run after that `=`, up to
    the end of that run or, when the citation entry is an every-part
@@ -1518,12 +1512,10 @@ nothing:
 In a tree, a markdown line, a line of a tag text, the text of a tag line
 with its continuation lines, or an inline citation is a part of a
 declared item d when, and only when, it is in the extent of d. A comment
-on a test, which is a run of comments that attaches to an attachment
-target whose run is the run of the test node of that test, has such a
-thing when, and only when, each file line of the thing is a line that
-the tag text of that run of comments joins. A line
-of a tag text stands in an item, or in none, by the same rule as a line
-of a file of a tree.
+on a test has such a thing when, and only when, each file line of the
+thing is a line that the tag text of that comment joins. A line of a tag
+text stands in an item, or in none, by the same rule as a line of a file
+of a tree.
 
 ### 4.40 Sites
 
@@ -1672,9 +1664,9 @@ the file and the span r.
 A tree finding of a tree, of the class that a slug c names, with a
 subject s and a spot p, is a finding whose tree is that tree, whose
 finding class is the class that c names, whose subject is s, whose spot
-is p, and that is not ackable. The program that gives such a finding
-chooses its message, the mark of the finding, its related messages, and
-its fix.
+is p, and that is not ackable. A tree finding has the message, the mark,
+the related messages, and the fix that the program that gives it gives,
+of those that the design Findings allows.
 
 ### 4.47 Edit distance
 
@@ -1756,10 +1748,8 @@ read, when each of these is true:
 - B is a block of the document itself, or a block that a list item
   contains and that no block quote, no list, and no list item inside
   that list item contains;
-- when B is a paragraph, it is not the first paragraph of the section of
-  the last heading that opens a section before it, or of the section of
-  level 0 when no such heading comes before it, and it is not the first
-  paragraph of the list item that contains it;
+- when B is a paragraph, it is not the first paragraph of a section or
+  of a list item;
 - the first line of B is a tag line, and its tag word is a Sinter tag
   word or has an edit distance of 1 or 2 from a Sinter tag word.
 
@@ -2366,13 +2356,13 @@ revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
 vectors that it covers change, join, or leave. When the text of this
-section changes, other than its headings and the vector lines that it
-shows, the revisions of every vector, every group, and the set rise. A
-change of a note alone changes no revision. A program does not need the
-revisions to run the vectors.
+section or of its subsections changes, other than their headings and the
+vector lines that they show, the revisions of every vector, every group,
+and the set rise. A change of a note alone changes no revision. A
+program does not need the revisions to run the vectors.
 
-Inside the members `input` and `values`, each JSON value that a
-subsection names as a text, a whole number, a run, a position, a path
+Inside the members `input` and `values`, each JSON value that this
+section names as a text, a whole number, a run, a position, a path
 set, a binding of `external-namespaces`, or a tree has this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
