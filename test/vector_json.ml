@@ -709,6 +709,267 @@ let byte_gen =
         ];
     ]
 
+exception Not_json
+
+let parse_json_text bytes =
+  let length = String.length bytes in
+  let position = ref 0 in
+  let peek () = if !position < length then Some bytes.[!position] else None in
+  let skip_space () =
+    while
+      !position < length
+      &&
+      match bytes.[!position] with
+      | ' ' | '\t' | '\n' | '\r' -> true
+      | _ -> false
+    do
+      incr position
+    done
+  in
+  let expect char =
+    if peek () = Some char then incr position else raise Not_json
+  in
+  let literal word value =
+    let size = String.length word in
+    if
+      !position + size <= length
+      && String.equal (String.sub bytes !position size) word
+    then (
+      position := !position + size;
+      value)
+    else raise Not_json
+  in
+  let digits ~at_least_one =
+    let start = !position in
+    while
+      !position < length && bytes.[!position] >= '0' && bytes.[!position] <= '9'
+    do
+      incr position
+    done;
+    if at_least_one && !position = start then raise Not_json
+  in
+  let string_literal () =
+    let start = !position in
+    expect '"';
+    let rec go () =
+      match peek () with
+      | None -> raise Not_json
+      | Some '"' -> incr position
+      | Some char when char = backslash -> (
+          match
+            if !position + 1 < length then Some bytes.[!position + 1] else None
+          with
+          | Some ('"' | '/' | 'b' | 'f' | 'n' | 'r' | 't') ->
+              position := !position + 2;
+              go ()
+          | Some char when char = backslash ->
+              position := !position + 2;
+              go ()
+          | Some 'u' when four_hex bytes (!position + 2) <> None ->
+              position := !position + 6;
+              go ()
+          | _ -> raise Not_json)
+      | Some char when Char.code char < 0x20 -> raise Not_json
+      | Some _ ->
+          incr position;
+          go ()
+    in
+    go ();
+    decode_literal (String.sub bytes start (!position - start))
+  in
+  let number () =
+    let start = !position in
+    if peek () = Some '-' then incr position;
+    (match peek () with
+    | Some '0' -> incr position
+    | Some '1' .. '9' -> digits ~at_least_one:true
+    | _ -> raise Not_json);
+    if peek () = Some '.' then (
+      incr position;
+      digits ~at_least_one:true);
+    (match peek () with
+    | Some ('e' | 'E') ->
+        incr position;
+        (match peek () with Some ('+' | '-') -> incr position | _ -> ());
+        digits ~at_least_one:true
+    | _ -> ());
+    Number (String.sub bytes start (!position - start))
+  in
+  let rec value () =
+    match peek () with
+    | Some '{' ->
+        incr position;
+        skip_space ();
+        if peek () = Some '}' then (
+          incr position;
+          Object [])
+        else members []
+    | Some '[' ->
+        incr position;
+        skip_space ();
+        if peek () = Some ']' then (
+          incr position;
+          Array [])
+        else elements []
+    | Some '"' -> String (string_literal ())
+    | Some 't' -> literal "true" (Bool true)
+    | Some 'f' -> literal "false" (Bool false)
+    | Some 'n' -> literal "null" Null
+    | Some ('-' | '0' .. '9') -> number ()
+    | _ -> raise Not_json
+  and members done_ =
+    skip_space ();
+    if peek () <> Some '"' then raise Not_json;
+    let name = string_literal () in
+    skip_space ();
+    expect ':';
+    skip_space ();
+    let member = (name, value ()) in
+    skip_space ();
+    match peek () with
+    | Some ',' ->
+        incr position;
+        members (member :: done_)
+    | Some '}' ->
+        incr position;
+        Object (List.rev (member :: done_))
+    | _ -> raise Not_json
+  and elements done_ =
+    skip_space ();
+    let element = value () in
+    skip_space ();
+    match peek () with
+    | Some ',' ->
+        incr position;
+        elements (element :: done_)
+    | Some ']' ->
+        incr position;
+        Array (List.rev (element :: done_))
+    | _ -> raise Not_json
+  in
+  if not (String.is_valid_utf_8 bytes) then None
+  else
+    match
+      skip_space ();
+      let result = value () in
+      skip_space ();
+      result
+    with
+    | result when !position = length -> Some result
+    | _ -> None
+    | exception Not_json -> None
+
+let plain_integer number =
+  String.for_all (fun char -> char <> '.' && char <> 'e' && char <> 'E') number
+
+let rec has_plain_numbers = function
+  | Number number -> plain_integer number
+  | Null | Bool _ | String _ -> true
+  | Array elements -> List.for_all has_plain_numbers elements
+  | Object members ->
+      List.for_all (fun (_, value) -> has_plain_numbers value) members
+
+let json_value_of_bytes bytes =
+  match parse_json_text bytes with
+  | Some thing when is_json_value thing && has_plain_numbers thing -> Some thing
+  | _ -> None
+
+let space_gen =
+  Gen.oneof_weighted
+    [
+      (4, Gen.return "");
+      ( 1,
+        Gen.string_size
+          ~gen:(Gen.oneof_list [ ' '; '\t'; '\n'; '\r' ])
+          (Gen.int_range 1 3) );
+    ]
+
+let hex_escape_gen unit =
+  Gen.map
+    (fun upper ->
+      String.make 1 backslash ^ "u"
+      ^ Printf.sprintf (if upper then "%04X" else "%04x") unit)
+    Gen.bool
+
+let unit_spelling_gen unit =
+  let short =
+    match unit with
+    | 0x22 -> Some "\""
+    | 0x5C -> Some (String.make 1 backslash)
+    | 0x2F -> Some "/"
+    | 0x08 -> Some "b"
+    | 0x0C -> Some "f"
+    | 0x0A -> Some "n"
+    | 0x0D -> Some "r"
+    | 0x09 -> Some "t"
+    | _ -> None
+  in
+  let raw =
+    if unit = 0x22 || unit = 0x5C || unit < 0x20 then None
+    else if unit >= 0xD800 && unit <= 0xDFFF then None
+    else
+      let buffer = Buffer.create 4 in
+      Buffer.add_utf_8_uchar buffer (Uchar.of_int unit);
+      Some (Buffer.contents buffer)
+  in
+  Gen.oneof
+    (hex_escape_gen unit
+    :: List.filter_map Fun.id
+         [
+           Option.map
+             (fun letter -> Gen.return (String.make 1 backslash ^ letter))
+             short;
+           Option.map Gen.return raw;
+         ])
+
+let string_spelling_gen string =
+  let rec pieces = function
+    | high :: low :: rest
+      when high >= 0xD800 && high <= 0xDBFF && low >= 0xDC00 && low <= 0xDFFF ->
+        let code = 0x10000 + ((high - 0xD800) * 0x400) + (low - 0xDC00) in
+        let buffer = Buffer.create 4 in
+        Buffer.add_utf_8_uchar buffer (Uchar.of_int code);
+        Gen.oneof
+          [
+            Gen.return (Buffer.contents buffer);
+            Gen.map2 ( ^ ) (hex_escape_gen high) (hex_escape_gen low);
+          ]
+        :: pieces rest
+    | unit :: rest -> unit_spelling_gen unit :: pieces rest
+    | [] -> []
+  in
+  Gen.map
+    (fun parts -> "\"" ^ String.concat "" parts ^ "\"")
+    (Gen.flatten_list (pieces (units string)))
+
+let rec spelling_gen thing =
+  let spaced gen =
+    Gen.map3 (fun a text b -> a ^ text ^ b) space_gen gen space_gen
+  in
+  match thing with
+  | Null -> spaced (Gen.return "null")
+  | Bool value -> spaced (Gen.return (string_of_bool value))
+  | Number number -> spaced (Gen.return number)
+  | String string -> spaced (string_spelling_gen string)
+  | Array elements ->
+      Gen.map
+        (fun parts -> "[" ^ String.concat "," parts ^ "]")
+        (Gen.flatten_list (List.map spelling_gen elements))
+      |> spaced
+  | Object members ->
+      Gen.map
+        (fun parts -> "{" ^ String.concat "," parts ^ "}")
+        (Gen.bind (Gen.shuffle_list members) (fun members ->
+             Gen.flatten_list
+               (List.map
+                  (fun (name, value) ->
+                    Gen.map3
+                      (fun name spaces value -> name ^ spaces ^ ":" ^ value)
+                      (spaced (string_spelling_gen name))
+                      space_gen (spelling_gen value))
+                  members)))
+      |> spaced
+
 let corrupt_gen bytes =
   let length = String.length bytes in
   let insert =

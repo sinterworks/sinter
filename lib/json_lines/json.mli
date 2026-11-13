@@ -72,3 +72,19 @@ val read : string -> t option
     the JSON value [value], and [None] for every other byte sequence. It never
     raises. The time is linear in the length of [bytes], and the function uses
     no stack space that grows with the depth of the JSON value. *)
+
+val read_json_text : string -> t option
+(** [read_json_text bytes] is [Some value] when [bytes] has the JSON value
+    [value], and [None] when [bytes] has no JSON value. A byte sequence has a
+    JSON value when it is valid UTF-8, its text matches the rule [JSON-text] of
+    RFC 8259, and the value of that JSON text gives a JSON value: no value is
+    [null]; each number has no fraction and no exponent and writes a whole
+    number from [min_integer] to [max_integer]; each escape sequence [\u] of a
+    number from 0xD800 to 0xDBFF is right before an escape sequence [\u] of a
+    number from 0xDC00 to 0xDFFF, with which it writes one character, and no
+    other escape sequence [\u] writes a number from 0xD800 to 0xDFFF; and no
+    object has two names that stand for the same text. The JSON text can hold
+    spaces, tabs, line feeds, and carriage returns around its values, braces,
+    brackets, colons, and commas. The function never raises, it sets no limit on
+    the depth of arrays and objects, and it uses no stack space that grows with
+    that depth. *)
