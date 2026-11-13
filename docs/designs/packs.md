@@ -607,7 +607,7 @@ interface, as the paragraph after the table says:
 | `sinter_bind` | `[i32 i32 i32 i32] -> [i64]` | the function bind: reads the test results of the report content and binds them to test entries |
 
 The module can export other names, such as the globals `__data_end` and
-`__heap_base` that the Rust compiler adds. This is version 1 of the
+`__heap_base` that some compilers add. This is version 1 of the
 interface. A module gives that version when the decision of the program
 runs, in a new instance of the module, the instantiation and then one
 invocation of `sinter_interface`, and nothing else in that instance, and
