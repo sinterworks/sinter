@@ -99,7 +99,7 @@ meaning of a vector.
 | [hold directly](sinter:#containment=v1) | an item of the kind design holds an item of the kind requirement or a term directly when that item belongs to it and to no item of the kind specification |
 | [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the name in the target of its declaration, which is a slug, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, the name in the target of its declaration, except when that name is one segment and the item belongs to an item of the kind design: then the name of that item of the kind design, `#`, and that segment, such as `billing#amount` |
 | [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests such that the file of the one test and the file of the other test have the same valid path, and the names of the two tests are equal |
-| [conformance vector](sinter:#conformance-vector=v1) | the item whose vector line is one vector line of a vector set, with the number of that line; when the object of its vector line states a vector by the forms of its group, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
+| [conformance vector](sinter:#conformance-vector=v1) | the item whose vector line is one vector line of a vector set, with the number of that line; when the object of its vector line states a vector of the specification or the design of the vector set by the forms of its group, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | one vector line of a vector set; each vector line of a vector set is the vector line of one conformance vector, and a vector set has no other conformance vector |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [number of a conformance vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of the member `n` of its object, a whole number of 1 or more |
@@ -134,7 +134,7 @@ meaning of a vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to a conformance vector, a group of conformance vectors, or a vector set, when it is, or has in it, a conformance vector that says a vector and among the requirements of whose group is the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to a conformance vector, a group of conformance vectors, or a vector set, when its cited item is, or has in it, a conformance vector that says a vector and among the requirements of whose group is the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -199,7 +199,7 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `billing#amount`, or a slug (section 2.4) | when it has a label |
 | decision record | a declared item whose declaration word is `@decision`, which records one practice or one choice | a slug, such as `code-comments` | yes |
 | declared finding class | a declared item whose declaration word is `@finding-class`, a finding class that a repository declares for itself | a slug, such as `late-fee` | yes |
-| conformance vector | the item whose vector line is one vector line of a vector set; when the object of that line states a vector by the forms of its group, it says that vector: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them; otherwise it says no vector | its vector set and its number | yes |
+| conformance vector | the item whose vector line is one vector line of a vector set; when the object of that line states a vector of its specification or its design by the forms of its group, it says that vector: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them; otherwise it says no vector | its vector set and its number | yes |
 | group of conformance vectors | the conformance vectors of one vector set whose vector lines have one group as the value of the member `group` | its vector set and its name | yes |
 | vector set | the test-vector set of one item of the kind specification or of one item of the kind design | its item of the kind specification or design | yes |
 | task | one piece of work | a work item id | no |
@@ -347,9 +347,10 @@ a declared item.
 
 ### 2.6 Conformance vectors
 
-A conformance vector says what the object of its vector line states by
-the forms of its group, and it says no vector when that object states no
-vector (term `conformance-vector`). What a conformance vector says
+A conformance vector says the vector of its specification or its
+design that the object of its vector line states by the forms of its
+group, and it says no vector when that object states none (term
+`conformance-vector`). What a conformance vector says
 follows from the requirements of its specification or its design, and
 the conformance vector adds no requirement of its own.
 
@@ -629,7 +630,7 @@ entry that records the removal and its reason. A removed ledger entry is
 no longer in the ledger, so no state follows from it.
 
 A ledger entry records one event, such as one approval that a person
-gave, or one observation of the job. Each ledger entry also records its
+gave, or one observation of the job. A ledger entry can also record its
 writer: the person, the agent, or the job that, as the ledger entry
 says, wrote it. When its writer is an agent, the ledger entry also
 records the person for whom that agent acts. A ledger entry can also
@@ -1039,9 +1040,11 @@ groups.
 Each vector line of a vector set is the vector line of one conformance
 vector of that vector set, and the vector set has no other conformance
 vector. The number of a conformance vector is the number of its vector
-line. When the object of its vector line states a vector by the forms of
-its group, the conformance vector says that vector: for the vector set
-of an item of the kind specification, an input, or several inputs, of a
+line. When the object of its vector line states a vector of the
+specification that the item of its vector set declares, or of the design
+that is that item, by the forms of its group, the conformance vector
+says that vector: for the vector set of an item of the kind
+specification, an input, or several inputs, of a
 conforming program of the specification that the item declares, and what
 the requirements of that specification oblige that program to give for
 them; for the vector set of an item of the kind design, an input, or
@@ -1496,8 +1499,8 @@ the task without finishing it.
 A ledger entry is a record of one event, such as one approval that a
 person gave, or one observation of the job. Each ledger entry has one
 of these eight kinds of ledger entry: `task`, `plan`, `approval`,
-`decline`, `done`, `abandoned`, `delivered`, and `void`. Each ledger
-entry records a writer: the person, the agent, or the job that, as the
+`decline`, `done`, `abandoned`, `delivered`, and `void`. A ledger entry
+can record a writer: the person, the agent, or the job that, as the
 ledger entry says, wrote it. When the writer that a ledger entry records
 is an agent, the ledger entry also records a person: the person for
 whom, as the ledger entry says, that agent acts. A ledger entry can also
@@ -1520,13 +1523,11 @@ entries of the ledger, for a whole number n of 0 or more. The point of a
 ledger entry is the point right before it. In a pull of ledger entries,
 a clone of the repository takes the ledger entries, `void` ledger
 entries included, that the ledger of another clone has, and puts them
-first in its ledger; after them, it can put ledger entries that its
-ledger had, other than those that it takes, each as the same ledger
-entry, and the others of these ledger entries leave its ledger. In a
-push of ledger entries, a clone puts the ledger entries of its ledger
-that the ledger of another clone does not have after the ledger entries
-of the ledger of the other clone. Pulls of ledger entries and pushes of
-ledger entries are not appending.
+first in its ledger; after them, it can put other ledger entries that
+its ledger had, each as the same ledger entry. In a push of ledger
+entries, a clone puts ledger entries of its ledger after the ledger
+entries of the ledger of another clone. Pulls of ledger entries and
+pushes of ledger entries are not appending.
 
 ### 3.43 Repairs and voids
 
