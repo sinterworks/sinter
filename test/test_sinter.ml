@@ -63,6 +63,7 @@ let () =
       ("tag line", Test_tag_line.tests);
       ("slug", Test_slug.tests);
       ("text", Test_text.tests);
+      ("paths", Test_path.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);
