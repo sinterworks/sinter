@@ -55,21 +55,19 @@ conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, it takes the remotes of a
-git repository and the settings `remote.<name>.url` and
-`url.<base>.insteadOf`. From
-RFC 3339, it takes the rule `date-time` of its ABNF, for the time at
-which a ledger entry was written. The production `chunk-path` is
-written in ABNF, the notation of RFC 5234, with the case-sensitive
-strings `%s"…"` of RFC 7405. From RFC 8259, the design takes JSON texts,
-with their objects, members, arrays, strings, and numbers: each line of
-the file that holds the conformance vectors of the design is a JSON
-text.
+git repository. From RFC 3339, it takes the rule `date-time` of its
+ABNF, for the time at which a ledger entry was written. The production
+`chunk-path` is written in ABNF, the notation of RFC 5234, with the
+case-sensitive strings `%s"…"` of RFC 7405. From RFC 8259, the design
+takes JSON texts, with their objects, members, arrays, strings, and
+numbers: each line of the file that holds the conformance vectors of the
+design is a JSON text.
 
 ## 1. Glossary
 
 | word or phrase | meaning |
 |---|---|
-| [ledger](sinter:ontology#ledger=v1) | a sequence of ledger entries; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone, and a push of ledger entries gives the ledger entries of a clone to another clone; neither is appending |
+| [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone and puts them first in its ledger, and a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
 | [point of a ledger](sinter:ontology#ledger=v1) | a point between two ledger entries of a ledger, before the first, or after the last; the point of a ledger entry is the point right before it |
 | [ledger entry](sinter:ontology#ledger-entry=v1) | a record of one event, such as one approval; each ledger entry has one of the eight kinds `task`, `plan`, `approval`, `decline`, `done`, `abandoned`, `delivered`, and `void` |
 | [definition entry](sinter:ontology#definition-entry=v1) | a ledger entry of the kind `task` or `plan` |
@@ -101,11 +99,11 @@ text.
 | [extend](sinter:#ledger-extension=v1) | a commit extends a commit c when it is c, or when the chain of its single parents leads to c and each commit of the chain holds each line of its parent |
 | [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | the git repository that a clone names by the remote whose name the parameter `ledger-remote` gives, such as the git repository on the host of a project; the stored ledger of that git repository |
+| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | the git repository that the remote of a git repository gives whose name is the binding of the parameter `ledger-remote`, such as the git repository on the host of a project, when it has such a remote; the stored ledger of that git repository |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
-| [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when, other than in an append, its ledger ref changes to a commit that extends a commit to which the ledger ref of the shared clone points, or pointed, and whose other lines come from its own lines; a pull commit of that commit over the former ledger commit holds the lines of that commit and, after them, a line for each line of the former ledger commit that that commit does not account for and that stays, with the next `seq` |
-| [push](sinter:#push=v1) | a clone pushes its ledger entries to its shared clone when, other than in an append, the ledger ref of the shared clone changes, from a commit that the new commit extends or from not existing, to a commit to which the ledger ref of the clone points, or pointed |
+| [pull](sinter:ontology#ledger=v1), [push](sinter:ontology#ledger=v1) | a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone and puts them first in its ledger; a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
+| [pull commit](sinter:#pull-commit=v1) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`; it is s when no line stays |
 | [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; the input of an execution says that an agent runs the execution when a process of that execution has one |
 | [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; the input of an execution says that the execution is the job when a process of that execution has one |
 | environment | the environment variables of a process |
@@ -258,27 +256,29 @@ shared clone does not account for it (term `accounted-line`); a line
 that a repair of the shared clone replaced with a void is accounted for,
 so it is not provisional.
 
-A clone pushes its ledger entries to its shared clone (term `push`). The
-requirement `push-only-extensions` gives the commit that a push sends
-and what a program checks before it. So when the shared clone pulls from
-no shared clone of its own, each ledger entry of the shared ledger keeps
-its `seq`, and the shared ledger changes only at its end, other than in
-a repair.
+A clone pushes its ledger entries to its shared clone. The requirement
+`push-only-extensions` gives the commit that a push sends and what a
+program checks before it. So when the shared clone pulls from no shared
+clone of its own, each ledger entry of the shared ledger keeps its
+`seq`, and the shared ledger changes only at its end, other than in a
+repair. A shared clone that pulls from a shared clone of its own can
+give entries of the shared ledger new values of `seq`.
 
 When another clone pushed first, the ledger commit of a clone does not
 extend the ledger commit of its shared clone. The clone then pulls the
-ledger entries of its shared clone (term `pull`), from a commit s that
-the requirement `pull-shared-entries` allows. Its new ledger commit is a
-pull commit (term `pull-commit`): it holds the lines of s, and after
-them those of its own lines for which s does not account that stay,
-each as the same ledger entry with the next `seq`. Such a line stays
-only when its ledger entry is accepted at its new point. The program
-reports each such line that leaves (requirement
-`report-leaving-entries`); a line for which s accounts neither stays
-nor leaves, so the program does not report it. The requirements
-`pull-shared-entries` and `refuse-unsafe-pulls` give when a program can
-pull and what it changes; so a newer line, and a line of a kind that is
-none of the eight kinds, is never lost in a pull.
+ledger entries of its shared clone, from a commit s that the requirement
+`pull-shared-entries` allows. Its new ledger commit is a pull commit
+(term `pull-commit`): it holds the lines of s, and after them those of
+its own lines for which s does not account that stay, each as the same
+ledger entry with the next `seq`. Such a line stays only when its ledger
+entry is accepted at its new point. The program reports each such line
+that leaves (requirement `report-leaving-entries`); a line for which s
+accounts neither stays nor leaves, so the program does not report it.
+The requirements `pull-shared-entries` and `refuse-unsafe-pulls` give
+when a program can pull and what it changes; so a newer line, and a line
+of a kind that is none of the eight kinds, is never lost in a pull. When
+two copies of one clone both pull and push, one ledger entry can stand
+twice in the shared ledger.
 
 A pull is not an append, and a program whose input says that an agent
 runs the execution can pull and push ledger entries. A program changes
@@ -313,8 +313,9 @@ it holds a ledger entry that the repair removed.
 
 A change of the ledger ref of the shared clone to a commit that does not
 extend its ledger commit, such as a commit that a repair made in another
-clone, is no push (term `push`). A program makes such a change only as a
-repair of the shared ledger, in the form that the requirement
+clone, is no push: it does not put ledger entries after those of the
+shared ledger. A program makes such a change only as a repair of the
+shared ledger, in the form that the requirement
 `repair-ledgers-with-voids` gives for the ledger commit of the shared
 clone.
 
@@ -624,14 +625,13 @@ are accepted at no point.
     #{stored-ledger=v1},
 }
 
-For the text `<name>` of the binding of the parameter `ledger-remote`,
-the shared clone of a git repository is the git repository at the first
-of the values of the setting `remote.<name>.url` of its git
-configuration that come after its last empty value, after the rewrites
-that the settings `url.<base>.insteadOf` of that git configuration give,
-as the page git-config gives them. A git repository whose git
-configuration gives no such value has no shared clone. The shared ledger
-of a git repository is the stored ledger of its shared clone.
+For the text r of the binding of the parameter `ledger-remote`, the
+shared clone of a git repository is the git repository that its remote
+with the name r gives, as the page git-config gives remotes. A git
+repository whose git configuration gives no remote with the name r has
+no shared clone. The
+shared ledger of a git repository is the stored ledger of its shared
+clone.
 
 ### 4.14 Accounted lines
 
@@ -647,40 +647,7 @@ one of its lines is that line, or the object of one of its lines has the
 member `kind` with the value `void` and the member `dropped` with the
 value of the member `id` of the JSON value of that line.
 
-### 4.15 Pulls
-
-@term pull=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1},
-    text#{code-span=v1},
-    #{ledger-ref=v1, chunk=v1, shared-clone=v1, ledger-extension=v1},
-}
-
-A git repository A pulls the ledger entries of its shared clone S when,
-other than to append ledger entries, the ledger ref of A changes, from a
-commit a or from not existing, to a commit d that extends a commit s to
-which the ledger ref of S points, or pointed, and when each line of the
-git tree object of d that is not a line of the git tree object of s
-comes from a line of the git tree object of a. A line comes from a line
-l when its object has the members of the object of l other than `seq`
-and `id`, and has no other member than these, `seq`, and `id`.
-
-### 4.16 Pushes
-
-@term push=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1},
-    #{ledger-ref=v1, shared-clone=v1, ledger-extension=v1},
-}
-
-A git repository A pushes its ledger entries to its shared clone S when,
-other than to append ledger entries, the ledger ref of S changes to a
-commit to which the ledger ref of A points, or pointed, from a commit c
-that the new commit extends, or from not existing.
-
-### 4.17 Pull commits
+### 4.15 Pull commits
 
 @term pull-commit=v1
 @cites {
@@ -723,7 +690,7 @@ stays and d is s, or at least one line stays and each of these is true:
    from li with the `seq` n + k + 1, with k the number of lines that
    stay before li.
 
-### 4.18 Agent markers
+### 4.16 Agent markers
 
 @term agent-marker=v1
 @cites {
@@ -737,7 +704,7 @@ whatever the value of that variable. The input of an execution of a
 program says that an agent runs the execution when, and only when, the
 environment of a process of that execution holds an agent marker.
 
-### 4.19 Job markers
+### 4.17 Job markers
 
 @term job-marker=v1
 @cites {
@@ -933,14 +900,14 @@ the member `agent`.
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1, pull=v1, push=v1},
+    #{ledger-ref=v1, shared-clone=v1},
 }
 
 A conforming program must change the ledger ref of a git repository only
-to append ledger entries, to make a repair, to make the git repository
-pull the ledger entries of its shared clone, or to make another git
-repository, whose shared clone the git repository is, push its ledger
-entries to it.
+to append ledger entries, to make a repair, to pull into the git
+repository the ledger entries of its shared clone, or to push to the git
+repository the ledger entries of another git repository whose shared
+clone it is.
 
 ### 5.13 Pushes to the shared clone
 
@@ -952,21 +919,20 @@ entries to it.
     #{
         ledger-ref=v1, chunk=v1, shared-clone=v1, ledger-validity=v1,
         ledger-extension=v1, intact-history=v1, accepted-entry=v1,
-        push=v1,
     },
 }
 
-When a conforming program makes a git repository A push its ledger
-entries to its shared clone S, it must change the ledger ref of S, from
-its commit c or from not existing, only to a commit d such that each of
+When a conforming program pushes the ledger entries of a git repository
+A to its shared clone S, it must change the ledger ref of S, from its
+commit c or from not existing, only to a commit d such that each of
 these is true:
 
 1. The ledger commit of A extends d.
-2. When the ledger ref of S existed, the git tree object of each commit
-   that d reaches, and that c does not reach, is a valid ledger tree,
-   and each line of the git tree object of d that is not a line of the
-   git tree object of c has a ledger entry, and that ledger entry is
-   accepted at its point.
+2. When the ledger ref of S existed, d extends c, the git tree object of
+   each commit that d reaches, and that c does not reach, is a valid
+   ledger tree, and each line of the git tree object of d that is not a
+   line of the git tree object of c has a ledger entry, and that ledger
+   entry is accepted at its point.
 3. When the ledger ref of S did not exist, the history of the ledger of
    S is intact after the change.
 
@@ -976,10 +942,10 @@ these is true:
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1, pull=v1, pull-commit=v1},
+    #{ledger-ref=v1, shared-clone=v1, pull-commit=v1},
 }
 
-When a conforming program makes a git repository A pull the ledger
+When a conforming program pulls into a git repository A the ledger
 entries of its shared clone S, it must change the ledger ref of A, from
 its commit a or from not existing, to a pull commit of s over a, for a
 commit s to which the ledger ref of S points, or pointed after the last
@@ -989,14 +955,15 @@ change of the ledger ref of A.
 
 @req refuse-unsafe-pulls=v1
 @cites {
+    ontology#{ledger=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
         ledger-ref=v1, chunk=v1, shared-clone=v1, ledger-validity=v1,
-        pull=v1, accounted-line=v1,
+        accounted-line=v1,
     },
 }
 
-When a conforming program makes a git repository A pull the ledger
+When a conforming program pulls into a git repository A the ledger
 entries of its shared clone from a commit s, it must do so only when
 either the git tree object of s accounts for each line of the git tree
 object of the ledger commit of A, or the ledger of A is valid, the git
@@ -1010,11 +977,12 @@ and `void`.
 
 @req report-leaving-entries=v1
 @cites {
+    ontology#{ledger=v1},
     text#{conforming-program=v1, code-span=v1},
-    #{ledger-ref=v1, shared-clone=v1, chunk=v1, pull=v1, pull-commit=v1},
+    #{ledger-ref=v1, shared-clone=v1, chunk=v1, pull-commit=v1},
 }
 
-When a conforming program makes a git repository A pull the ledger
+When a conforming program pulls into a git repository A the ledger
 entries of its shared clone, from a commit s, over the commit a of the
 ledger ref of A, it must give the value of `id` of the object of each
 line that leaves, each once, and no other text as the `id` of a line
@@ -1024,13 +992,13 @@ that leaves.
 
 @req limit-programs-in-pulls-and-pushes=v1
 @cites {
-    ontology#{ledger-entry=v1},
+    ontology#{ledger=v1, ledger-entry=v1},
     changes#{run-no-configured-programs=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1, pull=v1},
+    #{ledger-ref=v1, shared-clone=v1},
 }
 
-When it makes a git repository pull the ledger entries of its shared
+When it pulls into a git repository the ledger entries of its shared
 clone, or changes the ledger ref of the shared clone of a git
 repository, a conforming program must run only the programs that the
 requirement `changes#run-no-configured-programs` allows to run.
