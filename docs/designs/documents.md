@@ -125,7 +125,7 @@ the conformance vectors of the design is a JSON text.
 | [scope](sinter:#item-scope=v1) | the file lines in which a design or a specification gathers its items: in markdown, the markdown lines of the section or the list item whose first paragraph has its declaration; in code, for a design, its claim, and for a specification, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
 | [innermost](sinter:#innermost-item=v1) | of some declared items whose claims, or whose scopes, have a thing in them, the one whose claim, or scope, is a subset of that of each of the others, when exactly one is |
 | [design of a slug](sinter:#slug-design=v1) | the item of the kind design whose name is the slug, when no other item of the kind design and no decision record has that name |
-| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names it by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
+| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names that requirement or term by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
@@ -194,9 +194,9 @@ A markdown file can start with [front matter](sinter:#front-matter=v1),
 such as lines of metadata between two lines of `---`. The rest of its
 text is its markdown text, which CommonMark 0.31.2 parses into blocks.
 
-The tags of a markdown file count only in its
-[tag texts](sinter:#tag-text=v1). Inline citations count in all of its
-markdown text: an inline citation in a heading is an
+The tag lines of a markdown file are inputs of the tree only in its
+[tag texts](sinter:#tag-text=v1). Its inline citations are inputs in all
+of its markdown text: an inline citation in a heading is an
 [input of the tree](sinter:#accepted-input=v1).
 
 This file has three tag texts:
@@ -350,9 +350,8 @@ design `billing`, when the slug `billing` has a
 Names come in [sets of names](sinter:#name-set=v1). A citation entry or
 an inline citation names an item as
 [what names name](sinter:#named-item=v1) says. Its kind word
-[states](sinter:#stated-kind=v1) kinds of item, and a cited item of
-another kind is a finding of the class
-[`wrong-kind`](sinter:#wrong-kind-finding=v1). For example,
+[states](sinter:#stated-kind=v1) kinds of item, which the class
+[`wrong-kind`](sinter:#wrong-kind-finding=v1) checks. For example,
 `billing#limit-amount` names the item with that name in the set of the
 design of the slug `billing`, and `#limit-amount` names the item with
 the name `billing#limit-amount` when `billing` is the home design of the
@@ -413,7 +412,7 @@ line feed after it. Its extent hash is
 `39096d6a3499d398332a59e6882377d2f0b81e206429b16f163df9cb16c00656`.
 
 The [code hash](sinter:#code-hash=v1) of a run of comments is the hash
-of the code to which it attaches.
+of the code text of the attachment target to which it attaches.
 
 ### 2.10 Findings
 
@@ -1107,9 +1106,9 @@ blank, in the order of the file lines.
 @term item-scope=v1
 @cites {
     ontology#{declared-item=v1},
-    text#{boundary=v1, run=v1},
+    text#{boundary=v1, run=v1, place=v1},
     #{
-        item-file=v1, claim=v1, file-line=v1, tag-text=v1,
+        read-file=v1, item-file=v1, claim=v1, file-line=v1, tag-text=v1,
         comment-run=v1, attachment=v1, code-character=v1,
         markdown-line=v1, markdown-section=v1, markdown-list-item=v1,
     },
@@ -1187,9 +1186,9 @@ of a tree is the first of these that applies:
    innermost item: that innermost item.
 2. When it is in a code file, and the items of the kind requirement and
    the terms in whose claims it is have an innermost item by their
-   claims, the name in the target
-   of the declaration of that innermost item is a full name, and the
-   slug of that full name has a design: that design.
+   claims, the name in the target of the declaration of that innermost
+   item is a full name, and the slug of that full name has a design:
+   that design.
 3. When the items of the kind specification in whose scopes it is have
    an innermost item, the name in the target of the declaration of that
    innermost item is a full name, and the slug of that full name has a
@@ -1304,10 +1303,10 @@ and each character of these texts keeps the place that it comes from.
    from its `=` to its end.
 7. For each accepted input whose file is the file of d and that is a
    citation, and for each of its citation entries whose run in the text
-   of the citation has a `=`: remove each character that comes from the place of that `=`,
-   or from the place of a character of that run after that `=`, up to
-   the end of that run or, when the citation entry is an every-part
-   target, up to the `#` after that `=`, which stays.
+   of the citation has a `=`: remove each character that comes from the
+   place of that `=`, or from the place of a character of that run after
+   that `=`, up to the end of that run or, when the citation entry is an
+   every-part target, up to the `#` after that `=`, which stays.
 8. Join the texts of the lines that remain, in their order, each
    followed by one line feed.
 
@@ -1506,8 +1505,8 @@ nothing:
 @cites {
     ontology#{edge-source=v1, declared-item=v1, test=v1, tree=v1},
     #{
-        extent=v1, file-line=v1, file-test=v1, attachment=v1,
-        comment-run=v1, tag-text=v1, markdown-line=v1,
+        extent=v1, file-line=v1, file-test=v1, comment-run=v1,
+        tag-text=v1, markdown-line=v1,
     },
 }
 
@@ -1666,9 +1665,8 @@ the file and the span r.
 A tree finding of a tree, of the class that a slug c names, with a
 subject s and a spot p, is a finding whose tree is that tree, whose
 finding class is the class that c names, whose subject is s, whose spot
-is p, and that is not ackable. A tree finding has the message, the mark,
-the related messages, and the fix that the program that gives it gives
-as these parts of the finding.
+is p, and that is not ackable. Its message, its mark, its related
+messages, and its fix are those that the program that gives it gives.
 
 ### 4.47 Edit distance
 
@@ -2368,7 +2366,7 @@ and the set rise. A change of a note alone changes no revision. A
 program does not need the revisions to run the vectors.
 
 Inside the members `input` and `values`, each JSON value that this
-section names as a text, a whole number, a run, a position, a path
+section or its subsections name as a text, a whole number, a run, a position, a path
 set, a binding of `external-namespaces`, or a tree has this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
