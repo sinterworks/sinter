@@ -897,8 +897,8 @@ when, and only when, it meets each of these conditions:
      `strcmp`, `strlen`, `strncat`, `strncmp`, and `strncpy`, which act
      on memory and strings;
    - the functions `iswalnum`, `iswalpha`, `iswblank`, `iswdigit`,
-     `iswlower`, `iswspace`, `iswupper`, `iswxdigit`, `towlower`, and
-     `towupper`, which act on characters;
+     `iswlower`, `iswpunct`, `iswspace`, `iswupper`, `iswxdigit`,
+     `towlower`, and `towupper`, which act on characters;
    - the functions `abort`, `proc_exit`, and `__assert_fail`, which only
      trap.
 
@@ -906,8 +906,10 @@ when, and only when, it meets each of these conditions:
    the WebAssembly standard library of grammars that this format
    defines: for example, `iswspace` and `iswalpha`
    give the results of that library, and not those of the C library of
-   a system. The functions that act on memory and strings act as
-   ISO/IEC 9899:2024 defines them.
+   a system. For the characters from U+0000 to U+007F, `iswpunct` gives
+   a value other than 0 exactly for U+0021 to U+002F, U+003A to U+0040,
+   U+005B to U+0060, and U+007B to U+007E. The functions that act on
+   memory and strings act as ISO/IEC 9899:2024 defines them.
 3. It has exactly one custom section whose name is `dylink.0`. The
    content of that section after its name is a sequence of subsections.
    Each subsection is a byte, which is its type, then a u32 n, then n
@@ -1004,9 +1006,10 @@ grammar are these:
 
 The query language is the language of queries that tree-sitter's
 documentation of it defines. A query for a language is a sequence of
-patterns. A pattern captures nodes under capture names, each written `@`
-followed by the capture name, and each capture name of a pattern has a
-quantifier in it: zero, zero or one, zero or more, one, or one or more.
+zero or more patterns. A pattern captures nodes under capture names,
+each written `@` followed by the capture name, and each capture name of
+a pattern has a quantifier in it: zero, zero or one, zero or more, one,
+or one or more.
 
 White space in a query is a text that matches the production
 `query-space`: one of the characters U+0009 to U+000D and U+0020, or a
@@ -1111,9 +1114,9 @@ For a pair:
   as a String of its UTF-16 code units, with that whole text as its
   input and the search starting at index 0, as `RegExp.prototype.test`
   of ECMA-262 2025 does, and `#not-match?` and `#any-not-match?` hold
-  when it finds none. With the flag `u`, `\d` matches `0` to `9`; `\w`
-  matches the ASCII letters, the digits, and `_`; `\s` matches white
-  space and line terminators; each as ECMA-262 2025 defines them;
+  when it finds none. The character classes of the pattern, such as
+  `\w`, match as ECMA-262 2025 defines them. The Unicode Standard of
+  these patterns is its latest version, as ECMA-262 2025 requires;
 - `#any-of?` holds when the text of the node is the text of one of the
   strings, and `#not-any-of?` holds when it is the text of none of them.
 
