@@ -143,3 +143,139 @@ let canonical_byte_sequence value =
 
 let equal a b =
   String.equal (canonical_byte_sequence a) (canonical_byte_sequence b)
+
+type frame = In_array of t list | In_object of (Text.t * t) list * Text.t
+
+let is_digit byte = byte >= '0' && byte <= '9'
+let byte_at bytes i = if i < String.length bytes then bytes.[i] else '\000'
+let is_hex_digit byte = is_digit byte || (byte >= 'a' && byte <= 'f')
+
+let hex_value byte =
+  if is_digit byte then Char.code byte - Char.code '0'
+  else Char.code byte - Char.code 'a' + 10
+
+let has_short_form code =
+  code = 0x08 || code = 0x09 || code = 0x0A || code = 0x0C || code = 0x0D
+
+let read_string bytes start =
+  let byte = byte_at bytes in
+  let buffer =
+    Buffer.create
+      (16
+      [@mutaml.skip
+        "The size that a buffer starts with changes no byte that it holds."])
+  in
+  let rec go i =
+    match byte i with
+    | '"' -> (
+        match Text.decode (Buffer.contents buffer) with
+        | Ok text -> Some (text, i + 1)
+        | Error _ -> None)
+    | '\\' -> escape i (byte (i + 1))
+    | '\000' .. '\031' -> None
+    | other -> add other (i + 1)
+  and escape i = function
+    | '"' -> add '"' (i + 2)
+    | '\\' -> add '\\' (i + 2)
+    | 'b' -> add '\b' (i + 2)
+    | 't' -> add '\t' (i + 2)
+    | 'n' -> add '\n' (i + 2)
+    | 'f' -> add '\012' (i + 2)
+    | 'r' -> add '\r' (i + 2)
+    | 'u' ->
+        if
+          byte (i + 2) = '0'
+          && byte (i + 3) = '0'
+          && (byte (i + 4) = '0' || byte (i + 4) = '1')
+          && is_hex_digit (byte (i + 5))
+        then
+          let code =
+            (16 * hex_value (byte (i + 4))) + hex_value (byte (i + 5))
+          in
+          if has_short_form code then None else add (Char.chr code) (i + 6)
+        else None
+    | _ -> None
+  and add other next =
+    Buffer.add_char buffer other;
+    go next
+  in
+  go (start + 1)
+
+let read_digits bytes ~negative start =
+  let rec digits_end i =
+    if is_digit (byte_at bytes i) then digits_end (i + 1) else i
+  in
+  let finish = digits_end start in
+  match int_of_string_opt (String.sub bytes start (finish - start)) with
+  | Some magnitude ->
+      Option.map
+        (fun value -> (value, finish))
+        (integer (if negative then -magnitude else magnitude))
+  | None -> None
+
+let read_integer bytes start =
+  let negative = byte_at bytes start = '-' in
+  let digits_start = if negative then start + 1 else start in
+  match byte_at bytes digits_start with
+  | '0' -> if negative then None else Some (Integer 0, digits_start + 1)
+  | '1' .. '9' -> read_digits bytes ~negative digits_start
+  | _ -> None
+
+let read_literal bytes start literal value =
+  let length = String.length literal in
+  if
+    start + length <= String.length bytes
+    && String.equal (String.sub bytes start length) literal
+  then Some (value, start + length)
+  else None
+
+let read bytes =
+  let length = String.length bytes in
+  let at i byte = byte_at bytes i = byte in
+  let rec value i stack =
+    match byte_at bytes i with
+    | '"' -> (
+        match read_string bytes i with
+        | Some (text, next) -> complete (String text) next stack
+        | None -> None)
+    | '-' | '0' .. '9' -> scalar (read_integer bytes i) stack
+    | 't' -> scalar (read_literal bytes i "true" (Boolean true)) stack
+    | 'f' -> scalar (read_literal bytes i "false" (Boolean false)) stack
+    | '[' ->
+        if at (i + 1) ']' then complete (Array []) (i + 2) stack
+        else value (i + 1) (In_array [] :: stack)
+    | '{' ->
+        if at (i + 1) '}' then complete (Object []) (i + 2) stack
+        else member (i + 1) None [] stack
+    | _ -> None
+  and scalar read stack =
+    match read with Some (v, next) -> complete v next stack | None -> None
+  and member i previous members stack =
+    if not (at i '"') then None
+    else
+      match read_string bytes i with
+      | None -> None
+      | Some (key, next) ->
+          let in_order =
+            match previous with
+            | None -> true
+            | Some previous -> compare_keys previous key < 0
+          in
+          if in_order && at next ':' then
+            value (next + 1) (In_object (members, key) :: stack)
+          else None
+  and complete v i stack =
+    match stack with
+    | [] -> if i = length then Some v else None
+    | In_array elements :: rest ->
+        if at i ',' then value (i + 1) (In_array (v :: elements) :: rest)
+        else if at i ']' then
+          complete (Array (List.rev (v :: elements))) (i + 1) rest
+        else None
+    | In_object (members, key) :: rest ->
+        let members = (key, v) :: members in
+        if at i ',' then member (i + 1) (Some key) members rest
+        else if at i '}' then complete (Object (List.rev members)) (i + 1) rest
+        else None
+  in
+  value 0 []

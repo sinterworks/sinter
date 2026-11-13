@@ -450,6 +450,128 @@ let deep_values_need_no_deep_stack () =
   Alcotest.(check bool) "equal" true equal;
   Alcotest.(check bool) "to_json_value" true (converted = Some bytes)
 
+let oracle_read bytes =
+  match V.read bytes with
+  | thing when V.canonical thing = Some bytes -> Some thing
+  | _ -> None
+  | exception _ -> None
+
+let oracle_read_line bytes =
+  let length = String.length bytes in
+  if length = 0 || bytes.[length - 1] <> '\n' then None
+  else
+    match oracle_read (String.sub bytes 0 (length - 1)) with
+    | Some thing when V.is_line_object thing -> Some thing
+    | _ -> None
+
+let same_value value thing =
+  V.canonical (vector_of_json value) = V.canonical thing
+
+let read_gives_back_each_json_value =
+  property
+    ~name:"read gives back each JSON value from its canonical byte sequence"
+    ~print:V.print V.value_gen (fun thing ->
+      match Json.read (Json.canonical_byte_sequence (json_value thing)) with
+      | Some value -> same_value value thing
+      | None -> false)
+
+let canonical_corruption_gen =
+  Gen.(
+    V.value_gen >>= fun thing ->
+    match V.canonical thing with
+    | Some bytes -> V.corrupt_gen bytes
+    | None -> return "")
+
+let read_accepts_exactly_canonical_byte_sequences =
+  property ~count:2000
+    ~name:"read accepts a byte sequence when, and only when, it is canonical"
+    ~print:print_bytes canonical_corruption_gen (fun bytes ->
+      match (Json.read bytes, oracle_read bytes) with
+      | Some value, Some thing ->
+          same_value value thing
+          && String.equal (Json.canonical_byte_sequence value) bytes
+      | None, None -> true
+      | _ -> false)
+
+let any_bytes_gen =
+  Gen.oneof
+    [
+      Gen.string_size ~gen:Gen.char (Gen.int_range 0 24);
+      Gen.string_size ~gen:V.byte_gen (Gen.int_range 0 24);
+    ]
+
+let read_answers_any_bytes =
+  property ~count:2000 ~name:"read gives a value or nothing for any bytes"
+    ~print:print_bytes any_bytes_gen (fun bytes ->
+      match Json.read bytes with
+      | Some value -> String.equal (Json.canonical_byte_sequence value) bytes
+      | None -> Option.is_none (oracle_read bytes))
+
+let deep_bytes_need_no_deep_stack () =
+  let value, _, bytes = deep_json () in
+  let _, prefix, _ = deep_parts () in
+  let read, unclosed =
+    Small_stack.run (fun () -> (Json.read bytes, Json.read (prefix ^ "true")))
+  in
+  Alcotest.(check bool)
+    "the deep value" true
+    (match read with Some read -> Json.equal read value | None -> false);
+  Alcotest.(check bool) "the unclosed value" true (Option.is_none unclosed)
+
+let escapes_of_control_characters_follow_the_string_forms () =
+  List.iter
+    (fun (code, format) ->
+      let bytes =
+        "\"" ^ String.make 1 '\\' ^ "u" ^ Printf.sprintf format code ^ "\""
+      in
+      let have = Json.read bytes and want = oracle_read bytes in
+      Alcotest.(check bool)
+        (Printf.sprintf "read of %s" bytes)
+        true
+        (match (have, want) with
+        | Some value, Some thing -> same_value value thing
+        | None, None -> true
+        | _ -> false))
+    (List.concat_map
+       (fun code -> [ (code, format_of_string "%04x"); (code, "%04X") ])
+       (List.init 0x21 Fun.id))
+
+let prefix_gen =
+  Gen.(
+    V.value_gen >>= fun thing ->
+    match V.canonical thing with
+    | Some bytes ->
+        map
+          (fun cut -> String.sub bytes 0 (cut mod (String.length bytes + 1)))
+          nat
+    | None -> return "")
+
+let read_answers_each_prefix =
+  property ~count:2000
+    ~name:
+      "read gives a value or nothing for each prefix of a canonical byte \
+       sequence" ~print:print_bytes prefix_gen (fun bytes ->
+      match (Json.read bytes, oracle_read bytes) with
+      | Some value, Some thing -> same_value value thing
+      | None, None -> true
+      | _ -> false)
+
+let number_text_gen =
+  Gen.map2
+    (fun sign digits -> sign ^ digits)
+    (Gen.oneof_list [ ""; "-" ])
+    (Gen.string_size ~gen:(Gen.char_range '0' '9') (Gen.int_range 1 25))
+
+let read_answers_each_number =
+  property ~count:1000
+    ~name:
+      "read gives an integer for a decimal numeral when, and only when, it is \
+       canonical" ~print:Fun.id number_text_gen (fun bytes ->
+      match (Json.read bytes, oracle_read bytes) with
+      | Some value, Some thing -> same_value value thing
+      | None, None -> true
+      | _ -> false)
+
 let tests_of_json =
   [
     Alcotest.test_case "numbers that are not JSON numbers give no JSON value"
@@ -475,7 +597,161 @@ let tests_of_json =
     object_keeps_the_members_in_key_order;
     integer_refuses_numbers_out_of_range;
     equal_holds_for_the_same_json_value;
+    Alcotest.test_case "deep byte sequences need no deep stack" `Quick
+      deep_bytes_need_no_deep_stack;
+    read_gives_back_each_json_value;
+    read_accepts_exactly_canonical_byte_sequences;
+    read_answers_any_bytes;
+    Alcotest.test_case "escapes of control characters follow the string forms"
+      `Quick escapes_of_control_characters_follow_the_string_forms;
+    read_answers_each_prefix;
+    read_answers_each_number;
   ]
 
-let vector_groups = [ write_json_vectors ]
-let tests = Vectors.tests "data-forms.json-lines" vector_groups @ tests_of_json
+let give_write_line (vector : Vectors.vector) =
+  let values =
+    match
+      Option.bind
+        (Json_text.to_json_value (library_thing (V.read (input_text vector))))
+        Json_line.of_json
+    with
+    | Some line_object ->
+        `Assoc
+          [
+            ( "canonical-line",
+              `String (V.hex (Json_line.canonical_line line_object)) );
+          ]
+    | None -> `Assoc []
+  in
+  `Assoc [ ("values", values) ]
+
+(* @verifies data-forms#json-lines[write-line][*]=v1
+   The test fails when a line object of a vector gets a byte sequence other
+   than its canonical line, or when a thing that is not a line object, and
+   so has no canonical line, gets one. *)
+let write_line_vectors =
+  Vectors.group json_lines_set ~name:"write-line" ~rev:"v1" give_write_line
+
+let give_read_line (vector : Vectors.vector) =
+  match Json_line.read (V.of_hex (input_text vector)) with
+  | Some line_object ->
+      `Assoc
+        [
+          ("result", `String "valid");
+          ( "values",
+            `Assoc [ ("line-object", basic_of_json (line_object :> Json.t)) ] );
+        ]
+  | None -> `Assoc [ ("result", `String "invalid"); ("values", `Assoc []) ]
+
+(* @verifies data-forms#json-lines[read-line][*]=v1
+   read gives a result for every byte sequence; the test fails when that
+   result, or the line object that read gives, differs from the result
+   and the line object of a vector. *)
+let read_line_vectors =
+  Vectors.group json_lines_set ~name:"read-line" ~rev:"v1" give_read_line
+
+let line thing =
+  Option.bind (Json_text.to_json_value (library_thing thing)) Json_line.of_json
+
+(* @verifies data-forms#write-canonical-line=v1
+   The test fails when a generated thing that is not a line object, and so
+   has no canonical line, gets a byte sequence, or when a line object gets
+   one other than its canonical line. *)
+let only_line_objects_have_canonical_lines =
+  property ~count:1000
+    ~name:
+      "a thing has a canonical line when, and only when, it is a line object"
+    ~print:V.print
+    (Gen.oneof [ V.thing_gen; V.line_object_gen ])
+    (fun thing ->
+      Option.map Json_line.canonical_line (line thing) = V.canonical_line thing)
+
+let of_json_keeps_the_value =
+  property ~name:"of_json gives back the line object that it takes"
+    ~print:V.print V.line_object_gen (fun thing ->
+      match line thing with
+      | Some line_object ->
+          Json.equal (line_object :> Json.t) (json_value thing)
+      | None -> false)
+
+(* @verifies data-forms#{read-canonical-line=v1, give-only-line-objects=v1}
+   read gives a result for every byte sequence; the test fails when it
+   gives "invalid" for the canonical line of a generated line object, or a
+   line object other than that one. *)
+let read_gives_back_each_line_object =
+  property ~name:"read gives back each line object from its canonical line"
+    ~print:V.print V.line_object_gen (fun thing ->
+      match V.canonical_line thing with
+      | Some bytes -> (
+          match Json_line.read bytes with
+          | Some line_object -> same_value (line_object :> Json.t) thing
+          | None -> false)
+      | None -> false)
+
+let line_corruption_gen =
+  Gen.(
+    V.line_object_gen >>= fun thing ->
+    match V.canonical_line thing with
+    | Some bytes -> V.corrupt_gen bytes
+    | None -> return "")
+
+(* @verifies data-forms#{read-canonical-line=v1, give-only-line-objects=v1}
+   The test changes canonical lines by one byte, and fails when read gives
+   "valid" and a line object for a byte sequence that is not a canonical
+   line, "invalid" for one that is, or a line object whose canonical line
+   the byte sequence is not. *)
+let read_accepts_exactly_canonical_lines =
+  property ~count:2000
+    ~name:
+      "read accepts a byte sequence when, and only when, it is a canonical line"
+    ~print:print_bytes line_corruption_gen (fun bytes ->
+      match (Json_line.read bytes, oracle_read_line bytes) with
+      | Some line_object, Some thing ->
+          same_value (line_object :> Json.t) thing
+          && String.equal (Json_line.canonical_line line_object) bytes
+      | None, None -> true
+      | _ -> false)
+
+(* @verifies data-forms#{read-canonical-line=v1, give-only-line-objects=v1}
+   The test gives any bytes and fails when read gives a line object whose
+   canonical line the byte sequence is not, or "invalid" for a byte
+   sequence that is a canonical line. *)
+let read_line_answers_any_bytes =
+  property ~count:2000
+    ~name:"read of a line gives a line object or nothing for any bytes"
+    ~print:print_bytes any_bytes_gen (fun bytes ->
+      match Json_line.read bytes with
+      | Some line_object ->
+          String.equal (Json_line.canonical_line line_object) bytes
+      | None -> Option.is_none (oracle_read_line bytes))
+
+let deep_lines_need_no_deep_stack () =
+  let value, _, bytes = deep_json () in
+  let _, prefix, _ = deep_parts () in
+  let line_of_value, read_deep, read_unclosed =
+    Small_stack.run (fun () ->
+        ( Json_line.of_json value,
+          Json_line.read ("{\"a\":" ^ bytes ^ "}\n"),
+          Json_line.read ("{\"a\":" ^ prefix) ))
+  in
+  Alcotest.(check bool) "of_json" true (Option.is_none line_of_value);
+  Alcotest.(check bool) "the deep line" true (Option.is_none read_deep);
+  Alcotest.(check bool) "the unclosed line" true (Option.is_none read_unclosed)
+
+let tests_of_lines =
+  [
+    Alcotest.test_case "deep lines need no deep stack" `Quick
+      deep_lines_need_no_deep_stack;
+    only_line_objects_have_canonical_lines;
+    of_json_keeps_the_value;
+    read_gives_back_each_line_object;
+    read_accepts_exactly_canonical_lines;
+    read_line_answers_any_bytes;
+  ]
+
+let vector_groups =
+  [ write_json_vectors; write_line_vectors; read_line_vectors ]
+
+let tests =
+  Vectors.tests "data-forms.json-lines" vector_groups
+  @ tests_of_json @ tests_of_lines
