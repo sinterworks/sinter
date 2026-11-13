@@ -134,6 +134,11 @@ let value_cases : (string * M.value option) list =
   [
     ("a = 99999999999999999999999999999999", None);
     ("a = " ^ below halfway_low, Some (M.Float 1.));
+    ("a = 1 #9-", Some (M.Integer 1L));
+    ("a = 1#99-", Some (M.Integer 1L));
+    ("a = 12#9-", Some (M.Integer 12L));
+    ("a = 0#:x", Some (M.Integer 0L));
+    ("a = 0\nx9-c-9 = 1", Some (M.Integer 0L));
   ]
 
 let value_of_a = function
