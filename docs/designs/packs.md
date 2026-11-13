@@ -12,7 +12,8 @@
 @cites rfc/7405
 @cites rfc/8259
 @cites posix/2024
-@cites tree-sitter/0.26.13
+@cites tree-sitter/language-format
+@cites tree-sitter/query-language
 @cites wasm-core/2.0
 @cites ecma/262-2025
 @cites iso/9899-2024
@@ -84,11 +85,12 @@ From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
 of the design hold one JSON text on each line. From POSIX.1-2024, it
 takes the permissions and the appropriate privileges of a process, and
-the portable filename character set. From tree-sitter, as it defines
-them from 0.26.13 on, the design takes the format of languages, the
-parse trees that its parsing gives, and its query language, with
-patterns, captures, predicates, quantifiers, and the matches of a
-query. From the WebAssembly Core Specification 2.0, it
+the portable filename character set. From tree-sitter, the design takes
+the format of languages, in its ABI versions 13 to 15, with the parse
+trees that the parsing of a language gives and the WebAssembly standard
+library of grammars; and the query language, as tree-sitter's
+documentation of it defines it, with patterns, captures, predicates,
+quantifiers, and the matches of a query. From the WebAssembly Core Specification 2.0, it
 takes modules, their validation, imports, exports, functions, memories,
 tables, instances, traps, and the execution of code. From ECMA-262
 2025, it takes RegExp patterns, with the flag `u`, and their matching.
@@ -129,7 +131,7 @@ functions of memory and strings that a grammar can import.
 | [adapter hash, adapter license](sinter:#test-runner=v1) | the hash that the descriptor gives for the adapter file of a test runner, and the license of that adapter, which a descriptor gives for a test runner that has an adapter of its own |
 | [match table](sinter:#test-runner=v1) | the table of `match` in the table of a test runner of a valid descriptor, which a test runner has when it has no adapter hash |
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
-| tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees; here, as tree-sitter defines them from 0.26.13 on |
+| tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
 | [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
@@ -854,7 +856,7 @@ that specification.
 
 @term usable-grammar=v1
 @cites {
-    tree-sitter/0.26.13, wasm-core/2.0, iso/9899-2024,
+    tree-sitter/language-format, wasm-core/2.0, iso/9899-2024,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
         code-span=v1,
@@ -863,8 +865,8 @@ that specification.
 }
 
 This definition uses the format of languages that tree-sitter defines,
-from 0.26.13 on: a language has an ABI version, which is a whole number,
-and symbols, each with a name, which is a byte sequence. A byte sequence
+in its ABI versions 13 to 15: a language has an ABI version, which is a
+whole number, and symbols, each with a name, which is a byte sequence. A byte sequence
 is a usable grammar with a grammar name g when, and only when, it meets
 each of these conditions:
 
@@ -887,8 +889,8 @@ each of these conditions:
      trap.
 
    Each function of this list behaves as the function of that name of
-   the WebAssembly standard library that tree-sitter defines for
-   grammars, from 0.26.13 on: for example, `iswspace` and `iswalpha`
+   the WebAssembly standard library of grammars that this format
+   defines: for example, `iswspace` and `iswalpha`
    give the results of that library, and not those of the C library of
    a system. The functions that act on memory and strings act as
    ISO/IEC 9899:2024 defines them.
@@ -908,13 +910,13 @@ language, and its ABI version is the ABI version of that language.
 
 @term query-language=v1
 @cites {
-    tree-sitter/0.26.13,
+    tree-sitter/query-language,
     text#{text=v1, character=v1, line-feed=v1, u-numeral=v1, code-span=v1},
     #{parse-tree=v1},
 }
 
-The query language is the language of queries that tree-sitter defines,
-from 0.26.13 on. A query for a language is a sequence of patterns. A
+The query language is the language of queries that tree-sitter's
+documentation of it defines. A query for a language is a sequence of patterns. A
 pattern captures nodes under capture names, each written `@` followed by
 the capture name, and each capture name of a pattern has a quantifier in
 it: zero, zero or one, zero or more, one, or one or more. A pattern can
@@ -1092,7 +1094,7 @@ its file `adapters/<r>.wasm`.
 
 @term parse-tree=v1
 @cites {
-    tree-sitter/0.26.13,
+    tree-sitter/language-format,
     text#{
         text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
         whole-number=v1, code-span=v1,
@@ -1100,9 +1102,9 @@ its file `adapters/<r>.wasm`.
     #{usable-grammar=v1, grammar-name=v1},
 }
 
-This definition uses the parsing that tree-sitter defines, from 0.26.13
-on, which gives, for a language and a byte sequence, a parse tree or no
-parse tree. A parse tree has a root node, and the children of each node
+This definition uses the parsing that the format of languages of
+tree-sitter defines, which gives, for a language and a byte sequence, a
+parse tree or no parse tree. A parse tree has a root node, and the children of each node
 of a parse tree are its named and its anonymous child nodes, in their
 order. A node of a hidden symbol is no node of the parse tree, and its
 children stand in its place. Each node has a symbol, and each symbol has
