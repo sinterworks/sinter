@@ -473,7 +473,9 @@ let offset reader start =
   | _ -> None
 
 let starts_time reader index =
-  is_digit (byte_at reader index) && byte_at reader (index + 2) = ':'
+  is_digit (byte_at reader index)
+  && is_digit (byte_at reader (index + 1))
+  && byte_at reader (index + 2) = ':'
 
 (* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
    A date-time matches the rules local-time, local-date, local-date-time, and
@@ -511,7 +513,9 @@ let date_time reader =
   end
 
 let starts_date reader =
-  is_digit (byte_at reader (reader.pos + 3))
+  is_digit (byte_at reader (reader.pos + 1))
+  && is_digit (byte_at reader (reader.pos + 2))
+  && is_digit (byte_at reader (reader.pos + 3))
   && byte_at reader (reader.pos + 4) = '-'
 
 let scalar reader =
