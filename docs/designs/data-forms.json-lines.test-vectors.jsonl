@@ -133,3 +133,6 @@
 {"group":"write-json","input":"1E+0000000000000000002","n":128,"note":"the exponent +0000000000000000002 is 2, so the number writes the whole number 100","rev":"v1","values":{"canonical-byte-sequence":"313030"}}
 {"group":"write-json","input":"\"\\udc00\\udc00\"","n":129,"note":"two escape sequences of numbers from 0xDC00 to 0xDFFF are not the two escape sequences of a character","rev":"v1","values":{}}
 {"group":"write-json","input":"\"\\ud800\\ue000\"","n":130,"note":"0xE000 is not from 0xDC00 to 0xDFFF, so the escape sequence `\\ud800` is not one of the two escape sequences of a character","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303039227d0a","n":131,"note":"the string form of the tab is `\\t`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303061227d0a","n":132,"note":"the string form of the line feed is `\\n`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303161227d0a","n":133,"note":"the string form of U+001A is `\\u001a`","result":"valid","rev":"v1","values":{"line-object":{"a":"\u001a"}}}
