@@ -173,23 +173,26 @@ Example:
 
 The **commitment-set hash** (`csh`) is SHA-256 over canonical bytes
 that hold the plan's commitment set ([vocabulary.md](vocabulary.md)
-section 10.6): the promises, each with the effective scope of its
+section 10.6): the promises, grouped by the effective scope of their
 step, and the plan scope. The canonical bytes are one JSON object in
 the canonical form of RFC 8785 (JCS) that section 2 uses, with no LF
 at the end. The object has two keys:
 
-- `promises`: an array with one object for each promise record of the
-  plan (section 5). Each object has three keys: `word` and `target`,
-  as the promise record gives them, and `scope`, the effective scope
-  of the promise's step. Two promises of two steps can give two equal
+- `groups`: an array with one object for each distinct effective scope
+  that holds at least one promise record of the plan (section 5). Each
+  object has two keys. `scope` is the effective scope. `promises` is an
+  array with one object for each promise of the steps with that scope.
+  Each promise object has two keys, `word` and `target`, as the promise
+  record gives them. Two promises of two steps can give two equal
   objects. Then the array holds both objects.
 - `scope`: the globs of the plan's own `@scope` line, or an empty
   array when the plan has no `@scope` line.
 
 Each array of globs holds each glob once, sorted in byte order. The
-promise objects are sorted by `word`, then by `target`, then by the
-canonical bytes of their `scope` array, each in byte order. The rules
-of section 2 for the values of a record do not apply to this object.
+promise objects of a group are sorted by `word`, then by `target`, each
+in byte order. The groups are sorted by the canonical bytes of their
+`scope` array, in byte order. The rules of section 2 for the values of
+a record do not apply to this object.
 
 The object holds no step slug, and a step with no promise adds nothing
 to it. So a step rename does not change `csh`, and a decline bound to
@@ -215,7 +218,7 @@ Example: this plan file gives the canonical bytes below it.
 ```
 
 ```
-{"promises":[{"scope":["src/**"],"target":"lockout-policy","word":"decision"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"req"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"verifies"}],"scope":["src/**"]}
+{"groups":[{"promises":[{"target":"lockout-policy","word":"decision"}],"scope":["src/**"]},{"promises":[{"target":"auth-lockout","word":"req"},{"target":"auth-lockout","word":"verifies"}],"scope":["src/auth/**"]}],"scope":["src/**"]}
 ```
 
 **`step`**
@@ -234,6 +237,7 @@ Example: this plan file gives the canonical bytes below it.
 | `delivery` | string | the delivery line of the step ([vocabulary.md](vocabulary.md) section 10.8), for example `Delivers: sinter-v0.1@097ce8/check-a-tree 05ef56`; omitted when the slug of the step is empty |
 | `approved` | bool | *derived*: the step is approved ([algebra.md](algebra.md) section 6.5) |
 | `approval` | string | *derived*: the id of the `approval` entry of the ledger that counts for the step ([ledger.md](ledger.md) section 5.2); omitted when none |
+| `declined` | bool | *derived*: a live decline exists for the step ([ledger.md](ledger.md) section 7.2) |
 | `active` | bool | *derived* from the session; `false` when there is no session |
 
 The **step hash** (`csh` of a step) is SHA-256 over canonical bytes
@@ -422,7 +426,7 @@ ledger. It emits live declines only ([ledger.md](ledger.md) section
 | field | type | meaning |
 |---|---|---|
 | `subject` | string | fact id |
-| `hash` | string | the extent or commitment-set hash the refusal was bound to |
+| `hash` | string | the extent hash, the commitment-set hash, or the step hash that the refusal was bound to |
 | `reason` | string | |
 | `by` `ts` | string | |
 | `entry` | string | ledger entry id |
@@ -730,6 +734,11 @@ path from artifact import to evidence binding, not only parsing. A
 tool release that changes any derived field's semantics must
 regenerate every pack's fixture on the branch `main` of the packs
 repository.
+
+A fixture ledger is a file `ledger.jsonl` in the folder of the case.
+Each line is the exact line of one entry of the ledger, in canonical
+form, with its `id`, in `seq` order. A case with no such file has no
+ledger.
 
 A release of a pack is also checked against the fixtures of the
 release before it, by the rules of [packs.md](packs.md) section 2.5.

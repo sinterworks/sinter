@@ -69,22 +69,24 @@ val classes :
       The fix is the citation with the slug of the new declaration, and with its
       revision when the edge has a revision. Each [dangling] finding of
       [findings] about such an edge leaves the result.
-    - [promise-collision]: a promise of a declaration of the kind [req],
-      [design], or [decision] whose tag target is the slug of a declaration of
-      the base of one of these kinds, when the base has no promise of the same
-      plan with the same word and tag target, in any step. A plan of the base is
-      the same plan as a plan of the working tree when their {!Facts.full_form}s
-      are equal, or when the plan of the base has no plan id and the two have
-      the same slug and the same path. The detail names the first such
-      declaration of the base in the order of their paths and lines. The ledger
-      is absent, so no claim counts.
+    - [promise-collision]: a promise of an open plan of a declaration of the
+      kind [req], [design], or [decision] whose tag target is the slug of a
+      declaration of the base of one of these kinds, when the base has no
+      promise of the same plan with the same word and tag target, in any step. A
+      plan of the base is the same plan as a plan of the working tree when their
+      {!Facts.full_form}s are equal, or when the plan of the base has no plan id
+      and the two have the same slug and the same path. The detail names the
+      first such declaration of the base in the order of their paths and lines.
+      No claim counts.
 
     - [renamed-step]: a step of a plan of [base] whose file is not [same], when
-      the same plan of the working tree, by the rule of [promise-collision], has
-      no step of its slug, and the step is started in the base:
-      {!Facts.met_within} [whole_base] meets one of its promises with the
-      effective scope of the step in the base. The finding sits at the tag line
-      of [@plan] of the plan of the working tree, one for each slug.
+      the same plan of the working tree, by the rule of [promise-collision], is
+      open and has no step of its slug, and the step is started in the base: the
+      ledger of the working tree holds a [delivered] entry whose subject is the
+      step, at any [csh], or {!Facts.met_within} [whole_base] meets one of its
+      promises with the effective scope of the step in the base. The finding
+      sits at the tag line of [@plan] of the plan of the working tree, one for
+      each slug.
 
     - [stale-delivery]: a line of [deliveries] that does not count: it does not
       match the pattern, {!Facts.named} gives no step for it, or {!Facts.counts}
@@ -94,25 +96,26 @@ val classes :
       step. The detail shows the line as {!Sinter_bridge.Utf_8.escaped} gives
       it.
 
-    - [delivery-without-change]: a step of a plan of the working tree for which
-      a line of [deliveries] counts, when no path of [changed] is in the
+    - [delivery-without-change]: a step of an open plan of the working tree for
+      which a line of [deliveries] counts, when no path of [changed] is in the
       effective scope of the step, apart from the paths of {!Facts.plan_files}
       of [facts] and of [base]. The finding sits at the heading of the step, and
       the detail names the commit of the first line of [deliveries] that counts
       for the step.
 
-    - [delivery-on-unmet-step]: a step of a plan of the working tree for which a
-      line of [deliveries] counts, when {!Facts.standing} does not meet a
-      promise of the step. The finding sits at the heading of the step, its
+    - [delivery-on-unmet-step]: a step of an open plan of the working tree for
+      which a line of [deliveries] counts, when {!Facts.standing} does not meet
+      a promise of the step. The finding sits at the heading of the step, its
       related places are the promises that are not met, and the detail names the
       commit of the first line of [deliveries] that counts for the step.
 
-    - [missing-delivery]: a step of a plan of the working tree with promises,
-      for which no line of [deliveries] counts, whose promises {!Facts.standing}
-      meets in the working tree, and some of whose promises {!Facts.met_within}
-      [whole_base] does not meet with the effective scope of the step. No plan
-      of the base is needed. The finding sits at the heading of the step, and
-      the detail ends with the text of {!Facts.delivery} of the step.
+    - [missing-delivery]: a step of an open plan of the working tree with
+      promises, for which no line of [deliveries] counts, whose promises
+      {!Facts.standing} meets in the working tree, and some of whose promises
+      {!Facts.met_within} [whole_base] does not meet with the effective scope of
+      the step. No plan of the base is needed. The finding sits at the heading
+      of the step, and the detail ends with the text of {!Facts.delivery} of the
+      step.
 
     No finding of these classes sits under a historical path. *)
 

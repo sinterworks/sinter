@@ -9,11 +9,16 @@ type t = {
   scan : limits;
   check : limits;
   check_diff : limits option;
+  check_ledger : limits option;
   ledger_log : limits option;
   ledger_verify : limits option;
 }
 
-let commands = [ "scan"; "check"; "check-diff"; "ledger-log"; "ledger-verify" ]
+let commands =
+  [
+    "scan"; "check"; "check-diff"; "check-ledger"; "ledger-log"; "ledger-verify";
+  ]
+
 let keys = [ "allocation-growth"; "phases" ]
 
 let unknown ~where names allowed =
@@ -99,14 +104,16 @@ let of_string text =
         | Some _ -> Result.map Option.some (limit table command)
       in
       let* check_diff = optional "check-diff" in
+      let* check_ledger = optional "check-ledger" in
       let* ledger_log = optional "ledger-log" in
       let* ledger_verify = optional "ledger-verify" in
-      Ok { scan; check; check_diff; ledger_log; ledger_verify }
+      Ok { scan; check; check_diff; check_ledger; ledger_log; ledger_verify }
 
 let limits budgets = function
   | "scan" -> Some budgets.scan
   | "check" -> Some budgets.check
   | "check-diff" -> budgets.check_diff
+  | "check-ledger" -> budgets.check_ledger
   | "ledger-log" -> budgets.ledger_log
   | "ledger-verify" -> budgets.ledger_verify
   | _ -> None
@@ -115,6 +122,7 @@ let growth budgets command =
   Option.map (fun limits -> limits.all) (limits budgets command)
 
 let trees = function
+  | "check-ledger" -> ("n1000-l1000", "n1000-l100000")
   | "ledger-log" | "ledger-verify" -> ("l1000", "l100000")
   | _ -> ("n1000", "n10000")
 
@@ -147,6 +155,7 @@ let check budgets ~words =
           Option.map (fun limits -> (command, limits)) limits)
         [
           ("check-diff", budgets.check_diff);
+          ("check-ledger", budgets.check_ledger);
           ("ledger-log", budgets.ledger_log);
           ("ledger-verify", budgets.ledger_verify);
         ]

@@ -30,7 +30,7 @@ let generate_ledger entries dir =
         (Unix.error_message error);
       1
 
-let generate seed ledger declarations dir =
+let generate seed ledger with_ledger declarations dir =
   if ledger then generate_ledger declarations dir
   else
     match
@@ -41,6 +41,10 @@ let generate seed ledger declarations dir =
         Unix.mkdir dir 0o755;
         let tree = Generated_tree.make ~seed ~declarations in
         let repo = Generated_tree.write tree dir in
+        Option.iter
+          (fun entries ->
+            Generated_ledger.write repo ~entries ~per_commit:(max entries 1))
+          with_ledger;
         Ok (tree, repo))
     with
     | Error message ->
@@ -93,6 +97,10 @@ let () =
          one commit for each entry: an approval of the requirement r<n>, in \
          files of up to 50 entries each.";
       `P
+        "With $(b,--with-ledger), the repository of the tree also holds a \
+         ledger of that number of entries, in one commit after the first. It \
+         holds the same entries that $(b,--ledger) gives.";
+      `P
         "The same seed and the same $(i,N) give the same files and the same \
          commits, byte for byte, on every run of one build.";
       `S "OUTPUT";
@@ -116,6 +124,14 @@ let () =
       & info [ "ledger" ]
           ~doc:"Make a repository that holds a ledger of $(i,N) entries.")
   in
+  let with_ledger =
+    Arg.(
+      value
+      & opt (some int) None
+      & info [ "with-ledger" ] ~docv:"ENTRIES"
+          ~doc:
+            "Add a ledger of $(i,ENTRIES) entries to the repository of a tree.")
+  in
   let declarations =
     Arg.(
       required
@@ -138,4 +154,5 @@ let () =
              ~exits:
                (Cmd.Exit.info 1 ~doc:"when the repository is not made."
                :: Cmd.Exit.defaults))
-          Term.(const generate $ seed $ ledger $ declarations $ dir)))
+          Term.(
+            const generate $ seed $ ledger $ with_ledger $ declarations $ dir)))

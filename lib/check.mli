@@ -200,13 +200,14 @@ val run :
     built-in members of the manifest come from the plan files of the working
     tree.
 
-    With [phases], it counts the phases of {!Scan.load_with_base}, [facts]
-    ({!Facts.make}) and [findings] (the findings, their subtraction, the classes
-    that compare with the base, and their selection), and the index record and
-    the values of the headers of the form [Porcelain] in [repository]. In the
-    mode [Diff], it counts the facts of the base in [base-facts] and their
-    findings in [base-findings]. In the mode [Tree], the facts of the files of
-    the base that differ from the working tree count in [findings].
+    With [phases], it counts the phases of {!Scan.load_with_base}, [ledger]
+    ({!Scan.ledger}), [folds] ({!Scan.folds}), [facts] ({!Facts.make}) and
+    [findings] (the findings, their subtraction, the classes that compare with
+    the base, and their selection), and the index record and the values of the
+    headers of the form [Porcelain] in [repository]. In the mode [Diff], it
+    counts the facts of the base in [base-facts] and their findings in
+    [base-findings]. In the mode [Tree], the facts of the files of the base that
+    differ from the working tree count in [findings].
 
     @raise Sinter_bridge.Error if the bridge stops on an internal fault.
     @raise Invalid_argument

@@ -615,7 +615,7 @@ let load_with_base ?phases ~env ~dir ~manifest ~base () =
       compared )
 
 let ledger ?phases tree depth =
-  Allocation.measure phases "repository" (fun () ->
+  Allocation.measure phases "ledger" (fun () ->
       Result.map_error (fun error -> Ledger error) (Ledger.read tree.repo depth))
 
 let ledger_warnings ledger facts =
@@ -626,7 +626,9 @@ let ledger_warnings ledger facts =
       | [] -> []
       | _ :: _ -> [ "no ledger found, so every plan counts as open" ])
 
-let entries ledger = Option.fold ~none:[] ~some:Ledger.entries ledger
+let folds ?phases ledger =
+  Allocation.measure phases "folds" (fun () ->
+      Folds.of_entries (Option.fold ~none:[] ~some:Ledger.entries ledger))
 
 let index ?(mode = Mode.Tree) tree ~ledger ~tool =
   let* key = repository (Git.tree_key tree.repo) in
@@ -643,9 +645,10 @@ let run ?phases ~env ~dir ~manifest ~base ~tool () =
   let* index =
     Allocation.measure phases "repository" (fun () -> index tree ~ledger ~tool)
   in
+  let folds = folds ?phases ledger in
   let facts =
     Allocation.measure phases "facts" (fun () ->
-        Facts.make tree.manifest ~ledger:(entries ledger) tree.documents)
+        Facts.make tree.manifest ~ledger:folds tree.documents)
   in
   let records =
     Allocation.measure phases "records" (fun () ->

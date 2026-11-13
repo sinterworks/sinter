@@ -473,17 +473,107 @@ let a_reserved_entry_fails_the_case () =
         (Printf.sprintf "%s is reserved" entry)
         (Error (Fixture.Reserved_entry entry))
         (files @ case_files "true"))
-    [
-      ("ledger.jsonl", [ ("ledger.jsonl", "") ]);
-      ("evidence", [ ("evidence/", "") ]);
-    ]
+    [ ("evidence", [ ("evidence/", "") ]) ]
 
 let a_reserved_entry_says_the_harness_does_not_read_it_yet () =
   Alcotest.(check string)
     "the message"
-    "case scan: ledger.jsonl is a reserved name. The harness does not read it \
-     yet, so the case cannot use it. Remove it."
-    (Fixture.message ~case:"scan" (Fixture.Reserved_entry "ledger.jsonl"))
+    "case scan: evidence is a reserved name. The harness does not read it yet, \
+     so the case cannot use it. Remove it."
+    (Fixture.message ~case:"scan" (Fixture.Reserved_entry "evidence"))
+
+let a_ledger_without_a_repository_fails_the_case () =
+  check_run "the ledger needs a repository"
+    (Error Fixture.Ledger_without_repository)
+    (("ledger.jsonl", "") :: case_files "true")
+
+let a_ledger_without_a_repository_says_what_to_add () =
+  Alcotest.(check string)
+    "the message"
+    "case scan: the case holds ledger.jsonl with neither base nor repository. \
+     A ledger lives in a git repository; add repository or base."
+    (Fixture.message ~case:"scan" Fixture.Ledger_without_repository)
+
+let a_line_with_no_id_at_the_start_of_a_chunk_fails_the_case () =
+  check_run "the chunk has no name" (Error Fixture.Ledger_chunk_without_id)
+    (("repository", "") :: ("ledger.jsonl", "{}\n") :: case_files "true");
+  Alcotest.(check string)
+    "the message"
+    "case scan: ledger.jsonl holds a line with no id at the start of a chunk. \
+     Each line is the exact line of one entry, with its id."
+    (Fixture.message ~case:"scan" Fixture.Ledger_chunk_without_id)
+
+let show_the_ledger =
+  "git rev-list --count refs/sinter/ledger; git log -1 --format=%s \
+   refs/sinter/ledger; git ls-tree -r --name-only refs/sinter/ledger"
+
+let generated count =
+  List.init count (fun n -> Sinter_bench.Generated_ledger.entry n)
+
+let shown_ledger lines =
+  let chunks = Sinter_bench.Generated_ledger.chunks lines in
+  Printf.sprintf "1\nledger\n%s\n"
+    (String.concat "\n" (List.sort String.compare (List.map fst chunks)))
+
+let the_ledger_of_a_case_is_one_commit_in_chunks () =
+  let lines = generated 51 in
+  check_run "one commit and two chunks" (Ok [])
+    (("repository", "")
+    :: ("ledger.jsonl", String.concat "" (List.map (fun l -> l ^ "\n") lines))
+    :: case_files ~stdout:(shown_ledger lines) show_the_ledger)
+
+let the_ledger_of_a_case_with_a_base_is_made_too () =
+  let lines = generated 2 in
+  check_run "the ref exists" (Ok [])
+    (("base/", "")
+    :: ("ledger.jsonl", String.concat "" (List.map (fun l -> l ^ "\n") lines))
+    :: case_files ~stdout:"1\nledger\n"
+         "git rev-list --count refs/sinter/ledger; git log -1 --format=%s \
+          refs/sinter/ledger")
+
+let an_empty_ledger_file_makes_a_ref_with_no_entry () =
+  check_run "the tree is empty" (Ok [])
+    (("repository", "") :: ("ledger.jsonl", "")
+    :: case_files ~stdout:"1\n"
+         "git rev-list --count refs/sinter/ledger; git ls-tree -r \
+          refs/sinter/ledger")
+
+let a_case_without_a_ledger_file_has_no_ref () =
+  check_run "the ref is absent" (Ok [])
+    (("repository", "")
+    :: case_files ~stdout:"no\n"
+         "git rev-parse --verify -q refs/sinter/ledger || echo no")
+
+let the_ledger_of_a_case_has_fixed_dates () =
+  let lines = String.concat "" (List.map (fun l -> l ^ "\n") (generated 1)) in
+  check_run "the dates" (Ok [])
+    (("repository", "") :: ("ledger.jsonl", lines)
+    :: case_files ~stdout:"1700000000 1700000000\n"
+         "git log -1 --format='%at %ct' refs/sinter/ledger")
+
+let the_helper_writes_the_id_of_each_line () =
+  let helper = Filename.concat (Sys.getcwd ()) "ledger_line/ledger_line.exe" in
+  let wanted = Sinter_bench.Generated_ledger.entry 3 in
+  let without =
+    match Yojson.Safe.from_string wanted with
+    | `Assoc members ->
+        Yojson.Safe.to_string (`Assoc (List.remove_assoc "id" members))
+    | _ -> Alcotest.fail "the line is no object"
+  in
+  Fixture.with_temporary_folder (fun folder ->
+      let input = Filename.concat folder "in"
+      and output = Filename.concat folder "out" in
+      Out_channel.with_open_bin input (fun channel ->
+          Out_channel.output_string channel (without ^ "\n" ^ wanted ^ "\n"));
+      Alcotest.(check int)
+        "the exit" 0
+        (Sys.command
+           (Printf.sprintf "%s <%s >%s" (Filename.quote helper)
+              (Filename.quote input) (Filename.quote output)));
+      Alcotest.(check string)
+        "both lines"
+        (wanted ^ "\n" ^ wanted ^ "\n")
+        (read output))
 
 let an_entry_of_the_wrong_kind_fails_the_case () =
   check_run "tree must be a folder"
@@ -792,6 +882,25 @@ let tests =
       a_missing_expected_folder_fails_the_case;
     Alcotest.test_case "a reserved entry fails the case" `Quick
       a_reserved_entry_fails_the_case;
+    Alcotest.test_case "a ledger without a repository fails the case" `Quick
+      a_ledger_without_a_repository_fails_the_case;
+    Alcotest.test_case "a ledger without a repository says what to add" `Quick
+      a_ledger_without_a_repository_says_what_to_add;
+    Alcotest.test_case
+      "a line with no id at the start of a chunk fails the case" `Quick
+      a_line_with_no_id_at_the_start_of_a_chunk_fails_the_case;
+    Alcotest.test_case "the ledger of a case is one commit in chunks" `Quick
+      the_ledger_of_a_case_is_one_commit_in_chunks;
+    Alcotest.test_case "the ledger of a case with a base is made too" `Quick
+      the_ledger_of_a_case_with_a_base_is_made_too;
+    Alcotest.test_case "an empty ledger file makes a ref with no entry" `Quick
+      an_empty_ledger_file_makes_a_ref_with_no_entry;
+    Alcotest.test_case "a case without a ledger file has no ref" `Quick
+      a_case_without_a_ledger_file_has_no_ref;
+    Alcotest.test_case "the ledger of a case has fixed dates" `Quick
+      the_ledger_of_a_case_has_fixed_dates;
+    Alcotest.test_case "the helper writes the id of each line" `Quick
+      the_helper_writes_the_id_of_each_line;
     Alcotest.test_case "a reserved entry says the harness does not read it yet"
       `Quick a_reserved_entry_says_the_harness_does_not_read_it_yet;
     Alcotest.test_case "an entry of the wrong kind fails the case" `Quick

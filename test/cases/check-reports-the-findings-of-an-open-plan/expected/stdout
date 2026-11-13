@@ -1,0 +1,8 @@
+.plans/lockout.md:3:1: block[unapproved-plan] no approval of the plan has its set
+.plans/lockout.md:6:1: block[scope-outside-plan] step:lockout@abc123/twice has lib/** in its scope, outside the scope of the plan
+.plans/lockout.md:9:1: warn[promise-out-of-scope] the promise req:far is met only outside the scope of step:lockout@abc123/twice
+.plans/lockout.md:9:1: warn[unverified-promise] the plan promises no @verifies far
+.plans/lockout.md:11:1: block[duplicate] the slug twice of step:lockout@abc123/twice is declared earlier
+.plans/lockout.md:14:1: block[invalid-target] -bad is not a valid slug
+.plans/lockout.md:18:1: block[invalid-target] the @scope line holds no glob
+other/far.md:3:1: warn[untraced] nothing satisfies req:far, and nothing verifies it

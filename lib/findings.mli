@@ -2,7 +2,7 @@
 (* Copyright 2026 The Sinter Authors *)
 
 (** The findings of a working tree in tree mode, from the facts of its markdown
-    files and the manifest, when the ledger, the evidence, and the session are
+    files, the ledger, and the manifest, when the evidence and the session are
     absent. *)
 
 val tree :
@@ -31,7 +31,12 @@ val tree :
 val of_facts :
   Facts.t -> base:string -> not_text:(string * int) list -> Finding.t list
 (** [of_facts facts ~base ~not_text] is {!tree} of the manifest and the files of
-    [facts], with no phase. It builds no facts. *)
+    [facts], with no phase, and with the ledger of [facts]. It builds no facts.
+
+    A closed plan ({!Facts.is_open}), its steps, and its promises give no
+    finding, and neither does a tag of its file with a tag target that is not
+    valid. Two plans with one full form stay a [duplicate] when they are closed.
+*)
 
 (** {1 Fixes} *)
 

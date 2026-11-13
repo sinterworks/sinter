@@ -238,7 +238,8 @@ let summary = function
       "A tag line starts a paragraph that is not the first paragraph of its \
        section or list item, so Sinter reads no tag in that paragraph."
   | Invalid_target ->
-      "The target of a tag does not have the form that the tag needs."
+      "The target of a tag does not have the form that the tag needs, or a \
+       @scope line holds no glob."
   | Duplicate ->
       "Two declarations, two plans, or two steps of one plan have names that \
        are equal or differ only in case."
@@ -287,8 +288,8 @@ let summary = function
       "The code at a tagged place changed since the base, and the comment with \
        its tags did not, so the comment can be out of date."
   | Declined ->
-      "The ledger holds a decline of a requirement, a design, a decision, or a \
-       plan, and the item has not changed since the decline."
+      "The ledger holds a decline of a requirement, a design, a decision, a \
+       plan, or a step, and the item has not changed since the decline."
   | Unapproved_req ->
       "A @satisfies or @verifies tag names a requirement that has no approval."
   | Unapproved_design ->
