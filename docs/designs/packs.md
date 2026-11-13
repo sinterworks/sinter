@@ -13,9 +13,7 @@
 @cites rfc/8259
 @cites posix/2024
 @cites tree-sitter/0.26.13
-@cites wasmtime/36.0.19
 @cites wasm-core/2.0
-@cites crates/regex-1.13.1
 Specifies language packs, with their files, pack paths, and pack hashes; descriptors, with pack names, release numbers, comment sigils, foreign tag words, name separators, grammars, test runners, and runner settings; usable grammars, query files, and valid packs; the readings of texts with packs, with parse trees, parse failures, comment nodes, definition nodes, decoration nodes, and test nodes, and the names and test labels of test nodes; runner adapters, with the instances that run their code, the requests, and the results of their calls; and requirements for conforming programs that validate packs and adapters, give pack hashes, read descriptors, read texts with packs, call adapters, and keep the code of a pack from what lies outside it.
 
 A language pack, or pack, holds the support for one language: the
@@ -75,19 +73,13 @@ response as a JSON text, and the files that hold the conformance vectors
 of the design hold one JSON text on each line. From POSIX.1-2024, it
 takes the permissions and the appropriate privileges of a process, the
 portable filename character set, the value `{_POSIX_NAME_MAX}`, and the
-error [EILSEQ]. The design relies on the behavior of four dependencies,
-at fixed versions. From tree-sitter 0.26.13, its Rust library with the
-feature `wasm`, it takes the loading of grammars, parse trees and their
-nodes, queries with their patterns, captures, predicates, and
-quantifiers, and the matches of a query. From wasmtime 36.0.19, the
-WebAssembly runtime of that library, as the feature `wasm` of
-tree-sitter 0.26.13 builds it, with the Cranelift compiler and its
-default configuration otherwise, it takes its engine and the compilation
-of modules. From the WebAssembly Core Specification 2.0, it takes
-modules, their validation, imports, exports, functions, memories,
-tables, instances, traps, and the execution of code. From the Rust crate
-regex 1.13.1, it takes the regular expressions of the predicates of
-queries.
+error [EILSEQ]. From tree-sitter, as it defines them from 0.26.13 on,
+the design takes the format of languages, the parse trees that its
+parsing gives, and its query language, with patterns, captures,
+predicates, quantifiers, regular expressions, and the matches of a
+query. From the WebAssembly Core Specification 2.0, it takes modules,
+their validation, imports, exports, functions, memories, tables,
+instances, traps, and the execution of code.
 
 ## 1. Glossary
 
@@ -123,27 +115,26 @@ queries.
 | [adapter hash, adapter license](sinter:#test-runner=v1) | the hash that the descriptor gives for the adapter file of a test runner, and the license of that adapter, which a descriptor gives for a test runner that has an adapter of its own |
 | [match table](sinter:#test-runner=v1) | the table of `match` in the table of a test runner of a valid descriptor, which a test runner has when it has no adapter hash |
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
-| tree-sitter | a library that parses texts by grammars and finds parts of the parse trees by queries; here, the Rust library of tree-sitter 0.26.13, with its feature `wasm` |
+| tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees; here, as tree-sitter defines them from 0.26.13 on |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module with no import whose name, after its module name, tree-sitter 0.26.13 matches with `tree_sitter_debug_message`, which that library loads as the language of a grammar name, with an ABI version from 13 to 15, and whose node types are each valid UTF-8 |
-| [wasmtime engine](sinter:#wasmtime-engine=v1) | an `Engine` of wasmtime 36.0.19, as the feature `wasm` of tree-sitter 0.26.13 builds it, with the Cranelift compiler, made with a `Config` whose settings have their default values |
-| [ABI version](sinter:#usable-grammar=v1) | the whole number that tree-sitter 0.26.13 gives as the version of the format of the language of a usable grammar |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
+| [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
-| pattern, capture, capture name, predicate, directive, quantifier | the things of a query of tree-sitter 0.26.13 with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
+| pattern, capture, capture name, predicate, directive, quantifier | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [depth of a query text](sinter:#query-depth=v1) | the number of levels of nesting that are open after a token of a query text |
 | [depth limit](sinter:#query-depth=v1) | a query text passes the depth limit when its depth after one of its tokens is more than 100; it passes the depth limit at the first character of the first such token |
 | [query name](sinter:#query-depth=v1) | a token of a query text, such as `_` or `function_item`: a name start character and the name characters after it, when they do not start a field name, with the spaces, tabs, line feeds, carriage returns, form feeds, and query comments after them |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the `Tree`, a structure of nodes, that tree-sitter 0.26.13 gives when it parses a parse text with a usable grammar |
+| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
-| [node type](sinter:#node-type=v1) | the text that tree-sitter 0.26.13 gives as the kind of a node, such as `line_comment` |
+| [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
 | [run of a node](sinter:#node-run=v1) | the run of the text that a node takes up, without a line feed that only the parse text has, and without the byte order mark of the text |
-| [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when tree-sitter gives no parse tree for it, or when the root node of the parse tree has an error |
+| [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when the parsing of tree-sitter gives no parse tree for it, or when the root node of the parse tree has an error |
 | [failure node](sinter:#parse-failure=v1) | the node at which a parse failure is: the first `ERROR` or `MISSING` node of the parse tree, or, when the parse tree has no such node, the first lowest node with an error |
-| [query match](sinter:#query-match=v1) | a match that tree-sitter 0.26.13 gives for a query over a parse tree: one part of the parse tree where one pattern matches |
+| [query match](sinter:#query-match=v1) | a match of a query over a parse tree, as tree-sitter defines it: one part of the parse tree where one pattern matches |
 | [joined match](sinter:#joined-match=v1) | the query matches of one pattern that give one node the same role, taken as one match |
 | [kept match](sinter:#joined-match=v1) | a joined match whose pattern comes first among the joined matches that give one node the same role |
 | [comment node](sinter:#comment-node=v1) | the role node of a kept match of the query file of the kind comment |
@@ -390,17 +381,12 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly,
 in one file that serves every platform. The content of the file
 `grammars/<g>.wasm` is a usable grammar when it is a WebAssembly module,
-when tree-sitter 0.26.13 gives none of its imports the function for the
-name `tree_sitter_debug_message`, when that library loads it as the
-language `<g>`, when the ABI version of that language is from 13 to 15,
-and when the name of each node type of that language is valid UTF-8.
-tree-sitter 0.26.13 matches the name of an import, after its module
-name, with one of its own names when it is a text, not empty, with which
-that name starts, or when it is that name followed by U+0000 and any
-other characters. For example, an import with the name `t` gets the
-function for the name `tree_sitter_debug_message`, which writes to the
-standard output of the process. In a valid pack, the hash of the file is
-the hash that the descriptor gives for the grammar.
+when each of its imports has a name of a fixed list, such as `memory`
+or `malloc`, when its export `tree_sitter_<g>` gives a language in the
+format of tree-sitter, of an ABI version from 13 to 15, and when the
+name of each symbol of that language is valid UTF-8. In a valid pack,
+the hash of the file is the hash that the descriptor gives for the
+grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
 program runs the query over the parse tree of a text. A match is one
@@ -424,13 +410,14 @@ at all, and `body` once or not at all. A pattern with the role name
 test label starts with a lower-case ASCII letter, and it holds
 lower-case ASCII letters, ASCII digits, and `-`.
 
-A pattern can use only these ten predicates, which the Rust library of
-tree-sitter 0.26.13 applies to each match itself: `#eq?`, `#not-eq?`,
-`#any-eq?`, `#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
+A pattern can use only these ten predicates, which the query language
+of tree-sitter applies to each match: `#eq?`, `#not-eq?`, `#any-eq?`,
+`#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
 `#any-not-match?`, `#any-of?`, and `#not-any-of?`. The regular
-expression of a match predicate follows the syntax of the crate regex
-1.13.1. A query with another predicate, or with a directive such as
-`#set!`, is not valid.
+expression of a match predicate has the syntax and the meaning that the
+query language of tree-sitter gives it, and it applies to the bytes of
+the text of a node. A query with another predicate, such as `#is?`, or
+with a directive, such as `#set!`, is not valid.
 
 The patterns of a query nest. A query file whose text nests more than
 100 levels deep is not valid. Each opening parenthesis `(`, each opening
@@ -478,36 +465,36 @@ path has no file grammar, the reading gives the result "no grammar".
 
 The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
-text with the usable grammar. tree-sitter 0.26.13 can give no parse
-tree. The program ends each reading: when it stops a reading, a choice
-that it can make for limits of its own, the reading gives "parse
-failure" with no failure node. The requirements on readings apply to an
-undisturbed use of the pack, in which no code of the grammar exhausts
-the call stack or gives a value that depends on the bits of a NaN. When
-the parse tree has an `ERROR` node or a `MISSING` node, the error flag
-of its root node, which `Node::has_error` gives, is set. A `MISSING`
-node takes up no text. A `MISSING` node of a hidden token is in no list
-of the children of a node, and then only the error flag of the root node
-shows it. So the text has a parse failure when tree-sitter gives no
-parse tree, or when the error flag of the root node is set. A reading of
-a text with a parse failure gives the result "parse failure". It gives
-the run of the failure node, when the parse failure has one, and it
-gives no node of the text. The failure node is the first `ERROR` or
-`MISSING` node in the order of the parse tree. When the parse tree has
-no such node, it is the first node in the order of the parse tree whose
-error flag is set and that has no child whose error flag is set. A parse
-failure with no parse tree has no failure node.
+text with the language of the usable grammar. The parsing of tree-sitter
+can give no parse tree. The program ends each reading: when it stops a
+reading, a choice that it can make for limits of its own, the reading
+gives "parse failure" with no failure node. The requirements on readings
+apply to an undisturbed use of the pack, in which no code of the grammar
+exhausts the call stack or gives a value that depends on the bits of a
+NaN. When the parse tree has an `ERROR` node or a `MISSING` node, its
+root node has an error. A `MISSING` node takes up no text. A `MISSING`
+node of a hidden token is in no list of the children of a node, and then
+only the error of the root node shows it. So the text has a parse
+failure when the parsing gives no parse tree, or when the root node has
+an error. A reading of a text with a parse failure gives the result
+"parse failure". It gives the run of the failure node, when the parse
+failure has one, and it gives no node of the text. The failure node is
+the first `ERROR` or `MISSING` node in the order of the parse tree. When
+the parse tree has no such node, it is the first node in the order of
+the parse tree that has an error and that has no child that has an
+error. A parse failure with no parse tree has no failure node.
 
 Each other reading gives the result "parsed". The program runs each
-query file of the grammar over the parse tree. tree-sitter can return
-the pieces of one name in two matches of one pattern. So the query
-matches of one pattern that give one node the same role form one joined
-match, which takes each node that they capture once, in the order of the
-parse tree. Two joined matches of two different patterns can also give
-one node the same role, such as when two patterns of `definitions.scm`
-capture one node as `definition`. Then the joined match of the pattern
-that comes first in the query file is the kept match, and the program
-takes no other joined match for that node and that role.
+query file of the grammar over the parse tree. The query language of
+tree-sitter can give the pieces of one name in two matches of one
+pattern. So the query matches of one pattern that give one node the same
+role form one joined match, which takes each node that they capture
+once, in the order of the parse tree. Two joined matches of two
+different patterns can also give one node the same role, such as when
+two patterns of `definitions.scm` capture one node as `definition`. Then
+the joined match of the pattern that comes first in the query file is
+the kept match, and the program takes no other joined match for that
+node and that role.
 
 A reading with the result "parsed" gives these nodes, each with its run
 and its node type:
@@ -873,13 +860,13 @@ thing in it, or nothing.
 @cites {
     wasm-core/2.0,
     files#{folder-tree=v1},
-    #{pack=v1, pack-use=v1, valid-pack=v1, wasmtime-engine=v1},
+    #{pack=v1, pack-use=v1, valid-pack=v1},
 }
 
 An undisturbed use of a pack is a use of the pack during which no other
 process changes a file of its folder tree, and in which no code of a
-grammar of the pack exhausts the call stack or gives a value that
-depends on the bits of a NaN, in the program or with a wasmtime engine.
+grammar of the pack, as the program runs it, exhausts the call stack or
+gives a value that depends on the bits of a NaN.
 
 ### 4.7 WebAssembly modules
 
@@ -895,68 +882,52 @@ instances, embedders, the instantiation of a module and its start
 function, the invocation of a function, traps, pages, the instructions
 `memory.grow` and `table.grow`, and the value types `i32` and `i64`.
 
-### 4.8 Wasmtime engines
-
-@term wasmtime-engine=v1
-@cites {wasmtime/36.0.19, tree-sitter/0.26.13, text#{code-span=v1}}
-
-A wasmtime engine is an `Engine` of wasmtime 36.0.19, as the feature
-`wasm` of the Rust library of tree-sitter 0.26.13 builds that crate,
-with the Cranelift compiler, made with a `Config` of that crate whose
-settings have their default values.
-
-### 4.9 Usable grammars
+### 4.8 Usable grammars
 
 @term usable-grammar=v1
 @cites {
     tree-sitter/0.26.13, wasm-core/2.0,
     text#{
-        byte-sequence=v1, valid-utf-8=v1, text=v1, character=v1,
-        u-numeral=v1, whole-number=v1, code-span=v1,
+        byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
+        code-span=v1,
     },
-    #{webassembly-module=v1, wasmtime-engine=v1, grammar-name=v1},
+    #{webassembly-module=v1, grammar-name=v1},
 }
 
-This definition uses the Rust library of tree-sitter 0.26.13, with its
-feature `wasm`. A store is a new `WasmStore` that `WasmStore::new` of
-that library makes from a wasmtime engine. That library compares the
-name of an import of a module, after its module name, with names of its
-own: the name of the import matches one of these names when it is a
-text, not empty, with which that name starts, or when it is that name
-followed by U+0000 and any other characters. For each import of a
-module, `WasmStore::load_language` of that library gives the module the
-function, the memory, the table, or the global of the first of its own
-names, in its order, that the name of the import matches, and it gives
-no language when the name matches none of them. A byte sequence is a
-usable grammar with a grammar name g when, and only when, it meets each
-of these conditions:
+This definition uses the format of languages that tree-sitter defines,
+from 0.26.13 on: a language has an ABI version, which is a whole number,
+and symbols, each with a name, which is a byte sequence. A byte sequence
+is a usable grammar with a grammar name g when, and only when, it meets
+each of these conditions:
 
 1. It is a WebAssembly module.
-2. It has no import whose name, after its module name, is a text that
-   is not empty and with which `tree_sitter_debug_message` starts, and
-   no import whose name starts with `tree_sitter_debug_message`
-   followed by U+0000.
-3. `WasmStore::load_language` of that library, on a store, with the
-   text g as its name and that byte sequence as its bytes, gives a
-   language.
-4. `Language::abi_version` of that library gives, for that language, a
-   whole number from 13 to 15.
-5. For each whole number i from 0 to the lesser of 65,535 and 1 less
-   than the number that `Language::node_kind_count` gives for that
-   language, `Language::node_kind_for_id` reads, for i, no name, or a
-   name whose bytes are valid UTF-8.
+2. Each of its imports has, after its module name, a name that is
+   exactly one of the names of this list, with the kind that the list
+   gives, and with the type that the format of languages of tree-sitter
+   gives that name:
+   - the memory `memory`;
+   - the table `__indirect_function_table`;
+   - the globals `__memory_base`, `__table_base`, and `__stack_pointer`;
+   - the functions `malloc`, `calloc`, `realloc`, and `free`, which
+     allocate memory;
+   - the functions `memchr`, `memcmp`, `memcpy`, `memmove`, `memset`,
+     `strcmp`, `strlen`, `strncat`, `strncmp`, and `strncpy`, which act
+     on memory and strings;
+   - the functions `iswalnum`, `iswalpha`, `iswblank`, `iswdigit`,
+     `iswlower`, `iswspace`, `iswupper`, `iswxdigit`, `towlower`, and
+     `towupper`, which act on characters;
+   - the functions `abort`, `proc_exit`, and `__assert_fail`, which only
+     trap.
+3. It exports a function whose name is `tree_sitter_` followed by g,
+   which, invoked in an instance of the module whose imports are as that
+   format gives them, gives a language in that format, of an ABI version
+   from 13 to 15.
+4. The name of each symbol of that language is valid UTF-8.
 
 The language of a usable grammar with the grammar name g is that
-language, and its ABI version is that whole number. The function that
-that library gives for the name `tree_sitter_debug_message` writes to
-the standard output of the process. The other imports that it gives
-give the code of the module no means to take bytes from a file, to
-write a file or the output of the process, to use a network, to read a
-clock, or to start a process. That library does not check the parse
-tables that it copies from the module against each other: it reads them
-by indexes that the tables give, with no bound.
+language, and its ABI version is the ABI version of that language.
 
-### 4.10 The depth of a query text
+### 4.9 The depth of a query text
 
 @term query-depth=v1
 @cites text#{
@@ -1008,11 +979,11 @@ tokens is more than 100. The place where a query text passes the depth
 limit is the place of the first character of the first token after
 which the depth is more than 100.
 
-### 4.11 Query files
+### 4.10 Query files
 
 @term query-file=v1
 @cites {
-    tree-sitter/0.26.13, crates/regex-1.13.1,
+    tree-sitter/0.26.13,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
         text=v1, production=v1, rule-name=v1, code-span=v1,
@@ -1020,11 +991,13 @@ which the depth is more than 100.
     #{grammar-name=v1, usable-grammar=v1, query-depth=v1},
 }
 
-This definition uses these things of queries of the Rust library of
-tree-sitter 0.26.13: patterns, captures, capture names, predicates, and
-the quantifiers that `Query::capture_quantifiers` gives:
-Zero, ZeroOrOne, ZeroOrMore, One, and OneOrMore. A query file is of one
-of three kinds, each with its role names and its other capture names:
+This definition uses the query language that tree-sitter defines, from
+0.26.13 on: queries for a language, their patterns, captures, and
+capture names, the predicates and directives of a pattern, each an
+element `(#name ...)` of the pattern, and the quantifier of a capture
+name in a pattern, which is zero, zero or one, zero or more, one, or one
+or more. A query file is of one of three kinds, each with its role names
+and its other capture names:
 
 - The kind comment has the role names `comment` and `untagged`, and no
   other capture name.
@@ -1044,33 +1017,30 @@ with a grammar name g when, and only when, it meets each of these
 conditions:
 
 1. It is valid UTF-8, and its text does not pass the depth limit.
-2. `Query::new` of that library, with the language of that usable
-   grammar with the grammar name g and the text of the byte sequence,
-   gives a query, and no error. That library compiles the regular
-   expression of each predicate `#match?`, `#not-match?`, `#any-match?`,
-   and `#any-not-match?` with `regex::bytes::Regex::new` of the crate
-   regex 1.13.1, with its features `std`, `perf`, and `unicode`.
-3. For each pattern of the query, `Query::general_predicates`,
-   `Query::property_predicates`, and `Query::property_settings` of that
-   library give no element. So each predicate of the query is one of the
-   ten text predicates that the library applies itself: `#eq?`,
-   `#not-eq?`, `#any-eq?`, `#any-not-eq?`, `#match?`, `#not-match?`,
-   `#any-match?`, `#any-not-match?`, `#any-of?`, and `#not-any-of?`.
+2. Its text is a query of that query language for the language of that
+   usable grammar with the grammar name g, and the regular expression of
+   each predicate `#match?`, `#not-match?`, `#any-match?`, and
+   `#any-not-match?` of the query is a regular expression of that query
+   language.
+3. Each predicate and each directive of each pattern of the query has
+   one of these ten names: `#eq?`, `#not-eq?`, `#any-eq?`,
+   `#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
+   `#any-not-match?`, `#any-of?`, and `#not-any-of?`.
 4. Each capture name of the query that does not start with `_` is a role
    name or another capture name of that kind.
 5. For each pattern of the query, the quantifiers of the capture names,
    where a capture name that the query does not have has the quantifier
-   Zero, meet the rule of that kind:
-   - comment: one of `comment` and `untagged` has the quantifier One,
-     and the other has the quantifier Zero;
-   - definition: `definition` has the quantifier One, `decoration` has
-     the quantifier Zero, and `name` and `body` each have the quantifier
-     Zero, ZeroOrOne, or One; or `decoration` has the quantifier One,
-     and `definition`, `name`, and `body` each have the quantifier Zero;
-   - test: one of `case` and `suite` has the quantifier One, and the
-     other has the quantifier Zero.
+   zero, meet the rule of that kind:
+   - comment: one of `comment` and `untagged` has the quantifier one,
+     and the other has the quantifier zero;
+   - definition: `definition` has the quantifier one, `decoration` has
+     the quantifier zero, and `name` and `body` each have the quantifier
+     zero, zero or one, or one; or `decoration` has the quantifier one,
+     and `definition`, `name`, and `body` each have the quantifier zero;
+   - test: one of `case` and `suite` has the quantifier one, and the
+     other has the quantifier zero.
 
-### 4.12 Valid packs
+### 4.11 Valid packs
 
 @term valid-pack=v1
 @cites {
@@ -1120,8 +1090,8 @@ For a valid pack: its descriptor is the valid descriptor that is the
 content of its file `pack.toml`; the usable grammar of a grammar of its
 descriptor, with the name g, is the content of its file
 `grammars/<g>.wasm`, as a usable grammar with the grammar name g; the
-language of that grammar is the language that its usable grammar gives
-with the grammar name g; the query file of the kind comment of that
+language of that grammar is the language of that usable grammar; the
+query file of the kind comment of that
 grammar is the content of its file `queries/<g>/tags.scm`; the query
 file of the kind definition, or of the kind test, of that grammar is the
 content of its file `queries/<g>/definitions.scm`, or
@@ -1130,50 +1100,52 @@ none when it does not; and the adapter of a test runner of its
 descriptor that has an adapter hash, with the name r, is the content of
 its file `adapters/<r>.wasm`.
 
-### 4.13 Parse trees
+### 4.12 Parse trees
 
 @term parse-tree=v1
 @cites {
     tree-sitter/0.26.13,
-    text#{text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, code-span=v1},
-    #{wasmtime-engine=v1, usable-grammar=v1, grammar-name=v1},
+    text#{
+        text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
+        whole-number=v1, code-span=v1,
+    },
+    #{usable-grammar=v1, grammar-name=v1},
 }
 
-For a text whose parse text has fewer than 4,294,967,296 bytes in its
-UTF-8 encoding, and a usable grammar with a grammar name g, the parse
-tree is the `Tree` that `Parser::parse` of the parser of that usable
-grammar gives for the UTF-8 encoding of that parse text, with no old
-`Tree`; such a text alone can have a parse tree. When `Parser::parse`
-gives no `Tree`, the text has no parse tree with that usable grammar.
-The parse text of a text is that text, followed by a line feed when the
-text does not end with a line feed. So the parse text of the empty text
-is one line feed. The store of a usable grammar with a grammar name g is
-a store, as the definition of usable grammars gives it, that then loads
-the usable grammar with the name g. The parser of that usable grammar is
-a new `Parser` of the Rust library of tree-sitter 0.26.13 that has that
-store as its WebAssembly store, the language that this store loads as
-its language, and no other setting.
+This definition uses the parsing that tree-sitter defines, from 0.26.13
+on, which gives, for a language and a byte sequence, a parse tree or no
+parse tree. A parse tree has a root node, and each node of a parse tree
+has children, which are nodes of that parse tree, in their order. Each
+node has a symbol, with a name, which is a symbol of the language or,
+for an `ERROR` node, the symbol whose name is `ERROR`; a start byte and
+an end byte, which are whole numbers less than 4,294,967,296; and
+whether it is an `ERROR` node, whether it is a `MISSING` node, and
+whether it has an error. For a text whose parse text has fewer than
+4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
+grammar name g, the parse tree is the parse tree that this parsing
+gives for the language of that usable grammar and the UTF-8 encoding of
+that parse text; such a text alone can have a parse tree. When this
+parsing gives no parse tree, the text has no parse tree with that
+usable grammar. The parse text of a text is that text, followed by a
+line feed when the text does not end with a line feed. So the parse
+text of the empty text is one line feed.
 
-### 4.14 The order of the parse tree
+### 4.13 The order of the parse tree
 
 @term parse-tree-order=v1
-@cites {tree-sitter/0.26.13, text#{whole-number=v1, code-span=v1}, #{parse-tree=v1}}
+@cites #{parse-tree=v1}
 
-The nodes of a parse tree are its root node, which `Tree::root_node` of
-tree-sitter 0.26.13 gives, and each child of each of its nodes. The
-children of a node are the nodes that `Node::child` gives for that node,
-for each whole number from 0 to 1 less than the number that
-`Node::child_count` gives, in the order of these whole numbers. The
-descendants of a node are its children and the descendants of its
-children. In the order of the parse tree, each node comes before each of
-its descendants, and, for each two children of one node, the first of
-them and each of its descendants come before the second of them.
+The nodes of a parse tree are its root node and each child of each of
+its nodes. The descendants of a node are its children and the
+descendants of its children. In the order of the parse tree, each node
+comes before each of its descendants, and, for each two children of one
+node, the first of them and each of its descendants come before the
+second of them.
 
-### 4.15 The runs of nodes
+### 4.14 The runs of nodes
 
 @term node-run=v1
 @cites {
-    tree-sitter/0.26.13,
     text#{
         text=v1, character=v1, boundary=v1, run=v1, body=v1,
         utf-8-encoding=v1, byte=v1, code-span=v1,
@@ -1181,34 +1153,32 @@ them and each of its descendants come before the second of them.
     #{parse-tree=v1, parse-tree-order=v1},
 }
 
-For each node of the parse tree of a text, tree-sitter 0.26.13 gives a
-start byte, `Node::start_byte`, and an end byte, `Node::end_byte`. Each
-of these is the number of bytes of the UTF-8 encoding of the characters
-of the parse text before a boundary of the parse text: s for the start
-byte, and e for the end byte. For a text, b is the boundary where the
-body of the text starts, and l is the last boundary of the text. The run
-of a node of the parse tree of a text is the run of that text that
-starts at the greater of b and the lesser of s and l, and that ends at
-the greater of b and the lesser of e and l.
+For each node of the parse tree of a text, its start byte and its end
+byte are each the number of bytes of the UTF-8 encoding of the
+characters of the parse text before a boundary of the parse text: s for
+the start byte, and e for the end byte. For a text, b is the boundary
+where the body of the text starts, and l is the last boundary of the
+text. The run of a node of the parse tree of a text is the run of that
+text that starts at the greater of b and the lesser of s and l, and that
+ends at the greater of b and the lesser of e and l.
 
-### 4.16 Node types
+### 4.15 Node types
 
 @term node-type=v1
-@cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{parse-tree=v1, parse-tree-order=v1}}
+@cites {
+    text#{text=v1, text-of-a-byte-sequence=v1},
+    #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1},
+}
 
-The node type of a node of a parse tree is the text that `Node::kind` of
-tree-sitter 0.26.13 gives for that node.
+The node type of a node of a parse tree is the text of the name of its
+symbol.
 
-### 4.17 Parse failures
+### 4.16 Parse failures
 
 @term parse-failure=v1
-@cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
+@cites {text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
 
-A node of a parse tree has an error when, and only when,
-`Node::has_error` of tree-sitter 0.26.13 gives true for it. A node is an
-`ERROR` node when, and only when, `Node::is_error` gives true for it,
-and a `MISSING` node when, and only when, `Node::is_missing` gives true
-for it. A text has a parse failure with a usable grammar when, and only
+A text has a parse failure with a usable grammar when, and only
 when, the text has no parse tree with that usable grammar, or the root
 node of its parse tree with that usable grammar has an error. The
 failure node of a parse failure with a parse tree is the first `ERROR`
@@ -1218,31 +1188,30 @@ first node, in the order of the parse tree, that has an error and that
 has no child that has an error. A parse failure with no parse tree has
 no failure node.
 
-### 4.18 Query matches
+### 4.17 Query matches
 
 @term query-match=v1
 @cites {
-    tree-sitter/0.26.13, crates/regex-1.13.1,
-    text#{utf-8-encoding=v1, code-span=v1},
+    tree-sitter/0.26.13,
+    text#{utf-8-encoding=v1, byte=v1, code-span=v1},
     #{usable-grammar=v1, query-file=v1, parse-tree=v1, parse-tree-order=v1},
 }
 
 For a valid query file of a usable grammar, and a text that has a parse
-tree with that usable grammar, the query matches are the matches that
-`QueryCursor::matches` of the Rust library of tree-sitter 0.26.13 gives
-for the query of that query file, over the root node of that parse tree,
-with the UTF-8 encoding of the parse text as the text of the nodes, from
-a new `QueryCursor` that has no setting. That library applies the
-predicates of each pattern to each match itself. It compiles each
-regular expression with `regex::bytes::Regex::new` of the crate regex
-1.13.1, with its features `std`, `perf`, and `unicode`, and it applies
-it with `is_match` to the bytes of the text of the node. The pattern of
-a query match is the pattern whose index `QueryMatch::pattern_index`
-gives, and one pattern comes before another when its index is less. The
-captures of a query match are its captures whose capture names do not
-start with `_`: each is a capture name and a node of the parse tree.
+tree with that usable grammar, the query matches are the matches of the
+query of that query file over that parse tree, as the query language of
+tree-sitter defines them, from 0.26.13 on, with its ten text predicates
+applied to each match. The text of a node is the bytes of the UTF-8
+encoding of the parse text from its start byte to its end byte. The
+regular expression of a match predicate has the syntax and the meaning
+that this query language gives it, and it applies to the bytes of the
+text of the node. Each query match has one pattern of the query, and
+one pattern comes before another when it stands before it in the query
+file. The captures of a query match are its captures whose capture names
+do not start with `_`: each is a capture name and a node of the parse
+tree.
 
-### 4.19 Joined matches and kept matches
+### 4.18 Joined matches and kept matches
 
 @term joined-match=v1
 @cites {
@@ -1263,7 +1232,7 @@ joined matches whose pattern comes before the pattern of each other
 joined match of that query file over that text that has the same role
 name and the same role node.
 
-### 4.20 Comment nodes
+### 4.19 Comment nodes
 
 @term comment-node=v1
 @cites {
@@ -1283,7 +1252,7 @@ once, in the order of the parse tree. A comment node is tagged when, and
 only when, it is the role node of a kept match with the role name
 `comment`, and of no kept match with the role name `untagged`.
 
-### 4.21 Definition nodes
+### 4.20 Definition nodes
 
 @term definition-node=v1
 @cites {
@@ -1308,7 +1277,7 @@ nodes that this kept match captures under `body`, in the order of the
 parse tree, or, when it captures no node under `body`, the definition
 node alone.
 
-### 4.22 Decoration nodes
+### 4.21 Decoration nodes
 
 @term decoration-node=v1
 @cites {
@@ -1328,7 +1297,7 @@ that grammar over the text, in the order of the parse tree. The text has
 no decoration node when that grammar has no query file of the kind
 definition.
 
-### 4.23 Enclosed nodes
+### 4.22 Enclosed nodes
 
 @term enclosed-node=v1
 @cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
@@ -1340,7 +1309,7 @@ before it, the run of A ends at the boundary where the run of B ends or
 at a boundary after it, and B does not come before A in the order of the
 parse tree.
 
-### 4.24 Test nodes
+### 4.23 Test nodes
 
 @term test-node=v1
 @cites {
@@ -1371,7 +1340,7 @@ the role name `case`. Each other test node is a test case. The test
 suites that enclose a test node are the test nodes that are test suites
 and that enclose it, in the order of the parse tree.
 
-### 4.25 The names of test nodes
+### 4.24 The names of test nodes
 
 @term test-name=v1
 @cites {
@@ -1402,7 +1371,7 @@ Two name paths are equal when, and only when, they have the same number
 of names and, at each index, names with the same number of pieces whose
 pieces, at each index, are of the same kind and have the same text.
 
-### 4.26 The test labels of test nodes
+### 4.25 The test labels of test nodes
 
 @term test-label=v1
 @cites {
@@ -1415,7 +1384,7 @@ The test labels of a test node are the texts w that match the production
 captures a node under the capture name that is the text `label.`
 followed by w.
 
-### 4.27 Readings
+### 4.26 Readings
 
 @term reading-of-a-text=v1
 @cites {
@@ -3045,12 +3014,11 @@ of the group has a usable grammar, so each pack whose descriptor is
 valid breaks the condition of a valid pack on usable grammars. The note
 of each vector names one condition, of a valid pack or of a usable
 grammar, that the pack breaks and that a program can decide with no
-compiled grammar, such as that the file of a grammar has no import whose
-name, after its module name, tree-sitter 0.26.13 matches with
-`tree_sitter_debug_message`. Apart from that condition, the pack has a
-valid descriptor with one grammar, a file of that grammar whose content
-has the hash of that grammar, a query file of the kind comment for that
-grammar, and a file under `licenses/`.
+compiled grammar, such as that each import of the file of a grammar has
+a name of the list of a usable grammar. Apart from that condition, the
+pack has a valid descriptor with one grammar, a file of that grammar
+whose content has the hash of that grammar, a query file of the kind
+comment for that grammar, and a file under `licenses/`.
 
 - `input`: the folder tree object of the pack.
 - `result`: the result for whether the pack is valid, when a conforming
