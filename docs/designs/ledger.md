@@ -12,7 +12,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies how a git repository stores its ledger on the ref `refs/sinter/ledger`: chunks of canonical lines, entry ids, `seq`, the common fields of ledger entries, versions, and voids; when a stored ledger is valid, broken, or newer, and when its history is intact; acceptance, appends, the shared clone, pulls, pushes, and repairs; agent markers and the writers of ledger entries; and requirements for conforming programs that read, append to, pull, push, and repair the ledger.
+Specifies how a git repository stores its ledger on the ref `refs/sinter/ledger`: chunks of canonical lines, entry ids, `seq`, the common fields of ledger entries, versions, and voids; when a stored ledger is valid, broken, or newer, and when its history is intact; acceptance, appends, the shared clone, pulls, pushes, and repairs; agent markers, job markers, and the writers of ledger entries; and requirements for conforming programs that read, append to, pull, push, and repair the ledger.
 
 The ledger is a sequence of ledger entries. Each ledger entry records one
 event, such as one approval that a person gave. A git repository stores
@@ -102,6 +102,7 @@ text.
 | [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when its ledger ref changes to a commit that holds lines of the shared clone that it did not hold; a conforming program changes it to a pull commit, which holds the lines of a commit of the shared clone and, after them, a line for each provisional line that stays, with a new `seq` |
 | [push](sinter:#push=v1) | a clone pushes its ledger entries to its shared clone when the ledger ref of the shared clone changes to a commit that holds lines of the clone that the shared clone did not hold |
 | [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives, which shows that an agent runs a program |
+| [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives, which shows that an execution of a program is the job |
 | environment | the environment variables of a process |
 | tracker | a service that holds external items, such as the issues of the host of a project |
 
@@ -443,7 +444,13 @@ value. A program that an agent runs appends no ledger entry other than a
 definition entry, and it makes no repair. It can still pull ledger
 entries, and push them other than in a repair.
 
-Only the job appends ledger entries of the kind `delivered`.
+A job marker is an environment variable that shows that an execution of
+a program is the job, such as a variable that continuous integration
+sets. The parameter `job-markers` gives the names of the job markers.
+The input of an execution shows that the execution is the job when the
+environment of a process of that execution holds a job marker, whatever
+its value. A program appends a ledger entry of the kind `delivered` only
+in an execution whose input shows that it is the job.
 
 A ledger entry can name an external item by its external id, such as
 `gh/42`. It holds no other data that a program took from a tracker, such
@@ -457,7 +464,13 @@ The parameter `agent-markers` gives the names of the agent markers. A
 binding of it is a finite set of texts, each the name of an environment
 variable.
 
-### 3.2 `ledger-remote`
+### 3.2 `job-markers`
+
+The parameter `job-markers` gives the names of the job markers. A
+binding of it is a finite set of texts, each the name of an environment
+variable.
+
+### 3.3 `ledger-remote`
 
 The parameter `ledger-remote` gives the remote by which a clone names
 its shared clone. A binding of it is a text: the name of a remote, such
@@ -830,6 +843,17 @@ whatever the value of that variable. An agent runs an execution of a
 program when, and only when, the environment of a process of that
 execution holds an agent marker.
 
+### 4.19 Job markers
+
+@term job-marker=v1
+@cites {ontology#{parameter=v1, job=v1}, text#{text=v1, code-span=v1}}
+
+A job marker of a process is an environment variable of the process
+whose name is a text of the binding of the parameter `job-markers`,
+whatever the value of that variable. The input of an execution of a
+program shows that the execution is the job when, and only when, the
+environment of a process of that execution holds a job marker.
+
 ## 5. Requirements
 
 ### 5.1 The ledger entries of a stored ledger
@@ -1160,11 +1184,13 @@ repair.
 @req leave-delivered-entries-to-job=v1
 @cites {
     ontology#{job=v1, job-record=v1, ledger=v1},
-    text#{conforming-program=v1},
+    text#{conforming-program=v1, input=v1, code-span=v1},
+    #{job-marker=v1},
 }
 
 A conforming program must append a ledger entry of the kind `delivered`
-to a ledger only in an execution that is the job.
+to a ledger only in an execution whose input shows that the execution is
+the job.
 
 ### 5.21 No data from trackers
 
