@@ -3,10 +3,11 @@
 
 # sinter.toml
 
-`sinter.toml` is a reader of TOML documents in OCaml. It reads TOML 1.1.0
-exactly: it accepts each byte sequence that TOML 1.1.0 calls a valid
-document, and it refuses every other byte sequence. It uses only the OCaml
-standard library.
+`sinter.toml` is a reader of TOML documents in OCaml. It reads TOML 1.1.0 as
+the specification `toml` of the design Data forms reads it: the table rules of
+that specification replace three statements of TOML 1.1.0 on tables. It
+accepts each byte sequence that the specification calls a TOML document, and
+it refuses every other byte sequence. It uses only the OCaml standard library.
 
 For a valid document, the reader gives the root table: each value, with
 integers as `int64` and floats as binary64 values, the order of the keys in

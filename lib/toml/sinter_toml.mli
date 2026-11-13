@@ -17,9 +17,11 @@
     byte of the byte sequence, the bytes of a byte order mark at its start
     included.
 
-    The reader follows the specification of TOML 1.1.0 and its ABNF grammar. At
-    each point where TOML 1.1.0 lets an implementation choose, the reader makes
-    the choice that the description of each type below states. *)
+    The reader follows the specification of TOML 1.1.0 and its ABNF grammar,
+    except that the table rules of the specification [toml] of the design Data
+    forms replace three statements of TOML 1.1.0 on tables. At each point where
+    TOML 1.1.0 lets an implementation choose, the reader makes the choice that
+    the description of each type below states. *)
 
 type span = Types.span = { start : int; stop : int }
 (** A span of a byte sequence: [start] is the offset where the span starts, and
