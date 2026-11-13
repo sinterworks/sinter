@@ -79,7 +79,7 @@ conformance vectors of the design is a JSON text.
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
 | [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of the text of that content that starts and ends at no boundary inside a line ending |
 | [inside a line ending](sinter:#spot=v1) | a boundary is inside a line ending when a line ending starts before it and ends after it: the boundary between the carriage return and the line feed of a line ending |
-| [start position](sinter:#start-position=v1) | the position of the boundary where the span of a spot starts |
+| [start position](sinter:#start-position=v1) | the start of the span of a spot: the position of the boundary where that span starts |
 | [position after a spot](sinter:#position-after-spot=v1) | the position of the boundary where the span of a spot ends; it is not always the end of the span |
 | [spot from one position to another](sinter:#positioned-spot=v1) | the spot that has a given text as its valid path, the first position as its start position, and the second position as the position after the spot, when the tree has such a spot |
 | [related message](sinter:#related-message=v1) | a message, alone or with a spot in a tree, which can be another tree than the tree in which the finding reports its condition, that helps to explain a finding; the related messages of a finding are a set, and two of them are the same when they have the same message and either no spot or the same spot in the same tree |
@@ -366,11 +366,12 @@ whose subject does not change stays the same finding.
 In one execution, a conforming program can give one finding more than
 once, such as once in a text for people and once in a JSON text. Each
 part that it gives is then the same each time, also when the part is
-none. So, in one execution and for the same input, a conforming program
-never gives two different things as one part of two findings with the
-same slug and the same subject, when both are findings of one tree or
-both are findings of no tree. What a program gives when its input
-changes while it runs is a matter of quality of implementation.
+none. So, in one execution in which its input does not change, a
+conforming program never gives two different things as one part of two
+findings with the same slug and the same subject, when both are findings
+of one tree or both are findings of no tree. What a program gives when
+its input changes while it runs is a matter of quality of
+implementation.
 
 ## 3. Definitions
 
@@ -447,10 +448,10 @@ no boundary inside a line ending.
 ### 3.6 Start positions
 
 @term start-position=v1
-@cites {text#{position=v1, boundary=v1, span=v1}, #{spot=v1}}
+@cites {text#{span=v1}, #{spot=v1}}
 
-The start position of a spot with a span is the position of the boundary
-where its span starts. A spot without a span has no start position.
+The start position of a spot with a span is the start of its span. A
+spot without a span has no start position.
 
 ### 3.7 Positions after spots
 
@@ -719,8 +720,9 @@ acknowledgment of a finding.
     #{finding-part=v1},
 }
 
-When a conforming program gives something as a part of a finding, it
-must give that part of that finding, and nothing else, as that part.
+When a conforming program gives something as a part of a finding that
+the finding has, it must give that part of that finding, and nothing
+else, as that part.
 
 ### 4.2 No part that a finding does not have
 
@@ -756,10 +758,10 @@ finding id of that finding.
     #{same-finding=v1, finding-part=v1},
 }
 
-In one execution, a conforming program must give no two different things
-as the same part of two findings that are the same finding, that are
-both of one tree or both of no tree, and that it gives for the same
-input.
+In one execution in which its input does not change, a conforming
+program must give no two different things as the same part of two
+findings that are the same finding and that are both of one tree or
+both of no tree.
 
 ### 4.5 The start positions of spots
 
@@ -933,9 +935,10 @@ revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
 vectors that it covers change, join, or leave. When the text of this
-section changes, the revisions of every vector, every group, and the set
-rise. A change of a note alone changes no revision. A program does not
-need the revisions to run the vectors.
+section changes, other than its headings and the vector lines that it
+shows, the revisions of every vector, every group, and the set rise. A
+change of a note alone changes no revision. A program does not need the
+revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a slug, a whole number, a
