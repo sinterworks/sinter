@@ -313,3 +313,5 @@
 {"group":"reject-byte-sequence","input":"61203d2027610a62270a","n":329,"note":"the text does not match `toml`, because a literal string holds no line feed","result":"invalid","rev":"v1","values":{}}
 {"group":"give-span","input":"22f09f988022203d20310a","n":330,"note":"the text of the span is `1`","result":"valid","rev":"v1","values":{"end":{"column":8,"line":1},"location":["😀"],"of":"toml-value","start":{"column":7,"line":1}}}
 {"group":"give-span","input":"0961203d20310a","n":331,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":3,"line":1},"location":["a"],"of":"key","start":{"column":2,"line":1}}}
+{"group":"omit-span","input":"61203d207b20622e63203d2031207d0a","n":332,"note":"the dotted key `b.c` makes the table `b` in the table of the inline table","result":"valid","rev":"v1","values":{"no-span-at":["a","b"]}}
+{"group":"omit-span","input":"5b612e625d0a","n":333,"note":"the table header `[a.b]` makes the super-table `a`","result":"valid","rev":"v1","values":{"no-span-at":["a"]}}
