@@ -10,3 +10,4 @@
 {"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015a","n":7,"note":"63 hex digits","result":"invalid","rev":"v1"}
 {"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad0","n":8,"note":"65 hex digits","result":"invalid","rev":"v1"}
 {"group":"validate","input":"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ag","n":9,"note":"`g` is not a hex digit","result":"invalid","rev":"v1"}
+{"group":"compute","input":"61626364656667686263646566676869636465666768696a6465666768696a6b65666768696a6b6c666768696a6b6c6d6768696a6b6c6d6e68696a6b6c6d6e6f696a6b6c6d6e6f706a6b6c6d6e6f70716b6c6d6e6f7071726c6d6e6f707172736d6e6f70717273746e6f707172737475","n":10,"note":"the message of 896 bits: its bytes fill more than one block of 64 bytes","rev":"v1","values":{"hash":"cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"}}
