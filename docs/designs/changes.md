@@ -49,9 +49,10 @@ and HEAD. From the page gitformat-index, it takes git's index. From the
 page git-config, it takes the configuration files of a repository, their
 order, their includes, the values of settings, and the settings
 `branch.<name>.remote`, `branch.<name>.merge`, `core.excludesFile`,
-`core.ignoreCase`, and `remote.<name>.url`, and the settings of the
-programs of a fetch or a push. From the page gitignore, it takes the
-patterns of ignore files and their rules. From the page
+`core.ignoreCase`, `remote.<name>.url`, `remote.<name>.pushurl`,
+`url.<base>.insteadOf`, and `url.<base>.pushInsteadOf`, and the settings
+of the programs of a fetch or a push. From the page gitignore, it takes
+the patterns of ignore files and their rules. From the page
 git-check-ref-format, it takes the rules for the names of refs and of
 branches. From the page git-fetch, it takes fetch refspecs, with the
 setting `remote.<name>.fetch`, the addresses of remotes, and fetches;
@@ -117,9 +118,9 @@ design is a JSON text.
 | branch | a ref whose name starts with `refs/heads/`, which points to a commit |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: for the ref M that the first value of `branch.<name>.merge` names, the ref whose name is the ref name to which the first fetch refspec that maps M to a ref name maps M, in the order of the fetch refspecs of the remote that the last value of `branch.<name>.remote` names, with no effect of a negative refspec; M itself when that value is `.` |
-| [remote, address of a remote, ssh address](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is a value of that setting, or of `remote.<name>.pushurl` for a push, after the rewrites of `url.<base>.insteadOf` and `url.<base>.pushInsteadOf`, in a form of the section GIT URLS of the page git-fetch; an ssh address is an address in a form for the ssh protocol |
+| [remote, address of a remote, ssh address](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, in a form of the section GIT URLS of the page git-fetch; an ssh address is an address in a form for the ssh protocol |
 | [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote, or from the git repository into the git repository at an address of a remote |
-| [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names its current branch, or, when it is detached, points to its current commit |
+| [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
 | [git's index](sinter:#working-tree=v1) | the file in the folder of a working tree in which git records the paths of the files that it tracks |
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index whose path ends with `/` and that names a git tree object; it stands for an entry for its path followed by the path of each entry, other than a tree entry, of that git tree object |
@@ -147,7 +148,7 @@ design is a JSON text.
 | [merge base](sinter:#merge-base=v1) | a common ancestor of two commits that no other common ancestor of the two reaches |
 | [base of the change of a commit](sinter:#change-base=v1) | the merge base of a commit h and the commit of the default branch, when there is exactly one |
 | [first-parent line](sinter:#first-parent-line=v1) | a commit, its first parent, the first parent of that commit, and so on, up to a commit that has no parent |
-| [landing commit](sinter:#landing-commit=v1) | of a commit c on the first-parent line of a commit d, such as the commit of the default branch: the commit of that first-parent line through which c joined it, which reaches c, and which has no parent or whose first parent does not reach c; it is a merge commit through which c joined, or c itself, as a squash commit is |
+| [landing commit](sinter:#landing-commit=v1) | of a commit c on the first-parent line of a commit d, such as the commit of the default branch: the commit of that first-parent line through which c joined it, which reaches c, and which has no parent or whose first parent does not reach c |
 | [line texts](sinter:#line-text=v1) | the texts of the lines of the file of a tree with a valid path, in order; none when the tree has no such file or its content is not valid UTF-8 |
 | [line map](sinter:#line-map=v1) | a longest set of pairs of the line numbers of the lines of a file in an old tree and in a new tree that have the same text, in the same order; there can be several |
 | [new line number](sinter:#new-line-number=v1) | for a line map, the line number in the new tree of an old line that a pair of the line map holds; an old line that no pair holds has none |
@@ -162,7 +163,7 @@ design is a JSON text.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation that a program makes to give, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path |
+| [repository read](sinter:#repository-read=v1) | an operation that a program makes to give, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path; a fetch or a push is not one |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no other process changes the git repository, the working tree from which it takes files, the git configuration, or the excludes file |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
@@ -197,19 +198,19 @@ comes from the configuration files and the environment variables that
 the page git-config gives, such as the file `config` of the git folder
 and the file `.gitconfig` of the home folder. Its system file is the
 file that the environment variable `GIT_CONFIG_SYSTEM` names, or else
-`/etc/gitconfig`,  and there is none when `GIT_CONFIG_NOSYSTEM` is true.
+`/etc/gitconfig`, and there is none when `GIT_CONFIG_NOSYSTEM` is true.
 The file `config` of the git folder counts also when another user owns
 the git repository.
 
 A shallow clone is a git repository that leaves out the parents of some
 commits. Its file `shallow` names these commits, and each of them has no
 parents. A partial clone leaves out some git objects, which git can take
-from a remote repository. A program takes no git object from a remote
-repository, so in a partial clone it gives no result that needs a git
-object that the clone left out. The alternates of a repository, which
-its file `objects/info/alternates` names, are part of its object
-database. A replacement ref, under `refs/replace/`, has no effect on the
-git objects that a program reads.
+from a remote repository. In a repository read, a program takes no git
+object from a remote repository, so in a partial clone it gives no
+result that needs a git object that the clone left out. The alternates
+of a repository, which its file `objects/info/alternates` names, are
+part of its object database. A replacement ref, under `refs/replace/`,
+has no effect on the git objects that a program reads.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -257,11 +258,10 @@ walks `f`, then the first parent `c` of `f`, then the second parent `e`
 of `f`, and `d` before `e`.
 
 The message of a commit is the bytes of the commit object after its
-header, which ends at the first two line feeds that follow one
-another. Its text is the text whose
-UTF-8 encoding is these bytes, when they are valid UTF-8, whatever the
-header `encoding` of the commit object names. A message whose bytes are
-not valid UTF-8 has no text.
+header, which ends at the first two bytes 0x0A that follow one another.
+Its text is the text whose UTF-8 encoding is these bytes, when they are
+valid UTF-8, whatever the header `encoding` of the commit object names.
+A message whose bytes are not valid UTF-8 has no text.
 
 ### 2.3 Branches, HEAD, and the default branch
 
@@ -283,11 +283,11 @@ upstream. So the refspec `+refs/heads/*:refs/remotes/origin/*` maps
 `refs/heads/main` to `refs/remotes/origin/main`.
 
 The HEAD of a working tree is a ref that names a ref, usually a branch,
-or, when it is detached, points to a commit. The head commit of the
-working tree is the commit of its HEAD. A working tree whose HEAD names
-a branch that does not exist, as in a new repository, has no head
-commit. In a colocated jj repository, the HEAD of the working tree is
-often detached.
+or, when it is detached, points to a git object, usually a commit. The
+head commit of the working tree is the commit of its HEAD. A working
+tree whose HEAD names a branch that does not exist, as in a new
+repository, has no head commit. In a colocated jj repository, the HEAD
+of the working tree is often detached.
 
 The parameter `default-branch-name` gives the name of the default
 branch. A binding of it names the default branch when it is a branch
@@ -357,13 +357,10 @@ through each merge commit that brought work into it, and not through the
 commits whose work that merge commit brought.
 
 For a commit c that a commit d reaches, the landing commit of c on the
-first-parent line of d is the commit of that first-parent line through
-which c landed in it: the commit m of the first-parent line that reaches
-c, and that has no parent or whose first parent does not reach c. The
-commits of the first-parent line that reach c come first in it, and m is
-the last of them. On the first-parent line of the commit of the default
-branch, the landing commit of c is the commit through which c joined
-that first-parent line.
+first-parent line of d, which the term `landing-commit` defines, is the
+commit of that first-parent line through which c joined it. On the
+first-parent line of the commit of the default branch, the landing
+commit of c is the commit through which c joined that first-parent line.
 
 In the example of section 2.2, the first-parent line of `g` is `g`, `f`,
 `c`, `b`, and `a`. The landing commit of `d` and of `e` on that
@@ -384,8 +381,9 @@ one tree, the tree of the working tree.
 
 The files of the tree of a commit come from the git tree object of the
 commit. Each entry of a git tree object has a name, a mode, and a git
-object. The mode is a number in base 8, written with the digits 0 to 7,
-and the range in which it lies gives the type of the entry:
+object. When the mode is written with the digits 0 to 7, the range in
+which the number that it writes in base 8 lies gives the type of the
+entry:
 
 | mode, in base 8 | type of the entry | the entry names |
 |---|---|---|
@@ -437,8 +435,9 @@ Example: the root folder of a working tree holds `.git`, `.gitignore`
 with the pattern `build/`, `a.md`, a symbolic link `link` to the folder
 `docs`, the folder `docs` with `b.md`, the folder `build` with `out.md`,
 and the folder `lib` of a submodule, with its file `.git` and its file
-`c.md`. The files of the tree of the working tree are `.gitignore`,
-`a.md`, and `docs/b.md`.
+`c.md`. Git's index holds `.gitignore`, `a.md`, `docs/b.md`, and `lib`.
+The files of the tree of the working tree are `.gitignore`, `a.md`, and
+`docs/b.md`.
 
 ### 2.7 Line texts, line maps, and hunks
 
@@ -507,24 +506,16 @@ h.
 
 ### 2.8 What a program guarantees
 
-In each repository read, a conforming program keeps the repository files
-of the git repository unchanged; takes git objects only from the git
-repository; takes bytes only from the repository files, from the
-symbolic links on their pathnames, from a pipe between it and a program
-that it uses, and from the files that the system or the libraries of a
-program read to run it; uses no permission or privilege that its process
-did not have; follows no symbolic link of a working tree, apart from one
-on the way to a file of the git configuration or to the excludes file;
-and waits on no file of another kind, such as a pipe, that is a
-repository file. In the whole execution in which it makes a repository
-read, it runs no hook of a git repository, and no program that a git
-repository holds or that the git configuration names or causes to run,
-apart from the programs of a fetch or a push that the system, the
-programs that it uses, the environment in which it started, or a value
-from outside the git repositories gives. When another process changes
-the git repository, a working tree, the git configuration, or the
-excludes file during a repository read, what the program gives in that
-read is not specified, and these guarantees still hold.
+A conforming program keeps a git repository safe in each execution in
+which it reads it: the requirements `keep-repositories-unchanged`,
+`take-objects-only-from-repositories`, `read-only-repository-files`,
+`gain-no-repository-privileges`, `run-no-configured-programs`,
+`follow-no-working-tree-links`, `avoid-working-tree-waits`, and
+`send-no-repository-commands` give these guarantees. When another
+process changes the git repository, a working tree, the git
+configuration, or the excludes file during a repository read, what the
+program gives in that read is not specified, and these guarantees still
+hold.
 
 ## 3. Parameters
 
@@ -610,10 +601,11 @@ with the git folder as its git directory and with no working tree,
 without the settings of each file `config.worktree` and without the
 sections `includeIf` whose condition starts with `onbranch:`. A setting
 has its value by the rules of the page git-config, and the values of a
-setting are in the order of the files and of the lines that hold them.
-For a setting that takes one value, such as `core.excludesFile` or
-`core.ignoreCase`, the value is the last of its values. The files of the
-git configuration are the files at the pathnames from which the page
+setting are in the order in which the page git-config reads the files
+and their lines, with the lines of an included file at the place of its
+include. For a setting that takes one value, such as `core.excludesFile`
+or `core.ignoreCase`, the value is the last of its values. The files of
+the git configuration are the files at the pathnames from which the page
 git-config takes configuration, with the system file of rule 1, and at
 the pathnames that their includes name, whether or not a file is there.
 A boolean setting is true when its value is true by the rules of the
@@ -847,7 +839,7 @@ that E names.
 @term ignored-path=v1
 @cites {
     gitdoc/git-config,
-        gitdoc/gitignore,
+    gitdoc/gitignore,
     files#{regular-file=v1, symbolic-link=v1},
     text#{code-span=v1},
     #{git-folder=v1, working-tree=v1, git-configuration=v1},
@@ -866,12 +858,12 @@ page gitignore, as for a file that git's index does not hold. The file
 `info/exclude` and the excludes file are the files that their pathnames
 name, with the symbolic links on these pathnames followed. A file that
 is not a regular file has no patterns. The patterns of a regular file
-are the runs into which the bytes 0x0A divide its content, each without
-one byte 0x0D at its end, and without the bytes 0xEF, 0xBB, 0xBF at the
-start of the content. When the setting `core.ignoreCase` of the git
-configuration of the working tree is true, a pattern also matches each
-path that differs only in the case of the letters from `A` to `Z` from a
-path that the pattern matches.
+are the byte sequences into which the bytes 0x0A divide its content,
+each without one byte 0x0D at its end, and without the bytes 0xEF, 0xBB,
+0xBF at the start of the content. When the setting `core.ignoreCase` of
+the git configuration of the working tree is true, a pattern also
+matches each path that differs only in the case of the letters from `A`
+to `Z` from a path that the pattern matches.
 
 ### 4.13 The files of the tree of a working tree
 
@@ -993,10 +985,9 @@ commit right before it, and whose last commit has no parent.
 For a commit d and a commit c that d reaches, the landing commit of c on
 the first-parent line of d is the commit m of that first-parent line
 that reaches c, and that has no parent or whose first parent does not
-reach c: the commit through which c landed on that first-parent line.
-The commits of that first-parent line that reach c come first in it, so
-m is the last of them. A commit that d does not reach has no landing
-commit on the first-parent line of d.
+reach c. The commits of that first-parent line that reach c come first
+in it, so m is the last of them. A commit that d does not reach has no
+landing commit on the first-parent line of d.
 
 ### 4.21 Line texts
 
@@ -1160,13 +1151,14 @@ file.
     },
 }
 
-The repository files of a git repository are the files in its git
-folder, in an object database that the files `objects/info/alternates`
-name, in turn, and in the folder tree whose root is the root folder of a
-working tree of it; the files to which the symbolic links in the git
-folder or in such an object database lead, in turn; the files of the git
-configuration of the git repository and of each working tree of it; the
-excludes file of each working tree of it; and the files of git
+The repository files of a git repository are the files of the folder
+trees whose roots are its git folder, each folder that the files
+`objects/info/alternates` name, in turn, and the root folder of each
+working tree of it; the files to which the symbolic links of the folder
+tree of the git folder, and of the folder trees of the folders that the
+files `objects/info/alternates` name, lead, in turn; the files of the
+git configuration of the git repository and of each working tree of it;
+the excludes file of each working tree of it; and the files of git
 attributes that the page gitattributes gives for the git repository and
 for each working tree of it.
 
@@ -1199,20 +1191,33 @@ that one of these files includes, in turn, holds that value.
     #{git-configuration=v1, commit=v1, ref-commit=v1},
 }
 
-A remote of a git repository is a name r for which the git
-configuration of the git repository gives a value of the setting
-`remote.<name>.url` with r for `<name>`. An address of the remote r is a
-value of that setting, or, for a push, of the setting
-`remote.<name>.pushurl` with r for `<name>`, after the rewrites that the
-settings `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, in
-one of the forms that the section GIT URLS of the page git-fetch gives.
-An ssh address is an address in one of the forms that this section gives
-for the ssh protocol. A fetch from a remote is a transfer of git objects
-and refs into the git repository from the git repository at an address
-of the remote, as the page git-fetch defines fetches. A push to a remote
-is a transfer of git objects and refs from the git repository into the
-git repository at an address of the remote, as the page git-push defines
+A remote of a git repository is a name r for which the git configuration
+of the git repository gives a value of the setting `remote.<name>.url`
+with r for `<name>`. An address of the remote r is a value of that
+setting, or, for a push, a value of the setting `remote.<name>.pushurl`
+with r for `<name>` when that setting has one, after the rewrite that
+the page git-config gives for it by the settings `url.<base>.insteadOf`
+and `url.<base>.pushInsteadOf`, in one of the forms that the section GIT
+URLS of the page git-fetch gives. An ssh address is an address in one of
+the forms that the section GIT URLS of the page git-fetch gives for the
+ssh protocol. A fetch from a remote is a transfer of git objects and
+refs into the git repository from the git repository at an address of
+the remote, as the page git-fetch defines fetches. A push to a remote is
+a transfer of git objects and refs from the git repository into the git
+repository at an address of the remote, as the page git-push defines
 pushes.
+
+### 4.31 Programs that run
+
+@term program-run=v1
+@cites files#{system=v1}
+
+A program runs another program when it starts a process from a file on
+its system, or when it loads a file as code that runs in its own
+process. A program runs a command when it has a shell or another program
+carry the command out. Code that runs isolated from the process of the
+program, as WebAssembly code runs in a sandbox, is not a program that
+the program runs.
 
 ## 5. Requirements
 
@@ -1237,9 +1242,9 @@ name, and "invalid" when the text is not a branch name.
 }
 
 When, in an undisturbed repository read, a conforming program gives a
-result for whether a commit c reaches a commit c′ of that git
-repository, it must give exactly one result: "reaches" when c reaches
-c′, and "does not reach" when c does not reach c′.
+result for whether a commit c of a git repository reaches a commit c′ of
+it, it must give exactly one result: "reaches" when c reaches c′, and
+"does not reach" when c does not reach c′.
 
 ### 5.3 Parents
 
@@ -1599,7 +1604,9 @@ repository, such as the remote repository of a partial clone.
 In each repository read, a conforming program, itself or through any
 program that it uses, must take bytes only from the repository files of
 the git repository; from the symbolic links on the pathnames by which it
-reaches them; from a pipe between it and a program that it uses; and
+reaches them; from a pipe between it and a program that it uses; from a
+file or a pipe that was open for the program when it started, such as
+its standard input; from a file that it created in that execution; and
 from the files that the system or the libraries of a program read to run
 it, such as its executable file and its libraries.
 
@@ -1630,8 +1637,9 @@ acts for it.
     #{
                 git-configuration=v1, working-tree=v1, repository-read=v1,
         repository-file=v1, repository-value=v1, remote-transfer=v1,
+        program-run=v1,
     },
-    files#{system=v1, folder-tree=v1, symbolic-link=v1},
+    files#{folder-tree=v1, symbolic-link=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
@@ -1641,40 +1649,41 @@ for each git repository that it reads, that it fetches into or from, or
 that it pushes from or to in that execution, apart from the programs
 that the next paragraph allows: a program that is a repository file of
 the git repository, such as a hook that the page githooks defines; a
-program or command that the git configuration names or gives, such as a
-filter, a diff driver, or the command of the setting `core.fsmonitor`;
-and a program that runs because of a setting of the git configuration,
-such as `gpg` for the setting `log.showSignature`. The files of the
-conforming program and of the programs that it uses, as they are
-installed, are not such files; but a file in the folder tree whose root
-is the root folder of a working tree of the git repository is never an
-installed file, and a program that it starts from a pathname that leads
-through a symbolic link of that folder tree counts as a program that is
-a repository file.
+program or command that the git configuration of the git repository or
+of a working tree of it names or gives, such as a filter, a diff driver,
+or the command of the setting `core.fsmonitor`; and a program that runs
+because of a setting of that git configuration, such as `gpg` for the
+setting `log.showSignature`. The files of the conforming program and of
+the programs that it uses, as they are installed, are not such files;
+but a file in the folder tree whose root is the root folder of a working
+tree of the git repository is never an installed file, and a program
+that the conforming program, itself or through a program that it uses,
+starts from a pathname that leads through a symbolic link of that
+folder tree counts as a program that is a repository file.
 
 In a fetch into a git repository from a remote of it, or in a push from
-a git repository to a remote of it, the conforming program may run, for
-that transfer: the program `ssh` for an ssh address, with the programs
-that the configuration of `ssh` outside the git repositories runs; the
-programs that make the transfer and that are installed with the system
-or with a program that it uses, such as the shell of the system; and
-each program or command for the transfer that the environment in which
-the conforming program started, or a value from outside the git
-repositories, gives, such as an ssh command, a credential helper, a
-program that asks for a password, or the program of the setting
-`core.gitProxy`, `remote.<name>.uploadpack`, or
-`remote.<name>.receivepack`, with the programs that it runs. In such a
-transfer, it must still run no hook of a git repository, and it must
-neither run, nor give to another computer to run, a program or command
-that a value from a git repository names or holds, other than through
-the address of the remote, or a command that the address holds, such as
-the command of an address `ext::<command>`.
+a git repository to a remote of it, the conforming program may also run,
+for that transfer, these programs: the program `ssh` for an ssh address,
+with the programs that the configuration of `ssh` runs, when that
+configuration is not a repository file of a git repository of the
+transfer; the programs that make the transfer and that are installed
+with the system or with a program that it uses, such as the shell of the
+system; and each program or command for the transfer that the
+environment in which the conforming program started, or a value from
+outside the git repositories, gives, such as an ssh command, a credential
+helper, a program that asks for a password, or the program of the
+setting `core.gitProxy`, with the programs that it runs. None of these
+programs is a hook of a git repository, a repository file of a git
+repository of the transfer, or a program that it starts from a pathname
+that leads through a symbolic link of the folder tree of a working tree
+of one. Apart from `ssh` for an ssh address and the installed programs
+that make the transfer for an address, none of them is a program or
+command that a value from a git repository names or holds. None of them
+is a command that an address holds, such as the command of an address
+`ext::<command>`, or an option of `ssh` that the host of an address
+holds, such as a host that starts with `-`.
 
-To run a program is to start a process from a file on the system of the
-program, or to load a file as code that runs in the process of the
-program. Code that runs isolated from the process of the program, as
-WebAssembly code runs in a sandbox, is not a program that runs in this
-sense.
+
 
 ### 5.26 No symbolic link followed in a working tree
 
@@ -1691,8 +1700,9 @@ sense.
 In each repository read, a conforming program, itself or through any
 program that it uses, must follow no symbolic link that is a file of a
 working tree of the git repository, other than a symbolic link on the
-way to a file of the git configuration or to the excludes file: it must
-find no file by the reference of such a symbolic link.
+way to a file of the git configuration of the git repository or of a
+working tree of it, or to the excludes file: it must find no file by the
+reference of such a symbolic link.
 
 ### 5.27 No wait on a repository file
 
@@ -1707,6 +1717,26 @@ In each repository read, a conforming program, itself or through any
 program that it uses, must not wait for another process or for a device
 to act on a file of another kind that is a repository file of the git
 repository, such as for a process to open the other end of a pipe.
+
+### 5.28 No command of the repository for another computer
+
+@req send-no-repository-commands=v1
+@cites {
+    #{
+        git-folder=v1, repository-read=v1, repository-value=v1,
+        remote-transfer=v1,
+    },
+    text#{conforming-program=v1, code-span=v1},
+}
+
+In a fetch into a git repository from a remote of it, or in a push from
+a git repository to a remote of it, in an execution in which it makes a
+repository read, a conforming program, itself or through any program
+that it uses, must give to the computer at the address of the remote,
+for that computer to run, no program or command that a value from a git
+repository names or holds, such as the program of the setting
+`remote.<name>.uploadpack` or `remote.<name>.receivepack` in the file
+`config` of the git folder.
 
 ## 6. Conformance
 
@@ -1723,11 +1753,11 @@ as `hunks`, and a subsection below. The subsection names the
 requirements that the vectors of the group follow from, and it describes
 their inputs, results, and values. Each vector of a group follows from
 one or more of these requirements. No vector follows from the
-requirements `use-one-line-map`,
-`keep-repositories-unchanged`,
+requirements `use-one-line-map`, `keep-repositories-unchanged`,
 `take-objects-only-from-repositories`, `read-only-repository-files`,
 `gain-no-repository-privileges`, `run-no-configured-programs`,
-`follow-no-working-tree-links`, and `avoid-working-tree-waits`.
+`follow-no-working-tree-links`, `avoid-working-tree-waits`, and
+`send-no-repository-commands`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as the base of the change of a
