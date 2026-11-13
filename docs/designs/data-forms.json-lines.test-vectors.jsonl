@@ -129,3 +129,7 @@
 {"group":"read-json","input":"5b225c7564633030225d","n":124,"note":"the escape sequence `\\udc00` in the element of the array is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
 {"group":"read-json","input":"225c75443833445c754445303022","n":125,"note":"the escape sequences write their digits in upper case, and they write the two UTF-16 code units of U+1F600","result":"valid","rev":"v1","values":{"json-value":"😀"}}
 {"group":"read-json","input":"22eda08022","n":126,"note":"the bytes 0xED, 0xA0, 0x80 are not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"write-json","input":"1e0","n":127,"note":"the exponent 0 makes the number write the whole number 1","rev":"v1","values":{"canonical-byte-sequence":"31"}}
+{"group":"write-json","input":"1E+0000000000000000002","n":128,"note":"the exponent +0000000000000000002 is 2, so the number writes the whole number 100","rev":"v1","values":{"canonical-byte-sequence":"313030"}}
+{"group":"write-json","input":"\"\\udc00\\udc00\"","n":129,"note":"two escape sequences of numbers from 0xDC00 to 0xDFFF are not the two escape sequences of a character","rev":"v1","values":{}}
+{"group":"write-json","input":"\"\\ud800\\ue000\"","n":130,"note":"0xE000 is not from 0xDC00 to 0xDFFF, so the escape sequence `\\ud800` is not one of the two escape sequences of a character","rev":"v1","values":{}}
