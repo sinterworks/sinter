@@ -1101,12 +1101,12 @@ The JSON object of a vector line has these members:
   its inputs, other than the result.
 - `needs`: the needs of the vector, as a JSON array of one or more need
   names, each a JSON string. A need is a condition of the run of the
-  vector that a runner can be unable to make true. Section 5.2 gives the
-  fixed list of the need names, what each need is, and which vectors
-  have it. The array holds each need of the vector once, in the order of
-  that list, and no other need name. A vector has this member only when
-  it has a need. A runner can skip a vector only when it cannot make
-  true a need that the member `needs` of the vector names.
+  vector that a runner can be unable to make true and that the fixed
+  list of section 5.2 names. Section 5.2 gives that list, what each need
+  is, when a vector has each need, and when a runner can skip a vector.
+  The array holds each need of the vector once, in the order of that
+  list, and no other need name. A vector has this member only when it
+  has a need.
 - `note`: an explanation of the vector, as a JSON string, which is no
   part of the input, the result, or the values. A vector has this member
   only when it has an explanation.
@@ -1122,10 +1122,12 @@ leaves it, or changes in it. The revision of the set rises when a vector
 joins the set, leaves it, or changes. A group that comes back after it
 left gets a revision with a greater number than each revision that it
 had before. When the text of this section changes, the revisions of
-every vector, every group, and the set rise. A change of the member
-`note` or the member `needs` of a vector, and of no other member,
-changes no revision. The runner does not need the revisions to run the
-vectors.
+every vector, every group, and the set rise, except for a change of the
+vector lines that the text shows, of the list of the needs, of what a
+need is, or of when a vector has a need. A change of the member `note`
+or the member `needs` of a vector, and of no other member, changes no
+revision. The addition or the removal of one of these members is such a
+change. The runner does not need the revisions to run the vectors.
 
 A vector writes each input and each value in a fixed form. Inside the
 members `input` and `values`, each text, byte sequence, whole number,
@@ -1309,55 +1311,55 @@ Some file systems change entry names, add folder entries of their own,
 or do not allow some entry names. For example, a file system that
 changes each entry name into a decomposed form of Unicode normalization
 lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 of
-vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64, and
-some file systems do not allow the entry name 0xE9 of vector 41. Such a
-file system does not store the folder tree of that vector. Condition 3
-depends on the process of the program as well as on the file system: a
-process that has an appropriate privilege, as POSIX.1-2024 defines it,
-that gives it a permission that a file object takes away does not meet
-it. So the runner runs a vector with a process of the program that has
-no such privilege, and it gives each file whose file object has
-`owned-by-other` with the value `true` an owner whose user ID differs
-from the effective user ID of that process. The result and the values of
-a vector are the same on every file system that stores its folder tree.
+vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64, so it
+does not store the folder tree of vector 30. Some file systems do not
+allow the entry name 0xE9 of vector 41, so they do not store the folder
+tree of vector 41. Condition 3 depends on the process of the program as
+well as on the file system: a process that has an appropriate privilege,
+as POSIX.1-2024 defines it, that gives it a permission that a file
+object takes away does not meet it. The result and the values of a
+vector are the same on every file system that stores its folder tree.
 
 A need of a vector is a condition of its run that a runner can be unable
-to make true: a file system that stores its folder tree, a process of
-the program, or an owner of a file. This is the complete list of the
-needs, by their need names, and of the vectors that have each need. No
-other need name stands in the vector file.
+to make true and that this list names: a condition on the file system
+that holds the folder tree, on the process of the program, or on the
+owners of the files of the folder tree. This is the complete list of the
+needs, by their need names, and of when a vector has each need. No other
+need name stands in the vector file.
 
 - `names-kept`: the folder tree is on a file system that keeps each
-  entry name as the runner makes it, byte for byte, and does not change
-  it, for example into a decomposed form of Unicode normalization. A
-  vector has this need when an entry name of its folder tree is valid
-  UTF-8, and the composed form or the decomposed form of Unicode
-  normalization of its text is another text, as for the text `café.md`
-  of vector 30.
+  entry name of the folder tree as the runner makes it, byte for byte:
+  for example, the file system does not change an entry name into a
+  decomposed form of Unicode normalization. A vector has this need when
+  an entry name of its folder tree is valid UTF-8 and holds a byte of
+  0x80 or more, such as the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9,
+  0x2E, 0x6D, 0x64 of vector 30.
 - `no-privilege`: the process of the program has no appropriate
   privilege, as POSIX.1-2024 defines it, that gives it a permission that
-  a file object takes away. A vector has this need when a file object of
-  its folder tree has the member `read`, `search`, or `write` with the
-  value `false`, as in vectors 49 to 56.
-- `non-utf-8-names`: the folder tree is on a file system that stores an
-  entry name that is not valid UTF-8. A vector has this need when an
-  entry name of its folder tree is not valid UTF-8, such as the entry
-  name 0xE9 of vector 41.
-- `other-owner`: the runner can give a file of the folder tree an owner
-  whose user ID differs from the effective user ID of the process of the
-  program. A vector has this need when a file object of its folder tree
-  has the member `owned-by-other` with the value `true`, as in vector
-  57.
+  a file object of the folder tree takes away. A vector has this need
+  when a file object of its folder tree has the member `read`, `search`,
+  or `write` with the value `false`, as in vectors 49 to 56.
+- `non-utf-8-names`: the folder tree is on a file system that keeps each
+  entry name of the folder tree that is not valid UTF-8 as the runner
+  makes it, byte for byte. A vector has this need when an entry name of
+  its folder tree is not valid UTF-8, such as the entry name 0xE9 of
+  vector 41.
+- `other-owner`: each file of the folder tree whose file object has the
+  member `owned-by-other` with the value `true` has an owner whose user
+  ID differs from the effective user ID of the process of the program. A
+  vector has this need when a file object of its folder tree has the
+  member `owned-by-other` with the value `true`, as in vector 57.
 
 A vector of the group `file-reads` has the member `needs` when, and only
 when, it has one or more of these needs, and the member names each need
 of the vector and no other. A vector of another group has no need. For
-each vector, the runner uses a file system that stores its folder tree
-and a process of the program that meets the conditions of its input. The
-runner can skip a vector only when it cannot make true a need that the
-member `needs` of the vector names, and it then reports that need. A
-skip of any other vector is a failure of the run, as when the program
-does not give the result of a vector.
+each vector that it does not skip, the runner uses a file system that
+stores its folder tree, and a process of the program for which the
+conditions of its input hold. The runner can skip a vector only when it
+cannot make true a need that the member `needs` of the vector names.
+When it skips a vector, it reports the number of the vector and each
+such need. Any other skip of a vector makes the run of the vectors fail,
+as when the program does not give the result of a vector.
 
 ```
 {"group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"n":20,"result":"found","rev":"v1","values":{"text":[{"text":"hi","times":1}]}}
