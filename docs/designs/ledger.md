@@ -55,8 +55,9 @@ conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, it takes the remotes of a
-git repository. From RFC 3339, it takes the rule `date-time` of its
-ABNF, for the time at which a ledger entry was written. The production
+git repository and the URL from which a fetch from a remote takes git
+objects. From RFC 3339, it takes the rule `date-time` of its ABNF, for
+the time at which a ledger entry was written. The production
 `chunk-path` is written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings `%s"…"` of RFC 7405. From RFC 8259, the design
 takes JSON texts, with their objects, members, arrays, strings, and
@@ -78,7 +79,7 @@ design is a JSON text.
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
-| remote | a name, such as `origin`, by which the git configuration of a git repository gives another git repository |
+| remote | a name, such as `origin`, by which the git configuration of a git repository gives the URL of another git repository |
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object or names another ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
@@ -248,13 +249,13 @@ appends.
 
 Each clone has a ledger ref of its own, when it has one, and a stored
 ledger when its ledger is valid. The shared clone of a clone is the git
-repository at the URL from which a fetch from its remote, named by the
-parameter `ledger-remote`, takes git objects, such as the git repository
-on the host of the project (term `shared-clone`). Its stored ledger is
-the shared ledger. A line of the ledger commit of a clone is provisional
-while the ledger commit of its shared clone does not account for it
-(term `accounted-line`); a line that a repair of the shared clone
-replaced with a void is accounted for, so it is not provisional.
+repository that the parameter `ledger-remote` names through the remote
+of the clone, such as the git repository on the host of the project
+(term `shared-clone`). Its stored ledger is the shared ledger. A line of
+the ledger commit of a clone is provisional while the ledger commit of
+its shared clone does not account for it (term `accounted-line`); a line
+that a repair of the shared clone replaced with a void is accounted for,
+so it is not provisional.
 
 A clone pushes its ledger entries to its shared clone. The requirement
 `push-only-extensions` gives the commit that a push sends and what a
@@ -966,15 +967,17 @@ after the last change of the ledger ref of A.
 }
 
 When a conforming program pulls into a git repository A the ledger
-entries of its shared clone from a commit s, it must do so only when A
-has no ledger commit, when the git tree object of s accounts for each
-line of the git tree object of the ledger commit of A, or when the
-ledger of A is valid, the git
-tree object of s is a valid ledger tree, and the object of each line of
-the git tree object of the ledger commit of A for which the git tree
-object of s does not account has, as its `kind`, one of the texts
-`task`, `plan`, `approval`, `decline`, `done`, `abandoned`, `delivered`,
-and `void`.
+entries of its shared clone from a commit s, it must do so only when one
+of these is true:
+
+1. A has no ledger commit.
+2. The git tree object of s accounts for each line of the git tree
+   object of the ledger commit of A.
+3. The ledger of A is valid, the git tree object of s is a valid ledger
+   tree, and the object of each line of the git tree object of the
+   ledger commit of A for which the git tree object of s does not
+   account has, as its `kind`, one of the texts `task`, `plan`,
+   `approval`, `decline`, `done`, `abandoned`, `delivered`, and `void`.
 
 ### 5.16 The provisional ledger entries that leave in a pull
 
