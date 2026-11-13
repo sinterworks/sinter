@@ -115,7 +115,7 @@ vector.
 | [site](sinter:#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a file of a tree in markdown, or one comment in code; no two sites of a file of a tree have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the text that `label` matches in its declaration, when its declaration has one, such as `v2` in the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
-| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the labels of those declared items; for a conformance vector, the conformance vector with the forms of its group |
+| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for a declared item, without the label of its own declaration; for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the labels of those declared items; for a conformance vector, the conformance vector with the forms of its group |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry or an inline citation gives; an edge has at most one source and at most one cited item |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
@@ -133,7 +133,7 @@ vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises, from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises, from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -170,7 +170,7 @@ vector.
 | [deprecated](sinter:#deprecated-item=v1), [rejected](sinter:#rejected-record=v1), [deferred](sinter:#deferred-record=v1) | the states that the three status words give, through a status tag that stands in the item |
 | [approved, declined](sinter:#approval-state=v1) | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; a subject of approval of such a kind is approved, or declined, only when an `approval`, or a `decline`, ledger entry before the point records that a person approved, or declined, the revised content that it has in the tree, and it is never both approved and declined; a subject of approval of another kind is approved when the revised content that it has in the tree has merged into the default branch, and it is never declined; an item of the kind specification, an item of the kind requirement or a term that an item of the kind design holds directly, and a decision record are each approved, or declined, when their subject of approval is; an item of the kind requirement or a term that an item of the kind specification holds is approved, or declined, when that item of the kind specification is; an item of the kind design is approved when that item of the kind design without the declared items that it holds, each item of the kind specification that it holds, and each item of the kind requirement and each term that it holds directly are approved |
 | [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
-| [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when its label is not the current revision of its cited item |
+| [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when it has a cited item, and that item has no current revision or a current revision other than the label of the edge |
 | [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
 | [open, done, abandoned](sinter:#work-item-state=v1) | the three states of a plan |
 | [unfinished](sinter:#work-item-state=v1) | a task is unfinished while it is open or delivered |
@@ -180,7 +180,7 @@ vector.
 | statement of an agent | a text that an agent writes |
 | session | one execution of an agent on its work |
 | declared task | the task that an agent declares as the work of its session |
-| brief of a session | the text about the work of the session that a conforming program gives an agent, in no state input, when the agent asks for that text |
+| brief of a session | the text about the work of the session that a conforming program gives the agent of that session, in no state input |
 
 ## 2. The items, their relations, and their states
 
@@ -272,27 +272,24 @@ item of the kind specification.
 
 Example: an item of the kind design `billing` that holds one item of the
 kind specification `invoice`, which holds one term `amount` and one item
-of the kind requirement `limit-amount`.
+of the kind requirement `limit-amount`. This table gives the lines of
+its file in their order, without the blank lines:
 
-```markdown
-# Billing
-@design billing=v4
-Specifies the invoices that a billing service sends.
-
-## Invoices
-@spec invoice=v2
-An invoice asks a customer to pay a sum of money.
-
-### Amount
-@term amount=v1
-The amount of an invoice is the sum of money that the invoice asks for.
-
-### Amount limit
-@req limit-amount=v2
-@cites #{amount=v1}
-A conforming program must reject an invoice whose amount is more than
-10,000 euros.
-```
+| line |
+|---|
+| `# Billing` |
+| `@design billing=v4` |
+| `Specifies the invoices that a billing service sends.` |
+| `## Invoices` |
+| `@spec invoice=v2` |
+| `An invoice asks a customer to pay a sum of money.` |
+| `### Amount` |
+| `@term amount=v1` |
+| `The amount of an invoice is the sum of money that the invoice asks for.` |
+| `### Amount limit` |
+| `@req limit-amount=v2` |
+| `@cites #{amount=v1}` |
+| `A conforming program must reject an invoice whose amount is more than 10,000 euros.` |
 
 Only terms and requirements are normative: a term says what a word or a
 fixed phrase means, and a requirement says what each conforming program
@@ -318,9 +315,8 @@ depends on the name in the target of its declaration:
 - Otherwise, its name is the name in the target of its declaration.
 
 A citation entry names an item, such as `billing#limit-amount` in
-`@cites billing#limit-amount=v2`, or `billing#amount` in
-`@cites #{amount=v1}` in the design `billing`, or the external item
-`gh/42` in `@cites gh/42`.
+`@cites billing#limit-amount=v2`, or the external item `gh/42` in
+`@cites gh/42`.
 
 An item of one tree and an item of another tree are the same item when
 they are declared items with the same kind of item and the same name,
@@ -334,7 +330,7 @@ design, are the same item. Two tests are the same item when the files
 of the two tests have the same valid path and the names of the two tests
 are equal. So an item of the kind requirement that moves to another
 place in the same file of a tree, or to another file of a tree, stays
-the same item.
+the same item when its name stays the same.
 
 ### 2.5 Decision records and finding classes
 
@@ -485,18 +481,19 @@ when that match uses `label`, such as `v2` in `@req limit-amount=v2`.
 The label of a conformance vector is the revision of its vector line,
 the label of a group of conformance vectors is the revision of its group
 line, and the label of a vector set is the revision of its set line. The
-revised content of an item of the kind design is the item of the kind
-design without the declared items that it holds. The revised content of
-an item of the kind specification is that item with the declared items
-that it holds, without the labels of those declared items. So an edit of
-an item of the kind requirement that an item of the kind specification
-holds changes the revised content of that item of the kind specification
-too. The revised content of a conformance vector is that conformance
-vector with the forms of its group, and the revised content of a group
-of conformance vectors or of a vector set is its conformance vectors,
-each with the forms of its group. A term with no label has a revised
-content and no revision. A task, a plan, a test, a site, and an external
-item have no revised content and no revision.
+revised content of a declared item leaves out the label of its own
+declaration. The revised content of an item of the kind design is the
+item of the kind design without the declared items that it holds. The
+revised content of an item of the kind specification is that item with
+the declared items that it holds, without the labels of those declared
+items. So an edit of an item of the kind requirement that an item of the
+kind specification holds changes the revised content of that item of the
+kind specification too. The revised content of a conformance vector is
+that conformance vector with the forms of its group, and the revised
+content of a group of conformance vectors or of a vector set is its
+conformance vectors, each with the forms of its group. A term with no
+label has a revised content and no revision. A task, a plan, a test, a
+site, and an external item have no revised content and no revision.
 
 A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
@@ -543,10 +540,11 @@ A promise links a task to an item of the kind requirement: the task
 promises an edge of the kind of edge of the promise to that item, from a
 citation in a file of a tree whose valid path is in the set of its
 paths. The promise is kept in a tree when the tree has that edge, the
-edge says what its kind of edge says, and, for a `verifies` promise,
-test evidence of an execution of test runners on the code of that tree
-has a test result that names the test that is the source of that edge
-and says that it passed, and none that says that it failed.
+edge says what its kind of edge says, the edge is not suspect in that
+tree, and, for a `verifies` promise, test evidence of an execution of
+test runners on the code of that tree has a test result that names the
+test that is the source of that edge and says that it passed, and none
+that says that it failed.
 
 A task has no description of its own: the items of the kind requirement
 that it promises, or its external item, say what to build. A task has no
@@ -586,11 +584,11 @@ it waits for, itself or through a plan, is done.
 
 A commit gives its link to a task in a line of its message:
 
-- A delivery line, such as `Delivers: t-3f2a9c1d7e0b 05ef56`, says that
-  the commit completes the work of the task. It names the task by its
-  work item id, and it names definitions of the task.
-- A task line, such as `Task: t-3f2a9c1d7e0b`, says that the commit does
-  part of the work of the task, without finishing it.
+- A delivery line says that the commit completes the work of the task.
+  It names the task by its work item id, and it names definitions of the
+  task.
+- A task line says that the commit does part of the work of the task,
+  without finishing it.
 
 ### 2.11 The ledger
 
@@ -672,15 +670,15 @@ record, and that no other program changes while the program runs
 | in force | a declared item | the item is not retired |
 | retired | a declared item | the item no longer applies: it is deprecated, rejected, or deferred, it is the cited item of an effective `supersedes` edge, or it belongs to a retired item of the kind design or of the kind specification |
 | effective | a `supersedes` edge | the replacement of the edge has taken effect, and the edge retires its cited item |
-| deprecated | an item of the kind design, specification, or requirement, a term, or a decision record | a `@deprecated` status tag stands in the item and says that it no longer applies and that nothing replaces it |
+| deprecated | an item of the kind design, specification, or requirement, a term, a decision record, or a declared finding class | a `@deprecated` status tag stands in the item and says that it no longer applies and that nothing replaces it |
 | rejected | a decision record | a `@rejected` status tag stands in the record and says that its choice was considered and not made |
 | deferred | a decision record | a `@deferred` status tag stands in the record and says that its choice is not made yet |
 | approved | a subject of approval, or an item of the kind design, specification, or requirement, a term, or a decision record | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; for such a kind, the subject of approval is approved only when an `approval` ledger entry before the point records that a person approved the revised content that it has in the tree; for another kind, it is approved when the revised content that it has in the tree has merged into the default branch; an item of the kind design is approved when that item of the kind design without the declared items that it holds, its items of the kind specification, and the items of the kind requirement and the terms that it holds directly are approved; an item of the kind requirement or a term that belongs to no item of the kind design and to no item of the kind specification has no subject of approval, so it is never approved |
 | declined | a subject of approval, or an item of the kind specification or requirement, a term, or a decision record | the kind of the subject of approval needs approval by a person, and the subject of approval is declined only when a `decline` ledger entry before the point records that a person declined the revised content that it has in the tree; nothing is both approved and declined |
 | draft | an item of the kind design | the item is not approved |
-| suspect | a pinned edge | the label of the edge is not the current revision of its cited item |
+| suspect | a pinned edge | the edge has a cited item, and that item has no current revision or a current revision other than the label of the edge |
 | open | a task | the task exists, and it is neither delivered, done, nor abandoned |
-| delivered | a task | the job observed a delivery line of the task, and the task is neither done nor abandoned |
+| delivered | a task | the job observed, in a `delivered` ledger entry, a delivery line of the task, and the task is neither done nor abandoned |
 | done | a task | while the task was not abandoned, a person judged the work of the task finished, or the job observed that a delivery line of the task named the definition of the task that was current at the point of the `delivered` ledger entry, and that each promise of that definition was kept |
 | abandoned | a task | a person ended the task before it was done |
 | unfinished | a task | the task is open or delivered |
@@ -734,14 +732,15 @@ kind specification. A `supersedes` edge is effective when its
 replacement has taken effect: the edge says what its kind of edge says,
 neither its source nor an item that holds its source is deprecated,
 rejected, or deferred, and its source is a declared finding class, which
-no person approves, or is approved. So a `supersedes` edge whose source
-is not approved yet retires nothing, and a `supersedes` edge from an
-item of the kind design retires nothing until the whole item of the kind
-design is approved.
+has no subject of approval, or is approved. So a `supersedes` edge whose
+source is not approved yet retires nothing, and a `supersedes` edge from
+an item of the kind design retires nothing until the whole item of the
+kind design is approved.
 
-The label of a suspect edge is not the current revision of its cited
-item, for example because the cited item has a new revision, so the
-source may no longer agree with the cited item.
+A suspect edge has a cited item that has no current revision, or a
+current revision other than the label of the edge, for example because
+the cited item has a new revision, so the source may no longer agree
+with the cited item.
 
 At each point of a ledger, each task that exists is in one of the states
 open, delivered, done, and abandoned:
@@ -752,8 +751,9 @@ open, delivered, done, and abandoned:
   the task named the definition of the task that was current at the
   point of the `delivered` ledger entry of that observation, and that
   each promise of that definition was kept.
-- A task is delivered when the job observed a delivery line of the
-  task, and the task is neither done nor abandoned.
+- A task is delivered when the job observed, in a `delivered` ledger
+  entry, a delivery line of the task, and the task is neither done nor
+  abandoned.
 - A task is open when it is in none of these three states.
 
 A task is unfinished while it is open or delivered. The state of a task
@@ -785,23 +785,24 @@ a conforming program whose input says that an agent runs it, a statement
 of the agent changes a state only in one of these two ways (sections 4.1
 and 4.3):
 
-1. through a state input other than the ledger that the statement
-   alters, such as a line of a file of a tree, the message of a commit,
-   which commits the repository has, the commit to which a branch
-   points, or a binding of a parameter;
+1. through a state input, other than the ledger, that the statement
+   alters, such as the tree of a working tree or of a commit, the
+   delivery lines and the task lines of the messages of commits, which
+   commits the repository has, the commit to which a branch points, or
+   the bindings of the parameters that designs name;
 2. as a definition entry.
 
-Under that condition, a statement of an agent that is in none of these
-ways, such as a message to a person that says that the work of the agent
-is done, changes no state.
+Under that condition, a statement of an agent that alters no state input
+other than the ledger and is not a definition entry, such as a message
+to a person that says that the work of the agent is done, changes no
+state.
 
 A session is one execution of an agent on its work. The agent can
 declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text about the work of the
-session that a conforming program gives an agent, in no state input,
-when the agent asks for that text. A conforming program uses the
-declared task of a session for nothing other than the brief of that
-session (section 4.4).
+session that a conforming program gives the agent of that session, in
+no state input. A conforming program uses the declared task of a session
+for nothing other than the brief of that session (section 4.4).
 
 ## 3. Definitions
 
@@ -876,8 +877,14 @@ integration starts at each push to the default branch of a repository.
 
 @term declared-item=v1
 @cites {
-    identifiers#{declaration=v1, sinter-tag-word=v1},
-    text#{design=v1, specification=v1, requirement=v1},
+    identifiers#{
+        declaration=v1, sinter-tag-word=v1, citation=v1,
+        inline-citation=v1, status-tag=v1,
+    },
+    text#{
+        design=v1, specification=v1, requirement=v1,
+        conforming-program=v1, result=v1,
+    },
     #{tree=v1},
 }
 
@@ -894,7 +901,10 @@ kind requirement is a declared item whose declaration word is `@req`. An
 item of the kind design is a design. An item of the kind specification
 declares one specification of the design of which it is a part, and an
 item of the kind requirement declares one requirement of the design of
-which it is a part.
+which it is a part. Only a declaration, a citation, an inline citation,
+or a status tag for which a conforming program of the design Identifiers
+gives the result "valid" declares a declared item, gives an edge, or is
+a status tag of a declared item.
 
 ### 3.8 Containment
 
@@ -1137,10 +1147,11 @@ group line of its vector set whose group is its name, and the label of a
 vector set is the revision of its set line. The revised content of an
 item is the part of the item that its label covers, or would cover for a
 term with no label, such as the text of an item of the kind requirement.
-The revised content of an item of the kind design is the item of the
-kind design without the declared items that it holds. The revised
-content of an item of the kind specification is that item with the
-declared items that it holds, without the labels of those declared
+The revised content of a declared item leaves out the label of its own
+declaration. The revised content of an item of the kind design is the
+item of the kind design without the declared items that it holds. The
+revised content of an item of the kind specification is that item with
+the declared items that it holds, without the labels of those declared
 items. The revised content of a conformance vector is that conformance
 vector with the forms of its group, and the revised content of a group
 of conformance vectors or of a vector set is its conformance vectors,
@@ -1176,7 +1187,10 @@ revision. An item that has no revised content has no revision.
         citation=v1, citation-entry=v1, sinter-tag-word=v1,
         inline-citation=v1,
     },
-    #{item=v1, tree=v1, edge-source=v1, item-name=v1, external-item=v1},
+    #{
+        item=v1, tree=v1, edge-source=v1, item-name=v1,
+        external-item=v1, declared-item=v1,
+    },
 }
 
 An edge is a relation of one kind of edge from its source to its cited
@@ -1357,6 +1371,7 @@ branch.
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
+        suspect-edge=v1,
     },
 }
 
@@ -1366,11 +1381,11 @@ the task to the item of the kind requirement that has that name: the
 task promises an edge of that kind of edge to that item, from a citation
 in a file of a tree whose valid path is in the set of the paths of the
 task. The promise is kept in a tree when, and only when, that tree has
-that edge, and the edge says what its kind of edge says, and, for a
-`verifies` promise, test evidence of an execution of test runners on the
-code of that tree has a test result that names the test that is the
-source of that edge and says that it passed, and none that says that it
-failed.
+that edge, and the edge says what its kind of edge says, and the edge is
+not suspect in that tree, and, for a `verifies` promise, test evidence
+of an execution of test runners on the code of that tree has a test
+result that names the test that is the source of that edge and says that
+it passed, and none that says that it failed.
 
 ### 3.35 Plans
 
@@ -1597,8 +1612,9 @@ the parts of each plan, and the state of each task and each plan:
      ledger entry, that a delivery line of the task named the definition
      of the task that was current at the point of that `delivered`
      ledger entry, and that each promise of that definition was kept;
-   - delivered, when the job observed a delivery line of the task, and
-     the task is neither done nor abandoned;
+   - delivered, when the job observed, in a `delivered` ledger entry, a
+     delivery line of the task, and the task is neither done nor
+     abandoned;
    - open, when it is none of abandoned, done, and delivered.
 4. A task is unfinished at a point when, and only when, it is open or
    delivered at that point.
@@ -1628,21 +1644,22 @@ of a ledger.
     identifiers#{status-tag=v1},
     #{
         declared-item=v1, term=v1, decision-record=v1, tree=v1,
-        edge-source=v1,
+        edge-source=v1, declared-finding-class=v1,
     },
 }
 
-An item of the kind design, specification, or requirement, a term, or a
-decision record is deprecated in a tree when, and only when, a
-`@deprecated` status tag stands in it in that tree. That status tag says
-that the item no longer applies and that nothing replaces it.
+An item of the kind design, specification, or requirement, a term, a
+decision record, or a declared finding class is deprecated in a tree
+when, and only when, a `@deprecated` status tag stands in it in that
+tree. That status tag says that the item no longer applies and that
+nothing replaces it.
 
 ### 3.51 Rejected
 
 @term rejected-record=v1
 @cites {
     identifiers#{status-tag=v1},
-    #{decision-record=v1, tree=v1, edge-source=v1},
+    #{decision-record=v1, tree=v1, edge-source=v1, declared-item=v1},
 }
 
 A decision record is rejected in a tree when, and only when, a
@@ -1654,7 +1671,7 @@ that the choice of the record was considered and not made.
 @term deferred-record=v1
 @cites {
     identifiers#{status-tag=v1},
-    #{decision-record=v1, tree=v1, edge-source=v1},
+    #{decision-record=v1, tree=v1, edge-source=v1, declared-item=v1},
 }
 
 A decision record is deferred in a tree when, and only when, a
@@ -1668,9 +1685,9 @@ that the choice of the record is not made yet.
     text#{design=v1},
     #{
         subject-of-approval=v1, person=v1, revised-content=v1,
-        containment=v1, term=v1, decision-record=v1, declared-item=v1,
-        default-branch=v1, tree=v1, ledger=v1, state=v1,
-        ledger-entry=v1, judgment=v1, parameter=v1,
+        containment=v1, term=v1, declared-item=v1, default-branch=v1,
+        tree=v1, ledger=v1, state=v1, ledger-entry=v1, judgment=v1,
+        parameter=v1,
     },
 }
 
@@ -1688,17 +1705,9 @@ a point of a ledger, these are the states approved and declined:
 - A subject of approval of a kind that needs no approval by a person is
   approved when, and only when, the revised content that it has in that
   tree has merged into the default branch. It is not declined.
-- An item of the kind specification, an item of the kind requirement or
-  a term that an item of the kind design holds directly, and a decision
-  record are each approved when, and only when, the subject of approval
-  that is that item, or that is that item of the kind specification with
-  its items of the kind requirement and its terms, is approved. Each of
-  them is declined when, and only when, that subject of approval is
-  declined.
-- An item of the kind requirement or a term that an item of the kind
-  specification holds is approved when, and only when, that item of the
-  kind specification is approved. It is declined when, and only when,
-  that item of the kind specification is declined.
+- A declared item other than an item of the kind design is approved,
+  or declined, when, and only when, its subject of approval is approved,
+  or declined.
 - An item of the kind design is approved when, and only when, that item
   of the kind design without the declared items that it holds, each item
   of the kind specification that it holds, and each item of the kind
@@ -1718,7 +1727,7 @@ when, and only when, it is not approved in that tree at that point.
 @cites #{
     edge=v1, supersedes-edge=v1, deprecated-item=v1, rejected-record=v1,
     deferred-record=v1, approval-state=v1, declared-finding-class=v1,
-    tree=v1, ledger=v1, person=v1, item=v1, containment=v1,
+    tree=v1, ledger=v1, item=v1, containment=v1, subject-of-approval=v1,
 }
 
 A `supersedes` edge is effective in a tree, at a point of a ledger,
@@ -1726,9 +1735,9 @@ when, and only when, the edge says what the kind of edge `supersedes`
 says in that tree (its source and its cited item are of the kinds of
 item for which that kind of edge is); neither its source nor an item
 that holds its source is deprecated, rejected, or deferred in that tree;
-and its source is a declared finding class, which no person approves, or
-is approved in that tree at that point. An effective `supersedes` edge
-is one whose replacement has taken effect.
+and its source is a declared finding class, which has no subject of
+approval, or is approved in that tree at that point. An effective
+`supersedes` edge is one whose replacement has taken effect.
 
 ### 3.56 Retired
 
@@ -1759,8 +1768,9 @@ and only when, it is not retired in that tree at that point.
 @term suspect-edge=v1
 @cites #{pinned-edge=v1, edge=v1, item-revision=v1, tree=v1}
 
-An edge is suspect in a tree when, and only when, it is pinned and its
-label is not the current revision of its cited item in that tree.
+An edge is suspect in a tree when, and only when, it is pinned, it has a
+cited item in that tree, and that item has no current revision in that
+tree or a current revision other than the label of the edge.
 
 ### 3.59 Met waits
 
@@ -1894,10 +1904,9 @@ change the ledger only by appending definition entries.
 A session is one execution of an agent on its work. The declared task of
 a session is the task that the agent declares as the work of that
 session. The brief of a session is the text about the work of the
-session that a conforming program gives an agent, in no state input,
-when the agent asks for that text. A conforming program must use the
-declared task of a session for nothing other than the brief of that
-session.
+session that a conforming program gives the agent of that session, in
+no state input. A conforming program must use the declared task of a
+session for nothing other than the brief of that session.
 
 ## 5. Conformance
 
