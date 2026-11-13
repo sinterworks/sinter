@@ -37,7 +37,9 @@ WebAssembly module that reads the report files of one test runner and
 binds their test results to test entries, which stand for test nodes. A
 program calls an adapter with a request and a report content, such as
 the content of a report file, and reads its response. The code of a
-grammar and of an adapter can reach no file, no network, and no clock.
+grammar and of an adapter can read no file, write no file and not the
+output of the process, use no network, read no clock, and start no
+process.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405. A production, such as
@@ -103,6 +105,7 @@ queries.
 | [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether it is well named, the valid paths of its files, its pack listing, its pack hash, whether it is valid, a value of the content of its file `pack.toml` as a descriptor, the result of a reading of a text with it, the content of one of its files, or the result of a call of the adapter of one of its test runners |
+| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes its folder tree, and in which no code of a grammar of the pack exhausts the call stack or gives a value that depends on the bits of a NaN |
 | [descriptor](sinter:#valid-pack=v1) | the content of the file `pack.toml` of a pack, which is a valid descriptor in a valid pack |
 | [valid descriptor](sinter:#valid-descriptor=v1) | a byte sequence that is a TOML document whose root table holds the keys of a descriptor, each with a TOML value of the right form |
 | [pack name](sinter:#pack-name=v1) | a text of lower-case ASCII letters, ASCII digits, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` side by side, such as `typescript`; the name of a pack and the name of a test runner are pack names |
@@ -156,9 +159,9 @@ queries.
 | [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values; with "parse failure", the run of the failure node, when there is one |
 | import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
-| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
 | [choice of the program](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits, a refused growth of a memory or of a table within its maximum, the depth at which the call stack is exhausted, or the bits of a NaN |
-| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that wasmtime 36.0.19 compiles, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
 | [test entry](sinter:#test-entry=v1) | an id, a path, a first and a last line, a kind, a name path, and test labels, which a call of the function bind gives an adapter for one test node |
@@ -235,9 +238,11 @@ It changes no file of that folder tree. It uses no permission and no
 privilege that its process did not have. A program that cannot take the
 bytes of a file of the folder tree, such as for lack of a permission,
 gives a result of that use only when that result is the one that the
-requirements give; it can give no result. When another process changes
-the folder tree of a pack during a use of the pack, no requirement
-applies to the results of that use, and these guarantees still hold.
+requirements give; it can give no result. The requirements on results
+apply to an undisturbed use of a pack: a use during which no other
+process changes its folder tree, and in which no code of a grammar of
+the pack exhausts the call stack or gives a value that depends on the
+bits of a NaN; in other uses, these guarantees still hold.
 
 ### 2.2 The pack hash
 
@@ -474,15 +479,15 @@ path has no file grammar, the reading gives the result "no grammar".
 The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
 text with the usable grammar. tree-sitter 0.26.13 can give no parse
-tree. The program ends the code of the grammar, as it does the code of
-an adapter: it can stop that code when it goes past limits of its own,
-and the reading then gives "parse failure" with no failure node. When
-the code of the grammar exhausts the call stack, whether the text has a
-parse tree can differ between conforming programs. When the
-parse tree has an `ERROR` node or a `MISSING` node, the error flag of
-its root node, which `Node::has_error` gives, is set. A `MISSING` node
-takes up no text. A `MISSING` node of a hidden token is in no list of
-the children of a node, and then only the error flag of the root node
+tree. The program ends each reading: when it stops a reading, a choice
+that it can make for limits of its own, the reading gives "parse
+failure" with no failure node. The requirements on readings apply to an
+undisturbed use of the pack, in which no code of the grammar exhausts
+the call stack or gives a value that depends on the bits of a NaN. When
+the parse tree has an `ERROR` node or a `MISSING` node, the error flag
+of its root node, which `Node::has_error` gives, is set. A `MISSING`
+node takes up no text. A `MISSING` node of a hidden token is in no list
+of the children of a node, and then only the error flag of the root node
 shows it. So the text has a parse failure when tree-sitter gives no
 parse tree, or when the error flag of the root node is set. A reading of
 a text with a parse failure gives the result "parse failure". It gives
@@ -601,11 +606,10 @@ one test runner and binds their test results to test entries, which
 stand for test nodes. A pack has at most one adapter for each test
 runner: the file `adapters/<r>.wasm`. In a decision of a program, the
 module is a valid adapter when it is a WebAssembly module of the
-WebAssembly Core Specification 2.0, when wasmtime 36.0.19 compiles it,
-when it imports nothing (no function, no memory, no table, and no
-global), when it exports these five names, with these types, and when
-it gives the version of the interface, as the paragraph after the table
-says:
+WebAssembly Core Specification 2.0, when it imports nothing (no
+function, no memory, no table, and no global), when it exports these
+five names, with these types, and when it gives the version of the
+interface, as the paragraph after the table says:
 
 | export | type | what it does |
 |---|---|---|
@@ -620,10 +624,9 @@ The module can export other names, such as the globals `__data_end` and
 interface. A module gives that version when the decision of the program
 runs, in a new instance of the module, the instantiation and then one
 invocation of `sinter_interface`, and nothing else in that instance, and
-these do not fail, and the invocation gives the value 1. A decision for
-a byte sequence that does not meet the other conditions runs nothing.
-Two decisions can differ when a choice of the program, such as a stop
-for its limits, changes them.
+these do not fail, and the invocation gives the value 1. Two decisions
+can differ when a choice of the program, such as a stop for its limits,
+changes them.
 
 A call runs one function of an adapter, with a request, a report
 content, and, for the function bind, the ids of its test entries. The
@@ -864,7 +867,21 @@ result of a call of the adapter of a test runner of its descriptor. Such
 an operation is a use of the pack also when the program gives another
 thing in it, or nothing.
 
-### 4.6 WebAssembly modules
+### 4.6 Undisturbed uses of packs
+
+@term undisturbed-pack-use=v1
+@cites {
+    wasm-core/2.0,
+    files#{folder-tree=v1},
+    #{pack=v1, pack-use=v1, valid-pack=v1, wasmtime-engine=v1},
+}
+
+An undisturbed use of a pack is a use of the pack during which no other
+process changes a file of its folder tree, and in which no code of a
+grammar of the pack exhausts the call stack or gives a value that
+depends on the bits of a NaN, in the program or with a wasmtime engine.
+
+### 4.7 WebAssembly modules
 
 @term webassembly-module=v1
 @cites {wasm-core/2.0, text#{byte-sequence=v1}}
@@ -878,24 +895,17 @@ instances, embedders, the instantiation of a module and its start
 function, the invocation of a function, traps, pages, the instructions
 `memory.grow` and `table.grow`, and the value types `i32` and `i64`.
 
-### 4.7 Wasmtime engines
+### 4.8 Wasmtime engines
 
 @term wasmtime-engine=v1
 @cites {wasmtime/36.0.19, tree-sitter/0.26.13, text#{code-span=v1}}
 
 A wasmtime engine is an `Engine` of wasmtime 36.0.19, as the feature
-`wasm` of the Rust library of tree-sitter 0.26.13 builds that crate:
-with its crate features `runtime`, `std`, `gc`, `gc-drc`, and
-`cranelift`, and so with the Cranelift compiler. A wasmtime engine is
-made with a `Config` of that crate whose settings have their default
-values. With these settings, wasmtime 36.0.19 does not change a NaN that
-code gives into one canonical NaN. An `Engine` whose `Config` differs
-only by settings with which a program can stop code, such as fuel or
-epoch interruption, is also a wasmtime engine: such a stop is a choice
-of the program, and each outcome with a wasmtime engine is the outcome
-when the program makes no stop.
+`wasm` of the Rust library of tree-sitter 0.26.13 builds that crate,
+with the Cranelift compiler, made with a `Config` of that crate whose
+settings have their default values.
 
-### 4.8 Usable grammars
+### 4.9 Usable grammars
 
 @term usable-grammar=v1
 @cites {
@@ -934,21 +944,19 @@ of these conditions:
 5. For each whole number i from 0 to the lesser of 65,535 and 1 less
    than the number that `Language::node_kind_count` gives for that
    language, `Language::node_kind_for_id` reads, for i, no name, or a
-   name whose bytes are valid UTF-8. So `Node::kind` gives a text for
-   each node whose language is that language.
+   name whose bytes are valid UTF-8.
 
 The language of a usable grammar with the grammar name g is that
-language, and its ABI version is that whole number. A usable grammar is
-a module of the WebAssembly Core Specification 2.0, so the features
-beyond that specification that the `Config` of a wasmtime engine turns
-on do not change which byte sequences are usable grammars. The function
-that that library gives for the name `tree_sitter_debug_message` writes
-to the standard output of the process. The other imports that it gives
+language, and its ABI version is that whole number. The function that
+that library gives for the name `tree_sitter_debug_message` writes to
+the standard output of the process. The other imports that it gives
 give the code of the module no means to take bytes from a file, to
 write a file or the output of the process, to use a network, to read a
-clock, or to start a process.
+clock, or to start a process. That library does not check the parse
+tables that it copies from the module against each other: it reads them
+by indexes that the tables give, with no bound.
 
-### 4.9 The depth of a query text
+### 4.10 The depth of a query text
 
 @term query-depth=v1
 @cites text#{
@@ -1000,7 +1008,7 @@ tokens is more than 100. The place where a query text passes the depth
 limit is the place of the first character of the first token after
 which the depth is more than 100.
 
-### 4.10 Query files
+### 4.11 Query files
 
 @term query-file=v1
 @cites {
@@ -1062,7 +1070,7 @@ conditions:
    - test: one of `case` and `suite` has the quantifier One, and the
      other has the quantifier Zero.
 
-### 4.11 Valid packs
+### 4.12 Valid packs
 
 @term valid-pack=v1
 @cites {
@@ -1122,7 +1130,7 @@ none when it does not; and the adapter of a test runner of its
 descriptor that has an adapter hash, with the name r, is the content of
 its file `adapters/<r>.wasm`.
 
-### 4.12 Parse trees
+### 4.13 Parse trees
 
 @term parse-tree=v1
 @cites {
@@ -1146,7 +1154,7 @@ a new `Parser` of the Rust library of tree-sitter 0.26.13 that has that
 store as its WebAssembly store, the language that this store loads as
 its language, and no other setting.
 
-### 4.13 The order of the parse tree
+### 4.14 The order of the parse tree
 
 @term parse-tree-order=v1
 @cites {tree-sitter/0.26.13, text#{whole-number=v1, code-span=v1}, #{parse-tree=v1}}
@@ -1161,7 +1169,7 @@ children. In the order of the parse tree, each node comes before each of
 its descendants, and, for each two children of one node, the first of
 them and each of its descendants come before the second of them.
 
-### 4.14 The runs of nodes
+### 4.15 The runs of nodes
 
 @term node-run=v1
 @cites {
@@ -1183,7 +1191,7 @@ of a node of the parse tree of a text is the run of that text that
 starts at the greater of b and the lesser of s and l, and that ends at
 the greater of b and the lesser of e and l.
 
-### 4.15 Node types
+### 4.16 Node types
 
 @term node-type=v1
 @cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{parse-tree=v1, parse-tree-order=v1}}
@@ -1191,7 +1199,7 @@ the greater of b and the lesser of e and l.
 The node type of a node of a parse tree is the text that `Node::kind` of
 tree-sitter 0.26.13 gives for that node.
 
-### 4.16 Parse failures
+### 4.17 Parse failures
 
 @term parse-failure=v1
 @cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
@@ -1210,7 +1218,7 @@ first node, in the order of the parse tree, that has an error and that
 has no child that has an error. A parse failure with no parse tree has
 no failure node.
 
-### 4.17 Query matches
+### 4.18 Query matches
 
 @term query-match=v1
 @cites {
@@ -1234,7 +1242,7 @@ gives, and one pattern comes before another when its index is less. The
 captures of a query match are its captures whose capture names do not
 start with `_`: each is a capture name and a node of the parse tree.
 
-### 4.18 Joined matches and kept matches
+### 4.19 Joined matches and kept matches
 
 @term joined-match=v1
 @cites {
@@ -1255,7 +1263,7 @@ joined matches whose pattern comes before the pattern of each other
 joined match of that query file over that text that has the same role
 name and the same role node.
 
-### 4.19 Comment nodes
+### 4.20 Comment nodes
 
 @term comment-node=v1
 @cites {
@@ -1275,7 +1283,7 @@ once, in the order of the parse tree. A comment node is tagged when, and
 only when, it is the role node of a kept match with the role name
 `comment`, and of no kept match with the role name `untagged`.
 
-### 4.20 Definition nodes
+### 4.21 Definition nodes
 
 @term definition-node=v1
 @cites {
@@ -1300,7 +1308,7 @@ nodes that this kept match captures under `body`, in the order of the
 parse tree, or, when it captures no node under `body`, the definition
 node alone.
 
-### 4.21 Decoration nodes
+### 4.22 Decoration nodes
 
 @term decoration-node=v1
 @cites {
@@ -1320,7 +1328,7 @@ that grammar over the text, in the order of the parse tree. The text has
 no decoration node when that grammar has no query file of the kind
 definition.
 
-### 4.22 Enclosed nodes
+### 4.23 Enclosed nodes
 
 @term enclosed-node=v1
 @cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
@@ -1332,7 +1340,7 @@ before it, the run of A ends at the boundary where the run of B ends or
 at a boundary after it, and B does not come before A in the order of the
 parse tree.
 
-### 4.23 Test nodes
+### 4.24 Test nodes
 
 @term test-node=v1
 @cites {
@@ -1363,7 +1371,7 @@ the role name `case`. Each other test node is a test case. The test
 suites that enclose a test node are the test nodes that are test suites
 and that enclose it, in the order of the parse tree.
 
-### 4.24 The names of test nodes
+### 4.25 The names of test nodes
 
 @term test-name=v1
 @cites {
@@ -1394,7 +1402,7 @@ Two name paths are equal when, and only when, they have the same number
 of names and, at each index, names with the same number of pieces whose
 pieces, at each index, are of the same kind and have the same text.
 
-### 4.25 The test labels of test nodes
+### 4.26 The test labels of test nodes
 
 @term test-label=v1
 @cites {
@@ -1407,7 +1415,7 @@ The test labels of a test node are the texts w that match the production
 captures a node under the capture name that is the text `label.`
 followed by w.
 
-### 4.26 Readings
+### 4.27 Readings
 
 @term reading-of-a-text=v1
 @cites {
@@ -1931,10 +1939,9 @@ byte sequence as the adapter of a test runner of a valid descriptor,
 under a valid binding of `runner-settings` for that test runner, the
 request of the call is the request of that function for that test
 runner, binding, report name, and, for bind, root and test entries. It
-runs the code of an adapter only in an instance of the adapter, it ends
-that code in each call and in each decision whether a byte sequence is a
-valid adapter, and it does not stop that code at a growth of a memory or
-of a table past its maximum.
+runs the code of an adapter only in an instance of the adapter, and it
+ends that code in each call and in each decision whether a byte sequence
+is a valid adapter.
 
 ### 6.1 Definitions
 
@@ -1953,8 +1960,7 @@ in which code runs as the WebAssembly Core Specification 2.0 defines its
 execution, with the program as its embedder. The limits of a program are
 limits of its own on the resources of an instance of an adapter and on
 the time that its code runs. The choices of the program in an instance
-of an adapter are the outcomes that that specification leaves to the
-embedder, and they are these:
+of an adapter are these:
 
 - a stop of the instantiation or of an invocation by the program, such
   as for its limits on the resources of the instance and on the time
@@ -1977,17 +1983,15 @@ specification defines, and it is not a choice of the program.
 
 @term valid-adapter=v1
 @cites {
-    wasm-core/2.0, wasmtime/36.0.19,
+    wasm-core/2.0,
     text#{byte-sequence=v1, code-span=v1, conforming-program=v1},
-    #{webassembly-module=v1, wasmtime-engine=v1, adapter-instance=v1},
+    #{webassembly-module=v1, adapter-instance=v1},
 }
 
 A byte sequence is a valid adapter, in one decision of a program whether
 it is one, when, and only when, it meets each of these conditions:
 
-1. It is a WebAssembly module, and wasmtime 36.0.19 compiles it:
-   `Module::new` of wasmtime 36.0.19, with a wasmtime engine, gives a
-   module for it, and no error.
+1. It is a WebAssembly module.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
    function of the type `[] -> [i32]`, `sinter_alloc` as a function of
@@ -2000,8 +2004,7 @@ it is one, when, and only when, it meets each of these conditions:
    fail, and the invocation gives the `i32` value 1, which is the
    version of the interface.
 
-A decision for a byte sequence that does not meet conditions 1 to 3 runs
-nothing. A choice of the program can change that instantiation or that
+A choice of the program can change that instantiation or that
 invocation, so two decisions whether a byte sequence is a valid adapter,
 of one program or of two conforming programs, can differ. By the
 interface, `sinter_alloc` reserves the given number of bytes in the
@@ -2348,15 +2351,7 @@ A conforming program must end the code of an adapter that it runs, in
 each call and in each decision whether a byte sequence is a valid
 adapter.
 
-### 6.10 Growths past the maximum
-
-@req allow-growth-past-maximum=v1
-@cites {text#{conforming-program=v1}, #{adapter-instance=v1}}
-
-A conforming program must not stop the code of an adapter at a growth of
-a memory or of a table past its maximum.
-
-### 6.11 Conformance
+### 6.10 Conformance
 
 A program conforms to the specification `adapters` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -2403,33 +2398,28 @@ conforming program gives for the input, other than its result. In
 `input` and `values`, a byte sequence is its hex text, as a string, and
 a text is a string of the characters of the text.
 
-#### 6.11.1 Adapters
+#### 6.10.1 Adapters
 
 The group `adapters` holds the vectors that each give a byte sequence
 and what a conforming program gives for it when it decides whether the
 byte sequence is a valid adapter. The requirements of the group are
-`validate-adapters`, `end-adapter-code`, and
-`allow-growth-past-maximum`.
+`validate-adapters` and `end-adapter-code`.
 
 - `input`: the byte sequence.
 - `result`: the result of the decision whether the byte sequence is a
   valid adapter, when a conforming program gives that result: "valid"
   when the byte sequence is a valid adapter in that decision, and
-  "invalid" when it is not. A conforming program gives the result
-  "valid" only when, in addition, no choice that the program makes in
-  the instance of the decision (a stop of the instantiation or of an
-  invocation, a refused growth of a memory or of a table within its
-  maximum, the depth at which the call stack is exhausted, or the bits
-  of a NaN) changes the instantiation or the invocation. The group holds
-  no vector with the result "invalid" whose result such a choice can
-  change.
+  "invalid" when it is not. The requirements of the group oblige the
+  result "valid" only for a decision in which no choice of the program
+  changes the instantiation or the invocation. The group holds no vector
+  with the result "invalid" whose result such a choice can change.
 - `values`: no vector of the group has this member.
 
 ```
 {"group":"adapters","input":"0061736d01000000","n":1,"note":"a module with no export","result":"invalid","rev":"v1"}
 ```
 
-#### 6.11.2 Requests
+#### 6.10.2 Requests
 
 The group `requests` holds the vectors that each give the things of a
 call of a function of the adapter of a test runner, and the request of
@@ -2462,7 +2452,7 @@ sequence as that request.
 {"group":"requests","input":{"function":"recognise","report":"out/junit.xml","runner":"vitest","settings":{}},"n":13,"rev":"v1","values":{"request":"{\"interface\":1,\"report\":\"out/junit.xml\",\"runner\":\"vitest\",\"settings\":{}}"}}
 ```
 
-#### 6.11.3 Responses
+#### 6.10.3 Responses
 
 The group `responses` holds the vectors that each give the function of
 a call of a valid adapter, the ids of the test entries of the call, and
@@ -2501,7 +2491,7 @@ of `values`. With `{}`, it gives none of these.
 {"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
 ```
 
-#### 6.11.4 Calls
+#### 6.10.4 Calls
 
 The group `calls` holds the vectors that each give the things of a call:
 a byte sequence as the adapter, the function, the request, the report
@@ -2518,16 +2508,13 @@ for the call. The requirements of the group are `give-call-results`,
   of the ids of the test entries, as texts.
 - `result`: the result of the call, when a conforming program gives a
   result for it: "recognised", "not recognised", or "failed" for the
-  function recognise, and "bound" or "failed" for the function bind. A
-  conforming program gives a result other than "failed" only when, in
-  addition, no choice that the program makes in the instance of the
-  call, or in the instance of the decision whether its adapter is a
-  valid adapter that the call uses (a stop of the instantiation or of an
-  invocation, a refused growth of a memory or of a table within its
-  maximum, the depth at which the call stack is exhausted, or the bits
-  of a NaN), changes the instantiation or an invocation. The group holds
-  no vector with the result "failed" whose result such a choice can
-  change.
+  function recognise, and "bound" or "failed" for the function bind. The
+  requirements of the group oblige a result other than "failed" only for
+  a call in which no choice of the program changes the instantiation or
+  an invocation, in the instance of the call or in the instance of the
+  decision whether its adapter is a valid adapter that the call uses.
+  The group holds no vector with the result "failed" whose result such a
+  choice can change.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
@@ -2545,127 +2532,109 @@ of `values`. With `{}`, it gives none of these.
 
 @req decide-well-named-packs=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{pack=v1, well-named-pack=v1, pack-use=v1},
+    #{pack=v1, well-named-pack=v1, undisturbed-pack-use=v1},
 }
 
 When a conforming program gives a result for whether a pack is well
-named, in a use of that pack during which no other process changes a
-file of the folder tree of the pack, it must give exactly one result:
-"well named" when the pack is well named, and "not well named" when it
-is not.
+named, in an undisturbed use of that pack, it must give exactly one
+result: "well named" when the pack is well named, and "not well named"
+when it is not.
 
 ### 7.2 The files of a pack
 
 @req give-pack-files=v1
 @cites {
-    files#{folder-tree=v1, path=v1},
+    files#{path=v1},
     text#{conforming-program=v1, text=v1},
-    #{pack=v1, well-named-pack=v1, pack-use=v1},
+    #{pack=v1, well-named-pack=v1, undisturbed-pack-use=v1},
 }
 
 When a conforming program gives the valid paths of the files of a
-well-named pack, in a use of that pack during which no other process
-changes a file of the folder tree of the pack, it must give the valid
-path of each file of the pack, and no other text as the valid path of a
-file of the pack.
+well-named pack, in an undisturbed use of that pack, it must give the
+valid path of each file of the pack, and no other text as the valid path
+of a file of the pack.
 
 ### 7.3 The contents of the files of a pack
 
 @req give-pack-file-contents=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, byte-sequence=v1},
-    #{pack=v1, pack-use=v1},
+    #{pack=v1, undisturbed-pack-use=v1},
 }
 
-When a conforming program gives the content of a file of a pack, in a
-use of that pack during which no other process changes a file of the
-folder tree of the pack, it must give that content, and no other byte
-sequence as that content.
+When a conforming program gives the content of a file of a pack, in an
+undisturbed use of that pack, it must give that content, and no other
+byte sequence as that content.
 
 ### 7.4 Pack listings as output
 
 @req give-pack-listings=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, text=v1},
-    #{pack=v1, well-named-pack=v1, pack-hash=v1, pack-use=v1},
+    #{pack=v1, well-named-pack=v1, pack-hash=v1, undisturbed-pack-use=v1},
 }
 
 When a conforming program gives the pack listing of a pack that has a
-pack listing, in a use of that pack during which no other process
-changes a file of the folder tree of the pack, it must give the pack
+pack listing, in an undisturbed use of that pack, it must give the pack
 listing of that pack, and no other text, as its pack listing.
 
 ### 7.5 No pack listing for a pack that has none
 
 @req omit-pack-listings=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1},
-    #{pack=v1, pack-hash=v1, pack-use=v1},
+    #{pack=v1, pack-hash=v1, undisturbed-pack-use=v1},
 }
 
-In each use of a pack that has no pack listing, during which no other
-process changes a file of the folder tree of the pack, a conforming
+In each undisturbed use of a pack that has no pack listing, a conforming
 program must give no text as the pack listing of that pack.
 
 ### 7.6 Pack hashes as output
 
 @req give-pack-hashes=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, text=v1},
-    #{pack=v1, well-named-pack=v1, pack-hash=v1, pack-use=v1},
+    #{pack=v1, well-named-pack=v1, pack-hash=v1, undisturbed-pack-use=v1},
 }
 
 When a conforming program gives a pack hash for a pack that has a pack
-hash, in a use of that pack during which no other process changes a
-file of the folder tree of the pack, it must give the pack hash of that
-pack, and no other text, as its pack hash.
+hash, in an undisturbed use of that pack, it must give the pack hash of
+that pack, and no other text, as its pack hash.
 
 ### 7.7 No pack hash for a pack that has none
 
 @req omit-pack-hashes=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1},
-    #{pack=v1, pack-hash=v1, pack-use=v1},
+    #{pack=v1, pack-hash=v1, undisturbed-pack-use=v1},
 }
 
-In each use of a pack that has no pack hash, during which no other
-process changes a file of the folder tree of the pack, a conforming
+In each undisturbed use of a pack that has no pack hash, a conforming
 program must give no text as the pack hash of that pack.
 
 ### 7.8 The validation of packs
 
 @req validate-packs=v1
 @cites {
-    wasm-core/2.0,
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{pack=v1, pack-use=v1, valid-pack=v1, usable-grammar=v1},
+    #{pack=v1, undisturbed-pack-use=v1, valid-pack=v1},
 }
 
 When a conforming program gives a result for whether a pack is valid, in
-a use of that pack during which no other process changes a file of the
-folder tree of the pack, it must give exactly one result: "valid" when
-the pack is valid, and "invalid" when it is not, except that it gives
-"invalid" when it stops the code of a grammar of the pack, a choice that
-it can make for limits of its own, and that it can give either result
-when that code exhausts the call stack or gives a result that depends on
-the bits of a NaN.
+an undisturbed use of that pack, it must give exactly one result:
+"valid" when the pack is valid, and "invalid" when it is not, except
+that it gives "invalid" when it stops that decision, a choice that it
+can make for limits of its own.
 
 ### 7.9 The values of the descriptor of a valid pack
 
 @req give-pack-descriptor-values=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1},
     #{
-        pack=v1, pack-use=v1, valid-pack=v1, valid-descriptor=v1,
+        pack=v1, undisturbed-pack-use=v1, valid-pack=v1,
+        valid-descriptor=v1,
         spec-version=v1, release-number=v1, name-separator=v1,
         comment-sigil=v1, foreign-tag-word=v1, descriptor-grammar=v1,
         test-runner=v1, runner-setting=v1,
@@ -2673,141 +2642,131 @@ the bits of a NaN.
 }
 
 When a conforming program gives a value of the descriptor of a valid
-pack, in a use of that pack during which no other process changes a file
-of the folder tree of the pack, it must give the value that the valid
-descriptor that is the content of the file `pack.toml` of that pack
-gives, and no other value instead of it.
+pack, in an undisturbed use of that pack, it must give the value that
+the valid descriptor that is the content of the file `pack.toml` of that
+pack gives, and no other value instead of it.
 
 ### 7.10 No reading with a pack that is not valid
 
 @req omit-readings-for-invalid-packs=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, text=v1, run=v1},
     #{
-        pack=v1, pack-use=v1, valid-pack=v1, parse-tree-order=v1, node-run=v1,
-        parse-failure=v1, reading-of-a-text=v1,
+        pack=v1, undisturbed-pack-use=v1, valid-pack=v1,
+        parse-tree-order=v1, node-run=v1, parse-failure=v1,
+        reading-of-a-text=v1,
     },
 }
 
-In a use of a pack during which no other process changes a file of the
-folder tree of the pack, a conforming program must give no result of a
-reading, no node, and no run of a failure node, of a text with that pack
-when the pack is not valid.
+In an undisturbed use of a pack, a conforming program must give no
+result of a reading, no node, and no run of a failure node, of a text
+with that pack when the pack is not valid.
 
 ### 7.11 The results of readings
 
 @req give-reading-results=v1
 @cites {
-    wasm-core/2.0,
-    files#{folder-tree=v1, path=v1},
+    files#{path=v1},
     text#{conforming-program=v1, result=v1, text=v1},
-    #{pack-use=v1, valid-pack=v1, parse-tree=v1, reading-of-a-text=v1},
+    #{undisturbed-pack-use=v1, valid-pack=v1, reading-of-a-text=v1},
 }
 
 When a conforming program gives a result of a reading of a text, as the
-text of a file at a valid path, with a valid pack, in a use of that pack
-during which no other process changes a file of the folder tree of the
-pack, it must give exactly one result, the result of that reading: "no
-grammar", "parse failure", or "parsed", except that it gives "parse
-failure" when it stops the code of the grammar, a choice that it can
-make for limits of its own, and that it can give either "parse failure"
-or "parsed" when that code exhausts the call stack or gives a result
-that depends on the bits of a NaN.
+text of a file at a valid path, with a valid pack, in an undisturbed use
+of that pack, it must give exactly one result, the result of that
+reading: "no grammar", "parse failure", or "parsed", except that it
+gives "parse failure" when it stops that reading, a choice that it can
+make for limits of its own.
 
 ### 7.12 The nodes of readings
 
 @req give-reading-nodes=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, text=v1},
     #{
-        pack=v1, pack-use=v1, reading-of-a-text=v1, parse-tree-order=v1,
+        pack=v1, undisturbed-pack-use=v1, reading-of-a-text=v1,
+        parse-tree-order=v1,
         comment-node=v1, definition-node=v1, decoration-node=v1,
         test-node=v1,
     },
 }
 
-When, for a reading of a text with a pack whose result is "parsed", in a
-use of that pack during which no other process changes a file of the
-folder tree of the pack, a conforming program gives the comment nodes,
-the definition nodes, the decoration nodes, or the test nodes, it must
-give each node of that kind that the reading gives once, and no other
-node as a node of that kind.
+When, for a reading of a text with a pack whose result is "parsed", in
+an undisturbed use of that pack, a conforming program gives the comment
+nodes, the definition nodes, the decoration nodes, or the test nodes, it
+must give each node of that kind that the reading gives once, and no
+other node as a node of that kind.
 
 ### 7.13 The values of the nodes of readings
 
 @req give-reading-node-values=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, run=v1, text=v1},
     #{
-        pack=v1, pack-use=v1, reading-of-a-text=v1, parse-tree-order=v1,
+        pack=v1, undisturbed-pack-use=v1, reading-of-a-text=v1,
+        parse-tree-order=v1,
         node-run=v1, node-type=v1, comment-node=v1, definition-node=v1,
         decoration-node=v1, test-node=v1, test-name=v1, test-label=v1,
     },
 }
 
 When, for a node that a reading of a text with a pack gives with the
-result "parsed", in a use of that pack during which no other process
-changes a file of the folder tree of the pack, a conforming program
-gives its run, its node type, whether it is tagged, its name nodes, its
-body nodes, whether it is a test case or a test suite, its name path,
-or its test labels, it must give the value that the reading gives with
-that node, and no other value instead of it.
+result "parsed", in an undisturbed use of that pack, a conforming
+program gives its run, its node type, whether it is tagged, its name
+nodes, its body nodes, whether it is a test case or a test suite, its
+name path, or its test labels, it must give the value that the reading
+gives with that node, and no other value instead of it.
 
 ### 7.14 No nodes of the other readings
 
 @req omit-nodes-of-unparsed-readings=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, text=v1},
     #{
-        pack-use=v1, valid-pack=v1, reading-of-a-text=v1, comment-node=v1,
+        undisturbed-pack-use=v1, valid-pack=v1, reading-of-a-text=v1,
+        comment-node=v1,
         definition-node=v1, decoration-node=v1, test-node=v1,
     },
 }
 
-In a use of a valid pack during which no other process changes a file of
-the folder tree of the pack, a conforming program must give no comment
-node, definition node, decoration node, or test node of a reading of a
-text with that pack whose result is not "parsed".
+In an undisturbed use of a valid pack, a conforming program must give no
+comment node, definition node, decoration node, or test node of a
+reading of a text with that pack whose result is not "parsed".
 
 ### 7.15 The runs of failure nodes
 
 @req give-failure-runs=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, run=v1, text=v1},
     #{
-        pack=v1, pack-use=v1, reading-of-a-text=v1, parse-failure=v1,
+        pack=v1, undisturbed-pack-use=v1, reading-of-a-text=v1,
+        parse-failure=v1,
         node-run=v1,
     },
 }
 
 When, for a reading of a text with a pack whose result is "parse
-failure" and whose parse failure has a failure node, in a use of that
-pack during which no other process changes a file of the folder tree of
-the pack, a conforming program gives a run as the run of the failure
-node, it must give the run of the failure node of that parse failure.
+failure" and whose parse failure has a failure node, in an undisturbed
+use of that pack, a conforming program gives a run as the run of the
+failure node, it must give the run of the failure node of that parse
+failure.
 
 ### 7.16 No run of a failure node for the other readings
 
 @req omit-failure-runs=v1
 @cites {
-    files#{folder-tree=v1},
     text#{conforming-program=v1, result=v1, run=v1, text=v1},
     #{
-        pack=v1, pack-use=v1, valid-pack=v1, reading-of-a-text=v1,
+        pack=v1, undisturbed-pack-use=v1, valid-pack=v1,
+        reading-of-a-text=v1,
         parse-failure=v1, node-run=v1,
     },
 }
 
-In a use of a valid pack during which no other process changes a file of
-the folder tree of the pack, a conforming program must give no run as
-the run of a failure node of a reading of a text with that pack whose
-result is not "parse failure", or whose parse failure has no failure
-node.
+In an undisturbed use of a valid pack, a conforming program must give no
+run as the run of a failure node of a reading of a text with that pack
+whose result is not "parse failure", or whose parse failure has no
+failure node.
 
 ### 7.17 The depth of query texts
 
@@ -2842,29 +2801,26 @@ place.
 
 @req isolate-grammars=v1
 @cites {
-    wasm-core/2.0,
-    files#{taken-byte=v1},
-    text#{conforming-program=v1, byte-sequence=v1},
-    #{pack=v1, pack-use=v1, webassembly-module=v1},
+    files#{folder-tree=v1, taken-byte=v1},
+    text#{conforming-program=v1},
+    #{pack=v1, pack-use=v1},
 }
 
-In each use of a pack, a conforming program must run the code of each
-file of the pack that it runs, other than as an adapter, only as the
-WebAssembly Core Specification 2.0 defines its execution, in an instance
-whose imports give that code no means to take bytes from a file, to
-write a file or the output of the process, to use a network, to read a
-clock, or to start a process.
+In each use of a pack, a conforming program must not, by reason of the
+content of a file of the pack other than an adapter, take bytes from a
+file outside the folder tree of the pack, write a file or the output of
+the process, use a network, read a clock, or start a process.
 
-### 7.20 Code of grammars that ends
+### 7.20 Readings and decisions that end
 
-@req end-grammar-code=v1
+@req end-readings=v1
 @cites {
     text#{conforming-program=v1, text=v1},
     #{pack=v1, valid-pack=v1, reading-of-a-text=v1},
 }
 
-A conforming program must end the code of a grammar that it runs, in
-each reading of a text and in each decision whether a pack is valid.
+A conforming program must end each reading of a text with a pack, and
+each decision whether a pack is valid.
 
 ### 7.21 No symbolic link followed in a pack
 
@@ -2955,7 +2911,7 @@ These requirements that the design holds directly have no vectors:
 `omit-readings-for-invalid-packs`, `give-reading-results`,
 `give-reading-nodes`, `give-reading-node-values`,
 `omit-nodes-of-unparsed-readings`, `give-failure-runs`,
-`omit-failure-runs`, `isolate-grammars`, `end-grammar-code`,
+`omit-failure-runs`, `isolate-grammars`, `end-readings`,
 `follow-no-pack-links`, `read-only-pack-files`, `avoid-pack-waits`,
 `keep-packs-unchanged`, and `gain-no-pack-privileges`. No vector of this
 file holds a valid pack or a reading.
@@ -3031,20 +2987,19 @@ these conditions hold:
 2. No other process changes the folder tree during the use.
 
 A check of the vectors makes such a stored folder tree for each vector
-whose input is a pack. A need of a vector is a condition on the file
-system that stores its folder tree, which a check of the vectors can be
-unable to make hold on a POSIX.1-2024 system, or on macOS with its
-default file system, APFS. These are the need names of this design, in
-key order, each with the need that it stands for and when a vector has
-it:
+whose input is a pack. A need of a vector is a condition on the system
+or on the file system that stores its folder tree. These are the need
+names of this design, in key order, each with the need that it stands
+for and when a vector has it:
 
 - `case-distinct-names`: the folder tree is on a file system on which
   two entry names that differ only in the case of ASCII letters name two
   different files. POSIX.1-2024 keeps the identities of upper-case and
-  lower-case letters in filenames, but APFS ignores the case of letters
-  when it looks up a name. A vector has this need when two entry names
-  of one folder of its folder tree differ only in the case of ASCII
-  letters, such as `README.md` and `readme.md`.
+  lower-case letters in filenames, but APFS, the default file system of
+  macOS, ignores the case of letters when it looks up a name. A vector
+  has this need when two entry names of one folder of its folder tree
+  differ only in the case of ASCII letters, such as `README.md` and
+  `readme.md`.
 - `long-names`: the folder tree is on a file system that allows each
   entry name of the folder tree, with all its bytes. A vector has this
   need when an entry name of its folder tree has more than 14 bytes:
