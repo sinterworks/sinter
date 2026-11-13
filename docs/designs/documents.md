@@ -118,7 +118,7 @@ the conformance vectors of the design is a JSON text.
 | [input of a tree](sinter:#accepted-input=v1), [accepted input](sinter:#accepted-input=v1), [file of an input](sinter:#accepted-input=v1) | a line of a tag text, with its continuation lines, or a link of a markdown text or of a tag text of a code file, to which a conforming program of Identifiers gives a result; an accepted input gets the result "valid"; the file of an input is the read file of the tag text or the markdown text in which it is |
 | [blank line](sinter:#blank-line=v1) | a line of any kind whose text has no character other than spaces and tabs |
 | [block of a tag text](sinter:#tag-text-block=v1), trailing prose | a tag line, the tag lines and continuation lines right after it, and its trailing prose: the lines after them up to a blank line, the next tag line, or the end of the tag text |
-| [attachment target](sinter:#attachment=v1), [attach](sinter:#attachment=v1), unattached | a definition node or a test node; a run of comments attaches to the first attachment target after it, when no code character stands before it on its first line, each code character between the two is in a decoration node, and each line between them has such a code character or a part of a comment; a run of comments that attaches to no attachment target is unattached |
+| [attachment target](sinter:#attachment=v1), [attach](sinter:#attachment=v1), unattached | a definition node or a test node; a run of comments attaches to the first attachment target after it, when no code character stands before it on its first line, each code character between the two is in a decoration node, and each line between them has a code character in a decoration node, or has in it a line of the run of a comment node; a run of comments that attaches to no attachment target is unattached |
 | [tests of a read file](sinter:#file-test=v1) | the tests whose code is a test node of a code file that can be read; a markdown file and a read file that cannot be read have none |
 | [declaration of a declared item](sinter:#item-file=v1), [file of a declared item](sinter:#item-file=v1) | the accepted input that declares a declared item, and the read file whose tag text has it |
 | [claim](sinter:#claim=v1) | the lines that a declaration claims: in markdown, its section or its list item, from its own tag line when another declaration of its paragraph comes before it, up to the next declaration of its paragraph; in code, its part of its block of a tag text; in both, without the blank lines at its end; in markdown, for a declared finding class that is the only declaration of the first paragraph of the section of level 0, every line of its file |
@@ -128,13 +128,13 @@ the conformance vectors of the design is a JSON text.
 | [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose claim a tag line or an inline citation is; otherwise, in a code file, when the innermost requirement or term in whose claim it is has a full name whose slug has a design, that design; otherwise, when the innermost specification in whose scope it is has a full name whose slug has a design, that design; otherwise none |
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
-| [section number](sinter:#section-number=v1) | digits, a `.`, and, as an option, more digits and `.`, then one or more spaces and tabs, such as `2.1 `, at the start of the text of a heading |
+| [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text that the lines of the revised content of a declared item give after some changes, such as the change of the line of its declaration to its inline description; and the hash of the UTF-8 encoding of that text |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the lines of the run of the text from the least boundary where the run of a body node of an attachment target starts to the greatest boundary where the run of a body node of it ends, or of its own run for a test node that is no definition node, each without the spaces and tabs at its end and with a line feed after it; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
 | [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree |
-| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the folder part of the valid path of the file of the design, followed by the test-vector file name of the design, or of the design and the specification, so a design whose name has a `/` puts its vector file in a folder below; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
+| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
 | [selected item](sinter:#selected-item=v1) | the conformance vector, the group of conformance vectors, or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of the item |
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
@@ -176,12 +176,10 @@ markdown file or a code file. For example, under the binding with the
 pair of the text `markdown` and the path set `docs/`, and then the pair
 of a pack for OCaml and the path set `lib/**/*.ml`, the file `docs/a.md`
 is a markdown file, the file `lib/x.ml` is a code file whose pack is the
-pack for OCaml, and the file `README.md` is not read. A file that is not
-a read file has no tag text, no declared item, no test, and no edge.
+pack for OCaml, and the file `README.md` is not read.
 
 A read file that [cannot be read](sinter:#unreadable-file=v1), such as
-one whose content is not valid UTF-8, has no tag text and no test, and
-it gives a finding of the class
+one whose content is not valid UTF-8, gives a finding of the class
 [`parse-error`](sinter:#parse-error-finding=v1).
 
 ### 2.2 Markdown files
@@ -196,13 +194,10 @@ A markdown file can start with [front matter](sinter:#front-matter=v1),
 such as lines of metadata between two lines of `---`. The rest of its
 text is its markdown text, which CommonMark 0.31.2 parses into blocks.
 
-The tags of a markdown file are in the first paragraphs of its
-[sections](sinter:#markdown-section=v1) and of its
-[list items](sinter:#markdown-list-item=v1). Each first paragraph gives
-one [tag text](sinter:#tag-text=v1), which joins the
-[lines of that paragraph](sinter:#paragraph-line=v1). The inline
-citations of a markdown file are in all of its markdown text, not only in
-its first paragraphs: for example, an inline citation in a heading is an
+The tags of a markdown file count in its
+[tag texts](sinter:#tag-text=v1). The inline citations of a markdown
+file are in all of its markdown text, not only in its first paragraphs:
+for example, an inline citation in a heading is an
 [input of the tree](sinter:#accepted-input=v1) too.
 
 This file has three tag texts:
@@ -221,17 +216,19 @@ An invoice asks a customer to pay a sum of money.
 A conforming program must reject an invoice whose amount is more than 10,000 euros.
 ```
 
-The first tag text is the two lines after `# Billing`, the second is the
-two lines after `## 1. Invoices`, and the third is the two lines after
-`### 1.1 Amount limit`. The section of level 0 is empty.
+The first tag text is the first paragraph of the
+[section](sinter:#markdown-section=v1) of `# Billing`: its two
+[lines](sinter:#paragraph-line=v1) after that heading. The second and
+the third are the two lines after `## 1. Invoices` and the two lines
+after `### 1.1 Amount limit`. The section of level 0 is empty.
 
 Another paragraph that starts with a tag line gives no tag text, and it
 can be a finding of the class
 [`ignored-tag`](sinter:#ignored-tag-finding=v1), such as a second
-paragraph of a section that starts with `@req`. A setext heading that
-starts with a tag line, such as the heading that the lines `@req r=v1`,
-`Text.`, and `---` make, can be such a finding too, but a tag line in a
-code block is never one.
+paragraph of a section that starts with `@req`. For example, the lines
+`@req r=v1`, `Text.`, and `---` make a setext heading, which is such a
+finding too, and the same lines in an indented code block are no
+finding.
 
 ### 2.3 Code files
 
@@ -239,9 +236,10 @@ A code file is read with its pack: the
 [reading of its text](sinter:packs#reading-of-a-text=v1) gives the nodes
 of its comments and of its code. Its comment nodes form
 [runs of comments](sinter:#comment-run=v1), the comments that stand next
-to each other in the file. For example, a blank line, or a line with a
-[code character](sinter:#code-character=v1), between two comments ends a
-run of comments.
+to each other in the file. For example, the lines `// a`, an empty line,
+and `// b` give two runs of comments, and so do the lines `// a`,
+`f();`, and `// b`, where `f();` has
+[code characters](sinter:#code-character=v1).
 
 Each tagged comment node gives its
 [comment lines](sinter:#comment-line=v1): its lines without the
@@ -256,16 +254,13 @@ and the empty line:
  */
 ```
 
-Each run of comments that has a tagged comment node gives one
-[tag text](sinter:#tag-text=v1), which joins the comment lines of its
-tagged comment nodes. A tag text has
+The tags of a code file count in the [tag texts](sinter:#tag-text=v1)
+that its runs of comments give. A tag text has
 [blocks](sinter:#tag-text-block=v1), which give the claims of
 declarations in code. For example, `@param x` is a tag line of a block
-too. A foreign tag word of the pack matters only to
-[`typo-tag`](sinter:#typo-tag-finding=v1): a tag line whose tag word is
-a Sinter tag word, such as `@deprecated`, is read as Sinter's also when
-the pack has that tag word as a foreign tag word, as a pack for
-JavaScript can have it for JSDoc.
+too. A line `@deprecated` in a comment of a JavaScript file is a status
+tag, also when the pack has `@deprecated` as a foreign tag word for
+JSDoc.
 
 A run of comments can [attach](sinter:#attachment=v1) to the code right
 after it, its attachment target, such as a function. So in this Rust
@@ -289,10 +284,9 @@ of comments unattached. The test nodes of a code file give its
 A conforming program of the design Identifiers reads the tag texts and
 the markdown texts of a tree under a binding of `external-namespaces`,
 and it gives a result for each of their
-[inputs](sinter:#accepted-input=v1). Only the accepted inputs, those
-with the result "valid", give the declared items, the edges, the extern
-marks, and the status tags of the tree. Under bindings that are not
-valid, a conforming program gives nothing
+[inputs](sinter:#accepted-input=v1). The inputs with the result "valid",
+the accepted inputs, are the ones that count. Under bindings that are
+not valid, a conforming program gives nothing
 ([`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)).
 
 The [origin](sinter:#origin=v1) of a part of a tag text or of a markdown
@@ -369,13 +363,14 @@ A design can hold items whose declarations are in other files. An
 an [extern mark](sinter:#extern-mark=v1) of the design for such an item,
 and the class [`extern-mismatch`](sinter:#extern-mismatch-finding=v1)
 reports where the extern marks of a design and these items do not agree.
-For example, `@req billing#limit=v1` in a markdown file other than the
-files of `billing` and of its specifications is a finding of the class
-[`misplaced-declaration`](sinter:#misplaced-declaration-finding=v1), also
-when `billing` has the extern mark `@extern req:limit`. In a code file,
-in the comment lines `@req billing#limit=v1` and, on the next line,
-`@cites #{amount=v1}`, the entry `#amount` names the item
-`billing#amount`, because `billing` is the home design of that citation.
+For example, `@req billing#limit=v1` in a markdown file `notes.md` that
+has no other declaration is a finding of the class
+[`misplaced-declaration`](sinter:#misplaced-declaration-finding=v1),
+also when the design `billing`, in another file, has the extern mark
+`@extern req:limit`. In a code file, in the comment lines
+`@req billing#limit=v1` and, on the next line, `@cites #{amount=v1}`,
+the entry `#amount` names the item `billing#amount`, because `billing`
+is the home design of that citation.
 
 Each design, and each specification of a design, has a
 [vector path](sinter:#vector-file=v1) beside the file of the design. For
@@ -395,9 +390,9 @@ The accepted citations and inline citations of a tree give its
 [edges](sinter:#tree-edge=v1), whose sources the
 [parts of declared items](sinter:#item-part=v1), the
 [comments on tests](sinter:#file-test=v1), and the
-[sites](sinter:#tree-site=v1) decide. For example, in a file
-`README.md` with this text, the `@cites` line is outside every extent,
-and the site of the file is its three lines:
+[sites](sinter:#tree-site=v1) decide. For example, in a file `README.md`
+with this text, the `@cites` line is outside every extent, and the site
+of the file is its three lines:
 
 ```markdown
 # Notes
@@ -405,9 +400,9 @@ and the site of the file is its three lines:
 The limit protects new customers.
 ```
 
-A citation to which Identifiers gives the result "invalid" gives a site
-in the same way. A status tag, as a line of a tag text, stands in an
-item too.
+The file has the same site when Identifiers gives that `@cites` line the
+result "invalid". A line `@deprecated` right after that `@cites` line
+would stand in that site.
 
 ### 2.9 Extent hashes and code hashes
 
@@ -1011,7 +1006,7 @@ line is its last line in that order.
     },
     #{
         read-file=v1, unreadable-file=v1, code-character=v1,
-        comment-run=v1,
+        comment-run=v1, run-line=v1,
     },
 }
 
@@ -1034,7 +1029,7 @@ of these is true:
    run of a decoration node. Each line of the text whose line number is
    greater than the last line number of R and less than the first line
    number of T has a code character at a place of the run of a
-   decoration node, or a place of the run of a comment node.
+   decoration node, or has in it a line of the run of a comment node.
 
 A run of comments that attaches to no attachment target is unattached.
 Two or more runs of comments can attach to one attachment target. For
@@ -1759,10 +1754,11 @@ of the text of that tag line in the text of the file.
 The first line of a setext heading is the run of the first markdown line
 that it takes, from the first character, among the characters of that
 markdown line that CommonMark 0.31.2 gives to the content of the
-heading, that is not a space or a tab, to the end of that markdown line. A tree has one
-tree finding of the class `ignored-tag` for each block B of the markdown
-document of a markdown file of the tree that can be read, when each of
-these is true:
+heading, that is not a space or a tab, to the end of that markdown line.
+
+A tree has one tree finding of the class `ignored-tag` for each block B
+of the markdown document of a markdown file of the tree that can be
+read, when each of these is true:
 
 - B is a paragraph or a setext heading;
 - no block quote contains B;
