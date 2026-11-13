@@ -679,9 +679,9 @@ requirement that the specification declares.
 The file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. The term `vector-meaning` gives
-which objects of its vector lines state vectors of this specification.
-This specification gives no need names.
+specification `test-vectors` defines it. By the term `vector-meaning`,
+the object of each vector line of the file states one vector of this
+specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2421,9 +2421,9 @@ requirement that the specification declares.
 The file
 [`data-forms.toml.test-vectors.jsonl`](data-forms.toml.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. The term `vector-meaning` gives
-which objects of its vector lines state vectors of this specification.
-This specification gives no need names.
+specification `test-vectors` defines it. By the term `vector-meaning`,
+the object of each vector line of the file states one vector of this
+specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one or more
@@ -2664,9 +2664,9 @@ requirement that the specification declares.
 The file
 [`data-forms.hashes.test-vectors.jsonl`](data-forms.hashes.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. The term `vector-meaning` gives
-which objects of its vector lines state vectors of this specification.
-This specification gives no need names.
+specification `test-vectors` defines it. By the term `vector-meaning`,
+the object of each vector line of the file states one vector of this
+specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2809,9 +2809,9 @@ requirement that the specification declares.
 The file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. The term `vector-meaning` gives
-which objects of its vector lines state vectors of this specification.
-This specification gives no need names.
+specification `test-vectors` defines it. By the term `vector-meaning`,
+the object of each vector line of the file states one vector of this
+specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -3301,9 +3301,9 @@ are as the terms `test-vector-set` and `vector-line` give, so the text
 of each line of the file is a JSON text, as RFC 8259 defines it, and the
 members of their objects are as the term `vector-object` gives. Only a
 line feed ends a line of the file. A string of the file can hold U+0085,
-U+2028, or U+2029, and these characters do not end a line. The term
-`vector-meaning` gives which objects of its vector lines state vectors
-of this specification. This specification gives no need names.
+U+2028, or U+2029, and these characters do not end a line. By the term
+`vector-meaning`, the object of each vector line of the file states one
+vector of this specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
