@@ -832,23 +832,28 @@ A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
 with the reading rules of TOML, matches the rule `toml` of the ABNF of
 TOML 1.1.0, and that has no value error, no key error, and no structure
 error. A value error is a value that breaks a rule on values, such as an
-integer outside the range of a TOML integer. A key error is a key that
-breaks a rule on keys, such as a quoted key with an escape sequence that
-writes no character. A
-structure error is a key/value pair or a table header that breaks a
-structure rule: a rule on tables that a key/value pair or a table header
-can break, such as the rule that a key/value pair adds no text to a
-table that already holds that text.
+integer outside the range of a TOML integer. A key error is a quoted
+key with an escape sequence whose digits in base 16 write a number that
+is not the code point of a character, such as `"\uD800"`; such a
+quoted key has no text. A structure error is a key/value pair or a table
+header that breaks a structure rule: a rule on tables that a key/value
+pair or a table header can break, such as the rule that a key/value pair
+adds no text to a table that already holds that text.
+
+A TOML document has no limit on how deep its arrays of TOML 1.1.0 and
+its inline tables nest, and no limit on the number of the TOML keys of
+a key. A conforming program that does not read a byte sequence, for
+example past a nesting limit of its own, gives no result for it, which
+`read-toml` allows, and it never gives "invalid" for a TOML document.
 
 TOML 1.1.0 reads a text. By a reading rule of TOML, a byte sequence that
-is not valid UTF-8 is not a TOML document, so a conforming program
-replaces no byte with U+FFFD. By another reading rule of TOML, for a
-byte sequence that is valid UTF-8, TOML 1.1.0 reads the body of its
-text, so it does not read a byte order mark. So when a byte sequence
-starts with the bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the characters
-after the U+FEFF that these bytes encode. Elsewhere in a byte sequence,
-the bytes 0xEF, 0xBB, 0xBF encode a U+FEFF that TOML 1.1.0 allows in a
-string of TOML 1.1.0, in a quoted key, and in a comment.
+is not valid UTF-8 is not a TOML document. By another reading rule of
+TOML, for a byte sequence that is valid UTF-8, TOML 1.1.0 reads the body
+of its text, so it does not read a byte order mark. So when a byte
+sequence starts with the bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the
+characters after the U+FEFF that these bytes encode. Elsewhere in a byte
+sequence, the bytes 0xEF, 0xBB, 0xBF encode a U+FEFF that TOML 1.1.0
+allows in a string of TOML 1.1.0, in a quoted key, and in a comment.
 
 A TOML key is a key of TOML 1.1.0 that is not a dotted key, such as `a`,
 `"a"`, or `"\u00e9"`. A dotted key joins two or more TOML keys with `.`,
@@ -897,19 +902,12 @@ program makes these choices:
 
 | point | choice |
 |---|---|
-| a byte sequence that is not valid UTF-8 | the byte sequence is not a TOML document, and a conforming program replaces no byte with U+FFFD |
 | the range of a TOML integer | from −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807, which is from −2^63 to 2^63 − 1; an integer of TOML 1.1.0 that stands for a number outside the range makes the byte sequence not a TOML document |
 | the TOML float of a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` | the IEEE 754-2019 binary64 value whose sign bit is 1 when, and only when, the float of TOML 1.1.0 starts with `-`, and whose magnitude is the binary64 value that rounding to nearest, with ties to even, gives for the absolute value of the number that the float of TOML 1.1.0 stands for; so `-0.0` and `-1e-400` give negative zero |
 | a float of TOML 1.1.0 that rounds to an infinity, such as `1e400` | the byte sequence is not a TOML document |
 | the floats `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` of TOML 1.1.0 | `inf` and `+inf` give positive infinity, and `-inf` gives negative infinity; `nan`, `+nan`, and `-nan` each give a TOML float that is NaN |
 | more than nine digits in the fraction of a second | a local time, a local date-time, and an offset date-time keep the first nine digits, and the further digits do not change the fraction |
 | a newline in a multi-line basic string or a multi-line literal string | each newline that TOML 1.1.0 does not trim stays in the TOML string as its characters: a line feed, or a carriage return and a line feed |
-
-A TOML document has no limit on how deep its arrays of TOML 1.1.0 and
-its inline tables nest, and no limit on the number of the TOML keys of
-a key. A conforming program that does not read a byte sequence, for
-example past a nesting limit of its own, gives no result for it, which
-`read-toml` allows, and it never gives "invalid" for a TOML document.
 
 The fraction of a second is the number that the first nine digits after
 the `.` stand for as a decimal fraction. So `12:30:00.5` and
@@ -960,10 +958,6 @@ These values of TOML 1.1.0 are value errors:
   second 60 on every date, such as the local date `1979-02-30`;
 - a string of TOML 1.1.0 with an escape sequence whose digits in base 16
   write a number that is not the code point of a character.
-
-A quoted key with an escape sequence whose digits in base 16 write a
-number that is not the code point of a character is a key error. Such a
-quoted key has no text.
 
 In a byte sequence with no value error and no key error, each TOML key
 has a text, and each value of TOML 1.1.0 gives a TOML value. The
@@ -1196,14 +1190,6 @@ table header breaks a structure rule when, with the parts of the
 document before it, the rule does not hold for it. When two parts define
 the same table, the one of the two parts that starts at the later
 boundary breaks the rule.
-
-It follows from the definition of an undefined super-table and from the
-first three of these rules that no table header, no key/value pair, and
-no inline table before a boundary defines an undefined super-table at
-that boundary. So the part that breaks the rule `single-definition` is
-always a table header: a key/value pair defines only tables that, at the
-boundary right before it, do not exist or that no part before it
-defines, and an inline table defines only its own new table.
 
 In this text, the key/value pair on line number 2 defines the tables
 `a.b` and `a.b.c`. These tables exist at the boundary right before line
@@ -2236,10 +2222,10 @@ text of the byte sequence that is the TOML document:
 }
 
 This definition uses the terms value, integer, float, local date, local
-time, local date-time, offset date-time, string, escape sequence, array,
-and inline table of TOML 1.1.0, and the rule `toml` of the ABNF of
-TOML 1.1.0. It applies to a byte sequence that is valid UTF-8 and for
-which the text of the body of its text matches the rule `toml`.
+time, local date-time, offset date-time, string, and escape sequence of
+TOML 1.1.0, and the rule `toml` of the ABNF of TOML 1.1.0. It applies to
+a byte sequence that is valid UTF-8 and for which the text of the body
+of its text matches the rule `toml`.
 
 A value error of such a byte sequence is each value of TOML 1.1.0 in the
 body of its text that is one of these:
@@ -2421,8 +2407,8 @@ whether a byte sequence is a TOML document, it must give, as a span of
 the text of the byte sequence together with what the span is the span
 of, only a span pair of the TOML document that the byte sequence is;
 as the line number of the start or of the end of the span of such a
-pair, only the line number of that start or that end; and as its
-column, only the column of that start or that end.
+pair, only the line number of that start or that end; and as the column
+of that start or that end, only that column.
 
 ### 5.5 Conformance
 
