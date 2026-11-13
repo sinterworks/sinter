@@ -3,10 +3,17 @@
 
 exception Stop of Types.failure
 
-type reader = { bytes : string; length : int; mutable pos : int }
+type reader = {
+  bytes : string;
+  length : int;
+  mutable pos : int;
+  max_depth : int option;
+  max_key_parts : int option;
+}
 
 let fail error offset = raise (Stop (Invalid { error; offset }))
 let syntax reader = fail Types.Syntax reader.pos
+let reach limit offset = raise (Stop (Limit_reached { limit; offset }))
 let at_end reader = reader.pos >= reader.length
 
 let byte_at reader index =
@@ -34,6 +41,8 @@ let is_bare_key_byte c =
   (c >= 'A' && c <= 'Z')
   || (c >= 'a' && c <= 'z')
   || is_digit c || c = '-' || c = '_'
+
+let starts_simple_key c = is_bare_key_byte c || c = '"' || c = '\''
 
 (* @satisfies data-forms#read-toml=v1
    A comment and a string hold no control character other than the tab, and
@@ -266,23 +275,32 @@ let simple_key reader =
 
 type key = { first : string; rest : string list; key : Types.key }
 
+let check_key_parts reader count =
+  match reader.max_key_parts with
+  | Some limit when count > limit ->
+      if starts_simple_key (peek reader) then reach Types.Key_parts reader.pos
+      else syntax reader
+  | Some _ | None -> ()
+
 (* @satisfies data-forms#give-only-toml-spans=v1
    The span of a key runs from the first byte of its first TOML key to the
    last byte of its last one, with the spaces and dots between them, and each
    TOML key has its own span with its quotes. *)
 let key reader =
   let start = reader.pos in
+  check_key_parts reader 1;
   let first = simple_key reader in
-  let rec more rev_rest =
+  let rec more count rev_rest =
     skip_whitespace reader;
     if peek reader = '.' then begin
       advance reader 1;
       skip_whitespace reader;
-      more (simple_key reader :: rev_rest)
+      check_key_parts reader (count + 1);
+      more (count + 1) (simple_key reader :: rev_rest)
     end
     else rev_rest
   in
-  let rev_rest = more [] in
+  let rev_rest = more 1 [] in
   let rest = List.rev rev_rest in
   let last = match rev_rest with last :: _ -> last | [] -> first in
   {
@@ -521,11 +539,23 @@ let scalar reader =
   | '0' .. '9' | '+' | '-' -> number reader
   | _ -> syntax reader
 
-type inline = { start : int; table : Tree.table }
+type inline = { start : int; depth : int; table : Tree.table }
 
 type frame =
-  | In_array of { start : int; mutable rev : Tree.node list }
+  | In_array of { start : int; depth : int; mutable rev : Tree.node list }
   | In_pair of { inline : inline; slot : Tree.slot; key : Types.key }
+
+let depth_of = function
+  | [] -> 0
+  | In_array array :: _ -> array.depth
+  | In_pair pair :: _ -> pair.inline.depth
+
+let open_depth reader stack =
+  let depth = depth_of stack + 1 in
+  (match reader.max_depth with
+  | Some limit when depth > limit -> reach Types.Depth reader.pos
+  | Some _ | None -> ());
+  depth
 
 let span_from reader start : Types.span = { start; stop = reader.pos }
 
@@ -552,6 +582,7 @@ let value reader =
   let rec start_value stack =
     match peek reader with
     | '[' ->
+        let depth = open_depth reader stack in
         let start = reader.pos in
         advance reader 1;
         skip_whitespace_comments_newlines reader;
@@ -559,9 +590,10 @@ let value reader =
           advance reader 1;
           deliver stack (Tree.array [] (span_from reader start))
         end
-        else start_value (In_array { start; rev = [] } :: stack)
+        else start_value (In_array { start; depth; rev = [] } :: stack)
     | '{' ->
-        let inline = { start = reader.pos; table = Tree.inline () } in
+        let depth = open_depth reader stack in
+        let inline = { start = reader.pos; depth; table = Tree.inline () } in
         advance reader 1;
         skip_whitespace_comments_newlines reader;
         if peek reader = '}' then close_inline inline stack
@@ -654,9 +686,15 @@ let end_of_line reader =
 let body_start bytes =
   if String.starts_with ~prefix:"\xef\xbb\xbf" bytes then 3 else 0
 
-let document bytes =
+let document ~max_depth ~max_key_parts bytes =
   let reader =
-    { bytes; length = String.length bytes; pos = body_start bytes }
+    {
+      bytes;
+      length = String.length bytes;
+      pos = body_start bytes;
+      max_depth;
+      max_key_parts;
+    }
   in
   let root = Tree.root () in
   let rec lines holding =

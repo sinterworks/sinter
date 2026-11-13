@@ -7,7 +7,9 @@
     a TOML document, it gives the root table of the document: its values, the
     order of its keys in the document, and the byte span of each value and each
     key. When the byte sequence is not a TOML document, it gives the kind of the
-    fault and a byte offset.
+    fault and a byte offset. It can also stop at a limit that the caller sets on
+    the depth of nesting and on the number of parts of a key, to protect a
+    program from hostile input.
 
     A byte offset is a whole number from 0 to the length of the byte sequence:
     offset [k] is the place right before the byte at index [k], and the offset
@@ -178,24 +180,53 @@ type error = Types.error =
       (** A part of a dotted key, before its last part, leads to a table that an
           earlier table header names. The offset is the start of the key. *)
 
+(** A limit that the caller of {!read} set. *)
+type limit = Types.limit =
+  | Depth
+      (** An array or an inline table has a depth greater than [max_depth]. The
+          depth of an array or an inline table that is in no array and no inline
+          table is 1; the depth of one that is an element of an array, or a
+          value in an inline table, is 1 more than the depth of that array or
+          inline table. Tables that table headers and dotted keys make have no
+          depth. The offset is the place of the [\[] or [{] of the first such
+          array or inline table. *)
+  | Key_parts
+      (** A key of a key/value pair or of a table header has more parts than
+          [max_key_parts]: a bare key and a quoted key are each one part, and a
+          dotted key has one part for each bare or quoted key that it joins with
+          dots. The offset is the start of the first part past the limit. *)
+
 type failure = Types.failure =
   | Invalid of { error : error; offset : int }
       (** The byte sequence is not a TOML document. *)
+  | Limit_reached of { limit : limit; offset : int }
+      (** The reader stopped at a limit before it found whether the byte
+          sequence is a TOML document. This says nothing about whether it is
+          one. *)
 
-val read : string -> (table, failure) result
+val read :
+  ?max_depth:int -> ?max_key_parts:int -> string -> (table, failure) result
 (** [read bytes] is [Ok root] when [bytes] is a TOML document of TOML 1.1.0,
     with [root] its root table. When the byte sequence starts with the bytes
     0xEF 0xBB 0xBF, the reader reads the text after the U+FEFF that they encode.
-    It is [Error (Invalid _)] when [bytes] is not a TOML document, however deep
-    its nesting and however long its keys.
+    It is [Error (Invalid _)] when [bytes] is not a TOML document, and the
+    reader found that before it reached a limit. It is [Error (Limit_reached _)]
+    when the reader reached a limit first.
+
+    Without [max_depth], no depth reaches a limit, and without [max_key_parts],
+    no number of parts reaches a limit; [read] then gives [Ok _] or
+    [Error (Invalid _)] for every byte sequence, however deep its nesting and
+    however long its keys. With either, each array, inline table, and key that
+    does not pass it reads as it does without the limit, so the reader never
+    gives [Invalid] for a TOML document.
 
     The reader first checks that the whole byte sequence is valid UTF-8, and
     gives [Invalid { error = Not_utf_8; _ }] when it is not. Then it reads the
-    text from its start and stops at the first fault that it finds, and the
-    failure names that one. It finds a fault of a kind other than [Syntax]
-    before it reads the byte after the smallest value or key that holds the
-    fault: for a fault of a key/value pair or a table header, after the last
-    byte of its key.
+    text from its start and stops at the first fault or limit that it finds, and
+    the failure names that one. Of a [Syntax] fault and a limit, it finds first
+    the one with the smaller offset. It finds a fault of another kind before it
+    reads the byte after the smallest value or key that holds the fault: for a
+    fault of a key/value pair or a table header, after the last byte of its key.
 
     The function never raises an exception. For [n] the length of [bytes], the
     time grows no faster than [n log n]. The stack space that it uses does not
