@@ -94,6 +94,10 @@
   - The design can also hold the other guarantees of that kind, such as
     the confinement of grammar code in language packs and the
     confirmation of judgments (see "Signed judgments").
+  - It is written among the last of the layered designs, even where its
+    place in the order of dependencies is earlier, so that it covers the
+    whole surface at once. It may be split into parts, or its work
+    shared out, later.
 - **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
   which an AI coding assistant, a program such as Claude Code that
   writes code, writes a specification of each change before the
