@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on the changes that they make to the ledger when an agent runs them, and on the use of declared tasks.
+Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on the changes that they make to the ledger when an agent runs them, and on the use of declared tasks.
 
 Sinter traces the items of a repository, such as items of the kind
 design, specification, and requirement, terms, decision records, tests,
@@ -19,16 +19,17 @@ test, to its cited item, here the item of the kind requirement
 content of that item. The ledger of a repository records events, such as
 the approval that a person gave to one revised content. Each state, such
 as in force, approved, suspect, or done, depends only on the things that
-section 4.1 lists, such as the trees of the commits of the repository,
-its ledger, and test evidence.
+section 2.12 lists, the state inputs, such as the trees of the commits
+of the repository, its ledger, and test evidence.
 
 From Identifiers, the design takes tag lines and Sinter tag words;
 declarations, citations with their citation entries, status tags, and
 `@ack` lines; inline citations and their targets; slugs, part names,
 full names, labels, and revisions; external ids; the production
 `every-part`; and the parameter `external-namespaces` with its bindings.
-From Text and notation, it takes texts, lines, and whole numbers, and
-what a design, a specification, a requirement, a conforming program, and
+From Text and notation, it takes texts, lines, and whole numbers; byte
+sequences, valid UTF-8, and the text of a byte sequence; and what a
+design, a specification, a requirement, a conforming program, and
 an input are. From Files and paths, it takes valid paths, path sets, and
 the set of the valid paths that a path set gives. From the specification
 `test-vectors` of Data forms, it takes test-vector sets with their set
@@ -44,11 +45,13 @@ vector.
 | [item](sinter:#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [kind of item](sinter:#item=v1) | one of the fourteen kinds of item, such as design or task; each item has one |
 | repository | a git repository |
-| commit, message of a commit, parent, branch, file, path, working tree, push, pull request | the thing of git, or of a host of git repositories, that has this name |
+| commit, message of a commit, parent, branch, working tree, push, pull request | the thing of git, or of a host of git repositories, that has this name |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [tree](sinter:#tree=v1) | a set of files, each with a valid path and a content, which is a byte sequence, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
+| [file](sinter:#tree=v1) | a member of a tree: a valid path with a content, which is a byte sequence |
+| [text of a file](sinter:#tree=v1), [line of a file](sinter:#tree=v1) | the text of the content of a file of a tree, when that content is valid UTF-8; a line of that text |
 | [tree of a commit](sinter:#tree=v1), [tree of a working tree](sinter:#tree=v1) | the one tree that a commit gives, and the one tree that a working tree gives |
-| [default branch](sinter:#default-branch=v1) | the branch into which the people who work on a repository bring the work of changes |
+| [default branch](sinter:#default-branch=v1) | the branch into which the people who work on a repository bring their work |
 | actor | a person, an agent, or the job |
 | [person](sinter:#person=v1) | a human who works on a repository |
 | [agent](sinter:#agent=v1) | a program that uses a language model to write texts, such as code, as one person runs it; it acts for that person |
@@ -70,7 +73,7 @@ vector.
 | [containment](sinter:#containment=v1) | the relation in which an item of the kind design holds items of the kind specification, items of the kind requirement, and terms, and an item of the kind specification holds items of the kind requirement and terms |
 | [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | an item of the kind design holds each of its items of the kind specification, its items of the kind requirement, and its terms, and each of them belongs to that item of the kind design; an item of the kind specification holds its items of the kind requirement and its terms in the same way |
 | [hold directly](sinter:#containment=v1) | an item of the kind design holds an item of the kind requirement or a term directly when that item belongs to it and to no item of the kind specification |
-| [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the slug that its declaration gives it, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, when it belongs to an item of the kind design, the name of that item of the kind design, `#`, and the part name that its declaration gives it, such as `billing#amount`, and otherwise the slug that its declaration gives it |
+| [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the slug that its declaration gives it, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, the full name that its declaration gives it, when its declaration gives a full name; the name of the item of the kind design to which it belongs, `#`, and the part name that its declaration gives it, such as `billing#amount`, when its declaration gives a part name alone and it belongs to an item of the kind design; and otherwise the slug that its declaration gives it |
 | [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests whose files have the same valid path and whose names are equal |
 | [conformance vector](sinter:#conformance-vector=v1) | the vector that one vector line of a vector set states by the forms of its group: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements oblige that program to give for them |
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | the vector line that states the conformance vector |
@@ -80,7 +83,7 @@ vector.
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
 | [test](sinter:#test=v1) | a unit of code that a test runner runs and that can pass or fail, or a set of such units that the code groups under one name, such as the tests of one `describe` block |
 | test runner | a program that runs tests and gives a test result for each test that it runs |
-| [name of a test](sinter:#test=v1) | a sequence of names: the own names of the tests of which the test is a part, from the outermost to the innermost, and then the own name of the test; the own name of a test is a name such as the name of a test function or of a `describe` block |
+| [name of a test](sinter:#test=v1) | a sequence of own names: the own names of the tests of which the test is a part, from the outermost to the innermost, and then the own name of the test; for example, the own name of the test function `t` is `t` |
 | [code of a test](sinter:#test=v1) | the part of its file that a test takes up |
 | [comment on a test](sinter:#test=v1) | a comment that is attached to the code of a test, such as the comment right before a test function |
 | [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that their test passed or that it failed |
@@ -88,7 +91,7 @@ vector.
 | [site](sinter:#site=v1) | a part of a file that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a markdown file or one comment in code; no two sites of a file have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration, when the declaration has one, such as `v2` for the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
-| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for an item of the kind design, the item of the kind design without the declared items that it holds; for a conformance vector, the conformance vector with the forms of its group |
+| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the labels of their declarations; for a conformance vector, the conformance vector with the forms of its group |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry or an inline citation gives; an edge has at most one source and at most one cited item |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
@@ -106,14 +109,14 @@ vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept when the tree has the edge that it promises, from a citation in a file in the paths of its task, and, for `verifies`, the test that is the source of that edge passed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept when the tree has the edge that it promises, from a citation in a file in the paths of its task, the edge says what its kind of edge says, and, for `verifies`, the test evidence of an execution of the test that is the source of that edge, on the code of that tree, says that the test passed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
-| [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the item that it waits for; it says that the work of the waiting item is to start only after the work item that it waits for is done |
+| [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the item that it waits for |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
-| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each definition entry records one definition of its work item, and each edit of a definition gives a new definition |
+| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each edit of a definition gives a new definition |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
-| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit; work merges into the default branch when a merge brings it in |
+| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit; work, or a revised content, merges into the default branch when a merge brings it in |
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
@@ -125,7 +128,7 @@ vector.
 | [void](sinter:#repair=v1) | a ledger entry that takes the place of a ledger entry that a repair removed |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
 | [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
-| [current definition](sinter:#work-item-state=v1) | the definition that the latest accepted definition entry of a work item records |
+| [current definition](sinter:#work-item-state=v1) | the definition that the last accepted definition entry of a work item, in the order of the ledger, records |
 | [exist](sinter:#work-item-state=v1) | a work item exists at a point of a ledger when it has a current definition at that point |
 | [part of a plan](sinter:#work-item-state=v1) | a work item whose current definition names the plan as its plan, unless the work item is abandoned, or the plan was abandoned while the work item was not done |
 | [under a plan](sinter:#work-item-state=v1) | a part of the plan, or under a part of the plan |
@@ -136,17 +139,18 @@ vector.
 | [judgment](sinter:#judgment=v1) | a ledger entry that records a decision of a person, such as an approval |
 | [record of the job](sinter:#job-record=v1) | a ledger entry that records what the job observed |
 | [state](sinter:#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, in a tree, at a point of a ledger, or both, such as in force or done |
+| [state input](sinter:#state-input=v1) | one of the things on which states depend: which commits the repository has, each with its parents and its tree; the commit to which each branch points; the commit of the default branch; the tree of each working tree; the delivery lines and the task lines of the messages of commits; the ledger, in its order; test evidence; or the bindings of the parameters that designs name |
 | [retired](sinter:#retired-item=v1) | a declared item is retired when it is deprecated, rejected, or deferred, when it is the cited item of an effective `supersedes` edge, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
 | [in force](sinter:#in-force-item=v1) | a declared item is in force when it is not retired |
-| [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when its replacement has taken effect: its source is not deprecated, rejected, or deferred, and its source is a declared finding class or is approved |
+| [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, its source is not deprecated, rejected, or deferred, and its source is a declared finding class or is approved |
 | [deprecated](sinter:#deprecated-item=v1), [rejected](sinter:#rejected-record=v1), [deferred](sinter:#deferred-record=v1) | the states that the three status words give, through a status tag of the item |
-| [approved, declined](sinter:#approval-state=v1) | a subject of approval of a kind that needs approval by a person is approved, or declined, when a person approved, or declined, the revised content that it has in the tree, and it is never both approved and declined; a subject of approval of another kind is approved when that revised content has merged into the default branch, and it is never declined; an item of the kind requirement or a term that an item of the kind specification holds is approved, or declined, when that item of the kind specification is; an item of the kind design is approved when that item of the kind design without the declared items that it holds, each item of the kind specification that it holds, and each item of the kind requirement and each term that it holds directly are approved |
+| [approved, declined](sinter:#approval-state=v1) | a subject of approval of a kind that needs approval by a person is approved, or declined, only when a person approved, or declined, the revised content that it has in the tree, and it is never both approved and declined; a subject of approval of another kind is approved when that revised content has merged into the default branch, and it is never declined; an item of the kind requirement or a term that an item of the kind specification holds is approved, or declined, when that item of the kind specification is; an item of the kind design is approved when that item of the kind design without the declared items that it holds, each item of the kind specification that it holds, and each item of the kind requirement and each term that it holds directly are approved |
 | [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
 | [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when its label is not the current revision of its cited item |
 | [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
 | [open, done, abandoned](sinter:#work-item-state=v1) | the three states of a plan |
 | [unfinished](sinter:#work-item-state=v1) | a task is unfinished while it is open or delivered |
-| [met](sinter:#met-wait=v1) | a wait is met when the work item that it waits for is done |
+| [met](sinter:#met-wait=v1) | a wait says that the work of the waiting item is to start only after the work item that it waits for is done; a wait is met when the work item that it waits for is done |
 | [ready](sinter:#ready-task=v1) | a task is ready when it is open and its waits, and the waits of each plan that it is under, are met |
 | [accounted for](sinter:#requirement-accounted-for=v1) | an item of the kind requirement is accounted for when work for it is under way, or was finished at its current revision |
 | statement of an agent | a text that an agent writes |
@@ -164,9 +168,9 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | kind of item | what it is | how it is named | has revisions |
 |---|---|---|---|
 | design | a declared item whose declaration word is `@design` | a slug, such as `billing` | yes |
-| specification | a declared item whose declaration word is `@spec`, which specifies one thing of the part of a system that its design specifies | a full name, such as `billing#invoice`, or a slug when it belongs to no item of the kind design | yes |
-| requirement | a declared item whose declaration word is `@req` | a full name, such as `billing#limit-amount`, or a slug when it belongs to no item of the kind design | yes |
-| term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `billing#amount`, or a slug when it belongs to no item of the kind design | when it has a label |
+| specification | a declared item whose declaration word is `@spec`, which specifies one thing of the part of a system that its design specifies | a full name, such as `billing#invoice`, or a slug (section 2.4) | yes |
+| requirement | a declared item whose declaration word is `@req` | a full name, such as `billing#limit-amount`, or a slug (section 2.4) | yes |
+| term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `billing#amount`, or a slug (section 2.4) | when it has a label |
 | decision record | a declared item whose declaration word is `@decision`, which records one practice or one choice | a slug, such as `code-comments` | yes |
 | declared finding class | a declared item whose declaration word is `@finding-class`, a finding class that a repository declares for itself | a slug, such as `late-fee` | yes |
 | conformance vector | the vector that one vector line of a vector set states: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them | its vector set and its number | yes |
@@ -179,7 +183,7 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | external item | a thing outside the repository | an external id, such as `gh/42` | no |
 
 A declared item is what a declaration declares, such as the requirement
-that `@req limit-amount=v1` declares. A declared item takes up a part of
+that `@req limit-amount=v2` declares. A declared item takes up a part of
 one file of a tree, and that part has its declaration. The declaration
 word alone gives the kind of the declared item: `@design` gives the kind
 design, `@spec` the kind specification, `@req` the kind requirement,
@@ -201,7 +205,7 @@ files have the same valid path, such as the files at a commit or the
 files in a working tree of the repository. A commit gives one tree, the
 tree of the commit, and a working tree gives one tree, the tree of the
 working tree. The default branch is the branch into which the people
-who work on the repository bring the work of changes. A change is a set
+who work on the repository bring their work. A change is a set
 of commits whose work is to merge into the default branch as one unit,
 such as the commits of a pull request.
 
@@ -261,7 +265,7 @@ An invoice asks a customer to pay a sum of money.
 The amount of an invoice is the sum of money that the invoice asks for.
 
 ### Amount limit
-@req limit-amount=v1
+@req limit-amount=v2
 @cites #{amount=v1}
 A conforming program must reject an invoice whose amount is more than
 10,000 euros.
@@ -277,12 +281,19 @@ examples.
 
 The name of an item of the kind design, of a decision record, and of a
 declared finding class is the slug that its declaration gives it, such
-as `billing`. When an item of the kind specification, an item of the
-kind requirement, or a term belongs to an item of the kind design, its
-name is a full name: the name of that item of the kind design, `#`, and
-the part name that its declaration gives it, such as `billing#invoice`,
-`billing#amount`, and `billing#limit-amount`. When it belongs to no item
-of the kind design, its name is the slug that its declaration gives it.
+as `billing`. The name of an item of the kind specification, of an item
+of the kind requirement, and of a term depends on what its declaration
+gives it:
+
+- When its declaration gives it a full name, such as
+  `billing#limit-amount`, its name is that full name.
+- When its declaration gives it a part name alone, such as
+  `limit-amount`, and it belongs to an item of the kind design, its name
+  is the name of that item of the kind design, `#`, and that part name,
+  such as `billing#invoice`, `billing#amount`, and
+  `billing#limit-amount` in the example of section 2.3.
+- Otherwise, its name is the slug that its declaration gives it.
+
 A citation entry names an item, such as `billing#limit-amount` in
 `@cites billing#limit-amount=v2`, or `billing#amount` in
 `@cites #{amount=v1}` in the design `billing`, or the external item
@@ -350,19 +361,19 @@ def test_offsets(vector):
 A test is a unit of code that a test runner runs and that can pass or
 fail, such as a test function. A set of such units that the code groups
 under one name, such as the tests of one `describe` block, is a test
-too. Each test has a file and its own name, such as the name of a test
-function. The name of a test is a sequence of names: the own names of
-the tests of which the test is a part, from the outermost to the
-innermost, and then the own name of the test. So the test function `t`
-in the `describe` block `a` and the test function `t` in the `describe`
-block `b` of one file have different names. The code of a test is the
-part of its file that the test takes up. A comment on a test is a
-comment that is attached to the code of the test, such as the comment
-right before a test function. The code names each test, so a test has no
-declaration. A test result is what a test runner gives for one test that
-it runs. Each test result names its test. The test evidence of one
-execution of test runners is the set of the test results of that
-execution that say that their test passed or that it failed.
+too. Each test has a file and its own name, such as `t` for the test
+function `t`. The name of a test is a sequence of own names: the own
+names of the tests of which the test is a part, from the outermost to
+the innermost, and then the own name of the test. So the test function
+`t` in the `describe` block `a` and the test function `t` in the
+`describe` block `b` of one file have different names. The code of a
+test is the part of its file that the test takes up. A comment on a test
+is a comment that is attached to the code of the test, such as the
+comment right before a test function. The code names each test, so a
+test has no declaration. A test result is what a test runner gives for
+one test that it runs. Each test result names its test. The test
+evidence of one execution of test runners is the set of the test results
+of that execution that say that their test passed or that it failed.
 
 A site is an item with no name. It is a part of a file that is outside
 every declared item and every comment on a test, and that has a
@@ -450,12 +461,16 @@ of its vector line, the label of a group of conformance vectors is the
 revision of its group line, and the label of a vector set is the
 revision of its set line. The revised content of an item of the kind
 design is the item of the kind design without the declared items that it
-holds. The revised content of a conformance vector is that conformance
-vector with the forms of its group, and the revised content of a group
-of conformance vectors or of a vector set is its conformance vectors,
-each with the forms of its group. A term with no label has a revised
-content and no revision. A task, a plan, a test, a site, and an external
-item have no revised content and no revision.
+holds. The revised content of an item of the kind specification is that
+item with the declared items that it holds, without the labels of their
+declarations. So an edit of an item of the kind requirement that an item
+of the kind specification holds changes the revised content of that item
+of the kind specification too. The revised content of a conformance
+vector is that conformance vector with the forms of its group, and the
+revised content of a group of conformance vectors or of a vector set is
+its conformance vectors, each with the forms of its group. A term with
+no label has a revised content and no revision. A task, a plan, a test,
+a site, and an external item have no revised content and no revision.
 
 A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
@@ -500,8 +515,10 @@ A task has:
 A promise links a task to an item of the kind requirement: the task
 promises an edge of the kind of edge of the promise to that item, from a
 citation in a file in its paths. The promise is kept when the tree has
-that edge, and, for a `verifies` promise, when the test that is the
-source of that edge passed.
+that edge, the edge says what its kind of edge says, and, for a
+`verifies` promise, the test evidence of an execution of the test that
+is the source of that edge, on the code of that tree, says that the
+test passed.
 
 A task has no description of its own: the items of the kind requirement
 that it promises, or its external item, say what to build. A task has no
@@ -591,9 +608,9 @@ definition that it records. A definition entry that is not an accepted
 definition entry changes no definition and no state.
 
 The current definition of a work item at a point is the definition that
-the latest accepted definition entry of the work item before that point
-records. A work item exists at a point when it has a current definition
-at that point.
+the last accepted definition entry of the work item before that point,
+in the order of the ledger, records. A work item exists at a point when
+it has a current definition at that point.
 
 A `done` ledger entry records, for each item of the kind requirement
 that the task promises, the revision of that item at which a person
@@ -605,13 +622,20 @@ item of the kind requirement and whether the promise was kept.
 ### 2.12 States
 
 A state is a named condition of an item, an edge, a wait, or a subject
-of approval, in a tree, at a point of a ledger, or both. A conforming
-program gives the same states for two inputs that agree in the things
-that section 4.1 lists, such as the trees of the commits of the
-repository, its ledger, and test evidence. It gives the same states for
-two inputs that differ only in the writers, the persons, and the
-branches that their ledger entries record (section 4.2). No ledger entry
-records a state.
+of approval, in a tree, at a point of a ledger, or both. The state
+inputs of a repository are the things on which states depend: which
+commits the repository has, each with its parents and its tree; the
+commit to which each branch points; the commit of the default branch;
+the tree of each working tree; the delivery lines and the task lines of
+the messages of commits; the ledger, in its order; test evidence; and
+the bindings of the parameters that designs name. A conforming program
+gives the same state to each item, edge, wait, and subject of approval
+for two inputs that agree in each state input, as each state input is
+when the program gives the states, and that no other program changes
+while the program runs (section 4.1). It gives the same states for two
+inputs that differ only in the writers, the persons, and the branches
+that their ledger entries record, and that no other program changes
+while the program runs (section 4.2). No ledger entry records a state.
 
 | state | of | meaning |
 |---|---|---|
@@ -621,8 +645,8 @@ records a state.
 | deprecated | an item of the kind design, specification, or requirement, a term, or a decision record | a `@deprecated` status tag of the item says that it no longer applies and that nothing replaces it |
 | rejected | a decision record | a `@rejected` status tag of the record says that its choice was considered and not made |
 | deferred | a decision record | a `@deferred` status tag of the record says that its choice is not made yet |
-| approved | a subject of approval, or an item of the kind design, specification, or requirement, a term, or a decision record | for a kind of subject of approval that needs approval by a person, a person approved the revised content that the subject of approval has in the tree; for another kind, that revised content has merged into the default branch; an item of the kind design is approved when that item of the kind design without the declared items that it holds, its items of the kind specification, and the items of the kind requirement and the terms that it holds directly are approved |
-| declined | a subject of approval, or an item of the kind specification or requirement, a term, or a decision record | the kind of the subject of approval needs approval by a person, and a person declined the revised content that the subject of approval has in the tree; nothing is both approved and declined |
+| approved | a subject of approval, or an item of the kind design, specification, or requirement, a term, or a decision record | for a kind of subject of approval that needs approval by a person, the subject of approval is approved only when a person approved the revised content that it has in the tree; for another kind, it is approved when that revised content has merged into the default branch; an item of the kind design is approved when that item of the kind design without the declared items that it holds, its items of the kind specification, and the items of the kind requirement and the terms that it holds directly are approved; an item of the kind requirement or a term that belongs to no item of the kind design and to no item of the kind specification has no subject of approval, so it is never approved |
+| declined | a subject of approval, or an item of the kind specification or requirement, a term, or a decision record | the kind of the subject of approval needs approval by a person, and the subject of approval is declined only when a person declined the revised content that it has in the tree; nothing is both approved and declined |
 | draft | an item of the kind design | the item is not approved |
 | suspect | a pinned edge | the label of the edge is not the current revision of its cited item |
 | open | a task | the task exists, and it is neither delivered, done, nor abandoned |
@@ -652,38 +676,35 @@ of the kind design holds directly, and of a decision record is the
 subject of approval whose declared item it is. The subject of approval
 of an item of the kind requirement or a term that an item of the kind
 specification holds is the subject of approval of that item of the kind
-specification. The revised content of a subject of approval whose
-declared item is an item of the kind specification is the revised
-contents of that item and of the items of the kind requirement and the
-terms that it holds. The revised content of each other subject of
-approval is the revised content of its declared item.
+specification. The revised content of a subject of approval is the
+revised content of its declared item.
 
 The people who work on a repository can choose the kinds of subject of
 approval that need approval by a person. A subject of approval of such a
-kind is approved when a person approved the revised content that it has
-in the tree, and declined when a person declined that revised content.
-It is never both approved and declined. For each other kind, the merge
-into the default branch is the approval: a subject of approval of that
-kind is approved when the revised content that it has in the tree has
-merged into the default branch, and it is never declined. An item of the
-kind requirement or a term that an item of the kind specification holds
-is approved when that item of the kind specification is approved, and
-declined when it is declined. An item of the kind design is approved
-when that item of the kind design without the declared items that it
-holds, each item of the kind specification that it holds, and each item
-of the kind requirement and each term that it holds directly are
-approved.
+kind is approved only when a person approved the revised content that it
+has in the tree, and declined only when a person declined that revised
+content. It is never both approved and declined. For each other kind,
+the merge into the default branch is the approval: a subject of approval
+of that kind is approved when the revised content that it has in the
+tree has merged into the default branch, and it is never declined. An
+item of the kind requirement or a term that an item of the kind
+specification holds is approved when that item of the kind specification
+is approved, and declined when it is declined. An item of the kind
+design is approved when that item of the kind design without the
+declared items that it holds, each item of the kind specification that
+it holds, and each item of the kind requirement and each term that it
+holds directly are approved.
 
 A declared item is retired when it is deprecated, rejected, or deferred;
 when it is the cited item of an effective `supersedes` edge; or when it
 belongs to a retired item of the kind design or a retired item of the
 kind specification. A `supersedes` edge is effective when its
-replacement has taken effect: its source is not deprecated, rejected, or
-deferred, and its source is a declared finding class, which no person
-approves, or is approved. So a `supersedes` edge whose source is not
-approved yet retires nothing, and a `supersedes` edge from an item of
-the kind design retires nothing until the whole item of the kind design
-is approved.
+replacement has taken effect: the edge says what its kind of edge says,
+its source is not deprecated, rejected, or deferred, and its source is a
+declared finding class, which no person approves, or is approved. So a
+`supersedes` edge whose source is not approved yet retires nothing, and
+a `supersedes` edge from an item of the kind design retires nothing
+until the whole item of the kind design is approved.
 
 The label of a suspect edge is not the current revision of its cited
 item, for example because the cited item has a new revision, so the
@@ -728,31 +749,34 @@ message to a person. When its input says that an agent runs it, a
 conforming program changes the ledger only by appending definition
 entries (section 4.3). So when an agent changes the ledger only through
 a conforming program whose input says that an agent runs it, a statement
-of the agent changes a state only in one of these two ways:
+of the agent changes a state only in one of these three ways:
 
-1. as a line that the agent adds to a file of the tree of a commit or of
-   a working tree, or removes from such a file, such as a line of a
-   change; or as a line of the message of a commit that the agent
-   writes, such as a delivery line or a task line;
-2. as a definition entry.
+1. as a line that the agent writes into a file, or removes from one, so
+   that the tree of a commit or of a working tree has it or does not
+   have it, such as a line that a change adds; or as a line of the
+   message of a commit that the agent writes, such as a delivery line or
+   a task line;
+2. as a definition entry;
+3. as a binding of a parameter that the agent gives.
+
+Under that condition, a statement of an agent that is in none of these
+ways, such as a message of an agent that its work is done, changes no
+state.
 
 The tasks of a change are the tasks that the delivery lines and the task
 lines of its commits name. The person who merges a change can see the
 lines in the change itself, and the definition entries of the tasks of
-the change in the ledger. A statement of an agent that is neither such a
-line nor a definition entry, such as a message of an agent that its work
-is done, changes no state.
+the change in the ledger.
 
 A session is one execution of an agent on its work. The agent can
 declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
-session. A conforming program gives the same states and the same texts,
-and makes the same changes to the ledger, to which commits the
-repository has, each with its parents, its tree, and its message, to the
-commit to which each branch points, and to the tree of each working
-tree, for two inputs that differ only in the declared task of a session,
-except the brief of that session (section 4.4).
+session. For two inputs that differ only in the declared task of a
+session, and that no other program changes while a conforming program
+runs, the conforming program gives the same states and the same texts,
+other than the brief of that session, and changes each state input in
+the same way (section 4.4).
 
 ## 3. Definitions
 
@@ -775,20 +799,29 @@ vectors, vector set, task, plan, test, site, and external item.
 ### 3.2 Trees
 
 @term tree=v1
-@cites {files#{path=v1}, text#{byte-sequence=v1}}
+@cites {
+    files#{path=v1},
+    text#{
+        byte-sequence=v1, text-of-a-byte-sequence=v1, valid-utf-8=v1,
+        line=v1, text=v1,
+    },
+}
 
 A tree is a set of files, each with a valid path and a content, which
 is a byte sequence, in which no two files have the same valid path, such
 as the files at a commit or the files in a working tree of a git
 repository. A commit gives one tree, the tree of the commit, and a
-working tree gives one tree, the tree of the working tree.
+working tree gives one tree, the tree of the working tree. The text of
+a file of a tree is the text of its content, when its content is valid
+UTF-8. A line of a file is a line of that text.
 
 ### 3.3 Default branches
 
 @term default-branch=v1
+@cites #{person=v1}
 
 The default branch of a git repository is the branch into which the
-people who work on the repository bring the work of changes.
+people who work on the repository bring their work.
 
 ### 3.4 People
 
@@ -905,13 +938,14 @@ itself.
 
 The name of an item of the kind design, of a decision record, or of a
 declared finding class in a tree is the slug that its declaration gives
-it, such as `billing`. When an item of the kind specification, an item
-of the kind requirement, or a term belongs to an item of the kind design
-in a tree, its name in that tree is a full name: the name of that item
-of the kind design, `#`, and the part name that its declaration gives
-it, such as `billing#amount`. When it belongs to no item of the kind
-design in a tree, its name in that tree is the slug that its declaration
-gives it.
+it, such as `billing`. The name of an item of the kind specification, of
+an item of the kind requirement, or of a term in a tree is this:
+
+- when its declaration gives it a full name, that full name;
+- when its declaration gives it a part name alone, and it belongs to an
+  item of the kind design in that tree, the name of that item of the
+  kind design, `#`, and that part name, such as `billing#amount`;
+- otherwise, the slug that its declaration gives it.
 
 ### 3.14 Vector sets
 
@@ -1000,16 +1034,16 @@ when, and only when, one of these is true:
 A test is a unit of code that a test runner runs and that can pass or
 fail, such as a test function, or a set of such units that the code
 groups under one name, such as the tests of one `describe` block. No
-declaration declares a test. Each test is in
-one file of a tree, its file. Each test has its own name, such as the
-name of a test function or of a `describe` block. The name of a test is
-a sequence of names: the own names of the tests of which the test is a
-part, from the outermost to the innermost, and then the own name of the
-test. So the test function `t` in the `describe` block `a` and the test
-function `t` in the `describe` block `b` of one file have different
-names. The code of a test is the part of its file that the test takes
-up. A comment on a test is a comment that is attached to the code of the
-test, such as the comment right before a test function.
+declaration declares a test. Each test is in one file of a tree, its
+file. Each test has its own name, such as `t` for the test function `t`.
+The name of a test is a sequence of own names: the own names of the
+tests of which the test is a part, from the outermost to the innermost,
+and then the own name of the test. So the test function `t` in the
+`describe` block `a` and the test function `t` in the `describe` block
+`b` of one file have different names. The code of a test is the part of
+its file that the test takes up. A comment on a test is a comment that
+is attached to the code of the test, such as the comment right before a
+test function.
 
 ### 3.19 Test evidence
 
@@ -1071,13 +1105,15 @@ revised content of an item is the part of the item that its label
 covers, or would cover for a term with no label, such as the text of an
 item of the kind requirement. The revised content of an item of the kind
 design is the item of the kind design without the declared items that it
-holds. The revised content of a conformance vector is that conformance
-vector with the forms of its group, and the revised content of a group
-of conformance vectors or of a vector set is its conformance vectors,
-each with the forms of its group. Each declared item, each conformance
-vector, each group of conformance vectors, and each vector set has a
-revised content. A task, a plan, a test, a site, and an external item
-have no revised content.
+holds. The revised content of an item of the kind specification is that
+item with the declared items that it holds, without the labels of their
+declarations. The revised content of a conformance vector is that
+conformance vector with the forms of its group, and the revised content
+of a group of conformance vectors or of a vector set is its conformance
+vectors, each with the forms of its group. Each declared item, each
+conformance vector, each group of conformance vectors, and each vector
+set has a revised content. A task, a plan, a test, a site, and an
+external item have no revised content.
 
 ### 3.23 Revisions of items
 
@@ -1103,7 +1139,7 @@ revision.
         citation=v1, citation-entry=v1, sinter-tag-word=v1,
         inline-citation=v1,
     },
-    #{item=v1, tree=v1, edge-source=v1},
+    #{item=v1, tree=v1, edge-source=v1, item-name=v1, external-item=v1},
 }
 
 An edge is a relation of one kind of edge from its source to its cited
@@ -1271,7 +1307,7 @@ external item. A task has no description of its own and no branch.
     identifiers#{citation=v1},
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
-        tree=v1,
+        tree=v1, test-evidence=v1,
     },
 }
 
@@ -1280,8 +1316,10 @@ A promise of a task is a pair of a kind of edge, `satisfies` or
 the task to the item of the kind requirement that has that name: the
 task promises an edge of that kind of edge to that item, from a citation
 in a file in the paths of the task. The promise is kept in a tree when,
-and only when, that tree has that edge, and, for a `verifies` promise,
-the test that is the source of that edge passed.
+and only when, that tree has that edge, and the edge says what its kind
+of edge says, and, for a `verifies` promise, the test evidence of an
+execution of the test that is the source of that edge, on the code of
+that tree, says that the test passed.
 
 ### 3.35 Plans
 
@@ -1431,12 +1469,9 @@ item it is, when there is one. The subject of approval of an item of the
 kind requirement or of a term that an item of the kind specification
 holds is the subject of approval of that item of the kind specification.
 Each other declared item has no subject of approval. The revised content
-of a subject of approval whose declared item is an item of the kind
-specification is the revised contents of that item and of the items of
-the kind requirement and the terms that it holds. The revised content of
-each other subject of approval is the revised content of its declared
-item. A subject of approval of one tree and a subject of approval of
-another tree are the same subject of approval when, and only when, their
+of a subject of approval is the revised content of its declared item. A
+subject of approval of one tree and a subject of approval of another
+tree are the same subject of approval when, and only when, their
 declared items are the same item.
 
 ### 3.46 Judgments
@@ -1491,11 +1526,11 @@ the current definition of each work item, the work items that exist,
 the parts of each plan, and the state of each task and each plan:
 
 1. An accepted definition entry is a definition entry that gives its
-   work item the definition that it records. The current definition of
-   a work item at a point is the definition that the latest accepted
-   definition entry of the work item before that point records. A work
-   item exists at a point when, and only when, it has a current
-   definition at that point.
+   work item the definition that it records. The current definition of a
+   work item at a point is the definition that the last accepted
+   definition entry of the work item before that point, in the order of
+   the ledger, records. A work item exists at a point when, and only
+   when, it has a current definition at that point.
 2. A work item is a part of a plan at a point when, and only when, its
    current definition names that plan as its plan, unless the work item
    is abandoned at that point, or the plan was abandoned, before that
@@ -1579,10 +1614,10 @@ In a tree, at a point of a ledger, these are the states approved and
 declined:
 
 - A subject of approval of a kind that, in the repository, needs
-  approval by a person is approved when a person approved the revised
-  content that the subject of approval has in that tree. It is declined
-  when a person declined that revised content. It is never both approved
-  and declined.
+  approval by a person is approved only when a person approved the
+  revised content that the subject of approval has in that tree. It is
+  declined only when a person declined that revised content. It is never
+  both approved and declined.
 - A subject of approval of a kind that, in the repository, needs no
   approval by a person is approved when, and only when, the revised
   content that it has in that tree has merged into the default branch.
@@ -1617,14 +1652,17 @@ when, and only when, it is not approved in that tree at that point.
 @cites #{
     edge=v1, supersedes-edge=v1, deprecated-item=v1, rejected-record=v1,
     deferred-record=v1, approval-state=v1, declared-finding-class=v1,
-    tree=v1, ledger=v1, person=v1,
+    tree=v1, ledger=v1, person=v1, item=v1,
 }
 
 A `supersedes` edge is effective in a tree, at a point of a ledger,
-when, and only when, its source is not deprecated, rejected, or deferred
-in that tree, and its source is a declared finding class, which no
-person approves, or is approved in that tree at that point. An
-effective `supersedes` edge is one whose replacement has taken effect.
+when, and only when, the edge says what the kind of edge `supersedes`
+says in that tree (its source and its cited item are of the kinds of
+item for which that kind of edge is); its source is not deprecated,
+rejected, or deferred in that tree; and its source is a declared finding
+class, which no person approves, or is approved in that tree at that
+point. An effective `supersedes` edge is one whose replacement has taken
+effect.
 
 ### 3.56 Retired
 
@@ -1711,38 +1749,59 @@ A parameter is a word, such as `external-namespaces`, whose value a
 design leaves open. A binding of a parameter is a value that
 configuration gives for it, such as a binding of `external-namespaces`.
 
+### 3.63 State inputs
+
+@term state-input=v1
+@cites {
+    text#{design=v1},
+    #{
+        tree=v1, default-branch=v1, delivery-line=v1, task-line=v1,
+        ledger=v1, test-evidence=v1, parameter=v1,
+    },
+}
+
+A state input of a repository is one of these things: which commits the
+repository has, each with its parents and its tree; the commit to which
+each branch points; the commit of the default branch; the tree of each
+working tree; the delivery lines and the task lines of the messages of
+commits; the ledger, in its order; test evidence; or the bindings of the
+parameters that designs name.
+
 ## 4. Requirements
 
 ### 4.1 The sources of states
 
 @req compute-states-from-artifacts=v1
 @cites {
-    text#{conforming-program=v1, input=v1, design=v1},
+    text#{conforming-program=v1, input=v1},
     #{
-        state=v1, tree=v1, default-branch=v1, delivery-line=v1,
-        task-line=v1, ledger=v1, test-evidence=v1, parameter=v1,
+        state=v1, state-input=v1, item=v1, edge=v1, wait=v1,
+        subject-of-approval=v1, tree=v1, ledger=v1,
     },
 }
 
-A conforming program must give the same states for two inputs that do
-not change while the program runs and that agree in these things: which
-commits the repository has, each with its parents and its tree; the
-commit to which each branch points; the commit of the default branch;
-the tree of each working tree; the delivery lines and the task lines of
-the messages of commits; the ledger, in its order; test evidence; and
-the bindings of the parameters that designs name.
+A conforming program must give the same state to each item, edge, wait,
+and subject of approval, in each tree and at each point of a ledger for
+which it gives one, for two inputs that agree in each state input, as
+each state input is when the program gives the states, and that no other
+program changes while the program runs.
 
 ### 4.2 The same treatment of each ledger entry
 
 @req treat-ledger-entries-alike=v1
 @cites {
     text#{conforming-program=v1, input=v1},
-    #{state=v1, ledger-entry=v1, person=v1},
+    #{
+        state=v1, item=v1, edge=v1, wait=v1, subject-of-approval=v1,
+        tree=v1, ledger=v1, ledger-entry=v1, person=v1,
+    },
 }
 
-A conforming program must give the same states for two inputs that
-differ only in the writers, the persons, and the branches that their
-ledger entries record.
+A conforming program must give the same state to each item, edge, wait,
+and subject of approval, in each tree and at each point of a ledger for
+which it gives one, for two inputs that differ only in the writers, the
+persons, and the branches that their ledger entries record, and that no
+other program changes while the program runs.
 
 ### 4.3 The ledger entries that agents write
 
@@ -1760,19 +1819,23 @@ change the ledger only by appending definition entries.
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
     text#{text=v1, conforming-program=v1, input=v1},
-    #{agent=v1, task=v1, state=v1, ledger=v1, tree=v1},
+    #{
+        agent=v1, task=v1, state=v1, state-input=v1, item=v1, edge=v1,
+        wait=v1, subject-of-approval=v1, tree=v1, ledger=v1,
+    },
 }
 
 A session is one execution of an agent on its work. The declared task of
 a session is the task that the agent declares as the work of that
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
-session. A conforming program must give the same states and the same
-texts, and make the same changes to the ledger, to which commits the
-repository has, each with its parents, its tree, and its message, to the
-commit to which each branch points, and to the tree of each working
-tree, for two inputs that differ only in the declared task of a session,
-except the brief of that session.
+session. For two inputs that differ only in the declared task of a
+session, and that no other program changes while a conforming program
+runs, the conforming program must give the same state to each item,
+edge, wait, and subject of approval, in each tree and at each point of a
+ledger for which it gives one, must give the same texts, other than the
+brief of that session, and must change each state input in the same
+way.
 
 ## 5. Conformance
 
