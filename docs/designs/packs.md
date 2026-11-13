@@ -31,8 +31,8 @@ calls; and requirements for conforming programs that validate packs and
 adapters, give pack hashes, read descriptors, read texts with packs,
 call adapters, and keep the code of a pack from what lies outside it.
 
-A language pack, or pack, holds the support for one language: the
-grammars that parse the files of the language, the query files that find
+A language pack, or pack, holds the support for one programming
+language: the grammars that parse the files of the programming language, the query files that find
 the comments, the definitions, and the tests in these files, a
 descriptor, license texts, and runner adapters. A pack is a folder of
 files. Its pack hash is the SHA-256 hash of a listing of its files, so
@@ -113,7 +113,7 @@ the results of the functions that act on characters.
 
 | word or phrase | meaning |
 |---|---|
-| [pack](sinter:#pack=v1) | a language pack: a folder tree, such as one that holds the grammars, the query files, the descriptor, the license texts, and the runner adapters of one language |
+| [pack](sinter:#pack=v1) | a language pack: a folder tree, such as one that holds the grammars, the query files, the descriptor, the license texts, and the runner adapters of one programming language |
 | pack root | the root of the folder tree of a pack |
 | [file of a pack](sinter:#pack=v1) | a valid path, such as `queries/rust/tags.scm`, whose last file name names a regular file in the folder tree of the pack, and a content, which is the content of that regular file |
 | [have a file](sinter:#pack=v1) | a pack has the file p when it has a file whose valid path is p |
@@ -125,7 +125,7 @@ the results of the functions that act on characters.
 | [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether it is well named, the valid paths of its files, its pack listing, its pack hash, whether it is valid, a value of the content of its file `pack.toml` as a descriptor, the result of a reading of a text with it, the content of one of its files, or the result of a call of the adapter of one of its test runners |
-| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes a file of its folder tree, and in which no choice of the program in an instance of a grammar, other than by a failure for limits, changes whether a grammar of the pack is usable, the ABI version, the symbols, the fields, or the subtypes of its language, or the parse tree of a text that the use reads |
+| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes a file of its folder tree, and in which no choice of the program in an instance of a grammar, other than by a failure for limits, changes whether a byte sequence that the use takes as a grammar of the pack is a usable grammar with the name of that grammar; the ABI version of the language that it gives, its symbols, each with its name and with whether it is named, visible, and a supertype, its fields, each with its name, or the subtypes of each supertype; or the parse tree of a text that the use reads |
 | [descriptor](sinter:#valid-pack=v1) | the content of the file `pack.toml` of a pack, which is a valid descriptor in a valid pack |
 | [valid descriptor](sinter:#valid-descriptor=v1) | a byte sequence that is a TOML document whose root table holds the keys of a descriptor, each with a TOML value of the right form |
 | [pack name](sinter:#pack-name=v1) | a text of lower-case ASCII letters, ASCII digits, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` side by side, such as `typescript`; the name of a pack and the name of a test runner are pack names |
@@ -147,7 +147,7 @@ the results of the functions that act on characters.
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
 | [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are imports of a grammar, with their kinds and their types; that has the memory information of a custom section `dylink.0`, imports `memory`, and imports the table and the bases that its sizes need; that exports `tree_sitter_<g>`; whose exports `tree_sitter_<g>`, `__wasm_apply_data_relocs`, `_initialize`, and `__wasm_call_ctors`, when it has them, are of fixed types; and, in each instance of a grammar of it in which no failure for limits occurs, when a program invokes `__wasm_apply_data_relocs`, then `_initialize` or else `__wasm_call_ctors`, each when the module exports it, and then `tree_sitter_<g>`, no failure occurs, and `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
-| [instance of a grammar, memory information](sinter:#grammar-instance=v1) | an instance of a WebAssembly module that has memory information and each of whose imports is an import of a fixed list, which a program makes to get the language of a grammar and to run its code, with values of its own choice for the imports, such as `__memory_base`, that have fixed properties; the memory information of the module is the sizes and the alignments of the parts of the memory and of the table that it needs, from its custom section `dylink.0` |
+| [instance of a grammar, memory information](sinter:#grammar-instance=v1) | an instance of a WebAssembly module that has memory information and each of whose imports is an import of a grammar, by its name, whatever its module name, and by its kind and its type, which a program makes to get the language of a grammar and to run its code, with values of its own choice for the imports, such as `__memory_base`, that have fixed properties; the memory information of the module is the sizes and the alignments of the parts of the memory and of the table that it needs, from its custom section `dylink.0` |
 | [failure for limits](sinter:#grammar-instance=v1) | a failure of the instantiation or of an invocation in an instance of a grammar that comes from a stop by the program for limits of its own, or from an exhausted call stack or stack of the module |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | [pattern, capture, capture name, predicate, directive, quantifier](sinter:#query-language=v1) | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
@@ -161,7 +161,7 @@ the results of the functions that act on characters.
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
 | [run of a node](sinter:#node-run=v1) | the run of the text that a node takes up, without a line feed that only the parse text has, and without the byte order mark of the text |
 | [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when the parsing of tree-sitter gives no parse tree for it, or when the root node of the parse tree has an error |
-| [query match](sinter:#query-match=v1) | for a valid query file and a text whose parse tree has no error, a match of the query of the query file without its predicates over that parse tree, as the query language defines the matches, which is kept when each text predicate of its pattern holds in it |
+| [query match](sinter:#query-match=v1) | for a valid query file and a text whose parse tree has no error, a match of the query of the query file without its predicates over that parse tree, as the query language defines the matches, in which each text predicate of its pattern holds |
 | [joined match](sinter:#joined-match=v1) | the query matches of one pattern that give one node the same role, taken as one match |
 | [kept match](sinter:#joined-match=v1) | a joined match whose pattern comes first among the joined matches that give one node the same role |
 | [comment node](sinter:#comment-node=v1) | the role node of a kept match of the query file of the kind comment |
@@ -179,7 +179,7 @@ the results of the functions that act on characters.
 | import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
 | [choice of the program in an instance of an adapter](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits on the resources of the instance and on the time that its code runs, or for the sizes of the memories and the tables that the instantiation makes; a refusal of a growth of a memory or of a table within its maximum; the depth of calls at which the call stack is exhausted; or the bits of a NaN |
-| [choice of the program in an instance of a grammar](sinter:#grammar-instance=v1) | an outcome in an instance of a grammar that the program decides: a failure for limits; the values that it gives for the imports, and with them the size of the stack of the module, the places of the own bytes and of the own elements, and the sizes of the memory and of the table; the places of the space that the allocation functions give, and the content of that space that they do not set; the content of the stack of the module when each invocation starts, and of the other bytes of the memory and elements of the table when the instantiation starts; the places through which the parsing gives values to the code; the use of an instance in which code ran for another text; or the bits of a NaN |
+| [choice of the program in an instance of a grammar](sinter:#grammar-instance=v1) | an outcome in an instance of a grammar that the program decides: a failure for limits; the values that it gives for the imports, and with them the size of the stack of the module, the places of the own bytes and of the own elements, and the sizes of the memory and of the table; the places of the space that the allocation functions give, and the content of that space that they do not set; the content, at each moment, of the other bytes of the memory and the other elements of the table, and the content of the stack of the module when each invocation starts; the places through which the parsing gives values to the code; the use of an instance in which code ran for another text; or the bits of a NaN |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack with a query file that holds a pattern that, without its predicates, matches no part of any parse tree that the language of its grammar can give |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
@@ -849,7 +849,7 @@ thing in it, or nothing.
 
 @term undisturbed-pack-use=v1
 @cites {
-    wasm-core/2.0,
+    wasm-core/2.0, tree-sitter/language-format,
     files#{folder-tree=v1},
     text#{byte-sequence=v1, text=v1},
     #{
@@ -1493,10 +1493,10 @@ its parse tree with that usable grammar has an error.
 
 For a valid query file of a kind for a usable grammar with a grammar
 name g, and a text that has a parse tree with that usable grammar whose
-root node has no error, the query matches are the matches of the query
-of that query file, without its predicates, over that parse tree, as
-the query language defines them, each kept when each text predicate of
-its pattern holds in it. Each query match has one pattern
+root node has no error, the query matches are those matches of the
+query of that query file, without its predicates, over that parse tree,
+as the query language defines them, in which each text predicate of its
+pattern holds. Each query match has one pattern
 of the query, and one pattern comes before another when it stands before
 it in the query file. The captures of a query match are its captures
 whose capture names do not start with `_`: each is a capture name and a
@@ -2876,7 +2876,7 @@ program must give no text as the pack hash of that pack.
     text#{conforming-program=v1, result=v1},
     #{
         pack=v1, undisturbed-pack-use=v1, valid-pack=v1, grammar-instance=v1,
-        query-language=v1, query-file=v1, parse-tree=v1,
+        usable-grammar=v1, query-language=v1, query-file=v1, parse-tree=v1,
     },
 }
 
@@ -2933,7 +2933,7 @@ is not valid.
     text#{conforming-program=v1, result=v1, text=v1},
     #{
         undisturbed-pack-use=v1, valid-pack=v1, reading-of-a-text=v1,
-        grammar-instance=v1,
+        grammar-instance=v1, file-grammar=v1,
     },
 }
 
