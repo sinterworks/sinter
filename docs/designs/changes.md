@@ -1072,13 +1072,13 @@ of the git repository gives a value of the setting `remote.<name>.url`
 with r for `<name>`. An address of the remote r is a value of that
 setting, or, for a push, a value of the setting `remote.<name>.pushurl`
 with r for `<name>` when that setting has one, after the rewrite that
-the page git-config gives for it by the settings `url.<base>.insteadOf`
-and `url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of
-git objects and refs into the git repository from the git repository at
-an address of the remote, as the page git-fetch defines fetches. A push
-to a remote is a transfer of git objects and refs from the git
-repository into the git repository at an address of the remote, as the
-page git-push defines pushes.
+the page git-config gives by the settings `url.<base>.insteadOf` and
+`url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of git
+objects and refs into the git repository from the git repository at an
+address of the remote, as the page git-fetch defines fetches. A push to
+a remote is a transfer of git objects and refs from the git repository
+into the git repository at an address of the remote, as the page
+git-push defines pushes.
 
 ## 5. Requirements
 
