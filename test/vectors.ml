@@ -7,6 +7,7 @@ type vector = {
   input : Yojson.Basic.t;
   result : string option;
   values : Yojson.Basic.t option;
+  needs : string list;
 }
 
 type t = {
@@ -25,6 +26,13 @@ let fail_at design line format =
     format
 
 let member name fields = List.assoc_opt name fields
+
+let only_members design line allowed fields =
+  List.iter
+    (fun (name, _) ->
+      if not (List.mem name allowed) then
+        fail_at design line "an unknown member %s" name)
+    fields
 
 let string_member design line name fields =
   match member name fields with
@@ -57,6 +65,7 @@ let read design =
       let revision = string_member design number "rev" set in
       let rec read_groups groups = function
         | (number, fields) :: rest when not (List.mem_assoc "n" fields) ->
+            only_members design number [ "group"; "rev" ] fields;
             let name = string_member design number "group" fields in
             if List.mem_assoc name groups then
               fail_at design number "a second group line for %s" name;
@@ -68,6 +77,18 @@ let read design =
       let _, vectors =
         List.fold_left
           (fun (last, vectors) (line, fields) ->
+            only_members design line
+              [
+                "n";
+                "rev";
+                "group";
+                "input";
+                "result";
+                "values";
+                "note";
+                "needs";
+              ]
+              fields;
             let number =
               match member "n" fields with
               | Some (`Int number) -> number
@@ -92,7 +113,18 @@ let read design =
             in
             if result = None && values = None then
               fail_at design line "neither result nor values";
-            (number, { number; group; input; result; values } :: vectors))
+            let needs =
+              match member "needs" fields with
+              | None -> []
+              | Some (`List names) ->
+                  List.map
+                    (function
+                      | `String name -> name
+                      | _ -> fail_at design line "a need that is not a string")
+                    names
+              | Some _ -> fail_at design line "needs that are not an array"
+            in
+            (number, { number; group; input; result; values; needs } :: vectors))
           (0, []) rest
       in
       { revision; groups; vectors = List.rev vectors }
@@ -133,7 +165,14 @@ let compared vector = function
            fields)
   | other -> other
 
-let group set ~name ~rev give =
+let print_skips skips =
+  String.concat "; "
+    (List.map
+       (fun (number, needs) ->
+         Printf.sprintf "vector %d needs %s" number (String.concat ", " needs))
+       skips)
+
+let group set ~name ~rev ?(needs = []) ?(skipped = []) give =
   let test () =
     (match List.assoc_opt name set.groups with
     | Some found when String.equal found rev -> ()
@@ -144,6 +183,32 @@ let group set ~name ~rev give =
       List.filter (fun vector -> String.equal vector.group name) set.vectors
     in
     if vectors = [] then Alcotest.failf "the group %s holds no vector" name;
+    let skips =
+      List.filter_map
+        (fun vector ->
+          match
+            List.filter
+              (fun need -> List.assoc_opt need needs = Some false)
+              vector.needs
+          with
+          | [] -> None
+          | unmet -> Some (vector.number, unmet))
+        vectors
+    in
+    List.iter
+      (fun (number, needs) ->
+        Printf.printf "vector %d of %s skipped: it needs %s\n" number name
+          (String.concat ", " needs))
+      skips;
+    if skips <> skipped then
+      Alcotest.failf "the group %s skips %s, not %s" name
+        (if skips = [] then "no vector" else print_skips skips)
+        (if skipped = [] then "no vector" else print_skips skipped);
+    let vectors =
+      List.filter
+        (fun vector -> not (List.mem_assoc vector.number skips))
+        vectors
+    in
     let failures =
       List.filter_map
         (fun vector ->
