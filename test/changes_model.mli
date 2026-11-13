@@ -134,3 +134,78 @@ val cyclic_graph_gen : graph QCheck2.Gen.t
 
 val print_graph : graph -> string
 (** [print_graph graph] writes [graph] as a JSON object, for messages. *)
+
+(** {1 Refs, messages, and the files of commits} *)
+
+type target =
+  | Commit of string
+  | Names of string
+  | Other of string
+  | Broken
+      (** What a ref holds: a commit, the name of another ref, a git object that
+          is not a commit, or, for a broken loose ref, none of these. *)
+
+val ref_commit : (string * target) list -> string -> string option
+(** [ref_commit refs name] is the commit to which the ref [name] resolves
+    through [refs], or [None] when it resolves to no commit: it does not exist,
+    it names a ref that resolves to no commit, it points to another git object,
+    it is a broken loose ref, or the refs that it names in turn come back to a
+    ref. *)
+
+val default_branch_commit :
+  binding:string ->
+  upstream:string option option ->
+  local:string option option ->
+  remote:string option option ->
+  string option
+(** [default_branch_commit ~binding ~upstream ~local ~remote] is the commit of
+    the default branch by the term [default-branch-commit]: each ref is [None]
+    when it does not exist, and [Some commit] when it exists, with [commit]
+    [None] when it has no commit. *)
+
+val message : string -> string
+(** [message content] is the message of a commit object with [content]: the
+    bytes after the first two bytes 0x0A that follow one another, or the empty
+    byte sequence. *)
+
+val message_text : string -> string option
+(** [message_text content] is the text of the message of a commit object with
+    [content], as its UTF-8 encoding, or [None] when the message is not valid
+    UTF-8. *)
+
+type entry = { name : string; mode : string; entries : entry list }
+(** An entry of a git tree object: its name, the digits of its mode, and, for a
+    tree entry, the entries of the git tree object that it names. *)
+
+(** The four types of an entry. *)
+type kind =
+  | Tree_kind
+  | Regular_file_kind
+  | Symbolic_link_kind
+  | Submodule_kind
+
+val entry_kind : string -> kind
+(** [entry_kind mode] is the type of an entry with the mode [mode], by the term
+    [commit-file]: when [mode] is one or more of the bytes 0x30 to 0x37, the
+    type that the whole-number quotient of its number divided by 4096 gives (4,
+    8, 10, or another); a submodule entry when [mode] is empty or holds another
+    byte. *)
+
+val entry_byte_paths : entry list -> string list
+(** [entry_byte_paths entries] is the byte path of each entry of a git tree
+    object that lists [entries], the entries of its tree entries included, each
+    as often as an entry has it. *)
+
+val commit_files : entry list -> string list
+(** [commit_files entries] is the valid paths of the files of the tree of a
+    commit whose git tree object lists [entries], in code point order, by the
+    term [commit-file]. *)
+
+val entries_gen : entry list QCheck2.Gen.t
+(** Entries of a git tree object, nested up to three deep, with names that
+    repeat, names that are no file names, names that hold [/] or are not valid
+    UTF-8, modes of each type, with and without a leading 0, an empty mode, and
+    modes that hold a byte that is no digit of base 8. *)
+
+val print_entries : entry list -> string
+(** [print_entries entries] writes [entries] for messages. *)
