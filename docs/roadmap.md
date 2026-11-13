@@ -78,6 +78,26 @@
     the repository trusts, and a judgment without a valid signature
     counts for nothing.
   - It needs the designs of the Ledger and of Approval.
+- **A security design** — a layered design of its own that states what
+  Sinter defends against, and the guarantees that follow from that.
+  Today the layered design Changes, which reads git repositories, holds
+  one such guarantee as a rule of intent: Sinter runs no program or
+  command that a git repository supplies, and a transfer to or from a
+  remote runs only as the person set it up outside the repository. Not
+  designed.
+  - The cases that this rule leaves open: programs that the search path
+    finds; settings files that the settings of a repository include;
+    programs inside a working tree, also Sinter itself when it runs
+    from its own checkout; reading the refs of a remote without a
+    fetch; a fetch from an address that is not a remote; and ssh
+    options in the host part of an address.
+  - The design can also hold the other guarantees of that kind, such as
+    the confinement of grammar code in language packs and the
+    confirmation of judgments (see "Signed judgments").
+  - It is written among the last of the layered designs, even where its
+    place in the order of dependencies is earlier, so that it covers the
+    whole surface at once. It may be split into parts, or its work
+    shared out, later.
 - **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
   which an AI coding assistant, a program such as Claude Code that
   writes code, writes a specification of each change before the
