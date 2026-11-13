@@ -62,6 +62,7 @@ let () =
       ("usage", Test_usage.tests);
       ("tag line", Test_tag_line.tests);
       ("slug", Test_slug.tests);
+      ("slug form", Test_slug_form.tests);
       ("text", Test_text.tests);
       ("paths", Test_path.tests);
       ("globs", Test_glob_fit.tests);
