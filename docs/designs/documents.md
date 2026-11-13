@@ -122,7 +122,7 @@ the conformance vectors of the design is a JSON text.
 | [tests of a read file](sinter:#file-test=v1) | the tests whose code is a test node of a code file that can be read; a markdown file and a read file that cannot be read have none |
 | [declaration of a declared item](sinter:#item-file=v1), [file of a declared item](sinter:#item-file=v1) | the accepted input that declares a declared item, and the read file whose tag text has it |
 | [claim](sinter:#claim=v1) | the lines that a declaration claims: in markdown, its section or its list item, from its own tag line when another declaration of its paragraph comes before it, up to the next declaration of its paragraph; in code, its part of its block of a tag text; in both, without the blank lines at its end; in markdown, for a declared finding class that is the only declaration of the first paragraph of the section of level 0, every line of its file |
-| [scope](sinter:#specification-scope=v1) | the file lines in which a design or a specification gathers its items: in markdown, the markdown lines of the section or the list item whose first paragraph has its declaration; in code, for a design, its claim, and for a specification, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
+| [scope](sinter:#item-scope=v1) | the file lines in which a design or a specification gathers its items: in markdown, the markdown lines of the section or the list item whose first paragraph has its declaration; in code, for a design, its claim, and for a specification, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
 | [innermost](sinter:#innermost-item=v1) | of some declared items whose claims, or whose scopes, have a thing in them, the one whose claim, or scope, is a subset of that of each of the others, when exactly one is |
 | [design of a slug](sinter:#slug-design=v1) | the item of the kind design whose name is the slug, when no other item of the kind design and no decision record has that name |
 | [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names it by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
@@ -328,7 +328,7 @@ end
 ```
 
 The first run of comments attaches to the definition node of the module.
-The [scope](sinter:#specification-scope=v1) of the specification is its
+The [scope](sinter:#item-scope=v1) of the specification is its
 tag text, with the file lines in the run of that module. The requirement
 `id-form` is declared by one segment. Its declaration is in no scope of
 an item of the kind design, and it is in the scope of the specification,
@@ -1104,7 +1104,7 @@ blank, in the order of the file lines.
 
 ### 4.24 The scopes of designs and specifications
 
-@term specification-scope=v1
+@term item-scope=v1
 @cites {
     ontology#{declared-item=v1},
     text#{boundary=v1, run=v1},
@@ -1139,7 +1139,7 @@ A thing is in the scope of d when it is in this set of file lines.
 @term innermost-item=v1
 @cites {
     ontology#{declared-item=v1},
-    #{file-line=v1, specification-scope=v1},
+    #{file-line=v1, item-scope=v1},
 }
 
 Take a thing and some declared items, each with a set of file lines in
@@ -1175,7 +1175,7 @@ Otherwise, the slug has no design.
     ontology#{item-name=v1, declared-item=v1, term=v1},
     #{
         accepted-input=v1, item-file=v1, claim=v1,
-        specification-scope=v1, file-line=v1, innermost-item=v1,
+        item-scope=v1, file-line=v1, innermost-item=v1,
         slug-design=v1, read-file=v1, tag-text=v1,
     },
 }
@@ -1203,7 +1203,7 @@ of a tree is the first of these that applies:
     identifiers#{target=v1, full-name=v1, slug=v1, segment=v1},
     ontology#{containment=v1, item-name=v1, declared-item=v1, term=v1},
     #{
-        item-file=v1, home-design=v1, specification-scope=v1,
+        item-file=v1, home-design=v1, item-scope=v1,
         innermost-item=v1, slug-design=v1,
     },
 }
@@ -1921,7 +1921,7 @@ of the file.
     },
     #{
         read-file=v1, accepted-input=v1, item-file=v1, tag-text=v1,
-        markdown-section=v1, claim=v1, specification-scope=v1,
+        markdown-section=v1, item-scope=v1,
         tree-containment=v1, item-part=v1, tree-site=v1, origin=v1,
         origin-position=v1, position-subject=v1, run-spot=v1,
         tree-finding=v1, innermost-item=v1,
