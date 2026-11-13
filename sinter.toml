@@ -10,9 +10,7 @@ namespaces.toml-lang = "[0-9]+([.][0-9]+)*"
 namespaces.fips = "[1-9][0-9]*-[1-9][0-9]*"
 namespaces.ieee = "[1-9][0-9]*-[1-9][0-9]*"
 namespaces.tree-sitter = "[0-9]+([.][0-9]+)*"
-namespaces.wasmtime = "[0-9]+([.][0-9]+)*"
 namespaces.wasm-core = "[0-9]+([.][0-9]+)*"
-namespaces.crates = "[a-z][-a-z0-9_]*-[0-9]+([.][0-9]+)*"
 
 [paths]
 exempt = [
