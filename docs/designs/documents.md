@@ -195,10 +195,9 @@ such as lines of metadata between two lines of `---`. The rest of its
 text is its markdown text, which CommonMark 0.31.2 parses into blocks.
 
 The tags of a markdown file count in its
-[tag texts](sinter:#tag-text=v1). The inline citations of a markdown
-file are in all of its markdown text, not only in its first paragraphs:
-for example, an inline citation in a heading is an
-[input of the tree](sinter:#accepted-input=v1) too.
+[tag texts](sinter:#tag-text=v1). For example, an inline citation in a
+heading is in no tag text, and it is an
+[input of the tree](sinter:#accepted-input=v1) all the same.
 
 This file has three tag texts:
 
@@ -258,9 +257,9 @@ The tags of a code file count in the [tag texts](sinter:#tag-text=v1)
 that its runs of comments give. A tag text has
 [blocks](sinter:#tag-text-block=v1), which give the claims of
 declarations in code. For example, `@param x` is a tag line of a block
-too. A line `@deprecated` in a comment of a JavaScript file is a status
-tag, also when the pack has `@deprecated` as a foreign tag word for
-JSDoc.
+too. A line `@deprecated` in a tagged comment node of a JavaScript file
+is a status tag, also when the pack has `@deprecated` as a foreign tag
+word for JSDoc.
 
 A run of comments can [attach](sinter:#attachment=v1) to the code right
 after it, its attachment target, such as a function. So in this Rust
@@ -339,12 +338,9 @@ lines of the requirement.
 ### 2.6 Containment and names
 
 Containment says to which design, and to which specification, a declared
-item belongs. [Containment in a tree](sinter:#tree-containment=v1)
-decides it from the full name in the declaration of an item, through
-the [design of its slug](sinter:#slug-design=v1), or from the
-[home design](sinter:#home-design=v1) of that declaration, and from the
-[innermost](sinter:#innermost-item=v1) specification in whose
-[scope](sinter:#specification-scope=v1) the declaration is.
+item belongs, as [containment in a tree](sinter:#tree-containment=v1)
+gives it. For example, `@req billing#limit-amount=v2` belongs to the
+design `billing`, when the tree has that design.
 
 Names come in [sets of names](sinter:#name-set=v1). A citation entry or
 an inline citation names an item as
@@ -387,12 +383,10 @@ specification.
 ### 2.8 Edges, sites, and status tags
 
 The accepted citations and inline citations of a tree give its
-[edges](sinter:#tree-edge=v1), whose sources the
-[parts of declared items](sinter:#item-part=v1), the
-[comments on tests](sinter:#file-test=v1), and the
-[sites](sinter:#tree-site=v1) decide. For example, in a file `README.md`
-with this text, the `@cites` line is outside every extent, and the site
-of the file is its three lines:
+[edges](sinter:#tree-edge=v1). For example, in a file `README.md` with
+this text, the `@cites` line is outside every extent, so it stands in
+the [site](sinter:#tree-site=v1) of the file, which is its three lines,
+and that site is the source of its edge:
 
 ```markdown
 # Notes
@@ -407,18 +401,15 @@ would stand in that site.
 ### 2.9 Extent hashes and code hashes
 
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
-of its hash text, which its revised content gives. For example, a change
-of a label, a new pin of a citation, or a change of the number of a
-heading does not change the extent hash, but a new pin of an inline
-citation does. For the requirement of section 2.2, the hash text is the
-line `### Amount limit`, an empty line, and the line of its text, each
-with a line feed after it. Its extent hash is
+of its hash text, which its revised content gives. For example, for the
+requirement of section 2.2, the hash text is the line
+`### Amount limit`, an empty line, and the line of its text, each with a
+line feed after it. Its extent hash is
 `39096d6a3499d398332a59e6882377d2f0b81e206429b16f163df9cb16c00656`.
 
 The [code hash](sinter:#code-hash=v1) of a run of comments is the hash
-of the code to which it attaches, so a change of that code changes it.
-For example, a change of the indentation of that code changes the code
-hash, and a change of the spaces at the ends of its lines does not.
+of the code to which it attaches. For example, a change of the
+indentation of that code changes the code hash.
 
 ### 2.10 Findings
 
