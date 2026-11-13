@@ -2311,7 +2311,10 @@ byte sequence is a valid adapter. The requirement of the group is
 
 - `input`: the byte sequence.
 - `result`: "valid" when the byte sequence is a valid adapter for the
-  program, and "invalid" when it is not.
+  program, and "invalid" when it is not. A conforming program gives the
+  result "valid" under the condition that the program stops neither the
+  instantiation nor the invocation of `sinter_interface` for its limits.
+  It gives the result "invalid" with no condition.
 - `values`: no vector of the group has this member.
 
 ```
