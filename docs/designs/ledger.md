@@ -70,7 +70,7 @@ text.
 | [definition entry](sinter:ontology#definition-entry=v1) | a ledger entry of the kind `task` or `plan` |
 | [judgment](sinter:ontology#judgment=v1) | a ledger entry of the kind `approval`, `decline`, `done`, or `abandoned`: a decision of a person |
 | [record of the job](sinter:ontology#job-record=v1) | a ledger entry of the kind `delivered` |
-| [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a repair removes ledger entries from a ledger and puts one void, a ledger entry of the kind `void`, where each of them was |
+| [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a write to a ledger, other than an append, a pull, or a push, that removes zero or more ledger entries and puts one void, a ledger entry of the kind `void`, where each of them was |
 | [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; the execution of a conforming program that continuous integration starts at each push to the default branch |
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
