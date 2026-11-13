@@ -100,9 +100,9 @@ execution of code. From the dynamic-linking conventions of the
 WebAssembly tool conventions, it takes the custom section `dylink.0` and
 the rule that a program invokes `__wasm_apply_data_relocs` before any
 other function of a module, `__wasm_call_ctors` included; a program
-invokes the exports that initialize a grammar in this order:
-`__wasm_apply_data_relocs`, then `_initialize`, or else
-`__wasm_call_ctors`. From ECMA-262 2025, it takes RegExp patterns, with
+invokes the exports that initialize the module in this order, each
+when the module exports it: `__wasm_apply_data_relocs`, then
+`_initialize`, or else `__wasm_call_ctors`. From ECMA-262 2025, it takes RegExp patterns, with
 the flag `u`, and their matching. From ISO/IEC 9899:2024, the standard
 of the C language, it takes the functions that allocate memory and the
 functions of memory and strings that a grammar can import. From the
@@ -148,7 +148,7 @@ functions that act on characters.
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are of a fixed list, with their kinds and their types; that has the memory information of a custom section `dylink.0`, and imports `memory`, the table, and their bases when its sizes need them, and `memory` when it imports `__stack_pointer`; whose exports `tree_sitter_<g>`, `__wasm_apply_data_relocs`, `_initialize`, and `__wasm_call_ctors` have fixed types; and in an instance of a grammar of which the program invokes `__wasm_apply_data_relocs`, then `_initialize` or else `__wasm_call_ctors`, when the module exports them, and then `tree_sitter_<g>`, with no failure, and gets a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are of a fixed list, with their kinds and their types; that has the memory information of a custom section `dylink.0`, and imports `memory`, the table, and their bases when its sizes need them, and `memory` when it imports `__stack_pointer`; that exports `tree_sitter_<g>`; each of whose exports `tree_sitter_<g>`, `__wasm_apply_data_relocs`, `_initialize`, and `__wasm_call_ctors` that it has has a fixed type; and in whose instance of a grammar, when the program invokes `__wasm_apply_data_relocs`, then `_initialize` or else `__wasm_call_ctors`, each when the module exports it, and then `tree_sitter_<g>`, with no failure of the instantiation or of an invocation, `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
 | [instance of a grammar, memory information](sinter:#grammar-instance=v1) | an instance of a WebAssembly module that has memory information and each of whose imports is an import of a fixed list, which a program makes to get the language of a grammar and to run its code, with values of its own choice for the imports, such as `__memory_base`, that have fixed properties; the memory information of the module is the sizes and the alignments of the parts of the memory and of the table that it needs, from its custom section `dylink.0` |
 | [failure for limits](sinter:#grammar-instance=v1) | a failure of the instantiation or of an invocation in an instance of a grammar that comes from a stop by the program for limits of its own, or from an exhausted call stack or stack of the module |
@@ -401,8 +401,9 @@ list, such as `memory` or `malloc`, with its kind and its type, when its
 custom section `dylink.0` gives its memory information: the sizes and
 the alignments of its parts of the memory and of the table, when its
 export `tree_sitter_<g>` gives, in an instance of a grammar and after
-the program invokes the exports that initialize the module in a fixed
-order, a language in the format of tree-sitter, of an ABI version from
+the program invokes the exports that initialize the module, each when
+the module exports it: `__wasm_apply_data_relocs`, then `_initialize`,
+or else `__wasm_call_ctors`, a language in the format of tree-sitter, of an ABI version from
 13 to 15, and when the name of each symbol of that language is valid
 UTF-8. In an instance of a grammar, the program gives the imports values
 of its own choice that have fixed properties: the functions that act on
@@ -976,17 +977,18 @@ characters, are each taken as a whole number from 0 to 4,294,967,295:
   instantiation starts, only the code of the module, and the functions
   of the list when that code calls them, change `__stack_pointer`.
 - The memory and the table that the program gives have the maximum of
-  the type of their import, or no maximum when that type has none. A
-  growth of one of them within its maximum succeeds, or the program
-  stops the invocation that asks for it. The memory holds no byte at an
-  address of 4,294,901,760 or more: a growth by the code of the module
-  that would give it such a byte fails the instantiation or the
-  invocation that asks for it, in every program, as if the growth
-  trapped.
+  the type of their import, or no maximum when that type has none. The
+  memory holds no byte at an address of 4,294,901,760 or more: a growth
+  by the code of the module that would give it such a byte fails the
+  instantiation or the invocation that asks for it, in every program,
+  as if the growth trapped. Each other growth of the memory or of the
+  table within its maximum succeeds, or the program stops the
+  instantiation or the invocation that asks for it.
 - `malloc`, `calloc`, `realloc`, and `free` allocate and deallocate
   space as ISO/IEC 9899:2024 defines, at places that the program
   chooses, and they never give 0: when the program does not allocate
-  the space that a call asks for, it stops the invocation. A block is
+  the space that a call asks for, it stops the instantiation or the
+  invocation that makes that call. A block is
   the space that a call of `malloc`, `calloc`, or `realloc` from the
   code of the module allocates, until a call of `free` or `realloc`
   deallocates that space.
@@ -2723,43 +2725,51 @@ the call. The requirements of the group are `give-call-results`,
   function recognise, and "bound" or "failed" for the function bind. The
   call is a call of an adapter that is valid in the decision that the
   call uses, whose invocation of the export of the function gives the
-  response, with no failure before it. - `values`: with "bound", an
-  object with three members: `results`, an array with one object for
-  each test result of the call, in order, with the members `name` and
-  `status`, each a text, and the members `file`, a text, `line`, and
-  `ms`, each an integer, when the test result has them; `bindings`, an
-  array with one object for each binding object of the call, in order,
-  with the members `result`, 1 less than the index of its test result in
-  `results`, as an integer, `test`, a text, and `reason`, a text; and
-  `warnings`, an array of the warnings of the call, as texts, in order.
-  With "failed", when the call gives an error text of the adapter, an
-  object with one member, `error`, that error text, as a text; otherwise
-  the empty object, `{}`. With "recognised" and "not recognised", the
-  empty object, `{}`. When a conforming program gives the test results,
-  the binding objects, the warnings, or the error text of the adapter of
-  the call, it gives those of `values`. With `{}`, it gives none of
-  these. ```
-  {"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
-  ``` #### 6.10.4 Calls The group `calls` holds the vectors that each
-  give the things of a call: a byte sequence as the adapter, the
-  function, the request, the report content, and, for the function bind,
-  the test entry ids of the call; and what a conforming program gives
-  for the call. The requirements of the group are `give-call-results`,
-  `give-call-values`, `omit-call-values`, `omit-adapter-error-texts`,
-  and `end-adapter-code`. - `input`: an object with these members:
-  `adapter`, the byte sequence of the adapter; `function`, the text
-  `recognise` or `bind`; `request`, the byte sequence of the request;
-  `report-content`, the byte sequence of the report content; and `ids`,
-  for the function bind only, an array of the test entry ids of the
-  call, as texts. - `result`: the result of the call, when a conforming
-  program gives a result for it: "recognised", "not recognised", or
-  "failed" for the function recognise, and "bound" or "failed" for the
-  function bind. The requirements of the group oblige a result other
-  than "failed" only for a call in which no choice of the program in an
-  instance of an adapter changes the instantiation or an invocation, in
-  the instance of the call or in the instance of the decision whether
-  its adapter is a valid adapter that the call uses. The group holds no
-  vector with the result "failed" whose result such a choice can change.
+  response, with no failure before it.
+- `values`: with "bound", an object with three members: `results`, an
+  array with one object for each test result of the call, in order, with
+  the members `name` and `status`, each a text, and the members `file`,
+  a text, `line`, and `ms`, each an integer, when the test result has
+  them; `bindings`, an array with one object for each binding object of
+  the call, in order, with the members `result`, 1 less than the index
+  of its test result in `results`, as an integer, `test`, a text, and
+  `reason`, a text; and `warnings`, an array of the warnings of the
+  call, as texts, in order. With "failed", when the call gives an error
+  text of the adapter, an object with one member, `error`, that error
+  text, as a text; otherwise the empty object, `{}`. With "recognised"
+  and "not recognised", the empty object, `{}`.
+
+When a conforming program gives the test results, the binding objects,
+the warnings, or the error text of the adapter of the call, it gives
+those of `values`. With `{}`, it gives none of these.
+
+```
+{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
+```
+
+#### 6.10.4 Calls
+
+The group `calls` holds the vectors that each give the things of a call:
+a byte sequence as the adapter, the function, the request, the report
+content, and, for the function bind, the test entry ids of the call; and
+what a conforming program gives for the call. The requirements of the
+group are `give-call-results`, `give-call-values`, `omit-call-values`,
+`omit-adapter-error-texts`, and `end-adapter-code`.
+
+- `input`: an object with these members: `adapter`, the byte sequence
+  of the adapter; `function`, the text `recognise` or `bind`; `request`,
+  the byte sequence of the request; `report-content`, the byte sequence
+  of the report content; and `ids`, for the function bind only, an array
+  of the test entry ids of the call, as texts.
+- `result`: the result of the call, when a conforming program gives a
+  result for it: "recognised", "not recognised", or "failed" for the
+  function recognise, and "bound" or "failed" for the function bind. The
+  requirements of the group oblige a result other than "failed" only for
+  a call in which no choice of the program in an instance of an adapter
+  changes the instantiation or an invocation, in the instance of the
+  call or in the instance of the decision whether its adapter is a valid
+  adapter that the call uses. The group holds no vector with the result
+  "failed" whose result such a choice can change.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
