@@ -55,6 +55,12 @@ val sub : t -> run -> t option
 (** [sub text run] is the text of [run]: its characters in order. It is [None]
     when [run] is not a run of [text]. *)
 
+val concat : t list -> t
+(** [concat texts] is the text of the characters of each element of [texts], in
+    order: the characters of the first element, then those of the second, and so
+    on. It is {!empty} when [texts] is [[]]. The time is linear in the sum of
+    the lengths of the elements. *)
+
 val equal : t -> t -> bool
 (** [equal a b] is [true] when, and only when, [a] and [b] have the same number
     of characters and the same character at each place. *)

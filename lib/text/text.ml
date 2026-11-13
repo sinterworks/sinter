@@ -63,6 +63,15 @@ let sub text run =
             (fun k -> text.offsets.(run.from + k) - first);
       }
 
+let concat texts =
+  let bytes = String.concat "" (List.map encode texts) in
+  {
+    bytes;
+    offsets =
+      offsets_of bytes
+        (List.fold_left (fun count text -> count + length text) 0 texts);
+  }
+
 let equal a b = String.equal a.bytes b.bytes
 
 let has_byte_order_mark text =
