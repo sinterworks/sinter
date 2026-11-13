@@ -31,6 +31,7 @@
   sinter_toml
   sinter_data_forms_toml
   sinter_tree
+  sinter_spots
   digestif.c
   git_fixture
   sinter_bench
