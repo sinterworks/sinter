@@ -311,3 +311,5 @@
 {"group":"reject-byte-sequence","input":"61203d20221f220a","n":327,"note":"the text does not match `toml`, because a basic string holds no U+001F","result":"invalid","rev":"v1","values":{}}
 {"group":"reject-byte-sequence","input":"61203d20312023201f0a","n":328,"note":"the text does not match `toml`, because a comment holds no U+001F","result":"invalid","rev":"v1","values":{}}
 {"group":"reject-byte-sequence","input":"61203d2027610a62270a","n":329,"note":"the text does not match `toml`, because a literal string holds no line feed","result":"invalid","rev":"v1","values":{}}
+{"group":"give-span","input":"22f09f988022203d20310a","n":330,"note":"the text of the span is `1`","result":"valid","rev":"v1","values":{"end":{"column":8,"line":1},"location":["😀"],"of":"toml-value","start":{"column":7,"line":1}}}
+{"group":"give-span","input":"0961203d20310a","n":331,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":3,"line":1},"location":["a"],"of":"key","start":{"column":2,"line":1}}}
