@@ -139,7 +139,7 @@ meaning of a vector.
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
-| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each edit of a definition gives a new definition |
+| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each alteration of a definition gives a new definition |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
 | merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit; work, or a revised content, merges into the default branch when a merge brings it in |
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
@@ -330,7 +330,7 @@ when their items of the kind specification, or their items of the kind
 design, are the same item. Two tests are the same item when the files
 of the two tests have the same valid path and the names of the two tests
 are equal. So an item of the kind requirement that moves to another
-place in the same file of a tree, or to another file of a tree, stays
+part of the same file of a tree, or to another file of a tree, stays
 the same item when its name stays the same.
 
 ### 2.5 Decision records and finding classes
@@ -491,7 +491,7 @@ content of an item of the kind design is the item of the kind design
 without the declared items that it holds. The revised content of an item
 of the kind specification is that item with the declared items that it
 holds, without the `=` and the label of the declaration of each of those
-declared items that has a label. So an edit of an item
+declared items that has a label. So an alteration of an item
 of the kind requirement that an item of the kind specification holds
 changes the revised content of that item of the kind specification too.
 The revised content of a conformance vector is that conformance vector
@@ -572,11 +572,11 @@ A definition of a task is a display name, paths, promises, at most one
 external item, at most one plan, and waits. A definition of a plan is a
 display name, at most one plan, waits, and the items that the plan
 carries out. The work item id is not part of a definition. Each
-definition entry records one definition of its work item, and each edit
-of a definition gives a new definition. The plan of a work item in a
-definition is the plan, or none, that the definition names, and the
-waits of a work item in a definition are the waits that the definition
-names.
+definition entry records one definition of its work item, and each
+alteration of a definition gives a new definition. The plan of a work
+item in a definition is the plan, or none, that the definition names,
+and the waits of a work item in a definition are the waits that the
+definition names.
 
 At each point of a ledger (section 2.11), each work item that exists has
 a current definition. A work item is a part of a plan when its current
@@ -668,8 +668,10 @@ the tree of each working tree; the delivery lines and the task lines of
 the messages of commits; the ledger, in its order; test evidence; and
 the bindings of the parameters that designs name. States follow from the
 state inputs alone (section 4.1), and the writers, persons, branches,
-and times that ledger entries record change no state (section 4.2). No
-ledger entry records a state.
+and times that ledger entries record change no state (section 4.2).
+What a program gives while another process changes a state input is a
+matter of the quality of an implementation. No ledger entry records a
+state.
 
 | state | of | meaning |
 |---|---|---|
@@ -785,13 +787,15 @@ name.
 A statement of an agent is a text that an agent writes, such as a line
 of a file of a tree, a line of the message of a commit, a ledger entry,
 or a message to a person. When its input says that an agent runs it, a
-conforming program changes the ledger only by appending definition
-entries (section 4.3). A conforming program appends a judgment only to
-record a decision that a person gives it by a confirmation that no
-program that an agent runs can give (section 4.4). So when an agent
-changes the ledger only through a conforming program whose input says
-that an agent runs it, a statement of the agent changes a state only in
-one of these two ways (sections 4.1, 4.3, and 4.4):
+conforming program appends to the ledger no ledger entry other than a
+definition entry, and makes no repair (section 4.3). A conforming
+program appends a judgment only to record a decision that a person gives
+it by a confirmation that the standard input, the arguments, and the
+environment of the program cannot give (section 4.4). Taking in the
+ledger entries that another clone appended is not appending. So when an
+agent changes the ledger only through a conforming program whose input
+says that an agent runs it, a statement of the agent changes a state
+only in one of these two ways (sections 4.1, 4.3, and 4.4):
 
 1. through a state input, other than the ledger, that the statement
    alters, such as the tree of a working tree or of a commit, the
@@ -1442,11 +1446,11 @@ A definition of a task is a display name, paths, promises, at most one
 external item, at most one plan, and waits. A definition of a plan is a
 display name, at most one plan, waits, and the items of the kind
 requirement, specification, and design that the plan carries out. Each
-edit of a definition gives a new definition. The plan of a work item in
-a definition is the plan, or none, that the definition names. The waits
-of a work item in a definition are the waits from the work item that the
-definition names. The work item id of a work item is not part of a
-definition.
+alteration of a definition gives a new definition. The plan of a work
+item in a definition is the plan, or none, that the definition names.
+The waits of a work item in a definition are the waits from the work
+item that the definition names. The work item id of a work item is not
+part of a definition.
 
 ### 3.39 Delivery lines
 
@@ -1523,10 +1527,10 @@ entry, and the reason for the removal.
 A definition entry is a ledger entry of the kind `task` or `plan`. It
 names one work item, its work item, by its work item id. Each definition
 entry records one whole definition of its work item: the first
-definition of the work item, or the new definition that an edit of a
-definition gives. A `task` ledger entry records a definition of a task,
-and a `plan` ledger entry records a definition of a plan. A definition
-entry records no judgment.
+definition of the work item, or the new definition that an alteration of
+a definition gives. A `task` ledger entry records a definition of a
+task, and a `plan` ledger entry records a definition of a plan. A
+definition entry records no judgment.
 
 ### 3.45 Subjects of approval
 
@@ -1886,7 +1890,7 @@ parameters that designs name.
 A conforming program must give the same states to each item, edge, wait,
 and subject of approval for which it gives them, for two inputs that
 agree in each state input, as each state input is when the program gives
-the states, and that no other program changes while the program runs.
+the states, and that no other process changes while the program runs.
 
 ### 4.2 The same treatment of each ledger entry
 
@@ -1902,7 +1906,7 @@ the states, and that no other program changes while the program runs.
 A conforming program must give the same states to each item, edge, wait,
 and subject of approval for which it gives them, for two inputs that
 differ only in the writers, the persons, the branches, and the times
-that their ledger entries record, and that no other program changes
+that their ledger entries record, and that no other process changes
 while the program runs.
 
 ### 4.3 The ledger entries that agents write
@@ -1910,23 +1914,27 @@ while the program runs.
 @req write-only-definitions-for-agents=v1
 @cites {
     text#{conforming-program=v1, input=v1},
-    #{agent=v1, ledger=v1, definition-entry=v1},
+    #{
+        agent=v1, ledger=v1, definition-entry=v1, repair=v1,
+        ledger-entry=v1,
+    },
 }
 
 When its input says that an agent runs it, a conforming program must
-change the ledger only by appending definition entries.
+append to the ledger no ledger entry other than a definition entry, and
+make no repair.
 
 ### 4.4 The judgments that persons give
 
 @req write-judgments-only-for-persons=v1
 @cites {
     text#{conforming-program=v1},
-    #{judgment=v1, person=v1, agent=v1, ledger=v1},
+    #{judgment=v1, person=v1, ledger=v1},
 }
 
 A conforming program must append a judgment to the ledger only to record
-a decision that a person gives it by a confirmation that no program that
-an agent runs can give.
+a decision that a person gives it by a confirmation that the standard
+input, the arguments, and the environment of the program cannot give.
 
 ### 4.5 The use of declared tasks
 
