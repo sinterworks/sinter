@@ -235,3 +235,124 @@ let a_line_map old_lines new_lines =
     else walk i (j + 1) acc
   in
   walk 1 1 []
+
+let names_of_json = function
+  | `List names ->
+      List.map
+        (function
+          | `String name -> name
+          | other ->
+              Alcotest.failf "not a name: %s" (Yojson.Basic.to_string other))
+        names
+  | other -> Alcotest.failf "not an array: %s" (Yojson.Basic.to_string other)
+
+type graph = (string * string list) list
+
+let graph_of_json = function
+  | `Assoc commits ->
+      List.map (fun (name, parents) -> (name, names_of_json parents)) commits
+  | other ->
+      Alcotest.failf "not a commit graph: %s" (Yojson.Basic.to_string other)
+
+let parents graph c = Option.value ~default:[] (List.assoc_opt c graph)
+
+module Names = Set.Make (String)
+
+let ancestry_set graph c =
+  let rec grow seen = function
+    | [] -> seen
+    | c :: rest when Names.mem c seen -> grow seen rest
+    | c :: rest -> grow (Names.add c seen) (parents graph c @ rest)
+  in
+  grow Names.empty [ c ]
+
+let ancestry graph c = Names.elements (ancestry_set graph c)
+let reaches graph c c' = Names.mem c' (ancestry_set graph c)
+
+let range_set graph ~from h =
+  let reached = ancestry_set graph h in
+  match from with
+  | None -> reached
+  | Some s -> Names.diff reached (ancestry_set graph s)
+
+let range graph ~from h = Names.elements (range_set graph ~from h)
+
+let parents_first graph ~from h =
+  let r = range_set graph ~from h in
+  let started = Hashtbl.create 16 in
+  let finished = ref [] in
+  let rec walk c =
+    Hashtbl.replace started c ();
+    List.iter
+      (fun p -> if Names.mem p r && not (Hashtbl.mem started p) then walk p)
+      (parents graph c);
+    finished := c :: !finished
+  in
+  if Names.mem h r then walk h;
+  List.rev !finished
+
+let merge_bases graph a b =
+  let common = Names.inter (ancestry_set graph a) (ancestry_set graph b) in
+  Names.elements
+    (Names.filter
+       (fun x ->
+         not
+           (Names.exists
+              (fun y -> (not (String.equal x y)) && reaches graph y x)
+              common))
+       common)
+
+let first_parent_line graph c =
+  let rec go c acc =
+    if List.mem c acc then None
+    else
+      match parents graph c with
+      | [] -> Some (List.rev (c :: acc))
+      | p :: _ -> go p (c :: acc)
+  in
+  go c []
+
+let landing_commit graph ~line_of c =
+  if not (reaches graph line_of c) then None
+  else
+    match
+      List.filter
+        (fun m ->
+          reaches graph m c
+          &&
+          match parents graph m with
+          | [] -> true
+          | p :: _ -> not (reaches graph p c))
+        (match first_parent_line graph line_of with
+        | Some line -> line
+        | None -> Alcotest.fail "the first parents come back to a commit")
+    with
+    | [ m ] -> Some m
+    | ms -> Alcotest.failf "the term gives %d landing commits" (List.length ms)
+
+let some_graph_gen ~cycles =
+  let open Gen in
+  int_range 1 12 >>= fun size ->
+  let name k = "c" ^ string_of_int k in
+  let commit k =
+    if k = 0 && not cycles then return (name 0, [])
+    else
+      map
+        (fun picks -> (name k, List.map name picks))
+        (list_size
+           (oneof_weighted
+              [ (2, return 0); (5, return 1); (3, return 2); (1, return 3) ])
+           (int_range 0 (if cycles then size - 1 else k - 1)))
+  in
+  flatten_list (List.init size commit)
+
+let graph_gen = some_graph_gen ~cycles:false
+let cyclic_graph_gen = some_graph_gen ~cycles:true
+
+let print_graph graph =
+  Yojson.Basic.to_string
+    (`Assoc
+       (List.map
+          (fun (name, parents) ->
+            (name, `List (List.map (fun p -> `String p) parents)))
+          graph))
