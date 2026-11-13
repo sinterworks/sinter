@@ -55,6 +55,55 @@ let give_read_set (vector : Vectors.vector) =
 let read_set_vectors =
   Vectors.group test_vectors_set ~name:"read-set" ~rev:"v1" give_read_set
 
+let library_version (version : Set_model.version) =
+  match Test_vector_set.read (Set_model.write version.objects) with
+  | None ->
+      Alcotest.failf "not a test-vector set: %s"
+        (Set_model.print_version version)
+  | Some set -> (
+      match
+        Version_sequence.version set
+          (List.map (fun (name, forms) -> (name, text_of forms)) version.forms)
+      with
+      | Ok version -> version
+      | Error _ ->
+          Alcotest.failf "the forms do not fit: %s"
+            (Set_model.print_version version))
+
+let model_version (json : Yojson.Basic.t) : Set_model.version =
+  match json with
+  | `Assoc members -> (
+      match (List.assoc_opt "set" members, List.assoc_opt "forms" members) with
+      | Some (`List objects), Some (`Assoc forms) ->
+          {
+            objects = List.map V.of_basic objects;
+            forms =
+              List.map
+                (function
+                  | name, `String text -> (name, text)
+                  | name, _ ->
+                      Alcotest.failf "the forms of %s are no string" name)
+                forms;
+          }
+      | _ -> Alcotest.failf "not a version: %s" (Yojson.Basic.to_string json))
+  | _ -> Alcotest.failf "not a version: %s" (Yojson.Basic.to_string json)
+
+let give_validate_sequence (vector : Vectors.vector) =
+  let versions =
+    match vector.input with
+    | `List versions -> List.map model_version versions
+    | other -> Alcotest.failf "not an array: %s" (Yojson.Basic.to_string other)
+  in
+  let valid = Version_sequence.validate (List.map library_version versions) in
+  `Assoc [ ("result", `String (if valid then "valid" else "invalid")) ]
+
+(* @verifies data-forms#test-vectors[validate-sequence][*]=v1
+   The test fails when validate gives a result other than the result of a
+   vector for its sequence of versions. *)
+let validate_sequence_vectors =
+  Vectors.group test_vectors_set ~name:"validate-sequence" ~rev:"v1"
+    give_validate_sequence
+
 let text value = V.String (V.Text value)
 
 let revision_gen =
@@ -365,11 +414,155 @@ let deep_sets_need_no_deep_stack () =
     | _ -> false);
   Alcotest.(check bool) "the unclosed set" true (Option.is_none read_unclosed)
 
-let vector_groups = [ read_set_vectors ]
+let print_sequence versions =
+  String.concat "\n" (List.map Set_model.print_version versions)
+
+(* @verifies data-forms#validate-version-sequences=v1
+   The test fails when validate gives "invalid" for a generated version
+   sequence, whose revisions rise by the rules. *)
+let validate_takes_each_version_sequence =
+  property ~count:500 ~name:"validate takes each version sequence"
+    ~print:print_sequence Set_model.sequence_gen (fun versions ->
+      Version_sequence.validate (List.map library_version versions))
+
+let set_revision objects index change =
+  List.mapi
+    (fun at object_ ->
+      if at <> index then object_
+      else
+        match object_ with
+        | V.Object members ->
+            V.Object
+              (List.map
+                 (function
+                   | (V.Text "rev", V.String (V.Text revision)) as member ->
+                       let number =
+                         int_of_string
+                           (String.sub revision 1 (String.length revision - 1))
+                       in
+                       let number = change number in
+                       if number >= 1 then
+                         (V.Text "rev", text ("v" ^ string_of_int number))
+                       else member
+                   | V.Text "input", _ when change 0 = 0 ->
+                       (V.Text "input", text "changed")
+                   | member -> member)
+                 members)
+        | other -> other)
+    objects
+
+let perturbed_gen =
+  let open Gen in
+  let* versions = Set_model.sequence_gen in
+  let* which = int_range 0 (List.length versions - 1) in
+  let* line = nat in
+  let* kind = int_range 0 4 in
+  let perturb (version : Set_model.version) =
+    let index = line mod List.length version.objects in
+    match kind with
+    | 0 -> { version with objects = set_revision version.objects index succ }
+    | 1 -> { version with objects = set_revision version.objects index pred }
+    | 2 ->
+        {
+          version with
+          objects = set_revision version.objects index (fun n -> n + 9);
+        }
+    | 3 ->
+        {
+          version with
+          objects = set_revision version.objects index (fun _ -> 0);
+        }
+    | _ ->
+        {
+          version with
+          forms =
+            List.map
+              (fun (name, forms) ->
+                (name, if index mod 2 = 0 then forms ^ " changed" else forms))
+              version.forms;
+        }
+  in
+  return
+    (List.mapi
+       (fun at version -> if at = which then perturb version else version)
+       versions)
+
+(* @verifies data-forms#validate-version-sequences=v1
+   The test changes a revision, an input, or the forms of a version
+   sequence, and fails when validate does not give "valid" exactly when
+   the result is still a version sequence. *)
+let validate_takes_exactly_the_version_sequences =
+  property ~count:1000
+    ~name:
+      "validate takes a sequence of versions when, and only when, it is a \
+       version sequence"
+    ~print:print_sequence
+    (Gen.oneof
+       [
+         perturbed_gen; Gen.list_size (Gen.int_range 0 3) Set_model.version_gen;
+       ])
+    (fun versions ->
+      Version_sequence.validate (List.map library_version versions)
+      = Set_model.is_version_sequence versions)
+
+let forms_gen =
+  let open Gen in
+  let* objects = set_objects_gen in
+  let groups =
+    List.sort_uniq V.compare_keys (List.map group_of (List.tl objects))
+  in
+  let groups = List.filter (fun name -> name <> "") groups in
+  let* names =
+    list_size (int_range 0 5) (oneof_list ([ "a"; "b"; "x" ] @ groups))
+  in
+  let* exact = bool in
+  return (objects, if exact then groups else names)
+
+let version_checks_the_forms =
+  property ~count:1000
+    ~name:"version refuses forms of other groups, then a group with no forms"
+    ~print:(fun (objects, names) ->
+      print_objects objects ^ " / " ^ String.concat "," names)
+    forms_gen
+    (fun (objects, names) ->
+      match Test_vector_set.read (Set_model.write objects) with
+      | None -> false
+      | Some set ->
+          let groups =
+            List.map
+              (fun (group : Test_vector_set.group) -> group.name)
+              set.groups
+          in
+          let rec first_extra seen = function
+            | [] -> None
+            | name :: rest ->
+                if List.mem name seen || not (List.mem name groups) then
+                  Some name
+                else first_extra (name :: seen) rest
+          in
+          let want =
+            match first_extra [] names with
+            | Some name -> Error (Version_sequence.Extra_forms name)
+            | None -> (
+                match
+                  List.find_opt (fun name -> not (List.mem name names)) groups
+                with
+                | Some name -> Error (Version_sequence.Missing_forms name)
+                | None -> Ok ())
+          in
+          let have =
+            Result.map ignore
+              (Version_sequence.version set
+                 (List.map (fun name -> (name, text_of "forms")) names))
+          in
+          have = want)
+
+let vector_groups = [ read_set_vectors; validate_sequence_vectors ]
 
 let tests =
   Vectors.tests "data-forms.test-vectors" vector_groups
   @ [
+      Vectors.covers "data-forms.test-vectors" test_vectors_set vector_groups;
       Alcotest.test_case "deep sets need no deep stack" `Quick
         deep_sets_need_no_deep_stack;
       read_gives_the_objects_of_each_set;
@@ -377,4 +570,7 @@ let tests =
       read_answers_any_bytes;
       fields_describe_the_lines;
       compare_revisions_compares_the_numbers;
+      validate_takes_each_version_sequence;
+      validate_takes_exactly_the_version_sequences;
+      version_checks_the_forms;
     ]
