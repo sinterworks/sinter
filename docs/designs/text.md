@@ -62,13 +62,13 @@ design has one JSON text on each line of its text.
 | [hex digit](sinter:#hex-digit=v1) | one of the characters `0` to `9` and `a` to `f`, which write the whole numbers 0 to 15 |
 | [code point](sinter:#code-point=v1) | a whole number from 0 to 1,114,111 |
 | [character](sinter:#character=v1) | each character has one code point, which is a Unicode scalar value: a whole number from 0 to 55,295 (U+D7FF) or from 57,344 (U+E000) to 1,114,111 (U+10FFFF); each Unicode scalar value is the code point of exactly one character |
-| [code point order](sinter:#code-point-order=v1) | one character comes before another in code point order when the code point of the one is less than the code point of the other; one text comes before another when, at the first place where their characters differ, its character comes before the other's, or when it is shorter and the other starts with it |
 | [space](sinter:#space=v1), [tab](sinter:#tab=v1), [line feed](sinter:#line-feed=v1), [carriage return](sinter:#carriage-return=v1) | the characters U+0020, U+0009, U+000A, and U+000D |
 | [code span](sinter:#code-span=v1) | the characters between the two backticks of a pair, such as `%x61`, where the backticks on each line of a definition or a requirement pair in order, except on the lines of a block; a code span stands for those characters, and not for the backticks |
 | [block](sinter:#code-span=v1) | the lines of a definition or a requirement from a line whose first characters, after any spaces, are three backticks to the next such line, such as the lines that hold the rule of a production; no backtick on these lines belongs to a pair |
 | [text](sinter:#text=v1) | a finite sequence of characters |
 | [empty text](sinter:#text=v1) | the text of no characters |
 | [place](sinter:#place=v1) | a whole number, from 1 to the number of the characters of a text, at which a character is in the text |
+| [code point order](sinter:#code-point-order=v1) | one character comes before another in code point order when the code point of the one is less than the code point of the other; one text comes before another in code point order when, at the first place of both texts where their characters differ, the character of the one comes before the character of the other, or when the one has fewer characters and the other has the same character at each place of the one |
 | [boundary](sinter:#boundary=v1) | a whole number from 0 to the number of characters of a text: boundary 0 is before place 1, and each other boundary is right after the place with the same number |
 | [run](sinter:#run=v1) | a sequence of the characters of a text that starts at a boundary, ends at the same boundary or a later boundary, and holds the characters between these two boundaries, each at its place, such as the run of `abcde` that starts at boundary 2, ends at boundary 4, and holds `cd`; a run can be empty |
 | [boundary of a run](sinter:#run=v1) | a boundary of a text from the boundary where a run starts to the boundary where the run ends, such as a boundary of the body |
@@ -166,6 +166,17 @@ into a standard form of Unicode, such as the change of `e`, U+0301 into
 U+00E9. Two texts that differ only by Unicode normalization are two
 different texts: the text U+00E9 and the text `e`, U+0301 both show as
 é, and they are not the same text.
+
+Code point order also orders texts. One text comes before another text
+when, at the first place of both texts at which their characters
+differ, the character of the one comes before the character of the
+other. When two different texts have no such place, the text with fewer
+characters comes before the other. So `B` comes before `a`, `ab` comes
+before `b`, `ab` comes before `abc`, and the empty text comes before
+every other text. The text `e`, U+0301 comes before the text U+00E9,
+because 101 is less than 233. A U+FEFF at place 1 is a character like
+any other in this order, so `a` comes before U+FEFF, `a`. Of two
+different texts, exactly one comes before the other.
 
 A boundary of a text is a whole number from 0 to the number of
 characters of the text. Boundary 0 is before place 1, and each other
@@ -550,24 +561,7 @@ design declares under a name.
 A requirement is an obligation that a design declares under a name and
 states with the word must.
 
-### 3.10 Code point order
-
-@term code-point-order=v1
-@cites #{character=v1, code-point=v1, text=v1, place=v1}
-
-One character comes before another in code point order, and the other
-comes after it, when, and only when, the code point of the one is less
-than the code point of the other. One text comes before another text in
-code point order, and the other comes after it, when, and only when,
-one of these holds:
-
-- Both texts have a place at which their characters differ, and at the
-  first such place, the character of the one comes before the character
-  of the other in code point order.
-- The one has fewer characters than the other, and at each place of the
-  one, the other has the same character as the one.
-
-### 3.11 Texts
+### 3.10 Texts
 
 @term text=v1
 @cites #{character=v1}
@@ -577,7 +571,7 @@ of no characters. Two texts are the same text when, and only when, they
 have the same number of characters and, in their order, the same first
 character, the same second character, and so on to the last character.
 
-### 3.12 Places
+### 3.11 Places
 
 @term place=v1
 @cites #{text=v1, character=v1, whole-number=v1}
@@ -586,6 +580,23 @@ The places of a text are the whole numbers from 1 to the number of the
 characters of the text. For each place k of a text, the character at
 place k is the k-th character of the text: the character at place 1 is
 the first character of the text.
+
+### 3.12 Code point order
+
+@term code-point-order=v1
+@cites #{character=v1, code-point=v1, text=v1, place=v1}
+
+One character comes before another in code point order, and the other
+comes after it, when, and only when, the code point of the one is less
+than the code point of the other. One text comes before another text in
+code point order, and the other comes after it, when, and only when,
+the two texts meet one of these conditions:
+
+- Both texts have a place at which their characters differ, and at the
+  first such place, the character of the one comes before the character
+  of the other in code point order.
+- The one has fewer characters than the other, and at each place of the
+  one, the other has the same character as the one.
 
 ### 3.13 Boundaries
 
