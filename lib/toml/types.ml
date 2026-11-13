@@ -1,6 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
+type span = { start : int; stop : int }
+type key = { whole : span; parts : span list }
 type date = { year : int; month : int; day : int }
 type time = { hour : int; minute : int; second : int; nanosecond : int }
 type offset = Minutes of int | Unknown_local
@@ -14,10 +16,11 @@ type value =
   | Local_date_time of date * time
   | Local_date of date
   | Local_time of time
-  | Array of value list
+  | Array of item list
   | Table of table
 
-and table = (string * value) list
+and item = { value : value; span : span option; key : key option }
+and table = (string * item) list
 
 type error =
   | Not_utf_8
