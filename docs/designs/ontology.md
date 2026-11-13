@@ -99,8 +99,8 @@ meaning of a vector.
 | [hold directly](sinter:#containment=v1) | an item of the kind design holds an item of the kind requirement or a term directly when that item belongs to it and to no item of the kind specification |
 | [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the name in the target of its declaration, which is a slug, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, the name in the target of its declaration, except when that name is one segment and the item belongs to an item of the kind design: then the name of that item of the kind design, `#`, and that segment, such as `billing#amount` |
 | [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests such that the file of the one test and the file of the other test have the same valid path, and the names of the two tests are equal |
-| [conformance vector](sinter:#conformance-vector=v1) | the vector that one vector line of a vector set states by the forms of its group: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them |
-| [vector line of a conformance vector](sinter:#conformance-vector=v1) | the vector line that states the conformance vector |
+| [conformance vector](sinter:#conformance-vector=v1) | the item whose vector line is one vector line of a vector set, with the number of that line; it says what its vector line states by the forms of its group: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; when its vector line states no vector by these forms, it says nothing of what a program gives |
+| [vector line of a conformance vector](sinter:#conformance-vector=v1) | the one vector line of a vector set whose conformance vector it is |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [number of a conformance vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of the member `n` of its object, a whole number of 1 or more |
 | [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, or of a group line, which is a group name such as `offsets` |
@@ -134,7 +134,7 @@ meaning of a vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to conformance vectors when the group of one of them names the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to conformance vectors when one of them says what a conforming program gives and its group names the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -199,7 +199,7 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `billing#amount`, or a slug (section 2.4) | when it has a label |
 | decision record | a declared item whose declaration word is `@decision`, which records one practice or one choice | a slug, such as `code-comments` | yes |
 | declared finding class | a declared item whose declaration word is `@finding-class`, a finding class that a repository declares for itself | a slug, such as `late-fee` | yes |
-| conformance vector | the vector that one vector line of a vector set states: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them | its vector set and its number | yes |
+| conformance vector | the item whose vector line is one vector line of a vector set; it says what that line states by the forms of its group: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them, or nothing when the line states no vector by these forms | its vector set and its number | yes |
 | group of conformance vectors | the conformance vectors of one vector set whose vector lines have one group as the value of the member `group` | its vector set and its name | yes |
 | vector set | the test-vector set of one item of the kind specification or of one item of the kind design | its item of the kind specification or design | yes |
 | task | one piece of work | a work item id | no |
@@ -347,11 +347,12 @@ a declared item.
 
 ### 2.6 Conformance vectors
 
-A conformance vector gives an input, or several inputs, of a conforming
-program of its specification or its design, and what the requirements
-oblige that program to give for them. What a conformance vector gives
-follows from the requirements of its specification or its design, and
-the conformance vector adds no requirement of its own.
+A conformance vector says what its vector line states: an input, or
+several inputs, of a conforming program of its specification or its
+design, and what the requirements oblige that program to give for them.
+What a conformance vector says follows from the requirements of its
+specification or its design, and the conformance vector adds no
+requirement of its own.
 
 Each conformance vector is given for one item of the kind specification,
 or for the items of the kind requirement that one item of the kind
@@ -359,10 +360,10 @@ design holds directly. The vector set of an item of the kind
 specification, or of an item of the kind design, is its test-vector set
 in a tree, as the specification `test-vectors` of Data forms gives it: a
 set line, then a group line for each group, then a vector line for each
-conformance vector. Each of its vector lines states one conformance
-vector by the forms of its group, as Data forms gives them, and that
-line is the vector line of the conformance vector. The value of the
-member `n` of the object of a vector line is the number of its
+conformance vector. Each of its vector lines is the vector line of one
+conformance vector, which says what that line states by the forms of
+its group (term `conformance-vector`). The value of the member `n` of
+the object of a vector line is the number of its
 conformance vector, a whole number of 1 or more. A group of conformance
 vectors is the set of the conformance vectors of one vector set whose
 vector lines have one group as the value of the member `group`, and that
@@ -551,7 +552,8 @@ paths. For a `verifies` promise, a `verifies` edge to a conformance
 vector, a group of conformance vectors, or a vector set is such an edge
 too, when the group of the cited conformance vector, or of one of the
 conformance vectors in the cited item, names the requirement that the
-item of the kind requirement declares, so a test that cites a group of
+item of the kind requirement declares, and that conformance vector says
+what a conforming program gives, so a test that cites a group of
 conformance vectors keeps the `verifies` promises of the requirements of
 that group. The promise is kept in a tree when the tree has such an
 edge, the edge says what its kind of edge says, the edge is not suspect
@@ -1032,18 +1034,19 @@ item in that tree, when the tree has one.
     #{vector-set=v1, declared-item=v1, containment=v1},
 }
 
-Each vector line of a vector set gives one conformance vector of that
-vector set: the vector that the vector line states by the forms of its
-group. That vector line is the vector line of the conformance vector. A
-conformance vector of the vector set of an item of the kind
-specification is an input, or several inputs, of a conforming program of
-the specification that the item declares, and what the requirements of
-that specification oblige that program to give for them. A conformance
-vector of the vector set of an item of the kind design is an input, or
-several inputs, of a conforming program of that design, and what the
-items of the kind requirement that the design holds directly oblige that
-program to give for them. The number of a conformance vector is the
-number of its vector line.
+Each vector line of a vector set is the vector line of one conformance
+vector of that vector set. The number of a conformance vector is the
+number of its vector line. A conformance vector says what its vector
+line states by the forms of its group. For the vector set of an item of
+the kind specification, that is an input, or several inputs, of a
+conforming program of the specification that the item declares, and what
+the requirements of that specification oblige that program to give for
+them. For the vector set of an item of the kind design, that is an
+input, or several inputs, of a conforming program of that design, and
+what the items of the kind requirement that the design holds directly
+oblige that program to give for them. When its vector line states no
+vector by the forms of its group, a conformance vector says nothing of
+what a conforming program gives.
 
 ### 3.16 Groups of conformance vectors
 
@@ -1408,10 +1411,11 @@ task promises an edge of that kind of edge to that item, from a citation
 in a file of a tree whose valid path is in the set of the paths of the
 task. A `verifies` edge from such a citation to a conformance vector, a
 group of conformance vectors, or a vector set is such an edge too, when
-its cited item is a conformance vector or has at least one conformance
-vector in it, and the requirement that that item of the kind requirement
-declares is among the requirements of the group of that conformance
-vector, or of one of the conformance vectors in its cited item. The
+its cited item is a conformance vector that says what a conforming
+program gives, or has at least one such conformance vector in it, and
+the requirement that that item of the kind requirement declares is among
+the requirements of the group of that conformance vector, or of one of
+these conformance vectors in its cited item. The
 promise is kept in a tree when, and only when, that tree has such an
 edge, and the edge says what its kind of edge says, and the edge is not
 suspect in that tree, and, for a `verifies` promise, test evidence of an
