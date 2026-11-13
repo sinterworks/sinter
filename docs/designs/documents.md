@@ -97,7 +97,7 @@ vectors of the design is a JSON text.
 | [descriptor](sinter:packs#valid-pack=v1) | the valid descriptor of a valid pack, which gives the comment sigils, the foreign tag words, and the grammars of the pack |
 | [comment sigil](sinter:packs#comment-sigil=v1) | a line sigil, such as `//`; the opening sigil and the closing sigil of a block pair, such as `/*` and `*/`; or an inner sigil, such as `*` |
 | [foreign tag word](sinter:packs#foreign-tag-word=v1) | a tag word, such as `@param`, that the language of a pack, or a tool of that language, uses in comments with a meaning of its own |
-| [binding of `file-readers`](sinter:#file-reader-binding=v1), [reader](sinter:#file-reader-binding=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack |
+| [binding of `file-readers`](sinter:#file-reader-binding=v1), [reader](sinter:#file-reader-binding=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
@@ -130,7 +130,7 @@ vectors of the design is a JSON text.
 | [section number](sinter:#section-number=v1) | a run of digits and `.`, such as `2.1`, at the start of the text of a heading, with the spaces and tabs after it |
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text that the lines of the revised content of a declared item give after some changes, such as the change of the line of its declaration to its inline description; and the hash of the UTF-8 encoding of that text |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the lines of the run of the text from the least boundary where the run of a body node of an attachment target starts to the greatest boundary where the run of a body node of it ends, or of its own run for a test node that is no definition node, each without the spaces and tabs at its end and with a line feed after it; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
-| [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which contains the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
+| [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
 | [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree |
 | [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the valid path beside the file of the design whose file name is the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
@@ -400,7 +400,7 @@ the example of section 2.2, the requirement claims the lines from
 `### 1.1 Amount limit` to the end, and the specification and the design
 claim their sections. The specification holds the requirement, so the
 extent of the specification is its whole section. In code, the extent
-of a specification gains the extents of its requirements and terms in
+of a specification has the extents of its requirements and terms in
 other runs of comments of the same file.
 
 In this OCaml text, with the block pair `(*` and `*)`, the specification
@@ -599,7 +599,7 @@ tag line, starts and ends where that run does.
 
 ### 2.11 Bindings and readings
 
-The binding of `file-readers` and the binding of `external-namespaces`
+A binding of `file-readers` and a binding of `external-namespaces`
 are inputs of the program, and the requirements state what it gives for
 a tree under the bindings under which it reads that tree. The result of
 the reading of a text with a pack is the result that Language packs
@@ -1256,14 +1256,14 @@ of d:
    and otherwise at the line of the declaration of d. It ends at the
    markdown line right before the line of the next declaration of that
    tag text, when there is one, and otherwise at the last line of S. The
-   claim contains the markdown lines from the line at which it starts to
+   claim is the markdown lines from the line at which it starts to
    the line at which it ends.
 3. When the file of d is a code file: the declaration of d is a line of
    a block B of a tag text. The claim starts at the first line of B when
    the declaration of d is the first declaration in B, and otherwise at
    the line that is the declaration of d. It ends at the line of B right
    before the next declaration in B, when there is one, and otherwise at
-   the last line of B. The claim contains the file lines of the lines of
+   the last line of B. The claim is the file lines of the lines of
    B from the line at which it starts to the line at which it ends.
 
 Then the claim loses its blank lines after its last line that is not
@@ -1517,7 +1517,7 @@ hash.
 
 The sets of names of a tree are these:
 
-- the shared set, which contains each item of the kind design of the
+- the shared set, which has each item of the kind design of the
   tree, each decision record of the tree, and each item of the kind
   specification, each item of the kind requirement, and each term of the
   tree that belongs to no item of the kind design and whose name is a
