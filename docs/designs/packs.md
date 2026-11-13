@@ -14,7 +14,17 @@
 @cites posix/2024
 @cites tree-sitter/0.26.13
 @cites wasm-core/2.0
-Specifies language packs, with their files, pack paths, and pack hashes; descriptors, with pack names, release numbers, comment sigils, foreign tag words, name separators, grammars, test runners, and runner settings; usable grammars, query files, and valid packs; the readings of texts with packs, with parse trees, parse failures, comment nodes, definition nodes, decoration nodes, and test nodes, and the names and test labels of test nodes; runner adapters, with the instances that run their code, the requests, and the results of their calls; and requirements for conforming programs that validate packs and adapters, give pack hashes, read descriptors, read texts with packs, call adapters, and keep the code of a pack from what lies outside it.
+Specifies language packs, with their files, pack paths, and pack hashes;
+descriptors, with pack names, release numbers, comment sigils, foreign
+tag words, name separators, grammars, test runners, and runner settings;
+usable grammars, query files, and valid packs; the readings of texts
+with packs, with parse trees, parse failures, comment nodes, definition
+nodes, decoration nodes, and test nodes, and the names and test labels
+of test nodes; runner adapters, with the instances that run their code,
+the requests, and the results of their calls; and requirements for
+conforming programs that validate packs and adapters, give pack hashes,
+read descriptors, read texts with packs, call adapters, and keep the
+code of a pack from what lies outside it.
 
 A language pack, or pack, holds the support for one language: the
 grammars that parse the files of the language, the query files that find
@@ -71,15 +81,14 @@ results, and parameters and their bindings.
 From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
 of the design hold one JSON text on each line. From POSIX.1-2024, it
-takes the permissions and the appropriate privileges of a process, the
-portable filename character set, the value `{_POSIX_NAME_MAX}`, and the
-error [EILSEQ]. From tree-sitter, as it defines them from 0.26.13 on,
-the design takes the format of languages, the parse trees that its
-parsing gives, and its query language, with patterns, captures,
-predicates, quantifiers, regular expressions, and the matches of a
-query. From the WebAssembly Core Specification 2.0, it takes modules,
-their validation, imports, exports, functions, memories, tables,
-instances, traps, and the execution of code.
+takes the permissions and the appropriate privileges of a process, and
+the portable filename character set. From tree-sitter, as it defines
+them from 0.26.13 on, the design takes the format of languages, the
+parse trees that its parsing gives, and its query language, with
+patterns, captures, predicates, quantifiers, regular expressions, and
+the matches of a query. From the WebAssembly Core Specification 2.0, it
+takes modules, their validation, imports, exports, functions, memories,
+tables, instances, traps, and the execution of code.
 
 ## 1. Glossary
 
@@ -97,7 +106,7 @@ instances, traps, and the execution of code.
 | [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether it is well named, the valid paths of its files, its pack listing, its pack hash, whether it is valid, a value of the content of its file `pack.toml` as a descriptor, the result of a reading of a text with it, the content of one of its files, or the result of a call of the adapter of one of its test runners |
-| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes its folder tree, and in which no code of a grammar of the pack exhausts the call stack or gives a value that depends on the bits of a NaN |
+| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes a file of its folder tree, and in which no code of a grammar of the pack exhausts the call stack or gives a value that depends on the bits of a NaN |
 | [descriptor](sinter:#valid-pack=v1) | the content of the file `pack.toml` of a pack, which is a valid descriptor in a valid pack |
 | [valid descriptor](sinter:#valid-descriptor=v1) | a byte sequence that is a TOML document whose root table holds the keys of a descriptor, each with a TOML value of the right form |
 | [pack name](sinter:#pack-name=v1) | a text of lower-case ASCII letters, ASCII digits, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` side by side, such as `typescript`; the name of a pack and the name of a test runner are pack names |
@@ -163,7 +172,7 @@ instances, traps, and the execution of code.
 | [test result](sinter:#call-result=v1) | an element of the value of `results` of the response of a call of bind, with its name, its status, and, when it has them, its file, its line, and its duration; by the adapter, it is a test result, in the sense of the Ontology, that the report content holds |
 | [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request and a report content: it fails when the request or the report content has 4,294,967,296 bytes or more, or when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise it runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
-| [JSON value of a response](sinter:#call-result=v1) | the JSON value of the response as a byte sequence, as Data forms defines it; a response that is not valid UTF-8, that is not a JSON text, or whose JSON text holds `null`, a number with a fraction or an exponent, an integer outside the range of a JSON integer, an escape `\u` of a surrogate that is not one of a pair, or an object with two names that stand for the same text has no JSON value |
+| [JSON value of a response](sinter:#call-result=v1) | the JSON value of the response as a byte sequence, as Data forms defines it |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
 | [result object, binding object](sinter:#call-result=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
 
@@ -251,19 +260,6 @@ Each line holds, in this order:
 4. a line feed.
 
 The pack hash is the hash of the UTF-8 encoding of the pack listing.
-Each line of the pack listing has the form of a line that the command
-`sha256sum` prints. So, in the root of a well-named pack that has at
-least one file, this command prints the pack hash, then two spaces and
-`-`:
-
-```
-find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sed 's|  \./|  |' | sha256sum
-```
-
-The command gives the paths to `xargs` with a NUL byte after each path,
-because a path can hold a space. Each path that `find` gives starts with
-`./`, so `sha256sum` reads no path as an option, and `sed` takes the
-`./` away from each line.
 
 A pack hash names one set of files with their contents. A path with a
 line feed could add a line of its own to the pack listing, and then two
@@ -378,15 +374,14 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 
 ### 2.4 Grammars and query files
 
-A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly,
-in one file that serves every platform. The content of the file
-`grammars/<g>.wasm` is a usable grammar when it is a WebAssembly module,
-when each of its imports has a name of a fixed list, such as `memory`
-or `malloc`, when its export `tree_sitter_<g>` gives a language in the
-format of tree-sitter, of an ABI version from 13 to 15, and when the
-name of each symbol of that language is valid UTF-8. In a valid pack,
-the hash of the file is the hash that the descriptor gives for the
-grammar.
+A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly.
+The content of the file `grammars/<g>.wasm` is a usable grammar when it
+is a WebAssembly module, when each of its imports has a name of a fixed
+list, such as `memory` or `malloc`, when its export `tree_sitter_<g>`
+gives a language in the format of tree-sitter, of an ABI version from 13
+to 15, and when the name of each symbol of that language is valid UTF-8.
+In a valid pack, the hash of the file is the hash that the descriptor
+gives for the grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
 program runs the query over the parse tree of a text. A match is one
@@ -415,9 +410,10 @@ of tree-sitter applies to each match: `#eq?`, `#not-eq?`, `#any-eq?`,
 `#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
 `#any-not-match?`, `#any-of?`, and `#not-any-of?`. The regular
 expression of a match predicate has the syntax and the meaning that the
-query language of tree-sitter gives it, and it applies to the bytes of
-the text of a node. A query with another predicate, such as `#is?`, or
-with a directive, such as `#set!`, is not valid.
+query language of tree-sitter gives it, and it applies to the UTF-8
+encoding of the text of the run of a node. A query with another
+predicate, such as `#is?`, or with a directive, such as `#set!`, is not
+valid.
 
 The patterns of a query nest. A query file whose text nests more than
 100 levels deep is not valid. Each opening parenthesis `(`, each opening
@@ -512,10 +508,11 @@ and its node type:
   its name path, and its test labels.
 
 The run of a node is the run of the text that the node takes up. The
-parser gives the start and the end of a node in bytes of the UTF-8
-encoding of the parse text, and the run counts characters. The run of a
-node leaves out a line feed that only the parse text has, and the byte
-order mark of the text. So the run of each node is a span of the text.
+parsing of tree-sitter gives the start and the end of a node in bytes of
+the UTF-8 encoding of the parse text, and the run counts characters. The
+run of a node leaves out a line feed that only the parse text has, and
+the byte order mark of the text. So the run of each node is a span of
+the text.
 
 ### 2.6 Test cases, test suites, and their names
 
@@ -903,8 +900,7 @@ each of these conditions:
 1. It is a WebAssembly module.
 2. Each of its imports has, after its module name, a name that is
    exactly one of the names of this list, with the kind that the list
-   gives, and with the type that the format of languages of tree-sitter
-   gives that name:
+   gives:
    - the memory `memory`;
    - the table `__indirect_function_table`;
    - the globals `__memory_base`, `__table_base`, and `__stack_pointer`;
@@ -979,7 +975,49 @@ tokens is more than 100. The place where a query text passes the depth
 limit is the place of the first character of the first token after
 which the depth is more than 100.
 
-### 4.10 Query files
+### 4.10 Text predicates
+
+@term text-predicate=v1
+@cites {
+    tree-sitter/0.26.13,
+    text#{text=v1, utf-8-encoding=v1, code-span=v1},
+    #{node-run=v1},
+}
+
+The text predicates are ten predicates of the query language of
+tree-sitter, as it defines them from 0.26.13 on. Each is an element
+`(#name ...)` of a pattern, whose arguments are captures and strings.
+These are the names of the text predicates and their arguments:
+
+- `#eq?`, `#not-eq?`, `#any-eq?`, and `#any-not-eq?`: a capture, then a
+  capture or a string;
+- `#match?`, `#not-match?`, `#any-match?`, and `#any-not-match?`: a
+  capture, then a string, which is a regular expression;
+- `#any-of?` and `#not-any-of?`: a capture, then one or more strings.
+
+The text of a node is the text of its run. For a node of the first
+capture, and the string or the node of the second capture with which it
+pairs:
+
+- `#eq?` and `#any-eq?` hold when the text of the node is the text of
+  the string or of the other node, and `#not-eq?` and `#any-not-eq?`
+  hold when it is not;
+- `#match?` and `#any-match?` hold when the regular expression matches
+  the UTF-8 encoding of the text of the node, and `#not-match?` and
+  `#any-not-match?` hold when it does not. The regular expression has
+  the syntax and the meaning that the query language of tree-sitter
+  gives it;
+- `#any-of?` holds when the text of the node is the text of one of the
+  strings, and `#not-any-of?` holds when it is the text of none of them.
+
+In a match, a text predicate whose name does not start with `#any-`
+holds when it holds for each node that the match captures under its
+first capture, and so when that capture has no node; `#any-of?` also
+holds so. Each other text predicate holds when it holds for at least one
+of these nodes. When the second argument is a capture, the nodes of the
+two captures pair in their order.
+
+### 4.11 Query files
 
 @term query-file=v1
 @cites {
@@ -988,7 +1026,10 @@ which the depth is more than 100.
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
         text=v1, production=v1, rule-name=v1, code-span=v1,
     },
-    #{grammar-name=v1, usable-grammar=v1, query-depth=v1},
+    #{
+        grammar-name=v1, usable-grammar=v1, query-depth=v1,
+        text-predicate=v1,
+    },
 }
 
 This definition uses the query language that tree-sitter defines, from
@@ -1022,10 +1063,8 @@ conditions:
    each predicate `#match?`, `#not-match?`, `#any-match?`, and
    `#any-not-match?` of the query is a regular expression of that query
    language.
-3. Each predicate and each directive of each pattern of the query has
-   one of these ten names: `#eq?`, `#not-eq?`, `#any-eq?`,
-   `#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
-   `#any-not-match?`, `#any-of?`, and `#not-any-of?`.
+3. Each predicate and each directive of each pattern of the query is a
+   text predicate, with the arguments that its name gives it.
 4. Each capture name of the query that does not start with `_` is a role
    name or another capture name of that kind.
 5. For each pattern of the query, the quantifiers of the capture names,
@@ -1040,7 +1079,7 @@ conditions:
    - test: one of `case` and `suite` has the quantifier one, and the
      other has the quantifier zero.
 
-### 4.11 Valid packs
+### 4.12 Valid packs
 
 @term valid-pack=v1
 @cites {
@@ -1100,7 +1139,7 @@ none when it does not; and the adapter of a test runner of its
 descriptor that has an adapter hash, with the name r, is the content of
 its file `adapters/<r>.wasm`.
 
-### 4.12 Parse trees
+### 4.13 Parse trees
 
 @term parse-tree=v1
 @cites {
@@ -1114,23 +1153,24 @@ its file `adapters/<r>.wasm`.
 
 This definition uses the parsing that tree-sitter defines, from 0.26.13
 on, which gives, for a language and a byte sequence, a parse tree or no
-parse tree. A parse tree has a root node, and each node of a parse tree
-has children, which are nodes of that parse tree, in their order. Each
-node has a symbol, with a name, which is a symbol of the language or,
-for an `ERROR` node, the symbol whose name is `ERROR`; a start byte and
-an end byte, which are whole numbers less than 4,294,967,296; and
-whether it is an `ERROR` node, whether it is a `MISSING` node, and
-whether it has an error. For a text whose parse text has fewer than
-4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
-grammar name g, the parse tree is the parse tree that this parsing
-gives for the language of that usable grammar and the UTF-8 encoding of
-that parse text; such a text alone can have a parse tree. When this
-parsing gives no parse tree, the text has no parse tree with that
-usable grammar. The parse text of a text is that text, followed by a
-line feed when the text does not end with a line feed. So the parse
-text of the empty text is one line feed.
+parse tree. A parse tree has a root node, and the children of each node
+of a parse tree are its named and its anonymous child nodes, in their
+order. A node of a hidden symbol is no node of the parse tree, and its
+children stand in its place. Each node has a symbol, which is a symbol
+of the language or, for an `ERROR` node, the symbol `ERROR`, and each
+symbol has a name. Each node has a start byte and an end byte, which are
+whole numbers less than 4,294,967,296, and it is an `ERROR` node or not,
+a `MISSING` node or not, and it has an error or not. For a text whose
+parse text has fewer than 4,294,967,296 bytes in its UTF-8 encoding, and
+a usable grammar with a grammar name g, the parse tree is the parse tree
+that this parsing gives for the language of that usable grammar and the
+UTF-8 encoding of that parse text; such a text alone can have a parse
+tree. When this parsing gives no parse tree, the text has no parse tree
+with that usable grammar. The parse text of a text is that text,
+followed by a line feed when the text does not end with a line feed. So
+the parse text of the empty text is one line feed.
 
-### 4.13 The order of the parse tree
+### 4.14 The order of the parse tree
 
 @term parse-tree-order=v1
 @cites #{parse-tree=v1}
@@ -1142,7 +1182,7 @@ comes before each of its descendants, and, for each two children of one
 node, the first of them and each of its descendants come before the
 second of them.
 
-### 4.14 The runs of nodes
+### 4.15 The runs of nodes
 
 @term node-run=v1
 @cites {
@@ -1162,7 +1202,7 @@ text. The run of a node of the parse tree of a text is the run of that
 text that starts at the greater of b and the lesser of s and l, and that
 ends at the greater of b and the lesser of e and l.
 
-### 4.15 Node types
+### 4.16 Node types
 
 @term node-type=v1
 @cites {
@@ -1173,7 +1213,7 @@ ends at the greater of b and the lesser of e and l.
 The node type of a node of a parse tree is the text of the name of its
 symbol.
 
-### 4.16 Parse failures
+### 4.17 Parse failures
 
 @term parse-failure=v1
 @cites {text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
@@ -1188,30 +1228,30 @@ first node, in the order of the parse tree, that has an error and that
 has no child that has an error. A parse failure with no parse tree has
 no failure node.
 
-### 4.17 Query matches
+### 4.18 Query matches
 
 @term query-match=v1
 @cites {
     tree-sitter/0.26.13,
-    text#{utf-8-encoding=v1, byte=v1, code-span=v1},
-    #{usable-grammar=v1, query-file=v1, parse-tree=v1, parse-tree-order=v1},
+    text#{code-span=v1},
+    #{
+        usable-grammar=v1, grammar-name=v1, query-file=v1,
+        text-predicate=v1, parse-tree=v1, parse-tree-order=v1,
+    },
 }
 
-For a valid query file of a usable grammar, and a text that has a parse
-tree with that usable grammar, the query matches are the matches of the
-query of that query file over that parse tree, as the query language of
-tree-sitter defines them, from 0.26.13 on, with its ten text predicates
-applied to each match. The text of a node is the bytes of the UTF-8
-encoding of the parse text from its start byte to its end byte. The
-regular expression of a match predicate has the syntax and the meaning
-that this query language gives it, and it applies to the bytes of the
-text of the node. Each query match has one pattern of the query, and
-one pattern comes before another when it stands before it in the query
-file. The captures of a query match are its captures whose capture names
-do not start with `_`: each is a capture name and a node of the parse
-tree.
+For a valid query file of a kind for a usable grammar with a grammar
+name g, and a text that has a parse tree with that usable grammar, the
+query matches are the matches of the query of that query file, without
+its predicates, over that parse tree, as the query language of
+tree-sitter defines them, from 0.26.13 on, each kept when each text
+predicate of its pattern holds in it. Each query match has one pattern
+of the query, and one pattern comes before another when it stands before
+it in the query file. The captures of a query match are its captures
+whose capture names do not start with `_`: each is a capture name and a
+node of the parse tree.
 
-### 4.18 Joined matches and kept matches
+### 4.19 Joined matches and kept matches
 
 @term joined-match=v1
 @cites {
@@ -1232,7 +1272,7 @@ joined matches whose pattern comes before the pattern of each other
 joined match of that query file over that text that has the same role
 name and the same role node.
 
-### 4.19 Comment nodes
+### 4.20 Comment nodes
 
 @term comment-node=v1
 @cites {
@@ -1252,7 +1292,7 @@ once, in the order of the parse tree. A comment node is tagged when, and
 only when, it is the role node of a kept match with the role name
 `comment`, and of no kept match with the role name `untagged`.
 
-### 4.20 Definition nodes
+### 4.21 Definition nodes
 
 @term definition-node=v1
 @cites {
@@ -1277,7 +1317,7 @@ nodes that this kept match captures under `body`, in the order of the
 parse tree, or, when it captures no node under `body`, the definition
 node alone.
 
-### 4.21 Decoration nodes
+### 4.22 Decoration nodes
 
 @term decoration-node=v1
 @cites {
@@ -1297,7 +1337,7 @@ that grammar over the text, in the order of the parse tree. The text has
 no decoration node when that grammar has no query file of the kind
 definition.
 
-### 4.22 Enclosed nodes
+### 4.23 Enclosed nodes
 
 @term enclosed-node=v1
 @cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
@@ -1309,7 +1349,7 @@ before it, the run of A ends at the boundary where the run of B ends or
 at a boundary after it, and B does not come before A in the order of the
 parse tree.
 
-### 4.23 Test nodes
+### 4.24 Test nodes
 
 @term test-node=v1
 @cites {
@@ -1340,7 +1380,7 @@ the role name `case`. Each other test node is a test case. The test
 suites that enclose a test node are the test nodes that are test suites
 and that enclose it, in the order of the parse tree.
 
-### 4.24 The names of test nodes
+### 4.25 The names of test nodes
 
 @term test-name=v1
 @cites {
@@ -1371,7 +1411,7 @@ Two name paths are equal when, and only when, they have the same number
 of names and, at each index, names with the same number of pieces whose
 pieces, at each index, are of the same kind and have the same text.
 
-### 4.25 The test labels of test nodes
+### 4.26 The test labels of test nodes
 
 @term test-label=v1
 @cites {
@@ -1384,7 +1424,7 @@ The test labels of a test node are the texts w that match the production
 captures a node under the capture name that is the text `label.`
 followed by w.
 
-### 4.26 Readings
+### 4.27 Readings
 
 @term reading-of-a-text=v1
 @cites {
@@ -1786,12 +1826,12 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`packs.descriptor.test-vectors.jsonl`](packs.descriptor.test-vectors.jsonl),
-in the same directory as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v1). Each line of the
-file is the canonical byte sequence of one JSON object, then the byte
-0x0A, so each line is a JSON text, as RFC 8259 defines it. Only a line
-feed ends a line of the file. A string of the file can hold U+0085,
-U+2028, or U+2029, and these characters do not end a line.
+in the same directory as this design. The file is a [test-vector
+set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
+canonical byte sequence of one JSON object, then the byte 0x0A, so each
+line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
+line of the file. A string of the file can hold U+0085, U+2028, or
+U+2029, and these characters do not end a line.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
@@ -2330,12 +2370,12 @@ requirement that the specification declares. The requirement
 
 The vectors of this specification are in the file
 [`packs.adapters.test-vectors.jsonl`](packs.adapters.test-vectors.jsonl),
-in the same directory as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v1). Each line of the
-file is the canonical byte sequence of one JSON object, then the byte
-0x0A, so each line is a JSON text, as RFC 8259 defines it. Only a line
-feed ends a line of the file. A string of the file can hold U+0085,
-U+2028, or U+2029, and these characters do not end a line.
+in the same directory as this design. The file is a [test-vector
+set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
+canonical byte sequence of one JSON object, then the byte 0x0A, so each
+line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
+line of the file. A string of the file can hold U+0085, U+2028, or
+U+2029, and these characters do not end a line.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
@@ -2693,14 +2733,15 @@ gives with that node, and no other value instead of it.
     text#{conforming-program=v1, result=v1, text=v1},
     #{
         undisturbed-pack-use=v1, valid-pack=v1, reading-of-a-text=v1,
-        comment-node=v1,
-        definition-node=v1, decoration-node=v1, test-node=v1,
+        comment-node=v1, definition-node=v1, decoration-node=v1,
+        test-node=v1,
     },
 }
 
 In an undisturbed use of a valid pack, a conforming program must give no
 comment node, definition node, decoration node, or test node of a
-reading of a text with that pack whose result is not "parsed".
+reading of a text with that pack whose result is not "parsed", or for
+which it gives the result "parse failure".
 
 ### 7.15 The runs of failure nodes
 
@@ -2770,15 +2811,15 @@ place.
 
 @req isolate-grammars=v1
 @cites {
-    files#{folder-tree=v1, taken-byte=v1},
+    files#{taken-byte=v1},
     text#{conforming-program=v1},
-    #{pack=v1, pack-use=v1},
+    #{pack=v1, pack-use=v1, usable-grammar=v1},
 }
 
-In each use of a pack, a conforming program must not, by reason of the
-content of a file of the pack other than an adapter, take bytes from a
-file outside the folder tree of the pack, write a file or the output of
-the process, use a network, read a clock, or start a process.
+In each use of a pack, a conforming program must use each grammar of
+the pack so that its code and its parse tables take bytes from no file,
+write no file and not the output of the process, use no network, read
+no clock, and start no process.
 
 ### 7.20 Readings and decisions that end
 
@@ -2865,15 +2906,15 @@ acts for it.
 A program, or a part of a program, conforms to this design when it is a
 [conforming program](sinter:text#conforming-program=v1) of this design:
 when it meets every requirement of this design, those of its
-specifications included. The vectors of the requirements that the
-design holds directly, outside its specifications, are in the file
+specifications included. The vectors of the requirements that the design
+holds directly, outside its specifications, are in the file
 [`packs.test-vectors.jsonl`](packs.test-vectors.jsonl), in the same
-directory as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v1). Each line of the
-file is the canonical byte sequence of one JSON object, then the byte
-0x0A, so each line is a JSON text, as RFC 8259 defines it. Only a line
-feed ends a line of the file. A string of the file can hold U+0085,
-U+2028, or U+2029, and these characters do not end a line.
+directory as this design. The file is a [test-vector
+set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
+canonical byte sequence of one JSON object, then the byte 0x0A, so each
+line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
+line of the file. A string of the file can hold U+0085, U+2028, or
+U+2029, and these characters do not end a line.
 
 These requirements that the design holds directly have no vectors:
 `give-pack-file-contents`, `give-pack-descriptor-values`,
@@ -2963,42 +3004,25 @@ for and when a vector has it:
 
 - `case-distinct-names`: the folder tree is on a file system on which
   two entry names that differ only in the case of ASCII letters name two
-  different files. POSIX.1-2024 keeps the identities of upper-case and
-  lower-case letters in filenames, but APFS, the default file system of
-  macOS, ignores the case of letters when it looks up a name. A vector
-  has this need when two entry names of one folder of its folder tree
-  differ only in the case of ASCII letters, such as `README.md` and
-  `readme.md`.
+  different files. A vector has this need when two entry names of one
+  folder of its folder tree differ only in the case of ASCII letters,
+  such as `README.md` and `readme.md`.
 - `long-names`: the folder tree is on a file system that allows each
   entry name of the folder tree, with all its bytes. A vector has this
-  need when an entry name of its folder tree has more than 14 bytes:
-  `{_POSIX_NAME_MAX}`, 14, is the least value that POSIX.1-2024 allows
-  for `{NAME_MAX}`, the greatest number of bytes in a filename.
+  need when an entry name of its folder tree has more than 14 bytes.
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the check makes it, byte for byte. A
   vector has this need when an entry name of its folder tree is valid
-  UTF-8 and holds a byte of 0x80 or more. Such a name is not a portable
-  filename, so a system can refuse it by the rule of [EILSEQ] that
-  `non-portable-names` states, and some file systems change it, such as
-  into a decomposed form of Unicode normalization.
+  UTF-8 and holds a byte of 0x80 or more.
 - `non-portable-names`: the folder tree is on a file system on which
-  the check can make each entry name of the folder tree that is not a
-  portable filename. A portable filename, as POSIX.1-2024 defines it, is
-  a filename of characters of the portable filename character set: `A`
-  to `Z`, `a` to `z`, `0` to `9`, `.`, `_`, and `-`. By POSIX.1-2024,
-  `open()` with `O_CREAT`, `mkdir()`, `mkfifo()`, and `symlink()` shall
-  fail with [EILSEQ] when the last component of the pathname is not a
-  portable filename and cannot be created in the target directory. A
-  vector has this need when an entry name of its folder tree holds a
-  byte that is not the byte of one of these characters, such as a space,
-  a line feed, or a byte of 0x80 or more. A byte of 0x80 or more in an
-  entry name also gives the vector the need `names-kept` or the need
-  `non-utf-8-names`.
+  the check can make each entry name of the folder tree. A vector has
+  this need when an entry name of its folder tree holds a byte that is
+  not the byte of a character of the portable filename character set of
+  POSIX.1-2024: `A` to `Z`, `a` to `z`, `0` to `9`, `.`, `_`, and `-`.
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
   entry name of the folder tree that is not valid UTF-8 as the check
   makes it, byte for byte. A vector has this need when an entry name of
-  its folder tree is not valid UTF-8. Such a name is not a portable
-  filename, and APFS refuses it.
+  its folder tree is not valid UTF-8.
 
 A vector has the member `needs` when, and only when, it has one or more
 of these needs, and the member names each need of the vector and no
@@ -3013,12 +3037,12 @@ is not valid. The requirement of the group is `validate-packs`. No pack
 of the group has a usable grammar, so each pack whose descriptor is
 valid breaks the condition of a valid pack on usable grammars. The note
 of each vector names one condition, of a valid pack or of a usable
-grammar, that the pack breaks and that a program can decide with no
-compiled grammar, such as that each import of the file of a grammar has
-a name of the list of a usable grammar. Apart from that condition, the
-pack has a valid descriptor with one grammar, a file of that grammar
-whose content has the hash of that grammar, a query file of the kind
-comment for that grammar, and a file under `licenses/`.
+grammar, that the pack breaks and that a program can decide without
+running the code of a grammar, such as that each import of the file of a
+grammar has a name of the list of a usable grammar. Apart from that
+condition, the pack has a valid descriptor with one grammar, a file of
+that grammar whose content has the hash of that grammar, a query file of
+the kind comment for that grammar, and a file under `licenses/`.
 
 - `input`: the folder tree object of the pack.
 - `result`: the result for whether the pack is valid, when a conforming
