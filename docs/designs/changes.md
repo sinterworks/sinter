@@ -58,7 +58,7 @@ branches. From the page git-fetch, it takes fetch refspecs, with the
 setting `remote.<name>.fetch`, the addresses of remotes, and fetches;
 and from the page git-push, pushes. From the page githooks, it takes
 hooks, and from the page gitattributes, the files of git attributes.
-These are the versions of git's formats that the design covers: the
+These are the versions of git's formats that the terms name: the
 repository format versions 0 and 1, with the object formats `sha1` and
 `sha256` and the ref storage formats `files` and `reftable`; packs in
 the pack format versions 2 and 3, with pack indexes in the versions 1
@@ -81,8 +81,8 @@ parameters with their bindings.
 
 From Data forms (`data-forms`), the design takes test-vector sets: the
 file that holds the conformance vectors of the design is one. From
-POSIX.1-2024, it takes the permissions and the appropriate privileges of
-a process, and its user IDs and group IDs.
+POSIX.1-2024, it takes processes and the shell, the permissions and the
+appropriate privileges of a process, and its user IDs and group IDs.
 
 From RFC 8259, the design takes JSON texts, with their objects,
 members, arrays, strings, numbers, and the literal names `true` and
@@ -99,7 +99,7 @@ design is a JSON text.
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
-| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
+| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository, value from outside the git repositories](sinter:#repository-value=v1) | a value of a setting that the file `config` of the git folder of a git repository, a file `config.worktree` of it, or a file that these files include, in turn, holds; a value that the system file, a file of the user, or a file that these include holds comes from outside the git repositories |
 | [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
@@ -113,9 +113,9 @@ design is a JSON text.
 | blob | a git object that holds a content, which is a byte sequence |
 | [reach](sinter:#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
 | [ancestry](sinter:#ancestry=v1) | the set of the commits that a commit reaches |
-| [ref](sinter:#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object, or that names another ref, as a symbolic ref does |
+| [ref](sinter:#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object, or that names another ref, as a symbolic ref does; a broken loose ref does neither |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
-| branch | a ref whose name starts with `refs/heads/`, which points to a commit |
+| branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: for the ref M that the first value of `branch.<name>.merge` names, the ref whose name is the ref name to which the first fetch refspec that maps M to a ref name maps M, in the order of the fetch refspecs of the remote that the last value of `branch.<name>.remote` names, with no effect of a negative refspec; M itself when that value is `.` |
 | [remote, address of a remote, ssh address](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, in a form of the section GIT URLS of the page git-fetch; an ssh address is an address in a form for the ssh protocol |
@@ -126,7 +126,7 @@ design is a JSON text.
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index whose path ends with `/` and that names a git tree object; it stands for an entry for its path followed by the path of each entry, other than a tree entry, of that git tree object |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, as the page git-config defines it: the file that the setting names, or its default file, such as `~/.config/git/ignore` |
 | [ignored](sinter:#ignored-path=v1) | a path is ignored when the patterns of the regular files `.gitignore`, of the file `info/exclude`, and of the excludes file ignore it, by the rules of the page gitignore, as for a file that git's index does not hold; with the setting `core.ignoreCase`, without regard to the case of the letters from `A` to `Z` |
-| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of the object databases that its alternates name, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of those object databases lead, in turn, and the files of its git configuration, its excludes files, and its git attributes |
+| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of the object databases that its alternates name, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of those object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, and its git attributes |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from a remote repository |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -166,7 +166,7 @@ design is a JSON text.
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation that a program makes to give, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path; a fetch or a push is not one |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no other process changes the git repository, the working tree from which it takes files, the git configuration, or the excludes file |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, changes a repository file of the git repository, other than a file of a working tree from whose files the read takes no bytes |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -175,14 +175,9 @@ design is a JSON text.
 
 A git repository has a git folder, which the term `git-folder` defines,
 and zero or more working trees, which the term `working-tree` defines.
-The git folder holds the object database, the refs that the working
-trees share, and the file `config`. The object database holds git
-objects: commit objects, git tree objects, blobs, and tag objects. A
-working tree has a root folder, which holds the files that a person
-edits, and a folder of its own, which holds its HEAD and git's index.
-Its root folder usually holds the folder `.git`, or a file `.git` that
-names the folder of the working tree or the git folder, as in a linked
-working tree or a submodule.
+The object database of a git repository holds its git objects: commit
+objects, git tree objects, blobs, and tag objects. A working tree holds
+the files that a person edits, with its own HEAD and git's index.
 
 A program reads a git repository in a repository read, which the term
 `repository-read` defines. Its results come from the git objects and the
@@ -192,8 +187,8 @@ disk, git's index, and the ignore rules. The term `commit` defines which
 git objects a git repository holds and the parents of its commits, also
 in a shallow clone, which leaves out the parents of some commits. A
 partial clone leaves out some git objects, which git can take from a
-remote repository; the requirement `take-objects-only-from-repositories`
-keeps a program from taking them.
+remote repository; in a repository read, the requirement
+`take-objects-only-from-repositories` keeps a program from taking them.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -276,9 +271,7 @@ request holds the commits of that pull request. In a working tree, the
 commit h is often the head commit. When a person makes, on the branch of
 a pull request, a commit whose second parent is the commit of the
 default branch, no commit that the commit of the default branch reaches
-is in the change of the last commit of the pull request, because the
-change holds only commits that the commit of the default branch does not
-reach.
+is in the change of the last commit of the pull request.
 
 The term `merge-base` defines the common ancestors and the merge bases
 of two commits, and the term `change-base` defines the base of the
@@ -325,26 +318,23 @@ landing commit.
 
 ### 2.6 The files of a tree
 
-A tree, which the term `tree` of the Ontology defines, is a set of
-files, each with a valid path and a content. A commit gives one tree,
+The term `tree` of the Ontology defines a tree. A commit gives one tree,
 the tree of the commit, and a working tree gives one tree, the tree of
 the working tree.
 
 The term `commit-file` defines the files of the tree of a commit. They
-come from the entries of the git tree object of the commit: each entry
-has a mode, a name, and a git object, and its mode gives its type. For
-example, an entry with the mode 100644, or 100755 for an executable
-file, is a regular-file entry and gives a file; an entry with the mode
-40000 is a tree entry, whose git tree object lists more entries; and an
-entry with the mode 120000, a symbolic link, or 160000, a submodule,
-gives no file.
+come from the entries of the git tree object of the commit, and the mode
+of an entry gives its type. For example, an entry with the mode 100644,
+or 100755 for an executable file, is a regular-file entry and gives a
+file; an entry with the mode 40000 is a tree entry, whose git tree
+object lists more entries; and an entry with the mode 120000, a symbolic
+link, or 160000, a submodule, gives no file.
 
 The term `working-tree-file` defines the files of the tree of a working
 tree. They come from the files on disk, git's index, and the ignore
-rules, which the term `ignored-path` defines. The content of each file
-is its content on disk.  So a file that git tracks and that a person
-changed after the last commit has its new content, whatever git's index
-records about it.
+rules, which the term `ignored-path` defines. For example, a file that
+git tracks and that a person changed after the last commit has its new
+content, whatever git's index records about it.
 
 Example: the root folder of a working tree holds `.git`, `.gitignore`
 with the pattern `build/`, `a.md`, a symbolic link `link` to the folder
@@ -389,32 +379,29 @@ none.
 
 A file that moves to another valid path has the hunks of a file removed
 at its old path and of a file added at its new path. The term
-`change-diff` defines a diff of the change of a commit h, which gives,
-for each valid path, the hunks for one line map between the tree of the
-base of the change of h and the tree of h.
+`change-diff` defines a diff of the change of a commit.
 
 ### 2.8 What a program guarantees
 
-A conforming program keeps a git repository safe in each repository
-read, and in each execution in which it makes one: the requirements
-`keep-repositories-unchanged`, `take-objects-only-from-repositories`,
-`read-only-repository-files`, `gain-no-repository-privileges`,
-`run-no-configured-programs`, `follow-no-working-tree-links`,
-`avoid-working-tree-waits`, and `send-no-repository-commands` give these
-guarantees. When another process changes the git repository, a working
-tree, the git configuration, or the excludes file during a repository
-read, what the program gives in that read is not specified, and these
-guarantees still hold.
+The requirements `keep-repositories-unchanged`,
+`take-objects-only-from-repositories`, `read-only-repository-files`,
+`gain-no-repository-privileges`, `follow-no-working-tree-links`, and
+`avoid-working-tree-waits` state what a conforming program must not do
+in each repository read, and the requirements
+`run-no-configured-programs` and `send-no-repository-commands` state
+what it must not do in each execution in which it makes one. What a
+program gives in a repository read that is not undisturbed, as the term
+`undisturbed-read` defines it, is not specified, and these requirements
+still bind it.
 
 ## 3. Parameters
 
 ### 3.1 `default-branch-name`
 
 The parameter `default-branch-name` gives the name of the default branch
-of a git repository. A binding of it is a text. Under a binding that is
-a branch name b, the default branch is the branch `refs/heads/` followed
-by b. Under a binding that is not a branch name, the default branch has
-no commit.
+of a git repository. A binding of it is a text. The term
+`default-branch-commit` gives the default branch and its commit under a
+binding.
 
 ## 4. Definitions
 
@@ -473,8 +460,8 @@ is a folder, the files of the folder tree whose root is that folder.
 The git configuration of a working tree of a git repository is the set
 of the settings that the configuration files and the environment
 variables that the page git-config gives hold for that working tree, in
-the environment of the program, with the files that they include, in
-the order that the page gives, and with these rules:
+the environment in which the program started, with the files that they
+include, in the order that the page gives, and with these rules:
 
 1. The system file is the file that the environment variable
    `GIT_CONFIG_SYSTEM` names, or, when that variable is not set, the
@@ -495,11 +482,12 @@ and their lines, with the lines of an included file at the place of its
 include. For a setting that takes one value, such as `core.excludesFile`
 or `core.ignoreCase`, the value is the last of its values. The files of
 the git configuration are the files at the pathnames from which the page
-git-config takes configuration, with the system file of rule 1, and at
-the pathnames that their includes name, whether or not a file is there.
-A boolean setting is true when its value is true by the rules of the
-page for booleans. A setting whose value names a file names the file
-that the rules of the page for pathnames give for that value.
+git-config takes configuration, with the system file of rule 1 in place
+of the system file of the page, and at the pathnames that their includes
+name, whether or not a file is there. A boolean setting is true when its
+value is true by the rules of the page for booleans. A setting whose
+value names a file names the file that the rules of the page for
+pathnames give for that value.
 
 ### 4.4 Commits
 
@@ -583,26 +571,29 @@ reaches each commit of its ancestry, c included, and no other commit.
 }
 
 A ref of a git repository, or of a working tree of it, points to a git
-object or names another ref, as the page gitglossary defines refs and
-symbolic refs, in the ref storage format that the file `config` of the
-git folder gives: the files format of the page gitrepository-layout when
-that format is `files` or when the file gives no ref storage format, and
-the reftable format, in its versions 1 and 2, of git's technical
-document reftable when it is `reftable`. In the files format, a loose
-ref is a file whose content is the object id of its git object in hex
-digits, or `ref: ` and the name of the ref that it names, then the byte
-0x0A. The file `packed-refs`, which the page git-pack-refs defines,
-holds, after a first line that starts with `#` when there is one, a line
-for each ref of the object id in hex digits, a space, and the name of
-the ref, and, after the line of a ref, a line that starts with `^` when
-that ref has a peeled object. A ref of the file `packed-refs` has its
-value there only when no loose ref has its name. A ref exists when the
-git repository, or the working tree, holds a ref with that name,
-whatever it points to or names. The commit of a ref is the git object to
-which that ref resolves, through the refs that it names in turn, when
-that git object is a commit of the git repository. A ref that does not
-exist, or that resolves to no commit of the git repository, has no
-commit.
+object, names another ref, or, as a broken loose ref, does neither, as
+the page gitglossary defines refs and symbolic refs, in the ref storage
+format that the file `config` of the git folder gives: the files format
+of the page gitrepository-layout when that format is `files` or when the
+file gives no ref storage format, and the reftable format, in its
+versions 1 and 2, of git's technical document reftable when it is
+`reftable`. In the files format, a loose ref is a file whose content is
+the object id of its git object in hex digits, or `ref: ` and the name
+of the ref that it names, then the byte 0x0A; a file at the pathname
+that the name of a ref gives in the git folder, or in the folder of a
+working tree, whose content is not in this form is a broken loose ref
+with that name, which neither points to a git object nor names a ref.
+The file `packed-refs`, which the page git-pack-refs defines, holds,
+after a first line that starts with `#` when there is one, a line for
+each ref of the object id in hex digits, a space, and the name of the
+ref, and, after the line of a ref, a line that starts with `^` when that
+ref has a peeled object. A ref of the file `packed-refs` has its value
+there only when no loose ref has its name. A ref exists when the git
+repository, or the working tree, holds a ref with that name, whatever it
+points to or names. The commit of a ref is the git object to which that
+ref resolves, through the refs that it names in turn, when that git
+object is a commit of the git repository. A ref that does not exist, or
+that resolves to no commit of the git repository, has no commit.
 
 ### 4.8 Head commits
 
@@ -1016,15 +1007,16 @@ the hunks of a valid path. A fetch or a push is not a repository read.
 ### 4.27 Undisturbed repository reads
 
 @term undisturbed-read=v1
-@cites #{
-    repository-read=v1, working-tree=v1, git-configuration=v1,
-    ignored-path=v1,
+@cites {
+    posix/2024,
+    files#{taken-byte=v1},
+    #{repository-read=v1, working-tree=v1, repository-file=v1},
 }
 
-A repository read is undisturbed when no other process changes, during
-the repository read, the git repository, the working tree from which the
-repository read takes files, the git configuration, or the excludes
-file.
+A repository read is undisturbed when no process, the program that makes
+it included, changes a repository file of the git repository during the
+repository read, other than a file of a working tree from whose files
+the repository read takes no bytes.
 
 ### 4.28 Repository files
 
@@ -1032,10 +1024,10 @@ file.
 @cites {
     gitdoc/gitrepository-layout,
     gitdoc/gitattributes,
-    files#{folder-tree=v1, symbolic-link=v1},
+        files#{folder-tree=v1, folder=v1, symbolic-link=v1},
     text#{code-span=v1},
     #{
-        git-folder=v1, working-tree=v1, git-configuration=v1, commit=v1,
+        git-folder=v1, working-tree=v1, git-configuration=v1,
         ignored-path=v1,
     },
 }
@@ -1045,11 +1037,12 @@ trees whose roots are its git folder, each folder that the files
 `objects/info/alternates` name, in turn, and the root folder of each
 working tree of it; the files to which the symbolic links of the folder
 tree of the git folder, and of the folder trees of the folders that the
-files `objects/info/alternates` name, lead, in turn; the files of the
-git configuration of the git repository and of each working tree of it;
-the excludes file of each working tree of it; and the files of git
-attributes that the page gitattributes gives for the git repository and
-for each working tree of it.
+files `objects/info/alternates` name, lead, and the files of the folder
+tree whose root is each such file that is a folder, in turn; the files
+of the git configuration of the git repository and of each working tree
+of it; the excludes file of each working tree of it; and the files of
+git attributes that the page gitattributes gives for the git repository
+and for each working tree of it.
 
 ### 4.29 Values from a git repository
 
@@ -1099,14 +1092,14 @@ pushes.
 ### 4.31 Programs that run
 
 @term program-run=v1
-@cites files#{system=v1}
+@cites {posix/2024, files#{system=v1}}
 
 A program runs another program when it starts a process from a file on
 its system, or when it loads a file as code that runs in its own
 process. A program runs a command when it has a shell or another program
-carry the command out. Code that runs isolated from the process of the
-program, as WebAssembly code runs in a sandbox, is not a program that
-the program runs.
+carry the command out on its system. Code that runs isolated from the
+rest of the process of the program, as WebAssembly code runs in a
+sandbox, is not a program that the program runs.
 
 ## 5. Requirements
 
@@ -1231,13 +1224,34 @@ conforming program must give exactly the valid paths of the files of the
 tree of that commit, and, as the content of each file whose content it
 gives, exactly the content of that file.
 
-### 5.9 The files of the tree of a working tree
+### 5.9 A file of the tree of a commit
+
+@req give-commit-file-at-path=v1
+@cites {
+    #{
+        commit=v1, commit-file=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
+    ontology#{tree=v1},
+    files#{path=v1},
+    text#{conforming-program=v1},
+}
+
+When, in an undisturbed repository read, it gives the file with a valid
+path p of the tree of a commit of a git repository, or gives that the
+tree of that commit has no file with the valid path p, a conforming
+program must give that file, with exactly its content, when that tree
+has a file with the valid path p, and give that the tree has no file
+with the valid path p when it has none.
+
+### 5.10 The files of the tree of a working tree
 
 @req give-working-tree-files=v1
 @cites {
     #{
-        working-tree=v1, git-configuration=v1, ignored-path=v1,
-        working-tree-file=v1, repository-read=v1, undisturbed-read=v1},
+        working-tree=v1, working-tree-file=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     ontology#{tree=v1},
     files#{path=v1},
     text#{conforming-program=v1},
@@ -1249,7 +1263,27 @@ a conforming program must give exactly the valid paths of the files of
 the tree of that working tree, and, as the content of each file whose
 content it gives, exactly the content of that file.
 
-### 5.10 Ranges
+### 5.11 A file of the tree of a working tree
+
+@req give-working-tree-file-at-path=v1
+@cites {
+    #{
+        working-tree=v1, working-tree-file=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
+    ontology#{tree=v1},
+    files#{path=v1},
+    text#{conforming-program=v1},
+}
+
+When, in an undisturbed repository read, it gives the file with a valid
+path p of the tree of a working tree of a git repository, or gives that
+the tree of that working tree has no file with the valid path p, a
+conforming program must give that file, with exactly its content, when
+that tree has a file with the valid path p, and give that the tree has
+no file with the valid path p when it has none.
+
+### 5.12 Ranges
 
 @req give-ranges=v1
 @cites {
@@ -1264,7 +1298,7 @@ When it gives the commits of the range from a commit, or from no commit,
 to a commit of a git repository, in an undisturbed repository read, a
 conforming program must give exactly the commits of that range.
 
-### 5.11 Parents-first orders
+### 5.13 Parents-first orders
 
 @req give-parents-first-orders=v1
 @cites {
@@ -1279,7 +1313,7 @@ undisturbed repository read, in an order that it gives as their
 parents-first order, a conforming program must give them in the
 parents-first order of that range.
 
-### 5.12 The change of a commit
+### 5.14 The change of a commit
 
 @req give-changes-of-commits=v1
 @cites {
@@ -1300,7 +1334,7 @@ the default branch has a commit under that binding, and give that h has
 no change when the default branch has no commit under that
 binding.
 
-### 5.13 Merge bases
+### 5.15 Merge bases
 
 @req give-merge-bases=v1
 @cites {
@@ -1315,7 +1349,7 @@ When it gives the merge bases of two commits of a git repository, in an
 undisturbed repository read, a conforming program must give exactly the
 merge bases of those two commits.
 
-### 5.14 The base of the change of a commit
+### 5.16 The base of the change of a commit
 
 @req give-change-bases=v1
 @cites {
@@ -1333,7 +1367,7 @@ conforming program must give the base of the change of h under that
 binding when it has one, and give that it has none when it has
 none.
 
-### 5.15 First-parent lines
+### 5.17 First-parent lines
 
 @req give-first-parent-lines=v1
 @cites {
@@ -1349,7 +1383,7 @@ an undisturbed repository read, a conforming program must give exactly
 the commits of that first-parent line, in the order of that first-parent
 line.
 
-### 5.16 Landing commits
+### 5.18 Landing commits
 
 @req give-landing-commits=v1
 @cites {
@@ -1366,7 +1400,7 @@ conforming program must give the landing commit of c on that
 first-parent line when c has one, and give that c has none when d does
 not reach c.
 
-### 5.17 Hunks
+### 5.19 Hunks
 
 @req give-hunks=v1
 @cites {
@@ -1388,7 +1422,7 @@ hunk removes or adds, exactly those lines. When one of the two trees is
 the tree of a commit or of a working tree of a git repository, this
 obligation holds only in an undisturbed repository read.
 
-### 5.18 The line numbers of lines that stay
+### 5.20 The line numbers of lines that stay
 
 @req give-new-line-numbers=v1
 @cites {
@@ -1415,7 +1449,7 @@ none when i has no new line number for M. When one of the two trees is
 the tree of a commit or of a working tree of a git repository, this
 obligation holds only in an undisturbed repository read.
 
-### 5.19 One line map for hunks and line numbers
+### 5.21 One line map for hunks and line numbers
 
 @req use-one-line-map=v1
 @cites {
@@ -1431,7 +1465,7 @@ p between an old tree and a new tree, new line numbers of old lines of p
 between those trees, or both, it must give all of them for one line map
 of p between those trees.
 
-### 5.20 The diff of the change of a commit
+### 5.22 The diff of the change of a commit
 
 @req give-change-diffs=v1
 @cites {
@@ -1452,7 +1486,7 @@ conforming program must give a diff of the change of h under that
 binding when the change of h has a base, and give that it has no diff
 when the change of h has no base under that binding.
 
-### 5.21 No change to the repository
+### 5.23 No change to the repository
 
 @req keep-repositories-unchanged=v1
 @cites {
@@ -1468,7 +1502,7 @@ file that was open for the program when it started, such as its standard
 output, and other than when the file system itself changes an attribute
 of a file that the program uses, such as its time of last access.
 
-### 5.22 Git objects only from the repository
+### 5.24 Git objects only from the repository
 
 @req take-objects-only-from-repositories=v1
 @cites {#{commit=v1, repository-read=v1}, text#{conforming-program=v1}}
@@ -1478,7 +1512,7 @@ program that it uses, must take each git object that it uses from the
 git objects that the git repository holds, and none from a remote
 repository, such as the remote repository of a partial clone.
 
-### 5.23 Bytes only from the files of the repository
+### 5.25 Bytes only from the files of the repository
 
 @req read-only-repository-files=v1
 @cites {
@@ -1499,7 +1533,7 @@ its standard input; from a file that it created in that execution; and
 from the files that the system or the libraries of a program read to run
 it, such as its executable file and its libraries.
 
-### 5.24 No permission or privilege that the process did not have
+### 5.26 No permission or privilege that the process did not have
 
 @req gain-no-repository-privileges=v1
 @cites {
@@ -1517,7 +1551,7 @@ not one that it gets by changing the user IDs, the group IDs, or the
 appropriate privileges of its process, or through another process that
 acts for it.
 
-### 5.25 No program that the repository names
+### 5.27 No program that the repository names
 
 @req run-no-configured-programs=v1
 @cites {
@@ -1528,7 +1562,7 @@ acts for it.
         repository-file=v1, repository-value=v1, remote-transfer=v1,
         program-run=v1,
     },
-    files#{folder-tree=v1, symbolic-link=v1},
+    files#{system=v1, folder-tree=v1, symbolic-link=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
@@ -1564,18 +1598,19 @@ program or command for the transfer that the environment in which the
 conforming program started, or a value from outside the git
 repositories, gives, such as an ssh command, a credential helper, a
 program that asks for a password, or the program of the setting
-`core.gitProxy`, with the programs that it runs. None of these programs
-is a hook of a git repository, a repository file of one of these git
-repositories, or a program that it starts from a pathname that leads
+`core.gitProxy`, with the programs that it runs. These programs do not
+include a hook of a git repository, a repository file of one of these
+git repositories, or a program that the conforming program, itself or
+through a program that it uses, starts from a pathname that leads
 through a symbolic link of the folder tree of a working tree of one of
 them. Apart from `ssh` for an ssh address and the programs that make the
-transfer for an address, none of them is a program or command that a
-value from a git repository names or holds. None of them is a command
-that an address holds, such as the command of an address
-`ext::<command>`, or an option of `ssh` that the host of an address
-holds, such as a host that starts with `-`.
+transfer for an address, they do not include a program or command that a
+value from a git repository names or holds. They do not include a
+command that an address holds, such as the command of an address
+`ext::<command>`, and the allowance covers no option of `ssh` that the
+host of an address holds, such as a host that starts with `-`.
 
-### 5.26 No symbolic link followed in a working tree
+### 5.28 No symbolic link followed in a working tree
 
 @req follow-no-working-tree-links=v1
 @cites {
@@ -1594,7 +1629,7 @@ way to a file of the git configuration of the git repository or of a
 working tree of it, or to the excludes file: it must find no file by the
 reference of such a symbolic link.
 
-### 5.27 No wait on a repository file
+### 5.29 No wait on a repository file
 
 @req avoid-working-tree-waits=v1
 @cites {
@@ -1606,9 +1641,10 @@ reference of such a symbolic link.
 In each repository read, a conforming program, itself or through any
 program that it uses, must not wait for another process or for a device
 to act on a file of another kind that is a repository file of the git
-repository, such as for a process to open the other end of a pipe.
+repository, such as for a process to open the other end of a pipe, other
+than a file that was open for the program when it started.
 
-### 5.28 No command of the repository for another computer
+### 5.30 No command of the repository for another computer
 
 @req send-no-repository-commands=v1
 @cites {
@@ -1853,9 +1889,10 @@ has no head commit when `values` is `{}`.
 
 ### 6.4 The files of the tree of a commit
 
-The group `commit-files` holds the vectors of the requirement
-`give-commit-files`. Each vector gives the git tree object of a commit
-and the valid paths of the files of the tree of the commit.
+The group `commit-files` holds the vectors of the requirements
+`give-commit-files` and `give-commit-file-at-path`. Each vector gives
+the git tree object of a commit and the valid paths of the files of the
+tree of the commit.
 
 - `input`: a JSON object with one member, `entries`: a JSON array with
   one JSON object for each entry that the git tree object of the commit
@@ -1874,9 +1911,11 @@ and the valid paths of the files of the tree of the commit.
 
 When a conforming program gives the valid paths of the files of the tree
 of the commit, or those files, it gives one valid path, or one file with
-that valid path, for each element of `paths`, and no other. The content
-of each file is the content of the blob of its entry, which the vectors
-do not give.
+that valid path, for each element of `paths`, and no other. When it
+gives the file with a valid path, or gives that there is none, it gives
+the file when `paths` holds that valid path, and that there is none when
+`paths` does not. The content of each file is the content of the blob of
+its entry, which the vectors do not give.
 
 ```
 {"group":"commit-files","input":{"entries":[{"mode":"100644","name":"d.md"},{"mode":"100644","name":"d.md"},{"mode":"100644","name":"e.md"}]},"n":141,"note":"two entries with one path give no file","rev":"v1","values":{"paths":["e.md"]}}
@@ -1884,11 +1923,11 @@ do not give.
 
 ### 6.5 The files of the tree of a working tree
 
-The group `working-tree-files` holds the vectors of the requirement
-`give-working-tree-files`. Each vector gives the folder tree of a
-working tree, the paths that git's index holds, the paths that are
-ignored, and the valid paths of the files of the tree of the working
-tree.
+The group `working-tree-files` holds the vectors of the requirements
+`give-working-tree-files` and `give-working-tree-file-at-path`. Each
+vector gives the folder tree of a working tree, the paths that git's
+index holds, the paths that are ignored, and the valid paths of the
+files of the tree of the working tree.
 
 - `input`: a JSON object with three members. `folder-tree` is the folder
   tree whose root is the root folder of the working tree, as a folder
@@ -1917,9 +1956,11 @@ tree.
 
 When a conforming program gives the valid paths of the files of the tree
 of the working tree, or those files, it gives one valid path, or one
-file with that valid path, for each element of `paths`, and no
-other. The content of each file is the content of its
-regular file.
+file with that valid path, for each element of `paths`, and no other.
+When it gives the file with a valid path, or gives that there is none,
+it gives the file when `paths` holds that valid path, and that there is
+none when `paths` does not. The content of each file is the content of
+its regular file.
 
 These are the need names of the file, what each need is, and when a
 vector has it. A check of the vectors can skip a vector, and decide
@@ -1997,7 +2038,8 @@ ref, and the commit of that ref.
   value is a JSON object with one member: `commit`, the commit to which
   the ref points; `ref`, the name of the ref that it names, for a
   symbolic ref; or `other`, the name of a git object that is not a
-  commit, to which the ref points.
+  commit, to which the ref points; or the empty JSON object, `{}`, for a
+  broken loose ref.
 - `result`: no vector of the group has this member.
 - `values`: when the ref has a commit, a JSON object with one member,
   `commit`: that commit. When it has none, the empty JSON object, `{}`.
