@@ -23,6 +23,7 @@ let is_file_name name =
 let is_path text = List.for_all is_file_name (split text)
 let file_names = split
 let star = Uchar.of_char '*'
+let bang = Uchar.of_char '!'
 
 let is_glob_char c =
   not
@@ -88,3 +89,21 @@ let rec take_groups names = function
       | [] -> false)
 
 let fits ~path ~glob = take_groups (file_names path) (glob_segments glob)
+
+let glob_text = function
+  | c :: rest when Uchar.equal c bang -> rest
+  | member -> member
+
+let is_plain = function c :: _ when Uchar.equal c bang -> false | _ -> true
+
+let is_valid_path_set members =
+  List.for_all (fun member -> is_glob (glob_text member)) members
+  && List.length (List.sort_uniq compare members) = List.length members
+  && (members = [] || List.exists is_plain members)
+
+let in_set ~path members =
+  List.exists (fun m -> is_plain m && fits ~path ~glob:(glob_text m)) members
+  && not
+       (List.exists
+          (fun m -> (not (is_plain m)) && fits ~path ~glob:(glob_text m))
+          members)
