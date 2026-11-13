@@ -14,6 +14,7 @@
 @cites posix/2024
 @cites tree-sitter/0.26.13
 @cites wasm-core/2.0
+@cites ecma/262-2025
 Specifies language packs, with their files, pack paths, and pack hashes;
 descriptors, with pack names, release numbers, comment sigils, foreign
 tag words, name separators, grammars, test runners, and runner settings;
@@ -85,10 +86,11 @@ takes the permissions and the appropriate privileges of a process, and
 the portable filename character set. From tree-sitter, as it defines
 them from 0.26.13 on, the design takes the format of languages, the
 parse trees that its parsing gives, and its query language, with
-patterns, captures, predicates, quantifiers, regular expressions, and
-the matches of a query. From the WebAssembly Core Specification 2.0, it
+patterns, captures, predicates, quantifiers, and the matches of a
+query. From the WebAssembly Core Specification 2.0, it
 takes modules, their validation, imports, exports, functions, memories,
-tables, instances, traps, and the execution of code.
+tables, instances, traps, and the execution of code. From ECMA-262
+2025, it takes RegExp patterns, with the flag `u`, and their matching.
 
 ## 1. Glossary
 
@@ -129,11 +131,8 @@ tables, instances, traps, and the execution of code.
 | [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
-| pattern, capture, capture name, predicate, directive, quantifier | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
+| [pattern, capture, capture name, predicate, directive, quantifier](sinter:#query-language=v1) | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
-| [depth of a query text](sinter:#query-depth=v1) | the number of levels of nesting that are open after a token of a query text |
-| [depth limit](sinter:#query-depth=v1) | a query text passes the depth limit when its depth after one of its tokens is more than 100; it passes the depth limit at the first character of the first such token |
-| [query name](sinter:#query-depth=v1) | a token of a query text, such as `_` or `function_item`: a name start character and the name characters after it, when they do not start a field name, with the spaces, tabs, line feeds, carriage returns, form feeds, and query comments after them |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
 | [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text |
@@ -142,7 +141,6 @@ tables, instances, traps, and the execution of code.
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
 | [run of a node](sinter:#node-run=v1) | the run of the text that a node takes up, without a line feed that only the parse text has, and without the byte order mark of the text |
 | [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when the parsing of tree-sitter gives no parse tree for it, or when the root node of the parse tree has an error |
-| [failure node](sinter:#parse-failure=v1) | the node at which a parse failure is: the first `ERROR` or `MISSING` node of the parse tree, or, when the parse tree has no such node, the first lowest node with an error |
 | [query match](sinter:#query-match=v1) | a match of a query over a parse tree, as tree-sitter defines it: one part of the parse tree where one pattern matches |
 | [joined match](sinter:#joined-match=v1) | the query matches of one pattern that give one node the same role, taken as one match |
 | [kept match](sinter:#joined-match=v1) | a joined match whose pattern comes first among the joined matches that give one node the same role |
@@ -157,7 +155,7 @@ tables, instances, traps, and the execution of code.
 | [piece, text piece, placeholder](sinter:#test-name=v1) | a part of the name of a test node, from a node that a kept match of the test node captures as `name` or as `placeholder`: a text piece is text as the text of the file writes it; a placeholder stands for the text that the program that runs the test puts in the name when it runs the test |
 | [name path](sinter:#test-name=v1) | the names of the test suites that enclose a test node, outermost first, then its own name; by the query file, it stands for the name of the test of the test node |
 | [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
-| [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values; with "parse failure", the run of the failure node, when there is one |
+| [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
 | [choice of the program](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits, a refused growth of a memory or of a table within its maximum, the depth at which the call stack is exhausted, or the bits of a NaN |
@@ -409,23 +407,10 @@ A pattern can use only these ten predicates, which the query language
 of tree-sitter applies to each match: `#eq?`, `#not-eq?`, `#any-eq?`,
 `#any-not-eq?`, `#match?`, `#not-match?`, `#any-match?`,
 `#any-not-match?`, `#any-of?`, and `#not-any-of?`. The regular
-expression of a match predicate has the syntax and the meaning that the
-query language of tree-sitter gives it, and it applies to the UTF-8
-encoding of the text of the run of a node. A query with another
-predicate, such as `#is?`, or with a directive, such as `#set!`, is not
-valid.
-
-The patterns of a query nest. A query file whose text nests more than
-100 levels deep is not valid. Each opening parenthesis `(`, each opening
-bracket `[`, and each field name before a `:`, such as `key:` in
-`(pair key: (string))`, adds one level. A closing parenthesis or bracket
-ends the level that its opening one added, and the levels of the field
-names right before that opening one. A pattern that is a query name or a
-string, such as `_` or `"if"`, ends the levels of the field names right
-before it. A parenthesis or a bracket inside a string or a query comment
-adds no level. So the greatest depth after a token of `((a) (b (c)))` is
-3, and a query text of 101 `(` passes the depth limit at its 101st
-character.
+expression of a match predicate is a RegExp pattern of ECMA-262 2025,
+with the flag `u`, and the predicate searches the text of a node for a
+match of it. A query with another predicate, such as `#is?`, or with a
+directive, such as `#set!`, is not valid.
 
 This example of a query file of the kind comment is for OCaml, in
 which a doc comment `(** *)` carries no tags and a plain comment `(* *)`
@@ -464,21 +449,16 @@ not end with one. The program parses the UTF-8 encoding of the parse
 text with the language of the usable grammar. The parsing of tree-sitter
 can give no parse tree. The program ends each reading: when it stops a
 reading, a choice that it can make for limits of its own, the reading
-gives "parse failure" with no failure node. The requirements on readings
-apply to an undisturbed use of the pack, in which no code of the grammar
-exhausts the call stack or gives a value that depends on the bits of a
-NaN. When the parse tree has an `ERROR` node or a `MISSING` node, its
-root node has an error. A `MISSING` node takes up no text. A `MISSING`
-node of a hidden token is in no list of the children of a node, and then
-only the error of the root node shows it. So the text has a parse
-failure when the parsing gives no parse tree, or when the root node has
-an error. A reading of a text with a parse failure gives the result
-"parse failure". It gives the run of the failure node, when the parse
-failure has one, and it gives no node of the text. The failure node is
-the first `ERROR` or `MISSING` node in the order of the parse tree. When
-the parse tree has no such node, it is the first node in the order of
-the parse tree that has an error and that has no child that has an
-error. A parse failure with no parse tree has no failure node.
+gives "parse failure". The requirements on readings apply to an
+undisturbed use of the pack, in which no code of the grammar exhausts
+the call stack or gives a value that depends on the bits of a NaN. The
+text has a parse failure when the parsing gives no parse tree, or when
+the root node of the parse tree has an error, such as when the parse
+tree has an `ERROR` node or a `MISSING` node. A reading of a text with a
+parse failure gives the result "parse failure", and no node of the
+text. A parse tree with no error comes from the language alone, so
+conforming programs agree on it; on a text with a parse failure, they
+agree only on the result.
 
 Each other reading gives the result "parsed". The program runs each
 query file of the grammar over the parse tree. The query language of
@@ -923,76 +903,39 @@ each of these conditions:
 The language of a usable grammar with the grammar name g is that
 language, and its ABI version is the ABI version of that language.
 
-### 4.9 The depth of a query text
+### 4.9 The query language
 
-@term query-depth=v1
-@cites text#{
-    text=v1, character=v1, code-point=v1, place=v1, run=v1, line-feed=v1,
-    carriage-return=v1, space=v1, tab=v1, whole-number=v1, code-span=v1,
-}
+@term query-language=v1
+@cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{parse-tree=v1}}
 
-The tokens of a query text follow one another from place 1 of the text
-to its end. Each token starts at the place right after the end of the
-token before it, and these are the tokens:
-
-- A query comment is the character `;` and each character after it up
-  to the next line feed, without that line feed, or up to the end of the
-  text.
-- A string is the character `"` and each character after it up to, and
-  with, the next `"` that is not escaped; when no such `"` follows, it
-  is the character `"` and each character after it to the end of the
-  text. In a string, a `\` that is not escaped escapes the character
-  right after it.
-- An opening is the character `(` or `[`, and a closing is the character
-  `)` or `]`.
-- A reference is the character `@`, `#`, or `!`, and the longest run of
-  name characters right after it, which can be empty.
-- A field name is a name start character, the longest run of name
-  characters right after it, the longest run after these of spaces,
-  tabs, line feeds, carriage returns, form feeds, and query comments,
-  and then the character `:`. A form feed is the character whose code
-  point is 12.
-- A query name is a name start character and the longest run of name
-  characters right after it, when these are not the start of a field
-  name, with the longest run after them of spaces, tabs, line feeds,
-  carriage returns, form feeds, and query comments.
-- Each other character is a token by itself.
-
-The name start characters are the characters `A` to `Z`, `a` to `z`, `0`
-to `9`, `_`, and `-`, and each character whose code point is 128 or
-more. The name characters are the name start characters and the
-characters `.`, `?`, and `!`.
-
-For the tokens of a query text, in their order, a sequence L of whole
-numbers and a whole number f change. Before the first token, L holds no
-number and f is 0. An opening appends f + 1 to the end of L and makes f
-0. A closing removes the last number of L, when L holds a number, and
-makes f 0. A field name adds 1 to f. A string or a query name makes f 0.
-Each other token changes neither L nor f. The depth after a token is the
-sum of the numbers of L, together with f, after that token. A query text
-passes the depth limit when, and only when, the depth after one of its
-tokens is more than 100. The place where a query text passes the depth
-limit is the place of the first character of the first token after
-which the depth is more than 100.
+The query language is the language of queries that tree-sitter defines,
+from 0.26.13 on. A query for a language is a sequence of patterns. A
+pattern captures nodes under capture names, each written `@` followed by
+the capture name, and each capture name of a pattern has a quantifier in
+it: zero, zero or one, zero or more, one, or one or more. A pattern can
+hold predicates and directives, each an element `(#name ...)` of the
+pattern, whose arguments are captures and strings. The matches of a
+query over a parse tree are the parts of the parse tree where a pattern
+of the query matches, each with that pattern and with the nodes that it
+captures under each capture name.
 
 ### 4.10 Text predicates
 
 @term text-predicate=v1
 @cites {
-    tree-sitter/0.26.13,
-    text#{text=v1, utf-8-encoding=v1, code-span=v1},
-    #{node-run=v1},
+    ecma/262-2025,
+    text#{text=v1, run=v1, character=v1, code-span=v1},
+    #{query-language=v1, node-run=v1},
 }
 
-The text predicates are ten predicates of the query language of
-tree-sitter, as it defines them from 0.26.13 on. Each is an element
-`(#name ...)` of a pattern, whose arguments are captures and strings.
-These are the names of the text predicates and their arguments:
+The text predicates are ten predicates of the query language. These are
+their names and their arguments:
 
 - `#eq?`, `#not-eq?`, `#any-eq?`, and `#any-not-eq?`: a capture, then a
   capture or a string;
 - `#match?`, `#not-match?`, `#any-match?`, and `#any-not-match?`: a
-  capture, then a string, which is a regular expression;
+  capture, then a string, which is a RegExp pattern of ECMA-262 2025
+  that is valid with the flag `u`;
 - `#any-of?` and `#not-any-of?`: a capture, then one or more strings.
 
 The text of a node is the text of its run. For a node of the first
@@ -1002,11 +945,12 @@ pairs:
 - `#eq?` and `#any-eq?` hold when the text of the node is the text of
   the string or of the other node, and `#not-eq?` and `#any-not-eq?`
   hold when it is not;
-- `#match?` and `#any-match?` hold when the regular expression matches
-  the UTF-8 encoding of the text of the node, and `#not-match?` and
-  `#any-not-match?` hold when it does not. The regular expression has
-  the syntax and the meaning that the query language of tree-sitter
-  gives it;
+- `#match?` and `#any-match?` hold when the pattern, with the flag `u`,
+  matches some run of the text of the node, as ECMA-262 2025 defines
+  the matching of a pattern, and `#not-match?` and `#any-not-match?`
+  hold when it matches none. With the flag `u`, `\w` and `\d` match
+  ASCII characters only, and `\s` matches the characters that ECMA-262
+  2025 defines as white space and as line terminators;
 - `#any-of?` holds when the text of the node is the text of one of the
   strings, and `#not-any-of?` holds when it is the text of none of them.
 
@@ -1015,29 +959,24 @@ holds when it holds for each node that the match captures under its
 first capture, and so when that capture has no node; `#any-of?` also
 holds so. Each other text predicate holds when it holds for at least one
 of these nodes. When the second argument is a capture, the nodes of the
-two captures pair in their order.
+two captures at the same index pair, and a node with no partner is not
+compared.
 
 ### 4.11 Query files
 
 @term query-file=v1
 @cites {
-    tree-sitter/0.26.13,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
         text=v1, production=v1, rule-name=v1, code-span=v1,
     },
     #{
-        grammar-name=v1, usable-grammar=v1, query-depth=v1,
+        grammar-name=v1, usable-grammar=v1, query-language=v1,
         text-predicate=v1,
     },
 }
 
-This definition uses the query language that tree-sitter defines, from
-0.26.13 on: queries for a language, their patterns, captures, and
-capture names, the predicates and directives of a pattern, each an
-element `(#name ...)` of the pattern, and the quantifier of a capture
-name in a pattern, which is zero, zero or one, zero or more, one, or one
-or more. A query file is of one of three kinds, each with its role names
+A query file is of one of three kinds, each with its role names
 and its other capture names:
 
 - The kind comment has the role names `comment` and `untagged`, and no
@@ -1057,12 +996,9 @@ A byte sequence is a valid query file of a kind for a usable grammar
 with a grammar name g when, and only when, it meets each of these
 conditions:
 
-1. It is valid UTF-8, and its text does not pass the depth limit.
-2. Its text is a query of that query language for the language of that
-   usable grammar with the grammar name g, and the regular expression of
-   each predicate `#match?`, `#not-match?`, `#any-match?`, and
-   `#any-not-match?` of the query is a regular expression of that query
-   language.
+1. It is valid UTF-8.
+2. Its text is a query of the query language for the language of that
+   usable grammar with the grammar name g.
 3. Each predicate and each directive of each pattern of the query is a
    text predicate, with the arguments that its name gives it.
 4. Each capture name of the query that does not start with `_` is a role
@@ -1156,11 +1092,11 @@ on, which gives, for a language and a byte sequence, a parse tree or no
 parse tree. A parse tree has a root node, and the children of each node
 of a parse tree are its named and its anonymous child nodes, in their
 order. A node of a hidden symbol is no node of the parse tree, and its
-children stand in its place. Each node has a symbol, which is a symbol
-of the language or, for an `ERROR` node, the symbol `ERROR`, and each
-symbol has a name. Each node has a start byte and an end byte, which are
-whole numbers less than 4,294,967,296, and it is an `ERROR` node or not,
-a `MISSING` node or not, and it has an error or not. For a text whose
+children stand in its place. Each node has a symbol, and each symbol has
+a name. Each node has a start byte and an end byte, which are whole
+numbers less than 4,294,967,296, and it has an error or not. A parse
+tree whose root node has no error comes from the language alone, its
+tables and its scanner, so the language fixes it. For a text whose
 parse text has fewer than 4,294,967,296 bytes in its UTF-8 encoding, and
 a usable grammar with a grammar name g, the parse tree is the parse tree
 that this parsing gives for the language of that usable grammar and the
@@ -1216,36 +1152,30 @@ symbol.
 ### 4.17 Parse failures
 
 @term parse-failure=v1
-@cites {text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
+@cites {text#{text=v1}, #{usable-grammar=v1, parse-tree=v1}}
 
-A text has a parse failure with a usable grammar when, and only
-when, the text has no parse tree with that usable grammar, or the root
-node of its parse tree with that usable grammar has an error. The
-failure node of a parse failure with a parse tree is the first `ERROR`
-node or `MISSING` node of that parse tree in the order of the parse
-tree. When that parse tree has no such node, the failure node is the
-first node, in the order of the parse tree, that has an error and that
-has no child that has an error. A parse failure with no parse tree has
-no failure node.
+A text has a parse failure with a usable grammar when, and only when,
+the text has no parse tree with that usable grammar, or the root node of
+its parse tree with that usable grammar has an error.
 
 ### 4.18 Query matches
 
 @term query-match=v1
 @cites {
-    tree-sitter/0.26.13,
     text#{code-span=v1},
     #{
-        usable-grammar=v1, grammar-name=v1, query-file=v1,
-        text-predicate=v1, parse-tree=v1, parse-tree-order=v1,
+        usable-grammar=v1, grammar-name=v1, query-language=v1,
+        query-file=v1, text-predicate=v1, parse-tree=v1,
+        parse-tree-order=v1,
     },
 }
 
 For a valid query file of a kind for a usable grammar with a grammar
-name g, and a text that has a parse tree with that usable grammar, the
-query matches are the matches of the query of that query file, without
-its predicates, over that parse tree, as the query language of
-tree-sitter defines them, from 0.26.13 on, each kept when each text
-predicate of its pattern holds in it. Each query match has one pattern
+name g, and a text that has a parse tree with that usable grammar whose
+root node has no error, the query matches are the matches of the query
+of that query file, without its predicates, over that parse tree, as
+the query language defines them, each kept when each text predicate of
+its pattern holds in it. Each query match has one pattern
 of the query, and one pattern comes before another when it stands before
 it in the query file. The captures of a query match are its captures
 whose capture names do not start with `_`: each is a capture name and a
@@ -1454,10 +1384,8 @@ for g, each with its run and its node type. It gives, with each comment
 node, whether it is tagged; with each definition node, its name nodes
 and its body nodes, each with its run and its node type; and with each
 test node, whether it is a test case or a test suite, its name path, and
-its test labels. A reading with the result "parse failure" gives the run
-of the failure node of that parse failure, when that parse failure has a
-failure node, and it gives no node of the text. A reading with the
-result "no grammar" gives no node of the text.
+its test labels. A reading with the result "parse failure" or "no
+grammar" gives no node of the text.
 
 ## 5. The descriptor
 @spec descriptor=v1
@@ -2659,17 +2587,16 @@ pack gives, and no other value instead of it.
 
 @req omit-readings-for-invalid-packs=v1
 @cites {
-    text#{conforming-program=v1, result=v1, text=v1, run=v1},
+    text#{conforming-program=v1, result=v1, text=v1},
     #{
         pack=v1, undisturbed-pack-use=v1, valid-pack=v1,
-        parse-tree-order=v1, node-run=v1, parse-failure=v1,
-        reading-of-a-text=v1,
+        parse-tree-order=v1, reading-of-a-text=v1,
     },
 }
 
 In an undisturbed use of a pack, a conforming program must give no
-result of a reading, no node, and no run of a failure node, of a text
-with that pack when the pack is not valid.
+result of a reading, and no node, of a text with that pack when the pack
+is not valid.
 
 ### 7.11 The results of readings
 
@@ -2743,71 +2670,7 @@ comment node, definition node, decoration node, or test node of a
 reading of a text with that pack whose result is not "parsed", or for
 which it gives the result "parse failure".
 
-### 7.15 The runs of failure nodes
-
-@req give-failure-runs=v1
-@cites {
-    text#{conforming-program=v1, result=v1, run=v1, text=v1},
-    #{
-        pack=v1, undisturbed-pack-use=v1, reading-of-a-text=v1,
-        parse-failure=v1,
-        node-run=v1,
-    },
-}
-
-When, for a reading of a text with a pack whose result is "parse
-failure" and whose parse failure has a failure node, in an undisturbed
-use of that pack, a conforming program gives a run as the run of the
-failure node, it must give the run of the failure node of that parse
-failure.
-
-### 7.16 No run of a failure node for the other readings
-
-@req omit-failure-runs=v1
-@cites {
-    text#{conforming-program=v1, result=v1, run=v1, text=v1},
-    #{
-        pack=v1, undisturbed-pack-use=v1, valid-pack=v1,
-        reading-of-a-text=v1,
-        parse-failure=v1, node-run=v1,
-    },
-}
-
-In an undisturbed use of a valid pack, a conforming program must give no
-run as the run of a failure node of a reading of a text with that pack
-whose result is not "parse failure", or whose parse failure has no
-failure node.
-
-### 7.17 The depth of query texts
-
-@req decide-query-depth=v1
-@cites {text#{conforming-program=v1, result=v1, text=v1}, #{query-depth=v1}}
-
-When a conforming program gives a result for whether a text, as a query
-text, passes the depth limit, it must give exactly one result: "too
-deep" when the text passes the depth limit, and "not too deep" when it
-does not.
-
-### 7.18 The place where a query text passes the depth limit
-
-@req give-query-depth-places=v1
-@cites {
-    text#{
-        conforming-program=v1, result=v1, text=v1, character=v1, place=v1,
-        position=v1,
-    },
-    #{query-depth=v1},
-}
-
-When, with the result "too deep" for a text as a query text, a
-conforming program gives a line number for the place where the text
-passes the depth limit, it must give the line number of the position of
-the character at that place, and no other line number, for that place.
-When it gives a column for that place, it must give the column of the
-position of the character at that place, and no other column, for that
-place.
-
-### 7.19 What the code of a grammar can reach
+### 7.15 What the code of a grammar can reach
 
 @req isolate-grammars=v1
 @cites {
@@ -2817,11 +2680,11 @@ place.
 }
 
 In each use of a pack, a conforming program must use each grammar of
-the pack so that its code and its parse tables take bytes from no file,
-write no file and not the output of the process, use no network, read
-no clock, and start no process.
+the pack so that neither its code nor the language that it gives takes
+bytes from a file, writes a file or the output of the process, uses a
+network, reads a clock, or starts a process.
 
-### 7.20 Readings and decisions that end
+### 7.16 Readings and decisions that end
 
 @req end-readings=v1
 @cites {
@@ -2832,7 +2695,7 @@ no clock, and start no process.
 A conforming program must end each reading of a text with a pack, and
 each decision whether a pack is valid.
 
-### 7.21 No symbolic link followed in a pack
+### 7.17 No symbolic link followed in a pack
 
 @req follow-no-pack-links=v1
 @cites {files#{folder-tree=v1, symbolic-link=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2841,7 +2704,7 @@ In each use of a pack, a conforming program must follow no symbolic
 link that is a file of the folder tree of the pack: it must find no file
 by the reference of such a symbolic link.
 
-### 7.22 Bytes only from the folders and the regular files of a pack
+### 7.18 Bytes only from the folders and the regular files of a pack
 
 @req read-only-pack-files=v1
 @cites {
@@ -2854,7 +2717,7 @@ In each use of a pack, a conforming program must take bytes from the
 files of the folder tree of the pack only from its folders and from its
 regular files.
 
-### 7.23 No wait for another process in a pack
+### 7.19 No wait for another process in a pack
 
 @req avoid-pack-waits=v1
 @cites {files#{folder-tree=v1, file-of-another-kind=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2864,7 +2727,7 @@ process or for a device to act on a file of another kind that is a file
 of the folder tree of the pack, such as for a process to open the other
 end of a pipe.
 
-### 7.24 No change to the files of a pack
+### 7.20 No change to the files of a pack
 
 @req keep-packs-unchanged=v1
 @cites {
@@ -2883,7 +2746,7 @@ file of another kind, or an attribute of a file, other than by a change
 that the file system makes by itself when the program uses that file,
 such as a change of the time of last access.
 
-### 7.25 No permission or privilege that the process did not have
+### 7.21 No permission or privilege that the process did not have
 
 @req gain-no-pack-privileges=v1
 @cites {
@@ -2920,10 +2783,10 @@ These requirements that the design holds directly have no vectors:
 `give-pack-file-contents`, `give-pack-descriptor-values`,
 `omit-readings-for-invalid-packs`, `give-reading-results`,
 `give-reading-nodes`, `give-reading-node-values`,
-`omit-nodes-of-unparsed-readings`, `give-failure-runs`,
-`omit-failure-runs`, `isolate-grammars`, `end-readings`,
-`follow-no-pack-links`, `read-only-pack-files`, `avoid-pack-waits`,
-`keep-packs-unchanged`, and `gain-no-pack-privileges`. No vector of this
+`omit-nodes-of-unparsed-readings`, `isolate-grammars`,
+`end-readings`, `follow-no-pack-links`, `read-only-pack-files`,
+`avoid-pack-waits`, `keep-packs-unchanged`, and
+`gain-no-pack-privileges`. No vector of this
 file holds a valid pack or a reading.
 
 The first line of the file is the set line. Its object has one member,
@@ -2958,9 +2821,8 @@ nothing that a conforming program gives for the input, other than its
 result.
 
 In `input` and `values`, a byte sequence is its hex text, as a string,
-a text is a string of the characters of the text, and a position is an
-object with two members: `line`, the line number, and `column`, the
-column, each as an integer. A pack is its folder tree, as a
+and a text is a string of the characters of the text. A pack is its
+folder tree, as a
 [folder tree object](sinter:files#folder-tree-object=v1): the
 [file object](sinter:files#file-object=v1) of its root, whose member
 `type` is `"directory"`. These are the members of a file object in the
@@ -3080,32 +2942,7 @@ order of `files` is not a value that a conforming program gives. With
 {"group":"pack-hashes","input":{"entries":[],"type":"directory"},"n":17,"note":"the pack listing is the empty text","rev":"v1","values":{"files":[],"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","listing":""}}
 ```
 
-### 8.3 The depth of query texts
-
-The group `query-depths` holds the vectors that each give a text and
-what a conforming program gives for it as a query text. The
-requirements of the group are `decide-query-depth` and
-`give-query-depth-places`.
-
-- `input`: the text.
-- `result`: the result for whether the text, as a query text, passes the
-  depth limit, when a conforming program gives that result: "too deep"
-  when the text passes the depth limit, and "not too deep" when it does
-  not.
-- `values`: with "too deep", an object with one member, `position`: the
-  position of the character at the place where the text passes the
-  depth limit. With "not too deep", no vector of the group has this
-  member.
-
-With "too deep", when a conforming program gives a line number or a
-column for the place where the text passes the depth limit, it gives the
-line number or the column of `position`.
-
-```
-{"group":"query-depths","input":"(a)","n":26,"result":"not too deep","rev":"v1"}
-```
-
-### 8.4 Well-named packs
+### 8.3 Well-named packs
 
 The group `well-named-packs` holds the vectors that each give a pack
 and whether it is well named. The requirement of the group is
