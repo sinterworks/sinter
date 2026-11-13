@@ -30,17 +30,18 @@ declarations, citations with their citation entries, status tags, and
 `@ack` lines; inline citations, their destinations, and their targets;
 segments, slugs, part names, full names, labels, and revisions; external
 ids; the productions `declaration-line`, `citation-line`, `every-part`,
-and `inline-destination`, and the matches of texts by productions; and
-the parameter `external-namespaces` with its bindings. From Text and
-notation, it takes texts, lines, and whole numbers; byte sequences,
-valid UTF-8, and the text of a byte sequence; and what a design, a
-specification, a requirement, a conforming program, and an input are.
-From Files and paths, it takes valid paths, path sets, and the set of
-the valid paths that a path set gives. From the specification
-`test-vectors` of Data forms, it takes test-vector sets with their set
-lines, group lines, and vector lines; the objects, the groups, and the
-revisions of those lines; the forms of a group; and the meaning of a
-vector.
+and `inline-destination`, and the matches of texts by productions; the
+parameter `external-namespaces` with its bindings; and the result
+"valid" that a conforming program of Identifiers gives for an input.
+From Text and notation, it takes texts, lines, and whole numbers; byte
+sequences, valid UTF-8, and the text of a byte sequence; and what a
+design, a specification, a requirement, a conforming program, an input,
+and a result are. From Files and paths, it takes valid paths, path sets,
+and the set of the valid paths that a path set gives. From the
+specification `test-vectors` of Data forms, it takes test-vector sets
+with their set lines, group lines, and vector lines; the objects, the
+groups, and the revisions of those lines; the forms of a group; and the
+meaning of a vector.
 
 ## 1. Glossary
 
@@ -80,7 +81,7 @@ vector.
 | [revision of a citation entry](sinter:#pinned-edge=v1), [revision of an inline citation](sinter:#pinned-edge=v1) | the label, or `*`, that a citation entry, or the destination of an inline citation, carries after `=`, such as `v2` in `billing#limit-amount=v2` and `v3` in `docs=v3#*`; `*` stands for any label |
 | [external id](sinter:identifiers#external-id=v1) | a namespace name, such as `gh`, `/`, and an id, such as `42`, as in `gh/42`; a binding of the parameter `external-namespaces` gives the namespace names; an external id names an external item |
 | [`every-part`](sinter:identifiers#citation-line=v1) | the production that matches a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
-| [declared item](sinter:#declared-item=v1) | what a declaration declares: an item of the kind design, specification, requirement, term, decision record, or declared finding class; it takes up a part of one file of a tree, and that part has its declaration |
+| [declared item](sinter:#declared-item=v1) | what a declaration declares, for a declaration that Identifiers accepts: an item of the kind design, specification, requirement, term, decision record, or declared finding class; it takes up a part of one file of a tree, and that part has its declaration |
 | [item of the kind design](sinter:#declared-item=v1) | a declared item whose declaration word is `@design`; it is a design |
 | [item of the kind specification](sinter:#declared-item=v1) | a declared item whose declaration word is `@spec`; it declares one specification of the design of which it is a part |
 | [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req`; it declares one requirement of the design of which it is a part |
@@ -115,7 +116,7 @@ vector.
 | [site](sinter:#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a file of a tree in markdown, or one comment in code; no two sites of a file of a tree have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the text that `label` matches in its declaration, when its declaration has one, such as `v2` in the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
-| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for a declared item, without the label of its own declaration; for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the labels of those declared items; for a conformance vector, the conformance vector with the forms of its group |
+| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for each declared item, without the `=` and the label of its own declaration; also, for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the `=` and the label of the declaration of each of those declared items that has a label; for a conformance vector, the conformance vector with the forms of its group |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry or an inline citation gives; an edge has at most one source and at most one cited item |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
@@ -133,7 +134,7 @@ vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to conformance vectors whose groups name the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to conformance vectors when the group of one of them names the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -367,7 +368,7 @@ group is its name.
 
 A citation entry can name one conformance vector, one group of
 conformance vectors, or one vector set. A test that checks code against
-the conformance vectors of a group of conformance vectors cites that
+the conformance vectors of a group of conformance vectors can cite that
 group of conformance vectors with `@verifies`:
 
 ```python
@@ -413,10 +414,13 @@ an external item too. An external item has no revision.
 
 An edge is a relation of one kind of edge from its source to its cited
 item, and an edge has at most one source and at most one cited item.
-Each citation entry of a citation gives one edge, whatever the kinds of
+A citation or an inline citation gives edges only when a conforming
+program of the design Identifiers gives the result "valid" for it under
+the binding of `external-namespaces` that is a state input. Each
+citation entry of such a citation gives one edge, whatever the kinds of
 item of its source and its cited item. The kind of edge is the citation
 word without its `@`. The cited item of the edge is the item that the
-citation entry names. An inline citation, such as
+citation entry names. Each such inline citation, for example
 `[the limit](sinter:billing#limit-amount=v2)`, gives one edge of the
 kind `cites`, and the name or the external id in its target names the
 cited item. When the citation entry or the target names no item, the
@@ -481,19 +485,21 @@ when that match uses `label`, such as `v2` in `@req limit-amount=v2`.
 The label of a conformance vector is the revision of its vector line,
 the label of a group of conformance vectors is the revision of its group
 line, and the label of a vector set is the revision of its set line. The
-revised content of a declared item leaves out the label of its own
-declaration. The revised content of an item of the kind design is the
-item of the kind design without the declared items that it holds. The
-revised content of an item of the kind specification is that item with
-the declared items that it holds, without the labels of those declared
-items. So an edit of an item of the kind requirement that an item of the
-kind specification holds changes the revised content of that item of the
-kind specification too. The revised content of a conformance vector is
-that conformance vector with the forms of its group, and the revised
-content of a group of conformance vectors or of a vector set is its
-conformance vectors, each with the forms of its group. A term with no
-label has a revised content and no revision. A task, a plan, a test, a
-site, and an external item have no revised content and no revision.
+revised content of a declared item leaves out the `=` and the label of
+its own declaration, when its declaration has a label. The revised
+content of an item of the kind design is the item of the kind design
+without the declared items that it holds. The revised content of an item
+of the kind specification is that item with the declared items that it
+holds, without the `=` and the label of the declaration of each of those
+declared items that has a label. So an edit of an item
+of the kind requirement that an item of the kind specification holds
+changes the revised content of that item of the kind specification too.
+The revised content of a conformance vector is that conformance vector
+with the forms of its group, and the revised content of a group of
+conformance vectors or of a vector set is its conformance vectors, each
+with the forms of its group. A term with no label has a revised content
+and no revision. A task, a plan, a test, a site, and an external item
+have no revised content and no revision.
 
 A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
@@ -541,15 +547,16 @@ promises an edge of the kind of edge of the promise to that item, from a
 citation in a file of a tree whose valid path is in the set of its
 paths. For a `verifies` promise, a `verifies` edge to a conformance
 vector, a group of conformance vectors, or a vector set is such an edge
-too, when the item of the kind requirement is among the requirements of
-the group of each conformance vector in its cited item, so a test that
-cites a group of conformance vectors keeps the `verifies` promises of
-the requirements of that group. The promise is kept in a tree when the
-tree has such an edge, the edge says what its kind of edge says, the
-edge is not suspect in that tree, and, for a `verifies` promise, test
-evidence of an execution of test runners on the code of that tree has a
-test result that names the test that is the source of that edge and says
-that it passed, and none that says that it failed.
+too, when the group of the cited conformance vector, or of one of the
+conformance vectors in the cited item, names the requirement that the
+item of the kind requirement declares, so a test that cites a group of
+conformance vectors keeps the `verifies` promises of the requirements of
+that group. The promise is kept in a tree when the tree has such an
+edge, the edge says what its kind of edge says, the edge is not suspect
+in that tree, and, for a `verifies` promise, test evidence of an
+execution of test runners on the code of that tree has a test result
+that names the test that is the source of that edge and says that it
+passed, and none that says that it failed.
 
 A task has no description of its own: the items of the kind requirement
 that it promises, or its external item, say what to build. A task has no
@@ -659,16 +666,10 @@ commits the repository has, each with its parents and its tree; the
 commit to which each branch points; the commit of the default branch;
 the tree of each working tree; the delivery lines and the task lines of
 the messages of commits; the ledger, in its order; test evidence; and
-the bindings of the parameters that designs name. A conforming program
-gives the same states to each item, edge, wait, and subject of approval,
-in each tree, at each point of a ledger, and in each tree at each point
-of a ledger, for which it gives them, for two inputs that agree in each
-state input, as each state input is when the program gives the states,
-and that no other program changes while the program runs (section 4.1).
-It gives the same states for two inputs that differ only in the writers,
-the persons, the branches, and the times that their ledger entries
-record, and that no other program changes while the program runs
-(section 4.2). No ledger entry records a state.
+the bindings of the parameters that designs name. States follow from the
+state inputs alone (section 4.1), and the writers, persons, branches,
+and times that ledger entries record change no state (section 4.2). No
+ledger entry records a state.
 
 | state | of | meaning |
 |---|---|---|
@@ -882,15 +883,12 @@ integration starts at each push to the default branch of a repository.
 
 @term declared-item=v1
 @cites {
-    identifiers#{
-        declaration=v1, sinter-tag-word=v1, citation=v1,
-        inline-citation=v1, status-tag=v1,
-    },
+    identifiers#{declaration=v1, sinter-tag-word=v1, accept-inputs=v1},
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, result=v1,
     },
-    #{tree=v1},
+    #{tree=v1, parameter=v1},
 }
 
 A declared item is what a declaration declares. A declared item takes up
@@ -906,10 +904,9 @@ kind requirement is a declared item whose declaration word is `@req`. An
 item of the kind design is a design. An item of the kind specification
 declares one specification of the design of which it is a part, and an
 item of the kind requirement declares one requirement of the design of
-which it is a part. Only a declaration, a citation, an inline citation,
-or a status tag for which a conforming program of the design Identifiers
-gives the result "valid" declares a declared item, gives an edge, or is
-a status tag of a declared item.
+which it is a part. Only a declaration for which a conforming program of
+the design Identifiers gives the result "valid" under the binding of
+`external-namespaces` declares a declared item.
 
 ### 3.8 Containment
 
@@ -1152,18 +1149,19 @@ group line of its vector set whose group is its name, and the label of a
 vector set is the revision of its set line. The revised content of an
 item is the part of the item that its label covers, or would cover for a
 term with no label, such as the text of an item of the kind requirement.
-The revised content of a declared item leaves out the label of its own
-declaration. The revised content of an item of the kind design is the
-item of the kind design without the declared items that it holds. The
-revised content of an item of the kind specification is that item with
-the declared items that it holds, without the labels of those declared
-items. The revised content of a conformance vector is that conformance
-vector with the forms of its group, and the revised content of a group
-of conformance vectors or of a vector set is its conformance vectors,
-each with the forms of its group. Each declared item, each conformance
-vector, each group of conformance vectors, and each vector set has a
-revised content. A task, a plan, a test, a site, and an external item
-have no revised content.
+The revised content of a declared item leaves out the `=` and the label
+of its own declaration, when its declaration has a label. The revised
+content of an item of the kind design is the item of the kind design
+without the declared items that it holds. The revised content of an item
+of the kind specification is that item with the declared items that it
+holds, without the `=` and the label of the declaration of each of those
+declared items that has a label. The revised content
+of a conformance vector is that conformance vector with the forms of its
+group, and the revised content of a group of conformance vectors or of a
+vector set is its conformance vectors, each with the forms of its group.
+Each declared item, each conformance vector, each group of conformance
+vectors, and each vector set has a revised content. A task, a plan, a
+test, a site, and an external item have no revised content.
 
 ### 3.23 Revisions of items
 
@@ -1190,31 +1188,35 @@ revision. An item that has no revised content has no revision.
 @cites {
     identifiers#{
         citation=v1, citation-entry=v1, sinter-tag-word=v1,
-        inline-citation=v1,
+        inline-citation=v1, accept-inputs=v1,
     },
+    text#{design=v1, conforming-program=v1, result=v1},
     #{
         item=v1, tree=v1, edge-source=v1, item-name=v1,
-        external-item=v1, declared-item=v1,
+        external-item=v1, parameter=v1,
     },
 }
 
 An edge is a relation of one kind of edge from its source to its cited
 item; an edge has at most one source and at most one cited item. The
 kinds of edge are these five: `cites`, `satisfies`, `verifies`,
-`refines`, and `supersedes`. Each citation entry of a citation gives one
-edge, whatever the kinds of item of its source and its cited item, and
-the kind of edge of that edge is the citation word of the citation
-without its `@`. Each inline citation gives one edge, whose kind of edge
-is `cites`. The source of an edge in a tree is the item in which the
-citation or the inline citation that gives the edge stands in that tree.
-When that citation or inline citation stands in no item in that tree,
-the edge has no source in that tree. The cited item of an edge in a tree
-is the item that its citation entry, or its inline citation, names in
-that tree. When the citation entry or the inline citation names no item
-in that tree, the edge has no cited item in that tree. A kind of edge is
-for some kinds of item as its source and as its cited item. An edge says
-what its kind of edge says when, and only when, its source and its cited
-item are of those kinds; another edge of that kind says nothing.
+`refines`, and `supersedes`. A citation or an inline citation gives
+edges only when a conforming program of the design Identifiers gives the
+result "valid" for it under the binding of `external-namespaces`. Each
+citation entry of such a citation gives one edge, whatever the kinds of
+item of its source and its cited item, and the kind of edge of that edge
+is the citation word of the citation without its `@`. Each such inline
+citation gives one edge, whose kind of edge is `cites`. The source of an
+edge in a tree is the item in which the citation or the inline citation
+that gives the edge stands in that tree. When that citation or inline
+citation stands in no item in that tree, the edge has no source in that
+tree. The cited item of an edge in a tree is the item that its citation
+entry, or its inline citation, names in that tree. When the citation
+entry or the inline citation names no item in that tree, the edge has no
+cited item in that tree. A kind of edge is for some kinds of item as its
+source and as its cited item. An edge says what its kind of edge says
+when, and only when, its source and its cited item are of those kinds;
+another edge of that kind says nothing.
 
 ### 3.25 Where lines and citations stand
 
@@ -1374,6 +1376,7 @@ branch.
     identifiers#{citation=v1},
     files#{path=v1, path-set-membership=v1},
     data-forms#{group-form-list=v1},
+    text#{requirement=v1},
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
@@ -1389,14 +1392,16 @@ task promises an edge of that kind of edge to that item, from a citation
 in a file of a tree whose valid path is in the set of the paths of the
 task. A `verifies` edge from such a citation to a conformance vector, a
 group of conformance vectors, or a vector set is such an edge too, when
-that item of the kind requirement is among the requirements of the group
-of each conformance vector in its cited item. The promise is kept in a
-tree when, and only when, that tree has such an edge, and the edge says
-what its kind of edge says, and the edge is not suspect in that tree,
-and, for a `verifies` promise, test evidence of an execution of test
-runners on the code of that tree has a test result that names the test
-that is the source of that edge and says that it passed, and none that
-says that it failed.
+its cited item is a conformance vector or has at least one conformance
+vector in it, and the requirement that that item of the kind requirement
+declares is among the requirements of the group of that conformance
+vector, or of one of the conformance vectors in its cited item. The
+promise is kept in a tree when, and only when, that tree has such an
+edge, and the edge says what its kind of edge says, and the edge is not
+suspect in that tree, and, for a `verifies` promise, test evidence of an
+execution of test runners on the code of that tree has a test result
+that names the test that is the source of that edge and says that it
+passed, and none that says that it failed.
 
 ### 3.35 Plans
 
@@ -1652,41 +1657,49 @@ of a ledger.
 
 @term deprecated-item=v1
 @cites {
-    identifiers#{status-tag=v1},
+    identifiers#{status-tag=v1, accept-inputs=v1},
+    text#{design=v1, conforming-program=v1, result=v1},
     #{
         declared-item=v1, term=v1, decision-record=v1, tree=v1,
-        edge-source=v1, declared-finding-class=v1,
+        edge-source=v1, declared-finding-class=v1, parameter=v1,
     },
 }
 
 An item of the kind design, specification, or requirement, a term, a
 decision record, or a declared finding class is deprecated in a tree
-when, and only when, a `@deprecated` status tag stands in it in that
-tree. That status tag says that the item no longer applies and that
-nothing replaces it.
+when, and only when, a `@deprecated` status tag for which a conforming
+program of the design Identifiers gives the result "valid" under the
+binding of `external-namespaces` stands in it in that tree. That status
+tag says that the item no longer applies and that nothing replaces it.
 
 ### 3.51 Rejected
 
 @term rejected-record=v1
 @cites {
-    identifiers#{status-tag=v1},
-    #{decision-record=v1, tree=v1, edge-source=v1, declared-item=v1},
+    identifiers#{status-tag=v1, accept-inputs=v1},
+    text#{design=v1, conforming-program=v1, result=v1},
+    #{decision-record=v1, tree=v1, edge-source=v1, parameter=v1},
 }
 
 A decision record is rejected in a tree when, and only when, a
-`@rejected` status tag stands in it in that tree. That status tag says
+`@rejected` status tag for which a conforming program of the design
+Identifiers gives the result "valid" under the binding of
+`external-namespaces` stands in it in that tree. That status tag says
 that the choice of the record was considered and not made.
 
 ### 3.52 Deferred
 
 @term deferred-record=v1
 @cites {
-    identifiers#{status-tag=v1},
-    #{decision-record=v1, tree=v1, edge-source=v1, declared-item=v1},
+    identifiers#{status-tag=v1, accept-inputs=v1},
+    text#{design=v1, conforming-program=v1, result=v1},
+    #{decision-record=v1, tree=v1, edge-source=v1, parameter=v1},
 }
 
 A decision record is deferred in a tree when, and only when, a
-`@deferred` status tag stands in it in that tree. That status tag says
+`@deferred` status tag for which a conforming program of the design
+Identifiers gives the result "valid" under the binding of
+`external-namespaces` stands in it in that tree. That status tag says
 that the choice of the record is not made yet.
 
 ### 3.53 Approved and declined
@@ -1864,16 +1877,14 @@ parameters that designs name.
     text#{conforming-program=v1, input=v1},
     #{
         state=v1, state-input=v1, item=v1, edge=v1, wait=v1,
-        subject-of-approval=v1, tree=v1, ledger=v1,
+        subject-of-approval=v1,
     },
 }
 
-A conforming program must give the same states to each item, edge,
-wait, and subject of approval, in each tree, at each point of a ledger,
-and in each tree at each point of a ledger, for which it gives them, for
-two inputs that agree in each state input, as each state input is when
-the program gives the states, and that no other program changes while
-the program runs.
+A conforming program must give the same states to each item, edge, wait,
+and subject of approval for which it gives them, for two inputs that
+agree in each state input, as each state input is when the program gives
+the states, and that no other program changes while the program runs.
 
 ### 4.2 The same treatment of each ledger entry
 
@@ -1882,16 +1893,15 @@ the program runs.
     text#{conforming-program=v1, input=v1},
     #{
         state=v1, item=v1, edge=v1, wait=v1, subject-of-approval=v1,
-        tree=v1, ledger=v1, ledger-entry=v1, person=v1,
+        ledger-entry=v1, person=v1,
     },
 }
 
-A conforming program must give the same states to each item, edge,
-wait, and subject of approval, in each tree, at each point of a ledger,
-and in each tree at each point of a ledger, for which it gives them, for
-two inputs that differ only in the writers, the persons, the branches,
-and the times that their ledger entries record, and that no other
-program changes while the program runs.
+A conforming program must give the same states to each item, edge, wait,
+and subject of approval for which it gives them, for two inputs that
+differ only in the writers, the persons, the branches, and the times
+that their ledger entries record, and that no other program changes
+while the program runs.
 
 ### 4.3 The ledger entries that agents write
 
