@@ -781,8 +781,9 @@ canonical line. The requirement of the group is `read-canonical-line`.
 
 - `input`: the byte sequence.
 - `result`: the result for whether the byte sequence is the canonical
-  line of a line object: "valid" when it is, and "invalid" when it is
-  not.
+  line of a line object, when a conforming program gives that result:
+  "valid" when the byte sequence is the canonical line of a line object,
+  and "invalid" when it is not.
 - `values`: with the result "valid", an object with one member,
   `line-object`: the line object whose canonical line the byte sequence
   is. With the result "invalid", the empty object, `{}`.
