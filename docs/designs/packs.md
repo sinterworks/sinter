@@ -119,7 +119,7 @@ queries.
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a library that parses texts by grammars and finds parts of the parse trees by queries; here, the Rust library of tree-sitter 0.26.13, with its feature `wasm` |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module that tree-sitter 0.26.13 loads as the language of a grammar name, with an ABI version from 13 to 15 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module with no import whose name is `tree_sitter_debug_message`, which tree-sitter 0.26.13 loads as the language of a grammar name, with an ABI version from 13 to 15 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that tree-sitter 0.26.13 gives as the version of the format of the language of a usable grammar |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | pattern, capture, capture name, predicate, directive, quantifier | the things of a query of tree-sitter 0.26.13 with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
@@ -380,9 +380,11 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly,
 in one file that serves every platform. The content of the file
 `grammars/<g>.wasm` is a usable grammar when it is a WebAssembly
-module, when tree-sitter 0.26.13 loads it as the language `<g>`, through
-its export `tree_sitter_<g>`, and when the ABI version of that language
-is from 13 to 15. In a valid pack, the hash of the file is the hash that
+module, when it has no import whose name is `tree_sitter_debug_message`,
+when tree-sitter 0.26.13 loads it as the language `<g>`, through its
+export `tree_sitter_<g>`, and when the ABI version of that language is
+from 13 to 15. The function that tree-sitter 0.26.13 gives a grammar for
+that import writes to the standard output of the process. In a valid pack, the hash of the file is the hash that
 the descriptor gives for the grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
@@ -864,21 +866,26 @@ types `i32` and `i64`.
 This definition uses the Rust library of tree-sitter 0.26.13, with its
 feature `wasm`, which runs WebAssembly code with wasmtime 36.0.19. A
 byte sequence is a usable grammar with a grammar name g when, and only
-when, it is a WebAssembly module, `WasmStore::load_language` of that
-library, on a new `WasmStore` that `WasmStore::new` of that library
-makes from an `Engine` of wasmtime 36.0.19 with its default
-configuration, with the text g as its name and that byte sequence as its
-bytes, gives a language, and `Language::abi_version` gives, for that
-language, a whole number from 13 to 15. The language of a usable grammar
-with the grammar name g is that language, and its ABI version is that
-whole number. That library takes the language from the export of the
-module whose name is `tree_sitter_` followed by g. A usable grammar is a
-module of the WebAssembly Core Specification 2.0, so the features beyond
-that specification that the default configuration of wasmtime 36.0.19
-turns on do not change which byte sequences are usable grammars. The
-imports that `WasmStore::load_language` of that library gives a module
-give the code of the module no means to take bytes from a file, to
-change a file, to use a network, to read a clock, or to start a
+when, it is a WebAssembly module that has no import whose name is
+`tree_sitter_debug_message`, `WasmStore::load_language` of that library,
+on a new `WasmStore` that `WasmStore::new` of that library makes from an
+`Engine` of wasmtime 36.0.19 with its default configuration, with the
+text g as its name and that byte sequence as its bytes, gives a
+language, and `Language::abi_version` gives, for that language, a whole
+number from 13 to 15. The language of a usable grammar with the grammar
+name g is that language, and its ABI version is that whole number. That
+library takes the language from the export of the module whose name is
+`tree_sitter_` followed by g. A usable grammar is a module of the
+WebAssembly Core Specification 2.0, so the features beyond that
+specification that the default configuration of wasmtime 36.0.19 turns
+on do not change which byte sequences are usable grammars. For each
+import of a module, `WasmStore::load_language` of that library gives the
+module a function, a memory, a table, or a global by the name of the
+import, or it gives no language. The function that it gives for the
+import whose name is `tree_sitter_debug_message` writes to the standard
+output of the process. The other imports that it gives give the code of
+the module no means to take bytes from a file, to write a file or the
+output of the process, to use a network, to read a clock, or to start a
 process.
 
 ### 4.8 The depth of a query text
@@ -2717,9 +2724,9 @@ column of the position of the character at that place.
 }
 
 In each use of a pack, a conforming program must give the code of each
-byte sequence that it loads as a grammar of the pack no import other
-than those that tree-sitter 0.26.13 gives a module through
-`WasmStore::load_language`.
+byte sequence that it loads as a grammar of the pack only imports that
+tree-sitter 0.26.13 gives a module through `WasmStore::load_language`,
+and no import whose name is `tree_sitter_debug_message`.
 
 ### 7.20 No symbolic link followed in a pack
 
@@ -2898,9 +2905,6 @@ order, each with the need that it stands for and when a vector has it:
   different files. A vector has this need when two entry names of one
   folder of its folder tree differ only in the case of ASCII letters,
   such as `README.md` and `readme.md`.
-- `fifo-special-files`: the folder tree is on a file system on which
-  the check can make a FIFO special file. A vector has this need when
-  its folder tree holds a FIFO special file.
 - `long-names`: the folder tree is on a file system that allows each
   entry name of the folder tree, with all its bytes. A vector has this
   need when an entry name of its folder tree has more than 14 bytes, the
@@ -2912,20 +2916,22 @@ order, each with the need that it stands for and when a vector has it:
   decomposed form of Unicode normalization. A vector has this need when
   an entry name of its folder tree is valid UTF-8 and holds a byte of
   0x80 or more.
-- `non-portable-names`: the folder tree is on a file system that keeps
-  each entry name of the folder tree that holds a byte outside the
-  portable filename character set of POSIX.1-2024 as the check makes
-  it, byte for byte. A vector has this need when an entry name of its
-  folder tree holds a byte from 0x01 to 0x7F that is not the byte of an
-  ASCII letter, of an ASCII digit, or of `.`, `_`, or `-`, such as a
-  space or a line feed.
+- `non-portable-names`: the folder tree is on a file system on which
+  the check can make each entry name of the folder tree that is not a
+  portable filename. A portable filename, as POSIX.1-2024 defines it, is
+  a filename of characters of the portable filename character set: `A`
+  to `Z`, `a` to `z`, `0` to `9`, `.`, `_`, and `-`. By POSIX.1-2024,
+  `open()` with `O_CREAT`, `mkfifo()`, and `symlink()` fail with
+  [EILSEQ] when the last component of the pathname is not a portable
+  filename and cannot be created in the target directory. A vector has
+  this need when an entry name of its folder tree holds a byte that is
+  not the byte of one of these characters, such as a space, a line feed,
+  or a byte of 0x80 or more, which also gives it the need `names-kept`
+  or the need `non-utf-8-names`.
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
   entry name of the folder tree that is not valid UTF-8 as the check
   makes it, byte for byte. A vector has this need when an entry name of
   its folder tree is not valid UTF-8.
-- `symbolic-links`: the folder tree is on a file system on which the
-  check can make a symbolic link. A vector has this need when its folder
-  tree holds a symbolic link.
 
 A vector has the member `needs` when, and only when, it has one or more
 of these needs, and the member names each need of the vector and no
@@ -2937,13 +2943,14 @@ for no need, and it allows no skip of the vector.
 The group `invalid-packs` holds the vectors that each give a pack that
 is not valid. The requirement of the group is `validate-packs`. No pack
 of the group has a usable grammar, so each pack whose descriptor is
-valid also breaks the condition of a valid pack on usable grammars. The
-pack of each vector breaks one other condition, which needs no compiled
-grammar, and the note of the vector names that condition. Apart from
-these conditions, the pack has a valid descriptor with one grammar, a
-file of that grammar whose content has the hash of that grammar, a query
-file of the kind comment for that grammar, and a file under
-`licenses/`.
+valid breaks the condition of a valid pack on usable grammars. The note
+of each vector names one condition, of a valid pack or of a usable
+grammar, that the pack breaks and that a program can decide with no
+compiled grammar, such as that the file of a grammar has no import whose
+name is `tree_sitter_debug_message`. Apart from that condition, the pack
+has a valid descriptor with one grammar, a file of that grammar whose
+content has the hash of that grammar, a query file of the kind comment
+for that grammar, and a file under `licenses/`.
 
 - `input`: the folder tree object of the pack.
 - `result`: "valid" when the pack is valid, and "invalid" when it is
@@ -2976,7 +2983,7 @@ order of `files` is not a value that a conforming program gives. With
 `{}`, it gives no pack listing and no pack hash for the pack.
 
 ```
-{"group":"pack-hashes","input":{"entries":[],"type":"directory"},"n":15,"note":"the pack listing is the empty text","rev":"v1","values":{"files":[],"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","listing":""}}
+{"group":"pack-hashes","input":{"entries":[],"type":"directory"},"n":16,"note":"the pack listing is the empty text","rev":"v1","values":{"files":[],"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","listing":""}}
 ```
 
 ### 8.3 The depth of query texts
@@ -2999,7 +3006,7 @@ column for the place where the text passes the depth limit, it gives the
 line number or the column of `position`.
 
 ```
-{"group":"query-depths","input":"(a)","n":24,"result":"not too deep","rev":"v1"}
+{"group":"query-depths","input":"(a)","n":25,"result":"not too deep","rev":"v1"}
 ```
 
 ### 8.4 Well-named packs
@@ -3014,7 +3021,7 @@ and whether it is well named. The requirement of the group is
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"7061636b2e746f6d6c"}],"type":"directory"},"n":50,"result":"well named","rev":"v1"}
+{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"7061636b2e746f6d6c"}],"type":"directory"},"n":51,"result":"well named","rev":"v1"}
 ```
 
 The two entry names of this vector, `README.md` and `readme.md`, differ
@@ -3022,5 +3029,5 @@ only in the case of ASCII letters, so the vector has the need
 `case-distinct-names`:
 
 ```
-{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"524541444d452e6d64"},{"file":{"content":[],"type":"regular file"},"name":"726561646d652e6d64"}],"type":"directory"},"n":54,"needs":["case-distinct-names"],"note":"two files whose paths are the same text after ASCII case folding","result":"not well named","rev":"v1"}
+{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"524541444d452e6d64"},{"file":{"content":[],"type":"regular file"},"name":"726561646d652e6d64"}],"type":"directory"},"n":55,"needs":["case-distinct-names"],"note":"two files whose paths are the same text after ASCII case folding","result":"not well named","rev":"v1"}
 ```
