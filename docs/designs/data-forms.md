@@ -37,10 +37,10 @@ document, and the result "invalid" for every other byte sequence.
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is its digest as 64 hex digits. A
 hash id is an id prefix, such as `e-`, and then the first hex digits of
-a hash. A test-vector set is a byte sequence that holds the vectors of
-a specification, each vector as the JSON object of a vector line. In a
-version sequence of test-vector sets, the revisions rise by fixed rules
-when the vectors change.
+a hash. A test-vector set is a byte sequence that holds vectors, each
+vector as the JSON object of a vector line. In a version sequence, the
+revisions rise by fixed rules when the vectors or the forms of their
+groups change.
 
 From Text and notation, the design takes characters, texts, and their
 places, boundaries, and runs; bytes, byte sequences, and UTF-8; byte
@@ -179,13 +179,13 @@ its letters only in the same case.
 | [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets` |
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
 | [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result; what the value of `values` stands for; and the need names, each with the need that it stands for |
-| [need](sinter:#group-form-list=v1) | a condition under which a conforming program operates and that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds the need names of the needs of the vector |
 | [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
 | [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group, or of the whole test-vector set, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
-| [version](sinter:#test-vector-version-sequence=v1) | a test-vector set together with a text for each of its groups, which gives the forms of that group; the elements of a version sequence are versions |
+| [version](sinter:#test-vector-version-sequence=v1) | a test-vector set together with a text for each of its groups: the text of the forms of that group in the version; the elements of a version sequence are versions |
 | [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of versions, from the earliest to the latest, whose numbers and revisions change by fixed rules when the vectors or the forms of their groups change |
 
 ## 2. Results, JSON values, and canonical forms
@@ -334,7 +334,9 @@ from −9,007,199,254,740,991 to 9,007,199,254,740,991. A boolean is true
 or false. An array is a finite sequence of JSON values, which are its
 elements. An object is a finite set of members. A member is a pair of a
 key, which is a text, and a JSON value, which is the value of the
-member. No two members of one object have the same key.
+member. No two members of one object have the same key. A program gives
+a JSON value when it gives something that stands for that JSON value,
+and for no other JSON value.
 
 ### 3.4 UTF-16 code units
 
@@ -744,10 +746,9 @@ of `{}`, then the byte 0x0A.
 
 #### 4.10.1 Canonical byte sequences
 
-The group `write-json` holds the vectors that each give a JSON value, or
-a thing that is not a JSON value, and the canonical byte sequence that a
-conforming program gives for it. The requirements of the group are
-`write-canonical-json` and
+The group `write-json` holds the vectors that each give a JSON value and
+its canonical byte sequence, or a thing that is not a JSON value. The
+requirements of the group are `write-canonical-json` and
 `omit-canonical-byte-sequences-of-non-json-values`.
 
 - `input`: a string whose characters are a JSON text, as RFC 8259
@@ -797,10 +798,10 @@ input.
 
 #### 4.10.2 Canonical lines as output
 
-The group `write-line` holds the vectors that each give a line object,
-or a thing that is not a line object, and the canonical line that a
-conforming program gives for it. The requirements of the group are
-`write-canonical-line` and `omit-canonical-lines-of-non-line-objects`.
+The group `write-line` holds the vectors that each give a line object
+and its canonical line, or a thing that is not a line object. The
+requirements of the group are `write-canonical-line` and
+`omit-canonical-lines-of-non-line-objects`.
 
 - `input`: a string whose characters are a JSON text, as in the group
   `write-json`. The input is what the JSON text gives, as in that group.
@@ -1590,8 +1591,10 @@ table of TOML 1.1.0.
     #{toml-value=v1, index=v1},
 }
 
-Two TOML values are equal when, and only when, they are of the same kind
-and one of these is true:
+A program gives a TOML value when it gives something that stands for
+that TOML value, and for no TOML value that is not equal to it. Two TOML
+values are equal when, and only when, they are of the same kind and one
+of these is true:
 
 - They are TOML strings that are the same text, TOML integers that are
   the same whole number, or TOML booleans that are both true or both
@@ -2495,9 +2498,7 @@ When a conforming program gives a result for whether a byte sequence is
 a TOML document, it must give exactly one result: "valid" when the byte
 sequence is a TOML document, and "invalid" when it is not. With "valid",
 it must also give a table that is equal to the root table of the TOML
-document, as the root table of the byte sequence. A conforming program
-gives a table when it gives something that stands for that table, and
-for no table that is not equal to that table.
+document, as the root table of the byte sequence.
 
 ### 5.3 Only the root tables of TOML documents
 
@@ -2511,8 +2512,8 @@ for no table that is not equal to that table.
 }
 
 A conforming program must give, as the root table of a byte sequence,
-only something that stands for a table that is equal to the root table
-of the TOML document that the byte sequence is.
+only a table that is equal to the root table of the TOML document that
+the byte sequence is.
 
 ### 5.4 Spans as output
 
@@ -2528,10 +2529,25 @@ of the TOML document that the byte sequence is.
 When a conforming program gives the result "valid" for whether a byte
 sequence is a TOML document, it must also give each span pair of that
 TOML document, with the start and the end of its span, each as a line
-number and a column, and it must give no other line number and no other
-column with that result.
+number and a column.
 
-### 5.5 Only the span pairs of TOML documents
+### 5.5 No other positions with "valid"
+
+@req omit-other-toml-positions=v1
+@cites {
+    text#{
+        requirement=v1, conforming-program=v1, byte-sequence=v1,
+        result=v1, span=v1, position=v1,
+    },
+    #{toml-document=v1, toml-span-pair=v1},
+}
+
+When a conforming program gives the result "valid" for whether a byte
+sequence is a TOML document, it must give with that result no line
+number and no column other than those of the starts and the ends of the
+spans of the span pairs of that TOML document.
+
+### 5.6 Only the span pairs of TOML documents
 
 @req give-only-toml-spans=v1
 @cites {
@@ -2542,12 +2558,13 @@ column with that result.
     #{toml-document=v1, toml-span-pair=v1},
 }
 
-A conforming program must give, as a span of a byte sequence together
-with what the span is the span of, only a span pair of the TOML document
-that the byte sequence is, with the line numbers and the columns of the
-start and the end of its span.
+A conforming program must give, as a span of the text of a byte
+sequence together with what the span is the span of, only a span pair
+of the TOML document that the byte sequence is, and, as the line number
+or the column of the start or the end of the span of such a pair, only
+the line number or the column of that start or that end.
 
-### 5.6 Conformance
+### 5.7 Conformance
 
 A program conforms to the specification `toml` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -2658,7 +2675,7 @@ holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
 tables are equal when, and only when, their forms are the same JSON
 value.
 
-#### 5.6.1 TOML documents
+#### 5.7.1 TOML documents
 
 Each vector of the groups `give-root-table` and `reject-byte-sequence`
 gives a byte sequence and what a conforming program gives for it as a
@@ -2707,7 +2724,7 @@ position that a conforming program gives with the result "invalid".
 {"group":"reject-byte-sequence","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{}}
 ```
 
-#### 5.6.2 Spans
+#### 5.7.2 Spans
 
 The group `give-span` holds the vectors that each give a TOML document
 and one of the spans that a conforming program gives for it with the
@@ -2982,7 +2999,22 @@ sequence b of fewer than 2^61 bytes with an id prefix p and a whole
 number n from 1 to 64, it must give the hash id of b with p and n, and
 no other text, as the hash id of b with p and n.
 
-### 7.3 The validation of hash ids
+### 7.3 No hash ids for other inputs
+
+@req omit-hash-ids-of-other-inputs=v1
+@cites {
+    text#{
+        requirement=v1, conforming-program=v1, whole-number=v1,
+        byte-sequence=v1, text=v1,
+    },
+    #{id-prefix=v1, hash-id=v1},
+}
+
+A conforming program must give no text as the hash id of a byte sequence
+with a text that is not an id prefix, or with a whole number that is
+less than 1 or greater than 64.
+
+### 7.4 The validation of hash ids
 
 @req validate-hash-id=v1
 @cites {
@@ -2999,7 +3031,7 @@ must give exactly one result: "valid" when t fits the hash-id form with
 p and n, and "invalid" when t does not fit the hash-id form with p and
 n.
 
-### 7.4 Conformance
+### 7.5 Conformance
 
 A program conforms to the specification `hash-ids` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -3051,7 +3083,7 @@ a string, such as `"616263"` for the three bytes of `abc`; a text, such
 as an id prefix, is a string of the characters of the text; and a whole
 number is an integer.
 
-#### 7.4.1 Hash ids
+#### 7.5.1 Hash ids
 
 The group `compute` holds the vectors that each give an id prefix, a
 number of hex digits, a byte sequence, and the hash id of the byte
@@ -3073,7 +3105,7 @@ text of `hash-id`, and no other text.
 {"group":"compute","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"n":1,"rev":"v1","values":{"hash-id":"e-ba7816bf8f01"}}
 ```
 
-#### 7.4.2 The hash-id form
+#### 7.5.2 The hash-id form
 
 The group `validate` holds the vectors that each give a text, an id
 prefix, a number of hex digits, and the result that a conforming program
@@ -3128,9 +3160,9 @@ of a group are five things that the Conformance section of the design of
 the vectors gives for that group, or, for the vectors of a
 specification, the Conformance part of that specification. The text of
 the forms of a group is the whole text of that Conformance section or
-part, other than its headings and the copies of vector lines that it
-shows, so a change anywhere else in it changes the forms of every group
-that it gives.
+part, other than its headings and the vector lines that it shows, so a
+change anywhere else in it changes the forms of every group that it
+gives.
 These are the five things:
 
 1. the requirements of the group, from which the vectors of the group
@@ -3142,11 +3174,11 @@ These are the five things:
    byte sequence is a TOML document; which of these inputs, or which of
    them together, that question is about; and the conditions under which
    the requirements oblige that result, if any, such as that a
-   conforming program gives a result for that question. A condition
-   under which a conforming program operates and that a check of the
-   vectors can be unable to make hold, such as that the file system
-   stores a given entry name, is not one of these conditions: it is a
-   need, the fifth thing;
+   conforming program gives a result for that question. A condition on
+   the environment in which a conforming program operates that a check
+   of the vectors can be unable to make hold, such as that the file
+   system stores a given entry name, is not one of these conditions: it
+   is a need, the fifth thing;
 4. what the value of `values` stands for, such as the results of the
    other inputs. It can stand for a thing that a conforming program
    gives when it gives a thing of that kind, for things of which a
@@ -3154,33 +3186,34 @@ These are the five things:
    that a conforming program does not give;
 5. the need names, each a text that matches the production
    `group-name`, and the need that each of them stands for: a condition
-   under which a conforming program operates and that a check of the
-   vectors can be unable to make hold, such as that the file system
-   stores a given entry name. The Conformance section or part gives them
-   once, for all of its groups.
+   on the environment in which a conforming program operates that a
+   check of the vectors can be unable to make hold, such as that the
+   file system stores a given entry name. A condition on what a
+   conforming program gives, such as that it gives a result, is never a
+   need. The Conformance section or part gives the need names once, for
+   all of its groups.
 
 By the forms of its group, the object of a vector line states an input
 and what the requirements of the group oblige a conforming program to
 give for that input. The value of `result` is the result that these
 requirements oblige a conforming program to give for the question that
-the forms name for `result`, for the input, or for the inputs together,
-that the forms name for `result`, whenever the conditions hold that the
-forms name for that result. The value of
-`values` stands for what these requirements oblige a conforming program
-to give for the input, other than the result that the value of `result`
-stands for, such as the results of the other inputs. A vector object
-without the member `result` states no result other than those that the
-value of `values` stands for, and a vector object without the member
-`values` states nothing about what a conforming program gives for the
-input, other than the result that the value of `result` stands for. Each
-vector object has the member `result` or the member `values`, or both.
-The value of `note` explains the vector, and it is no part of the input,
-the result, or the values.
+the forms name for `result`, about the input, or the inputs together,
+that the forms name for that question, whenever the conditions hold that
+the forms name for that result. The value of `values` stands for what
+these requirements oblige a conforming program to give for the input,
+other than the result that the value of `result` stands for, such as the
+results of the other inputs. A vector object without the member `result`
+states no result other than those that the value of `values` stands for,
+and a vector object without the member `values` states nothing about
+what a conforming program gives for the input, other than the result
+that the value of `result` stands for. Each vector object has the member
+`result` or the member `values`, or both. The value of `note` explains
+the vector, and it is no part of the input, the result, or the values.
 
 A vector object can also have the member `needs`, with a value such as
 `["no-privilege"]`: the need names of the needs of the vector, in key
-order, with no name twice. A need is a condition under which a
-conforming program operates and that a check of the vectors can be
+order, with no name twice. A need is a condition on the environment in
+which a conforming program operates that a check of the vectors can be
 unable to make hold, such as that the file system stores a given entry
 name, or that the process of the program cannot read a file without the
 permission to read it. What the object states about the result and the
@@ -3336,7 +3369,7 @@ the revision of a test-vector set is the revision of its set line.
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
-        byte-sequence=v1, byte=v1, line=v1, line-ending=v1,
+        byte-sequence=v1, byte=v1, line=v1, line-ending=v1, run=v1,
         utf-8-encoding=v1, 0x-numeral=v1, code-span=v1,
     },
     #{
@@ -3347,11 +3380,7 @@ the revision of a test-vector set is the revision of its set line.
 
 For a specification S of a design and a group name g, the forms of the
 group g of S are these five things, which the Conformance part of S
-gives for g. The text of these forms is the whole text of that
-Conformance part, other than the lines of its headings, such as
-`#### 4.1 Inputs`, each line of it whose UTF-8 encoding, then the byte
-0x0A, is a vector line, and the line ending right after each of these
-lines.
+gives for g:
 
 1. the requirements of the group g, which are requirements that S
    declares;
@@ -3366,9 +3395,9 @@ lines.
    the conditions under which the requirements of the group g oblige
    that result, if they oblige it only under some conditions, such as
    that a conforming program of S gives a result for that question. A
-   condition under which a conforming program of S operates and that a
-   check of the vectors can be unable to make hold is never one of these
-   conditions: it is a need, the fifth thing;
+   condition on the environment in which a conforming program of S
+   operates that a check of the vectors can be unable to make hold is
+   never one of these conditions: it is a need, the fifth thing;
 4. what the value of `values` of such a vector object stands for: what
    a conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
@@ -3381,21 +3410,36 @@ lines.
    a thing that the program does not give;
 5. the need names of S, each a text that matches the production
    `group-name`, and for each need name, the need that it stands for: a
-   condition under which a conforming program of S operates and that a
-   check of the vectors can be unable to make hold, such as that the
-   file system stores a given entry name.
-   The Conformance part of S gives them once, and they are the same for
-   each group of S. When the Conformance part of S gives no need name,
-   S has no need names.
+   condition on the environment in which a conforming program of S
+   operates that a check of the vectors can be unable to make hold, such
+   as that the file system stores a given entry name. A condition on
+   what a conforming program gives, such as that it gives a result, is
+   never a need. The Conformance part of S gives the need names once,
+   and they are the same for each group of S. When the Conformance part
+   of S gives no need name, S has no need names.
+
+These definitions give the text of these forms:
+
+- A heading line is a line, outside the blocks of lines that lines of
+  three backticks open and close, as in the term `code-span`, whose
+  first characters are one to six `#`, then a space, such as
+  `#### 4.1 Inputs`.
+- The Conformance part of S is the run of the text of the design from
+  the start of the line right after the heading line of that part up to
+  the start of the next heading line with as many `#` as that heading
+  line, or fewer, or up to the end of the text.
+- The text of the forms of g is the text of the Conformance part of S
+  without its heading lines, without each line whose UTF-8 encoding,
+  then the byte 0x0A, is a vector line, and without the line ending
+  right after each heading line and each such line.
 
 For a design D and a group name g, the forms of the group g of D are the
 same five things, which the Conformance section of D gives for g, with
 the requirements that D holds outside its specifications in place of the
 requirements that S declares, with the need names of D in place of the
 need names of S, and with a conforming program of D in place of a
-conforming program of S. The text of these forms is the whole text of
-the Conformance section of D, other than the same lines and line
-endings.
+conforming program of S. The text of these forms is the text of the
+Conformance section of D, without the same lines and line endings.
 
 #### 8.1.8 The meaning of a vector
 
@@ -3413,12 +3457,15 @@ endings.
 
 For a specification S of a design, a vector of S is an input and what
 requirements that S declares oblige a conforming program of S to give
-for that input, and a test-vector set of S is a test-vector set for
-whose groups the Conformance part of S gives forms. For a design D, a
-vector of D is an input and what requirements that D holds outside its
-specifications oblige a conforming program of D to give for that input,
-and a test-vector set of D is a test-vector set for whose groups the
-Conformance section of D gives forms.
+for that input. A test-vector set of S is a test-vector set for whose
+groups the Conformance part of S gives forms, and in which the values
+of `input`, `result`, and `values` of the object of each vector line
+have the fixed forms that the forms of its group give. For a design D,
+a vector of D is an input and what requirements that D holds outside
+its specifications oblige a conforming program of D to give for that
+input, and a test-vector set of D is a test-vector set for whose groups
+the Conformance section of D gives forms, and in which the values of
+these members have the fixed forms that the forms of its group give.
 
 For a vector line of a test-vector set of S, or of D, and the group g of
 that vector line, the object of the vector line states one vector of S,
@@ -3439,9 +3486,9 @@ object states this:
 - When the object has the member `result`, the requirements of the group
   g oblige a conforming program of S, or of D, to give the value of
   `result`, and no other result, as its result for the question that
-  the forms name for `result`, for the input, or for the inputs
-  together, that the forms name for `result`, whenever the conditions
-  hold that the forms name for that result and each need of the vector
+  the forms name for `result`, about the input, or the inputs together,
+  that the forms name for that question, whenever the conditions hold
+  that the forms name for that result and each need of the vector
   holds; when the forms name no condition and the vector has no needs,
   they oblige it always. The object states nothing about a result for
   another question, or for another of these inputs, other than what the
@@ -3495,8 +3542,9 @@ with the same number, and one of these is true:
   one of the objects of these two vector lines has that member, or both
   have it and the canonical byte sequences of the values of that member
   in the two objects differ.
-- The forms of the group of the vector line of e, in e, and the forms of
-  the group of the vector line of l, in l, are different texts.
+- The text of the forms of the group of the vector line of e, in e, and
+  the text of the forms of the group of the vector line of l, in l, are
+  different texts.
 
 These are the rules:
 
@@ -3549,12 +3597,22 @@ objects of the byte sequence.
 }
 
 When a conforming program gives objects as the objects of a byte
-sequence, it must give all the objects of the set line, the group lines,
-and the vector lines of that byte sequence, each once and in their
-order, and no other object, and it must give them only when the byte
-sequence is a test-vector set.
+sequence that is a test-vector set, it must give all the objects of the
+set line, the group lines, and the vector lines of that byte sequence,
+each once and in their order, and no other object.
 
-### 8.4 The validation of version sequences
+### 8.4 No objects for other byte sequences
+
+@req omit-objects-of-other-byte-sequences=v1
+@cites {
+    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    #{json-value=v1, test-vector-set=v1},
+}
+
+A conforming program must give no object as an object of a byte
+sequence that is not a test-vector set.
+
+### 8.5 The validation of version sequences
 
 @req validate-version-sequences=v1
 @cites {
@@ -3567,7 +3625,7 @@ of versions is a version sequence, it must give exactly one result:
 "valid" when the sequence is a version sequence, and "invalid" when it
 is not.
 
-### 8.5 Conformance
+### 8.6 Conformance
 
 A program conforms to the specification `test-vectors` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -3617,12 +3675,13 @@ byte sequence is its hex text, as a string, such as
 `"7b22726576223a227631227d0a"` for the UTF-8 encoding of `{"rev":"v1"}`,
 then the byte 0x0A.
 
-#### 8.5.1 Test-vector sets
+#### 8.6.1 Test-vector sets
 
 The group `read-set` holds the vectors that each give a byte sequence
 and what a conforming program gives when it reads the byte sequence as a
 test-vector set. The requirements of the group are
-`read-test-vector-set` and `give-objects-of-test-vector-sets`.
+`read-test-vector-set`, `give-objects-of-test-vector-sets`, and
+`omit-objects-of-other-byte-sequences`.
 
 - `input`: the byte sequence.
 - `result`: when a conforming program gives a result for whether the
@@ -3636,7 +3695,7 @@ test-vector set. The requirements of the group are
 When a conforming program gives the result "valid" for whether the byte
 sequence is a test-vector set, it also gives objects as the objects of
 the byte sequence. When it gives objects as the objects of the byte
-sequence, it gives the objects of `objects`, in their order, and no
+sequence, it gives each object of `objects` once, in their order, and no
 other object. When `values` is `{}`, it gives no object as an object of
 the byte sequence.
 
@@ -3645,7 +3704,7 @@ the byte sequence.
 {"group":"read-set","input":"","n":7,"note":"the byte sequence holds no set line","result":"invalid","rev":"v1","values":{}}
 ```
 
-#### 8.5.2 Version sequences
+#### 8.6.2 Version sequences
 
 The group `validate-sequence` holds the vectors that each give a finite
 sequence of versions and the result that a conforming program gives for
