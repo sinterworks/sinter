@@ -16,7 +16,7 @@
 @cites wasmtime/36.0.19
 @cites wasm-core/2.0
 @cites crates/regex-1.13.1
-Specifies language packs, with their files, pack paths, and pack hashes; descriptors, with pack names, release numbers, comment sigils, foreign tag words, name separators, grammars, test runners, and runner settings; usable grammars, query files, and valid packs; the readings of texts with packs, with parse trees, parse failures, comment nodes, definition nodes, decoration nodes, and test nodes, and the names and test labels of test nodes; runner adapters, with the limits, the requests, and the results of their calls; and requirements for conforming programs that validate packs and adapters, give pack hashes, read descriptors, read texts with packs, call adapters, and keep the code of a pack from what lies outside it.
+Specifies language packs, with their files, pack paths, and pack hashes; descriptors, with pack names, release numbers, comment sigils, foreign tag words, name separators, grammars, test runners, and runner settings; usable grammars, query files, and valid packs; the readings of texts with packs, with parse trees, parse failures, comment nodes, definition nodes, decoration nodes, and test nodes, and the names and test labels of test nodes; runner adapters, with the instances that run their code, the requests, and the results of their calls; and requirements for conforming programs that validate packs and adapters, give pack hashes, read descriptors, read texts with packs, call adapters, and keep the code of a pack from what lies outside it.
 
 A language pack, or pack, holds the support for one language: the
 grammars that parse the files of the language, the query files that find
@@ -33,11 +33,10 @@ reads a text with a pack: it parses the text with the grammar that the
 name of the file selects, it runs the query files of that grammar over
 the parse tree, and it gives the comments, the definitions, the
 decorations, and the test nodes of the text. A runner adapter is a
-WebAssembly module that reads the reports of one test runner and binds
-their report results to test nodes. A program calls an
-adapter with a request and a report, under fixed limits, and reads its
-response. The code of a grammar and of an adapter can reach no file, no
-network, and no clock.
+WebAssembly module that reads the report files of one test runner and
+binds their test results to test nodes. A program calls an adapter with
+a request and a report file, and reads its response. The code of a
+grammar and of an adapter can reach no file, no network, and no clock.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405. A production, such as
@@ -60,11 +59,13 @@ inputs, and results. From Identifiers, it takes tag words. From Files
 and paths, it takes folder trees, folders, regular files, symbolic
 links, and files of another kind, with their contents and attributes;
 valid paths and the files that they name; valid globs and the valid
-paths that fit them; the bytes that a program takes from a file; and the
-system of a program. From Data forms, it takes TOML documents, their
-root tables, and TOML values; hashes and the hash form; JSON values and
-their canonical byte sequences; indexes; and test-vector sets. From the
-Ontology, it takes parameters and their bindings.
+paths that fit them; the bytes that a program takes from a file; the
+system of a program; and file objects, folder tree objects, and stored
+folder trees. From Data forms, it takes TOML documents, their root
+tables, and TOML values; hashes and the hash form; JSON values, their
+canonical byte sequences, and the JSON values of byte sequences;
+indexes; and test-vector sets. From the Ontology, it takes tests, and
+parameters and their bindings.
 
 From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
@@ -76,10 +77,11 @@ takes the loading of grammars, parse trees and their nodes, queries with
 their patterns, captures, predicates, and quantifiers, and the matches
 of a query. From wasmtime 36.0.19, the WebAssembly runtime of that
 library, it takes its engine with its default configuration, and the
-counting of fuel. From the WebAssembly Core Specification 2.0, it takes
-modules, their validation, imports, exports, functions, memories,
-tables, instances, and the execution of code. From the Rust crate regex
-1.13.1, it takes the regular expressions of the predicates of queries.
+compilation of modules. From the WebAssembly Core Specification 2.0, it
+takes modules, their validation, imports, exports, functions, memories,
+tables, instances, traps, and the execution of code. From the Rust crate
+regex 1.13.1, it takes the regular expressions of the predicates of
+queries.
 
 ## 1. Glossary
 
@@ -89,12 +91,12 @@ tables, instances, and the execution of code. From the Rust crate regex
 | pack root | the root of the folder tree of a pack |
 | [file of a pack](sinter:#pack=v1) | a valid path, such as `queries/rust/tags.scm`, whose last file name names a regular file in the folder tree of the pack, and a content, which is the content of that regular file |
 | [have a file](sinter:#pack=v1) | a pack has the file p when it has a file whose valid path is p |
-| [text order](sinter:#text-order=v1) | the order of texts by the code points of their characters, place by place, in which a text comes before each longer text that starts with it |
+| [code point order](sinter:text#code-point-order=v1) | the order of texts by the code points of their characters, place by place, in which a text comes before each longer text that starts with it |
 | [pack path](sinter:#pack-path=v1) | a valid path of at most 255 characters, each a printable ASCII character other than `\`, such as `grammars/rust.wasm` |
 | [paths of a pack](sinter:#well-named-pack=v1) | the valid paths of the files of the pack, and each part of one of them from its start to right before a `/`, such as `queries` and `queries/rust` for the file `queries/rust/tags.scm` |
 | [ASCII case folding](sinter:#well-named-pack=v1) | the change of each letter from `A` to `Z` of a text to the same letter from `a` to `z`, with no change to any other character |
 | [well named](sinter:#well-named-pack=v1) | a pack is well named when the entry name of each folder entry on the way to a regular file of its folder tree is the UTF-8 encoding of a file name, each path of the pack is a pack path, and no two paths of the pack are the same text after ASCII case folding |
-| [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the text order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
+| [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether it is well named, the valid paths of its files, its pack listing, its pack hash, whether it is valid, a value of its descriptor, the result of a reading of a text with it, the content of one of its files, or the result of a call of the adapter of one of its test runners |
 | [descriptor](sinter:#valid-pack=v1) | the content of the file `pack.toml` of a pack, which is a valid descriptor in a valid pack |
@@ -110,9 +112,9 @@ tables, instances, and the execution of code. From the Rust crate regex
 | [grammar of a descriptor](sinter:#descriptor-grammar=v1) | one table of the array `grammar` of a descriptor: a grammar name, a hash, a license, and file-name globs |
 | [file-name glob](sinter:#descriptor-grammar=v1) | one of the valid globs of a grammar of a descriptor, such as `*.ts`, which the last file name of a valid path can fit |
 | [file grammar](sinter:#file-grammar=v1) | the first grammar of a descriptor that has a file-name glob that the last file name of a valid path fits |
-| [test runner](sinter:#test-runner=v1) | a program that runs tests and writes reports on them, such as vitest or cargo-nextest; a valid descriptor describes its test runners |
+| [test runner](sinter:#test-runner=v1) | a program that runs tests and writes report files on them, such as vitest or cargo-nextest; a valid descriptor describes its test runners |
 | [adapter hash, adapter license](sinter:#test-runner=v1) | the hash that the descriptor gives for the adapter file of a test runner, and the license of that adapter, which a descriptor gives for a test runner that has an adapter of its own |
-| [match table](sinter:#test-runner=v1) | a table of data that describes how the reports of a test runner bind to test nodes, for a test runner that has no adapter hash |
+| [match table](sinter:#test-runner=v1) | a table of data that describes how the test results of the report files of a test runner bind to test nodes, for a test runner that has no adapter hash |
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a library that parses texts by grammars and finds parts of the parse trees by queries; here, the Rust library of tree-sitter 0.26.13, with its feature `wasm` |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
@@ -120,7 +122,7 @@ tables, instances, and the execution of code. From the Rust crate regex
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that tree-sitter 0.26.13 gives as the version of the format of the language of a usable grammar |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | pattern, capture, capture name, predicate, directive, quantifier | the things of a query of tree-sitter 0.26.13 with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
-| [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `test`, and the node that the match captures under it |
+| [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [depth of a query text](sinter:#query-depth=v1) | the number of levels of nesting that are open after a token of a query text |
 | [depth limit](sinter:#query-depth=v1) | a query text passes the depth limit when its depth after one of its tokens is more than 100; it passes the depth limit at the first character of the first such token |
 | [query name](sinter:#query-depth=v1) | a token of a query text, such as `_` or `function_item`: a name start character and the name characters after it, when they do not start a field name |
@@ -141,28 +143,28 @@ tables, instances, and the execution of code. From the Rust crate regex
 | [definition node](sinter:#definition-node=v1) | the role node of a kept match with the role name `definition` of the query file of the kind definition, such as a function, a type, a module, or a class |
 | [name node, body node](sinter:#definition-node=v1) | a node that the kept match of a definition node captures as `name`, and a node that it captures as `body`; when that kept match captures no `body` node, the definition node is its own body node |
 | [decoration node](sinter:#decoration-node=v1) | the role node of a kept match with the role name `decoration` of the query file of the kind definition, such as a Rust attribute |
-| [test node](sinter:#test-node=v1) | the role node of a kept match of the query file of the kind test |
-| [test, group](sinter:#test-node=v1) | the two kinds of test node: a test node is a group, such as a vitest `describe`, when one of its kept matches has the role name `group`, or when it encloses a test node that has a kept match with the role name `test`; each other test node is a test, such as a Rust function with `#[test]` |
+| [test node](sinter:#test-node=v1) | the role node of a kept match of the query file of the kind test, which is the code of one test of the file |
+| [test case, test suite](sinter:#test-node=v1) | the two kinds of test node: a test node is a test suite, such as a vitest `describe`, when one of its kept matches has the role name `suite`, or when it encloses a test node that has a kept match with the role name `case`; each other test node is a test case, such as a Rust function with `#[test]` |
 | [enclose](sinter:#enclosed-node=v1) | a node encloses a different node when its run starts at or before the start of the run of the other node, ends at or after its end, and the other node does not come before it in the order of the parse tree |
 | [piece, text piece, placeholder](sinter:#test-name=v1) | a part of the name of a test node, from a node that a kept match of the test node captures as `name` or as `placeholder`: a text piece is text as the text of the file writes it; a placeholder is text that the test runner puts in the name when it runs the test |
-| [name path](sinter:#test-name=v1) | the names of the groups that enclose a test node, outermost first, then its own name |
-| [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test that the test runner runs once for each row of a table |
+| [name path](sinter:#test-name=v1) | the names of the test suites that enclose a test node, outermost first, then its own name: the name of its test |
+| [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values; with "parse failure", the run of the failure node, when there is one |
 | import, export, instance, trap, page | the things of the WebAssembly Core Specification 2.0 with these names |
-| [limits of a call](sinter:#call-limit=v1) | the fuel limit, the memory limit, and the table limit of an instance in which the code of an adapter runs |
-| fuel | the count that wasmtime 36.0.19 keeps of the work of the code of an instance, when its setting `consume_fuel` is on; it does not depend on the speed of the machine |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module, with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, under limits that the program has of its own on its resources |
 | [valid adapter](sinter:#valid-adapter=v1) | a WebAssembly module that wasmtime 36.0.19 compiles, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
 | [test entry](sinter:#test-entry=v1) | an id, a path, a first and a last line, a kind, a name path, and test labels, which a call of the function bind gives an adapter for one test node |
 | [request](sinter:#adapter-request=v1) | the canonical byte sequence of a request object: a JSON object with the version 1 of the interface, the test runner, the values of its runner settings, the report name, and, for bind, the root and the test entries |
-| report | the bytes of a file that a test runner wrote, such as a JUnit XML file, which a program gives an adapter, unchanged, in a call |
-| [report result](sinter:#call-result=v1) | what a report states about one test, such as its name and its status, as a result object of the response of bind gives it |
-| [call](sinter:#adapter-call=v1) | one execution of the function recognise or the function bind of an adapter, in a new instance, with a request and a report, which gives a response or fails |
+| report file | the bytes of a file that a test runner wrote, such as a JUnit XML file, which a program gives an adapter, unchanged, in a call |
+| report name | the name of a report file, such as its path as a person gave it |
+| [test result](sinter:#call-result=v1) | what a report file states about one test, such as its name and its status, as a result object of the response of bind gives it |
+| [call](sinter:#adapter-call=v1) | one execution of the function recognise or the function bind of an adapter, in an instance of the adapter, with a request and a report file, which gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
-| [JSON value of a response](sinter:#response-json-value=v1) | the JSON value that the text of a response writes, when the response is valid UTF-8 and a JSON text with no `null`, no number with a fraction or an exponent, no integer outside the range ±9,007,199,254,740,991, no escape of a lone surrogate, and no object with two names that stand for the same text |
+| [JSON value of a response](sinter:data-forms#json-value-of-a-byte-sequence=v1) | the JSON value of the response as a byte sequence, as Data forms defines it; a response that is not valid UTF-8, that is not a JSON text, or whose JSON text holds `null`, a number with a fraction or an exponent, an integer outside the range of a JSON integer, an escape of a lone surrogate, or an object with two names that stand for the same text has no JSON value |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
-| [result object, binding object](sinter:#call-result=v1) | an object of the response of bind that gives one report result, with its name and its status, and an object that binds one report result to one test entry, with a reason |
+| [result object, binding object](sinter:#call-result=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
 
 ## 2. Packs, descriptors, readings, and adapters
 
@@ -233,11 +235,11 @@ these guarantees still hold.
 ### 2.2 The pack hash
 
 The pack listing of a well-named pack is a text with one line for each
-file of the pack, in the text order of their valid paths. Text order
-compares two texts by the
-code points of their characters, place by place, and puts a text before
-each longer text that starts with it. For pack paths, which are ASCII,
-it is the order of their bytes. Each line holds, in this order:
+file of the pack, in the code point order of their valid paths. Code
+point order compares two texts by the code points of their characters,
+place by place, and puts a text before each longer text that starts with
+it. For pack paths, which are ASCII, it is the order of their bytes.
+Each line holds, in this order:
 
 1. the hash of the content of the file, as 64 lower-case hex digits;
 2. two spaces;
@@ -310,15 +312,15 @@ no file grammar.
 
 The table `runner` holds one table for each test runner, under the name
 of the test runner, which is a pack name. A test runner is a program
-that runs tests and writes reports on them. The table of a test runner
-holds exactly one of `adapter` and `match`, and it can hold
+that runs tests and writes report files on them. The table of a test
+runner holds exactly one of `adapter` and `match`, and it can hold
 `settings`:
 
 | key | TOML value | value |
 |---|---|---|
 | `adapter.sha256` | string | the adapter hash: the hash that the descriptor gives for the file `adapters/<r>.wasm` |
 | `adapter.license` | string | the adapter license: the license of the adapter, a TOML string, such as an SPDX license expression |
-| `match` | table | the match table: data that describes how the reports of the test runner bind to test nodes, for a test runner that has no adapter of its own |
+| `match` | table | the match table: data that describes how the test results of the report files of the test runner bind to test nodes, for a test runner that has no adapter of its own |
 | `settings` | table | the runner settings, each with its default value: a string, a boolean, or an array of strings |
 
 The descriptor gives each license as a TOML string, and a valid
@@ -361,7 +363,7 @@ names = ["*.tsx"]
 
 [runner.vitest.match]
 path = ["name"]
-group-separator = " > "
+suite-separator = " > "
 
 [runner.vitest.settings]
 recognise = ["testsuites@name=vitest tests"]
@@ -394,7 +396,7 @@ names that give the kind of thing that a match finds.
 |---|---|---|---|
 | comment | `tags.scm` | `comment`: a comment; `untagged`: a comment that carries no tags | none |
 | definition | `definitions.scm` | `definition`: a definition; `decoration`: a decoration | `name`: the node whose text is the name of the definition; `body`: the body of the definition |
-| test | `tests.scm` | `test`: a test; `group`: a group | `name`: a text piece of the name; `placeholder`: a placeholder of the name; `label.<word>`: the test label `<word>` |
+| test | `tests.scm` | `case`: a test case; `suite`: a test suite | `name`: a text piece of the name; `placeholder`: a placeholder of the name; `label.<word>`: the test label `<word>` |
 
 Each pattern captures exactly one role name, once. A pattern of the kind
 definition with the role name `definition` captures `name` once or not
@@ -497,8 +499,8 @@ and its node type:
   When its kept match captures no node as `body`, its body node is the
   definition node itself;
 - the decoration nodes;
-- the test nodes, each with whether it is a test or a group, its name
-  path, and its test labels.
+- the test nodes, each with whether it is a test case or a test suite,
+  its name path, and its test labels.
 
 The run of a node is the run of the text that the node takes up. The
 parser gives the start and the end of a node in bytes of the UTF-8
@@ -506,21 +508,24 @@ encoding of the parse text, and the run counts characters. The run of a
 node leaves out a line feed that only the parse text has, and the byte
 order mark of the text. So the run of each node is a span of the text.
 
-### 2.6 Tests, groups, and their names
+### 2.6 Test cases, test suites, and their names
 
-A test node is a test or a group. A test is a test node for one test of
-the code, such as a Rust function with the attribute `#[test]`, or a
-call `it("adds", ...)` in TypeScript. A group is a test node that the
-query file captures as a group, or that encloses a test, such as a
-vitest `describe`, a Rust `mod tests`, or a test class. A node encloses
-a different node when the run of the node starts at or before the start
+A test node is the code of one test of the file: a unit of code that a
+test runner runs and that can pass or fail, or a set of such units that
+the code groups under one name. A test node is a test case or a test
+suite. A test case is a test node for one such unit, such as a Rust
+function with the attribute `#[test]`, or a call `it("adds", ...)` in
+TypeScript. A test suite is a test node that the query file captures as
+a test suite, or that encloses a test case, such as a vitest
+`describe`, a Rust `mod tests`, or a test class. A node encloses a
+different node when the run of the node starts at or before the start
 of the run of the other node, ends at or after its end, and the other
 node does not come before the node in the order of the parse tree. So,
 of two nodes with the same run, the node that comes first in the order
-of the parse tree encloses the other. A test node is a group when one of
-its kept matches captures it as `group`, or when it encloses a test node
-that a kept match captures as `test`. So, when one test encloses
-another, the outer test is a group.
+of the parse tree encloses the other. A test node is a test suite when
+one of its kept matches captures it as `suite`, or when it encloses a
+test node that a kept match captures as `case`. So, when one test case
+encloses another, the outer one is a test suite.
 
 The name of a test node is a sequence of pieces. Each node that a kept
 match of the test node captures as `name` or `placeholder` gives one
@@ -530,12 +535,13 @@ node gives a placeholder: text that the test runner puts in the name of
 the test when it runs the test, such as for a template substitution
 `${n}`. A placeholder can stand for any text, the empty text included. A
 reading decodes nothing in a name: it removes no quote, and it reads no
-escape sequence. The name path of a test node is the names of the groups
-that enclose it, outermost first, then its own name.
+escape sequence. The name path of a test node is the names of the test
+suites that enclose it, outermost first, then its own name. The name
+path is the name of the test whose code the test node is.
 
 The test labels of a test node come from the capture names
-`label.<word>` of its kept matches, such as `label.each` for a test that
-the test runner runs once for each row of a table.
+`label.<word>` of its kept matches, such as `label.each` for a test case
+that the test runner runs once for each row of a table.
 
 This example of a query file of the kind test is for vitest in
 TypeScript:
@@ -546,7 +552,7 @@ TypeScript:
              (member_expression object: (identifier) @_fn)]
   arguments: (arguments .
     (string [(string_fragment) @name (escape_sequence) @placeholder]*))
-  (#any-of? @_fn "it" "test")) @test
+  (#any-of? @_fn "it" "test")) @case
 
 (call_expression
   function: [(identifier) @_fn
@@ -554,27 +560,27 @@ TypeScript:
   arguments: (arguments .
     (template_string [(string_fragment) @name (escape_sequence) @placeholder
                       (template_substitution) @placeholder]*))
-  (#any-of? @_fn "it" "test")) @test
+  (#any-of? @_fn "it" "test")) @case
 
 (call_expression
   function: [(identifier) @_fn
              (member_expression object: (identifier) @_fn)]
   arguments: (arguments . (string [(string_fragment) @name (escape_sequence) @placeholder]*))
-  (#eq? @_fn "describe")) @group
+  (#eq? @_fn "describe")) @suite
 ```
 
 With it, the text
-``describe("math", () => { it(`adds ${n}`, () => {}) })`` gives a group
-with the name `math`, a text piece, and, in it, a test whose name is the
-text piece `adds ` and the placeholder `${n}`. The name path of the test
-is these two names.
+``describe("math", () => { it(`adds ${n}`, () => {}) })`` gives a test
+suite with the name `math`, a text piece, and, in it, a test case whose
+name is the text piece `adds ` and the placeholder `${n}`. The name path
+of the test case is these two names.
 
 ### 2.7 Runner adapters
 
-A runner adapter is a WebAssembly module that reads the reports of one
-test runner and binds the report results to test nodes. A pack has at
-most one adapter for each test runner: the file `adapters/<r>.wasm`. The
-module is a valid adapter when wasmtime 36.0.19 compiles it, when it
+A runner adapter is a WebAssembly module that reads the report files of
+one test runner and binds their test results to test nodes. A pack has
+at most one adapter for each test runner: the file `adapters/<r>.wasm`.
+The module is a valid adapter when wasmtime 36.0.19 compiles it, when it
 imports nothing (no function, no memory, no table, and no global), and
 when it exports these five names, with these types:
 
@@ -583,62 +589,47 @@ when it exports these five names, with these types:
 | `memory` | memory | the linear memory of the module |
 | `sinter_interface` | `[] -> [i32]` | gives the version of the interface: `1` |
 | `sinter_alloc` | `[i32] -> [i32]` | reserves the given number of bytes in `memory`, and gives the address of the first byte, an address other than `0`, also for 0 bytes; gives `0` only when it cannot reserve the bytes |
-| `sinter_recognise` | `[i32 i32 i32 i32] -> [i64]` | the function recognise: says whether the report is a report of the test runner |
-| `sinter_bind` | `[i32 i32 i32 i32] -> [i64]` | the function bind: reads the report results and binds them to test entries |
+| `sinter_recognise` | `[i32 i32 i32 i32] -> [i64]` | the function recognise: says whether the report file is a report file of the test runner |
+| `sinter_bind` | `[i32 i32 i32 i32] -> [i64]` | the function bind: reads the test results of the report file and binds them to test entries |
 
 The module can export other names, such as the globals `__data_end` and
 `__heap_base` that the Rust compiler adds. This is version 1 of the
 interface.
 
-A call runs one function of an adapter in a new instance of its module,
-so nothing that one call leaves in its instance reaches the next call.
-In a call, the program:
+A call runs one function of an adapter in an instance of the adapter: a
+new instance of its module, so nothing that one call leaves in its
+instance reaches the next call. In a call, the program:
 
 1. makes the instance, which runs the start function of the module
    when it has one;
 2. invokes `sinter_alloc` for the number of bytes of the request, and
    writes the request at the address that it gives;
-3. invokes `sinter_alloc` for the number of bytes of the report, and
-   writes the bytes of the report, unchanged, at the address that it
-   gives;
+3. invokes `sinter_alloc` for the number of bytes of the report file,
+   and writes the bytes of the report file, unchanged, at the address
+   that it gives;
 4. invokes the function with four arguments: the address and the number
    of bytes of the request, then the address and the number of bytes of
-   the report;
+   the report file;
 5. reads the value that the function gives: the high 32 bits are the
    address, and the low 32 bits are the length, of the response in
    `memory`.
 
 Each address and each length is an unsigned number. A call fails when
-the module traps, when `sinter_alloc` gives `0` or an address whose
-bytes do not lie inside `memory`, or when the bytes of the response do
-not lie inside `memory`. The call fails when `sinter_alloc` gives `0`,
-whatever the number of bytes. A call of an adapter that is not a valid
-adapter has the result "failed".
+its code traps, when `sinter_alloc` gives `0` or an address whose bytes
+do not lie inside `memory`, or when the bytes of the response do not lie
+inside `memory`. The call fails when `sinter_alloc` gives `0`, whatever
+the number of bytes. A call of an adapter that is not a valid adapter
+has the result "failed".
 
-Each call runs under three limits, which no pack and no configuration
-can change. The code of the instance runs as wasmtime 36.0.19 runs it
-with its default configuration, except that wasmtime counts fuel and
-holds the three limits. The fuel limit bounds the fuel that the code of
-the instance uses, as wasmtime 36.0.19 counts fuel: the start function,
-both invocations of `sinter_alloc`, and the invocation of the function
-together.
-Fuel does not depend on the speed of the machine, so a call that runs
-out of fuel on one machine runs out of fuel on every machine. The memory
-limit bounds the sizes of all memories of the instance together, and the
-table limit bounds the elements of all of its tables together. A call
-fails when it runs out of fuel. It also fails when a growth of a memory
-within the maximum of that memory would make the sizes of all memories
-together more than the memory limit. The maximum of a memory is the
-maximum of its memory type, or 65,536 pages when its memory type has
-none. A growth of a memory past its maximum does not make the call fail:
-the instruction `memory.grow` gives −1 to the code, as the WebAssembly
-Core Specification 2.0 defines, and the call goes on. A call also fails
-when its instantiation would make the elements of all tables together
-more than the table limit. A later growth of a table past the table
-limit does not make the call fail: the instruction `table.grow` gives −1
-to the code, and the call goes on. A call also fails when its code
-exhausts the call stack, at a depth of calls that can differ between
-conforming programs.
+The code of an instance of an adapter runs as the WebAssembly Core
+Specification 2.0 defines, under limits that the program has of its own
+on the resources of the instance, such as the size of its memories or
+the time that its code runs. The program stops a call whose code goes
+past these limits, and that call fails, so each call ends. Which calls
+go past the limits of a program can differ between conforming programs.
+A growth of a memory past its maximum does not make the call fail: the
+instruction `memory.grow` gives −1 to the code, as the WebAssembly Core
+Specification 2.0 defines, and the call goes on.
 
 The code of an adapter imports nothing, so it can read no file, use no
 network, see no clock, and start no process. No file, network, clock,
@@ -651,19 +642,20 @@ members of each object of the request stand in key order. For the
 function recognise, it has the members `interface`, the integer `1`;
 `runner`, the name of the test runner; `settings`, the value of each
 test runner setting under the binding of `runner-settings`; and
-`report`, the report name, a text that names the report, such as the
-path of the report as a person gave it. For the function bind, it also
-has `root`, a text such as the absolute path of the root of the
-repository, and `tests`: one object for each test entry, in the text
-order of their ids.
+`report`, the report name: the name of the report file, a text such as
+the path of the report file as a person gave it. For the function bind,
+it also has `root`, a text such as the absolute path of the root of the
+repository, and `tests`: one object for each test entry, in the code
+point order of their ids.
 
 A test entry gives an adapter one test node: an id, which names the test
 node in the call; a path, the valid path at which the reading read the
 text of the test node; the line numbers of the start and the end of its
-run, `line` and `eline`; `group`, true for a group and false for a test;
-`names`, its name path, one array for each name, with one object for
-each piece, `{"text": ...}` for a text piece and `{"placeholder": ...}`
-for a placeholder; and `labels`, its test labels, in text order. For
+run, `line` and `eline`; `suite`, true for a test suite and false for a
+test case; `names`, its name path, one array for each name, with one
+object for each piece, `{"text": ...}` for a text piece and
+`{"placeholder": ...}` for a placeholder; and `labels`, its test labels,
+in code point order. For
 example, the request of a call of recognise for the test runner
 `vitest`, with the runner setting `recognise` at its default value, and
 the report name `out/junit.xml`, is the UTF-8 encoding of this text:
@@ -678,41 +670,40 @@ is an object with three members, all required:
 
 | member | value |
 |---|---|
-| `results` | an array of result objects: each report result that the adapter read, in the order of the report |
-| `bindings` | an array of binding objects: each binding of a report result to a test entry |
-| `warnings` | an array of strings: texts for the person who runs the program, such as about a kind of report result that the adapter cannot bind; it can be empty |
+| `results` | an array of result objects: each test result that the adapter read, in the order of the report file |
+| `bindings` | an array of binding objects: each binding of a test result to a test entry |
+| `warnings` | an array of strings: texts for the person who runs the program, such as about a kind of test result that the adapter cannot bind; it can be empty |
 
 A result object has these members:
 
 | member | value |
 |---|---|
-| `name` | a string: the name of the report result, as the report writes it |
+| `name` | a string: the name of the test result, as the report file writes it |
 | `status` | the string `pass`, `fail`, `error`, or `skip` |
-| `file` | a string: the file of the report result, as the report writes it; absent when the report gives none |
-| `line` | an integer of 1 or more: the line of the report result; absent when the report gives none |
-| `ms` | an integer of 0 or more: the duration of the report result in whole milliseconds; absent when the report gives none |
+| `file` | a string: the file of the test result, as the report file writes it; absent when the report file gives none |
+| `line` | an integer of 1 or more: the line of the test result; absent when the report file gives none |
+| `ms` | an integer of 0 or more: the duration of the test result in whole milliseconds; absent when the report file gives none |
 
 A binding object has these members, all required:
 
 | member | value |
 |---|---|
-| `result` | an integer: 1 less than the index of the report result in `results`, so 0 for the first report result |
+| `result` | an integer: 1 less than the index of the test result in `results`, so 0 for the first test result |
 | `test` | a string: the id of a test entry of the request |
-| `reason` | a string with no line feed: why the report result binds to the test entry |
+| `reason` | a string with no line feed: why the test result binds to the test entry |
 
-When the adapter cannot read the report, the response is
+When the adapter cannot read the report file, the response is
 `{"error": <text>}`, and the result of the call is "failed", with that
 error text. The result of a call is also "failed" when its response
-breaks these rules: when it is not valid UTF-8 or not a JSON text, when
-it holds `null`, a number with a fraction or an exponent, an integer
-outside the range ±9,007,199,254,740,991, an escape of a lone
-surrogate, or an object with one name twice, when a member is
-missing, of the wrong type, or not one of the members above, when the
-value of `result` of a binding object is not less than the number of
-report results, when a test id is not the id of a test entry of the
-request, or when one pair of a report result and a test entry occurs
-twice. This response of bind binds one report result to one test
-entry:
+breaks these rules: when the response has no JSON value, as Data forms
+defines the JSON value of a byte sequence, such as when it is not valid
+UTF-8, when it is not a JSON text, or when it holds `null` or a number
+with a fraction; when a member is missing, of the wrong type, or not one
+of the members above; when the value of `result` of a binding object is
+not less than the number of test results; when a test id is not the id
+of a test entry of the request; or when one pair of a test result and a
+test entry occurs twice. This response of bind binds one test result to
+one test entry:
 
 ```
 {"bindings":[{"reason":"name and file match","result":0,"test":"t1"}],"results":[{"file":"src/math.test.ts","ms":3,"name":"math > adds","status":"pass"}],"warnings":[]}
@@ -746,20 +737,7 @@ is that valid path and whose content is the content of that regular
 file. The pack has no other file. A pack has the file p, for a text p,
 when, and only when, it has a file whose valid path is p.
 
-### 4.2 Text order
-
-@term text-order=v1
-@cites text#{text=v1, character=v1, place=v1, code-point-order=v1}
-
-A text t comes before a different text u in text order when, and only
-when, one of these is true:
-
-- At the first place at which the characters of t and of u differ, the
-  character of t comes before the character of u in code point order.
-- t has fewer characters than u, and the character of t at each place
-  of t is the character of u at that place.
-
-### 4.3 Pack paths
+### 4.2 Pack paths
 
 @term pack-path=v1
 @cites text#{production=v1, rule-name=v1, code-span=v1, text=v1, character=v1}
@@ -773,7 +751,7 @@ pack-path-name  = *"." pack-path-char *( pack-path-char / "." ) / 3*"."
 pack-path-char  = %x20-2D / %x30-5B / %x5D-7E
 ```
 
-### 4.4 Well-named packs
+### 4.3 Well-named packs
 
 @term well-named-pack=v1
 @cites {
@@ -803,30 +781,29 @@ these conditions:
 - No two different paths of the pack are the same text after ASCII case
   folding.
 
-### 4.5 Pack hashes
+### 4.4 Pack hashes
 
 @term pack-hash=v1
 @cites {
     data-forms#{hash=v1},
     text#{
         text=v1, character=v1, space=v1, line-feed=v1, utf-8-encoding=v1,
-        byte=v1,
+        byte=v1, code-point-order=v1,
     },
-    #{pack=v1, text-order=v1, well-named-pack=v1},
+    #{pack=v1, well-named-pack=v1},
 }
 
 The pack listing of a well-named pack is the text that holds one line
 for each file of the pack, and no other character. The lines stand in
-the text order of the valid paths of their files. The line of a file is
-the hash of its content, then two spaces, then its valid path, then a
-line feed. The pack
-hash of a well-named pack is the hash of the UTF-8 encoding of its pack
-listing. A pack that is not well named, and a pack that has a file whose
-content has 2^61 bytes or more, have no pack listing and no pack hash. A
-well-named pack whose pack listing has a UTF-8 encoding of 2^61 bytes or
-more has no pack hash.
+the code point order of the valid paths of their files. The line of a
+file is the hash of its content, then two spaces, then its valid path,
+then a line feed. The pack hash of a well-named pack is the hash of the
+UTF-8 encoding of its pack listing. A pack that is not well named, and a
+pack that has a file whose content has 2^61 bytes or more, have no pack
+listing and no pack hash. A well-named pack whose pack listing has a
+UTF-8 encoding of 2^61 bytes or more has no pack hash.
 
-### 4.6 Uses of packs
+### 4.5 Uses of packs
 
 @term pack-use=v1
 @cites {
@@ -847,7 +824,7 @@ result of a call of the adapter of a test runner of its descriptor. Such
 an operation is a use of the pack also when the program gives another
 thing in it, or nothing.
 
-### 4.7 WebAssembly modules
+### 4.6 WebAssembly modules
 
 @term webassembly-module=v1
 @cites {wasm-core/2.0, text#{byte-sequence=v1}}
@@ -856,12 +833,12 @@ A WebAssembly module is a byte sequence that is a module in the binary
 format of the WebAssembly Core Specification 2.0, and that is valid by
 that specification. These definitions use these things of that
 specification: modules, imports, exports, functions, function types,
-memories, tables, globals, instances, the instantiation of a module and
-its start function, the invocation of a function, traps, pages, the
-instructions `memory.grow` and `table.grow`, and the value types `i32`
-and `i64`.
+memories and their memory types, tables and their table types, globals,
+instances, the instantiation of a module and its start function, the
+invocation of a function, traps, pages, the instructions `memory.grow`
+and `table.grow`, and the value types `i32` and `i64`.
 
-### 4.8 Usable grammars
+### 4.7 Usable grammars
 
 @term usable-grammar=v1
 @cites {
@@ -887,7 +864,7 @@ WebAssembly Core Specification 2.0, so the features beyond that
 specification that the default configuration of wasmtime 36.0.19 turns
 on do not change which byte sequences are usable grammars.
 
-### 4.9 The depth of a query text
+### 4.8 The depth of a query text
 
 @term query-depth=v1
 @cites text#{
@@ -939,7 +916,7 @@ tokens is more than 100. The place where a query text passes the depth
 limit is the place of the first character of the first token after
 which the depth is more than 100.
 
-### 4.10 Query files
+### 4.9 Query files
 
 @term query-file=v1
 @cites {
@@ -961,7 +938,7 @@ of three kinds, each with its role names and its other capture names:
   other capture name.
 - The kind definition has the role names `definition` and `decoration`,
   and the other capture names `name` and `body`.
-- The kind test has the role names `test` and `group`, and the other
+- The kind test has the role names `case` and `suite`, and the other
   capture names `name`, `placeholder`, and each text that matches the
   production `label-capture`:
 
@@ -998,10 +975,10 @@ conditions:
      the quantifier Zero, and `name` and `body` each have the quantifier
      Zero, ZeroOrOne, or One; or `decoration` has the quantifier One,
      and `definition`, `name`, and `body` each have the quantifier Zero;
-   - test: one of `test` and `group` has the quantifier One, and the
+   - test: one of `case` and `suite` has the quantifier One, and the
      other has the quantifier Zero.
 
-### 4.11 Valid packs
+### 4.10 Valid packs
 
 @term valid-pack=v1
 @cites {
@@ -1061,7 +1038,7 @@ none when it does not; and the adapter of a test runner of its
 descriptor that has an adapter hash, with the name r, is the content of
 its file `adapters/<r>.wasm`.
 
-### 4.12 Parse trees
+### 4.11 Parse trees
 
 @term parse-tree=v1
 @cites {
@@ -1088,7 +1065,7 @@ the code of the usable grammar exhausts the call stack, whether the text
 has a parse tree with that usable grammar can differ between conforming
 programs.
 
-### 4.13 The order of the parse tree
+### 4.12 The order of the parse tree
 
 @term parse-tree-order=v1
 @cites {tree-sitter/0.26.13, text#{whole-number=v1, code-span=v1}, #{parse-tree=v1}}
@@ -1103,7 +1080,7 @@ children. In the order of the parse tree, each node comes before each of
 its descendants, and, for each two children of one node, the first of
 them and each of its descendants come before the second of them.
 
-### 4.14 The runs of nodes
+### 4.13 The runs of nodes
 
 @term node-run=v1
 @cites {
@@ -1125,7 +1102,7 @@ of a node of the parse tree of a text is the run of that text that
 starts at the greater of b and the lesser of s and l, and that ends at
 the greater of b and the lesser of e and l.
 
-### 4.15 Node types
+### 4.14 Node types
 
 @term node-type=v1
 @cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{parse-tree=v1, parse-tree-order=v1}}
@@ -1133,7 +1110,7 @@ the greater of b and the lesser of e and l.
 The node type of a node of a parse tree is the text that `Node::kind` of
 tree-sitter 0.26.13 gives for that node.
 
-### 4.16 Parse failures
+### 4.15 Parse failures
 
 @term parse-failure=v1
 @cites {tree-sitter/0.26.13, text#{text=v1, code-span=v1}, #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1}}
@@ -1152,7 +1129,7 @@ first node, in the order of the parse tree, that has an error and that
 has no child that has an error. A parse failure with no parse tree has
 no failure node.
 
-### 4.17 Query matches
+### 4.16 Query matches
 
 @term query-match=v1
 @cites {
@@ -1174,7 +1151,7 @@ pattern comes before another when its index is less. The captures of a
 query match are its captures whose capture names do not start with `_`:
 each is a capture name and a node of the parse tree.
 
-### 4.18 Joined matches and kept matches
+### 4.17 Joined matches and kept matches
 
 @term joined-match=v1
 @cites {
@@ -1195,7 +1172,7 @@ joined matches whose pattern comes before the pattern of each other
 joined match of that query file over that text that has the same role
 name and the same role node.
 
-### 4.19 Comment nodes
+### 4.18 Comment nodes
 
 @term comment-node=v1
 @cites {
@@ -1215,7 +1192,7 @@ once, in the order of the parse tree. A comment node is tagged when, and
 only when, it is the role node of a kept match with the role name
 `comment`, and of no kept match with the role name `untagged`.
 
-### 4.20 Definition nodes
+### 4.19 Definition nodes
 
 @term definition-node=v1
 @cites {
@@ -1240,7 +1217,7 @@ nodes that this kept match captures under `body`, in the order of the
 parse tree, or, when it captures no node under `body`, the definition
 node alone.
 
-### 4.21 Decoration nodes
+### 4.20 Decoration nodes
 
 @term decoration-node=v1
 @cites {
@@ -1260,7 +1237,7 @@ that grammar over the text, in the order of the parse tree. The text has
 no decoration node when that grammar has no query file of the kind
 definition.
 
-### 4.22 Enclosed nodes
+### 4.21 Enclosed nodes
 
 @term enclosed-node=v1
 @cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
@@ -1272,10 +1249,11 @@ before it, the run of A ends at the boundary where the run of B ends or
 at a boundary after it, and B does not come before A in the order of the
 parse tree.
 
-### 4.23 Test nodes
+### 4.22 Test nodes
 
 @term test-node=v1
 @cites {
+    ontology#{test=v1},
     text#{text=v1, code-span=v1},
     #{
         usable-grammar=v1, query-file=v1, valid-pack=v1,
@@ -1288,19 +1266,23 @@ This definition is for a valid pack, a grammar of its descriptor, and a
 text that has a parse tree with the usable grammar of that grammar. The
 test nodes of the text are the role nodes of the kept matches of the
 query file of the kind test of that grammar over the text, each node
-once, in the order of the parse tree. The text has no test node when
-that grammar has no query file of the kind test. The kept matches of a
-test node are the kept matches whose role node it is. A test node is a
-group when, and only when, one of its kept matches has the role name
-`group`, or it encloses a test node that has a kept match with the role
-name `test`. Each other test node is a test. The groups that enclose a
-test node are the test nodes that are groups and that enclose it, in the
+once, in the order of the parse tree. Each test node is the code of one
+test of the file: a test case is the code of a unit that a test runner
+runs, and a test suite is the code of a set of such units that the code
+groups under one name. The text has no test node when that grammar has
+no query file of the kind test. The kept matches of a test node are the
+kept matches whose role node it is. A test node is a test suite when,
+and only when, one of its kept matches has the role name `suite`, or it
+encloses a test node that has a kept match with the role name `case`.
+Each other test node is a test case. The test suites that enclose a test
+node are the test nodes that are test suites and that enclose it, in the
 order of the parse tree.
 
-### 4.24 The names of test nodes
+### 4.23 The names of test nodes
 
 @term test-name=v1
 @cites {
+    ontology#{test=v1},
     text#{text=v1, run=v1, code-span=v1},
     data-forms#{index=v1},
     #{
@@ -1319,13 +1301,14 @@ node that one of its kept matches captures under `name` or under
 kept matches captures under `placeholder` gives a placeholder, and each
 other of these nodes gives a text piece. The text of each piece is the
 text of the run of its node. The name path of a test node is the names
-of the groups that enclose it, in the order of the parse tree, followed
-by its own name. Two name paths are equal when, and only when, they have
-the same number of names and, at each index, names with the same number
-of pieces whose pieces, at each index, are of the same kind and have the
-same text.
+of the test suites that enclose it, in the order of the parse tree,
+followed by its own name. The name path of a test node is the name of
+the test whose code the test node is. Two name paths are equal when, and
+only when, they have the same number of names and, at each index, names
+with the same number of pieces whose pieces, at each index, are of the
+same kind and have the same text.
 
-### 4.25 The test labels of test nodes
+### 4.24 The test labels of test nodes
 
 @term test-label=v1
 @cites {
@@ -1338,7 +1321,7 @@ The test labels of a test node are the texts w that match the production
 captures a node under the capture name that is the text `label.`
 followed by w.
 
-### 4.26 Readings
+### 4.25 Readings
 
 @term reading-of-a-text=v1
 @cites {
@@ -1366,9 +1349,9 @@ definition nodes, the decoration nodes, and the test nodes of the text
 for g, each with its run and its node type. It gives, with each comment
 node, whether it is tagged; with each definition node, its name nodes
 and its body nodes, each with its run and its node type; and with each
-test node, whether it is a test or a group, its name path, and its test
-labels. A reading with the result "parse failure" gives the run of the
-failure node of that parse failure, when that parse failure has a
+test node, whether it is a test case or a test suite, its name path, and
+its test labels. A reading with the result "parse failure" gives the run
+of the failure node of that parse failure, when that parse failure has a
 failure node, and it gives no node of the text. A reading with the
 result "no grammar" gives no node of the text.
 
@@ -1585,12 +1568,17 @@ TOML array of `names`, in their order.
 #### 5.1.10 Test runners
 
 @term test-runner=v1
-@cites {data-forms#{root-table=v1, toml-value=v1}, text#{text=v1, code-span=v1}, #{valid-descriptor=v1}}
+@cites {
+    ontology#{test=v1},
+    data-forms#{root-table=v1, toml-value=v1},
+    text#{text=v1, code-span=v1},
+    #{valid-descriptor=v1},
+}
 
-The test runners of a valid descriptor are, for each text that the
-table of `runner` in its root table holds, one test runner whose name is
-that text. By the descriptor, a test runner is a program that runs tests
-and writes reports on them, such as vitest. A valid descriptor whose
+The test runners of a valid descriptor are, for each text that the table
+of `runner` in its root table holds, one test runner whose name is that
+text. By the descriptor, a test runner is a program that runs tests and
+writes report files on them, such as vitest. A valid descriptor whose
 root table does not hold the text `runner` has no test runner. The table
 of a test runner is the TOML value of its name in the table of `runner`,
 and a test runner has these values from its table:
@@ -1802,12 +1790,12 @@ requirements of the group are `read-descriptor`,
   with one object for each grammar, in order, with the members `name`,
   `hash`, `license`, each a text, and `globs`, an array of its file-name
   globs, in order; and `runners`, an array with one object for each test
-  runner, in the text order of their names, with the member `name`, a
-  text, the members `adapter-hash` and `adapter-license`, each a text,
-  when the test runner has an adapter hash, the member `match`, the form
-  of its match table, when it has a match table, and the member
+  runner, in the code point order of their names, with the member
+  `name`, a text, the members `adapter-hash` and `adapter-license`, each
+  a text, when the test runner has an adapter hash, the member `match`,
+  the form of its match table, when it has a match table, and the member
   `settings`, an array with one object for each runner setting, in the
-  text order of their names, with the members `name`, a text, and
+  code point order of their names, with the members `name`, a text, and
   `default`, the form of its default value. With "invalid", the empty
   object, `{}`.
 
@@ -1846,66 +1834,48 @@ it gives no grammar as the file grammar of the valid path.
 @spec adapters=v1
 
 When a conforming program decides whether a byte sequence is a valid
-adapter, it gives "valid" when it is one, and "invalid" when it is not.
-When it gives the result of a call of a function of an adapter with a
-request and a report, it gives "recognised", "not recognised", or
-"failed" for the function recognise, and "bound" or "failed" for the
-function bind. When it makes a call of a function of a byte sequence as
-the adapter of a test runner of a valid descriptor, under a valid
-binding of `runner-settings` for that test runner, the request of the
-call is the request of that function for that test runner, binding,
-report name, and, for bind, root and test entries. It runs the code of
-an adapter only in an instance of its module under the limits of a call.
+adapter, it gives "valid" when it is one and the program does not stop
+the code of its module for the limits of the program, and "invalid"
+otherwise. When it
+gives the result of a call of a function of an adapter with a request
+and a report file, it gives "recognised", "not recognised", or "failed"
+for the function recognise, and "bound" or "failed" for the function
+bind. When it makes a call of a function of a byte sequence as the
+adapter of a test runner of a valid descriptor, under a valid binding of
+`runner-settings` for that test runner, the request of the call is the
+request of that function for that test runner, binding, report name,
+and, for bind, root and test entries. It runs the code of an adapter
+only in an instance of the adapter, and it ends each call that it makes.
 
 ### 6.1 Definitions
 
-#### 6.1.1 The limits of a call
+#### 6.1.1 Instances of adapters
 
-@term call-limit=v1
+@term adapter-instance=v1
 @cites {
-    wasm-core/2.0, wasmtime/36.0.19,
-    text#{whole-number=v1, byte=v1, code-span=v1},
+    wasm-core/2.0,
+    text#{conforming-program=v1, whole-number=v1, code-span=v1},
     #{webassembly-module=v1},
 }
 
-The limits of a call are three, for an instance of a WebAssembly module:
-
-- The fuel limit is 10,000,000,000 units of fuel. The code that runs in
-  the instance uses fuel as wasmtime 36.0.19 counts fuel when its
-  setting `consume_fuel` is on. The code runs out of fuel when wasmtime
-  36.0.19, with `consume_fuel` on and with the fuel limit as the fuel of
-  the store of the instance, stops the code with the trap `OutOfFuel`.
-  All code that runs in one instance, its start function included,
-  uses the fuel of that instance.
-- The memory limit is 1,073,741,824 bytes, for the sizes of all memories
-  of the instance together.
-- The table limit is 1,048,576 elements, for the elements of all tables
-  of the instance together.
-
-An instance under the limits of a call is an instance of a WebAssembly
-module that has no import, in which these limits hold. Its code runs as
-wasmtime 36.0.19 runs it with its default configuration, except that the
-setting `consume_fuel` is on and these limits hold. The maximum of a
+An instance of an adapter of a WebAssembly module is a new instance of
+that module, made with no import, in which code runs as the WebAssembly
+Core Specification 2.0 defines its execution. A program has limits of
+its own on the resources of an instance of an adapter, and it can stop
+the instantiation of the module, or an invocation of a function of the
+instance, whose code goes past these limits. The instantiation or the
+invocation fails when it traps, or when the program stops it for its
+limits. Which instantiations and invocations go past the limits of a
+program can differ between conforming programs. Where the WebAssembly
+Core Specification 2.0 allows more than one outcome, such as whether a
+growth of a memory or of a table within its maximum succeeds, the bits
+of a NaN, or the depth of calls at which the call stack is exhausted,
+that outcome can differ between conforming programs. The maximum of a
 memory is the maximum of its memory type, or 65,536 pages when its
 memory type has none. The maximum of a table is the maximum of its table
-type, or 4,294,967,295 elements when its table type has none. Code that
-runs in such an instance, its instantiation included, fails when it
-traps, also when it runs out of fuel and when it exhausts the call
-stack; when a growth of a memory within its maximum, at the
-instantiation or by `memory.grow`, would make the sizes of all memories
-of the instance together more than the memory limit; and when the
-instantiation would make the elements of all tables of the instance
-together more than the table limit. A `memory.grow` past the maximum of
-its memory, and a `table.grow` past the maximum of its table, give −1,
-and the code goes on, as the WebAssembly Core Specification 2.0 defines.
-A `table.grow` that would make the elements of all tables of the
-instance together more than the table limit gives −1, and the code goes
-on. Each other growth of a memory or of a table within its maximum
-succeeds. The depth of calls at which code exhausts the call stack can
-differ between conforming programs. Where the WebAssembly Core
-Specification 2.0 allows more than one outcome for an instruction, such
-as the bits of a NaN, an outcome of the code that depends on that choice
-can differ between conforming programs.
+type, or 4,294,967,295 elements when its table type has none. A growth
+of a memory or of a table past its maximum gives −1 to the code, as the
+WebAssembly Core Specification 2.0 defines, and the code goes on.
 
 #### 6.1.2 Valid adapters
 
@@ -1913,26 +1883,25 @@ can differ between conforming programs.
 @cites {
     wasm-core/2.0, wasmtime/36.0.19,
     text#{byte-sequence=v1, code-span=v1},
-    #{webassembly-module=v1, call-limit=v1},
+    #{webassembly-module=v1, adapter-instance=v1},
 }
 
 A byte sequence is a valid adapter when, and only when, it meets each of
 these conditions:
 
 1. It is a WebAssembly module, and wasmtime 36.0.19 compiles it:
-   `Module::new` of wasmtime 36.0.19, with an `Engine` whose
-   configuration is the default configuration with the setting
-   `consume_fuel` on, gives a module for it, and no error.
+   `Module::new` of wasmtime 36.0.19, with an `Engine` with its default
+   configuration, gives a module for it, and no error.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
    function of the type `[] -> [i32]`, `sinter_alloc` as a function of
    the type `[i32] -> [i32]`, `sinter_recognise` as a function of the
    type `[i32 i32 i32 i32] -> [i64]`, and `sinter_bind` as a function of
    the type `[i32 i32 i32 i32] -> [i64]`. It can export other names.
-4. In a new instance of the module under the limits of a call, the
-   instantiation and then an invocation of `sinter_interface` do not
-   fail, and that invocation gives the `i32` value 1, which is the
-   version of the interface.
+4. In an instance of an adapter of the module, the instantiation and
+   then an invocation of `sinter_interface` do not trap, and that
+   invocation gives the `i32` value 1, which is the version of the
+   interface.
 
 #### 6.1.3 Bindings of `runner-settings`
 
@@ -1972,24 +1941,24 @@ name, or its default value when no pair has its name.
 
 A test entry is an id, which is a text; a path, which is a valid path; a
 first line and a last line, which are whole numbers; a kind, which is
-test or group; a name path; and test labels, which are a finite set of
-texts.
-The id names the test entry in a call. For a test node that a reading
-with the result "parsed" of a text, as the text of a file at a valid
-path p, gives, and for an id, the test entry of that test node with that
-id has that id; the path p; as its first line and as its last line, the
-line numbers of the start and of the end of the run of the node, as a
-span of the text; as its kind, test when the test node is a test, and
-group when it is a group; its name path; and its test labels.
+test case or test suite; a name path; and test labels, which are a
+finite set of texts. The id names the test entry in a call. For a test
+node that a reading with the result "parsed" of a text, as the text of a
+file at a valid path p, gives, and for an id, the test entry of that
+test node with that id has that id; the path p; as its first line and as
+its last line, the line numbers of the start and of the end of the run
+of the node, as a span of the text; as its kind, test case when the test
+node is a test case, and test suite when it is a test suite; its name
+path; and its test labels.
 
 #### 6.1.5 Requests
 
 @term adapter-request=v1
 @cites {
     data-forms#{json-value=v1, canonical-byte-sequence=v1, toml-value=v1},
-    text#{text=v1, byte-sequence=v1, code-span=v1},
+    text#{text=v1, byte-sequence=v1, code-span=v1, code-point-order=v1},
     #{
-        text-order=v1, valid-descriptor=v1, test-runner=v1, runner-setting=v1,
+        valid-descriptor=v1, test-runner=v1, runner-setting=v1,
         runner-setting-binding=v1, test-entry=v1, test-name=v1,
         test-label=v1, adapter-call=v1,
     },
@@ -1998,11 +1967,11 @@ group when it is a group; its name path; and its test labels.
 This definition is for a test runner of a valid descriptor, a valid
 binding of `runner-settings` for that test runner, a report name, which
 is a text, and, for the function bind, a root, which is a text, and test
-entries whose ids are each a different text. The report name names the
-report, such as the path of the report as a person gave it. The root is
-a text, such as the absolute path of the root of a repository. The
-request object of the function recognise is a JSON object with these
-members, and no other member:
+entries whose ids are each a different text. The report name is the name
+of the report file, such as its path as a person gave it. The root is a
+text, such as the absolute path of the root of a repository. The request
+object of the function recognise is a JSON object with these members,
+and no other member:
 
 - `interface`: the integer 1.
 - `runner`: the name of the test runner, as a string.
@@ -2017,22 +1986,22 @@ members, and no other member:
 The request object of the function bind has these members, and the
 members `root`, the root, as a string, and `tests`, and no other
 member. The value of `tests` is an array with one object for each test
-entry, in the text order of their ids, with these members, and no other
-member:
+entry, in the code point order of their ids, with these members, and no
+other member:
 
 - `id` and `path`: the id and the path of the test entry, each as a
   string.
 - `line` and `eline`: the first line and the last line of the test
   entry, each as an integer.
-- `group`: true when the kind of the test entry is group, and false when
-  it is test.
+- `suite`: true when the kind of the test entry is test suite, and false
+  when it is test case.
 - `names`: an array with one array for each name of the name path of the
   test entry, in their order. The array of a name has one object for
   each piece of that name, in their order. The object of a piece has one
   member, whose key is `text` for a text piece and `placeholder` for a
   placeholder, and whose value is the text of the piece, as a string.
 - `labels`: an array with a string of each test label of the test entry,
-  in text order.
+  in code point order.
 
 The request of a call of the function recognise, or of the function
 bind, is the canonical byte sequence of its request object.
@@ -2043,20 +2012,20 @@ bind, is the canonical byte sequence of its request object.
 @cites {
     wasm-core/2.0,
     text#{byte-sequence=v1, byte=v1, whole-number=v1, code-span=v1},
-    #{webassembly-module=v1, call-limit=v1, valid-adapter=v1},
+    #{webassembly-module=v1, adapter-instance=v1, valid-adapter=v1},
 }
 
 A call is made with a byte sequence as its adapter, one of the two
 functions recognise and bind, a byte sequence as its request, and a byte
-sequence as its report. The export of the function recognise is
+sequence as its report file. The export of the function recognise is
 `sinter_recognise`, and the export of the function bind is
 `sinter_bind`. A call fails when its adapter is not a valid adapter, or
-when its request or its report has 4,294,967,296 bytes or more.
-Otherwise, the call runs these steps in a new instance of the module of
-its adapter under the limits of a call, and it fails when one of them
-fails. The memory of the instance is the memory that it exports as
-`memory`, and the size of that memory is its number of bytes when a step
-reads it.
+when its request or its report file has 4,294,967,296 bytes or more.
+Otherwise, the call runs these steps in an instance of an adapter of the
+module of its adapter, and it fails when one of them fails, also when
+the program stops it for its limits. The memory of the instance is the
+memory that it exports as `memory`, and the size of that memory is its
+number of bytes when a step reads it.
 
 1. The instantiation of the module.
 2. An invocation of `sinter_alloc` with the `i32` value whose bits are
@@ -2068,77 +2037,39 @@ reads it.
    bytes of the request are put into that memory, in their order, from
    that address on.
 3. An invocation of `sinter_alloc` with the `i32` value whose bits are
-   those of the number of bytes of the report. The address of the report
-   comes from the value that it gives, in the same way as the address of
-   the request, and the call fails under the same conditions. Otherwise,
-   the bytes of the report, unchanged, are put into the memory of the
-   instance, in their order, from that address on.
+   those of the number of bytes of the report file. The address of the
+   report file comes from the value that it gives, in the same way as
+   the address of the request, and the call fails under the same
+   conditions. Otherwise, the bytes of the report file, unchanged, are
+   put into the memory of the instance, in their order, from that
+   address on.
 4. An invocation of the export of the function with four `i32` values:
    the address of the request, the number of bytes of the request, the
-   address of the report, and the number of bytes of the report. The
-   `i64` value that it gives, taken as a whole number v from 0 to
-   18,446,744,073,709,551,615, gives an address, which is the
+   address of the report file, and the number of bytes of the report
+   file. The `i64` value that it gives, taken as a whole number v from 0
+   to 18,446,744,073,709,551,615, gives an address, which is the
    whole-number quotient of v divided by 4,294,967,296, and a length,
    which is the remainder. The call fails when that address together
    with that length is more than the size of the memory of the instance.
    Otherwise, the response of the call is the byte sequence of the
    length bytes of that memory from that address on, in their order.
 
-#### 6.1.7 The JSON values of responses
-
-@term response-json-value=v1
-@cites {
-    rfc/8259,
-    data-forms#{json-value=v1},
-    text#{
-        byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        text=v1, character=v1, code-point=v1, whole-number=v1,
-        code-span=v1,
-    },
-}
-
-These definitions use the JSON texts of RFC 8259, with their values,
-objects, members, names, arrays, strings, escapes, numbers, and the
-literal names `true`, `false`, and `null`. A byte sequence has a JSON
-value when, and only when, it meets each of these conditions:
-
-1. It is valid UTF-8, and its text matches the rule `JSON-text` of RFC
-   8259.
-2. No value of that JSON text is the literal name `null`.
-3. Each number of that JSON text has no fraction and no exponent, and
-   the whole number that it writes is from −9,007,199,254,740,991 to
-   9,007,199,254,740,991.
-4. Each escape of each string and each name of that JSON text stands for
-   the code point of a character: an escape `\u` of a code point from
-   U+D800 to U+DBFF that comes right before an escape `\u` of a code
-   point from U+DC00 to U+DFFF stands, together with it, for one
-   character, as RFC 8259 defines it, and no other escape stands for a
-   code point from U+D800 to U+DFFF.
-5. No object of that JSON text has two members whose names stand for the
-   same text.
-
-The JSON value of such a byte sequence is the JSON value that its JSON
-text writes: an object for each object, with one member for each of its
-members, whose key is the text that the name stands for; an array for
-each array, with its values, in their order; for each string, the text
-that it stands for; true and false for `true` and `false`; and, for each
-number, the integer that it writes.
-
-#### 6.1.8 The results of calls
+#### 6.1.7 The results of calls
 
 @term call-result=v1
 @cites {
-    data-forms#{json-value=v1, index=v1},
+    data-forms#{json-value=v1, json-value-of-a-byte-sequence=v1, index=v1},
     text#{text=v1, result=v1, line-feed=v1, whole-number=v1, code-span=v1},
-    #{adapter-call=v1, response-json-value=v1, test-entry=v1},
+    #{adapter-call=v1, test-entry=v1},
 }
 
-The result of a call of the function recognise is "recognised" when the
-call gives a response whose JSON value is an object with exactly one
-member, `recognised`, whose value is true; "not recognised" when the
-call gives a response whose JSON value is an object with exactly one
-member, `recognised`, whose value is false; and "failed" in each other
-case.
+The JSON value of a response is the JSON value of the response as a byte
+sequence. The result of a call of the function recognise is "recognised"
+when the call gives a response whose JSON value is an object with
+exactly one member, `recognised`, whose value is true; "not recognised"
+when the call gives a response whose JSON value is an object with
+exactly one member, `recognised`, whose value is false; and "failed" in
+each other case.
 
 The result of a call of the function bind, for test entries, is "bound"
 when the call gives a response whose JSON value is an object that has
@@ -2165,14 +2096,14 @@ rules hold:
 In each other case, the result of a call of the function bind is
 "failed".
 
-A call with the result "bound" gives its report results, its bindings,
-and its warnings. Its report results are the elements of the value of
+A call with the result "bound" gives its test results, its bindings,
+and its warnings. Its test results are the elements of the value of
 `results`, in their order, each with its name, the value of `name`; its
 status, the value of `status`; and, when the result object has these
 members, its file, the value of `file`, its line, the value of `line`,
 and its duration in whole milliseconds, the value of `ms`. Its bindings
 are the elements of the value of `bindings`, in their order, each with
-its report result, which is the element of the value of `results` whose
+its test result, which is the element of the value of `results` whose
 index is 1 more than the value of `result`; the id of a test entry,
 which is the value of `test`; and a reason, which is the value of
 `reason`. Its warnings are the texts of the value of `warnings`, in
@@ -2183,11 +2114,15 @@ a string, gives that string as the error text of the adapter.
 ### 6.2 The validation of adapters
 
 @req validate-adapters=v1
-@cites {text#{conforming-program=v1, result=v1, byte-sequence=v1}, #{valid-adapter=v1}}
+@cites {
+    text#{conforming-program=v1, result=v1, byte-sequence=v1},
+    #{valid-adapter=v1, adapter-instance=v1},
+}
 
 When a conforming program gives a result for whether a byte sequence is
 a valid adapter, it must give exactly one result: "valid" when the byte
-sequence is a valid adapter, and "invalid" when it is not.
+sequence is a valid adapter and the program does not stop the code of
+its module for its limits, and "invalid" otherwise.
 
 ### 6.3 The requests of calls
 
@@ -2218,9 +2153,9 @@ request.
 }
 
 When a conforming program gives a result of a call of a function of a
-byte sequence as an adapter, with a request and a report, and, for the
-function bind, test entries, it must give exactly one result, the result
-of that call for these test entries when the function is bind:
+byte sequence as an adapter, with a request and a report file, and, for
+the function bind, test entries, it must give exactly one result, the
+result of that call for these test entries when the function is bind:
 "recognised", "not recognised", or "failed" for the function recognise,
 and "bound" or "failed" for the function bind.
 
@@ -2233,8 +2168,8 @@ and "bound" or "failed" for the function bind.
 }
 
 When, with the result of a call of a function of a byte sequence as an
-adapter, with a request and a report, and, for the function bind, test
-entries, a conforming program gives the report results, the bindings,
+adapter, with a request and a report file, and, for the function bind,
+test entries, a conforming program gives the test results, the bindings,
 the warnings, or the error text of the adapter of that call, it must
 give those that the call gives for these test entries, in their order,
 and no other instead.
@@ -2247,9 +2182,10 @@ and no other instead.
     #{adapter-call=v1, call-result=v1, test-entry=v1},
 }
 
-A conforming program must give no report results, no bindings, and no
+A conforming program must give no test results, no bindings, and no
 warnings of a call of a function of a byte sequence as an adapter, with
-a request and a report, and, for the function bind, test entries, when
+a request and a report file, and, for the function bind, test entries,
+when
 the result of that call for these test entries is not "bound".
 
 ### 6.7 Error texts of the adapter
@@ -2262,7 +2198,8 @@ the result of that call for these test entries is not "bound".
 
 A conforming program must give an error text of the adapter for a call
 of a function of a byte sequence as an adapter, with a request and a
-report, and, for the function bind, test entries, only when the result
+report file, and, for the function bind, test entries, only when the
+result
 of that call for these test entries is "failed" and the call gives that
 error text.
 
@@ -2270,22 +2207,32 @@ error text.
 
 @req isolate-adapters=v1
 @cites {
-    wasm-core/2.0,
     text#{conforming-program=v1, byte-sequence=v1},
-    #{webassembly-module=v1, call-limit=v1},
+    #{webassembly-module=v1, adapter-instance=v1},
 }
 
 A conforming program must run the code of each byte sequence that it
-uses as an adapter only in an instance of its module under the limits of
-a call.
+uses as an adapter only in an instance of an adapter of its module.
 
-### 6.9 Conformance
+### 6.9 Calls that end
+
+@req end-calls=v1
+@cites {
+    text#{conforming-program=v1, result=v1},
+    #{adapter-instance=v1, adapter-call=v1, call-result=v1},
+}
+
+A conforming program must end each call that it makes: it must stop the
+code of a call that goes past its limits, and then the result of that
+call is "failed".
+
+### 6.10 Conformance
 
 A program conforms to the specification `adapters` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
 [specification](sinter:text#specification=v1): it meets every
-requirement that the specification declares. The requirement
-`isolate-adapters` has no vectors.
+requirement that the specification declares. The requirements
+`isolate-adapters` and `end-calls` have no vectors.
 
 The vectors of this specification are in the file
 [`packs.adapters.test-vectors.jsonl`](packs.adapters.test-vectors.jsonl),
@@ -2326,7 +2273,7 @@ conforming program gives for the input, other than its result. In
 `input` and `values`, a byte sequence is its hex text, as a string, and
 a text is a string of the characters of the text.
 
-#### 6.9.1 Adapters
+#### 6.10.1 Adapters
 
 The group `adapters` holds the vectors that each give a byte sequence
 and what a conforming program gives for it when it decides whether the
@@ -2335,14 +2282,17 @@ byte sequence is a valid adapter. The requirement of the group is
 
 - `input`: the byte sequence.
 - `result`: "valid" when the byte sequence is a valid adapter, and
-  "invalid" when it is not.
+  "invalid" when it is not. A conforming program gives the result
+  "valid" under the condition that it does not stop the code of the
+  module for its limits. It gives the result "invalid" with no
+  condition.
 - `values`: no vector of the group has this member.
 
 ```
 {"group":"adapters","input":"0061736d01000000","n":1,"note":"a module with no export","result":"invalid","rev":"v1"}
 ```
 
-#### 6.9.2 Requests
+#### 6.10.2 Requests
 
 The group `requests` holds the vectors that each give the things of a
 call of a function of the adapter of a test runner, and the request of
@@ -2357,7 +2307,7 @@ that call. The requirement of the group is `give-requests`.
   `report`, the report name, as a text; and, for the function bind only,
   `root`, the root, as a text, and `tests`, an array with one object for
   each test entry, in any order. The object of a test entry has the
-  members `id`, `path`, `line`, `eline`, `group`, `names`, and `labels`,
+  members `id`, `path`, `line`, `eline`, `suite`, `names`, and `labels`,
   in the forms that the request object gives them, except that `labels`
   can be in any order.
 - `result`: no vector of the group has this member.
@@ -2369,10 +2319,10 @@ of `request` as the request of the call, and with no other byte
 sequence as that request.
 
 ```
-{"group":"requests","input":{"function":"recognise","report":"out/junit.xml","runner":"vitest","settings":{}},"n":16,"rev":"v1","values":{"request":"{\"interface\":1,\"report\":\"out/junit.xml\",\"runner\":\"vitest\",\"settings\":{}}"}}
+{"group":"requests","input":{"function":"recognise","report":"out/junit.xml","runner":"vitest","settings":{}},"n":11,"rev":"v1","values":{"request":"{\"interface\":1,\"report\":\"out/junit.xml\",\"runner\":\"vitest\",\"settings\":{}}"}}
 ```
 
-#### 6.9.3 Responses
+#### 6.10.3 Responses
 
 The group `responses` holds the vectors that each give the function of
 a call of a valid adapter, the ids of the test entries of the call, and
@@ -2390,24 +2340,24 @@ for the call. The requirements of the group are `give-call-results`,
   of the export of the function gives the response, with no failure
   before it.
 - `values`: with "bound", an object with three members: `results`, an
-  array with one object for each report result of the call, in order,
+  array with one object for each test result of the call, in order,
   with the members `name` and `status`, each a text, and the members
-  `file`, a text, `line`, and `ms`, each an integer, when the report
+  `file`, a text, `line`, and `ms`, each an integer, when the test
   result has them; `bindings`, an array with one object for each binding
   of the call, in order, with the members `result`, 1 less than the
-  index of its report result in `results`, as an integer, `test`, a
+  index of its test result in `results`, as an integer, `test`, a
   text, and `reason`, a text; and `warnings`, an array of the warnings
   of the call, as texts, in order. With "failed", when the call gives an
   error text of the adapter, an object with one member, `error`, that
   error text, as a text; otherwise the empty object, `{}`. With
   "recognised" and "not recognised", the empty object, `{}`.
 
-When a conforming program gives the report results, the bindings, the
+When a conforming program gives the test results, the bindings, the
 warnings, or the error text of the adapter of the call, it gives those
 of `values`. With `{}`, it gives none of these.
 
 ```
-{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":24,"result":"recognised","rev":"v1","values":{}}
+{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":19,"result":"recognised","rev":"v1","values":{}}
 ```
 
 ## 7. Requirements
@@ -2594,9 +2544,9 @@ When, for a node that a reading of a text with a pack gives with the
 result "parsed", in a use of that pack during which no other process
 changes a file of the folder tree of the pack, a conforming program
 gives its run, its node type, whether it is tagged, its name nodes, its
-body nodes, whether it is a test or a group, its name path, or its test
-labels, it must give the value that the reading gives with that node,
-and no other value instead of it.
+body nodes, whether it is a test case or a test suite, its name path,
+or its test labels, it must give the value that the reading gives with
+that node, and no other value instead of it.
 
 ### 7.13 No nodes of the other readings
 
@@ -2804,6 +2754,8 @@ members:
   input, other than the result that `result` stands for.
 - `note`: an explanation of the vector, which a conforming program does
   not give. Only some vectors have this member.
+- `needs`: the need names of the needs of the vector, in key order, with
+  no name twice. Only a vector with a need has this member.
 
 A revision is a string of `v` and the decimal numeral of a whole number
 of 1 or more, such as `"v1"`. The vectors follow from the requirements
@@ -2818,24 +2770,81 @@ result.
 In `input` and `values`, a byte sequence is its hex text, as a string,
 a text is a string of the characters of the text, and a position is an
 object with two members: `line`, the line number, and `column`, the
-column, each as an integer. A pack is its folder tree, in this form: an
-array with one object for each file of the folder tree other than its
-root, in any order. An object for a folder that holds a file of the
-array can be left out. The object of a file has the
-member `kind`, which is `regular file`, `folder`, `symbolic link`, or
-`other` for a file of another kind; the member `path`, the valid path
-that names the file, as a text, or, when an entry name on the way to the
-file is not the UTF-8 encoding of a file name, the member `names`, an
-array of the entry names on the way from the root to the file, each as a
-byte sequence; and, for a regular file, the member `content`, its
-content, as a byte sequence. A symbolic link holds any reference, and a
-file of another kind is, for example, a FIFO. The folder tree holds each
-file of the array, and a folder for each folder on the way to one of
-these files. It holds no other file. The program can read each folder
-and each regular file of the folder tree. Some packs of the vectors need
-a file system on which two entry names that differ only in the case of
-letters name two different files, and some need entry names that are
-not valid UTF-8.
+column, each as an integer. A pack is its folder tree, as a
+[folder tree object](sinter:files#folder-tree-object=v1): the
+[file object](sinter:files#file-object=v1) of its root, whose member
+`type` is `"directory"`. These are the members of a file object in the
+vectors:
+
+- `type`: `"directory"` for a folder, `"regular file"` for a regular
+  file, `"symbolic link"` for a symbolic link, and `"FIFO special file"`
+  for a FIFO special file, which is a file of another kind.
+- `entries`, for a folder only: an array with one entry object for each
+  folder entry of the folder, in increasing order of the bytes of their
+  entry names. An entry object has two members: `name`, the entry name,
+  as a byte sequence, and `file`, the file object of the file of the
+  folder entry.
+- `content`, for a regular file only: its content as pieces, an array of
+  objects that each have the members `bytes`, a byte sequence, and
+  `times`, an integer of 1 or more. The content is the bytes of each
+  piece, `times` times in a row, piece after piece.
+- `reference`, for a symbolic link only: its reference, as a byte
+  sequence.
+
+A folder tree object stands for each file of its folder tree, each
+folder included, and for no other file. No file object of the vectors
+has the member `read`, `search`, `write`, or `owned-by-other`. For a
+vector whose input is a pack, the requirements of its group oblige the
+result and the values of the vector in each use of the pack in which
+these conditions hold:
+
+1. A file system stores the folder tree of the folder tree object, for
+   the process of the program, as Files defines a
+   [stored folder tree](sinter:files#stored-folder-tree=v1), from the
+   start of the use to its end. So the process of the program has the
+   read permission for each file of the folder tree other than a
+   symbolic link, and the search permission for each folder.
+2. No other process changes the folder tree during the use.
+
+A check of the vectors makes such a stored folder tree for each vector
+whose input is a pack. A need of a vector is a condition on the file
+system that stores its folder tree, which a check of the vectors can be
+unable to make hold.
+These are the need names of this design, in key order, each with the
+need that it stands for and when a vector has it:
+
+- `case-distinct-names`: the folder tree is on a file system on which
+  two entry names that differ only in the case of ASCII letters name two
+  different files. A vector has this need when two entry names of one
+  folder of its folder tree differ only in the case of ASCII letters,
+  such as `README.md` and `readme.md`.
+- `long-names`: the folder tree is on a file system that allows each
+  entry name of the folder tree, with all its bytes. A vector has this
+  need when an entry name of its folder tree has more than 14 bytes, the
+  least number of bytes in a filename that POSIX.1-2024 lets a system
+  allow (`{_POSIX_NAME_MAX}`).
+- `names-kept`: the folder tree is on a file system that keeps each
+  entry name of the folder tree as the check makes it, byte for byte:
+  for example, the file system does not change an entry name into a
+  decomposed form of Unicode normalization. A vector has this need when
+  an entry name of its folder tree is valid UTF-8 and holds a byte of
+  0x80 or more.
+- `non-portable-names`: the folder tree is on a file system that keeps
+  each entry name of the folder tree that holds a byte outside the
+  portable filename character set of POSIX.1-2024 as the check makes
+  it, byte for byte. A vector has this need when an entry name of its
+  folder tree holds a byte from 0x01 to 0x7F that is not the byte of an
+  ASCII letter, of an ASCII digit, or of `.`, `_`, or `-`, such as a
+  space or a line feed.
+- `non-utf-8-names`: the folder tree is on a file system that keeps each
+  entry name of the folder tree that is not valid UTF-8 as the check
+  makes it, byte for byte. A vector has this need when an entry name of
+  its folder tree is not valid UTF-8.
+
+A vector has the member `needs` when, and only when, it has one or more
+of these needs, and the member names each need of the vector and no
+other. A name in the member `needs` that this list does not hold stands
+for no need, and it allows no skip of the vector.
 
 ### 8.1 Invalid packs
 
@@ -2850,31 +2859,29 @@ file of that grammar whose content has the hash of that grammar, a query
 file of the kind comment for that grammar, and a file under
 `licenses/`.
 
-- `input`: the pack.
+- `input`: the folder tree object of the pack.
 - `result`: "valid" when the pack is valid, and "invalid" when it is
   not. Each vector of the group has the result "invalid".
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"invalid-packs","input":[{"content":"0061736d01000000","kind":"regular file","path":"grammars/x.wasm"},{"content":"28636f6d6d656e74292040636f6d6d656e740a","kind":"regular file","path":"queries/x/tags.scm"},{"content":"4d4954204c6963656e73650a","kind":"regular file","path":"licenses/MIT.txt"}],"n":1,"note":"the pack has no file pack.toml","result":"invalid","rev":"v1"}
+{"group":"invalid-packs","input":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"0061736d01000000","times":1}],"type":"regular file"},"name":"782e7761736d"}],"type":"directory"},"name":"6772616d6d617273"},{"file":{"entries":[{"file":{"content":[{"bytes":"4d4954204c6963656e73650a","times":1}],"type":"regular file"},"name":"4d49542e747874"}],"type":"directory"},"name":"6c6963656e736573"},{"file":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"28636f6d6d656e74292040636f6d6d656e740a","times":1}],"type":"regular file"},"name":"746167732e73636d"}],"type":"directory"},"name":"78"}],"type":"directory"},"name":"71756572696573"}],"type":"directory"},"n":1,"note":"the pack has no file pack.toml","result":"invalid","rev":"v1"}
 ```
 
 ### 8.2 Pack hashes
 
 The group `pack-hashes` holds the vectors that each give a pack and,
 when it has a pack hash, the valid paths of its files, its pack listing,
-and its pack hash.
-The requirements of the group are `give-pack-files`,
+and its pack hash. The requirements of the group are `give-pack-files`,
 `give-pack-listings`, `give-pack-hashes`, and `omit-pack-hashes`.
 
-- `input`: the pack.
+- `input`: the folder tree object of the pack.
 - `result`: no vector of the group has this member.
 - `values`: when the pack has a pack hash, an object with three members:
   `files`, an array of the valid paths of the files of the pack, as
-  texts, in text order;
-  `hash`, the pack hash of the pack, as a text; and `listing`, the pack
-  listing of the pack, as a text. When the pack has no pack hash, the
-  empty object, `{}`.
+  texts, in code point order; `hash`, the pack hash of the pack, as a
+  text; and `listing`, the pack listing of the pack, as a text. When the
+  pack has no pack hash, the empty object, `{}`.
 
 When a conforming program gives the valid paths of the files, the pack
 listing, or the pack hash of the pack, it gives those of `values`. The
@@ -2882,7 +2889,7 @@ order of `files` is not a value that a conforming program gives. With
 `{}`, it gives no pack hash for the pack.
 
 ```
-{"group":"pack-hashes","input":[],"n":15,"note":"the pack listing is the empty text","rev":"v1","values":{"files":[],"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","listing":""}}
+{"group":"pack-hashes","input":{"entries":[],"type":"directory"},"n":15,"note":"the pack listing is the empty text","rev":"v1","values":{"files":[],"hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","listing":""}}
 ```
 
 ### 8.3 The depth of query texts
@@ -2914,11 +2921,19 @@ The group `well-named-packs` holds the vectors that each give a pack
 and whether it is well named. The requirement of the group is
 `decide-well-named-packs`.
 
-- `input`: the pack.
+- `input`: the folder tree object of the pack.
 - `result`: "well named" when the pack is well named, and "not well
   named" when it is not.
 - `values`: no vector of the group has this member.
 
 ```
-{"group":"well-named-packs","input":[{"content":"","kind":"regular file","path":"pack.toml"}],"n":50,"result":"well named","rev":"v1"}
+{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"7061636b2e746f6d6c"}],"type":"directory"},"n":50,"result":"well named","rev":"v1"}
+```
+
+The two entry names of this vector, `README.md` and `readme.md`, differ
+only in the case of ASCII letters, so the vector has the need
+`case-distinct-names`:
+
+```
+{"group":"well-named-packs","input":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"524541444d452e6d64"},{"file":{"content":[],"type":"regular file"},"name":"726561646d652e6d64"}],"type":"directory"},"n":54,"needs":["case-distinct-names"],"note":"two files whose paths are the same text after ASCII case folding","result":"not well named","rev":"v1"}
 ```
