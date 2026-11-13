@@ -163,6 +163,7 @@ its letters only in the same case.
 | [holding table](sinter:#toml-boundary-state=v1) | the table at which the key of a key/value pair starts: the table of the innermost inline table that encloses the key/value pair, else the root table when no table header comes before it, else the table that the last table header before it names; when that table header names no table, the key/value pair has no holding table |
 | [path of a dotted key](sinter:#dotted-key-path=v1) | the tables to which the TOML keys of the dotted key of a key/value pair, apart from its last TOML key, lead from the holding table of the key/value pair at the boundary right after the key/value pair, one after another |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
+| [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what it is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
 | [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer, or an array of TOML 1.1.0 or an inline table with a depth greater than 64 |
 | [key error](sinter:#toml-key-error=v1) | a key with more than 64 TOML keys, or a TOML key that has no text |
 | [structure rule](sinter:#toml-structure-rule=v1) | a table rule of TOML that a key/value pair or a table header can break, with the parts of a document before it: the rules of `single-definition`, `new-key`, `header-free-path`, `closed-inline-table`, `table-on-the-way`, `header-target`, and `array-header-target` |
@@ -192,9 +193,9 @@ its letters only in the same case.
 ## 2. Results, JSON values, and canonical forms
 
 When a conforming program gives a result for an input that it reads or
-validates, it gives one of two results: "valid" or "invalid". With
-"valid", it can give more, such as the line object of a canonical line
-or the root table of a TOML document.
+validates, it gives one of two results: "valid" or "invalid". It can
+also give more, such as the line object of a canonical line or the root
+table of a TOML document.
 
 The index of an element of a finite sequence is its number in the order
 of the sequence, counted from 1. So the first element of an array has
@@ -434,7 +435,8 @@ null, and no canonical line for a thing that is not a line object. When
 it gives a result for whether a byte sequence is the canonical line of a
 line object, it gives the result "valid" when the byte sequence is the
 canonical line of a line object, and the result "invalid" when it is
-not. It can also give that line object.
+not. It can also give the line object whose canonical line the byte
+sequence is.
 
 A scalar is a string, an integer, or a boolean. A flat object is an
 object in which the value of each member is a scalar. A line object is
@@ -773,9 +775,9 @@ and `give-only-line-objects`.
   byte sequence is the canonical line of a line object, that result:
   "valid" when the byte sequence is the canonical line of a line object,
   and "invalid" when it is not.
-- `values`: with the result "valid", an object with one member,
+- `values`: when `result` is "valid", an object with one member,
   `line-object`: the line object whose canonical line the byte sequence
-  is. With the result "invalid", the empty object, `{}`.
+  is. When `result` is "invalid", the empty object, `{}`.
 
 When a conforming program gives a line object as the line object of the
 byte sequence, it gives the line object of `line-object`, and no other
@@ -798,8 +800,8 @@ a JSON text. The requirements of the group are `read-json-text` and
 - `result`: when a conforming program gives a result for whether the
   byte sequence has a JSON value, that result: "valid" when the byte
   sequence has one, and "invalid" when it has none.
-- `values`: with the result "valid", an object with one member,
-  `json-value`: the JSON value of the byte sequence. With the result
+- `values`: when `result` is "valid", an object with one member,
+  `json-value`: the JSON value of the byte sequence. When `result` is
   "invalid", the empty object, `{}`.
 
 When a conforming program gives a JSON value as the JSON value of the
@@ -821,7 +823,8 @@ gives the result "valid" when the byte sequence is a TOML document, and
 the result "invalid" when it is not. For a TOML document, it can also
 give the root table, and the spans of the keys of TOML 1.1.0 and of the
 values of TOML 1.1.0 in the document, with their locations. With the
-result "invalid", a conforming program can also give a position.
+result "invalid", a conforming program can also give positions and
+spans.
 
 In this specification, a text in a code block stands for the UTF-8
 encoding of its lines, each line then the byte 0x0A.
@@ -1426,8 +1429,8 @@ A byte order mark has no position, so it adds no column: when a byte
 sequence starts with the bytes 0xEF, 0xBB, 0xBF and then holds `a = 1`,
 the key `a` of the key/value pair also starts at line 1, column 1.
 
-With each span, a conforming program gives what the span is the span of.
-The span of a value of TOML 1.1.0 is the span of the TOML value at the
+A span pair is a span together with what the span is the span of. The
+span of a value of TOML 1.1.0 is the span of the TOML value at the
 location of the TOML value that the value gives. The span of the key of
 a key/value pair is the span of the key of TOML 1.1.0 that leads to a
 location of these steps: the steps of the location of the holding table
@@ -1437,12 +1440,13 @@ is the span of the key of TOML 1.1.0 that leads to a location of three
 steps: the text `a`, the index 1, and the text `b`. The span of the key
 of a table header is the span of the key of TOML 1.1.0 that leads to the
 location of the table that the table header names. The span of the TOML
-key with the index i of such a key is the span of the TOML key with the
-index i of the key of TOML 1.1.0 that leads to that location. So in the
-text `[[a]]`, the span of the key `a` of the table header is the span of
-the key of TOML 1.1.0 that leads to a location of two steps, the text
-`a` and the index 1. The span of its TOML key `a` is the span of the
-TOML key with the index 1 of that key of TOML 1.1.0.
+key with the index i of the key of a key/value pair or of a table header
+is the span of the TOML key with the index i of the key of TOML 1.1.0
+that leads to the location of that key. So in the text `[[a]]`, the span
+of the key `a` of the table header is the span of the key of TOML 1.1.0
+that leads to a location of two steps, the text `a` and the index 1. The
+span of its TOML key `a` is the span of the TOML key with the index 1 of
+that key of TOML 1.1.0.
 
 ### 5.1 Definitions
 
@@ -2424,10 +2428,7 @@ other TOML value, key, TOML key, or location.
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{
-        toml-value=v1, toml-value-equality=v1, root-table=v1,
-        toml-document=v1,
-    },
+    #{toml-document=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -2454,7 +2455,7 @@ only the root table of the TOML document that the byte sequence is.
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
-        span=v1, position=v1,
+        text-of-a-byte-sequence=v1, result=v1, span=v1, position=v1,
     },
     #{toml-document=v1, toml-span-pair=v1},
 }
@@ -2462,10 +2463,10 @@ only the root table of the TOML document that the byte sequence is.
 When a conforming program does not give the result "invalid" for
 whether a byte sequence is a TOML document, it must give, as a span of
 the text of the byte sequence together with what the span is the span
-of, only a span pair of the TOML document that the byte sequence is,
-and, as the line number or the column of the start or the end of the
-span of such a pair, only the line number or the column of that start
-or that end.
+of, only a span pair of the TOML document that the byte sequence is;
+as the line number of the start or of the end of the span of such a
+pair, only the line number of that start or that end; and as its
+column, only the column of that start or that end.
 
 ### 5.5 Conformance
 
@@ -2621,12 +2622,14 @@ span of. The requirements of the group are `read-toml` and
   - `start`: the start of the span, as a position.
   - `end`: the end of the span, as a position.
 
-When a conforming program gives a span as the span of what `of`,
-`location`, and `index` name, it gives the line numbers and the columns
-of `start` and `end` as the start and the end of that span. A vector of
-the group states nothing about the other spans that a conforming program
-gives for the TOML document. The note of each vector gives the text of
-the span.
+When a conforming program gives a line number or a column as the line
+number or the column of the start of the span of what `of`, `location`,
+and `index` name, it gives the line number or the column of `start`.
+When it gives a line number or a column as the line number or the column
+of the end of that span, it gives the line number or the column of
+`end`. A vector of the group states nothing about the other spans that a
+conforming program gives for the TOML document. The note of each vector
+gives the text of the span.
 
 ```
 {"group":"give-span","input":"61203d20310a","n":104,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
@@ -2642,9 +2645,8 @@ requirements of the group are `read-toml` and `give-only-toml-spans`.
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with one member, `no-span-at`: a location.
 
-When a conforming program does not give the result "invalid" for
-whether the byte sequence is a TOML document, it gives no span as the
-span of the TOML value at the location of `no-span-at`.
+A conforming program gives no span as the span of the TOML value at the
+location of `no-span-at`.
 
 ```
 {"group":"omit-span","input":"5b615d0a62203d20310a","n":140,"note":"a table header makes the table `a`","result":"valid","rev":"v1","values":{"no-span-at":["a"]}}
@@ -2924,13 +2926,13 @@ of the group is `validate-hash-id`.
 A vector of a specification is an input and what requirements of that
 specification oblige a conforming program of that specification to give
 for that input. A test-vector set is a byte sequence that holds vector
-lines, and a test-vector set of a specification holds vectors of that
-specification, or of the requirements that a design holds outside its
-specifications. A conforming program can read a byte
-sequence as a test-vector set. It can also validate a sequence of
-versions of the vectors as a version sequence: a sequence of versions,
-from the earliest to the latest, whose revisions follow the changes of
-the vectors.
+lines. A test-vector set of a specification holds vectors of that
+specification, and a test-vector set of a design holds vectors of the
+requirements that the design holds outside its specifications. A
+conforming program can read a byte sequence as a test-vector set. It can
+also validate a sequence of versions of the vectors as a version
+sequence: a sequence of versions, from the earliest to the latest, whose
+revisions follow the changes of the vectors.
 
 For a design with the name `a` and a specification of that design with
 the name `b`, the test-vector file name of `a` and `b` is
@@ -3376,7 +3378,7 @@ These are the rules:
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{json-value=v1, vector-line=v1, test-vector-set=v1},
+    #{test-vector-set=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -3470,10 +3472,10 @@ test-vector set. The requirements of the group are
 - `result`: when a conforming program gives a result for whether the
   byte sequence is a test-vector set, that result: "valid" when the byte
   sequence is a test-vector set, and "invalid" when it is not.
-- `values`: with the result "valid", an object with one member,
+- `values`: when `result` is "valid", an object with one member,
   `objects`: an array of the objects of the set line, the group lines,
-  and the vector lines of the byte sequence, in their order. With the
-  result "invalid", the empty object, `{}`.
+  and the vector lines of the byte sequence, in their order. When
+  `result` is "invalid", the empty object, `{}`.
 
 When a conforming program gives objects as the objects of the byte
 sequence, it gives each object of `objects` once, in their order, and no
