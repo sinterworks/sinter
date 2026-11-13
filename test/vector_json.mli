@@ -79,6 +79,16 @@ val print : t -> string
 (** [print thing] is a JSON text, for messages: it writes a string that gives no
     text as [<no text>]. *)
 
+val parse_json_text : string -> t option
+(** [parse_json_text bytes] is what the JSON text of [bytes] gives, when [bytes]
+    is valid UTF-8 and its text matches the rule [JSON-text] of RFC 8259, and
+    [None] otherwise. *)
+
+val json_value_of_bytes : string -> t option
+(** [json_value_of_bytes bytes] is the JSON value of [bytes], as the term
+    [json-value-of-a-byte-sequence] defines it, and [None] when [bytes] has no
+    JSON value. *)
+
 (** Generators of the inputs of the properties. *)
 
 val text_gen : string QCheck2.Gen.t
@@ -106,3 +116,9 @@ val byte_gen : char QCheck2.Gen.t
 val corrupt_gen : string -> string QCheck2.Gen.t
 (** [corrupt_gen bytes] gives byte sequences that differ from [bytes] by one
     byte inserted, removed, or replaced, or by two bytes swapped. *)
+
+val spelling_gen : t -> string QCheck2.Gen.t
+(** [spelling_gen thing] gives JSON texts that give [thing]: with spaces, tabs,
+    line feeds, and carriage returns around the values and the structural
+    characters, the members of each object in any order, and each character of a
+    string as itself or as an escape sequence. *)

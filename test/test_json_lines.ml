@@ -749,9 +749,129 @@ let tests_of_lines =
     read_line_answers_any_bytes;
   ]
 
+let give_read_json (vector : Vectors.vector) =
+  match Json.read_json_text (V.of_hex (input_text vector)) with
+  | Some value ->
+      `Assoc
+        [
+          ("result", `String "valid");
+          ("values", `Assoc [ ("json-value", basic_of_json value) ]);
+        ]
+  | None -> `Assoc [ ("result", `String "invalid"); ("values", `Assoc []) ]
+
+(* @verifies data-forms#json-lines[read-json][*]=v1
+   read_json_text gives a result for every byte sequence; the test fails
+   when that result, or the JSON value that it gives, differs from the
+   result and the JSON value of a vector. *)
+let read_json_vectors =
+  Vectors.group json_lines_set ~name:"read-json" ~rev:"v1" give_read_json
+
+let read_json_agrees bytes =
+  match (Json.read_json_text bytes, V.json_value_of_bytes bytes) with
+  | Some value, Some thing -> same_value value thing
+  | None, None -> true
+  | _ -> false
+
+let spelled_value_gen = Gen.(V.value_gen >>= V.spelling_gen)
+
+(* @verifies data-forms#{read-json-text=v1, give-only-json-values=v1}
+   The test writes generated JSON values as JSON texts with spaces, escape
+   sequences, and members in any order, and fails when read_json_text
+   gives "invalid" for them, or a JSON value other than the one written. *)
+let read_json_text_gives_back_each_json_value =
+  property ~count:1000
+    ~name:"read_json_text gives back each JSON value from a JSON text of it"
+    ~print:(fun (_, text) -> print_bytes text)
+    Gen.(
+      V.value_gen >>= fun thing ->
+      map (fun text -> (thing, text)) (V.spelling_gen thing))
+    (fun (thing, text) ->
+      match Json.read_json_text text with
+      | Some value -> same_value value thing
+      | None -> false)
+
+let spelled_thing_gen =
+  Gen.oneof
+    [
+      Gen.(V.thing_gen >>= V.spelling_gen);
+      Gen.(spelled_value_gen >>= V.corrupt_gen);
+      Gen.(V.thing_gen >>= V.spelling_gen >>= V.corrupt_gen);
+    ]
+
+(* @verifies data-forms#{read-json-text=v1, give-only-json-values=v1}
+   The test gives JSON texts of things that are not JSON values, and JSON
+   texts changed by one byte, and fails when read_json_text gives "valid"
+   for a byte sequence that has no JSON value, "invalid" for one that has
+   one, or a JSON value other than the JSON value of the byte sequence. *)
+let read_json_text_takes_exactly_the_json_values =
+  property ~count:2000
+    ~name:
+      "read_json_text gives a JSON value when, and only when, the byte \
+       sequence has one"
+    ~print:print_bytes spelled_thing_gen read_json_agrees
+
+(* @verifies data-forms#{read-json-text=v1, give-only-json-values=v1}
+   The test gives any bytes and fails when read_json_text gives "valid" for
+   a byte sequence that has no JSON value, "invalid" for one that has one,
+   or a JSON value other than the JSON value of the byte sequence. *)
+let read_json_text_answers_any_bytes =
+  property ~count:1000
+    ~name:"read_json_text gives a value or nothing for any bytes"
+    ~print:print_bytes any_bytes_gen read_json_agrees
+
+(* @verifies data-forms#{read-json-text=v1, give-only-json-values=v1}
+   The test gives numbers of up to 25 digits, and fails when read_json_text
+   gives "valid" for a number outside the range of integers, "invalid" for
+   one inside it, or another integer. *)
+let read_json_text_answers_each_number =
+  property ~count:1000
+    ~name:
+      "read_json_text gives an integer for a number when, and only when, it \
+       writes one"
+    ~print:Fun.id number_text_gen read_json_agrees
+
+let deep_json_texts_need_no_deep_stack () =
+  let value, _, bytes = deep_json () in
+  let _, prefix, _ = deep_parts () in
+  let spaced =
+    String.concat ""
+      (List.map
+         (function
+           | ('[' | '{' | ':') as char -> String.make 1 char ^ " \t"
+           | (']' | '}') as char -> "\n" ^ String.make 1 char
+           | char -> String.make 1 char)
+         (List.of_seq (String.to_seq bytes)))
+  in
+  let read, read_spaced, unclosed =
+    Small_stack.run (fun () ->
+        ( Json.read_json_text bytes,
+          Json.read_json_text ("\n" ^ spaced ^ "\r\n"),
+          Json.read_json_text (prefix ^ "true") ))
+  in
+  let is_value = function
+    | Some read -> Json.equal read value
+    | None -> false
+  in
+  Alcotest.(check bool) "the deep value" true (is_value read);
+  Alcotest.(check bool) "the deep value with spaces" true (is_value read_spaced);
+  Alcotest.(check bool) "the unclosed value" true (Option.is_none unclosed)
+
+let tests_of_json_texts =
+  [
+    Alcotest.test_case "deep JSON texts need no deep stack" `Quick
+      deep_json_texts_need_no_deep_stack;
+    read_json_text_gives_back_each_json_value;
+    read_json_text_takes_exactly_the_json_values;
+    read_json_text_answers_any_bytes;
+    read_json_text_answers_each_number;
+  ]
+
 let vector_groups =
-  [ write_json_vectors; write_line_vectors; read_line_vectors ]
+  [
+    write_json_vectors; write_line_vectors; read_line_vectors; read_json_vectors;
+  ]
 
 let tests =
   Vectors.tests "data-forms.json-lines" vector_groups
-  @ tests_of_json @ tests_of_lines
+  @ [ Vectors.covers "data-forms.json-lines" json_lines_set vector_groups ]
+  @ tests_of_json @ tests_of_lines @ tests_of_json_texts
