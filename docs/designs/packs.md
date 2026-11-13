@@ -15,6 +15,7 @@
 @cites tree-sitter/0.26.13
 @cites wasm-core/2.0
 @cites ecma/262-2025
+@cites iso/9899-2024
 Specifies language packs, with their files, pack paths, and pack hashes;
 descriptors, with pack names, release numbers, comment sigils, foreign
 tag words, name separators, grammars, test runners, and runner settings;
@@ -91,6 +92,8 @@ query. From the WebAssembly Core Specification 2.0, it
 takes modules, their validation, imports, exports, functions, memories,
 tables, instances, traps, and the execution of code. From ECMA-262
 2025, it takes RegExp patterns, with the flag `u`, and their matching.
+From ISO/IEC 9899:2024, the standard of the C language, it takes the
+functions of memory and strings that a grammar can import.
 
 ## 1. Glossary
 
@@ -849,7 +852,7 @@ that specification.
 
 @term usable-grammar=v1
 @cites {
-    tree-sitter/0.26.13, wasm-core/2.0,
+    tree-sitter/0.26.13, wasm-core/2.0, iso/9899-2024,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
         code-span=v1,
@@ -885,14 +888,15 @@ each of these conditions:
    the WebAssembly standard library that tree-sitter defines for
    grammars, from 0.26.13 on: for example, `iswspace` and `iswalpha`
    give the results of that library, and not those of the C library of
-   a system. The functions that act on memory and strings act as ISO C
-   defines them.
-3. It exports a function whose name is `tree_sitter_` followed by g,
-   which, invoked in an instance of the module whose imports are as that
-   format gives them, after the invocation of each of the exports
-   `_initialize`, `__wasm_apply_data_relocs`, and `__wasm_call_ctors`
-   that the module has, as that format defines, gives a language in that
-   format, of an ABI version from 13 to 15.
+   a system. The functions that act on memory and strings act as
+   ISO/IEC 9899:2024 defines them.
+3. It exports a function whose name is `tree_sitter_` followed by g. In
+   an instance of the module whose imports are as that format gives
+   them, the program invokes each of the exports `_initialize`,
+   `__wasm_apply_data_relocs`, and `__wasm_call_ctors` that the module
+   has, in the order in which the module lists them as exports, and then
+   that function. That function then gives a language in that format, of
+   an ABI version from 13 to 15.
 4. The name of each symbol of that language is valid UTF-8.
 
 The language of a usable grammar with the grammar name g is that
