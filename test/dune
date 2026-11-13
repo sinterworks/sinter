@@ -25,6 +25,8 @@
   sinter_paths
   sinter_file_read
   sinter_json_lines
+  sinter_hashes
+  digestif.c
   git_fixture
   sinter_bench
   alcotest

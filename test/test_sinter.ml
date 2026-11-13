@@ -72,6 +72,7 @@ let () =
       ("inline citations", Test_inline_citations.tests);
       ("canonical entries", Test_canonical_entries.tests);
       ("json lines", Test_json_lines.tests);
+      ("hashes", Test_hashes.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
