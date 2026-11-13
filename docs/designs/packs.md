@@ -71,15 +71,18 @@ results, and parameters and their bindings.
 From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
 of the design hold one JSON text on each line. From POSIX.1-2024, it
-takes the permissions and the appropriate privileges of a process. The
-design relies on the behavior of four dependencies, at fixed versions.
-From tree-sitter 0.26.13, its Rust library with the feature `wasm`, it
-takes the loading of grammars, parse trees and their nodes, queries with
-their patterns, captures, predicates, and quantifiers, and the matches
-of a query. From wasmtime 36.0.19, the WebAssembly runtime of that
-library, it takes its engine with its default configuration, and the
-compilation of modules. From the WebAssembly Core Specification 2.0, it
-takes modules, their validation, imports, exports, functions, memories,
+takes the permissions and the appropriate privileges of a process, the
+portable filename character set, the value `{_POSIX_NAME_MAX}`, and the
+error [EILSEQ]. The design relies on the behavior of four dependencies,
+at fixed versions. From tree-sitter 0.26.13, its Rust library with the
+feature `wasm`, it takes the loading of grammars, parse trees and their
+nodes, queries with their patterns, captures, predicates, and
+quantifiers, and the matches of a query. From wasmtime 36.0.19, the
+WebAssembly runtime of that library, as the feature `wasm` of
+tree-sitter 0.26.13 builds it, with the Cranelift compiler and its
+default configuration otherwise, it takes its engine and the compilation
+of modules. From the WebAssembly Core Specification 2.0, it takes
+modules, their validation, imports, exports, functions, memories,
 tables, instances, traps, and the execution of code. From the Rust crate
 regex 1.13.1, it takes the regular expressions of the predicates of
 queries.
@@ -115,11 +118,11 @@ queries.
 | [file grammar](sinter:#file-grammar=v1) | the first grammar of a descriptor that has a file-name glob that the last file name of a valid path fits |
 | [test runner](sinter:#test-runner=v1) | a program that runs tests and writes report files on them, such as vitest or cargo-nextest; a valid descriptor describes its test runners |
 | [adapter hash, adapter license](sinter:#test-runner=v1) | the hash that the descriptor gives for the adapter file of a test runner, and the license of that adapter, which a descriptor gives for a test runner that has an adapter of its own |
-| [match table](sinter:#test-runner=v1) | the table of `match` in the table of a test runner of a valid descriptor, which a test runner has when it has no adapter hash: data that describes how the test results of the test runner bind to test entries |
+| [match table](sinter:#test-runner=v1) | the table of `match` in the table of a test runner of a valid descriptor, which a test runner has when it has no adapter hash |
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a library that parses texts by grammars and finds parts of the parse trees by queries; here, the Rust library of tree-sitter 0.26.13, with its feature `wasm` |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module with no import whose name is `tree_sitter_debug_message`, which tree-sitter 0.26.13 loads as the language of a grammar name, with an ABI version from 13 to 15 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module with no import whose name, after its module name, is `tree_sitter_debug_message`, which tree-sitter 0.26.13 loads as the language of a grammar name, with an ABI version from 13 to 15, and whose node types are each valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that tree-sitter 0.26.13 gives as the version of the format of the language of a usable grammar |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | pattern, capture, capture name, predicate, directive, quantifier | the things of a query of tree-sitter 0.26.13 with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
@@ -144,25 +147,26 @@ queries.
 | [definition node](sinter:#definition-node=v1) | the role node of a kept match with the role name `definition` of the query file of the kind definition, such as a function, a type, a module, or a class |
 | [name node, body node](sinter:#definition-node=v1) | a node that the kept match of a definition node captures as `name`, and a node that it captures as `body`; when that kept match captures no `body` node, the definition node is its own body node |
 | [decoration node](sinter:#decoration-node=v1) | the role node of a kept match with the role name `decoration` of the query file of the kind definition, such as a Rust attribute |
-| [test node](sinter:#test-node=v1) | the role node of a kept match of the query file of the kind test, which, by the query file, is the code of one test of the file |
+| [test node](sinter:#test-node=v1) | the role node of a kept match of the query file of the kind test, which, by the query file, is the code of one test of the file: of one unit, for a test case, or of a set of units that the code groups under one name, for a test suite |
 | [test case, test suite](sinter:#test-node=v1) | the two kinds of test node: a test node is a test suite, such as a vitest `describe`, when one of its kept matches has the role name `suite`, or when it encloses a test node that has a kept match with the role name `case`; each other test node is a test case, such as a Rust function with `#[test]` |
 | [enclose](sinter:#enclosed-node=v1) | a node encloses a different node when its run starts at or before the start of the run of the other node, ends at or after its end, and the other node does not come before it in the order of the parse tree |
 | [piece, text piece, placeholder](sinter:#test-name=v1) | a part of the name of a test node, from a node that a kept match of the test node captures as `name` or as `placeholder`: a text piece is text as the text of the file writes it; a placeholder stands for the text that the test runner puts in the name when it runs the test |
-| [name path](sinter:#test-name=v1) | the names of the test suites that enclose a test node, outermost first, then its own name; it stands for the name of the test of the test node |
+| [name path](sinter:#test-name=v1) | the names of the test suites that enclose a test node, outermost first, then its own name; by the query file, it stands for the name of the test of the test node |
 | [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values; with "parse failure", the run of the failure node, when there is one |
 | import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources |
-| [valid adapter](sinter:#valid-adapter=v1) | for a program, a WebAssembly module that wasmtime 36.0.19 compiles, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface in the instance that the program makes |
+| [choice of the program](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop for its limits, a refused growth of a memory or of a table within its maximum, the depth at which the call stack is exhausted, or the bits of a NaN |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that wasmtime 36.0.19 compiles, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface in an instance that the program makes for that decision |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
 | [test entry](sinter:#test-entry=v1) | an id, a path, a first and a last line, a kind, a name path, and test labels, which a call of the function bind gives an adapter for one test node |
 | [request](sinter:#adapter-request=v1) | the canonical byte sequence of a request object: a JSON object with the version 1 of the interface, the test runner, the values of its runner settings, the report name, and, for bind, the root and the test entries |
 | report file | a file that a test runner writes, such as a JUnit XML file |
 | [report content](sinter:#adapter-call=v1) | the byte sequence that a program gives an adapter, unchanged, in a call, such as the content of a report file |
-| report name | the name of a report file, such as its path as a person gave it |
-| [test result](sinter:#call-result=v1) | an element of the value of `results` of the response of a call of bind, with its name, its status, and, when it has them, its file, its line, and its duration; it stands for a test result, in the sense of the Ontology, that the report content holds |
-| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request and a report content: it fails when the byte sequence is not a valid adapter, and otherwise it runs in an instance of an adapter and gives a response or fails |
+| [report name](sinter:#adapter-request=v1) | a text, such as the path of a report file as a person gave it, which the request of a call gives the adapter |
+| [test result](sinter:#call-result=v1) | an element of the value of `results` of the response of a call of bind, with its name, its status, and, when it has them, its file, its line, and its duration; by the adapter, it is a test result, in the sense of the Ontology, that the report content holds |
+| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request and a report content: it fails when the request or the report content has 4,294,967,296 bytes or more, or when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise it runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
 | [JSON value of a response](sinter:#call-result=v1) | the JSON value of the response as a byte sequence, as Data forms defines it; a response that is not valid UTF-8, that is not a JSON text, or whose JSON text holds `null`, a number with a fraction or an exponent, an integer outside the range of a JSON integer, an escape `\u` of a surrogate that is not one of a pair, or an object with two names that stand for the same text has no JSON value |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
@@ -379,13 +383,15 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 
 A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly,
 in one file that serves every platform. The content of the file
-`grammars/<g>.wasm` is a usable grammar when it is a WebAssembly
-module, when it has no import whose name is `tree_sitter_debug_message`,
-when tree-sitter 0.26.13 loads it as the language `<g>`, through its
-export `tree_sitter_<g>`, and when the ABI version of that language is
-from 13 to 15. The function that tree-sitter 0.26.13 gives a grammar for
-that import writes to the standard output of the process. In a valid pack, the hash of the file is the hash that
-the descriptor gives for the grammar.
+`grammars/<g>.wasm` is a usable grammar when it is a WebAssembly module,
+when it has no import whose name, after its module name, is
+`tree_sitter_debug_message`, when tree-sitter 0.26.13 loads it as the
+language `<g>`, through its export `tree_sitter_<g>`, when the ABI
+version of that language is from 13 to 15, and when the name of each
+node type of that language is valid UTF-8. The function that tree-sitter
+0.26.13 gives a grammar for that import writes to the standard output of
+the process. In a valid pack, the hash of the file is the hash that the
+descriptor gives for the grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
 program runs the query over the parse tree of a text. A match is one
@@ -601,16 +607,24 @@ when it exports these five names, with these types:
 
 The module can export other names, such as the globals `__data_end` and
 `__heap_base` that the Rust compiler adds. This is version 1 of the
-interface. A valid adapter also gives that version: in the instance of
-the module that the program makes, the instantiation and then an
-invocation of `sinter_interface` do not fail, and the invocation gives
-the value 1.
+interface. A valid adapter also gives that version. A program decides
+whether a byte sequence is a valid adapter in an instance of its module
+that it makes for that decision, in which it makes only the
+instantiation and then an invocation of `sinter_interface`: these do not
+fail, and the invocation gives the value 1. Two decisions can differ
+when a choice of the program, such as a stop for its limits, changes
+them.
 
 A call runs one function of an adapter, with a request and a report
-content, in an instance of the adapter: a new instance of its module, so
-nothing that one call leaves in its instance reaches the next call. The
-report content is a byte sequence, such as the content of a report file.
-In a call, the program:
+content. The report content is a byte sequence, such as the content of
+a report file. The call uses one decision of the program whether the
+adapter is a valid adapter, made in another instance, such as a decision
+that the program made before the call, and the call fails when that
+decision is that the adapter is not valid. The call then runs in a new
+instance of its module, so nothing that one call leaves in its instance
+reaches the next call. In that instance, the program does only this,
+and it changes no byte of the memory other than by the writes of steps
+2 and 3:
 
 1. makes the instance, which runs the start function of the module
    when it has one;
@@ -636,16 +650,17 @@ The code of an instance of an adapter runs as the WebAssembly Core
 Specification 2.0 defines, under limits that the program has of its own
 on the resources of the instance, such as the size of its memory. The
 limits of a program bound the time that the code runs too. The program
-stops a call whose code goes past these limits, and that call fails, so
-each call ends. Which calls go past the limits of a program can differ
-between conforming programs. A growth of a memory past its maximum does
-not make the call fail: the instruction `memory.grow` gives −1 to the
-code, as the WebAssembly Core Specification 2.0 defines, and the call
-goes on.
+can stop a call whose code goes past these limits, and that call then
+fails. The program ends the code of each call. Which calls go past the
+limits of a program can differ between conforming programs. A growth of
+a memory past its maximum does not make the call fail: the instruction
+`memory.grow` gives −1 to the code, as the WebAssembly Core
+Specification 2.0 defines, and the call goes on.
 
 The code of an adapter imports nothing, so it can read no file, use no
 network, see no clock, and start no process. No file, network, clock,
-or process has an effect on its response.
+or process reaches the code of an adapter; only the choices of the
+program can make two runs of one call give different results.
 
 ### 2.8 Requests and responses
 
@@ -654,8 +669,8 @@ members of each object of the request stand in key order. For the
 function recognise, it has the members `interface`, the integer `1`;
 `runner`, the name of the test runner; `settings`, the value of each
 runner setting under the binding of `runner-settings`; and
-`report`, the report name: the name of the report file, a text such as
-the path of the report file as a person gave it. For the function bind,
+`report`, the report name: a text, such as the path of a report file as
+a person gave it. For the function bind,
 it also has `root`, a text such as the absolute path of the root of the
 repository, and `tests`: one object for each test entry, in the code
 point order of their ids.
@@ -707,15 +722,15 @@ A binding object has these members, all required:
 When the adapter cannot read the report content, the response is
 `{"error": <text>}`, and the result of the call is "failed", with that
 error text. The result of a call is also "failed" when its response
-breaks these rules: when the response has no JSON value, as Data forms
-defines the JSON value of a byte sequence, such as when it is not valid
-UTF-8, when it is not a JSON text, or when it holds `null` or a number
-with a fraction; when a member is missing, of the wrong type, or not one
-of the members above; when the value of `result` of a binding object is
-not less than the number of test results; when a test id is not the id
-of a test entry of the request; or when one pair of a test result and a
-test entry occurs twice. This response of bind binds one test result to
-one test entry:
+breaks these rules, such as: when the response has no JSON value, as
+Data forms defines the JSON value of a byte sequence, for example when
+it is not valid UTF-8, when it is not a JSON text, or when it holds
+`null` or a number with a fraction; when a member is missing, of the
+wrong type, or not one of the members above; when the value of `result`
+of a binding object is not less than the number of test results; when a
+test id is not the id of a test entry of the request; or when one pair
+of a test result and a test entry occurs twice. This response of bind
+binds one test result to one test entry:
 
 ```
 {"bindings":[{"reason":"name and file match","result":0,"test":"t1"}],"results":[{"file":"src/math.test.ts","ms":3,"name":"math > adds","status":"pass"}],"warnings":[]}
@@ -806,11 +821,11 @@ these conditions:
     #{pack=v1, well-named-pack=v1},
 }
 
-The pack listing of a well-named pack is the text that holds one line
-for each file of the pack, and no other character. The lines stand in
-the code point order of the valid paths of their files. The line of a
-file is the hash of its content, then two spaces, then its valid path,
-then a line feed. The pack hash of a well-named pack is the hash of the
+The pack listing of a well-named pack is the text that holds, for each
+file of the pack, in the code point order of the valid paths of the
+files, the hash of the content of the file, then two spaces, then the
+valid path of the file, then a line feed, and no other character. The
+pack hash of a well-named pack is the hash of the
 UTF-8 encoding of its pack listing. A pack that is not well named, and a
 pack that has a file whose content has 2^61 bytes or more, have no pack
 listing and no pack hash. A well-named pack whose pack listing has a
@@ -859,34 +874,53 @@ types `i32` and `i64`.
 @term usable-grammar=v1
 @cites {
     tree-sitter/0.26.13, wasmtime/36.0.19, wasm-core/2.0,
-    text#{byte-sequence=v1, text=v1, whole-number=v1, code-span=v1},
+    text#{
+        byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
+        code-span=v1, conforming-program=v1,
+    },
     #{webassembly-module=v1, grammar-name=v1},
 }
 
 This definition uses the Rust library of tree-sitter 0.26.13, with its
-feature `wasm`, which runs WebAssembly code with wasmtime 36.0.19. A
-byte sequence is a usable grammar with a grammar name g when, and only
-when, it is a WebAssembly module that has no import whose name is
-`tree_sitter_debug_message`, `WasmStore::load_language` of that library,
-on a new `WasmStore` that `WasmStore::new` of that library makes from an
-`Engine` of wasmtime 36.0.19 with its default configuration, with the
-text g as its name and that byte sequence as its bytes, gives a
-language, and `Language::abi_version` gives, for that language, a whole
-number from 13 to 15. The language of a usable grammar with the grammar
-name g is that language, and its ABI version is that whole number. That
-library takes the language from the export of the module whose name is
-`tree_sitter_` followed by g. A usable grammar is a module of the
-WebAssembly Core Specification 2.0, so the features beyond that
-specification that the default configuration of wasmtime 36.0.19 turns
-on do not change which byte sequences are usable grammars. For each
-import of a module, `WasmStore::load_language` of that library gives the
-module a function, a memory, a table, or a global by the name of the
-import, or it gives no language. The function that it gives for the
-import whose name is `tree_sitter_debug_message` writes to the standard
-output of the process. The other imports that it gives give the code of
-the module no means to take bytes from a file, to write a file or the
-output of the process, to use a network, to read a clock, or to start a
-process.
+feature `wasm`, which runs WebAssembly code with wasmtime 36.0.19, as
+that feature builds it, with the Cranelift compiler and its default
+configuration otherwise. A store is a new `WasmStore` that
+`WasmStore::new` of that library makes from an `Engine` of that build of
+wasmtime with its default configuration. A byte sequence is a usable
+grammar with a grammar name g when, and only when, it meets each of
+these conditions:
+
+1. It is a WebAssembly module.
+2. It has no import whose name, after its module name, is
+   `tree_sitter_debug_message`.
+3. `WasmStore::load_language` of that library, on a store, with the
+   text g as its name and that byte sequence as its bytes, gives a
+   language.
+4. `Language::abi_version` of that library gives, for that language, a
+   whole number from 13 to 15.
+5. For each whole number i from 0 to 1 less than the number that
+   `Language::node_kind_count` gives for that language,
+   `Language::node_kind_for_id` reads, for i, no name, or a name whose
+   bytes are valid UTF-8. So `Node::kind` gives a text for each node
+   whose language is that language.
+
+The language of a usable grammar with the grammar name g is that
+language, and its ABI version is that whole number. That library takes
+the language from the export of the module whose name is `tree_sitter_`
+followed by g. A usable grammar is a module of the WebAssembly Core
+Specification 2.0, so the features beyond that specification that the
+default configuration of that build of wasmtime turns on do not change
+which byte sequences are usable grammars. When the code of the module
+exhausts the call stack during `WasmStore::load_language`, whether the
+byte sequence is a usable grammar can differ between conforming
+programs. For each import of a module, `WasmStore::load_language` of
+that library gives the module a function, a memory, a table, or a global
+by the name of the import after its module name, or it gives no
+language. The function that it gives for the name
+`tree_sitter_debug_message` writes to the standard output of the
+process. The other imports that it gives give the code of the module no
+means to take bytes from a file, to write a file or the output of the
+process, to use a network, to read a clock, or to start a process.
 
 ### 4.8 The depth of a query text
 
@@ -1075,19 +1109,20 @@ The parse text of a text is that text, followed by a line feed when the
 text does not end with a line feed. So the parse text of the empty text
 is one line feed. The store of a usable grammar with a grammar name g is
 a new `WasmStore` that `WasmStore::new` of the Rust library of
-tree-sitter 0.26.13 makes from an `Engine` of wasmtime 36.0.19 with its
-default configuration, and that then loads the usable grammar with the
-name g. The parser of that usable grammar is a new `Parser` of that
-library that has that store as its WebAssembly store, the language that
-this store loads as its language, and no other setting. For that usable
-grammar and a text, the parse tree is the `Tree` that `Parser::parse` of
-that parser gives for the UTF-8 encoding of the parse text of that text,
-with no old `Tree`. When `Parser::parse` gives no `Tree`, the text has
-no parse tree with that usable grammar. A text whose parse text has a
-UTF-8 encoding of 4,294,967,296 bytes or more has no parse tree. When
-the code of the usable grammar exhausts the call stack, whether the text
-has a parse tree with that usable grammar can differ between conforming
-programs.
+tree-sitter 0.26.13 makes from an `Engine` of wasmtime 36.0.19, as the
+feature `wasm` of that library builds it, with the Cranelift compiler
+and its default configuration otherwise, and that then loads the usable
+grammar with the name g. The parser of that usable grammar is a new
+`Parser` of that library that has that store as its WebAssembly store,
+the language that this store loads as its language, and no other
+setting. For that usable grammar and a text, the parse tree is the
+`Tree` that `Parser::parse` of that parser gives for the UTF-8 encoding
+of the parse text of that text, with no old `Tree`. When `Parser::parse`
+gives no `Tree`, the text has no parse tree with that usable grammar. A
+text whose parse text has a UTF-8 encoding of 4,294,967,296 bytes or
+more has no parse tree. When the code of the usable grammar exhausts the
+call stack, whether the text has a parse tree with that usable grammar
+can differ between conforming programs.
 
 ### 4.12 The order of the parse tree
 
@@ -1293,9 +1328,9 @@ the usable grammar of that grammar. The test nodes of the text are the
 role nodes of the kept matches of the query file of the kind test of
 that grammar over the text, each node once, in the order of the parse
 tree. By the query file of the kind test, each test node is the code of
-one test of the file at that valid path, its test: a test case is the
-code of one unit of code, and a test suite is the code of a set of such
-units that the code groups under one name. The text has no test node
+one test of the file at that valid path, its test: of one unit, for a
+test case, or of a set of units that the code groups under one name,
+for a test suite. The text has no test node
 when that grammar has no query file of the kind test. The kept matches
 of a test node are the kept matches whose role node it is. A test node
 is a test suite when, and only when, one of its kept matches has the
@@ -1312,25 +1347,25 @@ and that enclose it, in the order of the parse tree.
     text#{text=v1, run=v1, code-span=v1},
     data-forms#{index=v1},
     #{
-        joined-match=v1, parse-tree=v1, parse-tree-order=v1, node-run=v1,
-        enclosed-node=v1, test-node=v1,
+        test-runner=v1, joined-match=v1, parse-tree=v1, parse-tree-order=v1,
+        node-run=v1, enclosed-node=v1, test-node=v1,
     },
 }
 
 A piece is a text piece or a placeholder, and it has a text. A text
 piece stands for its text, as the text of the file writes it. A
-placeholder stands for text that the program that runs a test puts in
-the name of the test when it runs the test, which can be any text, the
-empty text included. The name of a test node is a sequence of pieces,
-one for each node that one of its kept matches captures under `name` or
-under `placeholder`, in the order of the parse tree. A node that one of
-these kept matches captures under `placeholder` gives a placeholder, and
-each other of these nodes gives a text piece. The text of each piece is
-the text of the run of its node. The name path of a test node is the
-names of the test suites that enclose it, in the order of the parse
-tree, followed by its own name. The name path of a test node stands for
-the name of its test: that name, with, in place of each placeholder, the
-text that the program that runs the test puts in. Two name paths are
+placeholder stands for text that the test runner puts in the name of a
+test when it runs the test, which can be any text, the empty text
+included. The name of a test node is a sequence of pieces, one for each
+node that one of its kept matches captures under `name` or under
+`placeholder`, in the order of the parse tree. A node that one of these
+kept matches captures under `placeholder` gives a placeholder, and each
+other of these nodes gives a text piece. The text of each piece is the
+text of the run of its node. The name path of a test node is the names
+of the test suites that enclose it, in the order of the parse tree,
+followed by its own name. By the query file, the name path of a test
+node stands for the name of its test: that name, with, in place of each
+placeholder, the text that the test runner puts in. Two name paths are
 equal when, and only when, they have the same number of names and, at
 each index, names with the same number of pieces whose pieces, at each
 index, are of the same kind and have the same text.
@@ -1806,8 +1841,9 @@ requirements of the group are `read-descriptor`,
 `omit-absent-adapter-values`, and `omit-absent-match-tables`.
 
 - `input`: the byte sequence.
-- `result`: "valid" when the byte sequence is a valid descriptor, and
-  "invalid" when it is not.
+- `result`: the result for whether the byte sequence is a valid
+  descriptor, when a conforming program gives that result: "valid" when
+  the byte sequence is a valid descriptor, and "invalid" when it is not.
 - `values`: with "valid", an object with these members, for the values
   of the valid descriptor: `spec-version`, `name`, `release`, `license`,
   and `name-separator`, each a text; `foreign-tag-words`, `line-sigils`,
@@ -1861,7 +1897,8 @@ it gives no grammar as the file grammar of the valid path.
 @spec adapters=v1
 
 When a conforming program decides whether a byte sequence is a valid
-adapter, it gives "valid" when it is one, and "invalid" when it is not.
+adapter, it gives "valid" when it is one in that decision, and "invalid"
+when it is not.
 When it gives the result of a call of a function of an adapter with a
 request and a report content, it gives "recognised", "not recognised",
 or "failed" for the function recognise, and "bound" or "failed" for the
@@ -1870,9 +1907,10 @@ the adapter of a test runner of a valid descriptor, under a valid
 binding of `runner-settings` for that test runner, the request of the
 call is the request of that function for that test runner, binding,
 report name, and, for bind, root and test entries. It runs the code of
-an adapter only in an instance of the adapter, and it ends that code in
-each call and in each decision whether a byte sequence is a valid
-adapter.
+an adapter only in an instance of the adapter, it ends that code in each
+call and in each decision whether a byte sequence is a valid adapter,
+and it gives −1 to that code at a growth of a memory or of a table past
+its maximum.
 
 ### 6.1 Definitions
 
@@ -1888,36 +1926,42 @@ adapter.
 An instance of an adapter of a WebAssembly module, for a program, is a
 new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
-execution, with the program as its embedder. Where that specification
-leaves an outcome to the embedder, such as whether a growth of a memory
-or of a table within its maximum succeeds, the bits of a NaN, or the
-depth of calls at which the call stack is exhausted, the outcome is the
-one that the program chooses. The limits of a program are limits of its
-own on the resources of an instance of an adapter. The program can stop
-an instantiation or an invocation that goes past these limits. An
-instantiation or an invocation fails when it traps, or when the program
-stops it. The maximum of a memory is the maximum of its memory type, or
-65,536 pages when its memory type has none. The maximum of a table is
-the maximum of its table type, or 4,294,967,295 elements when its table
-type has none. A growth of a memory or of a table past its maximum gives
-−1 to the code, as the WebAssembly Core Specification 2.0 defines, and
-the code goes on: such a growth never goes past the limits of a
-program.
+execution, with the program as its embedder. The limits of a program are
+limits of its own on the resources of an instance of an adapter. The
+choices of the program in an instance of an adapter are the outcomes
+that that specification leaves to the embedder, and they are these:
+
+- a stop of the instantiation, or of an invocation, whose code goes past
+  the limits of the program;
+- a refusal of a growth of a memory or of a table within its maximum, at
+  which the code gets −1;
+- the depth of calls at which the call stack is exhausted;
+- the bits of a NaN.
+
+An instantiation or an invocation fails when it traps, or when the
+program stops it. The maximum of a memory is the maximum of its memory
+type, or 65,536 pages when its memory type has none. The maximum of a
+table is the maximum of its table type, or 4,294,967,295 elements when
+its table type has none. A growth of a memory or of a table past its
+maximum gives −1 to the code, as that specification defines, and it is
+not a choice of the program.
 
 #### 6.1.2 Valid adapters
 
 @term valid-adapter=v1
 @cites {
-    wasm-core/2.0, wasmtime/36.0.19,
+    wasm-core/2.0, wasmtime/36.0.19, tree-sitter/0.26.13,
     text#{byte-sequence=v1, code-span=v1, conforming-program=v1},
     #{webassembly-module=v1, adapter-instance=v1},
 }
 
-A byte sequence is a valid adapter for a program when, and only when, it
-meets each of these conditions:
+A byte sequence is a valid adapter, in one decision of a program whether
+it is one, when, and only when, it meets each of these conditions:
 
 1. It is a WebAssembly module, and wasmtime 36.0.19 compiles it:
-   `Module::new` of wasmtime 36.0.19, with an `Engine` with its default
+   `Module::new` of wasmtime 36.0.19, as the feature `wasm` of
+   tree-sitter 0.26.13 builds it, with the Cranelift compiler and its
+   default configuration otherwise, with an `Engine` with its default
    configuration, gives a module for it, and no error.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
@@ -1925,14 +1969,18 @@ meets each of these conditions:
    the type `[i32] -> [i32]`, `sinter_recognise` as a function of the
    type `[i32 i32 i32 i32] -> [i64]`, and `sinter_bind` as a function of
    the type `[i32 i32 i32 i32] -> [i64]`. It can export other names.
-4. In the instance of an adapter of the module that the program makes,
-   the instantiation and then an invocation of `sinter_interface` do not
-   fail, and the invocation gives the `i32` value 1, which is the
-   version of the interface.
+4. In an instance of an adapter of the module that the program makes
+   for this decision, in which the program makes only the instantiation
+   and then an invocation of `sinter_interface`, the instantiation and
+   that invocation do not fail, and the invocation gives the `i32` value
+   1, which is the version of the interface.
 
-An outcome of that instantiation and that invocation can be a choice of
-the program or a stop for its limits, so whether a byte sequence is a
-valid adapter for a program can differ between conforming programs.
+A choice of the program can change that instantiation or that
+invocation, so two decisions whether a byte sequence is a valid adapter,
+of one program or of two conforming programs, can differ. By the
+interface, `sinter_alloc` reserves the given number of bytes in the
+memory and gives the address of the first of them, an address other
+than 0 also for 0 bytes, or gives 0 when it cannot reserve them.
 
 #### 6.1.3 Bindings of `runner-settings`
 
@@ -1991,16 +2039,16 @@ test labels.
     text#{text=v1, byte-sequence=v1, code-span=v1, code-point-order=v1},
     #{
         valid-descriptor=v1, test-runner=v1, runner-setting=v1,
-        runner-setting-binding=v1, test-entry=v1, test-name=v1,
-        test-label=v1, adapter-call=v1,
+        runner-setting-binding=v1, test-node=v1, test-entry=v1,
+        test-name=v1, test-label=v1, adapter-call=v1,
     },
 }
 
 This definition is for a test runner of a valid descriptor, a valid
 binding of `runner-settings` for that test runner, a report name, which
 is a text, and, for the function bind, a root, which is a text, and test
-entries whose ids are each a different text. The report name is the name
-of the report file, such as its path as a person gave it. The root is a
+entries whose ids are each a different text. The report name is a text,
+such as the path of a report file as a person gave it. The root is a
 text, such as the absolute path of the root of a repository. The request
 object of the function recognise is a JSON object with these members,
 and no other member:
@@ -2052,13 +2100,20 @@ the two functions recognise and bind, a byte sequence as its request,
 and a byte sequence as its report content, such as the content of a
 report file. The export of the function recognise is `sinter_recognise`,
 and the export of the function bind is `sinter_bind`. A call fails when
-its adapter is not a valid adapter for that program, or when its request
-or its report content has 4,294,967,296 bytes or more. Otherwise, the
-call runs these steps in an instance of an adapter of the module of its
-adapter, for that program, and it fails when one of them fails, such as
-when the program stops it for its limits. The memory of the instance is
-its memory, which it exports as `memory`, and the size of that memory is
-its number of bytes when a step reads it.
+its request or its report content has 4,294,967,296 bytes or more. A
+call uses one decision of the program whether its adapter is a valid
+adapter, which the program makes in an instance of an adapter other than
+the instance of the steps of the call; an earlier decision of the
+program can serve. The call fails when, in that decision, its adapter is
+not a valid adapter. Otherwise, the call runs these steps in a new
+instance of an adapter of the module of its adapter, for that program,
+and it fails when one of them fails, such as when the program stops it
+for its limits. In that instance, the program makes only the
+instantiation and the invocations of steps 2 to 4, in that order, and it
+changes no byte of the memory of the instance other than by the writes
+of steps 2 and 3. The memory of the instance is its memory, which it
+exports as `memory`, and the size of that memory is its number of bytes
+when a step reads it.
 
 1. The instantiation of the module.
 2. An invocation of `sinter_alloc` with the `i32` value whose bits are
@@ -2092,10 +2147,10 @@ its number of bytes when a step reads it.
 
 @term call-result=v1
 @cites {
-    ontology#{test-evidence=v1},
+    ontology#{test=v1, test-evidence=v1},
     data-forms#{json-value=v1, json-value-of-a-byte-sequence=v1, index=v1},
     text#{text=v1, result=v1, line-feed=v1, whole-number=v1, code-span=v1},
-    #{adapter-call=v1, test-entry=v1},
+    #{test-runner=v1, adapter-call=v1, test-entry=v1},
 }
 
 The JSON value of a response is the JSON value of the response as a byte
@@ -2137,10 +2192,10 @@ its warnings. Its test results are the elements of the value of
 status, the value of `status`; and, when the result object has these
 members, its file, the value of `file`, its line, the value of `line`,
 and its duration in whole milliseconds, the value of `ms`. By the
-adapter, each test result of a call stands for a test result that the
-report content holds: what a test runner gave for one test that it ran.
-Its bindings are the elements of the value of `bindings`, in their
-order, each with its test result, which is the element of the value of
+adapter, each test result of a call is a test result that the report
+content holds: what a test runner gave for one test that it ran. Its
+bindings are the elements of the value of `bindings`, in their order,
+each with its test result, which is the element of the value of
 `results` whose index is 1 more than the value of `result`; the id of a
 test entry, which is the value of `test`; and a reason, which is the
 value of `reason`. Its warnings are the texts of the value of
@@ -2149,6 +2204,14 @@ response has a JSON value that is an object with exactly one member,
 `error`, whose value is a string, gives that string as the error text of
 the adapter.
 
+By the interface, the function recognise says whether the report
+content is the content of a report file of the test runner of the
+adapter. The test results of a call stand in the order of the report
+content, and a test result has no file, no line, or no duration when the
+report content gives none. The reason of a binding says why its test
+result binds to its test entry, and a warning is a text for the person
+who runs the program.
+
 ### 6.2 The validation of adapters
 
 @req validate-adapters=v1
@@ -2156,7 +2219,7 @@ the adapter.
 
 When a conforming program gives a result for whether a byte sequence is
 a valid adapter, it must give exactly one result: "valid" when the byte
-sequence is a valid adapter for the program, and "invalid" when it is
+sequence is a valid adapter in that decision, and "invalid" when it is
 not.
 
 ### 6.3 The requests of calls
@@ -2262,7 +2325,16 @@ A conforming program must end the code of an adapter that it runs, in
 each call and in each decision whether a byte sequence is a valid
 adapter.
 
-### 6.10 Conformance
+### 6.10 Growths past the maximum
+
+@req answer-growth-past-maximum=v1
+@cites {text#{conforming-program=v1, whole-number=v1}, #{adapter-instance=v1}}
+
+A conforming program must give −1 to the code of an adapter at a growth
+of a memory or of a table past its maximum, and must not stop that code
+there.
+
+### 6.11 Conformance
 
 A program conforms to the specification `adapters` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -2309,18 +2381,22 @@ conforming program gives for the input, other than its result. In
 `input` and `values`, a byte sequence is its hex text, as a string, and
 a text is a string of the characters of the text.
 
-#### 6.10.1 Adapters
+#### 6.11.1 Adapters
 
 The group `adapters` holds the vectors that each give a byte sequence
 and what a conforming program gives for it when it decides whether the
-byte sequence is a valid adapter. The requirement of the group is
-`validate-adapters`.
+byte sequence is a valid adapter. The requirements of the group are
+`validate-adapters`, `end-calls`, and `answer-growth-past-maximum`.
 
 - `input`: the byte sequence.
-- `result`: "valid" when the byte sequence is a valid adapter for the
-  program, and "invalid" when it is not. A conforming program gives the
-  result "valid" under the condition that the program stops neither the
-  instantiation nor the invocation of `sinter_interface` for its limits.
+- `result`: the result of the decision whether the byte sequence is a
+  valid adapter, when a conforming program gives that result: "valid"
+  when the byte sequence is a valid adapter in that decision, and
+  "invalid" when it is not. A conforming program gives the result
+  "valid" under the condition that no choice of the program (a stop for
+  its limits, a refused growth of a memory or of a table within its
+  maximum, the depth at which the call stack is exhausted, or the bits
+  of a NaN) changes the instantiation or the invocation of the decision.
   It gives the result "invalid" with no condition.
 - `values`: no vector of the group has this member.
 
@@ -2328,7 +2404,7 @@ byte sequence is a valid adapter. The requirement of the group is
 {"group":"adapters","input":"0061736d01000000","n":1,"note":"a module with no export","result":"invalid","rev":"v1"}
 ```
 
-#### 6.10.2 Requests
+#### 6.11.2 Requests
 
 The group `requests` holds the vectors that each give the things of a
 call of a function of the adapter of a test runner, and the request of
@@ -2355,10 +2431,10 @@ of `request` as the request of the call, and with no other byte
 sequence as that request.
 
 ```
-{"group":"requests","input":{"function":"recognise","report":"out/junit.xml","runner":"vitest","settings":{}},"n":12,"rev":"v1","values":{"request":"{\"interface\":1,\"report\":\"out/junit.xml\",\"runner\":\"vitest\",\"settings\":{}}"}}
+{"group":"requests","input":{"function":"recognise","report":"out/junit.xml","runner":"vitest","settings":{}},"n":13,"rev":"v1","values":{"request":"{\"interface\":1,\"report\":\"out/junit.xml\",\"runner\":\"vitest\",\"settings\":{}}"}}
 ```
 
-#### 6.10.3 Responses
+#### 6.11.3 Responses
 
 The group `responses` holds the vectors that each give the function of
 a call of a valid adapter, the ids of the test entries of the call, and
@@ -2370,11 +2446,11 @@ for the call. The requirements of the group are `give-call-results`,
   `recognise` or `bind`; `ids`, for the function bind only, an array of
   the ids of the test entries, as texts; and `response`, the byte
   sequence of the response.
-- `result`: the result of the call: "recognised", "not recognised", or
-  "failed" for the function recognise, and "bound" or "failed" for the
-  function bind. The call is a call of a valid adapter for the program
-  whose invocation of the export of the function gives the response,
-  with no failure before it.
+- `result`: the result of the call, when a conforming program gives a
+  result for it: "recognised", "not recognised", or "failed" for the
+  function recognise, and "bound" or "failed" for the function bind. The
+  call is a call of a valid adapter whose invocation of the export of
+  the function gives the response, with no failure before it.
 - `values`: with "bound", an object with three members: `results`, an
   array with one object for each test result of the call, in order,
   with the members `name` and `status`, each a text, and the members
@@ -2393,31 +2469,34 @@ warnings, or the error text of the adapter of the call, it gives those
 of `values`. With `{}`, it gives none of these.
 
 ```
-{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":21,"result":"recognised","rev":"v1","values":{}}
+{"group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"n":22,"result":"recognised","rev":"v1","values":{}}
 ```
 
-#### 6.10.4 Calls
+#### 6.11.4 Calls
 
 The group `calls` holds the vectors that each give the things of a call:
 a byte sequence as the adapter, the function, the request, the report
 content, and, for the function bind, the ids of the test entries for
 which the program makes the call; and what a conforming program gives
 for the call. The requirements of the group are `give-call-results`,
-`give-call-values`, `omit-call-values`, `omit-adapter-error-texts`, and
-`end-calls`.
+`give-call-values`, `omit-call-values`, `omit-adapter-error-texts`,
+`end-calls`, and `answer-growth-past-maximum`.
 
 - `input`: an object with these members: `adapter`, the byte sequence
   of the adapter; `function`, the text `recognise` or `bind`; `request`,
   the byte sequence of the request; `report-content`, the byte sequence
   of the report content; and `ids`, for the function bind only, an array
   of the ids of the test entries, as texts.
-- `result`: the result of the call: "recognised", "not recognised", or
-  "failed" for the function recognise, and "bound" or "failed" for the
-  function bind. A conforming program gives a result other than
-  "failed" under the condition that the adapter is a valid adapter for
-  the program and that the program stops no instantiation or invocation
-  of the call for its limits. It gives the result "failed" with no
-  condition.
+- `result`: the result of the call, when a conforming program gives a
+  result for it: "recognised", "not recognised", or "failed" for the
+  function recognise, and "bound" or "failed" for the function bind. A
+  conforming program gives a result other than "failed" under the
+  condition that no choice of the program (a stop for its limits, a
+  refused growth of a memory or of a table within its maximum, the depth
+  at which the call stack is exhausted, or the bits of a NaN) changes
+  the instantiation or an invocation of the call, or of the decision
+  whether its adapter is a valid adapter that the call uses. It gives
+  the result "failed" with no condition.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
@@ -2426,7 +2505,7 @@ warnings, or the error text of the adapter of the call, it gives those
 of `values`. With `{}`, it gives none of these.
 
 ```
-{"group":"calls","input":{"adapter":"0061736d01000000011a056000017f60017f017f60047f7f7f7f017e60017e017f600000030504000102020503010001074d05066d656d6f727902001073696e7465725f696e7465726661636500000c73696e7465725f616c6c6f6300011073696e7465725f7265636f676e69736500020b73696e7465725f62696e6400030a1b04040041010b040041000b0a0042938080808080010b040042000b0b1a01004180080b137b227265636f676e69736564223a747275657d","function":"recognise","report-content":"3c74657374737569746573206e616d653d22766974657374207465737473223e3c2f746573747375697465733e","request":"7b22696e74657266616365223a312c227265706f7274223a226f75742f6a756e69742e786d6c222c2272756e6e6572223a22766974657374222c2273657474696e6773223a7b7d7d"},"n":61,"note":"sinter_alloc gives the address 0","result":"failed","rev":"v1","values":{}}
+{"group":"calls","input":{"adapter":"0061736d01000000011a056000017f60017f017f60047f7f7f7f017e60017e017f600000030504000102020503010001074d05066d656d6f727902001073696e7465725f696e7465726661636500000c73696e7465725f616c6c6f6300011073696e7465725f7265636f676e69736500020b73696e7465725f62696e6400030a1b04040041010b040041000b0a0042938080808080010b040042000b0b1a01004180080b137b227265636f676e69736564223a747275657d","function":"recognise","report-content":"3c74657374737569746573206e616d653d22766974657374207465737473223e3c2f746573747375697465733e","request":"7b22696e74657266616365223a312c227265706f7274223a226f75742f6a756e69742e786d6c222c2272756e6e6572223a22766974657374222c2273657474696e6773223a7b7d7d"},"n":62,"note":"sinter_alloc gives the address 0","result":"failed","rev":"v1","values":{}}
 ```
 
 ## 7. Requirements
@@ -2484,10 +2563,10 @@ sequence as that content.
     #{pack=v1, well-named-pack=v1, pack-hash=v1, pack-use=v1},
 }
 
-When a conforming program gives the pack listing of a well-named pack,
-in a use of that pack during which no other process changes a file of
-the folder tree of the pack, it must give the pack listing of that pack,
-and no other text, as its pack listing.
+When a conforming program gives the pack listing of a pack that has a
+pack listing, in a use of that pack during which no other process
+changes a file of the folder tree of the pack, it must give the pack
+listing of that pack, and no other text, as its pack listing.
 
 ### 7.5 No pack listing for a pack that has none
 
@@ -2500,7 +2579,7 @@ and no other text, as its pack listing.
 
 In each use of a pack that has no pack listing, during which no other
 process changes a file of the folder tree of the pack, a conforming
-program must give no pack listing for that pack.
+program must give no text as the pack listing of that pack.
 
 ### 7.6 Pack hashes as output
 
@@ -2511,10 +2590,10 @@ program must give no pack listing for that pack.
     #{pack=v1, well-named-pack=v1, pack-hash=v1, pack-use=v1},
 }
 
-When a conforming program gives a pack hash for a well-named pack, in a
-use of that pack during which no other process changes a file of the
-folder tree of the pack, it must give the pack hash of that pack, and no
-other text, as its pack hash.
+When a conforming program gives a pack hash for a pack that has a pack
+hash, in a use of that pack during which no other process changes a
+file of the folder tree of the pack, it must give the pack hash of that
+pack, and no other text, as its pack hash.
 
 ### 7.7 No pack hash for a pack that has none
 
@@ -2527,7 +2606,7 @@ other text, as its pack hash.
 
 In each use of a pack that has no pack hash, during which no other
 process changes a file of the folder tree of the pack, a conforming
-program must give no pack hash for that pack.
+program must give no text as the pack hash of that pack.
 
 ### 7.8 The validation of packs
 
@@ -2710,23 +2789,29 @@ does not.
 }
 
 When, with the result "too deep" for a text as a query text, a
-conforming program gives a line number or a column for the place where
-the text passes the depth limit, it must give the line number or the
-column of the position of the character at that place.
+conforming program gives a line number for the place where the text
+passes the depth limit, it must give the line number of the position of
+the character at that place, and no other line number, for that place.
+When it gives a column for that place, it must give the column of the
+position of the character at that place, and no other column, for that
+place.
 
 ### 7.19 What the code of a grammar can reach
 
 @req isolate-grammars=v1
 @cites {
-    tree-sitter/0.26.13,
-    text#{conforming-program=v1, byte-sequence=v1, code-span=v1},
-    #{pack=v1, pack-use=v1, usable-grammar=v1},
+    wasm-core/2.0,
+    files#{taken-byte=v1},
+    text#{conforming-program=v1, byte-sequence=v1},
+    #{pack=v1, pack-use=v1, webassembly-module=v1},
 }
 
-In each use of a pack, a conforming program must give the code of each
-byte sequence that it loads as a grammar of the pack only imports that
-tree-sitter 0.26.13 gives a module through `WasmStore::load_language`,
-and no import whose name is `tree_sitter_debug_message`.
+In each use of a pack, a conforming program must run the code of each
+byte sequence that it loads as a grammar of the pack only as the
+WebAssembly Core Specification 2.0 defines its execution, in an instance
+whose imports give that code no means to take bytes from a file, to
+write a file or the output of the process, to use a network, to read a
+clock, or to start a process.
 
 ### 7.20 No symbolic link followed in a pack
 
@@ -2819,10 +2904,10 @@ These requirements that the design holds directly have no vectors:
 `omit-nodes-of-unparsed-readings`, `give-failure-runs`,
 `omit-failure-runs`, `isolate-grammars`, `follow-no-pack-links`,
 `read-only-pack-files`, `avoid-pack-waits`, `keep-packs-unchanged`, and
-`gain-no-pack-privileges`. A vector of a requirement on usable grammars,
-on query files that tree-sitter compiles, or on readings, their nodes,
-or the runs of their failure nodes would hold a grammar compiled to
-WebAssembly, and the file holds none.
+`gain-no-pack-privileges`. No vector of this file holds a grammar
+compiled to WebAssembly, so no vector tests the requirements on usable
+grammars, query files that tree-sitter compiles, readings, nodes, or
+failure runs.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
@@ -2907,9 +2992,9 @@ order, each with the need that it stands for and when a vector has it:
   such as `README.md` and `readme.md`.
 - `long-names`: the folder tree is on a file system that allows each
   entry name of the folder tree, with all its bytes. A vector has this
-  need when an entry name of its folder tree has more than 14 bytes, the
-  least number of bytes in a filename that POSIX.1-2024 lets a system
-  allow (`{_POSIX_NAME_MAX}`).
+  need when an entry name of its folder tree has more than 14 bytes:
+  `{_POSIX_NAME_MAX}`, 14, is the least value that POSIX.1-2024 allows
+  for `{NAME_MAX}`, the greatest number of bytes in a filename.
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the check makes it, byte for byte:
   for example, the file system does not change an entry name into a
@@ -2921,13 +3006,14 @@ order, each with the need that it stands for and when a vector has it:
   portable filename. A portable filename, as POSIX.1-2024 defines it, is
   a filename of characters of the portable filename character set: `A`
   to `Z`, `a` to `z`, `0` to `9`, `.`, `_`, and `-`. By POSIX.1-2024,
-  `open()` with `O_CREAT`, `mkfifo()`, and `symlink()` fail with
-  [EILSEQ] when the last component of the pathname is not a portable
-  filename and cannot be created in the target directory. A vector has
-  this need when an entry name of its folder tree holds a byte that is
-  not the byte of one of these characters, such as a space, a line feed,
-  or a byte of 0x80 or more, which also gives it the need `names-kept`
-  or the need `non-utf-8-names`.
+  `open()` with `O_CREAT`, `mkdir()`, `mkfifo()`, and `symlink()` fail
+  with [EILSEQ] when the last component of the pathname is not a
+  portable filename and cannot be created in the target directory. A
+  vector has this need when an entry name of its folder tree holds a
+  byte that is not the byte of one of these characters, such as a space,
+  a line feed, or a byte of 0x80 or more. A byte of 0x80 or more in an
+  entry name also gives the vector the need `names-kept` or the need
+  `non-utf-8-names`.
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
   entry name of the folder tree that is not valid UTF-8 as the check
   makes it, byte for byte. A vector has this need when an entry name of
@@ -2947,14 +3033,16 @@ valid breaks the condition of a valid pack on usable grammars. The note
 of each vector names one condition, of a valid pack or of a usable
 grammar, that the pack breaks and that a program can decide with no
 compiled grammar, such as that the file of a grammar has no import whose
-name is `tree_sitter_debug_message`. Apart from that condition, the pack
-has a valid descriptor with one grammar, a file of that grammar whose
-content has the hash of that grammar, a query file of the kind comment
-for that grammar, and a file under `licenses/`.
+name, after its module name, is `tree_sitter_debug_message`. Apart from
+that condition, the pack has a valid descriptor with one grammar, a file
+of that grammar whose content has the hash of that grammar, a query file
+of the kind comment for that grammar, and a file under `licenses/`.
 
 - `input`: the folder tree object of the pack.
-- `result`: "valid" when the pack is valid, and "invalid" when it is
-  not. Each vector of the group has the result "invalid".
+- `result`: the result for whether the pack is valid, when a conforming
+  program gives that result: "valid" when the pack is valid, and
+  "invalid" when it is not. Each vector of the group has the result
+  "invalid".
 - `values`: no vector of the group has this member.
 
 ```
@@ -2994,8 +3082,10 @@ requirements of the group are `decide-query-depth` and
 `give-query-depth-places`.
 
 - `input`: the text.
-- `result`: "too deep" when the text passes the depth limit, and "not
-  too deep" when it does not.
+- `result`: the result for whether the text, as a query text, passes the
+  depth limit, when a conforming program gives that result: "too deep"
+  when the text passes the depth limit, and "not too deep" when it does
+  not.
 - `values`: with "too deep", an object with one member, `position`: the
   position of the character at the place where the text passes the
   depth limit. With "not too deep", no vector of the group has this
@@ -3016,8 +3106,9 @@ and whether it is well named. The requirement of the group is
 `decide-well-named-packs`.
 
 - `input`: the folder tree object of the pack.
-- `result`: "well named" when the pack is well named, and "not well
-  named" when it is not.
+- `result`: the result for whether the pack is well named, when a
+  conforming program gives that result: "well named" when the pack is
+  well named, and "not well named" when it is not.
 - `values`: no vector of the group has this member.
 
 ```
