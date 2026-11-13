@@ -210,3 +210,23 @@
 {"group":"give-span","input":"61202e2062203d20310a","n":221,"note":"the text of the span is `b`","result":"valid","rev":"v1","values":{"end":{"column":6,"line":1},"index":2,"location":["a","b"],"of":"toml-key","start":{"column":5,"line":1}}}
 {"group":"omit-span","input":"5b5b615d5d0a","n":222,"note":"the table header `[[a]]` makes the table at the index 1 of the TOML array `a`","result":"valid","rev":"v1","values":{"no-span-at":["a",1]}}
 {"group":"omit-span","input":"5b785d0a612e62203d20310a","n":223,"note":"the dotted key `a.b` makes the table `a` in the table `x`","result":"valid","rev":"v1","values":{"no-span-at":["x","a"]}}
+{"group":"give-root-table","input":"61203d203078376666665f666666665f666666665f666666660a","n":224,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"9223372036854775807"}}}}
+{"group":"give-root-table","input":"61203d202b393232333337323033363835343737353830370a","n":225,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"9223372036854775807"}}}}
+{"group":"give-root-table","input":"61203d202d300a","n":226,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"0"}}}}
+{"group":"give-root-table","input":"61203d20302e310a","n":227,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"0.1000000000000000055511151231257827021181583404541015625"}}}}
+{"group":"give-root-table","input":"61203d2031653030370a","n":228,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"10000000"}}}}
+{"group":"give-root-table","input":"61203d2031452b320a","n":229,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"100"}}}}
+{"group":"give-root-table","input":"61203d20315f302e305f3165315f300a","n":230,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"100100000000"}}}}
+{"group":"give-root-table","input":"61203d202b696e660a","n":231,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"inf"}}}}
+{"group":"give-root-table","input":"61203d202d3065300a","n":232,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"-0"}}}}
+{"group":"give-root-table","input":"61203d2030652d3939393939393939393939393939393939393939393939390a","n":233,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"0"}}}}
+{"group":"give-root-table","input":"61203d20303030302d30312d30310a","n":234,"result":"valid","rev":"v1","values":{"root-table":{"a":{"local-date":"0000-01-01"}}}}
+{"group":"give-root-table","input":"61203d2031323a30303a36300a","n":235,"result":"valid","rev":"v1","values":{"root-table":{"a":{"local-time":"12:00:60"}}}}
+{"group":"give-root-table","input":"61203d20313937392d30352d32372030373a33320a","n":236,"result":"valid","rev":"v1","values":{"root-table":{"a":{"local-date-time":"1979-05-27T07:32:00"}}}}
+{"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30302d32333a35390a","n":237,"result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00-23:59"}}}}
+{"group":"give-root-table","input":"61203d20225c7530304539220a","n":238,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":"é"}}}}
+{"group":"give-root-table","input":"61203d202727276127272727270a","n":239,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":"a''"}}}}
+{"group":"give-root-table","input":"61203d202222220a0a2222220a","n":240,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":"\n"}}}}
+{"group":"give-root-table","input":"61203d202222220d0a0d0a2222220a","n":241,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":"\r\n"}}}}
+{"group":"give-root-table","input":"61203d202222225c0a0a20205c0a20782222220a","n":242,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":"x"}}}}
+{"group":"give-root-table","input":"61203d202222225c20090a2222220a","n":243,"result":"valid","rev":"v1","values":{"root-table":{"a":{"string":""}}}}
