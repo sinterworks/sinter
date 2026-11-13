@@ -19,6 +19,8 @@ components that the design expects and the project does not pin yet.
 | fmt | ISC | https://erratique.ch/software/fmt |
 | uucp | ISC | https://erratique.ch/software/uucp |
 | cmarkit | ISC | https://github.com/dbuenzli/cmarkit |
+| digestif | MIT | https://github.com/mirage/digestif |
+| eqaf (a dependency of digestif) | MIT | https://github.com/mirage/eqaf |
 | wasmtime | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
 | tree-sitter runtime | MIT | https://github.com/tree-sitter/tree-sitter |
 | tree-sitter-markdown block grammar, release v0.5.4, embedded in the binary; the file and its license are in `lib/markdown/` | MIT | https://github.com/tree-sitter-grammars/tree-sitter-markdown |

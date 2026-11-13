@@ -24,6 +24,7 @@
   (fmt (>= 0.9.0))
   uucp
   (cmarkit (>= 0.4.0))
+  (digestif (>= 1.4.1))
   (alcotest :with-test)
   (qcheck-core
    (and

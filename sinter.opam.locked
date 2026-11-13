@@ -22,10 +22,12 @@ depends: [
   "cmdliner" {= "2.1.1"}
   "compiler-cloning" {= "disabled"}
   "csexp" {= "1.5.2" & with-dev-setup}
+  "digestif" {= "1.4.1"}
   "dune" {= "3.24.2"}
   "dune-build-info" {= "3.24.2"}
   "dune-configurator" {= "3.24.2" & with-dev-setup}
   "either" {= "1.0.0" & with-dev-setup}
+  "eqaf" {= "0.10"}
   "fix" {= "20250919" & with-dev-setup}
   "fmt" {= "0.11.0"}
   "fpath" {= "0.7.3" & with-dev-setup}
