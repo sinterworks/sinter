@@ -197,6 +197,55 @@ done
 A directory with no `checkout` file predates the file; remove it by
 hand, and the next build writes a new one.
 
+### The book
+
+The user manual, "Using Sinter", is a book in `docs/book/`
+(`docs/decisions/user-manual.md`). [mdBook](https://rust-lang.github.io/mdBook/)
+builds it. Use mdBook 0.5.4, the version that CI uses. The test of the
+links of the book follows the rule of mdBook 0.5.4 for the ids of
+headings, so another version can give other ids. Download version 0.5.4
+from the [releases of mdBook](https://github.com/rust-lang/mdBook/releases/tag/v0.5.4),
+or install it with `cargo install mdbook --version 0.5.4 --locked`.
+Then, from the repository root:
+
+```
+mdbook build docs/book
+```
+
+The output goes to `docs/book/book/`, which git ignores. CI builds the
+book on each pull request, and publishes nothing.
+
+`dune test` also tests each page of the book. `test/book.mli` defines
+each term below and gives each rule in full:
+
+- A page holds *blocks*: fenced code blocks. The *label* of a block is
+  the text after its opening fence, such as `console,run`.
+- A block labeled `console,run` or `console,planned` is an *example*:
+  a list of commands, each with its output. The test runs each command
+  of a `console,run` block, and compares the output with the lines
+  below the command. A block labeled `<language>,file=<path>` writes a
+  file for the examples below it.
+- A *note* marks a part of a page that tells of a feature that Sinter
+  does not have yet. The examples of that part have the label
+  `console,planned`, and the test does not run them.
+- A *link* is a relative link in a page. The test checks that the file
+  and the heading that it names exist.
+
+When the output of Sinter changes, run this command:
+
+```
+SINTER_PROMOTE=1 dune test
+```
+
+It writes the new output into the blocks labeled `console,run`. Read
+the changes to the pages, and commit the pages.
+
+A change that adds or changes a feature also updates the book. The
+change that builds a feature also removes the note on that feature. It
+changes each block labeled `console,planned` under that note to
+`console,run`, and it writes the output of those blocks with
+`SINTER_PROMOTE=1 dune test`.
+
 ### Coverage
 
 `bisect_ppx` measures how much of `lib/` and `bin/` the tests run. No
