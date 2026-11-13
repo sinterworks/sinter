@@ -356,3 +356,148 @@ let print_graph graph =
           (fun (name, parents) ->
             (name, `List (List.map (fun p -> `String p) parents)))
           graph))
+
+type target = Commit of string | Names of string | Other of string | Broken
+
+let ref_commit refs name =
+  let rec go seen name =
+    if List.mem name seen then None
+    else
+      match List.assoc_opt name refs with
+      | None | Some (Other _) | Some Broken -> None
+      | Some (Commit c) -> Some c
+      | Some (Names next) -> go (name :: seen) next
+  in
+  go [] name
+
+let default_branch_commit ~binding ~upstream ~local ~remote =
+  if not (is_branch_name binding) then None
+  else
+    match List.find_opt Option.is_some [ upstream; local; remote ] with
+    | Some (Some commit) -> commit
+    | _ -> None
+
+let message content =
+  let k = String.length content in
+  let rec find i =
+    if i + 1 >= k then ""
+    else if content.[i] = '\n' && content.[i + 1] = '\n' then
+      String.sub content (i + 2) (k - i - 2)
+    else find (i + 1)
+  in
+  find 0
+
+let message_text content =
+  let message = message content in
+  if String.is_valid_utf_8 message then Some message else None
+
+type kind =
+  | Tree_kind
+  | Regular_file_kind
+  | Symbolic_link_kind
+  | Submodule_kind
+
+let entry_kind mode =
+  let k = String.length mode in
+  let digit c = c >= '0' && c <= '7' in
+  if k = 0 || not (String.for_all digit mode) then Submodule_kind
+  else
+    let quotient = if k > 4 then String.sub mode 0 (k - 4) else "" in
+    let rec strip s =
+      if String.length s > 0 && s.[0] = '0' then
+        strip (String.sub s 1 (String.length s - 1))
+      else s
+    in
+    match strip quotient with
+    | "4" -> Tree_kind
+    | "10" -> Regular_file_kind
+    | "12" -> Symbolic_link_kind
+    | _ -> Submodule_kind
+
+type entry = { name : string; mode : string; entries : entry list }
+
+let rec byte_paths prefix entries =
+  List.concat_map
+    (fun e ->
+      let path = prefix ^ e.name in
+      (path, entry_kind e.mode)
+      ::
+      (if entry_kind e.mode = Tree_kind then byte_paths (path ^ "/") e.entries
+       else []))
+    entries
+
+let is_valid_path bytes =
+  String.is_valid_utf_8 bytes
+  && List.for_all
+       (fun name ->
+         name <> "" && name <> "." && name <> ".."
+         && not (String.contains name '\000'))
+       (String.split_on_char '/' bytes)
+
+let entry_byte_paths entries = List.map fst (byte_paths "" entries)
+
+let commit_files entries =
+  let all = byte_paths "" entries in
+  List.sort_uniq String.compare
+    (List.filter_map
+       (fun (path, t) ->
+         if
+           t = Regular_file_kind && is_valid_path path
+           && List.length (List.filter (fun (p, _) -> String.equal p path) all)
+              = 1
+         then Some path
+         else None)
+       all)
+
+let entries_gen =
+  let open Gen in
+  let name =
+    oneof_list
+      [ "a"; "b"; "a.md"; "."; ".."; "..."; ""; "a/b"; "x\xff"; "\xc3\xa9" ]
+  in
+  let leaf_mode =
+    oneof_list
+      [
+        "100644";
+        "100755";
+        "100600";
+        "120000";
+        "160000";
+        "170000";
+        "0100644";
+        "";
+        "100684";
+        "10064x";
+        "1006\xff4";
+      ]
+  in
+  let tree_mode = oneof_list [ "40000"; "040000" ] in
+  fix
+    (fun self depth ->
+      list_size (int_range 0 4)
+        (if depth = 0 then
+           map2 (fun name mode -> { name; mode; entries = [] }) name leaf_mode
+         else
+           oneof_weighted
+             [
+               ( 3,
+                 map2
+                   (fun name mode -> { name; mode; entries = [] })
+                   name leaf_mode );
+               ( 1,
+                 map3
+                   (fun name mode entries -> { name; mode; entries })
+                   name tree_mode
+                   (self (depth - 1)) );
+             ]))
+    3
+
+let rec print_entries entries =
+  "["
+  ^ String.concat ", "
+      (List.map
+         (fun e ->
+           Printf.sprintf "%S %s%s" e.name e.mode
+             (if e.entries = [] then "" else " " ^ print_entries e.entries))
+         entries)
+  ^ "]"
