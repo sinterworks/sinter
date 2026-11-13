@@ -252,6 +252,21 @@
     CheerpX, needs a commercial license for use by an organization;
     and a server that runs the examples, which needs hosting and a
     secure sandbox.
+- **"Developing With Sinter"** — a second text beside the user manual,
+  "Using Sinter". The user manual teaches the tool. This text teaches a
+  way of working: how a person who works at the level of design uses
+  Sinter with coding agents, and why. Such a person sets the direction,
+  writes the contracts, gives the work to agents, and reviews by
+  intent. The text has an opinion, and it reads as a long essay in
+  sections more than as a manual. Its readers decide how a team works,
+  and many of them do not use Sinter yet. Not designed.
+  - Where it lives: a second mdBook book beside the user manual, one
+    long page, or a post outside the repository. Undecided.
+  - Its voice: the rules of the section "Writing" in `CONTRIBUTING.md`
+    apply to every text in the repository. An essay with an opinion may
+    need a freer voice. Undecided.
+  - When to write it: after the method of work and the design of Sinter
+    stop changing. Undecided.
 - **Test evidence for Sinter itself** — JUnit output from the test
   suite, for `evidence import`.
 - **Tests with no name** — the OCaml tests of `ppx_expect` and
