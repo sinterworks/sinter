@@ -486,14 +486,18 @@ defines it, and the value of that JSON text gives a JSON value:
   text.
 
 The JSON text can hold spaces, tabs, line feeds, and carriage returns
-around its values and around the characters `{`, `}`, `[`, `]`, `:`,
-and `,`, its strings can hold escape sequences, and its objects can
-write their members in any order. The JSON value of a byte sequence has
-no limit on the depth of its arrays and objects, and a string can hold
-every character, U+0000 included. So the UTF-8 encoding of
-`{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the JSON value
-whose canonical form is `{"a":"é","b":1}`, and the UTF-8 encodings of
-`{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no JSON value.
+around its values and around the characters `{`, `}`, `[`, `]`, `:`, and
+`,`, its strings can hold escape sequences, and its objects can write
+their members in any order. The JSON value of a byte sequence has no
+limit on the depth of its arrays and objects, and a string can hold
+every character, U+0000 included. A conforming program that does not
+read a JSON text, for example past a nesting limit of its own, gives no
+result for it, which `read-json-text` allows, and it never gives
+"invalid" for a byte sequence that has a JSON value. So the UTF-8
+encoding of `{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the
+JSON value whose canonical form is `{"a":"é","b":1}`, and the UTF-8
+encodings of `{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no
+JSON value.
 
 ### 4.1 Definitions
 
@@ -799,8 +803,9 @@ and what a conforming program gives when it reads the byte sequence as
 a JSON text. The requirement of the group is `read-json-text`.
 
 - `input`: the byte sequence.
-- `result`: the result for whether the byte sequence has a JSON value:
-  "valid" when it has one, and "invalid" when it has none.
+- `result`: the result for whether the byte sequence has a JSON value,
+  when a conforming program gives that result: "valid" when the byte
+  sequence has one, and "invalid" when it has none.
 - `values`: with the result "valid", an object with one member,
   `json-value`: the JSON value of the byte sequence. With the result
   "invalid", the empty object, `{}`.
