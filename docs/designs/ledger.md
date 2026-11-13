@@ -313,10 +313,10 @@ requirement gives. So no ledger entry that the repair keeps changes its
 it holds a ledger entry that the repair removed.
 
 When the shared clone pulls from no shared clone of its own and has a
-ledger commit, a program changes its ledger ref to a commit that does
-not extend that ledger commit, such as a commit that a repair made in
-another clone, only as a repair of the shared ledger, in the form that
-the requirement `repair-ledgers-with-voids` gives.
+ledger commit, a program changes the ledger ref of the shared clone to a
+commit that does not extend that ledger commit, such as a commit that a
+repair made in another clone, only as a repair of the shared ledger, in
+the form that the requirement `repair-ledgers-with-voids` gives.
 
 A void records a removal: a void whose `dropped` names a ledger entry
 that is still in the ledger does not remove it. After a repair of the
