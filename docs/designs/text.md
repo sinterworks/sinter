@@ -62,7 +62,7 @@ design has one JSON text on each line of its text.
 | [hex digit](sinter:#hex-digit=v1) | one of the characters `0` to `9` and `a` to `f`, which write the whole numbers 0 to 15 |
 | [code point](sinter:#code-point=v1) | a whole number from 0 to 1,114,111 |
 | [character](sinter:#character=v1) | each character has one code point, which is a Unicode scalar value: a whole number from 0 to 55,295 (U+D7FF) or from 57,344 (U+E000) to 1,114,111 (U+10FFFF); each Unicode scalar value is the code point of exactly one character |
-| [code point order](sinter:#code-point-order=v1) | one character comes before another in code point order when the code point of the one is less than the code point of the other |
+| [code point order](sinter:#code-point-order=v1) | one character comes before another in code point order when the code point of the one is less than the code point of the other; one text comes before another when, at the first place where their characters differ, its character comes before the other's, or when it is shorter and the other starts with it |
 | [space](sinter:#space=v1), [tab](sinter:#tab=v1), [line feed](sinter:#line-feed=v1), [carriage return](sinter:#carriage-return=v1) | the characters U+0020, U+0009, U+000A, and U+000D |
 | [code span](sinter:#code-span=v1) | the characters between the two backticks of a pair, such as `%x61`, where the backticks on each line of a definition or a requirement pair in order, except on the lines of a block; a code span stands for those characters, and not for the backticks |
 | [block](sinter:#code-span=v1) | the lines of a definition or a requirement from a line whose first characters, after any spaces, are three backticks to the next such line, such as the lines that hold the rule of a production; no backtick on these lines belongs to a pair |
@@ -553,11 +553,19 @@ states with the word must.
 ### 3.10 Code point order
 
 @term code-point-order=v1
-@cites #{character=v1, code-point=v1}
+@cites #{character=v1, code-point=v1, text=v1, place=v1}
 
 One character comes before another in code point order, and the other
 comes after it, when, and only when, the code point of the one is less
-than the code point of the other.
+than the code point of the other. One text comes before another text in
+code point order, and the other comes after it, when, and only when,
+one of these holds:
+
+- Both texts have a place at which their characters differ, and at the
+  first such place, the character of the one comes before the character
+  of the other in code point order.
+- The one has fewer characters than the other, and at each place of the
+  one, the other has the same character as the one.
 
 ### 3.11 Texts
 
