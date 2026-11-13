@@ -145,7 +145,7 @@ meaning of a vector.
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
-| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone, and a push of ledger entries gives the ledger entries of a clone to another clone; neither is appending |
+| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone and puts them first in its ledger, and a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
 | [point of a ledger](sinter:#ledger=v1) | a point between two ledger entries, before the first, or after the last |
 | [ledger entry](sinter:#ledger-entry=v1) | a record of one event in the ledger, such as one approval |
 | [writer of a ledger entry](sinter:#ledger-entry=v1) | the person, the agent, or the job that a ledger entry records as the one that wrote it |
@@ -612,9 +612,8 @@ were appended to one ledger, the one that was appended later comes
 later in the order of the ledger, whatever times the ledger entries
 record. A void stands where a ledger entry that a repair removes was.
 
-A clone of the repository takes the ledger entries of another clone by
-a pull of ledger entries, and gives its ledger entries to another clone
-by a push of ledger entries, as the term `ledger` says. Neither is
+A clone of the repository can pull the ledger entries of another clone
+and push its ledger entries to another clone (term `ledger`). Neither is
 appending.
 
 A point of a ledger is given by the ledger entries before it: the first
@@ -1523,11 +1522,10 @@ entries of the ledger, for a whole number n of 0 or more. The point of a
 ledger entry is the point right before it. In a pull of ledger entries,
 a clone of the repository takes the ledger entries, `void` ledger
 entries included, that the ledger of another clone has, and puts them
-first in its ledger; after them, it can put other ledger entries that
-its ledger had, each as the same ledger entry. In a push of ledger
-entries, a clone puts ledger entries of its ledger after the ledger
-entries of the ledger of another clone. Pulls of ledger entries and
-pushes of ledger entries are not appending.
+first in its ledger. In a push of ledger entries, a clone puts ledger
+entries of its ledger after the ledger entries of the ledger of another
+clone. Pulls of ledger entries and pushes of ledger entries are not
+appending.
 
 ### 3.43 Repairs and voids
 
