@@ -63,6 +63,21 @@
   approves the changes to a set of items since their last approval
   (design notes section 6.4). How to show those changes so that the
   person actually reads what they approve is open. Not designed.
+- **Signed judgments** — a judgment in the ledger (an approval, a
+  decline, done, abandoned, or a repair) carries a signature that only
+  the person who gives it can make. Today a program takes a judgment
+  only on a confirmation that its standard input, its arguments, and
+  its environment cannot give, such as an answer at the controlling
+  terminal. An agent that runs the program on a pseudo-terminal can
+  still give that answer; a signature closes that route. The record of
+  decision R9 keeps signing as a later opt-in feature. Not designed.
+  - The signing key stays with the person, for example in an SSH agent
+    or on a hardware key, so that a program that an agent runs cannot
+    use it without the person.
+  - Readers check the signature of each judgment against the keys that
+    the repository trusts, and a judgment without a valid signature
+    counts for nothing.
+  - It needs the designs of the Ledger and of Approval.
 - **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
   which an AI coding assistant, a program such as Claude Code that
   writes code, writes a specification of each change before the
