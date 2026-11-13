@@ -15,19 +15,21 @@
 @cites tree-sitter/language-format
 @cites tree-sitter/query-language
 @cites wasm-core/2.0
+@cites wasm-conventions/dynamic-linking
 @cites ecma/262-2025
 @cites iso/9899-2024
+@cites unicode/12.1.0
 Specifies language packs, with their files, pack paths, and pack hashes;
 descriptors, with pack names, release numbers, comment sigils, foreign
 tag words, name separators, grammars, test runners, and runner settings;
-usable grammars, query files, and valid packs; the readings of texts
-with packs, with parse trees, parse failures, comment nodes, definition
-nodes, decoration nodes, and test nodes, and the names and test labels
-of test nodes; runner adapters, with the instances that run their code,
-the requests, and the results of their calls; and requirements for
-conforming programs that validate packs and adapters, give pack hashes,
-read descriptors, read texts with packs, call adapters, and keep the
-code of a pack from what lies outside it.
+instances of grammars, usable grammars, query files, and valid packs;
+the readings of texts with packs, with parse trees, parse failures,
+comment nodes, definition nodes, decoration nodes, and test nodes, and
+the names and test labels of test nodes; runner adapters, with the
+instances that run their code, the requests, and the results of their
+calls; and requirements for conforming programs that validate packs and
+adapters, give pack hashes, read descriptors, read texts with packs,
+call adapters, and keep the code of a pack from what lies outside it.
 
 A language pack, or pack, holds the support for one language: the
 grammars that parse the files of the language, the query files that find
@@ -87,17 +89,25 @@ of the design hold one JSON text on each line. From POSIX.1-2024, it
 takes the permissions and the appropriate privileges of a process, and
 the portable filename character set. From tree-sitter, the design takes
 the format of languages, in its ABI versions 13 to 15, with the parse
-trees that the parsing of a language gives and the WebAssembly standard
-library of grammars; and the query language, as tree-sitter's
-documentation of it defines it, with patterns, captures, predicates,
-quantifiers, and the matches of a query. From the WebAssembly Core
-Specification 2.0, it takes modules, their validation, and their binary
-format, with its custom sections and its encoding of a u32; imports,
-exports, functions and their types, memories, tables, globals,
-instances, traps, and the execution of code. From ECMA-262
-2025, it takes RegExp patterns, with the flag `u`, and their matching.
-From ISO/IEC 9899:2024, the standard of the C language, it takes the
-functions of memory and strings that a grammar can import.
+trees that the parsing of a language gives; and the query language, as
+tree-sitter's documentation of it defines it, with patterns, captures,
+predicates, quantifiers, and the matches of a query. From the
+WebAssembly Core Specification 2.0, it takes modules, their validation,
+and their binary format, with its custom sections and its encoding of a
+u32; imports, exports, functions and their types, memories, tables and
+the type funcref of their elements, globals, instances, traps, and the
+execution of code. From the dynamic-linking conventions of the
+WebAssembly tool conventions, it takes the custom section `dylink.0` and
+the order in which a program invokes the exports
+`__wasm_apply_data_relocs` and `__wasm_call_ctors`. From ECMA-262 2025,
+it takes RegExp patterns, with the flag `u`, and their matching. From
+ISO/IEC 9899:2024, the standard of the C language, it takes the
+functions that allocate memory and the functions of memory and strings
+that a grammar can import. From the Unicode Standard 12.1.0, it takes
+the files UnicodeData.txt, DerivedCoreProperties.txt, and PropList.txt
+of its Unicode Character Database, with the General_Category, the simple
+case mappings, and the properties Alphabetic and White_Space, which give
+the results of the functions that act on characters.
 
 ## 1. Glossary
 
@@ -115,7 +125,7 @@ functions of memory and strings that a grammar can import.
 | [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of their valid paths: the hash of the content of the file, two spaces, its valid path, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether it is well named, the valid paths of its files, its pack listing, its pack hash, whether it is valid, a value of the content of its file `pack.toml` as a descriptor, the result of a reading of a text with it, the content of one of its files, or the result of a call of the adapter of one of its test runners |
-| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes a file of its folder tree, and in which what each grammar of the pack gives does not change with the choices of the program in an instance of a grammar, other than a stop, such as the addresses that it gives the module or the bits of a NaN |
+| [undisturbed use of a pack](sinter:#undisturbed-pack-use=v1) | a use of a pack during which no other process changes a file of its folder tree, and in which no choice of the program in an instance of a grammar, such as the addresses that the program gives the module or the bits of a NaN, changes, other than by a stop in an instance of a grammar, whether a byte sequence that the use takes as a grammar of the pack is a usable grammar with the name of that grammar, the language that such a byte sequence gives, or the parse tree of a text that the use reads |
 | [descriptor](sinter:#valid-pack=v1) | the content of the file `pack.toml` of a pack, which is a valid descriptor in a valid pack |
 | [valid descriptor](sinter:#valid-descriptor=v1) | a byte sequence that is a TOML document whose root table holds the keys of a descriptor, each with a TOML value of the right form |
 | [pack name](sinter:#pack-name=v1) | a text of lower-case ASCII letters, ASCII digits, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` side by side, such as `typescript`; the name of a pack and the name of a test runner are pack names |
@@ -135,9 +145,9 @@ functions of memory and strings that a grammar can import.
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, whose custom section `dylink.0` gives the sizes and the alignments of its parts of the memory and of the table, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports are of a fixed list, with their kinds and their types, that has the memory information of a custom section `dylink.0`, and whose export `tree_sitter_<g>` gives, in an instance of a grammar, a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
-| [instance of a grammar](sinter:#usable-grammar=v1) | an instance of a WebAssembly module that a program makes to get the language of a grammar, with values of its own choice for the imports, such as `__memory_base`, that have the properties of a usable grammar |
+| [instance of a grammar, memory information](sinter:#grammar-instance=v1) | an instance of a WebAssembly module that a program makes to get the language of a grammar and to run its code, with values of its own choice for the imports, such as `__memory_base`, that have fixed properties; the memory information of the module is the sizes and the alignments of the parts of the memory and of the table that it needs, from its custom section `dylink.0` |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | [pattern, capture, capture name, predicate, directive, quantifier](sinter:#query-language=v1) | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
 | [text predicate](sinter:#text-predicate=v1) | one of the ten predicates that a conforming program applies to the matches of the query language, such as `#eq?` or `#match?`, with its arguments and the condition under which it holds |
@@ -167,7 +177,7 @@ functions of memory and strings that a grammar can import.
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
-| [choice of the program](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter or of a grammar that the program decides: a stop of the instantiation or of an invocation, such as for its limits, a refused growth of a memory or of a table within its maximum, the depth at which the call stack is exhausted, or the bits of a NaN; in an instance of a grammar, also the values of its imports, the space that the allocation functions give, and what earlier invocations left in it |
+| [choice of the program](sinter:#adapter-instance=v1) | an outcome that the program decides: in an [instance of an adapter](sinter:#adapter-instance=v1), a stop of the instantiation or of an invocation, such as for its limits, a refused growth of a memory or of a table within its maximum, the depth at which the call stack is exhausted, or the bits of a NaN; in an [instance of a grammar](sinter:#grammar-instance=v1), a stop, such as for its limits or for an exhausted call stack or stack of the module, the values of the imports, the places of the space that the allocation functions give and the content of that space that they do not set, the content of the stack of the module and of the other bytes of the memory and elements of the table, the places through which the parsing gives values to the code, the use of an instance for more than one text, or the bits of a NaN; and, in a decision whether a pack is valid, "invalid" for a pack with a query file that holds a pattern that matches no node of any parse tree |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
@@ -244,11 +254,13 @@ bytes of a file of the folder tree, such as for lack of a permission,
 gives a result of that use only when that result is the one that the
 requirements give; it can give no result. The requirements on results
 apply to an undisturbed use of a pack: a use during which no other
-process changes a file of its folder tree, and in which what each byte
-sequence that the program uses as a grammar of the pack gives does not
-change with the choices that the program makes in an instance of a
-grammar, other than a stop, such as the addresses that it gives the
-module or the bits of a NaN; in other uses, the rules of this paragraph
+process changes a file of its folder tree, and in which no choice of the
+program in an instance of a grammar, such as the addresses that the
+program gives the module or the bits of a NaN, changes, other than by a
+stop in an instance of a grammar, whether a byte sequence that the use
+takes as a grammar of the pack is a usable grammar with the name of that
+grammar, the language that such a byte sequence gives, or the parse tree
+of a text that the use reads; in other uses, the rules of this paragraph
 still hold.
 
 ### 2.2 The pack hash
@@ -378,14 +390,17 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 
 A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly.
 The content of the file `grammars/<g>.wasm` is a usable grammar when it
-is a WebAssembly module, when each of its imports has a name of a fixed
-list, such as `memory` or `malloc`, when its custom section `dylink.0`
-gives the sizes and the alignments of its parts of the memory and of the
-table, when its export `tree_sitter_<g>` gives a language in the format
-of tree-sitter, of an ABI version from 13 to 15, and when the name of
-each symbol of that language is valid UTF-8.
-In a valid pack, the hash of the file is the hash that the descriptor
-gives for the grammar.
+is a WebAssembly module, when each of its imports is one of a fixed
+list, such as `memory` or `malloc`, with its kind and its type, when its
+custom section `dylink.0` gives its memory information: the sizes and
+the alignments of its parts of the memory and of the table, when its
+export `tree_sitter_<g>` gives, in an instance of a grammar, a language
+in the format of tree-sitter, of an ABI version from 13 to 15, and when
+the name of each symbol of that language is valid UTF-8. In an instance
+of a grammar, the program gives the imports values of its own choice
+that have fixed properties, and the functions of the list give fixed
+results. In a valid pack, the hash of the file is the hash that the
+descriptor gives for the grammar.
 
 A query file holds a tree-sitter query: a sequence of patterns. A
 program runs the query over the parse tree of a text. A match is one
@@ -453,22 +468,26 @@ path has no file grammar, the reading gives the result "no grammar".
 
 The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
-text with the language of the usable grammar. The parsing of tree-sitter
-can give no parse tree. The program ends each reading: when it stops a
-reading, a choice that it can make for limits of its own, such as on the
-depth of the call stack or on the size of the stack of the grammar, the
-reading gives "parse failure". The requirements on readings apply to an
-undisturbed use of the pack, in which what the grammar gives does not
-change with the choices that the program makes in an instance of the
-grammar, other than a stop, such as the addresses that it gives the
-module or the bits of a NaN. The text has a parse failure when the
-parsing gives no parse tree, or when the root node of the parse tree has
-an error: when the root node, or a node inside it, is an `ERROR` node or
-a `MISSING` node. A reading of a text with a parse failure gives the
-result "parse failure", and no node of the text. A parse tree with no
-error comes from the language and the functions that the grammar
-imports, so conforming programs agree on it in an undisturbed use of the
-pack; on a text with a parse failure, they agree only on the result.
+text with the language of the usable grammar, and it runs the code of
+that language in an instance of a grammar. The parsing of tree-sitter
+can give no parse tree, such as when an invocation of that code fails.
+The program ends each reading: when it stops a reading for limits of its
+own, such as with a stop in an instance of a grammar, the reading gives
+"parse failure". The requirements on readings apply to an undisturbed
+use of the pack, in which no choice of the program in an instance of a
+grammar, such as the addresses that the program gives the module or the
+bits of a NaN, changes, other than by a stop in an instance of a
+grammar, whether a byte sequence that the use takes as a grammar of the
+pack is a usable grammar with the name of that grammar, the language
+that such a byte sequence gives, or the parse tree of a text that the
+use reads. The text has a parse failure when the parsing gives no parse
+tree, or when the root node of the parse tree has an error: when the
+root node, or a node inside it, is an `ERROR` node or a `MISSING` node.
+A reading of a text with a parse failure gives the result "parse
+failure", and no node of the text. A parse tree with no error comes from
+the language and the functions that the grammar imports, so conforming
+programs agree on it in an undisturbed use of the pack; on a text with a
+parse failure, they agree only on the result.
 
 Each other reading gives the result "parsed". The program runs each
 query file of the grammar over the parse tree. The query language of
@@ -843,16 +862,21 @@ thing in it, or nothing.
 @cites {
     wasm-core/2.0,
     files#{folder-tree=v1},
-    text#{byte-sequence=v1},
-    #{pack=v1, pack-use=v1, usable-grammar=v1, parse-tree=v1},
+    text#{byte-sequence=v1, text=v1},
+    #{
+        pack=v1, pack-use=v1, grammar-instance=v1, usable-grammar=v1,
+        parse-tree=v1,
+    },
 }
 
 An undisturbed use of a pack is a use of the pack during which no other
-process changes a file of its folder tree, and in which, for each byte
-sequence that the program uses as a grammar of the pack, the conditions
-of a usable grammar that it meets, the language that it gives, and its
-parse trees do not change with the choices of the program in an
-instance of a grammar, other than a stop.
+process changes a file of its folder tree, and in which no choice of the
+program in an instance of a grammar, such as the addresses that the
+program gives the module or the bits of a NaN, changes, other than by a
+stop in an instance of a grammar, whether a byte sequence that the use
+takes as a grammar of the pack is a usable grammar with the name of that
+grammar, the language that such a byte sequence gives, or the parse tree
+of a text that the use reads.
 
 ### 4.7 WebAssembly modules
 
@@ -863,16 +887,196 @@ A WebAssembly module is a byte sequence that is a module in the binary
 format of the WebAssembly Core Specification 2.0, and that is valid by
 that specification.
 
-### 4.8 Usable grammars
+### 4.8 Instances of grammars
+
+@term grammar-instance=v1
+@cites {
+    wasm-core/2.0, wasm-conventions/dynamic-linking, iso/9899-2024,
+    unicode/12.1.0, tree-sitter/language-format,
+    text#{byte=v1, byte-sequence=v1, whole-number=v1, code-span=v1},
+    #{webassembly-module=v1},
+}
+
+A WebAssembly module has memory information when, and only when, it
+meets each of these conditions:
+
+1. It has exactly one custom section whose name is `dylink.0`.
+2. The content of that section after its name is a sequence of
+   subsections. Each subsection is a byte, which is its type, then a u32
+   n, then n bytes, which are its content.
+3. Exactly one subsection has the type 1, and its content is exactly
+   four u32s.
+
+Each u32 of these conditions is encoded as the binary format of the
+WebAssembly Core Specification 2.0 encodes a u32. The four u32s of the
+subsection of the type 1 are, in this order, the memory size, the memory
+alignment, the table size, and the table alignment of the module: its
+memory information.
+
+The imports of the list are these, each with its kind and its type:
+
+- the memory `memory`;
+- the table `__indirect_function_table`, whose elements are of the type
+  funcref;
+- the globals `__memory_base` and `__table_base`, of the type i32, which
+  cannot change, and the global `__stack_pointer`, of the type i32,
+  which can change;
+- the functions that allocate memory: `malloc`, of the type
+  `[i32] -> [i32]`; `calloc` and `realloc`, of the type
+  `[i32 i32] -> [i32]`; and `free`, of the type `[i32] -> []`;
+- the functions that act on memory and strings: `memchr`, `memcmp`,
+  `memcpy`, `memmove`, `memset`, `strncat`, `strncmp`, and `strncpy`, of
+  the type `[i32 i32 i32] -> [i32]`; `strcmp`, of the type
+  `[i32 i32] -> [i32]`; and `strlen`, of the type `[i32] -> [i32]`;
+- the functions that act on characters, each of the type
+  `[i32] -> [i32]`: `iswalnum`, `iswalpha`, `iswblank`, `iswdigit`,
+  `iswlower`, `iswpunct`, `iswspace`, `iswupper`, `iswxdigit`,
+  `towlower`, and `towupper`;
+- the functions that only trap: `abort`, of the type `[] -> []`;
+  `proc_exit`, of the type `[i32] -> []`; and `__assert_fail`, of the
+  type `[i32 i32 i32 i32] -> []`.
+
+An instance of a grammar of a WebAssembly module that has memory
+information, and each of whose imports is an import of the list by its
+name after its module name, its kind, and its type, is an instance of
+that module that a program makes with values of its own choice for its
+imports. Those values have these properties, in which the value of a
+global, and the argument and the result of a function that acts on
+characters, are each taken as a whole number from 0 to 4,294,967,295:
+
+- `__memory_base` is a global of type i32 that cannot change. Its value
+  is a multiple of 2 to the power of the memory alignment. The bytes of
+  `memory` from that value on, as many as the memory size, lie inside
+  the memory, and each of them is 0 when the instantiation starts. These
+  bytes are the own bytes of the module.
+- `__table_base` is a global of type i32 that cannot change. Its value
+  is a multiple of 2 to the power of the table alignment. The elements
+  of `__indirect_function_table` from that value on, as many as the
+  table size, lie inside the table, and each of them is null when the
+  instantiation starts. These elements are the own elements of the
+  module.
+- `__stack_pointer` is a global of type i32 that can change. The stack
+  of the module is the bytes of `memory` from the address 0 up to the
+  value of `__stack_pointer` when the instantiation starts, that value
+  not included, and these bytes lie inside the memory. After the
+  instantiation starts, only the code of the module, and the functions
+  of the list when that code calls them, change `__stack_pointer`.
+- The memory and the table that the program gives have the maximum of
+  the type of their import, or no maximum when that type has none. A
+  growth of one of them within its maximum succeeds, or the program
+  stops the invocation that asks for it. The memory holds no byte at an
+  address of 4,294,901,760 or more: the program stops each growth that
+  would give it such a byte.
+- `malloc`, `calloc`, `realloc`, and `free` allocate and deallocate
+  space as ISO/IEC 9899:2024 defines, at places that the program
+  chooses, and they never give 0: when the program does not allocate
+  the space that a call asks for, it stops the invocation. A block is
+  the space that a call of `malloc`, `calloc`, or `realloc` from the
+  code of the module allocates, until a call of `free` or `realloc`
+  deallocates that space.
+- The functions that act on memory and strings act as ISO/IEC 9899:2024
+  defines them, a call of `abort`, `proc_exit`, or `__assert_fail`
+  traps, and the functions that act on characters give the results that
+  this definition states for them.
+- In each invocation that the parsing of the format of languages of
+  tree-sitter makes, the bytes of `memory` and the elements of the table
+  through which that parsing gives values to the code of the module hold
+  what that parsing gives them. These are the bytes of its lexer, with
+  the lookahead and the result symbol, the elements of the functions of
+  its lexer, and the bytes of the buffer of the serialization of an
+  external scanner.
+- The own bytes, the stack of the module, the blocks, and the bytes
+  through which the parsing gives values to the code are parts of
+  `memory` of which no two have a byte in common. The own elements and
+  the elements through which the parsing gives values to the code have
+  no element in common.
+- Only the instantiation, the code of the module, and the functions of
+  the list when that code calls them change an own byte or an own
+  element of the module, or a byte of one of its blocks. While the code
+  of the module runs, only that code, and the functions of the list when
+  that code calls them, change a byte of the stack of the module.
+
+The functions that act on characters give these results for an argument
+c. A function whose name starts with `isw` gives 1 when c is in the set
+that this list gives for it, and 0 when c is not. The data are those of
+the Unicode Character Database of the Unicode Standard 12.1.0: the
+General_Category and the simple uppercase and lowercase mappings of the
+file UnicodeData.txt, the property Alphabetic of the file
+DerivedCoreProperties.txt, and the property White_Space of the file
+PropList.txt.
+
+- `iswdigit`: 0x30 to 0x39, the digits `0` to `9`.
+- `iswxdigit`: 0x30 to 0x39, 0x41 to 0x46, and 0x61 to 0x66.
+- `iswblank`: 0x09 and 0x20.
+- `iswspace`: the code points with the property White_Space, other than
+  U+00A0, U+1680, U+2007, and U+202F.
+- `iswalpha`: the ASCII letters, 0x41 to 0x5A and 0x61 to 0x7A; from
+  0x80 to 0x1FFFF, the code points with the property Alphabetic or with
+  the General_Category Nd, other than U+0E2F and U+0E46; and each value
+  from 0x20000 to 0x2FFFD.
+- `iswalnum`: the set of `iswalpha`, and 0x30 to 0x39.
+- `iswpunct`: each c less than 0x20000 that has a line of its own in
+  UnicodeData.txt, whose General_Category is neither Cc nor Cs, that is
+  not U+FFF9, U+FFFA, or U+FFFB, and that is in the set of neither
+  `iswalnum` nor `iswspace`. The first line and the last line of a range
+  of UnicodeData.txt are lines of their own, and the code points between
+  them have no line of their own: so U+E000 and U+F8FF are in the set,
+  and U+E001 to U+F8FE are not.
+- `towlower`: for a code point c that has a simple lowercase mapping,
+  other than U+24B6 to U+24E9, that mapping; for each other c, c.
+- `towupper`: for U+00DF, U+1E9E; for a code point c that has a simple
+  uppercase mapping, other than U+24B6 to U+24E9, that mapping; for each
+  other c, c.
+- `iswlower`: each c for which `towupper` gives a value other than c.
+- `iswupper`: each c for which `towlower` gives a value other than c.
+
+An invocation in an instance of a grammar fails when its code traps,
+when it exhausts the call stack, when it exhausts the stack of the
+module, or when the program stops it. The code exhausts the stack of the
+module when it sets `__stack_pointer` to a value greater than the value
+of `__stack_pointer` when the instantiation starts; the invocation then
+fails at that change, as if the change trapped. An invocation that fails
+with the stack of the module that the program gives, and that would not
+fail with a larger stack of the module, also exhausts that stack. A stop
+in an instance of a grammar is a failure of the instantiation or of an
+invocation that the program makes for limits of its own, such as on the
+time that the code runs, on the space that it allocates, or on the
+growth of a memory or a table, and a failure of an invocation whose code
+exhausts the call stack or the stack of the module.
+
+The choices of the program in an instance of a grammar are these:
+
+- a stop in an instance of a grammar;
+- the values that it gives for the imports, with the properties that
+  this definition states for them, and with them the size of the stack
+  of the module, the places of the own bytes and of the own elements,
+  and the sizes of the memory and of the table;
+- the places of the space that `malloc`, `calloc`, and `realloc`
+  allocate, and the content of each byte of a block that `calloc` does
+  not set to 0 and that `realloc` does not keep from the space that it
+  deallocates;
+- the content of the bytes of the stack of the module when each
+  invocation starts; and, when the instantiation starts, the content of
+  the bytes of `memory` other than the own bytes, and of the elements of
+  the table other than the own elements;
+- the places of the bytes and of the elements of the table through which
+  the parsing gives values to the code: the addresses and the indices of
+  the table that the program gives the code;
+- for the parsing of a text, the use of an instance of a grammar in
+  which code ran for another text, with what that code left in it;
+- the bits of a NaN.
+
+### 4.9 Usable grammars
 
 @term usable-grammar=v1
 @cites {
-    tree-sitter/language-format, wasm-core/2.0, iso/9899-2024,
+    tree-sitter/language-format, wasm-core/2.0,
+    wasm-conventions/dynamic-linking,
     text#{
-        byte=v1, byte-sequence=v1, valid-utf-8=v1, text=v1,
-        whole-number=v1, code-span=v1,
+        byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
+        code-span=v1,
     },
-    #{webassembly-module=v1, grammar-name=v1},
+    #{webassembly-module=v1, grammar-name=v1, grammar-instance=v1},
 }
 
 This definition uses the format of languages that tree-sitter defines,
@@ -880,119 +1084,35 @@ in its ABI versions 13 to 15. In that format, a language has an ABI
 version, which is a whole number; symbols, which are all the entries of
 its table of symbols, its aliases included, each with a name, which is a
 byte sequence, and each named or anonymous, visible or hidden, and a
-supertype or not; and fields, each with a name, which is a byte
-sequence. A byte sequence is a usable grammar with a grammar name g
-when, and only when, it meets each of these conditions:
+supertype or not; fields, each with a name, which is a byte sequence;
+and, at the ABI version 15, for each supertype, a list of symbols, which
+are its subtypes. A byte sequence is a usable grammar with a grammar
+name g when, and only when, it meets each of these conditions:
 
 1. It is a WebAssembly module.
-2. Each of its imports has, after its module name, a name that is
-   exactly one of the names of this list, with the kind that the list
-   gives:
-   - the memory `memory`;
-   - the table `__indirect_function_table`;
-   - the globals `__memory_base`, `__table_base`, and `__stack_pointer`;
-   - the functions `malloc`, `calloc`, `realloc`, and `free`, which
-     allocate memory;
-   - the functions `memchr`, `memcmp`, `memcpy`, `memmove`, `memset`,
-     `strcmp`, `strlen`, `strncat`, `strncmp`, and `strncpy`, which act
-     on memory and strings;
-   - the functions `iswalnum`, `iswalpha`, `iswblank`, `iswdigit`,
-     `iswlower`, `iswpunct`, `iswspace`, `iswupper`, `iswxdigit`,
-     `towlower`, and `towupper`, which act on characters;
-   - the functions `abort`, `proc_exit`, and `__assert_fail`, which only
-     trap.
-
-   Each function of this list behaves as the function of that name of
-   the WebAssembly standard library of grammars that this format
-   defines: for example, `iswspace` and `iswalpha`
-   give the results of that library, and not those of the C library of
-   a system. For the characters from U+0000 to U+007F, `iswpunct` gives
-   a value other than 0 exactly for U+0021 to U+002F, U+003A to U+0040,
-   U+005B to U+0060, and U+007B to U+007E. The functions that act on
-   memory and strings act as ISO/IEC 9899:2024 defines them.
-3. It has exactly one custom section whose name is `dylink.0`. The
-   content of that section after its name is a sequence of subsections.
-   Each subsection is a byte, which is its type, then a u32 n, then n
-   bytes, which are its content. Exactly one subsection has the type 1,
-   and its content is exactly four u32s: the memory size, the memory
-   alignment, the table size, and the table alignment. Each u32 of this
-   condition is encoded as the binary format of the WebAssembly Core
-   Specification 2.0 encodes a u32. When the memory size is not 0, the
-   module imports `memory` and `__memory_base`. When the table size is
-   not 0, it imports `__indirect_function_table` and `__table_base`.
+2. Each of its imports is an import of the list of the instances of
+   grammars, by its name after its module name, its kind, and its type.
+3. It has memory information. When its memory size is not 0, it imports
+   `memory` and `__memory_base`. When its table size is not 0, it
+   imports `__indirect_function_table` and `__table_base`.
 4. It exports a function of the type `[] -> [i32]` whose name is
    `tree_sitter_` followed by g, and each of the exports `_initialize`,
    `__wasm_apply_data_relocs`, and `__wasm_call_ctors` that it has is a
-   function of the type `[] -> []`. The program makes an instance of the
-   module, an instance of a grammar, with values of its own choice for
-   the imports that the module has. Those values have these properties,
-   in which the value of a global is taken as a whole number from 0 to
-   4,294,967,295:
-   - `__memory_base` is a global of type i32 that cannot change. Its
-     value is a multiple of 2 to the power of the memory alignment. The
-     bytes of `memory` from that value on, as many as the memory size,
-     lie inside the memory, and each of them is 0 when the instantiation
-     starts. These bytes are the own bytes of the module.
-   - `__table_base` is a global of type i32 that cannot change. Its value
-     is a multiple of 2 to the power of the table alignment. The elements
-     of `__indirect_function_table` from that value on, as many as the
-     table size, lie inside the table, and each of them is null when the
-     instantiation starts. These elements are the own elements of the
-     module.
-   - `__stack_pointer` is a global of type i32 that can change. The
-     stack of the module is the bytes of `memory` from the address 0 up
-     to the value of `__stack_pointer` when the instantiation starts,
-     that value not included, and these bytes lie inside the memory.
-     After the instantiation starts, only the code of the module, and
-     the functions of the list when that code calls them, change
-     `__stack_pointer`.
-   - A block is the space that a call of `malloc`, `calloc`, or
-     `realloc` from the code of the module allocates, until a call of
-     `free` or `realloc` deallocates that space. The own bytes of the
-     module, its stack, and its blocks are parts of `memory` of which no
-     two have a byte in common.
-   - Only the instantiation, the code of the module, and the functions
-     of the list when that code calls them change an own byte or an own
-     element of the module, or a byte of one of its blocks. While the
-     code of the module runs, only that code, and the functions of the
-     list when that code calls them, change a byte of its stack.
-
-   In that instance, the program invokes each of the exports
-   `_initialize`, `__wasm_apply_data_relocs`, and `__wasm_call_ctors`
-   that the module has, in the order in which the module lists them as
-   exports, and then the function `tree_sitter_` followed by g. That
-   function then gives a language in that format, of an ABI version from
-   13 to 15.
+   function of the type `[] -> []`. In an instance of a grammar of the
+   module, the program invokes, in this order:
+   `__wasm_apply_data_relocs`, when the module exports it;
+   `_initialize`, when the module exports it, or else
+   `__wasm_call_ctors`, when the module exports it; and the function
+   `tree_sitter_` followed by g. That function then gives a language in
+   that format, of an ABI version from 13 to 15. When the instantiation
+   or one of these invocations fails, the byte sequence does not meet
+   this condition.
 5. The name of each symbol of that language is valid UTF-8.
 
 The language of a usable grammar with the grammar name g is that
-language, and its ABI version is the ABI version of that language. An
-instance of a grammar is an instance of a module that a program makes
-as condition 4 says. The choices of the program in an instance of a
-grammar are these:
+language, and its ABI version is the ABI version of that language.
 
-- a stop of the instantiation or of an invocation by the program, such
-  as for its limits on the depth of the call stack, on the size of the
-  stack of the module, and on the time that the code runs;
-- the values that it gives for the imports, with the properties of
-  condition 4, and with them the size of the stack of the module, the
-  places of the own bytes and of the own elements, and the sizes of the
-  memory and of the table;
-- the space that `malloc`, `calloc`, and `realloc` allocate; a refusal
-  to allocate space, at which these functions give 0; and the content of
-  each byte of a block that `calloc` does not set to 0 and that
-  `realloc` does not keep from the space that it deallocates;
-- the content of the bytes of the stack when the instantiation starts,
-  and of the bytes of `memory` and the elements of the table other than
-  the own bytes, the own elements, the stack, and the blocks;
-- a refusal of a growth of a memory or of a table that the WebAssembly
-  Core Specification 2.0 lets succeed, at which the code gets −1;
-- the depth of calls at which the call stack is exhausted;
-- the use of an instance of the grammar in which earlier invocations
-  ran, with what those invocations left in it;
-- the bits of a NaN.
-
-### 4.9 The query language
+### 4.10 The query language
 
 @term query-language=v1
 @cites {
@@ -1030,8 +1150,8 @@ query-name     = ( ALPHA / DIGIT / "_" / "-" )
 
 No white space stands between `@` and a capture name, between `#` and
 the name of a predicate or of a directive, between that name and its
-last character, or on either side of the `/` between two names of a
-named node. A text that holds U+0000 outside a string is no query.
+last character, or on either side of the `/` after the name of a
+supertype. A text that holds U+0000 outside a string is no query.
 
 A string is written between two double quotes. In the characters after
 the opening double quote of a string, taken from the first to the last,
@@ -1075,11 +1195,20 @@ byte sequence.
 
 The matches of a query over a parse tree are the parts of the parse tree
 where a pattern of the query matches, each with that pattern and with
-the nodes that it captures under each capture name. A pattern that gives
-the name of a supertype for a named node, alone or before `/`, matches a
-node only when the node has that supertype.
+the nodes that it captures under each capture name.
 
-### 4.10 Text predicates
+Where a pattern gives the name s of a supertype for a named node, as in
+`(s)`, the pattern matches there each node, named or anonymous, that has
+the supertype s. Where it gives `s/x`, as in `(s/x)`, it matches there
+each node that has the supertype s and whose symbol is a named symbol
+with the name x; with `s/"x"`, it matches each such node whose symbol is
+an anonymous symbol with the name x. A text in which `/` follows a name
+that is not the name of a supertype is no query for the language. For a
+language of the ABI version 15, a text that gives `s/x` or `s/"x"` when
+no subtype of s in the list of the language has the name x is no query
+for that language either.
+
+### 4.11 Text predicates
 
 @term text-predicate=v1
 @cites {
@@ -1125,7 +1254,7 @@ when it holds for each pair, and so when there is no pair; `#any-of?`
 also holds so. Each other text predicate holds when it holds for at
 least one pair.
 
-### 4.11 Query files
+### 4.12 Query files
 
 @term query-file=v1
 @cites {
@@ -1178,7 +1307,7 @@ conditions:
    - test: one of `case` and `suite` has the quantifier one, and the
      other has the quantifier zero.
 
-### 4.12 Valid packs
+### 4.13 Valid packs
 
 @term valid-pack=v1
 @cites {
@@ -1238,7 +1367,7 @@ none when it does not; and the adapter of a test runner of its
 descriptor that has an adapter hash, with the name r, is the content of
 its file `adapters/<r>.wasm`.
 
-### 4.13 Parse trees
+### 4.14 Parse trees
 
 @term parse-tree=v1
 @cites {
@@ -1247,37 +1376,37 @@ its file `adapters/<r>.wasm`.
         text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
         whole-number=v1, code-span=v1,
     },
-    #{usable-grammar=v1, grammar-name=v1},
+    #{usable-grammar=v1, grammar-name=v1, grammar-instance=v1},
 }
 
 This definition uses the parsing that the format of languages of
 tree-sitter defines, which gives, for a language and a byte sequence, a
-parse tree or no parse tree. A parse tree has a root node, and the
-children of each node of a parse tree are its named and its anonymous
-child nodes, in their order. A node of a hidden symbol is no node of the
-parse tree, and its children stand in its place. A node that stands in
-the place of a node of a hidden symbol also stands in the place of each
-node in whose place that node stands. Each node has a symbol, and each
-symbol has a name. The supertypes of a node are the symbols that are
-supertypes among its own symbol and the symbols of the nodes in whose
-place it stands. Each node has a start byte and an end byte, which are
-whole numbers less than 4,294,967,296. A node has an error when it, or a
-node that the parsing gives inside it, nodes of hidden symbols included,
-is an `ERROR` node, a node of the symbol `ERROR`, or a `MISSING` node, a
-node that the parsing inserts for a token that the text lacks. When a
-parse tree whose root node has no error does not change with the choices
-of the program in an instance of a grammar, the language and the
-functions that its module imports decide it. For a text whose parse text
-has fewer than 4,294,967,296 bytes in its UTF-8 encoding, and a usable
-grammar with a grammar name g, the parse tree is the parse tree that
-this parsing gives for the language of that usable grammar and the UTF-8
-encoding of that parse text; such a text alone can have a parse tree.
-When this parsing gives no parse tree, the text has no parse tree with
-that usable grammar. The parse text of a text is that text, followed by
-a line feed when the text does not end with a line feed. So the parse
-text of the empty text is one line feed.
+parse tree or no parse tree. This parsing runs the code of the language
+in the instance of a grammar in which its module gave that language, and
+it gives no parse tree when an invocation of that code fails. A parse
+tree has a root node, and the children of each node of a parse tree are
+its named and its anonymous child nodes, in their order. A node of a
+hidden symbol is no node of the parse tree, and its children stand in
+its place. A node that stands in the place of a node of a hidden symbol
+also stands in the place of each node in whose place that node stands.
+Each node has a symbol, and each symbol has a name. The supertypes of a
+node are the symbols that are supertypes among its own symbol and the
+symbols of the nodes in whose place it stands. Each node has a start
+byte and an end byte, which are whole numbers less than 4,294,967,296. A
+node has an error when it, or a node that the parsing gives inside it,
+nodes of hidden symbols included, is an `ERROR` node, a node of the
+symbol `ERROR`, or a `MISSING` node, a node that the parsing inserts for
+a token that the text lacks. For a text whose parse text has fewer than
+4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
+grammar name g, the parse tree is the parse tree that this parsing gives
+for the language of that usable grammar and the UTF-8 encoding of that
+parse text; such a text alone can have a parse tree. When this parsing
+gives no parse tree, the text has no parse tree with that usable
+grammar. The parse text of a text is that text, followed by a line feed
+when the text does not end with a line feed. So the parse text of the
+empty text is one line feed.
 
-### 4.14 The order of the parse tree
+### 4.15 The order of the parse tree
 
 @term parse-tree-order=v1
 @cites #{parse-tree=v1}
@@ -1289,7 +1418,7 @@ comes before each of its descendants, and, for each two children of one
 node, the first of them and each of its descendants come before the
 second of them.
 
-### 4.15 The runs of nodes
+### 4.16 The runs of nodes
 
 @term node-run=v1
 @cites {
@@ -1309,7 +1438,7 @@ text. The run of a node of the parse tree of a text is the run of that
 text that starts at the greater of b and the lesser of s and l, and that
 ends at the greater of b and the lesser of e and l.
 
-### 4.16 Node types
+### 4.17 Node types
 
 @term node-type=v1
 @cites {
@@ -1320,7 +1449,7 @@ ends at the greater of b and the lesser of e and l.
 The node type of a node of a parse tree is the text of the name of its
 symbol.
 
-### 4.17 Parse failures
+### 4.18 Parse failures
 
 @term parse-failure=v1
 @cites {text#{text=v1}, #{usable-grammar=v1, parse-tree=v1}}
@@ -1329,7 +1458,7 @@ A text has a parse failure with a usable grammar when, and only when,
 the text has no parse tree with that usable grammar, or the root node of
 its parse tree with that usable grammar has an error.
 
-### 4.18 Query matches
+### 4.19 Query matches
 
 @term query-match=v1
 @cites {
@@ -1352,7 +1481,7 @@ it in the query file. The captures of a query match are its captures
 whose capture names do not start with `_`: each is a capture name and a
 node of the parse tree.
 
-### 4.19 Joined matches and kept matches
+### 4.20 Joined matches and kept matches
 
 @term joined-match=v1
 @cites {
@@ -1373,7 +1502,7 @@ joined matches whose pattern comes before the pattern of each other
 joined match of that query file over that text that has the same role
 name and the same role node.
 
-### 4.20 Comment nodes
+### 4.21 Comment nodes
 
 @term comment-node=v1
 @cites {
@@ -1393,7 +1522,7 @@ once, in the order of the parse tree. A comment node is tagged when, and
 only when, it is the role node of a kept match with the role name
 `comment`, and of no kept match with the role name `untagged`.
 
-### 4.21 Definition nodes
+### 4.22 Definition nodes
 
 @term definition-node=v1
 @cites {
@@ -1418,7 +1547,7 @@ nodes that this kept match captures under `body`, in the order of the
 parse tree, or, when it captures no node under `body`, the definition
 node alone.
 
-### 4.22 Decoration nodes
+### 4.23 Decoration nodes
 
 @term decoration-node=v1
 @cites {
@@ -1438,7 +1567,7 @@ that grammar over the text, in the order of the parse tree. The text has
 no decoration node when that grammar has no query file of the kind
 definition.
 
-### 4.23 Enclosed nodes
+### 4.24 Enclosed nodes
 
 @term enclosed-node=v1
 @cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
@@ -1450,7 +1579,7 @@ before it, the run of A ends at the boundary where the run of B ends or
 at a boundary after it, and B does not come before A in the order of the
 parse tree.
 
-### 4.24 Test nodes
+### 4.25 Test nodes
 
 @term test-node=v1
 @cites {
@@ -1481,7 +1610,7 @@ the role name `case`. Each other test node is a test case. The test
 suites that enclose a test node are the test nodes that are test suites
 and that enclose it, in the order of the parse tree.
 
-### 4.25 The names of test nodes
+### 4.26 The names of test nodes
 
 @term test-name=v1
 @cites {
@@ -1511,7 +1640,7 @@ are equal when, and only when, they have the same number of names and,
 at each index, names with the same number of pieces whose pieces, at
 each index, are of the same kind and have the same text.
 
-### 4.26 The test labels of test nodes
+### 4.27 The test labels of test nodes
 
 @term test-label=v1
 @cites {
@@ -1524,7 +1653,7 @@ The test labels of a test node are the texts w that match the production
 captures a node under the capture name that is the text `label.`
 followed by w.
 
-### 4.27 Readings
+### 4.28 Readings
 
 @term reading-of-a-text=v1
 @cites {
@@ -2722,15 +2851,20 @@ program must give no text as the pack hash of that pack.
 @req validate-packs=v1
 @cites {
     text#{conforming-program=v1, result=v1},
-    #{pack=v1, undisturbed-pack-use=v1, valid-pack=v1, usable-grammar=v1},
+    #{
+        pack=v1, undisturbed-pack-use=v1, valid-pack=v1, grammar-instance=v1,
+        query-language=v1, parse-tree=v1,
+    },
 }
 
 When a conforming program gives a result for whether a pack is valid, in
 an undisturbed use of that pack, it must give exactly one result:
 "valid" when the pack is valid, and "invalid" when it is not, except
-that it gives "invalid" when it stops that decision, a choice that it
-can make for limits of its own, such as on the depth of the call stack
-or on the size of the stack of a grammar.
+that it gives "invalid" when it stops that decision for limits of its
+own, such as with a stop in an instance of a grammar, and that it can
+give "invalid" when a query file of the pack holds a pattern that
+matches no node of any parse tree that the language of its grammar can
+give.
 
 ### 7.9 The values of the descriptor of a valid pack
 
@@ -2775,7 +2909,7 @@ is not valid.
     text#{conforming-program=v1, result=v1, text=v1},
     #{
         undisturbed-pack-use=v1, valid-pack=v1, reading-of-a-text=v1,
-        usable-grammar=v1,
+        grammar-instance=v1,
     },
 }
 
@@ -2783,9 +2917,8 @@ When a conforming program gives a result of a reading of a text, as the
 text of a file at a valid path, with a valid pack, in an undisturbed use
 of that pack, it must give exactly one result, the result of that
 reading: "no grammar", "parse failure", or "parsed", except that it
-gives "parse failure" when it stops that reading, a choice that it can
-make for limits of its own, such as on the depth of the call stack or on
-the size of the stack of the grammar.
+gives "parse failure" when it stops that reading for limits of its own,
+such as with a stop in an instance of a grammar.
 
 ### 7.12 The nodes of readings
 
@@ -2847,26 +2980,34 @@ which it gives the result "parse failure".
 
 @req isolate-grammars=v1
 @cites {
-    wasm-core/2.0,
     files#{taken-byte=v1},
     text#{conforming-program=v1, byte-sequence=v1},
     #{usable-grammar=v1},
 }
 
 A conforming program must run the code of each byte sequence that it
-uses as a grammar so that:
+uses as a grammar so that neither that code nor the language that it
+gives takes bytes from a file, writes a file or any output of the
+process, uses a network, reads a clock, or starts a process.
 
-- neither that code nor the language that it gives takes bytes from a
-  file, writes a file or any output of the process, uses a network,
-  reads a clock, or starts a process;
-- that code reads and changes no byte of a memory, no element of a
-  table, and no value of a global of an instance of another byte
-  sequence that the program uses as a grammar or as an adapter;
-- the code of such another byte sequence reads and changes no byte of a
-  memory, no element of a table, and no value of a global of an
-  instance of that byte sequence.
+### 7.16 The instances in which the code of a grammar runs
 
-### 7.16 Readings and decisions that end
+@req confine-grammars=v1
+@cites {
+    wasm-core/2.0,
+    text#{conforming-program=v1, byte-sequence=v1},
+    #{webassembly-module=v1, grammar-instance=v1, adapter-instance=v1},
+}
+
+A conforming program must run the code of each byte sequence that it
+uses as a grammar only in an instance of a grammar of its module, so
+that that code, and each function that the program gives that instance
+as an import, reads no byte and changes no byte of a memory, reads no
+element and changes no element of a table, and reads no value and
+changes no value of a global, of another instance of a grammar or of an
+instance of an adapter.
+
+### 7.17 Readings and decisions that end
 
 @req end-readings=v1
 @cites {
@@ -2877,7 +3018,7 @@ uses as a grammar so that:
 A conforming program must end each reading of a text with a pack, and
 each decision whether a pack is valid.
 
-### 7.17 Code of grammars that ends
+### 7.18 Code of grammars that ends
 
 @req end-grammar-code=v1
 @cites {text#{conforming-program=v1, byte-sequence=v1}, #{usable-grammar=v1}}
@@ -2885,7 +3026,7 @@ each decision whether a pack is valid.
 A conforming program must end the code of each byte sequence that it
 uses as a grammar.
 
-### 7.18 No symbolic link followed in a pack
+### 7.19 No symbolic link followed in a pack
 
 @req follow-no-pack-links=v1
 @cites {files#{folder-tree=v1, symbolic-link=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2894,7 +3035,7 @@ In each use of a pack, a conforming program must follow no symbolic
 link that is a file of the folder tree of the pack: it must find no file
 by the reference of such a symbolic link.
 
-### 7.19 Bytes only from the folders and the regular files of a pack
+### 7.20 Bytes only from the folders and the regular files of a pack
 
 @req read-only-pack-files=v1
 @cites {
@@ -2907,7 +3048,7 @@ In each use of a pack, a conforming program must take bytes from the
 files of the folder tree of the pack only from its folders and from its
 regular files.
 
-### 7.20 No wait for another process in a pack
+### 7.21 No wait for another process in a pack
 
 @req avoid-pack-waits=v1
 @cites {files#{folder-tree=v1, file-of-another-kind=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2917,7 +3058,7 @@ process or for a device to act on a file of another kind that is a file
 of the folder tree of the pack, such as for a process to open the other
 end of a pipe.
 
-### 7.21 No change to the files of a pack
+### 7.22 No change to the files of a pack
 
 @req keep-packs-unchanged=v1
 @cites {
@@ -2936,7 +3077,7 @@ file of another kind, or an attribute of a file, other than by a change
 that the file system makes by itself when the program uses that file,
 such as a change of the time of last access.
 
-### 7.22 No permission or privilege that the process did not have
+### 7.23 No permission or privilege that the process did not have
 
 @req gain-no-pack-privileges=v1
 @cites {
@@ -2973,11 +3114,11 @@ These requirements that the design holds directly have no vectors:
 `give-pack-file-contents`, `give-pack-descriptor-values`,
 `omit-readings-for-invalid-packs`, `give-reading-results`,
 `give-reading-nodes`, `give-reading-node-values`,
-`omit-nodes-of-unparsed-readings`, `isolate-grammars`, `end-readings`,
-`end-grammar-code`, `follow-no-pack-links`, `read-only-pack-files`,
-`avoid-pack-waits`, `keep-packs-unchanged`, and
-`gain-no-pack-privileges`. No vector of this file holds a valid pack or
-a reading.
+`omit-nodes-of-unparsed-readings`, `isolate-grammars`,
+`confine-grammars`, `end-readings`, `end-grammar-code`,
+`follow-no-pack-links`, `read-only-pack-files`, `avoid-pack-waits`,
+`keep-packs-unchanged`, and `gain-no-pack-privileges`. No vector of this
+file holds a valid pack or a reading.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
@@ -3047,11 +3188,13 @@ these conditions hold:
    read permission for each file of the folder tree other than a
    symbolic link, and the search permission for each folder.
 2. No other process changes a file of the folder tree during the use.
-3. For each byte sequence that the program uses as a grammar of the
-   pack, the conditions of a usable grammar that it meets, the language
-   that it gives, and its parse trees do not change with the
-   [choices of the program in an instance of a
-   grammar](sinter:#usable-grammar=v1), other than a stop.
+3. No [choice of the program in an instance of a
+   grammar](sinter:#grammar-instance=v1), such as the addresses that the
+   program gives the module or the bits of a NaN, changes, other than by
+   a stop in an instance of a grammar, whether a byte sequence that the
+   use takes as a grammar of the pack is a usable grammar with the name
+   of that grammar, the language that such a byte sequence gives, or the
+   parse tree of a text that the use reads.
 
 A check of the vectors makes such a stored folder tree for each vector
 whose input is a pack. A need of a vector is a condition on the system
@@ -3097,10 +3240,10 @@ valid breaks the condition of a valid pack on usable grammars. The note
 of each vector names one condition, of a valid pack or of a usable
 grammar, that the pack breaks and that a program can decide without
 running the code of a grammar, such as that each import of the file of a
-grammar has a name of the list of a usable grammar. Apart from that
-condition, the pack has a valid descriptor with one grammar, a file of
-that grammar whose content has the hash of that grammar, a query file of
-the kind comment for that grammar, and a file under `licenses/`.
+grammar is an import of the list. Apart from that condition, the pack
+has a valid descriptor with one grammar, a file of that grammar whose
+content has the hash of that grammar, a query file of the kind comment
+for that grammar, and a file under `licenses/`.
 
 - `input`: the folder tree object of the pack.
 - `result`: the result for whether the pack is valid, when a conforming
