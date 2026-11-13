@@ -24,6 +24,7 @@
   sinter_inline_citations
   sinter_paths
   sinter_file_read
+  sinter_json_lines
   git_fixture
   sinter_bench
   alcotest
