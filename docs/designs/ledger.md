@@ -99,7 +99,7 @@ text.
 | [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | the git repository that a clone names by the remote whose name the parameter `ledger-remote` gives, such as the git repository on the host of a project; the stored ledger of that git repository |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
-| [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when, other than in an append, its ledger ref changes to a commit that extends a commit of the shared clone; a conforming program changes it to a pull commit, which holds the lines of that commit of the shared clone and, after them, a line for each provisional line that stays, with the next `seq` |
+| [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when, other than in an append, its ledger ref changes to a commit that extends a commit of the shared clone and whose other lines come from its own lines; a conforming program changes it to a pull commit, which holds the lines of that commit of the shared clone and, after them, a line for each provisional line that stays, with the next `seq` |
 | [push](sinter:#push=v1) | a clone pushes its ledger entries to its shared clone when, other than in an append, the ledger ref of the shared clone changes to a commit of the clone that extends the commit before the change |
 | [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; its input says that an agent runs an execution when a process of that execution has one |
 | [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; its input says that an execution is the job when a process of that execution has one |
@@ -772,13 +772,18 @@ value of the member `id` of the JSON value of that line.
 @term pull=v1
 @cites {
     changes#{commit=v1},
-    #{ledger-ref=v1, shared-clone=v1, ledger-extension=v1},
+    text#{code-span=v1},
+    #{ledger-ref=v1, chunk=v1, shared-clone=v1, ledger-extension=v1},
 }
 
 A git repository A pulls the ledger entries of its shared clone S when,
-other than to append ledger entries, the ledger ref of A changes to a
-commit that extends a commit to which the ledger ref of S points, or
-pointed.
+other than to append ledger entries, the ledger ref of A changes, from
+a commit a or from not existing, to a commit d that extends a commit s
+to which the ledger ref of S points, or pointed, and when the object of
+each line of the git tree object of d that is not a line of the git
+tree object of s has the members of the object of a line of the git
+tree object of a other than `seq` and `id`, and no other member than
+these, `seq`, and `id`.
 
 ### 4.16 Pushes
 
