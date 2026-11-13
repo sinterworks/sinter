@@ -145,11 +145,11 @@ meaning of a vector.
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
-| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of it; a clone can also take in the ledger entries, voids included, of another clone, which is neither appending nor a repair |
+| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of it; a clone can also pull the ledger entries, voids included, of another clone, and push its own ledger entries to another clone; pulls and pushes are neither appending nor repairs |
 | [point of a ledger](sinter:#ledger=v1) | a point between two ledger entries, before the first, or after the last |
 | [ledger entry](sinter:#ledger-entry=v1) | a record of one event in the ledger, such as one approval |
 | [writer of a ledger entry](sinter:#ledger-entry=v1) | the person, the agent, or the job that a ledger entry records as the one that wrote it |
-| [repair](sinter:#repair=v1) | a write that removes ledger entries from the ledger of a repository and puts one void where each of them was |
+| [repair](sinter:#repair=v1) | a write to the ledger of a repository, other than an append, a pull, or a push, that removes zero or more ledger entries and puts one void where each of them was |
 | [void](sinter:#repair=v1) | a ledger entry that stands where a ledger entry that a repair removed was |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
 | [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
@@ -613,13 +613,21 @@ that were appended to one ledger, the one that was appended later comes
 later in the order of the ledger, whatever times the ledger entries
 record. A void stands where a ledger entry that a repair removes was.
 
+A clone of the repository can pull the ledger entries, voids included,
+that the ledger of another clone has, and it can push its own ledger
+entries to another clone. A pull puts the ledger entries that it takes
+first. After them, it puts each ledger entry of the clone that the
+ledger of the other clone does not have, with the same content, or it
+drops that ledger entry. Pulls and pushes are not appending.
+
 A point of a ledger is given by the ledger entries before it: the first
 n ledger entries of the ledger, for a whole number n of 0 or more. The
 point of a ledger entry is the point right before it. A state that
 depends on ledger entries is a state at a point of a ledger.
 
-A repair is a write that removes ledger entries from the ledger of a
-repository. For each ledger entry that it removes, it puts one void
+A repair is a write to the ledger of a repository, other than an
+append, a pull, or a push, that removes zero or more ledger entries from
+the ledger. For each ledger entry that it removes, it puts one void
 where the removed ledger entry was: a ledger entry that records the
 removal and its reason. A removed ledger entry is no longer in the
 ledger, so no state follows from it.
@@ -795,8 +803,8 @@ program appends a judgment, or makes a repair, only to record a decision
 that a person gives it by a confirmation that the standard input, the
 arguments, and the environment of the program cannot give (section 4.5).
 A conforming program changes the ledger only by appending ledger
-entries, by making repairs, and by taking in the ledger entries, voids
-included, of another clone of the repository (section 4.3). So when an
+entries, by making repairs, and by pulls and pushes of ledger entries,
+voids included, between clones of the repository (section 4.3). So when an
 agent changes the ledger of each clone of the repository only through a
 conforming program whose input says that an agent runs it, a statement
 of the agent changes a state only in one of these two ways (sections
@@ -1504,21 +1512,26 @@ appended later comes later in the order of the ledger, whatever times
 the two ledger entries record. A point of a ledger is given by the
 ledger entries before it: the first n ledger entries of the ledger, for
 a whole number n of 0 or more. The point of a ledger entry is the point
-right before it. A clone of the repository can also take in the ledger
+right before it. A clone of the repository can also pull the ledger
 entries, `void` ledger entries included, that the ledger of another
-clone has; taking them in is not appending.
+clone has, and push its own ledger entries to another clone. A pull puts
+the ledger entries that it takes first; after them, it puts each ledger
+entry of the clone that the ledger of the other clone does not have,
+with the same content, or it drops that ledger entry. Pulls and pushes
+of ledger entries between clones are not appending.
 
 ### 3.43 Repairs and voids
 
 @term repair=v1
 @cites #{ledger=v1, ledger-entry=v1}
 
-A repair is a write that removes one or more ledger entries from the
-ledger of a repository, and that puts one `void` ledger entry, a void,
+A repair is a write to the ledger of a repository, other than an
+append, a pull, or a push, that removes zero or more ledger entries from
+that ledger, and that puts one `void` ledger entry, a void,
 for each ledger entry that it removes, where that ledger entry was:
 after each ledger entry that came before the removed one, and before
 each ledger entry that came after it. A void records that a repair
-removed one ledger entry, and the reason for the removal. Taking in the
+removed one ledger entry, and the reason for the removal. A pull of the
 voids that the ledger of another clone of the repository has is not a
 repair.
 
@@ -1924,8 +1937,8 @@ while the program runs.
 }
 
 A conforming program must change the ledger only by appending ledger
-entries, by making repairs, and by taking in the ledger entries, voids
-included, that the ledger of another clone of the repository has.
+entries, by making repairs, and by pulls and pushes of ledger entries,
+voids included, between clones of the repository.
 
 ### 4.4 The ledger entries that agents write
 
