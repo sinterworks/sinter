@@ -27,7 +27,7 @@ folder, which is the common folder of the repository, and the folder of
 each working tree, which the page gitrepository-layout gives; the object
 database and its alternates; commit objects, git tree objects with their
 entries and modes, and blobs; the content of a commit object, with its
-header and its message; the files `shallow` and `info/grafts`; refs, in
+header and its message; the file `shallow`; refs, in
 the files format and in the reftable format, symbolic refs, branches,
 remote-tracking branches, the upstream of a branch, and HEAD; git's
 index; the configuration that git reads, which
@@ -91,9 +91,9 @@ design is a JSON text.
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: the ref that the first value of `branch.<name>.merge` names, mapped by the fetch refspecs of the remote that the last value of `branch.<name>.remote` names, or, for the remote `.`, the local ref that it names |
 | HEAD | the ref of a working tree that names its current branch, or, when it is detached, points to its current commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
-| git's index | the file of a working tree in which git records the paths of the files that it tracks |
-| [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` names, or, when the setting is not set, the file `git/ignore` in the folder that `XDG_CONFIG_HOME` names, or the file `.config/git/ignore` in the folder that `HOME` names when `XDG_CONFIG_HOME` is not set or is empty |
-| [ignored](sinter:#ignored-path=v1) | a path is ignored when git 2.50.2 ignores it, as it decides for a file that its index does not hold, by the rules of the page gitignore, with the patterns of the files `.gitignore`, of the file `info/exclude`, and of the excludes file; when the setting `core.ignoreCase` is true, a pattern matches without regard to the case of the letters from `A` to `Z` |
+| git's index | the file in the folder of a working tree in which git records the paths of the files that it tracks |
+| [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that git 2.50.2 reads for the setting `core.excludesFile`: the file that the setting names, or its default file, such as `~/.config/git/ignore` |
+| [ignored](sinter:#ignored-path=v1) | a path is ignored when git 2.50.2 ignores it, as it decides for a file that its index does not hold, with the patterns of the files `.gitignore`, of the file `info/exclude`, and of the excludes file |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from a remote repository |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -130,6 +130,7 @@ design is a JSON text.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no other process changes the git repository, a working tree of it, the git configuration, or the excludes file |
 | [repository read](sinter:#repository-read=v1) | an operation that a program makes to give, for a git repository or a working tree of it, a thing such as a commit, the files of a tree, or the hunks between two trees |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
@@ -175,8 +176,8 @@ from a remote repository. A program takes no git object from a remote
 repository, so in a partial clone it gives no result that needs a git
 object that the clone left out. The alternates of a repository, which
 its file `objects/info/alternates` names, are part of its object
-database. A replacement ref, under `refs/replace/`, and a graft have no
-effect on the git objects that a program reads.
+database. A replacement ref, under `refs/replace/`, has no effect on the
+git objects that a program reads.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -296,8 +297,8 @@ base of h and the commit of the default branch, when there is exactly
 one.
 
 In the example of section 2.2, before git made `f`, the default branch
-points to `c`. The change of `e` holds `d` and `e`, and its base is `b`.
-When the default branch already reaches a commit h, the change of h
+pointed to `c`. The change of `e` holds `d` and `e`, and its base is
+`b`. When the default branch already reaches a commit h, the change of h
 holds no commit, and its base is h.
 
 Two commits can have no merge base, when their histories share no
@@ -364,14 +365,8 @@ The byte path of an entry is the byte sequence of the names of the
 entries on the way to it, with the byte of `/` between each two names.
 Each regular-file entry whose byte path is the UTF-8 encoding of a valid
 path gives one file, with the content of its blob. A symbolic-link entry
-and a submodule entry give no file. An entry whose name holds `/` has no
-byte path: it gives no file, the entries under it give none, and it does
-not count when two entries have the same byte path. When two entries
-have the same byte path, neither gives a file. A git tree object of
-which git 2.50.2 cannot decode an entry lists no entries: an entry whose
-mode is empty or holds a character other than the digits from 0 to 7,
-such as the digit 8, an entry whose name is empty, or an entry that the
-end of the git tree object cuts short.
+and a submodule entry give no file. When two entries have the same byte
+path, neither gives a file.
 
 The files of the tree of a working tree come from the files on disk,
 git's index, the ignore rules, and the environment of the program. A
@@ -389,12 +384,9 @@ A path is ignored when git 2.50.2 ignores it, as it decides for a file
 that its index does not hold. The patterns come from the files
 `.gitignore` of the working tree, from the file `info/exclude` of the
 git folder, and from the excludes file: the file that the setting
-`core.excludesFile` names, or, when the setting is not set, the file
-`git/ignore` in the folder that the environment variable
-`XDG_CONFIG_HOME` names, or the file `.config/git/ignore` in the folder
-that the environment variable `HOME` names when `XDG_CONFIG_HOME` is not
-set or is empty. When the setting `core.ignoreCase` is true, a pattern
-matches without regard to the case of the letters from `A` to `Z`.
+`core.excludesFile` names, or its default file, such as
+`~/.config/git/ignore`. When the setting `core.ignoreCase` is true, git
+matches the patterns without regard to the case of letters.
 
 A regular file that the program cannot read, or that is in a folder that
 the program cannot read, is still a file of the tree. The content of
@@ -495,7 +487,8 @@ runs no program that is a file of the repository or that the git
 configuration names, such as a hook or a filter. When another process
 changes the git repository, a working tree, the git configuration, or
 the excludes file during a repository read, what the program gives in
-that read is not specified, and these guarantees still hold.
+that read is not specified, and these guarantees still hold: the results
+are specified for an undisturbed repository read.
 
 ## 3. Parameters
 
@@ -535,10 +528,8 @@ edits, and a folder of its own, which holds the HEAD of that working
 tree and its index, git's index. The folder of the main working tree is
 the git folder. The folder of each other working tree is a folder inside
 the folder `worktrees` of the git folder. Git's index of a working tree
-is the file `index` in the folder of that working tree, whatever the
-environment variable `GIT_INDEX_FILE` names, as git 2.50.2 reads it:
-with the entries of the shared index of a split index, and with a sparse
-folder entry of a sparse index read as an entry for each file under it.
+is the file `index` in the folder of that working tree, as git 2.50.2
+reads it.
 The files of a working tree are the files of the folder tree whose root
 is its root folder, other than the file of the folder entry `.git` of
 the root folder and, when that file is a folder, the files of the folder
@@ -552,10 +543,8 @@ tree whose root is that folder.
 The git configuration of a working tree of a git repository is the set
 of the settings that git 2.50.2 reads for that working tree, in the
 environment of the program, from the configuration files and the
-environment variables that the page git-config of git 2.50.2 gives,
-other than the environment variable `GIT_CONFIG`; from the environment
-variable `GIT_CONFIG_PARAMETERS`; and from the files that they include;
-with these rules:
+environment variables that the page git-config of git 2.50.2 gives, and
+from the files that they include, with these rules:
 
 1. The system file is the file that the environment variable
    `GIT_CONFIG_SYSTEM` names, or, when that variable is not set, the
@@ -574,11 +563,8 @@ value as git 2.50.2 reads it, and the values of a setting are in the
 order in which git 2.50.2 reads them. When git 2.50.2 uses one value of
 a setting, such as `core.excludesFile` or `core.ignoreCase`, the value
 of the setting is the last of its values. A boolean setting is true when
-git 2.50.2 reads its value as true. A setting other than `include.path`
-and `includeIf.<condition>.path` whose value names a file names the file
-that git 2.50.2 finds for its value as a pathname, with a relative
-pathname taken from the root folder of the working tree, or, in the git
-configuration of a git repository, from the git folder.
+git 2.50.2 reads its value as true. A setting whose value names a file
+names the file that git 2.50.2 finds for its value as a pathname.
 
 ### 4.4 Commits
 
@@ -607,8 +593,7 @@ hold. The content of a blob, the entries of a git tree object, and the
 git tree object and the parents of a commit, apart from these two rules
 on commits with no parents, are those that the git object itself holds:
 no replacement ref, which is a ref whose name starts with
-`refs/replace/`, and no graft, which a line of the file `info/grafts` of
-the git folder gives, has an effect on them.
+`refs/replace/`, has an effect on them.
 
 ### 4.5 The texts of messages
 
@@ -747,16 +732,11 @@ is of one of four types:
 3. a symbolic-link entry, when t is 10;
 4. a submodule entry, for each other t.
 
-A git tree object lists no entries for these rules when git 2.50.2
-cannot decode one of its entries: when the mode of an entry is empty or
-holds a character other than the digits from 0 to 7, when the name of an
-entry is empty, or when the git tree object ends before the end of the
-object id of an entry. The entries of a git tree object T, each with
-its byte path, which is a byte sequence, are these: each entry that T
-lists and whose name holds no byte 0x2F, with its name as its byte path;
-and, for each tree entry D among them, each entry of the git tree object
-that D names, with the byte path of D, then the byte 0x2F, then its byte
-path in that git tree object.
+The entries of a git tree object T, each with its byte path, which is a
+byte sequence, are these: each entry that T lists, with its name as its
+byte path; and, for each tree entry D among them, each entry of the git
+tree object that D names, with the byte path of D, then the byte 0x2F,
+then its byte path in that git tree object.
 
 Each entry that a git tree object lists is a different entry, also when
 two of them have the same name, mode, and git object. The files of the
@@ -777,24 +757,17 @@ is p and whose content is the content of the blob that E names.
     #{git-folder=v1, working-tree=v1, git-configuration=v1},
 }
 
-The excludes file of a working tree is the file that the setting
-`core.excludesFile` names in the git configuration of the working tree.
-When that setting has no value, the excludes file is the file
-`git/ignore` in the folder that the environment variable
-`XDG_CONFIG_HOME` of the program names, or, when that variable is not
-set or is empty, the file `.config/git/ignore` in the folder that the
-environment variable `HOME` of the program names.
+The excludes file of a working tree is the file that git 2.50.2 reads
+for the setting `core.excludesFile` in the git configuration of the
+working tree: the file that the setting names, or, when the setting has
+no value, its default file, such as `~/.config/git/ignore`.
 
 A path is ignored in a working tree when git 2.50.2, with the git
 configuration of the working tree, ignores that path in the working
 tree, as it decides for a file that git's index does not hold, by the
 rules that the page gitignore of git 2.50.2 gives: with the patterns of
 the files `.gitignore` of the working tree, of the file `info/exclude`
-of the git folder, and of the excludes file. A file of patterns that is
-not a regular file gives no patterns. In that decision, a pattern
-matches without regard to the case of the letters from `A` to `Z` when,
-and only when, the setting `core.ignoreCase` is true in that git
-configuration.
+of the git folder, and of the excludes file.
 
 ### 4.13 The files of the tree of a working tree
 
@@ -963,8 +936,8 @@ between A and B, and each of them has the same number of pairs.
 }
 
 For a valid path p, an old tree A, a new tree B, and a line map M of p
-between A and B, the old line i of p is the line whose line number is i
-of the text of the content of the file of A whose valid path is p. The
+between A and B, the old line i of p is line i of the text of the
+content of the file of A whose valid path is p. The
 new line number of the old line i for M is the whole number j such that
 M holds the pair (i, j). An old line i of p that no pair of M holds as
 its first number has no new line number for M.
@@ -1060,6 +1033,18 @@ valid path between two trees of which one or both are the tree of a
 commit or of a working tree of the git repository, or a diff of the
 change of a commit.
 
+### 4.27 Undisturbed repository reads
+
+@term undisturbed-read=v1
+@cites #{
+    repository-read=v1, working-tree=v1, git-configuration=v1,
+    ignored-path=v1,
+}
+
+A repository read is undisturbed when no other process changes, during
+the repository read, the git repository, a working tree of it, the git
+configuration, or the excludes file.
+
 ## 5. Requirements
 
 ### 5.1 The validation of branch names
@@ -1078,50 +1063,55 @@ name, and "invalid" when the text is not a branch name.
 
 @req decide-reach=v1
 @cites {
-    #{commit=v1, ancestry=v1, repository-read=v1},
+    #{commit=v1, ancestry=v1, repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1, result=v1},
 }
 
-When, in a repository read during which no other process changes the
-git repository, a conforming program gives a result for whether a
-commit c reaches a commit c′ of that git repository, it must give
-exactly one result: "reaches" when c reaches c′, and "does not
-reach" when c does not reach c′.
+When, in an undisturbed repository read, a conforming program gives a
+result for whether a commit c reaches a commit c′ of that git
+repository, it must give exactly one result: "reaches" when c reaches
+c′, and "does not reach" when c does not reach c′.
 
 ### 5.3 Parents
 
 @req give-commit-parents=v1
-@cites {#{commit=v1, repository-read=v1}, text#{conforming-program=v1}}
+@cites {
+    #{commit=v1, repository-read=v1, undisturbed-read=v1},
+    text#{conforming-program=v1},
+}
 
-When it gives the parents of a commit of a git repository, in a
-repository read during which no other process changes the git
-repository, a conforming program must give exactly the parents of that
-commit, in their order.
+When it gives the parents of a commit of a git repository, in an
+undisturbed repository read, a conforming program must give exactly the
+parents of that commit, in their order.
 
 ### 5.4 The texts of messages
 
 @req give-message-texts=v1
 @cites {
-    #{commit=v1, message-text=v1, repository-read=v1},
+    #{
+        commit=v1, message-text=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     text#{conforming-program=v1, text=v1},
 }
 
 When it gives the text of the message of a commit of a git repository,
-or gives that the message has no text, in a repository read during which
-no other process changes the git repository, a conforming program must
-give the text of that message when the message has a text, and give
-that it has no text only when it has none.
+or gives that the message has no text, in an undisturbed repository
+read, a conforming program must give the text of that message when the
+message has a text, and give that it has no text when it has none.
 
 ### 5.5 The commits of refs
 
 @req give-ref-commits=v1
-@cites {#{ref-commit=v1, repository-read=v1}, text#{conforming-program=v1}}
+@cites {
+    #{ref-commit=v1, repository-read=v1, undisturbed-read=v1},
+    text#{conforming-program=v1},
+}
 
 When it gives the commit of a ref of a git repository, or gives that the
-ref has no commit, in a repository read during which no other process
-changes the git repository, a conforming program must give the commit of
-that ref when the ref has one, and give that it has none only when it
-has none.
+ref has no commit, in an undisturbed repository read, a conforming
+program must give the commit of that ref when the ref has one, and give
+that it has none when it has none.
 
 ### 5.6 The commit of the default branch
 
@@ -1129,50 +1119,52 @@ has none.
 @cites {
     #{
         commit=v1, git-configuration=v1, default-branch-commit=v1,
-        repository-read=v1,
-    },
+        repository-read=v1, undisturbed-read=v1},
     ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
 When it gives the commit of the default branch of a git repository under
 a binding of `default-branch-name`, or gives that the default branch has
-no commit under that binding, in a repository read during which no other
-process changes the git repository or the git configuration, a
+no commit under that binding, in an undisturbed repository read, a
 conforming program must give the commit of the default branch under that
-binding when it has one, and give that it has none only when it has
+binding when it has one, and give that it has none when it has
 none.
 
 ### 5.7 Head commits
 
 @req give-head-commits=v1
 @cites {
-    #{commit=v1, working-tree=v1, head-commit=v1, repository-read=v1},
+    #{
+        commit=v1, working-tree=v1, head-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     text#{conforming-program=v1},
 }
 
 When it gives the head commit of a working tree of a git repository, or
-gives that the working tree has no head commit, in a repository read
-during which no other process changes the git repository or the working
-tree, a conforming program must give the head commit of that working
-tree when it has one, and give that it has none only when it has
+gives that the working tree has no head commit, in an undisturbed
+repository read, a conforming program must give the head commit of that
+working tree when it has one, and give that it has none when it has
 none.
 
 ### 5.8 The files of the tree of a commit
 
 @req give-commit-files=v1
 @cites {
-    #{commit=v1, commit-file=v1, repository-read=v1},
+    #{
+        commit=v1, commit-file=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     ontology#{tree=v1},
     files#{path=v1},
     text#{conforming-program=v1},
 }
 
 When it gives the valid paths of the files of the tree of a commit of a
-git repository, or those files, in a repository read during which no
-other process changes the git repository, a conforming program must
-give exactly the valid paths of the files of
-the tree of that commit, and, as the content of each file, only the
+git repository, or those files, in an undisturbed repository read, a
+conforming program must give exactly the valid paths of the files of the
+tree of that commit, and, as the content of each file, exactly the
 content of that file.
 
 ### 5.9 The files of the tree of a working tree
@@ -1181,33 +1173,32 @@ content of that file.
 @cites {
     #{
         working-tree=v1, git-configuration=v1, ignored-path=v1,
-        working-tree-file=v1, repository-read=v1,
-    },
+        working-tree-file=v1, repository-read=v1, undisturbed-read=v1},
     ontology#{tree=v1},
     files#{path=v1},
     text#{conforming-program=v1},
 }
 
-When it gives the valid paths of the files of the tree of a working
-tree of a git repository, or those files, in a repository read during
-which no other process changes the git repository, the working tree,
-the git configuration, or the excludes file, a conforming program must
-give exactly the valid
-paths of the files of the tree of that working tree, and, as the content
-of each file, only the content of that file.
+When it gives the valid paths of the files of the tree of a working tree
+of a git repository, or those files, in an undisturbed repository read,
+a conforming program must give exactly the valid paths of the files of
+the tree of that working tree, and, as the content of each file, exactly
+the content of that file.
 
 ### 5.10 Ranges
 
 @req give-ranges=v1
 @cites {
-    #{commit=v1, commit-range=v1, repository-read=v1},
+    #{
+        commit=v1, commit-range=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     text#{conforming-program=v1},
 }
 
 When it gives the commits of the range from a commit, or from no commit,
-to a commit of a git repository, in a repository read during which no
-other process changes the git repository, a conforming program must give
-exactly the commits of that range.
+to a commit of a git repository, in an undisturbed repository read, a
+conforming program must give exactly the commits of that range.
 
 ### 5.11 Parents-first orders
 
@@ -1215,16 +1206,14 @@ exactly the commits of that range.
 @cites {
     #{
         commit=v1, commit-range=v1, parents-first-order=v1,
-        repository-read=v1,
-    },
+        repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
 
-When it gives the commits of a range of a git repository, in a
-repository read during which no other process changes the git
-repository, in an order that it gives as their parents-first order, a
-conforming program must give them in the parents-first order of
-that range.
+When it gives the commits of a range of a git repository, in an
+undisturbed repository read, in an order that it gives as their
+parents-first order, a conforming program must give them in the
+parents-first order of that range.
 
 ### 5.12 The change of a commit
 
@@ -1233,6 +1222,7 @@ that range.
     #{
         commit=v1, git-configuration=v1, change-of-a-commit=v1,
         default-branch-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
     ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
@@ -1240,25 +1230,26 @@ that range.
 
 When it gives the commits of the change of a commit h of a git
 repository under a binding of `default-branch-name`, or gives that h has
-no change under that binding, in a repository read during which no other
-process changes the git repository or the git configuration, a
+no change under that binding, in an undisturbed repository read, a
 conforming program must give exactly the commits of the change of h when
 the default branch has a commit under that binding, and give that h has
-no change only when the default branch has no commit under that
+no change when the default branch has no commit under that
 binding.
 
 ### 5.13 Merge bases
 
 @req give-merge-bases=v1
 @cites {
-    #{commit=v1, merge-base=v1, repository-read=v1},
+    #{
+        commit=v1, merge-base=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     text#{conforming-program=v1},
 }
 
-When it gives the merge bases of two commits of a git repository, in a
-repository read during which no other process changes the git
-repository, a conforming program must give exactly the merge bases of
-those two commits.
+When it gives the merge bases of two commits of a git repository, in an
+undisturbed repository read, a conforming program must give exactly the
+merge bases of those two commits.
 
 ### 5.14 The base of the change of a commit
 
@@ -1266,32 +1257,33 @@ those two commits.
 @cites {
     #{
         commit=v1, git-configuration=v1, change-of-a-commit=v1,
-        change-base=v1, repository-read=v1,
-    },
+        change-base=v1, repository-read=v1, undisturbed-read=v1},
     ontology#{parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
 When it gives the base of the change of a commit h of a git repository
 under a binding of `default-branch-name`, or gives that the change of h
-has no base under that binding, in a repository read during which no
-other process changes the git repository or the git configuration, a
+has no base under that binding, in an undisturbed repository read, a
 conforming program must give the base of the change of h under that
-binding when it has one, and give that it has none only when it has
+binding when it has one, and give that it has none when it has
 none.
 
 ### 5.15 First-parent lines
 
 @req give-first-parent-lines=v1
 @cites {
-    #{commit=v1, first-parent-line=v1, repository-read=v1},
+    #{
+        commit=v1, first-parent-line=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
     text#{conforming-program=v1},
 }
 
 When it gives the first-parent line of a commit of a git repository, in
-a repository read during which no other process changes the git
-repository, a conforming program must give exactly the commits of that
-first-parent line, in the order of that first-parent line.
+an undisturbed repository read, a conforming program must give exactly
+the commits of that first-parent line, in the order of that first-parent
+line.
 
 ### 5.16 Landing commits
 
@@ -1299,17 +1291,16 @@ first-parent line, in the order of that first-parent line.
 @cites {
     #{
         commit=v1, ancestry=v1, first-parent-line=v1, landing-commit=v1,
-        repository-read=v1,
-    },
+        repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
 
 When it gives the landing commit of a commit c on the first-parent line
 of a commit d of a git repository, or gives that c has no landing commit
-on that first-parent line, in a repository read during which no other
-process changes the git repository, a conforming program must give the
-landing commit of c on that first-parent line when c has one, and give
-that c has none only when d does not reach c.
+on that first-parent line, in an undisturbed repository read, a
+conforming program must give the landing commit of c on that
+first-parent line when c has one, and give that c has none when d does
+not reach c.
 
 ### 5.17 Hunks
 
@@ -1318,8 +1309,7 @@ that c has none only when d does not reach c.
     #{
         line-map=v1, hunk=v1, repository-read=v1, working-tree=v1,
         git-configuration=v1, ignored-path=v1, commit=v1,
-        commit-file=v1, working-tree-file=v1,
-    },
+        commit-file=v1, working-tree-file=v1, undisturbed-read=v1},
     ontology#{tree=v1},
     files#{path=v1},
     text#{conforming-program=v1},
@@ -1332,9 +1322,7 @@ start, the number of the lines that it removes, its new start, and the
 number of the lines that it adds, and, when it gives the lines that a
 hunk removes or adds, exactly those lines. When one of the two trees is
 the tree of a commit or of a working tree of a git repository, this
-obligation holds in a repository read during which no other process
-changes the git repository, a working tree whose tree is one of the two,
-the git configuration, or the excludes file.
+obligation holds in an undisturbed repository read.
 
 ### 5.18 The line numbers of lines that stay
 
@@ -1344,6 +1332,7 @@ the git configuration, or the excludes file.
         line-map=v1, repository-read=v1, working-tree=v1,
         git-configuration=v1, ignored-path=v1, new-line-number=v1,
         commit=v1, commit-file=v1, working-tree-file=v1,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1358,11 +1347,9 @@ old tree and a new tree, a conforming program must give them for one
 line map M of p between those trees: for each old line i of p for which
 it gives a new line number, or gives that the line has none, it must
 give the new line number of i for M when i has one, and give that i has
-none only when i has no new line number for M. When one of the two trees
+none when i has no new line number for M. When one of the two trees
 is the tree of a commit or of a working tree of a git repository, this
-obligation holds in a repository read during which no other process
-changes the git repository, a working tree whose tree is one of the
-two, the git configuration, or the excludes file.
+obligation holds in an undisturbed repository read.
 
 ### 5.19 One line map for hunks and line numbers
 
@@ -1377,12 +1364,10 @@ two, the git configuration, or the excludes file.
     text#{conforming-program=v1, line-number=v1},
 }
 
-When, in one repository read during which no other process changes the
-git repository, a working tree of it, the git configuration, or the
-excludes file, a conforming program gives hunks of a valid path p
-between an old tree and a new tree, new line numbers of old lines of p
-between those trees, or both, it must give all of them for one line map
-of p between those trees.
+When a conforming program gives hunks of a valid path p between an old
+tree and a new tree, new line numbers of old lines of p between those
+trees, or both, it must give all of them for one line map of p between
+those trees.
 
 ### 5.20 The diff of the change of a commit
 
@@ -1390,7 +1375,9 @@ of p between those trees.
 @cites {
     #{
         git-configuration=v1, change-of-a-commit=v1, change-diff=v1,
-        line-map=v1, hunk=v1, repository-read=v1, change-base=v1},
+        line-map=v1, hunk=v1, repository-read=v1, change-base=v1,
+        undisturbed-read=v1,
+    },
     ontology#{parameter=v1},
     files#{path=v1},
     text#{conforming-program=v1, code-span=v1},
@@ -1398,14 +1385,10 @@ of p between those trees.
 
 When it gives a diff of the change of a commit h of a git repository
 under a binding of `default-branch-name`, or gives that the change of h
-has no diff under that binding, in a repository read during which no
-other process changes the git repository or the git configuration, a
+has no diff under that binding, in an undisturbed repository read, a
 conforming program must give a diff of the change of h under that
-binding when the change of h has a base, with exactly the hunks of each
-valid path for one line map of that valid path, each with its old start,
-the number of the lines that it removes, its new start, and the number
-of the lines that it adds, and give that it has no diff only when the
-change of h has no base under that binding.
+binding when the change of h has a base, and give that it has no diff
+when the change of h has no base under that binding.
 
 ### 5.21 No change to the repository
 
@@ -1426,27 +1409,13 @@ file, or change an attribute of a file, in the git folder of the git
 repository, in an object database that git 2.50.2 finds from it through
 the files `objects/info/alternates`, in the folder of a working tree of
 it, or in the folder tree whose root is the root folder of such a
-working tree, or create, delete, or change a file at a pathname from
-which git 2.50.2 reads the git configuration or the excludes file, other
+working tree, and must not create, delete, or change a file at a
+pathname from which git 2.50.2 reads the git configuration or the
+excludes file, or a file that it reads in that repository read, other
 than by a change that the file system makes by itself when the program
 uses a file, such as a change of the time of last access.
 
-### 5.22 No change to the files that a read reads
-
-@req keep-read-files-unchanged=v1
-@cites {
-    #{repository-read=v1},
-    files#{file-system=v1, attribute=v1},
-    text#{conforming-program=v1},
-}
-
-In each repository read, a conforming program, itself or through a
-program that it runs, such as git, must not delete or change a file that
-it reads in that repository read, or change an attribute of such a file,
-other than by a change that the file system makes by itself when the
-program uses that file, such as a change of the time of last access.
-
-### 5.23 Git objects only from the repository
+### 5.22 Git objects only from the repository
 
 @req take-objects-only-from-repositories=v1
 @cites {#{commit=v1, repository-read=v1}, text#{conforming-program=v1}}
@@ -1456,7 +1425,7 @@ program that it runs, such as git, must take each git object that it
 uses from the git objects that the git repository holds, and none from
 a remote repository, such as the remote repository of a partial clone.
 
-### 5.24 Bytes only from the files of the repository
+### 5.23 Bytes only from the files of the repository
 
 @req read-only-repository-files=v1
 @cites {
@@ -1470,20 +1439,17 @@ a remote repository, such as the remote repository of a partial clone.
 }
 
 In each repository read, a conforming program, itself or through a
-program that it runs, such as git, must take bytes only from folders and
-regular files that are in the git folder of the git repository, in an
-object database that git 2.50.2 finds from it through the files
-`objects/info/alternates`, in the folder of a working tree of it, or in
-the folder tree whose root is the root folder of such a working tree, or
-that git 2.50.2 reaches from these folders through a symbolic link; from
-the regular files from which git 2.50.2 reads the git configuration, the
-excludes file, and the files of git attributes; from the references of
-the symbolic links on the pathnames of these folders and files; and from
-the files that the system or the libraries of a program read to run it,
-such as its executable file, its libraries, and the files of its user,
-its locale, and its time zone.
+program that it runs, such as git, must take bytes only from files that
+are in the git folder of the git repository, in an object database that
+git 2.50.2 finds from it through the files `objects/info/alternates`, in
+the folder of a working tree of it, or in the folder tree whose root is
+the root folder of such a working tree, or that git 2.50.2 reaches from
+these folders through a symbolic link; from the files from which git
+2.50.2 reads the git configuration, the excludes file, and git
+attributes; and from the files that the system or the libraries of a
+program read to run it, such as its executable file and its libraries.
 
-### 5.25 No permission or privilege that the process did not have
+### 5.24 No permission or privilege that the process did not have
 
 @req gain-no-repository-privileges=v1
 @cites {
@@ -1501,7 +1467,7 @@ one that it gets by a change of the user IDs, the group IDs, or the
 appropriate privileges of its process, or through another process that
 acts for it.
 
-### 5.26 No program that the repository names
+### 5.25 No program that the repository names
 
 @req run-no-configured-programs=v1
 @cites {
@@ -1517,12 +1483,13 @@ In each repository read, a conforming program, itself or through a
 program that it runs, such as git, must run no program that is a file in
 the git folder of the git repository, in an object database that git
 2.50.2 finds from it through the files `objects/info/alternates`, or in
-a working tree of it, such as a hook, and no program whose name or
-pathname it takes from the git configuration or from such a file, such
-as a filter, a diff driver, or the program of the setting
-`core.fsmonitor`.
+a working tree of it, such as a hook; no program or command that the git
+configuration or such a file names or gives, such as a filter, a diff
+driver, or the command of the setting `core.fsmonitor`; and no program
+that git 2.50.2 starts because of a setting of the git configuration,
+such as `gpg` for the setting `log.showSignature`.
 
-### 5.27 No symbolic link followed in a working tree
+### 5.26 No symbolic link followed in a working tree
 
 @req follow-no-working-tree-links=v1
 @cites {
@@ -1540,7 +1507,7 @@ a symbolic link that git 2.50.2 follows to reach a file that it reads
 for the git configuration or as the excludes file: it must find no file
 by the reference of such a symbolic link.
 
-### 5.28 No wait in a working tree
+### 5.27 No wait in a working tree
 
 @req avoid-working-tree-waits=v1
 @cites {
@@ -1550,9 +1517,8 @@ by the reference of such a symbolic link.
 }
 
 In each repository read, a conforming program must not wait for another
-process or for a device to act on a file of another kind that is a file
-of a working tree of the git repository, such as for a process to open
-the other end of a pipe.
+process or for a device to act on a file of another kind, such as for a
+process to open the other end of a pipe.
 
 ## 6. Conformance
 
@@ -1570,7 +1536,7 @@ requirements that the vectors of the group follow from, and it describes
 their inputs, results, and values. Each vector of a group follows from
 one or more of these requirements. No vector follows from the
 requirements `use-one-line-map`,
-`keep-repositories-unchanged`, `keep-read-files-unchanged`,
+`keep-repositories-unchanged`,
 `take-objects-only-from-repositories`, `read-only-repository-files`,
 `gain-no-repository-privileges`, `run-no-configured-programs`,
 `follow-no-working-tree-links`, and `avoid-working-tree-waits`.
@@ -1593,19 +1559,14 @@ names, other than the commits of the member `missing` of a vector of the
 group `parents`, and, for a vector of the groups `commit-files`,
 `message-texts`, and `parents`, the commit that its input stands for,
 and no other commit. Each vector whose input stands for a git repository
-or a working tree stands for a repository read during which no other
-process changes the git repository, a working tree of it, the git
-configuration, or the excludes file.
+or a working tree stands for an undisturbed repository read.
 
 The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
 Each line of the file is the
 [canonical byte sequence](sinter:data-forms#canonical-byte-sequence=v1)
 of one JSON object,
-then the byte 0x0A, so each line is a JSON text, as RFC 8259 defines it.
-The file is valid UTF-8. It has no byte order mark and no carriage
-return, and it ends with a line feed. Only a line feed ends a line of
-the file. A character U+FEFF inside a JSON string of the file is a
-character of that string, and not a byte order mark. The file has three
+then the byte 0x0A, so each line is a JSON text, as RFC 8259 defines
+it. The file has three
 kinds of line, in this order:
 
 1. The first line is the set line. Its JSON object has one member,
@@ -1809,7 +1770,7 @@ of each file is the content of the blob of its entry, which the vectors
 do not give.
 
 ```
-{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a/b"},{"entries":[{"mode":"100644","name":"c"}],"mode":"40000","name":"a"}]},"n":140,"note":"a name that holds `/` gives no entry","rev":"v1","values":{"paths":["a/c"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"d.md"},{"mode":"100644","name":"d.md"},{"mode":"100644","name":"e.md"}]},"n":141,"note":"two entries with one path give no file","rev":"v1","values":{"paths":["e.md"]}}
 ```
 
 ### 6.5 The files of the tree of a working tree
@@ -1901,9 +1862,7 @@ parents of the commit.
 - `input`: a JSON object. Its member `named` is the commits that the
   commit object names as its parents, as a sequence. Its member
   `shallow` is the JSON literal name `true` when the file `shallow`
-  names the commit, and `false` when it does not. Its member `graft` is
-    there when a line of the file `info/grafts` gives the commit other
-  parents, and then it is these parents, as a sequence. Its member
+  names the commit, and `false` when it does not. Its member
   `missing` is there when the git repository does not hold one or more
   of the commits of `named`, and then it is the set of these commits, as
   a set of commits.
@@ -1987,8 +1946,9 @@ the default branch; and the base of the change of h, when it has one.
   as a set of commits. Its member `base` is there when, and only when,
   the change of h has a base, and then it is that base.
 
-When a conforming program gives the commits of the change of h, it
-gives each element of `change`, and no other commit. When it gives the
+When a conforming program gives the commits of the change of h, or
+gives that h has no change, it gives each element of `change`, and no
+other commit. When it gives the
 merge bases of the two commits, it gives each element of `merge-bases`,
 and no other commit. When it gives the base of the change of h, or gives
 that the change of h has none, it gives the commit that `base` holds
