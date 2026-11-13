@@ -7,6 +7,7 @@
 @cites data-forms=v1
 @cites ontology=v1
 @cites changes=v1
+@cites identifiers=v1
 @cites gitdoc/git-config
 @cites rfc/3339
 @cites rfc/5234
@@ -50,8 +51,11 @@ conformance vectors of the design is one. From Text and notation
 byte sequences, UTF-8 encodings, code spans, productions, and what a
 conforming program, an input, and a result are.
 
-From the page git-config of git's documentation, the design takes the
-remotes of a git repository and the setting `remote.<name>.url`. From
+From Identifiers (`identifiers`), the design takes external ids. From
+the page git-config of git's documentation, it takes the remotes of a
+git repository and the settings `remote.<name>.url`,
+`remote.<name>.pushurl`, `url.<base>.insteadOf`, and
+`url.<base>.pushInsteadOf`. From
 RFC 3339, it takes the rule `date-time` of its ABNF, for the time at
 which a ledger entry was written. The production `chunk-path` is
 written in ABNF, the notation of RFC 5234, with the case-sensitive
@@ -64,14 +68,14 @@ text.
 
 | word or phrase | meaning |
 |---|---|
-| [ledger](sinter:ontology#ledger=v1) | a sequence of ledger entries; each ledger entry other than a void is appended at the end of the ledger of one clone, and pulls and pushes bring it into the ledgers of other clones |
+| [ledger](sinter:ontology#ledger=v1) | a sequence of ledger entries; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone, and a push of ledger entries gives the ledger entries of a clone to another clone; neither is appending |
 | [point of a ledger](sinter:ontology#ledger=v1) | a point between two ledger entries of a ledger, before the first, or after the last; the point of a ledger entry is the point right before it |
 | [ledger entry](sinter:ontology#ledger-entry=v1) | a record of one event, such as one approval; each ledger entry has one of the eight kinds `task`, `plan`, `approval`, `decline`, `done`, `abandoned`, `delivered`, and `void` |
 | [definition entry](sinter:ontology#definition-entry=v1) | a ledger entry of the kind `task` or `plan` |
 | [judgment](sinter:ontology#judgment=v1) | a ledger entry of the kind `approval`, `decline`, `done`, or `abandoned`: a decision of a person |
 | [record of the job](sinter:ontology#job-record=v1) | a ledger entry of the kind `delivered` |
-| [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a write to a ledger, other than an append, a pull, or a push, that removes zero or more ledger entries and puts one void, a ledger entry of the kind `void`, where each of them was |
-| [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; the execution of a conforming program that continuous integration starts at each push to the default branch |
+| [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a write to a ledger, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void, a ledger entry of the kind `void`, where each of them was |
+| [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; the execution of a conforming program that continuous integration starts at each push of commits to the default branch, as git means a push |
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
@@ -89,92 +93,63 @@ text.
 | [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
 | [writer that a ledger entry records](sinter:#entry-field=v1) | the agent that its `agent` names, or else the person or the job that its `by` names |
 | [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
-| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git objects of the ledger of a git repository: the object of its ledger ref, the git tree objects of that commit, and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with their parents |
-| [valid ledger tree](sinter:#ledger-validity=v1) | a git tree object that holds chunks of ledger entries, and nothing else, in the form of section 2.3 |
+| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with the git objects that each names as its parents when the file `shallow` does not name it |
+| [valid ledger tree](sinter:#ledger-validity=v1) | a git tree object that is not newer and that holds chunks of canonical lines, and nothing else, in the form that the term gives |
 | [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three conditions of the ledger of a git repository: its ledger ref does not exist, or the git tree object of its ledger commit is a valid ledger tree; it is neither newer nor valid; the git tree object of its ledger commit holds a newer line |
-| [stored ledger](sinter:#stored-ledger=v1) | the ledger entries of the lines of the ledger commit of a git repository, in the order of their `seq`: the ledger of that git repository |
+| [stored ledger](sinter:#stored-ledger=v1) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
 | [extend](sinter:#ledger-extension=v1) | a commit extends a commit c when it is c, or when the chain of its single parents leads to c and each commit of the chain holds each line of its parent |
 | [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | the git repository that a clone names by the remote whose name the parameter `ledger-remote` gives, such as the git repository on the host of a project; the stored ledger of that git repository |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
-| [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when, other than in an append, its ledger ref changes to a commit that extends a commit of the shared clone and whose other lines come from its own lines; a conforming program changes it to a pull commit, which holds the lines of that commit of the shared clone and, after them, a line for each provisional line that stays, with the next `seq` |
-| [push](sinter:#push=v1) | a clone pushes its ledger entries to its shared clone when, other than in an append, the ledger ref of the shared clone changes to a commit of the clone that extends the commit before the change |
-| [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; its input says that an agent runs an execution when a process of that execution has one |
-| [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; its input says that an execution is the job when a process of that execution has one |
+| [pull](sinter:#pull=v1), [pull commit](sinter:#pull-commit=v1) | a clone pulls the ledger entries of its shared clone when, other than in an append, its ledger ref changes to a commit that extends a commit to which the ledger ref of the shared clone points, or pointed, and whose other lines come from its own lines; a pull commit of that commit over the former ledger commit holds the lines of that commit and, after them, a line for each line of the former ledger commit that that commit does not account for and that stays, with the next `seq` |
+| [push](sinter:#push=v1) | a clone pushes its ledger entries to its shared clone when, other than in an append, the ledger ref of the shared clone changes, from a commit that the new commit extends or from not existing, to a commit to which the ledger ref of the clone points, or pointed |
+| [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; the input of an execution says that an agent runs the execution when a process of that execution has one |
+| [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; the input of an execution says that the execution is the job when a process of that execution has one |
 | environment | the environment variables of a process |
+| [external id](sinter:identifiers#external-id=v1) | a namespace name, `/`, and an id, such as `gh/42`, which names an external item |
 | tracker | a service that holds external items, such as the issues of the host of a project |
 
 ## 2. The ledger and its storage
 
 ### 2.1 The ledger ref and its chunks
 
-A git repository stores the ledger entries of its ledger in git objects.
-The ledger ref of a git repository is its ref `refs/sinter/ledger`. The
-commit of the ledger ref is the ledger commit. No branch and no working
-tree holds the ledger. When the ledger ref does not exist, the ledger
-of the git repository is empty.
+A git repository stores the ledger entries of its ledger in git objects,
+on its ledger ref, the ref `refs/sinter/ledger` (term `ledger-ref`). No
+branch and no working tree holds the ledger. When the ledger ref does
+not exist, the stored ledger is empty (term `stored-ledger`).
 
 The git tree object of the ledger commit holds the ledger entries in
-chunks. A chunk is a regular-file entry at a chunk path: `entries/`,
-two hex digits, `/`, an entry id, and `.jsonl`, such as
-`entries/5b/e-5b1c0a9d2e11.jsonl`. The two hex digits are the two hex
-digits right after the `e-` of the entry id. In a valid ledger, the
-entry id in the chunk path is the `id` of the first line of the chunk,
-and the mode of each chunk is 100644, in base 8. The git tree object of
-a valid ledger holds only these things:
-
-| byte path | git object |
-|---|---|
-| `entries` | a git tree object, when the git tree object holds at least one chunk |
-| `entries/<hh>` | a git tree object, for each two hex digits `<hh>` of the chunk path of a chunk |
-| `entries/<hh>/<id>.jsonl` | a chunk |
-
-So each of these git tree objects holds at least one chunk, and a
-valid ledger with no chunk holds nothing. A symbolic-link entry and a
-submodule entry at a chunk path are not chunks. A regular-file entry at
-a chunk path with another mode, such as the mode 100755 of an executable
-file, is a chunk, and it makes the ledger broken. For example, a ledger
-of 87 ledger entries can have two chunks:
+chunks: regular files at chunk paths, such as
+`entries/5b/e-5b1c0a9d2e11.jsonl` (terms `chunk-path` and `chunk`). The
+term `ledger-validity` gives the form of a valid ledger. For example, a
+valid ledger of 87 ledger entries can have two chunks:
 
 ```
 entries/5b/e-5b1c0a9d2e11.jsonl    50 lines
 entries/a0/e-a03f77c1d9e2.jsonl    37 lines
 ```
 
-In a valid ledger, a chunk holds one or more lines. Each line of a chunk
-ends with the byte 0x0A and is the canonical line of a line object: the
-object of the line. Each line whose `kind` is one of the eight kinds of
-section 2.2 holds one ledger entry. The number of lines in a chunk is
-free, and the lines of a chunk need not be in the order of the ledger. A
-commit can move a line from one chunk to another chunk, as long as the
-line keeps its bytes.
+The number of lines in a chunk is free, and the lines of a chunk need
+not be in the order of the ledger. A commit can move a line from one
+chunk to another chunk, as long as the line keeps its bytes.
 
-### 2.2 The fields of ledger entries
+### 2.2 Ledger entries and their fields
 
-A field is a member of the object of a ledger entry that a design names.
-The common fields are the same for each kind of ledger entry:
+Each line of a valid ledger is the canonical line of a line object, the
+object of the line. A line whose `kind` is one of the eight kinds of
+ledger entry holds one ledger entry; a line of another kind holds none
+(term `stored-ledger`). The fields of a ledger entry are the common
+fields, which the term `entry-field` lists, and the fields of its kind,
+which a design gives for that kind. The term `entry-field` also gives
+the fields of the kind `void`.
 
-| field | value | what it holds |
-|---|---|---|
-| `id` | a string | the entry id of the object |
-| `kind` | a string | the kind of the ledger entry, such as `approval` |
-| `v` | an integer | the version of the form of the ledger entry: 1 |
-| `seq` | an integer of 1 or more | the place of the line among the lines of the ledger commit, which gives the order of the ledger |
-| `by` | a string | the person who wrote the ledger entry, the person for whom the agent that wrote it acts, or the job |
-| `agent` | a string, which a ledger entry can leave out | the agent that wrote the ledger entry |
-| `branch` | a string, which a ledger entry can leave out | the branch name of the branch from which the ledger entry was written, such as `main` |
-| `ts` | a string, which a ledger entry can leave out | the time of the write, in UTC, to the second, such as `2026-10-31T14:05:09Z` |
-
-The writer that a ledger entry records is the agent that its `agent`
-names, when it has `agent`. Otherwise, it is the person or the job that
-its `by` names.
-
-The entry id of an object is `e-`, then the first 12 hex digits of the
-SHA-256 hash of the canonical byte sequence of the object without its
-member `id`. For example, the object of this void has the canonical byte
-sequence
+The entry id of an object is the hash id that the term `entry-id`
+gives; in a valid ledger, it is the `id` of the object of each line. For
+example,
+the object of this void, without its member `id`, has the canonical
+byte sequence
 
 ```
 {"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e11","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
@@ -187,84 +162,45 @@ and the entry id `e-9f4ed52acf42`. So its line is:
 ```
 
 The entry id depends on `seq`, so two ledger entries with the same other
-members, at two places of a ledger, have different ids.
+members, at two places of a ledger, have different ids. The order of
+`seq` is the order of the ledger, and the time `ts` orders nothing. The
+members that the requirement `ignore-unknown-members` names, such as
+`ts` and a member that no design names, change no state.
 
-In a valid ledger whose ledger commit has n lines, the values of `seq`
-are the whole numbers from 1 to n, each once. The order of `seq`
-is the order of the ledger. The time `ts` orders nothing.
-
-Each ledger entry has one of eight kinds: `task` and `plan`, the
-definition entries; `approval`, `decline`, `done`, and `abandoned`, the
-judgments; `delivered`, the records of the job; and `void`, the voids.
-The fields of a kind are the fields that a design gives for the ledger
-entries of that kind, other than the common fields. The fields of the
-kind `void` are `dropped`, the `id` of the line that a repair removed,
-and `reason`, the reason for the removal (section 2.7).
-
-A line of a chunk whose `kind` is none of the eight kinds records no
-ledger entry, so it changes no state. Its `id` and its `seq` still count
-in the checks of section 2.3. A member that is neither a common field
-nor a field of the kind of its ledger entry also changes no state.
-
-The field `v` gives the version of the form of a ledger entry. The form
-of this section is the version 1. A newer line is a line of a chunk
-whose JSON value is an object with a `v` greater than 1. A program gives
-no state from a ledger that holds a newer line, and it appends nothing
-to such a ledger.
+The field `v` gives the version of the form of a ledger entry; the form
+of the term `entry-field` is the version 1. A newer line (term
+`newer-line`) makes a ledger newer. A program gives no state from a
+newer ledger, and it appends nothing to it (requirements
+`give-states-only-from-valid-ledgers` and
+`append-only-to-valid-ledgers`).
 
 ### 2.3 Valid, broken, and newer ledgers
 
-The ledger objects of a git repository are the git object to which its
-ledger ref resolves, and, when that git object is a commit, its git tree
-object, the git tree objects inside it, and the blobs of its chunks. A
-git repository can lack some of them, as a partial clone can lack
-blobs. For such a git repository, a program gives no result for whether
-its ledger is valid, no ledger entry of it, and no state at a point of
-it.
+A program reads the ledger of a git repository from its ledger objects
+(term `ledger-object`). A git repository can lack some of them, as a
+partial clone can lack blobs. For such a git repository, a program gives
+no result for whether its ledger is valid, no ledger entry of it, and no
+state at a point of it (requirements `give-stored-ledgers`,
+`validate-ledgers`, and `give-states-only-from-valid-ledgers`).
 
 The ledger of a git repository that holds its ledger objects is newer,
-valid, or broken. It is newer when a line of a chunk of the git tree
-object of the ledger commit is a newer line. Otherwise, it is valid when
-the ledger ref does not exist, or when the git tree object of the ledger
-commit is a valid ledger tree. A valid ledger tree meets each of these
-conditions:
-
-1. No two of its entries, at any depth, have the same byte path.
-2. The name of none of its entries, at any depth, holds the byte of `/`.
-3. Its entries, at any depth, are its chunks, each with the mode 100644
-   in base 8; for each chunk, the tree entry `entries/<hh>` for the two
-   hex digits `<hh>` of its chunk path; and, when it has a chunk, the
-   tree entry `entries`.
-4. The content of each chunk has at least one line, and each line of a
-   chunk is a canonical line.
-5. The object of each line has the member `id` with a string, the
-   member `kind` with a string, the member `v` with the integer 1, and
-   the member `seq` with an integer of 1 or more.
-6. The `id` of the object of each line is the entry id of that object.
-7. The chunk path of each chunk ends with the `id` of its first line and
-   then `.jsonl`.
-8. No two lines of its chunks have the same `id`.
-9. For its number n of lines, the values of `seq` are the whole numbers
-   from 1 to n, each once.
-
-The ledger of a git repository that is neither newer nor valid is
-broken: its ledger ref exists and has no commit, such as a ledger ref
-that points to a tag object, or the git tree object of the ledger commit
-fails one of the conditions. A program gives no state from a broken
-ledger, and a repair (section 2.7) makes it valid again. A program that
-checks the ledger of a git repository can give one of three results:
-"valid", "broken", or "newer".
+valid, or broken (term `ledger-validity`). For example, a ledger ref
+that points to a tag object, a line whose `id` is not its entry id, a
+chunk with the mode 100755, or the values 1 and 3 of `seq` with no 2
+make a ledger broken, and a line whose `v` is 2 makes it newer, whatever
+else its git tree object holds. A program that checks the ledger gives
+one of the three results "valid", "broken", and "newer" (requirement
+`validate-ledgers`). A program gives no state from a broken ledger
+(requirement `give-states-only-from-valid-ledgers`), and a repair
+(section 2.7) can make it valid again.
 
 The stored ledger of a git repository whose ledger is valid is the
-sequence of the ledger entries of the lines of its ledger commit, in the
-order of their `seq`. The stored ledger is the ledger of the git
-repository: a program that gives the states of a git repository gives
-the states at the points of its stored ledger. For example, a ledger
-commit holds three lines: the `seq` 3 in the first chunk, the `seq` 1
-and the `seq` 2 in the second chunk. The line with the `seq` 2 has the
-kind `pin`, which is not one of the eight kinds. The stored ledger then
-holds two ledger entries: the ledger entry of the `seq` 1, and then the
-ledger entry of the `seq` 3.
+ledger of that git repository as a state input (term `stored-ledger`).
+For example, a ledger commit holds three lines: the `seq` 3 in the first
+chunk, the `seq` 1 and the `seq` 2 in the second chunk. The line with
+the `seq` 2 has the kind `pin`, which is not one of the eight kinds. The
+stored ledger then holds two ledger entries: the ledger entry of the
+`seq` 1, and then the ledger entry of the `seq` 3.
 
 When another process changes the ledger ref or a git object of the
 ledger while a program reads or changes it, what the program gives is
@@ -272,26 +208,16 @@ not specified, and each guarantee of section 5 still holds.
 
 ### 2.4 Extensions and intact histories
 
-Each commit of the history of a ledger ref, other than the first, has
-one parent: the ledger commit before it. A commit d extends a commit c
-when d is c, or when d has exactly one parent, that parent extends c,
-and the git tree object of d holds each line of the git tree object of
-that parent with the same bytes. So when a commit extends another
-commit, it holds each of its ledger entries, with the same `seq` and the
-same `id`.
-
-The history of the ledger of a git repository is intact when its ledger
-ref does not exist, or when the ledger commit extends a commit that has
-no parent, and the git tree object of each commit that the ledger commit
-reaches is a valid ledger tree. A program that checks the history gives
-the result "valid" when the history is intact, and "invalid" when it is
-not: for a history, "valid" means intact. For a newer ledger, it gives
-neither result. The history objects of a git repository are its ledger
-objects, and, for each commit that
-the ledger commit reaches, the ledger objects of that commit and the git
-objects that it names as its parents. A commit that the file `shallow`
-names has no parents, so in a shallow clone the history ends at such a
-commit.
+A commit that extends another commit (term `ledger-extension`) holds
+each line of it, so it holds each of its ledger entries, with the same
+`seq` and the same `id`. The history of a ledger is intact by the term
+`intact-history`. A program that checks the history gives the result
+"valid" when the history is intact, and "invalid" when it is not, other
+than in the cases in which the requirement `validate-histories` gives
+neither result: for a history, "valid" means intact. The
+check reads the history objects (term `ledger-object`). A commit that
+the file `shallow` names has no parents, so in a shallow clone the
+history ends at such a commit.
 
 The stored ledger depends only on the lines of the ledger commit. So
 two clones whose ledger commits hold the same lines have the same
@@ -299,95 +225,63 @@ ledger, whatever history each of them holds.
 
 ### 2.5 Appends and acceptance
 
-A program appends ledger entries only to a ledger that is valid. It
-writes new commits. The first of them has the ledger commit as its
-parent, or no parent when the ledger ref does not exist, and each other
-has the commit before it as its parent. The git tree object of each new
-commit is a valid ledger tree, and it holds each line of the commit
-before it with the same bytes. The last new commit holds one new line
-for each new ledger entry. When the ledger commit has n lines, the new
-ledger entries take the `seq` n + 1, n + 2, and so on, in the order in
-which the program appends them. The program then changes the ledger ref
-to the last new commit, which extends the ledger commit.
+An append adds new lines at the end of the ledger, in a new commit that
+extends the ledger commit, or, for a ledger ref that does not exist, a
+commit with no parent (requirement `append-entries-at-end`). A
+program appends only to a valid ledger (requirement
+`append-only-to-valid-ledgers`).
 
-A kind of ledger entry other than `void` can have an acceptance rule:
-the condition, which a design gives for that kind, under which a ledger
-entry of that kind can stand at a point of a ledger. For example, an
-acceptance rule can refuse a ledger entry that the ledger entries before
-the point make out of date. A ledger entry is accepted at a point when
-the acceptance rule of its kind holds for it at that point. A program
-appends a ledger entry only at a point at which it is accepted. A void,
-and a ledger entry of a kind for which no design gives an acceptance
-rule, are accepted at no point, so a program never appends them. Voids
-come only from repairs.
+A kind of ledger entry can have an acceptance rule: the condition, which
+a design gives for that kind, under which a ledger entry of that kind
+can stand at a point of a ledger (term `accepted-entry`). For example,
+an acceptance rule can refuse a ledger entry that the ledger entries
+before the point make out of date. A program appends a ledger entry only
+at a point at which it is accepted (requirement
+`append-only-accepted-entries`). A void is accepted at no point, so a
+program never appends one: voids come only from repairs.
 
-A program gives each ledger entry that it appends the field `by`, and
-the field `agent` when its input says that an agent runs it (section
-2.8). It can
-give the fields `branch` and `ts`.
+The requirements `write-entry-fields` and `record-agent-writers` give
+the common fields that a program gives each ledger entry that it
+appends.
 
 ### 2.6 The shared clone, pulls, and pushes
 
-Each clone has a ledger ref and a stored ledger of its own. The
-parameter `ledger-remote` gives the name of a remote, such as `origin`.
-The shared clone of a clone is the git repository at the first value of
-the setting `remote.<name>.url` of its git configuration, for the remote
-of that name, after the rewrites of the settings `url.<base>.insteadOf`,
-such as the git repository on the host of the project. The settings
-`remote.<name>.pushurl` and `url.<base>.pushInsteadOf` do not change the
-shared clone. A clone whose git configuration gives no such value has no
-shared clone. The shared ledger of a clone is the stored ledger of its
-shared clone.
+Each clone has a ledger ref and a stored ledger of its own. The shared
+clone of a clone is the git repository that its remote, named by the
+parameter `ledger-remote`, gives, such as the git repository on the host
+of the project (term `shared-clone`). Its stored ledger is the shared
+ledger. A line of the ledger commit of a clone is provisional while the
+ledger commit of its shared clone does not account for it (term
+`accounted-line`); a line that a repair of the shared clone replaced
+with a void is accounted for, so it is not provisional.
 
-A git tree object accounts for a line of a chunk when it holds that
-line, or when it holds a void whose `dropped` is the `id` of that line.
-A line of the ledger commit of a clone is provisional while the ledger
-commit of its shared clone does not account for it. So a line that a
-repair of the shared clone replaced with a void is not provisional.
+A clone pushes its ledger entries to its shared clone (term `push`). The
+requirement `push-only-extensions` gives the commit that a push sends
+and what a program checks before it. So when the shared clone pulls from
+no shared clone of its own, each ledger entry of the shared ledger keeps
+its `seq`, and the shared ledger changes only at its end, other than in
+a repair.
 
-A clone A pushes its ledger entries to its shared clone S when the
-ledger ref of S changes to a commit of A that extends the ledger commit
-of S. A program pushes only a commit that the ledger commit of A
-extends, and only when the git tree object of each commit between them
-is a valid ledger tree and each line that the push adds has a ledger
-entry that is accepted at its point. When S has no ledger ref yet, a
-push gives it a ledger whose history is intact. A change of the ledger
-ref of S to a commit that does not extend its ledger commit is not a
-push. So when S pulls from no shared clone of its own, each ledger
-entry of the shared ledger keeps its `seq`, and the shared ledger changes
-only at its end, other than in a repair.
+When another clone pushed first, the ledger commit of a clone does not
+extend the ledger commit of its shared clone. The clone then pulls the
+ledger entries of its shared clone (term `pull`), from a commit s that
+the requirement `pull-shared-entries` allows. Its new ledger commit is a
+pull commit (term `pull-commit`): it holds the lines of s, and after
+them those of its own lines for which s does not account that stay,
+each as the same ledger entry with the next `seq`. Such a line stays
+only when its ledger entry is accepted at its new point. The program
+reports each such line that leaves (requirement
+`report-leaving-entries`). The requirements
+`pull-shared-entries` and `refuse-unsafe-pulls` give when a program can
+pull and what it changes; so a line that a newer program wrote is never
+lost in a pull.
 
-When another clone pushed first, the ledger commit of A does not extend
-the ledger commit of S. A then pulls the ledger entries of S, from a
-commit s of S that the program read. The new ledger commit of A is a
-pull commit: it holds each line of s, and, after them, one new line for
-each provisional line that stays. The program takes the provisional
-lines in the order of their `seq`. For each of them, the new line has
-each member of the old line other than `seq` and `id`, and no other
-member, with the next `seq` after the lines of s and the lines that
-stayed before it, and so a new `id` when that `seq` differs from the old
-one. The new line records the same ledger entry as the old line: a pull
-does not append that ledger entry again. The
-provisional line stays when the ledger entry of its new line is accepted
-at its new point. Otherwise, it leaves the ledger, the program reports
-it, and the next provisional line takes that `seq`. A void that A has
-not pushed is accepted at no point, so it leaves. When no provisional
-line stays, the pull commit is s.
-
-A program makes A pull only from a commit to which the ledger ref of S
-points, or pointed after the last change of the ledger ref of A. When A
-has a provisional line, the program also makes it pull only when the
-ledger of A is valid, the git tree object of s is a valid ledger tree,
-and each provisional line has one of the eight kinds. So a line that a
-newer program wrote is never lost in a pull. A pull is not an append,
-and a program whose input says that an agent runs it can pull and push
-ledger entries. A
-program changes the ledger ref of a git repository only to append ledger
-entries, to make a repair, to pull, or, for a shared clone, by a push. In
-a pull from, and in a push to, a shared clone, a program runs the
-transport to the shared clone only as the guarantee
-[`run-no-configured-programs`](sinter:changes#run-no-configured-programs=v1)
-allows, and no hook of any git repository.
+A pull is not an append, and a program whose input says that an agent
+runs the execution can pull and push ledger entries. A program changes
+the ledger ref of a git repository only in the four ways of the
+requirement `limit-ledger-ref-changes`. In a pull and in a push, it runs
+only the programs that the requirement
+`limit-programs-in-pulls-and-pushes` allows.
 
 For example, the shared clone S holds five ledger entries. The clone A
 pulled them, and then appended a sixth ledger entry, x. Before A
@@ -404,66 +298,45 @@ A repair removes zero or more ledger entries from a ledger, and puts a
 void where each of them was. A person makes a repair, for example to
 remove a ledger entry that holds a secret, or to make a broken ledger
 valid. A repair of a broken ledger can remove no line, when it only puts
-the lines in the form of a valid ledger tree. No program repairs a
-newer ledger. The repair gives the git repository a new ledger commit
-whose git tree object is a valid ledger tree and whose history is
-intact:
+the lines in the form of a valid ledger tree. No program repairs a newer
+ledger (requirement `repair-no-newer-ledgers`). The requirement
+`repair-ledgers-with-voids` gives the commit that a repair makes: each
+line that the repair keeps keeps its bytes, and a void whose `dropped`
+is the `id` of each removed line that has one takes the `seq` that the
+requirement gives. So no ledger entry that the repair keeps changes its
+`seq` or its `id`, and, because the new history is intact, no commit of
+it holds a ledger entry that the repair removed.
 
-- Each line that the repair keeps has the same bytes. Of the lines of
-  the old ledger commit that have the same bytes, the repair keeps as
-  many as the new ledger commit has, and it removes the others.
-- For each `id` that a line that the repair removes has, as the member
-  `id` of its JSON value, a new void has that `id` as its `dropped`.
-  When only one removed line has that `id`, and no other line of the
-  old ledger commit has its `seq`, the void takes that `seq`. So when
-  the old ledger is valid, each void takes the `seq` of the ledger entry
-  that it replaces. In a broken ledger, the other voids of removed lines
-  take, in the code point order of their `dropped`, the smallest values
-  of `seq` that are still free.
-- In a broken ledger, other voids, with no `dropped`, fill the values
-  of `seq` that the lines above leave out below the greatest of them.
-- Each void that the repair puts has the fields `by` and `reason`, and
-  no member other than the common fields, `dropped`, and `reason`.
-
-So no ledger entry that stays changes its `seq` or its `id`. Because the
-new history is intact, no commit of it holds a ledger entry that the
-repair removed: the repair gives the ledger a new history. When the
-shared clone pulls from no shared clone of its own, a repair of the
-shared ledger is the one change of the ledger ref of the shared clone
-that does not go to a commit that extends its ledger commit, and the
-old commit of that repair is the ledger commit of the shared clone. So
-a program that sends to the shared clone a ledger commit that a repair
-made in another clone makes a repair of the shared ledger.
+A change of the ledger ref of the shared clone to a commit that does not
+extend its ledger commit is no push (term `push`). So a program that
+sends to the shared clone a ledger commit that a repair made in another
+clone makes a repair of the shared ledger.
 
 A void records a removal: a void whose `dropped` names a ledger entry
 that is still in the ledger does not remove it. After a repair of the
 shared ledger, each clone pulls the ledger entries of its shared clone,
 its voids included. A void accounts for the line that it replaces, so
 that line is not provisional, and the clone does not put it back. A pull
-of voids is not a repair.
+of ledger entries that holds voids is not a repair.
 
 ### 2.8 Agents, the job, and trackers
 
-An agent marker is an environment variable that shows that an agent runs
-a program, such as a variable that the program that runs an agent sets
-for it. The parameter `agent-markers` gives the names of the agent
-markers. The input of an execution of a program says that an agent
-runs it when the environment of a process of that execution holds an
-agent marker, whatever its value. A program whose input says that an
-agent runs it appends no ledger entry other than a definition entry, and
-it makes no repair. It can still pull and push ledger entries.
-
-A job marker is an environment variable that shows that an execution of
-a program is the job, such as a variable that continuous integration
-sets. The parameter `job-markers` gives the names of the job markers.
-The input of an execution says that the execution is the job when the
-environment of a process of that execution holds a job marker, whatever
-its value. A program appends a ledger entry of the kind `delivered` only
-in an execution whose input says that it is the job.
+An agent marker shows that an agent runs an execution of a program, and
+a job marker shows that an execution is the job (terms `agent-marker`
+and `job-marker`). The parameters `agent-markers` and `job-markers` give
+their names. For example, a program that runs an agent can set an agent
+marker, and continuous integration can set a job marker. When its input
+says that an agent runs the execution, a program appends no ledger entry
+other than a definition entry, and it makes no repair (requirements
+`limit-agents-to-definitions` and `refuse-repairs-for-agents`). A
+program appends a ledger entry of the kind `delivered` only when its
+input says that the execution is the job (requirement
+`leave-delivered-entries-to-job`).
 
 A ledger entry can name an external item by its external id, such as
 `gh/42`. It holds no other data that a program took from a tracker, such
-as the title or the state of an issue.
+as the title or the state of an issue (requirement
+`keep-tracker-data-out`).
 
 ## 3. Parameters
 
@@ -746,12 +619,12 @@ are accepted at no point.
 
 For the text `<name>` of the binding of the parameter `ledger-remote`,
 the shared clone of a git repository is the git repository at the first
-value of the setting `remote.<name>.url` of its git configuration, after
-the rewrites that the settings `url.<base>.insteadOf` of that git
-configuration give, as the page git-config gives them. A git repository
-whose git configuration gives no value for that setting has no shared
-clone. The shared ledger of a git repository is the stored ledger of its
-shared clone.
+of the values of the setting `remote.<name>.url` of its git
+configuration that come after its last empty value, after the rewrites
+that the settings `url.<base>.insteadOf` of that git configuration give,
+as the page git-config gives them. A git repository whose git
+configuration gives no such value has no shared clone. The shared ledger
+of a git repository is the stored ledger of its shared clone.
 
 ### 4.14 Accounted lines
 
@@ -777,13 +650,13 @@ value of the member `id` of the JSON value of that line.
 }
 
 A git repository A pulls the ledger entries of its shared clone S when,
-other than to append ledger entries, the ledger ref of A changes, from
-a commit a or from not existing, to a commit d that extends a commit s
-to which the ledger ref of S points, or pointed, and when the object of
-each line of the git tree object of d that is not a line of the git
-tree object of s has the members of the object of a line of the git
-tree object of a other than `seq` and `id`, and no other member than
-these, `seq`, and `id`.
+other than to append ledger entries, the ledger ref of A changes, from a
+commit a or from not existing, to a commit d that extends a commit s to
+which the ledger ref of S points, or pointed, and when each line of the
+git tree object of d that is not a line of the git tree object of s
+comes from a line of the git tree object of a. A line comes from a line
+l when its object has the members of the object of l other than `seq`
+and `id`, and has no other member than these, `seq`, and `id`.
 
 ### 4.16 Pushes
 
@@ -812,23 +685,24 @@ that the new commit extends, or from not existing.
     },
 }
 
-For a commit a, or no commit, and a commit s, let n be the number of
-the lines of the git tree object of s, and let l1, l2, and so on to lm
-be the lines of the git tree object of a for which the git tree object
-of s does not account, in increasing order of the `seq` of their
-objects; there are none when there is no commit a. The line that comes
-from a line l with the `seq` p is the canonical line of the object that
-has each member of the object of l other than `seq` and `id`, the member
+For a commit a, or no commit, and a commit s, let n be the number of the
+lines of the git tree object of s, and let l1, l2, and so on to lm be
+the lines of the git tree object of a for which the git tree object of s
+does not account, in increasing order of the `seq` of their objects;
+there are none when there is no commit a. The line that comes from a
+line l with the `seq` p is the canonical line of the object that has
+each member of the object of l other than `seq` and `id`, the member
 `seq` with the value p, and the member `id` with its entry id, and no
 other member. It records the ledger entry of l, with the `seq` p. The
 lines that stay are these: for each i from 1 to m, in turn, with k the
 number of lines that stay before li, li stays when the object of the
 line that comes from li with the `seq` n + k + 1 has, as its `kind`, one
 of the texts `task`, `plan`, `approval`, `decline`, `done`, `abandoned`,
-and `delivered`, and when the ledger entry of that line is accepted at
-the end of the ledger of the ledger entries of the lines of s and of the
-lines that come from the lines that stay before li, each with its `seq`.
-The lines that leave are the lines li that do not stay.
+and `delivered`, and when the ledger entry of that kind whose object is
+the object of that line is accepted at the end of the ledger of the
+ledger entries of the lines of s and of the lines that come from the
+lines that stay before li, each with its `seq`. The lines that leave are
+the lines li that do not stay.
 
 A commit d is a pull commit of s over a when, and only when, no line
 stays and d is s, or at least one line stays and each of these is true:
@@ -851,8 +725,8 @@ stays and d is s, or at least one line stays and each of these is true:
 An agent marker of a process is an environment variable of the process
 whose name is a text of the binding of the parameter `agent-markers`,
 whatever the value of that variable. The input of an execution of a
-program says that an agent runs it when, and only when, the environment
-of a process of that execution holds an agent marker.
+program says that an agent runs the execution when, and only when, the
+environment of a process of that execution holds an agent marker.
 
 ### 4.19 Job markers
 
@@ -941,9 +815,10 @@ hold its ledger objects.
 A conforming program must give the same states at the same points of the
 ledger for two inputs that agree in each state input other than the
 ledger, whose ledgers differ only in members of the objects of their
-ledger entries that are neither common fields nor fields of the kinds of
-these ledger entries, and in the values of `id` that these members
-change, and that no other process changes while the program runs.
+ledger entries other than `id`, `kind`, `v`, `seq`, and the fields of
+the kinds of these ledger entries, and in the values of `id` that these
+members change, and that no other process changes while the program
+runs.
 
 ### 5.6 Appends only to valid ledgers
 
@@ -1020,9 +895,9 @@ value of the form of that common field.
     #{entry-field=v1, agent-marker=v1},
 }
 
-In an execution whose input says that an agent runs it, a conforming
-program must append only ledger entries whose objects have the member
-`agent`.
+In an execution whose input says that an agent runs the execution, a
+conforming program must append only ledger entries whose objects have
+the member `agent`.
 
 ### 5.11 The ways in which a ledger ref changes
 
@@ -1159,9 +1034,10 @@ When a conforming program makes a repair of the ledger of a git
 repository, it must change the ledger ref of that git repository, from
 its commit c, or from a ledger ref that has no commit, for which c then
 stands for a commit with no lines, to a commit d such that each of these
-is true, where the lines that the repair removes are these: of the lines
-of the git tree object of c that have the same bytes, as many as the git
-tree object of d has of them stay, and the others are removed.
+is true, where the lines that the repair keeps and removes are these:
+of the lines of the git tree object of c that have the same bytes, the
+repair keeps as many as the git tree object of d has, and it removes the
+others.
 
 1. The git tree object of d is a valid ledger tree, and the history of
    the ledger of the git repository is intact after the change.
@@ -1171,17 +1047,17 @@ tree object of d has of them stay, and the others are removed.
    member `kind` with the value `void` and the member `dropped` with
    that text: the void of that text.
 3. When exactly one removed line has that text as its `id`, and the JSON
-   value of that line has the member `seq` with an integer of 1 or more
-   that the JSON value of no other line of c has as its `seq`, the
-   object of the void of that text has that `seq`. The other voids of
-   item 2 take, in the code point order of their `dropped`, the smallest
-   values of `seq` that no line of c that stays, no void that the first
-   sentence of this item places, and no void earlier in that order
-   takes.
+   value of that line has the member `seq` with an integer from 1 to the
+   number of the lines of c that the JSON value of no other line of c
+   has as its `seq`, the object of the void of that text has that `seq`.
+   The other voids of item 2 take, in the code point order of their
+   `dropped`, the smallest values of `seq` that no line that the repair
+   keeps, no void that the first sentence of this item places, and no
+   void earlier in that order takes.
 4. The object of each other line of the git tree object of d that is not
    a line of c has the member `kind` with the value `void` and no member
    `dropped`, and its `seq` is less than the `seq` of the object of a
-   line of c that stays or of a void of item 2.
+   line that the repair keeps or of a void of item 2.
 5. The object of each line of the git tree object of d that is not a
    line of c has the member `reason` with a string, and no member other
    than the common fields, `dropped`, and `reason`.
@@ -1195,9 +1071,9 @@ tree object of d has of them stay, and the others are removed.
     #{agent-marker=v1},
 }
 
-In an execution whose input says that an agent runs it, a conforming
-program must append to a ledger no ledger entry other than a definition
-entry.
+In an execution whose input says that an agent runs the execution, a
+conforming program must append to a ledger no ledger entry other than a
+definition entry.
 
 ### 5.20 No repair by agents
 
@@ -1208,8 +1084,8 @@ entry.
     #{agent-marker=v1},
 }
 
-In an execution whose input says that an agent runs it, a conforming
-program must make no repair.
+In an execution whose input says that an agent runs the execution, a
+conforming program must make no repair.
 
 ### 5.21 The writer of `delivered` ledger entries
 
@@ -1229,6 +1105,7 @@ the job.
 @req keep-tracker-data-out=v1
 @cites {
     ontology#{external-item=v1, ledger-entry=v1},
+    identifiers#{external-id=v1},
     text#{conforming-program=v1},
 }
 
