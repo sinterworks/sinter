@@ -122,10 +122,10 @@ the conformance vectors of the design is a JSON text.
 | [tests of a read file](sinter:#file-test=v1) | the tests whose code is a test node of a code file that can be read; a markdown file and a read file that cannot be read have none |
 | [declaration of a declared item](sinter:#item-file=v1), [file of a declared item](sinter:#item-file=v1) | the accepted input that declares a declared item, and the read file whose tag text has it |
 | [claim](sinter:#claim=v1) | the lines that a declaration claims: in markdown, its section or its list item, from its own tag line when another declaration of its paragraph comes before it, up to the next declaration of its paragraph; in code, its part of its block of a tag text; in both, without the blank lines at its end; in markdown, for a declared finding class that is the only declaration of the first paragraph of the section of level 0, every line of its file |
-| [scope](sinter:#specification-scope=v1) | the file lines in which a specification gathers requirements and terms: in markdown, its claim; in code, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
+| [scope](sinter:#specification-scope=v1) | the file lines in which a design or a specification gathers its items: in markdown, the markdown lines of the section or the list item whose first paragraph has its declaration; in code, for a design, its claim, and for a specification, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
 | [innermost](sinter:#innermost-item=v1) | of some declared items whose claims, or whose scopes, have a thing in them, the one whose claim, or scope, is a subset of that of each of the others, when exactly one is |
 | [design of a slug](sinter:#slug-design=v1) | the item of the kind design whose name is the slug, when no other item of the kind design and no decision record has that name |
-| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose claim a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names it by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
+| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names it by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
@@ -221,13 +221,12 @@ The first tag text is the first paragraph of the
 the third are the two lines after `## 1. Invoices` and the two lines
 after `### 1.1 Amount limit`. The section of level 0 is empty.
 
-Another paragraph that starts with a tag line gives no tag text, and it
-can be a finding of the class
-[`ignored-tag`](sinter:#ignored-tag-finding=v1), such as a second
-paragraph of a section that starts with `@req`. For example, the lines
-`@req r=v1`, `Text.`, and `---` make a setext heading, which is such a
-finding too, and the same lines in an indented code block are no
-finding.
+Another paragraph gives no tag text, and each of its tag lines can be a
+finding of the class [`ignored-tag`](sinter:#ignored-tag-finding=v1),
+such as a line `@req r=v1` in the second paragraph of a section. For
+example, the lines `@req r=v1`, `Text.`, and `---` make a setext
+heading, whose line `@req r=v1` is such a finding too, and the same
+lines in an indented code block are no finding.
 
 ### 2.3 Code files
 
@@ -331,7 +330,7 @@ end
 The first run of comments attaches to the definition node of the module.
 The [scope](sinter:#specification-scope=v1) of the specification is its
 tag text, with the file lines in the run of that module. The requirement
-`id-form` is declared by one segment. Its declaration is in no claim of
+`id-form` is declared by one segment. Its declaration is in no scope of
 an item of the kind design, and it is in the scope of the specification,
 whose declaration has the full name `ledger#entry-ids`. So, when the
 slug `ledger` has a [design](sinter:#slug-design=v1), that design is its
@@ -1103,7 +1102,7 @@ of d:
 Then the claim loses its blank lines after its last line that is not
 blank, in the order of the file lines.
 
-### 4.24 The scopes of specifications
+### 4.24 The scopes of designs and specifications
 
 @term specification-scope=v1
 @cites {
@@ -1112,21 +1111,26 @@ blank, in the order of the file lines.
     #{
         item-file=v1, claim=v1, file-line=v1, tag-text=v1,
         comment-run=v1, attachment=v1, code-character=v1,
+        markdown-line=v1, markdown-section=v1, markdown-list-item=v1,
     },
 }
 
-The scope of an item of the kind specification d of a tree is a set of
-file lines of its file:
+The scope of an item d of the kind design or of the kind specification
+of a tree is a set of file lines of its file:
 
-- When its file is a markdown file: the lines of its claim.
-- When its file is a code file, and R is the run of comments whose tag
-  text has the declaration of d: when R attaches to an attachment
-  target T, the lines that the tag text of R joins, with each file line
-  whose run starts at or after the boundary where the run of T starts
-  and ends at or before the boundary where the run of T ends; when R is
-  unattached and no code character of the file is at a place before the
-  boundary where R starts, each file line of the file; otherwise, the
-  lines that the tag text of R joins.
+- When its file is a markdown file, and S is the section or the list
+  item whose first paragraph gives the tag text that has the declaration
+  of d: the markdown lines of S.
+- When its file is a code file and d is of the kind design: the lines of
+  its claim.
+- When its file is a code file, d is of the kind specification, and R is
+  the run of comments whose tag text has the declaration of d: when R
+  attaches to an attachment target T, the lines that the tag text of R
+  joins, with each file line whose run starts at or after the boundary
+  where the run of T starts and ends at or before the boundary where the
+  run of T ends; when R is unattached and no code character of the file
+  is at a place before the boundary where R starts, each file line of the
+  file; otherwise, the lines that the tag text of R joins.
 
 A thing is in the scope of d when it is in this set of file lines.
 
@@ -1135,18 +1139,16 @@ A thing is in the scope of d when it is in this set of file lines.
 @term innermost-item=v1
 @cites {
     ontology#{declared-item=v1},
-    #{file-line=v1, claim=v1, specification-scope=v1},
+    #{file-line=v1, specification-scope=v1},
 }
 
 Take a thing and some declared items, each with a set of file lines in
 which the thing is. The innermost of these declared items by these sets
 is the one whose set is a subset of the set of each of the others, when
 exactly one of them is; otherwise, none of them is the innermost. The
-innermost item of the kind design in whose claim a thing is, is the
-innermost, by their claims, of the items of the kind design in whose
-claims the thing is. The innermost item of the kind specification in
+innermost item of the kind design, or of the kind specification, in
 whose scope a thing is, is the innermost, by their scopes, of the items
-of the kind specification in whose scopes the thing is.
+of that kind in whose scopes the thing is.
 
 ### 4.26 The designs of slugs
 
@@ -1181,7 +1183,7 @@ Otherwise, the slug has no design.
 The home design of a tag line of a tag text, or of an inline citation,
 of a tree is the first of these that applies:
 
-1. When the items of the kind design in whose claims it is have an
+1. When the items of the kind design in whose scopes it is have an
    innermost item: that innermost item.
 2. When it is in a code file, and the items of the kind requirement and
    the terms in whose claims it is have an innermost item by their
@@ -1725,7 +1727,7 @@ of the text of that tag line in the text of the file.
 @cites {
     commonmark/0.31.2,
     identifiers#{tag-line=v1, tag-word=v1, sinter-tag-word=v1},
-    text#{run=v1, character=v1, space=v1, tab=v1},
+    text#{run=v1, character=v1, space=v1, tab=v1, boundary=v1},
     #{
         read-file=v1, unreadable-file=v1, markdown-section=v1,
         markdown-list-item=v1, paragraph-line=v1, origin=v1,
@@ -1734,28 +1736,32 @@ of the text of that tag line in the text of the file.
     },
 }
 
-The first line of a setext heading is the run of the first markdown line
-that it takes, from the first character, among the characters of that
-markdown line that CommonMark 0.31.2 gives to the content of the
-heading, that is not a space or a tab, to the end of that markdown line.
+The content lines of a setext heading are runs of the text of the file:
+for each markdown line that the heading takes, other than the last one,
+the run of that markdown line from the first character, among the
+characters of that markdown line that CommonMark 0.31.2 gives to the
+content of the heading, that is not a space or a tab, to the end of that
+markdown line.
 
-A tree has one tree finding of the class `ignored-tag` for each block B
-of the markdown document of a markdown file of the tree that can be
-read, when each of these is true:
+A tree has one tree finding of the class `ignored-tag` for each line L
+of each block B of the markdown document of a markdown file of the tree
+that can be read, when each of these is true:
 
-- B is a paragraph or a setext heading;
+- B is a paragraph and L is one of the lines of that paragraph, or B is
+  a setext heading and L is one of its content lines;
 - no block quote contains B;
 - B is a block of the document itself, or a block that a list item
   contains and that no block quote, no list, and no list item inside
   that list item contains;
 - when B is a paragraph, it is not the first paragraph of a section or
   of a list item;
-- the first line of B is a tag line, and its tag word is a Sinter tag
-  word or has an edit distance of 1 or 2 from a Sinter tag word.
+- L is a tag line, and its tag word is a Sinter tag word or has an edit
+  distance of 1 or 2 from a Sinter tag word.
 
-Its subject is the position subject of the origin position of the first
-line of B. Its spot is the spot of the run of that line in the text of
-the file.
+Let A be the run of the text of the file that starts at the boundary
+right before the first `@` of L and ends where L ends. Its subject is
+the position subject of the origin position of A. Its spot is the spot
+of A.
 
 ### 4.51 Findings of the class `invalid-target`
 
@@ -1928,10 +1934,10 @@ of these conditions, and for each `@extern` line that meets the last of
 them:
 
 - d is of the kind design, and its file is a code file;
-- d is of the kind design, and its declaration is in the claim of
+- d is of the kind design, and its declaration is in the scope of
   another item of the kind design;
 - d is of the kind specification, requirement, or term; the innermost
-  item of the kind design in whose claim its declaration is, is an item
+  item of the kind design in whose scope its declaration is, is an item
   D; and d belongs to an item of the kind design other than D;
 - d is of the kind requirement or term; its declaration is in the scope
   of an item of the kind specification S that is the innermost item of
