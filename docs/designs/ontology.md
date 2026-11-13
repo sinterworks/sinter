@@ -133,7 +133,7 @@ vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises, from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to conformance vectors whose groups name the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -539,12 +539,17 @@ A task has:
 A promise links a task to an item of the kind requirement: the task
 promises an edge of the kind of edge of the promise to that item, from a
 citation in a file of a tree whose valid path is in the set of its
-paths. The promise is kept in a tree when the tree has that edge, the
-edge says what its kind of edge says, the edge is not suspect in that
-tree, and, for a `verifies` promise, test evidence of an execution of
-test runners on the code of that tree has a test result that names the
-test that is the source of that edge and says that it passed, and none
-that says that it failed.
+paths. For a `verifies` promise, a `verifies` edge to a conformance
+vector, a group of conformance vectors, or a vector set is such an edge
+too, when the item of the kind requirement is among the requirements of
+the group of each conformance vector in its cited item, so a test that
+cites a group of conformance vectors keeps the `verifies` promises of
+the requirements of that group. The promise is kept in a tree when the
+tree has such an edge, the edge says what its kind of edge says, the
+edge is not suspect in that tree, and, for a `verifies` promise, test
+evidence of an execution of test runners on the code of that tree has a
+test result that names the test that is the source of that edge and says
+that it passed, and none that says that it failed.
 
 A task has no description of its own: the items of the kind requirement
 that it promises, or its external item, say what to build. A task has no
@@ -1368,10 +1373,12 @@ branch.
 @cites {
     identifiers#{citation=v1},
     files#{path=v1, path-set-membership=v1},
+    data-forms#{group-form-list=v1},
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
-        suspect-edge=v1,
+        suspect-edge=v1, conformance-vector=v1,
+        conformance-vector-group=v1, vector-set=v1,
     },
 }
 
@@ -1380,12 +1387,16 @@ A promise of a task is a pair of a kind of edge, `satisfies` or
 the task to the item of the kind requirement that has that name: the
 task promises an edge of that kind of edge to that item, from a citation
 in a file of a tree whose valid path is in the set of the paths of the
-task. The promise is kept in a tree when, and only when, that tree has
-that edge, and the edge says what its kind of edge says, and the edge is
-not suspect in that tree, and, for a `verifies` promise, test evidence
-of an execution of test runners on the code of that tree has a test
-result that names the test that is the source of that edge and says that
-it passed, and none that says that it failed.
+task. A `verifies` edge from such a citation to a conformance vector, a
+group of conformance vectors, or a vector set is such an edge too, when
+that item of the kind requirement is among the requirements of the group
+of each conformance vector in its cited item. The promise is kept in a
+tree when, and only when, that tree has such an edge, and the edge says
+what its kind of edge says, and the edge is not suspect in that tree,
+and, for a `verifies` promise, test evidence of an execution of test
+runners on the code of that tree has a test result that names the test
+that is the source of that edge and says that it passed, and none that
+says that it failed.
 
 ### 3.35 Plans
 
