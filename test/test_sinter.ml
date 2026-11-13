@@ -80,6 +80,7 @@ let () =
       ("tree", Test_tree.tests);
       ("spots", Test_spots.tests);
       ("edit sets", Test_edit_sets.tests);
+      ("finding parts", Test_finding_parts.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
