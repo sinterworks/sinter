@@ -112,10 +112,11 @@ design is a JSON text.
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | branch | a ref whose name starts with `refs/heads/`, which points to a commit |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
-| [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: the ref that the first value of `branch.<name>.merge` names, mapped by the fetch refspecs of the remote that the last value of `branch.<name>.remote` names |
+| [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: the ref to which the first fetch refspec, in order, of the remote that the last value of `branch.<name>.remote` names maps the ref that the first value of `branch.<name>.merge` names |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names its current branch, or, when it is detached, points to its current commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
 | [git's index](sinter:#working-tree=v1) | the file in the folder of a working tree in which git records the paths of the files that it tracks |
+| [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index whose path ends with `/` and that names a git tree object; it stands for an entry for the path of each entry of that git tree object other than a tree entry |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, as the page git-config defines it: the file that the setting names, or its default file, such as `~/.config/git/ignore` |
 | [ignored](sinter:#ignored-path=v1) | a path is ignored when the patterns of the regular files `.gitignore`, of the file `info/exclude`, and of the excludes file ignore it, by the rules of the page gitignore, as for a file that git's index does not hold; with the setting `core.ignoreCase`, without regard to the case of the letters from `A` to `Z` |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
@@ -259,16 +260,16 @@ not valid UTF-8 has no text.
 
 A branch is a ref under `refs/heads/`, such as `refs/heads/main`, which
 points to a commit. A remote-tracking branch is a ref under
-`refs/remotes/`, such as `refs/remotes/origin/main`, which records
-where a branch of a remote repository pointed when git last fetched it.
-A ref can also name another ref, as a symbolic ref does. The commit
-of a ref is the commit to which it resolves, through the refs that it
-names in turn. The upstream of a branch is the ref that it tracks, often
-a remote-tracking branch. The first value of the setting
+`refs/remotes/`, such as `refs/remotes/origin/main`, which records where
+a branch of a remote repository pointed when git last fetched it. A ref
+can also name another ref, as a symbolic ref does. The commit of a ref
+is the commit to which it resolves, through the refs that it names in
+turn. The upstream of a branch is the ref that it tracks, often a
+remote-tracking branch. The first value of the setting
 `branch.<name>.merge` names a ref of a remote, and the setting
-`branch.<name>.remote` names that remote. The fetch refspecs of the
-remote, the settings `remote.<name>.fetch`, map that ref to the
-upstream. So the refspec
+`branch.<name>.remote` names that remote. The first of the fetch
+refspecs of the remote, the values of the setting `remote.<name>.fetch`,
+that maps that ref maps it to the upstream. So the refspec
 `+refs/heads/*:refs/remotes/origin/*` maps `refs/heads/main` to
 `refs/remotes/origin/main`.
 
@@ -632,10 +633,13 @@ alternates, and the pages gitformat-loose and gitformat-pack define
 loose objects and packs. A commit of a git repository is a commit
 object, as the page gitglossary defines it, that the git repository
 holds. The content of a commit object is lines of a header, each ended
-by the byte 0x0A, then an empty line, then the message: the first line
-is `tree` and the object id of the git tree object of the commit, and
-each next line that starts with `parent` names one parent by its object
-id. A commit names one git tree object, the git tree object of the
+by the byte 0x0A, then an empty line, then the message. The first line
+is `tree`, the byte 0x20, and the object id of the git tree object of
+the commit. The parent lines of the content are the second line, when it
+starts with `parent` and the byte 0x20, and each later line that starts
+so and whose line before it is a parent line. Each parent line names one
+parent by the object id after that byte, and no other line names a
+parent. A commit names one git tree object, the git tree object of the
 commit, and zero or more commits. Its parents are the commits that it
 names, in the order in which it names them, each as often as it names
 it. The first of its parents is its first parent. The message of a
@@ -643,11 +647,11 @@ commit is the byte sequence of the content of its commit object after
 the first two bytes 0x0A that follow one another in it, or the empty
 byte sequence when the content holds no two such bytes. A commit that
 the file `shallow` of the git folder names, in a line that holds its
-object id in hex digits, has no parents. The content
-of a blob, the entries of a git tree object, and the git tree object and
-the parents of a commit, apart from this rule, are those that the git
-object itself holds: no replacement ref, which is a ref whose name
-starts with `refs/replace/`, has an effect on them.
+object id in hex digits, has no parents. The content of a blob, the
+entries of a git tree object, and the git tree object and the parents of
+a commit, apart from this rule, are those that the git object itself
+holds: no replacement ref, which is a ref whose name starts with
+`refs/replace/`, has an effect on them.
 
 ### 4.5 The texts of messages
 
@@ -761,11 +765,11 @@ default branch, in this order:
    `branch.<name>.merge`, and r the last value of the setting
    `branch.<name>.remote`, each with b for `<name>`, in the git
    configuration of the git repository. When one of the two settings has
-   no value, b has no upstream. Otherwise, the upstream of b is the ref
-   to which the fetch refspecs of the remote r, which the settings
-   `remote.<name>.fetch` with r for `<name>` give, map M, by the rules
-   of the page git-fetch for refspecs, and b has no upstream when no
-   fetch refspec of r maps M.
+   no value, b has no upstream. Otherwise, the fetch refspecs of the
+   remote r are the values of the setting `remote.<name>.fetch` with r
+   for `<name>`, in their order, and the upstream of b is the ref to
+   which the first of them that maps M maps it, by the rules of the page
+   git-fetch for refspecs. When none of them maps M, b has no upstream.
 2. the ref whose name is `refs/heads/` followed by b.
 3. the ref whose name is `refs/remotes/origin/` followed by b.
 
@@ -807,14 +811,14 @@ byte path; and, for each tree entry D among them, each entry of the git
 tree object that D names, with the byte path of D, then the byte 0x2F,
 then its byte path in that git tree object.
 
- The files of the
-tree of a commit, and their contents, are the same whether or not the
-git repository holds the git objects that they come from. The files of
-the tree of a commit are these, and no others: for each regular-file
-entry E of the git tree object of the commit whose byte path is the
-UTF-8 encoding of a valid path p, and such that no other entry of that
-git tree object has the same byte path as E, the file whose valid path
-is p and whose content is the content of the blob that E names.
+The files of the tree of a commit, and their contents, are the same
+whether or not the git repository holds the git objects that they come
+from. The files of the tree of a commit are these, and no others: for
+each regular-file entry E of the git tree object of the commit whose
+byte path is the UTF-8 encoding of a valid path p, and such that no
+other entry of that git tree object has the same byte path as E, the
+file whose valid path is p and whose content is the content of the blob
+that E names.
 
 ### 4.12 Ignored paths
 
@@ -847,13 +851,16 @@ letters from `A` to `Z` from a path that the pattern matches.
 
 @term working-tree-file=v1
 @cites {
+    gitdoc/gitformat-index,
     ontology#{tree=v1},
     files#{
         folder-tree=v1, folder=v1, regular-file=v1, path=v1,
         path-file=v1,
     },
-    text#{text=v1, utf-8-encoding=v1, code-span=v1},
-    #{working-tree=v1, ignored-path=v1},
+    text#{
+        text=v1, utf-8-encoding=v1, code-span=v1, byte=v1, 0x-numeral=v1,
+    },
+    #{working-tree=v1, ignored-path=v1, commit-file=v1},
 }
 
 The files of the tree of a working tree are these, and no others: for
@@ -868,6 +875,16 @@ whose content is the content of F.
    whose entry name is the UTF-8 encoding of the text `.git`.
 3. Git's index of the working tree holds an entry for the UTF-8
    encoding of p, or p is not ignored in the working tree.
+
+A sparse directory entry of git's index is an entry whose mode is 040000
+in base 8 and whose path ends with the byte 0x2F, as the page
+gitformat-index gives such entries: it names a git tree object in place
+of entries for the paths of that git tree object. Git's index holds an
+entry for a byte path b when an entry of git's index, other than a
+sparse directory entry, has the path b, or when b is the path of a
+sparse directory entry followed by the byte path of an entry, other than
+a tree entry, of the git tree object that the sparse directory entry
+names, whether or not the git repository holds that git tree object.
 
 ### 4.14 Ranges
 
@@ -1873,19 +1890,18 @@ tree.
   which names a git folder. A check of the vectors gives these files and
   this content as the git repository of the working tree needs them. The
   members `tracked` and `ignored` give the facts of the left-out files
-  on
-which the result depends.
-  `tracked` is the set of the valid paths whose UTF-8 encodings are the
-  paths of the entries of git's index of the working tree, as a set of
-  texts. `ignored` is the set of the valid paths of the regular files of
-  the folder tree that are ignored in the working tree, as a set of
-  texts. It can hold a path that `tracked` also holds. The input stands
-  for a repository read of the working tree during which a file system
-  stores the folder tree of `folder-tree`, as a [stored folder
-  tree](sinter:files#stored-folder-tree=v1), for the process of the
-  program, apart from the files and the contents that the vector leaves
-  out. When the root folder of `folder-tree` holds no folder entry
-  `.git`, the git folder of the working tree is outside the folder tree.
+  on which the result depends. `tracked` is the set of the valid paths p
+  such that git's index of the working tree holds an entry for the UTF-8
+  encoding of p, as a set of texts. `ignored` is the set of the valid
+  paths of the regular files of the folder tree that are ignored in the
+  working tree, as a set of texts. It can hold a path that `tracked`
+  also holds. The input stands for a repository read of the working tree
+  during which a file system stores the folder tree of `folder-tree`, as
+  a [stored folder tree](sinter:files#stored-folder-tree=v1), for the
+  process of the program, apart from the files and the contents that the
+  vector leaves out. When the root folder of `folder-tree` holds no
+  folder entry `.git`, the git folder of the working tree is outside the
+  folder tree.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `paths`: the set of the valid
   paths of the files of the tree of the working tree.
