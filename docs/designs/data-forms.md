@@ -11,7 +11,7 @@
 @cites toml-lang/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
-Specifies the canonical form of JSON values and canonical lines; the TOML documents that Sinter reads, with the spans of their keys and values; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
+Specifies the canonical form of JSON values and canonical lines, and the JSON values of JSON texts; the TOML documents that Sinter reads, with the spans of their keys and values; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259 defines
@@ -126,6 +126,7 @@ its letters only in the same case.
 | [flat object](sinter:#line-object=v1) | an object in which the value of each member is a scalar |
 | [line object](sinter:#line-object=v1) | an object in which the value of each member is a scalar, an array of scalars, or an array of flat objects |
 | [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
+| [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that a byte sequence writes when it is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text holds no `null`, no number with a fraction or an exponent or outside the range of an integer, no string or name with an escape of half of a UTF-16 pair alone, and no object with two names that stand for the same text |
 | [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, and that has no value error, no key error, and no structure error |
 | key/value pair, inline table, table header, quoted key, basic string, multi-line basic string, literal string, multi-line literal string | the runs of the text of a document that TOML 1.1.0 calls by these names |
 | integer of TOML 1.1.0, float of TOML 1.1.0 | the runs of the text of a document that TOML 1.1.0 calls integers and floats, such as `-17` and `1e400`; the integer part and the exponent part of a float are not integers of TOML 1.1.0 |
@@ -425,6 +426,30 @@ reads a byte sequence as a canonical line: it gives the result "valid"
 and the line object when the byte sequence is the canonical line of a
 line object, and the result "invalid" for every other byte sequence.
 
+A conforming program also reads a byte sequence as a JSON text, such as
+the output of another program: it gives the result "valid" and the JSON
+value of the byte sequence when the byte sequence has one, and the
+result "invalid" for every other byte sequence. A byte sequence has a
+JSON value when it is valid UTF-8, its text is a JSON text, as RFC 8259
+defines it, and that JSON text writes a JSON value:
+
+- no value of the JSON text is `null`;
+- each number of the JSON text has no fraction and no exponent, and it
+  writes a whole number from −(2^53 − 1) to 2^53 − 1;
+- each string and each name of the JSON text stands for a text: no
+  escape `\u` of the first or the second half of a UTF-16 pair stands
+  alone;
+- no object of the JSON text has two names that stand for the same
+  text.
+
+The JSON text can hold spaces, tabs, line feeds, and carriage returns
+around its values and around the characters `{`, `}`, `[`, `]`, `:`,
+and `,`, its strings can hold escapes, and its objects can write their
+members in any order. So the bytes of `{ "b": 1, "a": "\u00e9" }` and
+a line feed have the JSON value whose canonical form is
+`{"a":"é","b":1}`, and the bytes of `{"a":1.0}`, of `{"a":1,"a":2}`, and
+of `"\ud800"` have no JSON value.
+
 A scalar is a string, an integer, or a boolean. A flat object is an
 object in which the value of each member is a scalar. A line object is
 an object in which the value of each member is one of these:
@@ -491,6 +516,55 @@ an object in which the value of each member is one of these three:
 The canonical line of a line object is the byte sequence of the
 canonical byte sequence of the line object, then the byte 0x0A.
 
+#### 4.1.3 The JSON values of byte sequences
+
+@term json-value-of-a-byte-sequence=v1
+@cites {
+    rfc/8259,
+    text#{
+        byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
+        text=v1, character=v1, code-point=v1, whole-number=v1,
+        code-span=v1,
+    },
+    #{json-value=v1},
+}
+
+These definitions use the JSON texts of RFC 8259, with their values,
+objects, members, names, arrays, strings, escapes, numbers, fractions,
+exponents, and the literal names `true`, `false`, and `null`, and the
+rule `JSON-text` of the ABNF of RFC 8259.
+
+- The JSON text of a byte sequence is the text of the byte sequence,
+  when the byte sequence is valid UTF-8 and its text matches the rule
+  `JSON-text`. Every other byte sequence has no JSON text.
+- A string or a name of a JSON text stands for the text of the
+  characters between its quotation marks, with each escape in place of
+  the character that it stands for, as RFC 8259 defines it. An escape
+  `\u` of a code point from U+D800 to U+DBFF that comes right before an
+  escape `\u` of a code point from U+DC00 to U+DFFF stands, together
+  with it, for one character, as RFC 8259 defines it. A string or a name
+  with another escape `\u` of a code point from U+D800 to U+DFFF stands
+  for no text.
+- `true` gives the JSON value true, and `false` gives the JSON value
+  false. `null` gives no JSON value.
+- A number with no fraction and no exponent gives the integer that is
+  the whole number that it writes, when that whole number is an
+  integer. Every other number gives no JSON value.
+- A string gives the text that it stands for. A string that stands for
+  no text gives no JSON value.
+- An array gives the array of the JSON values that its values give, in
+  their order, when each of its values gives a JSON value. Otherwise,
+  it gives no JSON value.
+- An object gives the object that has, for each of its members, one
+  member whose key is the text that the name of the member stands for
+  and whose value is the JSON value that the value of the member gives.
+  The object gives no JSON value when a name of it stands for no text,
+  when the value of one of its members gives no JSON value, or when two
+  of its names stand for the same text.
+- The JSON value of a byte sequence is the JSON value that the value of
+  its JSON text gives. A byte sequence that has no JSON text, or whose
+  JSON text has a value that gives no JSON value, has no JSON value.
+
 ### 4.2 Canonical byte sequences as output
 
 @req write-canonical-json=v1
@@ -547,7 +621,23 @@ and no other result and no other line object. For every other byte
 sequence, it must give the result "invalid", and no other result and no
 line object.
 
-### 4.6 Conformance
+### 4.6 JSON texts as input
+
+@req read-json-text=v1
+@cites {
+    text#{
+        requirement=v1, conforming-program=v1, byte-sequence=v1,
+        result=v1,
+    },
+    #{json-value=v1, json-value-of-a-byte-sequence=v1},
+}
+
+For each byte sequence that has a JSON value, a conforming program must
+give the result "valid" and the JSON value of that byte sequence, and no
+other result and no other JSON value. For every other byte sequence, it
+must give the result "invalid", and no other result and no JSON value.
+
+### 4.7 Conformance
 
 A program conforms to the specification `json-lines` when it is a
 [conforming program](sinter:text#conforming-program=v1) of that
@@ -592,7 +682,7 @@ without the member `result` states no result. In `input` and `values`, a
 byte sequence is its hex text, as a string, such as `"7b7d0a"` for the
 UTF-8 encoding of `{}`, then the byte 0x0A.
 
-#### 4.6.1 Canonical byte sequences
+#### 4.7.1 Canonical byte sequences
 
 The group `write-json` holds the vectors that each give a JSON value, or
 a thing that is not a JSON value, and the canonical byte sequence that a
@@ -643,7 +733,7 @@ sequence as the canonical byte sequence of the input.
 {"group":"write-json","input":"\"\\ud800\"","n":80,"note":"the escape sequence `\\ud800` is not one of the two escape sequences of a character, so the string is not a text","rev":"v1","values":{}}
 ```
 
-#### 4.6.2 Canonical lines as output
+#### 4.7.2 Canonical lines as output
 
 The group `write-line` holds the vectors that each give a line object,
 or a thing that is not a line object, and the canonical line that a
@@ -666,7 +756,7 @@ is `{}`, it gives no byte sequence as the canonical line of the input.
 {"group":"write-line","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
 ```
 
-#### 4.6.3 Canonical lines as input
+#### 4.7.3 Canonical lines as input
 
 The group `read-line` holds the vectors that each give a byte sequence
 and what a conforming program gives when it reads the byte sequence as a
@@ -686,6 +776,28 @@ no line object.
 ```
 {"group":"read-line","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
 {"group":"read-line","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
+```
+
+#### 4.7.4 JSON texts as input
+
+The group `read-json` holds the vectors that each give a byte sequence
+and what a conforming program gives when it reads the byte sequence as
+a JSON text. The requirement of the group is `read-json-text`.
+
+- `input`: the byte sequence.
+- `result`: "valid" when the byte sequence has a JSON value, and
+  "invalid" when it does not.
+- `values`: with the result "valid", an object with one member,
+  `json-value`: the JSON value of the byte sequence. With the result
+  "invalid", the empty object, `{}`.
+
+With the result "valid", a conforming program gives the JSON value of
+`json-value`, and no other JSON value. When `values` is `{}`, it gives
+no JSON value.
+
+```
+{"group":"read-json","input":"7b20226222203a205b312c20325d202c092261223a74727565207d0d0a","n":82,"note":"spaces, a tab, a carriage return, and a line feed stand around values and around `:` and `,`, and the members do not stand in key order","result":"valid","rev":"v1","values":{"json-value":{"a":true,"b":[1,2]}}}
+{"group":"read-json","input":"312e30","n":100,"note":"the number has a fraction","result":"invalid","rev":"v1","values":{}}
 ```
 
 ## 5. TOML
