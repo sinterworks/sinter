@@ -144,7 +144,7 @@ the conformance vectors of the design is a JSON text.
 | [position subject](sinter:#position-subject=v1) | the subject of a finding at a position, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file |
-| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable |
+| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
 | [edit distance](sinter:#edit-distance=v1) | the least number of insertions, removals, replacements, and swaps of characters next to each other that change one text into another |
 | [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding, which a slug names |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
@@ -287,7 +287,7 @@ and it gives a result for each of their
 the accepted inputs, give the [declared items](sinter:#item-file=v1),
 the [edges](sinter:#tree-edge=v1), the
 [extern marks](sinter:#extern-mark=v1), and the
-[status tags](sinter:#give-status-tag-items=v1) of the tree. Under
+[status tags](sinter:identifiers#status-tag=v1) of the tree. Under
 bindings that are not valid, a conforming program gives none of the
 things that
 [`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)
@@ -1301,8 +1301,8 @@ and each character of these texts keeps the place that it comes from.
    character that comes from the place of a character of that target
    from its `=` to its end.
 7. For each accepted input whose file is the file of d and that is a
-   citation, and for each of its citation entries whose run in the text of the citation has a
-   `=`: remove each character that comes from the place of that `=`,
+   citation, and for each of its citation entries whose run in the text
+   of the citation has a `=`: remove each character that comes from the place of that `=`,
    or from the place of a character of that run after that `=`, up to
    the end of that run or, when the citation entry is an every-part
    target, up to the `#` after that `=`, which stays.
@@ -1665,8 +1665,8 @@ A tree finding of a tree, of the class that a slug c names, with a
 subject s and a spot p, is a finding whose tree is that tree, whose
 finding class is the class that c names, whose subject is s, whose spot
 is p, and that is not ackable. A tree finding has the message, the mark,
-the related messages, and the fix that the program that gives it gives,
-of those that the design Findings allows.
+the related messages, and the fix that the program that gives it gives
+as these parts of the finding.
 
 ### 4.47 Edit distance
 
