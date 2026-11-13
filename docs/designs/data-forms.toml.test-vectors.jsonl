@@ -4,11 +4,11 @@
 {"group":"omit-span","rev":"v1"}
 {"group":"reject-byte-sequence","rev":"v1"}
 {"group":"give-root-table","input":"61203d20310a","n":1,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"1"}}}}
-{"group":"give-root-table","input":"5b615d0a62203d20310a","n":2,"note":"the texts of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
-{"group":"give-root-table","input":"612e62203d20310a","n":3,"note":"the texts of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
-{"group":"give-root-table","input":"61203d207b2062203d2031207d0a","n":4,"note":"the texts of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
-{"group":"give-root-table","input":"61203d205b7b2062203d2031207d5d0a","n":5,"note":"the texts of vector lines 5 and 6 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"array":[{"table":{"b":{"integer":"1"}}}]}}}}
-{"group":"give-root-table","input":"5b5b615d5d0a62203d20310a","n":6,"note":"the texts of vector lines 5 and 6 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"array":[{"table":{"b":{"integer":"1"}}}]}}}}
+{"group":"give-root-table","input":"5b615d0a62203d20310a","n":2,"note":"the values of `input` of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
+{"group":"give-root-table","input":"612e62203d20310a","n":3,"note":"the values of `input` of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
+{"group":"give-root-table","input":"61203d207b2062203d2031207d0a","n":4,"note":"the values of `input` of vector lines 2, 3, and 4 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"table":{"b":{"integer":"1"}}}}}}
+{"group":"give-root-table","input":"61203d205b7b2062203d2031207d5d0a","n":5,"note":"the values of `input` of vector lines 5 and 6 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"array":[{"table":{"b":{"integer":"1"}}}]}}}}
+{"group":"give-root-table","input":"5b5b615d5d0a62203d20310a","n":6,"note":"the values of `input` of vector lines 5 and 6 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"array":[{"table":{"b":{"integer":"1"}}}]}}}}
 {"group":"give-root-table","input":"61203d20310a41203d20320a","n":7,"result":"valid","rev":"v1","values":{"root-table":{"A":{"integer":"2"},"a":{"integer":"1"}}}}
 {"group":"reject-byte-sequence","input":"61203d20310a226122203d20320a","n":8,"note":"the TOML keys `a` and `\"a\"` are the same key of TOML 1.1.0, so the root table already holds the text `a` before line number 2","result":"invalid","rev":"v1","values":{}}
 {"group":"give-root-table","input":"225c753030653922203d20310a22655c753033303122203d20320a","n":9,"result":"valid","rev":"v1","values":{"root-table":{"é":{"integer":"2"},"é":{"integer":"1"}}}}
@@ -26,9 +26,9 @@
 {"group":"reject-byte-sequence","input":"78203d207b20610a3d2031207d0a","n":21,"note":"a newline stands between the key `a` of the key/value pair and `=`, where TOML 1.1.0 allows only spaces and tabs","result":"invalid","rev":"v1","values":{}}
 {"group":"give-root-table","input":"78203d207b20622e63203d20312c20622e64203d2032207d0a","n":22,"result":"valid","rev":"v1","values":{"root-table":{"x":{"table":{"b":{"table":{"c":{"integer":"1"},"d":{"integer":"2"}}}}}}}}
 {"group":"give-root-table","input":"61203d205b5b7b20622e63203d2031207d5d2c205b7b20622e63203d2032207d5d5d0a","n":23,"result":"valid","rev":"v1","values":{"root-table":{"a":{"array":[{"array":[{"table":{"b":{"table":{"c":{"integer":"1"}}}}}]},{"array":[{"table":{"b":{"table":{"c":{"integer":"2"}}}}}]}]}}}}
-{"group":"give-root-table","input":"74203d2031323a33300a","n":24,"note":"the texts of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
-{"group":"give-root-table","input":"74203d2031323a33303a30300a","n":25,"note":"the texts of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
-{"group":"give-root-table","input":"74203d2031323a33303a30302e3030300a","n":26,"note":"the texts of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
+{"group":"give-root-table","input":"74203d2031323a33300a","n":24,"note":"the values of `input` of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
+{"group":"give-root-table","input":"74203d2031323a33303a30300a","n":25,"note":"the values of `input` of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
+{"group":"give-root-table","input":"74203d2031323a33303a30302e3030300a","n":26,"note":"the values of `input` of vector lines 24, 25, and 26 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00"}}}}
 {"group":"give-root-table","input":"73203d20225c7834315c65220a","n":27,"result":"valid","rev":"v1","values":{"root-table":{"s":{"string":"A\u001b"}}}}
 {"group":"reject-byte-sequence","input":"61203d2022ff220a","n":28,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
 {"group":"give-root-table","input":"61203d20393232333337323033363835343737353830370a","n":29,"result":"valid","rev":"v1","values":{"root-table":{"a":{"integer":"9223372036854775807"}}}}
@@ -48,15 +48,15 @@
 {"group":"give-root-table","input":"61203d202d696e660a","n":43,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"-inf"}}}}
 {"group":"give-root-table","input":"61203d202d6e616e0a","n":44,"result":"valid","rev":"v1","values":{"root-table":{"a":{"float":"nan"}}}}
 {"group":"give-root-table","input":"74203d2030303a30303a30302e3132333435363738393132330a","n":45,"result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"00:00:00.123456789"}}}}
-{"group":"give-root-table","input":"74203d2031323a33303a30302e350a","n":46,"note":"the texts of vector lines 46 and 47 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00.5"}}}}
-{"group":"give-root-table","input":"74203d2031323a33303a30302e35300a","n":47,"note":"the texts of vector lines 46 and 47 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00.5"}}}}
+{"group":"give-root-table","input":"74203d2031323a33303a30302e350a","n":46,"note":"the values of `input` of vector lines 46 and 47 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00.5"}}}}
+{"group":"give-root-table","input":"74203d2031323a33303a30302e35300a","n":47,"note":"the values of `input` of vector lines 46 and 47 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:30:00.5"}}}}
 {"group":"give-root-table","input":"74203d2031323a30303a36300a","n":48,"result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"12:00:60"}}}}
 {"group":"give-root-table","input":"74203d2032333a35393a36300a","n":49,"result":"valid","rev":"v1","values":{"root-table":{"t":{"local-time":"23:59:60"}}}}
 {"group":"give-root-table","input":"64203d20313630302d30322d32390a","n":50,"note":"1600 is a leap year, so February 1600 has the day 29","result":"valid","rev":"v1","values":{"root-table":{"d":{"local-date":"1600-02-29"}}}}
 {"group":"give-root-table","input":"61203d20313937392d30352d32375431323a30303a36305a0a","n":51,"result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T12:00:60+00:00"}}}}
 {"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30302d30303a30300a","n":52,"note":"the unknown local offset is not the offset 0","result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00-00:00"}}}}
-{"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30305a0a","n":53,"note":"the texts of vector lines 53 and 54 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00+00:00"}}}}
-{"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30302b30303a30300a","n":54,"note":"the texts of vector lines 53 and 54 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00+00:00"}}}}
+{"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30305a0a","n":53,"note":"the values of `input` of vector lines 53 and 54 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00+00:00"}}}}
+{"group":"give-root-table","input":"61203d20313937392d30352d32375430373a33323a30302b30303a30300a","n":54,"note":"the values of `input` of vector lines 53 and 54 give equal root tables","result":"valid","rev":"v1","values":{"root-table":{"a":{"offset-date-time":"1979-05-27T07:32:00+00:00"}}}}
 {"group":"give-root-table","input":"73203d20222222610d0a622222220a","n":55,"result":"valid","rev":"v1","values":{"root-table":{"s":{"string":"a\r\nb"}}}}
 {"group":"give-root-table","input":"73203d20272727610d0a622727270a","n":56,"result":"valid","rev":"v1","values":{"root-table":{"s":{"string":"a\r\nb"}}}}
 {"group":"give-root-table","input":"73203d20222222615c0a2020622222220a","n":57,"result":"valid","rev":"v1","values":{"root-table":{"s":{"string":"ab"}}}}
