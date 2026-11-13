@@ -49,19 +49,19 @@ and HEAD. From the page gitformat-index, it takes git's index. From the
 page git-config, it takes the configuration files of a repository, their
 order, their includes, the values of settings, and the settings
 `branch.<name>.remote`, `branch.<name>.merge`, `core.excludesFile`,
-`core.ignoreCase`, `remote.<name>.url`, and `remote.<name>.pushurl`.
-From the page gitignore, it takes the patterns of ignore files and their
-rules. From the page git-check-ref-format, it takes the rules for the
-names of refs and of branches. From the page git-fetch, it takes fetch
-refspecs, with the setting `remote.<name>.fetch`, and fetches; and from
-the page git-push, pushes. From the page githooks, it takes hooks, and
-from the page gitattributes, the files of git attributes. These are the
-versions of git's formats that the terms name: the repository format
-versions 0 and 1, with the object formats `sha1` and `sha256` and the
-ref storage formats `files` and `reftable`; packs in the pack format
-versions 2 and 3, with pack indexes in the versions 1 and 2; the
-reftable format in its versions 1 and 2; and git's index in its versions
-2 to 4.
+`core.ignoreCase`, `remote.<name>.url`, `remote.<name>.pushurl`,
+`url.<base>.insteadOf`, and `url.<base>.pushInsteadOf`. From the page
+gitignore, it takes the patterns of ignore files and their rules. From
+the page git-check-ref-format, it takes the rules for the names of refs
+and of branches. From the page git-fetch, it takes fetch refspecs, with
+the setting `remote.<name>.fetch`, and fetches; and from the page
+git-push, pushes. From the page githooks, it takes hooks, and from the
+page gitattributes, the files of git attributes. These are the versions
+of git's formats that the terms name: the repository format versions 0
+and 1, with the object formats `sha1` and `sha256` and the ref storage
+formats `files` and `reftable`; packs in the pack format versions 2 and
+3, with pack indexes in the versions 1 and 2; the reftable format in its
+versions 1 and 2; and git's index in its versions 2 to 4.
 
 From Text and notation (`text`), the design takes characters, code
 points, spaces, texts, bytes, byte sequences, 0x numerals, valid UTF-8,
@@ -116,7 +116,7 @@ design is a JSON text.
 | branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: for the ref M that the first value of `branch.<name>.merge` names, the ref whose name is the ref name to which the first fetch refspec that maps M to a ref name maps M, in the order of the fetch refspecs of the remote that the last value of `branch.<name>.remote` names, with no effect of a negative refspec; M itself when that value is `.` |
-| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one |
+| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give |
 | [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote, or from the git repository into the git repository at an address of a remote |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
@@ -1021,7 +1021,7 @@ the repository read takes no bytes.
 @cites {
     gitdoc/gitrepository-layout,
     gitdoc/gitattributes,
-        files#{folder-tree=v1, folder=v1, symbolic-link=v1},
+    files#{folder-tree=v1, folder=v1, symbolic-link=v1},
     text#{code-span=v1},
     #{
         git-folder=v1, working-tree=v1, git-configuration=v1,
@@ -1063,7 +1063,7 @@ includes, holds that value.
     gitdoc/git-config,
     gitdoc/git-fetch,
     gitdoc/git-push,
-        text#{code-span=v1},
+    text#{code-span=v1},
     #{git-configuration=v1, ref-commit=v1},
 }
 
@@ -1071,12 +1071,14 @@ A remote of a git repository is a name r for which the git configuration
 of the git repository gives a value of the setting `remote.<name>.url`
 with r for `<name>`. An address of the remote r is a value of that
 setting, or, for a push, a value of the setting `remote.<name>.pushurl`
-with r for `<name>` when that setting has one. A fetch from a remote is
-a transfer of git objects and refs into the git repository from the git
-repository at an address of the remote, as the page git-fetch defines
-fetches. A push to a remote is a transfer of git objects and refs from
-the git repository into the git repository at an address of the remote,
-as the page git-push defines pushes.
+with r for `<name>` when that setting has one, after the rewrite that
+the page git-config gives for it by the settings `url.<base>.insteadOf`
+and `url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of
+git objects and refs into the git repository from the git repository at
+an address of the remote, as the page git-fetch defines fetches. A push
+to a remote is a transfer of git objects and refs from the git
+repository into the git repository at an address of the remote, as the
+page git-push defines pushes.
 
 ## 5. Requirements
 
@@ -1532,10 +1534,11 @@ acts for it.
 
 @req run-no-configured-programs=v1
 @cites {
+    posix/2024,
     gitdoc/githooks,
     gitdoc/git-config,
     #{
-                git-configuration=v1, git-folder=v1, working-tree=v1,
+        git-configuration=v1, git-folder=v1, working-tree=v1,
         repository-read=v1, repository-file=v1, repository-value=v1,
         remote-transfer=v1,
     },
@@ -1556,17 +1559,18 @@ run, such as a filter, the command of the setting `core.fsmonitor`, or
 the command of an address `ext::<command>`. In a fetch into a git
 repository from a remote of it, or in a push from a git repository to a
 remote of it, it may still run the programs that make that fetch or push
-as the person set them up outside the git repositories, such as `ssh` or
-a credential helper, but no hook, and no program or command that a value
+as they are set up outside the git repositories, such as `ssh` or a
+credential helper, but no hook, and no program or command that a value
 from a git repository names or gives, such as the command of the setting
 `core.sshCommand` in the file `config` of the git folder. To run a
 program is to start a process from a file on the system of the program,
 or to load a file as code that runs in the process of the program; to
 run a command is to have a shell or another program carry it out; and to
 give another computer a program or a command to run, as through `ssh`,
-counts as running it. Code that runs isolated from the rest of the
-process of the program, as WebAssembly code runs in a sandbox, is not a
-program that runs in this sense.
+counts as running it, but what that computer then runs by its own setup,
+such as a hook of the git repository there, does not. Code that runs
+isolated from the rest of the process of the program, as WebAssembly
+code runs in a sandbox, is not a program that runs in this sense.
 
 ### 5.28 No symbolic link followed in a working tree
 
