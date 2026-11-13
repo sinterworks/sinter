@@ -208,3 +208,5 @@
 {"group":"give-span","input":"73203d202222220a610a622222220a","n":219,"note":"the text of the span is `\"\"\"`, a line feed, `a`, a line feed, `b\"\"\"`","result":"valid","rev":"v1","values":{"end":{"column":5,"line":3},"location":["s"],"of":"toml-value","start":{"column":5,"line":1}}}
 {"group":"give-span","input":"61202e2062203d20310a","n":220,"note":"the text of the span is `a . b`","result":"valid","rev":"v1","values":{"end":{"column":6,"line":1},"location":["a","b"],"of":"key","start":{"column":1,"line":1}}}
 {"group":"give-span","input":"61202e2062203d20310a","n":221,"note":"the text of the span is `b`","result":"valid","rev":"v1","values":{"end":{"column":6,"line":1},"index":2,"location":["a","b"],"of":"toml-key","start":{"column":5,"line":1}}}
+{"group":"omit-span","input":"5b5b615d5d0a","n":222,"note":"the table header `[[a]]` makes the table at the index 1 of the TOML array `a`","result":"valid","rev":"v1","values":{"no-span-at":["a",1]}}
+{"group":"omit-span","input":"5b785d0a612e62203d20310a","n":223,"note":"the dotted key `a.b` makes the table `a` in the table `x`","result":"valid","rev":"v1","values":{"no-span-at":["x","a"]}}
