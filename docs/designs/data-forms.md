@@ -179,17 +179,17 @@ its letters only in the same case.
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
 | [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line or of a group line holds, such as `offsets` |
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
-| [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form instead); and the need names, each with the need that it stands for |
+| [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names, each with the need that it stands for |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
 | [text of the forms of a group](sinter:#group-form-list=v1) | the text of the Conformance part of a specification, or of the Conformance section of a design, without its heading lines, its vector lines, and the line endings right after them |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
-| [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object that a vector line, a group line, or the set line holds, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
+| [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | an object with fixed members: a group object has the members `group` and `rev`, a set object has the member `rev`, and a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
 | [version](sinter:#test-vector-version-sequence=v1) | a test-vector set together with a text for each of its groups: the text of the forms of that group in the version; the elements of a version sequence are versions |
-| [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of versions, from the earliest to the latest, whose numbers and revisions change by fixed rules when the vector lines or the texts of the forms of their groups change |
+| [version sequence](sinter:#test-vector-version-sequence=v1) | a sequence of versions, from the earliest to the latest, whose revisions, and the numbers of new vector lines, follow fixed rules when the vector lines or the texts of the forms of their groups change |
 
 ## 2. Results, JSON values, and canonical forms
 
@@ -2502,11 +2502,7 @@ Each vector that the object of a vector line of the groups
 sequence and what a conforming program gives for it as a TOML document.
 The byte sequence decides which of the two groups the vector line has.
 Together, the vectors that these objects state test which byte sequences
-are TOML documents, and the root tables of TOML documents. The vectors
-that the objects of the vector lines of the group `reject-byte-sequence`
-state give byte sequences that are not valid UTF-8, byte sequences whose
-text does not match the rule `toml`, and byte sequences with a value
-error, a key error, or a structure error.
+are TOML documents, and the root tables of TOML documents.
 
 The group `give-root-table` holds the vector lines whose vectors each
 give a TOML document and its root table. The requirements of the group
@@ -3065,7 +3061,8 @@ gives for g:
    for that byte sequence; for things of which the program gives one in
    place of another, such as a line and the text of that line; and for
    a thing that the program does not give. The forms can also give no
-   fixed form for `values`;
+   fixed form for `values`; then no value of `values` has a fixed form,
+   and the forms need not say what such a value stands for;
 5. the need names of S, each a text that matches the production
    `group-name`, and for each need name, the need that it stands for: a
    condition on the environment in which a conforming program of S
@@ -3093,8 +3090,10 @@ These definitions give the Conformance part of S:
   `#### 4.1 Inputs`, and that is in no block of lines that lines of
   three backticks open and close, with the blocks counted from the
   first line of the text, as in the term `code-span`.
+- The declaration line of S is the line of the text of the design that
+  starts with `@spec`, a space, the name of S, and `=`.
 - The section of S is the run of the text of the design from the
-  heading line right before the tag line `@spec` of S up to the start of
+  heading line right before the declaration line of S up to the start of
   the next heading line with as many `#` as that heading line, or fewer,
   or up to the end of the text.
 - The Conformance part of S is the run of the section of S from the
@@ -3108,14 +3107,14 @@ requirements that S declares, with the need names of D in place of the
 need names of S, and with a conforming program of D in place of a
 conforming program of S. The Conformance section of D is the run of the
 text of the design from the start of the line right after its last
-heading line with two `#` up to the end of the text, unless the tag line
-`@spec` of a specification of D comes right after that heading line;
-then D has no Conformance section, and no group has forms of D. The text
-of the forms of g of S, or of D, is the text of the Conformance part of
-S, or of the Conformance section of D, without its heading lines,
-without each line whose UTF-8 encoding, then the byte 0x0A, is a vector
-line, and without the line ending right after each heading line and each
-such line.
+heading line with two `#` up to the end of the text, unless the
+declaration line of a specification of D comes right after that heading
+line; then D has no Conformance section, and no group has forms of D.
+The text of the forms of g of S, or of D, is the text of the Conformance
+part of S, or of the Conformance section of D, without its heading
+lines, without each line whose UTF-8 encoding, then the byte 0x0A, is a
+vector line, and without the line ending right after each heading line
+and each such line.
 
 #### 8.1.8 The meaning of a vector
 
@@ -3150,9 +3149,6 @@ group g, the object of a vector line that states a vector states this:
 
 - The input of the vector is what the value of `input` stands for: one
   input of a conforming program of S, or of D, or several.
-- The value of `result` is the text of a result, without the double
-  quotes that a requirement writes around that result, such as `valid`
-  for the result "valid".
 - The needs of the vector are the needs that the forms of the group g
   give for the strings of the value of `needs`. A string for which these
   forms give no need stands for no need, and a skip of a vector because
@@ -3161,20 +3157,21 @@ group g, the object of a vector line that states a vector states this:
   member `needs` states has no needs.
 - When the object has the member `result` and the forms name a question
   for `result`, the requirements of the group g oblige a conforming
-  program of S, or of D, to give the result whose text is the value of
-  `result`, and no other result, as its result for the question that the
-  forms name for `result`, about the input, or the inputs together, that
-  the forms name for that question, whenever the conditions hold that
-  the forms name for that result and each need of the vector holds; when
-  the forms name no condition and the vector has no needs, they oblige
-  it always. The object states nothing about a result for another
-  question, or for another of these inputs, other than what the value of
-  `values` stands for. When the forms name no question for `result`, the
-  value of `result` states nothing.
-- When the object has the member `values`, the requirements of the
-  group g oblige a conforming program of S, or of D, to give, for the
-  input of the vector, what the value of `values` stands for, whenever
-  each need of the vector holds.
+  program of S, or of D, to give the result that is the value of
+  `result`, such as `valid` for the result "valid", and no other result,
+  as its result for the question that the forms name for `result`, about
+  the input, or the inputs together, that the forms name for that
+  question, whenever the conditions hold that the forms name for that
+  result and each need of the vector holds; when the forms name no
+  condition and the vector has no needs, they oblige it always. The
+  object states nothing about a result for another question, or for
+  another of these inputs, other than what the value of `values` stands
+  for. When the forms name no question for `result`, the value of
+  `result` states nothing.
+- When the object has the member `values`, the requirements of the group
+  g oblige a conforming program of S, or of D, to give, or not to give,
+  for the input of the vector, what the value of `values` stands for,
+  whenever each need of the vector holds.
 - An object without the member `result` states no result other than
   those that the value of `values` stands for. An object without the
   member `values` states nothing about what a conforming program gives
