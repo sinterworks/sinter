@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger when an agent runs them, on the judgments that they append, and on the use of declared tasks.
+Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger and the repairs that they make when an agent runs them, on the judgments that they append and the repairs that they make, and on the use of declared tasks.
 
 Sinter traces the items of a repository, such as items of the kind
 design, specification, and requirement, terms, decision records, tests,
@@ -145,11 +145,11 @@ meaning of a vector.
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
-| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a clone can also pull the ledger entries, voids included, of another clone, and push its own ledger entries to another clone; pulls and pushes are neither appending nor repairs |
+| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries takes the ledger entries, voids included, of another clone into a clone, and a push of ledger entries gives the ledger entries of a clone to another clone; neither is appending |
 | [point of a ledger](sinter:#ledger=v1) | a point between two ledger entries, before the first, or after the last |
 | [ledger entry](sinter:#ledger-entry=v1) | a record of one event in the ledger, such as one approval |
 | [writer of a ledger entry](sinter:#ledger-entry=v1) | the person, the agent, or the job that a ledger entry records as the one that wrote it |
-| [repair](sinter:#repair=v1) | a write to the ledger of a repository, other than an append, a pull, or a push, that removes zero or more ledger entries and puts one void where each of them was |
+| [repair](sinter:#repair=v1) | a write to the ledger of a repository, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void where each of them was |
 | [void](sinter:#repair=v1) | a ledger entry that stands where a ledger entry that a repair removed was |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
 | [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
@@ -609,30 +609,28 @@ A commit gives its link to a task in a line of its message:
 The ledger of a repository is a sequence of ledger entries. Each ledger
 entry other than a void is appended at the end of the ledger of one
 clone of the repository: after each ledger entry that is in that ledger
-at that time. Pulls and pushes bring it into the ledgers of other
-clones. Of two ledger entries
-that were appended to one ledger, the one that was appended later comes
+at that time. Pulls of ledger entries and pushes of ledger entries
+bring it into the ledgers of other clones. Of two ledger entries that
+were appended to one ledger, the one that was appended later comes
 later in the order of the ledger, whatever times the ledger entries
 record. A void stands where a ledger entry that a repair removes was.
 
-A clone of the repository can pull the ledger entries, voids included,
-that the ledger of another clone has, and it can push its own ledger
-entries to another clone. A pull puts the ledger entries that it takes
-first. After them, it puts each ledger entry of the clone that the
-ledger of the other clone does not have, as the same ledger entry, or it
-drops that ledger entry. Pulls and pushes are not appending.
+A clone of the repository takes the ledger entries of another clone by
+a pull of ledger entries, and gives its ledger entries to another clone
+by a push of ledger entries, as the term `ledger` says. Neither is
+appending.
 
 A point of a ledger is given by the ledger entries before it: the first
 n ledger entries of the ledger, for a whole number n of 0 or more. The
 point of a ledger entry is the point right before it. A state that
 depends on ledger entries is a state at a point of a ledger.
 
-A repair is a write to the ledger of a repository, other than an
-append, a pull, or a push, that removes zero or more ledger entries from
-the ledger. For each ledger entry that it removes, it puts one void
-where the removed ledger entry was: a ledger entry that records the
-removal and its reason. A removed ledger entry is no longer in the
-ledger, so no state follows from it.
+A repair is a write to the ledger of a repository, other than an append,
+a pull of ledger entries, or a push of ledger entries, that removes zero
+or more ledger entries from the ledger. For each ledger entry that it
+removes, it puts one void where the removed ledger entry was: a ledger
+entry that records the removal and its reason. A removed ledger entry is
+no longer in the ledger, so no state follows from it.
 
 A ledger entry records one event, such as one approval that a person
 gave, or one observation of the job. Each ledger entry also records its
@@ -805,8 +803,8 @@ program appends a judgment, or makes a repair, only to record a decision
 that a person gives it by a confirmation that the standard input, the
 arguments, and the environment of the program cannot give (section 4.5).
 A conforming program changes the ledger only by appending ledger
-entries, by making repairs, and by pulls and pushes of ledger entries,
-voids included, between clones of the repository (section 4.3). So
+entries, by making repairs, and by pulls of ledger entries and pushes
+of ledger entries between clones of the repository (section 4.3). So
 when an agent changes the ledger of each git repository only through a
 conforming program whose input says that an agent runs it, a statement
 of the agent changes a state only in one of these two ways (sections
@@ -1514,27 +1512,29 @@ one ledger, the one that was appended later comes later in the order of
 the ledger, whatever times the two ledger entries record. A point of a
 ledger is given by the ledger entries before it: the first n ledger
 entries of the ledger, for a whole number n of 0 or more. The point of a
-ledger entry is the point right before it. A clone of the repository can
-also pull the ledger entries, `void` ledger entries included, that the
-ledger of another clone has, and push its own ledger entries to another
-clone. A pull puts the ledger entries that it takes first; after them,
-it puts each ledger entry of the clone that the ledger of the other
-clone does not have, as the same ledger entry, or it drops that ledger
-entry. Pulls and pushes of ledger entries between clones are not
-appending.
+ledger entry is the point right before it. In a pull of ledger entries,
+a clone of the repository takes the ledger entries, `void` ledger
+entries included, that the ledger of another clone has, and puts them
+first in its ledger; after them, it can put ledger entries that its
+ledger had, other than those that it takes, each as the same ledger
+entry, and the others of these ledger entries leave its ledger. In a
+push of ledger entries, a clone puts the ledger entries of its ledger
+that the ledger of another clone does not have after the ledger entries
+of the ledger of the other clone. Pulls of ledger entries and pushes of
+ledger entries are not appending.
 
 ### 3.43 Repairs and voids
 
 @term repair=v1
 @cites #{ledger=v1, ledger-entry=v1}
 
-A repair is a write to the ledger of a repository, other than an
-append, a pull, or a push, that removes zero or more ledger entries from
-that ledger, and that puts one `void` ledger entry, a void, for each
-ledger entry that it removes, where that ledger entry was: after each
-ledger entry that came before the removed one, and before each ledger
-entry that came after it. A void records that a repair removed one
-ledger entry, and the reason for the removal.
+A repair is a write to the ledger of a repository, other than an append,
+a pull of ledger entries, or a push of ledger entries, that removes zero
+or more ledger entries from that ledger, and that puts one `void` ledger
+entry, a void, for each ledger entry that it removes, where that ledger
+entry was: after each ledger entry that came before the removed one, and
+before each ledger entry that came after it. A void records that a
+repair removed one ledger entry, and the reason for the removal.
 
 ### 3.44 Definition entries
 
@@ -1938,8 +1938,8 @@ while the program runs.
 }
 
 A conforming program must change the ledger only by appending ledger
-entries, by making repairs, and by pulls and pushes of ledger entries,
-voids included, between clones of the repository.
+entries, by making repairs, and by pulls of ledger entries and pushes of
+ledger entries between clones of the repository.
 
 ### 4.4 The ledger entries that agents write
 
