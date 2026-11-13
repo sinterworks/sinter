@@ -474,8 +474,11 @@ path has no file grammar, the reading gives the result "no grammar".
 The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
 text with the usable grammar. tree-sitter 0.26.13 can give no parse
-tree. When the code of the grammar exhausts the call stack, whether the
-text has a parse tree can differ between conforming programs. When the
+tree. The program ends the code of the grammar, as it does the code of
+an adapter: it can stop that code when it goes past limits of its own,
+and the reading then gives "parse failure" with no failure node. When
+the code of the grammar exhausts the call stack, whether the text has a
+parse tree can differ between conforming programs. When the
 parse tree has an `ERROR` node or a `MISSING` node, the error flag of
 its root node, which `Node::has_error` gives, is set. A `MISSING` node
 takes up no text. A `MISSING` node of a hidden token is in no list of
@@ -886,7 +889,11 @@ with its crate features `runtime`, `std`, `gc`, `gc-drc`, and
 `cranelift`, and so with the Cranelift compiler. A wasmtime engine is
 made with a `Config` of that crate whose settings have their default
 values. With these settings, wasmtime 36.0.19 does not change a NaN that
-code gives into one canonical NaN.
+code gives into one canonical NaN. An `Engine` whose `Config` differs
+only by settings with which a program can stop code, such as fuel or
+epoch interruption, is also a wasmtime engine: such a stop is a choice
+of the program, and each outcome with a wasmtime engine is the outcome
+when the program makes no stop.
 
 ### 4.8 Usable grammars
 
@@ -2645,9 +2652,11 @@ program must give no text as the pack hash of that pack.
 When a conforming program gives a result for whether a pack is valid, in
 a use of that pack during which no other process changes a file of the
 folder tree of the pack, it must give exactly one result: "valid" when
-the pack is valid, and "invalid" when it is not; when the code of a
-grammar of the pack exhausts the call stack, or gives a result that
-depends on the bits of a NaN, the program can give either result.
+the pack is valid, and "invalid" when it is not, except that it gives
+"invalid" when it stops the code of a grammar of the pack, a choice that
+it can make for limits of its own, and that it can give either result
+when that code exhausts the call stack or gives a result that depends on
+the bits of a NaN.
 
 ### 7.9 The values of the descriptor of a valid pack
 
@@ -2700,9 +2709,11 @@ When a conforming program gives a result of a reading of a text, as the
 text of a file at a valid path, with a valid pack, in a use of that pack
 during which no other process changes a file of the folder tree of the
 pack, it must give exactly one result, the result of that reading: "no
-grammar", "parse failure", or "parsed"; when the code of the grammar
-exhausts the call stack, or gives a result that depends on the bits of
-a NaN, the program can give either "parse failure" or "parsed".
+grammar", "parse failure", or "parsed", except that it gives "parse
+failure" when it stops the code of the grammar, a choice that it can
+make for limits of its own, and that it can give either "parse failure"
+or "parsed" when that code exhausts the call stack or gives a result
+that depends on the bits of a NaN.
 
 ### 7.12 The nodes of readings
 
@@ -2844,7 +2855,18 @@ whose imports give that code no means to take bytes from a file, to
 write a file or the output of the process, to use a network, to read a
 clock, or to start a process.
 
-### 7.20 No symbolic link followed in a pack
+### 7.20 Code of grammars that ends
+
+@req end-grammar-code=v1
+@cites {
+    text#{conforming-program=v1, text=v1},
+    #{pack=v1, valid-pack=v1, reading-of-a-text=v1},
+}
+
+A conforming program must end the code of a grammar that it runs, in
+each reading of a text and in each decision whether a pack is valid.
+
+### 7.21 No symbolic link followed in a pack
 
 @req follow-no-pack-links=v1
 @cites {files#{folder-tree=v1, symbolic-link=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2853,7 +2875,7 @@ In each use of a pack, a conforming program must follow no symbolic
 link that is a file of the folder tree of the pack: it must find no file
 by the reference of such a symbolic link.
 
-### 7.21 Bytes only from the folders and the regular files of a pack
+### 7.22 Bytes only from the folders and the regular files of a pack
 
 @req read-only-pack-files=v1
 @cites {
@@ -2866,7 +2888,7 @@ In each use of a pack, a conforming program must take bytes from the
 files of the folder tree of the pack only from its folders and from its
 regular files.
 
-### 7.22 No wait for another process in a pack
+### 7.23 No wait for another process in a pack
 
 @req avoid-pack-waits=v1
 @cites {files#{folder-tree=v1, file-of-another-kind=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
@@ -2876,7 +2898,7 @@ process or for a device to act on a file of another kind that is a file
 of the folder tree of the pack, such as for a process to open the other
 end of a pipe.
 
-### 7.23 No change to the files of a pack
+### 7.24 No change to the files of a pack
 
 @req keep-packs-unchanged=v1
 @cites {
@@ -2895,7 +2917,7 @@ file of another kind, or an attribute of a file, other than by a change
 that the file system makes by itself when the program uses that file,
 such as a change of the time of last access.
 
-### 7.24 No permission or privilege that the process did not have
+### 7.25 No permission or privilege that the process did not have
 
 @req gain-no-pack-privileges=v1
 @cites {
@@ -2933,10 +2955,10 @@ These requirements that the design holds directly have no vectors:
 `omit-readings-for-invalid-packs`, `give-reading-results`,
 `give-reading-nodes`, `give-reading-node-values`,
 `omit-nodes-of-unparsed-readings`, `give-failure-runs`,
-`omit-failure-runs`, `isolate-grammars`, `follow-no-pack-links`,
-`read-only-pack-files`, `avoid-pack-waits`, `keep-packs-unchanged`, and
-`gain-no-pack-privileges`. No vector of this file holds a valid pack or
-a reading.
+`omit-failure-runs`, `isolate-grammars`, `end-grammar-code`,
+`follow-no-pack-links`, `read-only-pack-files`, `avoid-pack-waits`,
+`keep-packs-unchanged`, and `gain-no-pack-privileges`. No vector of this
+file holds a valid pack or a reading.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
@@ -3011,32 +3033,37 @@ these conditions hold:
 A check of the vectors makes such a stored folder tree for each vector
 whose input is a pack. A need of a vector is a condition on the file
 system that stores its folder tree, which a check of the vectors can be
-unable to make hold. These are the need names of this design, in key
-order, each with the need that it stands for and when a vector has it:
+unable to make hold on a POSIX.1-2024 system, or on macOS with its
+default file system, APFS. These are the need names of this design, in
+key order, each with the need that it stands for and when a vector has
+it:
 
 - `case-distinct-names`: the folder tree is on a file system on which
   two entry names that differ only in the case of ASCII letters name two
-  different files. A vector has this need when two entry names of one
-  folder of its folder tree differ only in the case of ASCII letters,
-  such as `README.md` and `readme.md`.
+  different files. POSIX.1-2024 keeps the identities of upper-case and
+  lower-case letters in filenames, but APFS ignores the case of letters
+  when it looks up a name. A vector has this need when two entry names
+  of one folder of its folder tree differ only in the case of ASCII
+  letters, such as `README.md` and `readme.md`.
 - `long-names`: the folder tree is on a file system that allows each
   entry name of the folder tree, with all its bytes. A vector has this
   need when an entry name of its folder tree has more than 14 bytes:
   `{_POSIX_NAME_MAX}`, 14, is the least value that POSIX.1-2024 allows
   for `{NAME_MAX}`, the greatest number of bytes in a filename.
 - `names-kept`: the folder tree is on a file system that keeps each
-  entry name of the folder tree as the check makes it, byte for byte:
-  for example, the file system does not change an entry name into a
-  decomposed form of Unicode normalization. A vector has this need when
-  an entry name of its folder tree is valid UTF-8 and holds a byte of
-  0x80 or more.
+  entry name of the folder tree as the check makes it, byte for byte. A
+  vector has this need when an entry name of its folder tree is valid
+  UTF-8 and holds a byte of 0x80 or more. Such a name is not a portable
+  filename, so a system can refuse it by the rule of [EILSEQ] that
+  `non-portable-names` states, and some file systems change it, such as
+  into a decomposed form of Unicode normalization.
 - `non-portable-names`: the folder tree is on a file system on which
   the check can make each entry name of the folder tree that is not a
   portable filename. A portable filename, as POSIX.1-2024 defines it, is
   a filename of characters of the portable filename character set: `A`
   to `Z`, `a` to `z`, `0` to `9`, `.`, `_`, and `-`. By POSIX.1-2024,
-  `open()` with `O_CREAT`, `mkdir()`, `mkfifo()`, and `symlink()` fail
-  with [EILSEQ] when the last component of the pathname is not a
+  `open()` with `O_CREAT`, `mkdir()`, `mkfifo()`, and `symlink()` shall
+  fail with [EILSEQ] when the last component of the pathname is not a
   portable filename and cannot be created in the target directory. A
   vector has this need when an entry name of its folder tree holds a
   byte that is not the byte of one of these characters, such as a space,
@@ -3046,7 +3073,8 @@ order, each with the need that it stands for and when a vector has it:
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
   entry name of the folder tree that is not valid UTF-8 as the check
   makes it, byte for byte. A vector has this need when an entry name of
-  its folder tree is not valid UTF-8.
+  its folder tree is not valid UTF-8. Such a name is not a portable
+  filename, and APFS refuses it.
 
 A vector has the member `needs` when, and only when, it has one or more
 of these needs, and the member names each need of the vector and no
