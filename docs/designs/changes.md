@@ -27,11 +27,11 @@ Specifies, for git repositories, the git folder, commits and the commits that th
 Sinter reads git repositories. A git repository holds commits. Each
 commit names its parents and a git tree object, which holds files.
 Branches point to commits. The default branch is the branch into which
-work on the repository merges. A change is a set of commits that is to
-merge into the default branch as one unit, such as the commits of a pull
-request. Two trees, such as the tree of the base of the change of a
-commit and the tree of that commit, can differ in some of their lines:
-the hunks.
+the people who work on the repository bring their work. A change is a
+set of commits that is to merge into the default branch as one unit,
+such as the commits of a pull request. Two trees, such as the tree of
+the base of the change of a commit and the tree of that commit, can
+differ in some of their lines: the hunks.
 
 The design takes the formats of a git repository from git's
 documentation of them. From the page gitrepository-layout, it takes the
@@ -54,9 +54,13 @@ ignore files and their rules. From the page git-check-ref-format, it
 takes the rules for the names of refs and of branches. From the page
 git-fetch, it takes fetch refspecs, with the setting
 `remote.<name>.fetch`. From the page githooks, it takes hooks, and from
-the page gitattributes, the files of git attributes. Git 2.50.2 is the
-oldest version of git whose formats hold the facts that the design
-relies on.
+the page gitattributes, the files of git attributes. The design relies
+on these versions of git's formats: the repository format versions 0 and
+1, with the object formats `sha1` and `sha256` and the ref formats
+`files` and `reftable`; the packs and pack indexes that the page
+gitformat-pack gives for these object formats; and git's index in its
+versions 2 to 4. Git 2.50.2 is the oldest version of git whose formats
+hold the facts that the design relies on.
 
 From Text and notation (`text`), the design takes characters, code
 points, spaces, texts, bytes, byte sequences, 0x numerals, valid UTF-8,
@@ -121,7 +125,7 @@ design is a JSON text.
 | jj | Jujutsu, a version control program that can keep its data in a git repository |
 | colocated jj repository | a git repository whose working tree also holds the folder `.jj`, in which jj keeps its data |
 | [branch name](sinter:#branch-name=v1) | a text b that meets the eight conditions of the term, such as `main` or `release/2.0`: the rules of the page git-check-ref-format for `refs/heads/` followed by b, not `HEAD`, no leading `-`, and no leading `refs/` |
-| [default branch](sinter:ontology#default-branch=v1) | the branch into which work on a repository merges |
+| [default branch](sinter:ontology#default-branch=v1) | the branch into which the people who work on a repository bring their work |
 | [commit of the default branch](sinter:#default-branch-commit=v1) | under a binding of `default-branch-name` that is a branch name b, the commit of the first of three refs that exists: the upstream of the branch b, the branch b, and the remote-tracking branch of `origin` for b |
 | [parameter](sinter:ontology#parameter=v1), binding | a parameter is a word, such as `default-branch-name`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for it |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or in a working tree |
@@ -211,9 +215,10 @@ No file whose first file name is `.jj`, such as a file under the folder
 
 Each commit has zero or more parents, in an order. The first of them is
 its first parent. Git makes a commit with two or more parents when a
-person merges branches. A commit reaches itself, each of its parents,
-each parent of each of them, and so on. The ancestry of a commit is the
-set of the commits that it reaches.
+person joins the histories of two or more branches in one commit. A
+commit reaches itself, each of its parents, each parent of each of them,
+and so on. The ancestry of a commit is the set of the commits that it
+reaches.
 
 The range from a commit s to a commit h is the set of the commits that h
 reaches and that s does not reach. The range from no commit to h is the
@@ -264,7 +269,7 @@ a remote-tracking branch. The first value of the setting
 `branch.<name>.merge` names a ref of a remote, and the setting
 `branch.<name>.remote` names that remote. The fetch refspecs of the
 remote, the settings `remote.<name>.fetch`, map that ref to the
- So the refspec
+upstream. So the refspec
 `+refs/heads/*:refs/remotes/origin/*` maps `refs/heads/main` to
 `refs/remotes/origin/main`.
 
@@ -304,9 +309,10 @@ holds no commit. When the commit of the default branch is the commit on
 which a pull request is to merge, the change of the last commit of the
 pull request holds the commits of that pull request. In a
 working tree, the commit h is often the head commit. When a person
-merges the default branch into the branch of a pull request, no commit
-of the default branch joins the change of its last commit, because the
-commit of the default branch reaches each such commit.
+makes, on the branch of a pull request, a commit whose second parent is
+the commit of the default branch, no commit of the default branch joins
+the change of the last commit of the pull request, because the commit of
+the default branch reaches each such commit.
 
 A common ancestor of two commits is a commit that both of them reach. A
 merge base of two commits is a common ancestor that no other common
@@ -333,9 +339,10 @@ example, the commits `b` and `c` each have the parent `a`. The commit
 The first-parent line of a commit is the commit, its first parent, the
 first parent of that commit, and so on, up to a commit that has no
 parent. A merge commit, as git names it, is a commit with two or more
-parents. When a person merges a change with a merge commit, git makes
-the commit to which the default branch pointed the first parent of the
-merge commit, and the last commit of the change its second parent. So
+parents. When a person brings the work of a change into the default
+branch with a merge commit, git makes the commit to which the default
+branch pointed the first parent of the merge commit, and the last commit
+of the change its second parent. So
 the first-parent line of the commit of the default branch passes
 through each merge
 commit of a merge into it, and not through the commits of the merged
@@ -528,9 +535,13 @@ no commit.
 @cites {gitdoc/gitrepository-layout, files#{folder=v1}, text#{code-span=v1}}
 
 The git folder of a git repository is its common folder, as the page
-gitrepository-layout defines the common folder. It holds
-the object database of the git repository, its refs other than the refs
-of one working tree, and its file `config`.
+gitrepository-layout defines the common folder. It holds the object
+database of the git repository, its refs other than the refs of one
+working tree, and its file `config`. Its file `config` gives the
+repository format version, 0 or 1, and, in version 1, the extensions of
+the repository, as the page gitrepository-layout gives them: the object
+format, `sha1` or `sha256`, and the format of refs, `files` or
+`reftable`.
 
 ### 4.2 Working trees
 
@@ -643,9 +654,10 @@ starts with `refs/replace/`, has an effect on them.
 }
 
 The text of the message of a commit is the text of the byte sequence of
-that message, when that byte sequence is valid UTF-8. A message whose
-byte sequence is not valid UTF-8 has no text. The header `encoding` of
-the commit object has no effect on the text of its message.
+that message, when that byte sequence is valid UTF-8. The message of a
+commit whose byte sequence is not valid UTF-8 has no text. The header
+`encoding` of the commit object has no effect on the text of its
+message.
 
 ### 4.6 Ancestry
 
@@ -1058,21 +1070,14 @@ has no diff.
 @cites {
     ontology#{tree=v1},
     files#{path=v1},
-    #{
-        working-tree=v1, commit=v1, ancestry=v1, ref-commit=v1,
-        head-commit=v1, default-branch-commit=v1, commit-file=v1,
-        working-tree-file=v1, commit-range=v1, parents-first-order=v1,
-        change-of-a-commit=v1, merge-base=v1, change-base=v1,
-        first-parent-line=v1, landing-commit=v1, message-text=v1,
-        line-map=v1, hunk=v1, change-diff=v1, new-line-number=v1},
+    #{working-tree=v1, commit=v1, hunk=v1},
 }
 
-A repository read is an operation in which a program takes bytes from a
-git repository, from a working tree of it, or from the files of its git
-configuration, such as to give the commit of the default branch, the
-files of the tree of a working tree, or the hunks between the tree of a
-commit and the tree of a working tree, or to find whether a working tree
-holds changes.
+A repository read is an operation that a program makes to give, from a
+git repository or from a working tree of it, one or more things that a
+term of this design defines, such as a commit, the files of a tree, or
+the hunks of a valid path, also when the program gives another thing in
+it, or nothing.
 
 ### 4.27 Undisturbed repository reads
 
@@ -1137,9 +1142,10 @@ parents of that commit, in their order.
 }
 
 When it gives the text of the message of a commit of a git repository,
-or gives that the message has no text, in an undisturbed repository
-read, a conforming program must give the text of that message when the
-message has a text, and give that it has no text when it has none.
+or gives that the message of that commit has no text, in an undisturbed
+repository read, a conforming program must give the text of the message
+of that commit when it has a text, and give that it has no text when it
+has none.
 
 ### 5.5 The commits of refs
 
@@ -1396,19 +1402,16 @@ obligation holds in an undisturbed repository read.
 
 @req use-one-line-map=v1
 @cites {
-    #{
-        line-map=v1, hunk=v1, repository-read=v1, working-tree=v1,
-        git-configuration=v1, ignored-path=v1,
-    },
+    #{line-map=v1, hunk=v1, new-line-number=v1},
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1, line-number=v1},
+    text#{conforming-program=v1},
 }
 
-When a conforming program gives hunks of a valid path p between an old
-tree and a new tree, new line numbers of old lines of p between those
-trees, or both, it must give all of them for one line map of p between
-those trees.
+When, in one execution, a conforming program gives hunks of a valid path
+p between an old tree and a new tree, new line numbers of old lines of p
+between those trees, or both, it must give all of them for one line map
+of p between those trees.
 
 ### 5.20 The diff of the change of a commit
 
@@ -1451,9 +1454,9 @@ in an object database that the files `objects/info/alternates` name, in
 turn, in the folder of a working tree of it, or in the folder tree whose
 root is the root folder of such a working tree, and must not create,
 delete, or change a file of the git configuration, the excludes file, or
-a file that it reads in that repository read, other than by a change
-that the file system makes by itself when the program uses a file, such
-as a change of the time of last access.
+a file that it reads in that repository read, other than when the file
+system itself changes an attribute of a file that the program uses, such
+as its time of last access.
 
 ### 5.22 Git objects only from the repository
 
@@ -1505,8 +1508,8 @@ its libraries.
 In each repository read, a conforming program must use only the
 permissions and the appropriate privileges, as POSIX.1-2024 defines
 these, such as a capability on a system that gives capabilities to
-processes, that its process has without a change by the program: not
-one that it gets by a change of the user IDs, the group IDs, or the
+processes, that its process has when the program does not change them:
+not one that it gets by changing the user IDs, the group IDs, or the
 appropriate privileges of its process, or through another process that
 acts for it.
 
@@ -1524,15 +1527,20 @@ acts for it.
     text#{conforming-program=v1, code-span=v1},
 }
 
-In each repository read, a conforming program, itself or through any
-program that it uses, must run none of these: a program that is a file
-in the git folder of the git repository, in an object database that the
-files `objects/info/alternates` name, in turn, or in a working tree of
-it, such as a hook that the page githooks defines; a program or command
-that the git configuration or such a file names or gives, such as a
-filter, a diff driver, or the command of the setting `core.fsmonitor`;
-and a program that runs because of a setting of the git configuration,
-such as `gpg` for the setting `log.showSignature`.
+In each execution of a program in which it makes a repository read, a
+conforming program, itself or through any program that it uses, must
+run none of these: a program that is a file in the git folder of the git
+repository, in an object database that the files
+`objects/info/alternates` name, in turn, or in a working tree of it,
+such as a hook that the page githooks defines; a program or command that
+the git configuration or such a file names or gives, such as a filter, a
+diff driver, or the command of the setting `core.fsmonitor`; and a
+program that runs because of a setting of the git configuration, such
+as `gpg` for the setting `log.showSignature`. To run a program is to
+start a process from a file, or to load a file as native code into the
+process of the program. Code that runs isolated from the process of the
+program, as WebAssembly code runs in a sandbox, is not a program that
+runs in this sense.
 
 ### 5.26 No symbolic link followed in a working tree
 
@@ -1556,9 +1564,13 @@ find no file by the reference of such a symbolic link.
 
 @req avoid-working-tree-waits=v1
 @cites {
-    #{working-tree=v1, repository-read=v1},
+    gitdoc/gitrepository-layout,
+    #{
+        git-folder=v1, working-tree=v1, git-configuration=v1,
+        ignored-path=v1, repository-read=v1,
+    },
     files#{file-of-another-kind=v1},
-    text#{conforming-program=v1},
+    text#{conforming-program=v1, code-span=v1},
 }
 
 In each repository read, a conforming program, itself or through any
@@ -1649,11 +1661,12 @@ The JSON object of a vector line has these members:
   none of the things that the subsection names for `values`.
 - `needs`: the needs of the vector, as a JSON array of one or more need
   names, each a JSON string, in code point order. A need is a condition
-  of the run of a vector that a runner can be unable to make true. The
-  need names of the file are `names-kept` and `non-utf-8-names`, and the
-  subsection of the group `working-tree-files` says what each need is
-  and when a vector has it. Only vectors of that group have needs. A
-  vector has this member only when it has a need.
+  under which the program operates and which a check of the vectors can
+  be unable to make true. The need names of the file are `names-kept`
+  and `non-utf-8-names`, and the subsection of the group
+  `working-tree-files` says what each need is and when a vector has it.
+  Only vectors of that group have needs. A vector has this member only
+  when it has a need.
 - `note`: an explanation of the vector, as a JSON string, which a
   conforming program does not give. A vector has this member only when
   it has an explanation.
@@ -1664,9 +1677,10 @@ revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
 vectors that it covers change, join, or leave. When the text of this
-section changes, the revisions of every vector, every group, and the set
-rise. When only the note or the needs of a vector change, no revision
-rises. A program does not need the revisions to run the vectors.
+section, other than its headings and the vector lines that it shows,
+changes, the revisions of every vector, every group, and the set rise.
+When only the note or the needs of a vector change, no revision rises. A
+program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
@@ -1829,26 +1843,26 @@ working tree, the paths that git's index holds, the paths that are
 ignored, and the valid paths of the files of the tree of the working
 tree.
 
-- `input`: a JSON object with three members. `tree` is the folder tree
-  whose root is the root folder of the working tree, as a folder tree.
-  In it, each folder whose entry name is `.git` holds no folder entry,
-  and a regular file whose entry name is `.git` has an empty content:
-  the vector leaves out the files inside such a folder, such as the
-  files of the git folder, and the content of such a regular file, which
-  names a git folder. A runner gives these files and this content as the
-  git repository of the working tree needs them. The members `tracked`
-  and `ignored` give what the result needs of them. `tracked` is the set
-  of the valid paths whose UTF-8 encodings are the paths of the entries
-  of git's index of the working tree, as a set of texts. `ignored` is
-  the set of the valid paths of the regular files of the folder tree
-  that are ignored in the working tree, as a set of texts. It can hold a
-  path that `tracked` also holds. The input stands for a repository read
-  of the working tree during which a file system stores the folder tree
-  of `tree`, as a [stored folder
+- `input`: a JSON object with three members. `folder-tree` is the folder
+  tree whose root is the root folder of the working tree, as a folder
+  tree. In it, each folder whose entry name is `.git` holds no folder
+  entry, and a regular file whose entry name is `.git` has an empty
+  content: the vector leaves out the files inside such a folder, such as
+  the files of the git folder, and the content of such a regular file,
+  which names a git folder. A check of the vectors gives these files and
+  this content as the git repository of the working tree needs them. The
+  members `tracked` and `ignored` give what the result needs of them.
+  `tracked` is the set of the valid paths whose UTF-8 encodings are the
+  paths of the entries of git's index of the working tree, as a set of
+  texts. `ignored` is the set of the valid paths of the regular files of
+  the folder tree that are ignored in the working tree, as a set of
+  texts. It can hold a path that `tracked` also holds. The input stands
+  for a repository read of the working tree during which a file system
+  stores the folder tree of `folder-tree`, as a [stored folder
   tree](sinter:files#stored-folder-tree=v1), for the process of the
   program, apart from the files and the contents that the vector leaves
-  out. When the root folder of `tree` holds no folder entry `.git`, the
-  git folder of the working tree is outside the folder tree.
+  out. When the root folder of `folder-tree` holds no folder entry
+  `.git`, the git folder of the working tree is outside the folder tree.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `paths`: the set of the valid
   paths of the files of the tree of the working tree.
@@ -1860,24 +1874,24 @@ other. The content of each file is the content of its
 regular file.
 
 These are the need names of the file, what each need is, and when a
-vector has it. A runner can skip a vector only when it cannot make true
-a need that the member `needs` of the vector names, and it then reports
-the number of the vector and that need.
+vector has it. A check of the vectors can skip a vector only when it
+cannot make true a need that the member `needs` of the vector names, and
+it then reports the number of the vector and that need.
 
 - `names-kept`: the folder tree is on a file system that keeps each
-  entry name of the folder tree as the runner makes it, byte for byte,
-  such as a file system that does not change an entry name into a
-  decomposed form of Unicode normalization. A vector has this need when
-  an entry name of its folder tree is valid UTF-8 and holds a byte of
-  0x80 or more.
+  entry name of the folder tree as the check of the vectors makes it,
+  byte for byte, such as a file system that does not change an entry
+  name into a decomposed form of Unicode normalization. A vector has
+  this need when an entry name of its folder tree is valid UTF-8 and
+  holds a byte of 0x80 or more.
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
-  entry name of the folder tree that is not valid UTF-8 as the runner
-  makes it, byte for byte. A vector has this need when an entry name of
-  its folder tree is not valid UTF-8.
+  entry name of the folder tree that is not valid UTF-8 as the check of
+  the vectors makes it, byte for byte. A vector has this need when an
+  entry name of its folder tree is not valid UTF-8.
 
 ```
-{"group":"working-tree-files","input":{"ignored":[],"tracked":["a.md"],"tree":{"entries":[{"file":{"entries":[{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"73746f7265"}],"type":"directory"},"name":"7265706f"}],"type":"directory"},"name":"2e6a6a"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"n":101,"note":"a colocated jj repository","rev":"v1","values":{"paths":["a.md"]}}
-{"group":"working-tree-files","input":{"ignored":[],"tracked":["ok.md"],"tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"636166e92e6d64"},{"file":{"content":[],"type":"regular file"},"name":"6f6b2e6d64"}],"type":"directory"}},"n":105,"needs":["non-utf-8-names"],"note":"a name that is not valid UTF-8","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"entries":[{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"73746f7265"}],"type":"directory"},"name":"7265706f"}],"type":"directory"},"name":"2e6a6a"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"ignored":[],"tracked":["a.md"]},"n":101,"note":"a colocated jj repository","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"636166e92e6d64"},{"file":{"content":[],"type":"regular file"},"name":"6f6b2e6d64"}],"type":"directory"},"ignored":[],"tracked":["ok.md"]},"n":105,"needs":["non-utf-8-names"],"note":"a name that is not valid UTF-8","rev":"v1","values":{"paths":["ok.md"]}}
 ```
 
 ### 6.6 Reach
