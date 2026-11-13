@@ -11,7 +11,7 @@
 @cites toml-lang/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
-Specifies the canonical form of JSON values and canonical lines, and the JSON values of JSON texts; the TOML documents that Sinter reads, with the spans of their keys and values; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
+Specifies the canonical form of JSON values and canonical lines, and the JSON values of byte sequences that hold JSON texts; the TOML documents that Sinter reads, with the spans of their keys and values; SHA-256 hashes and hash ids; test-vector sets and their version sequences; and requirements for conforming programs that write, read, compute, and validate them.
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259 defines
@@ -47,8 +47,10 @@ numbers, decimal numerals, 0x numerals, U+ numerals, and hex digits;
 code spans and the notation of productions; and conforming programs,
 inputs, and results.
 
-From RFC 8259, the design takes JSON texts, in which canonical forms and
-vectors write JSON values. From TOML 1.1.0, it takes documents, their
+From RFC 8259, the design takes JSON texts and the rule `JSON-text` of
+its ABNF: canonical forms and vectors write JSON values in JSON texts,
+and a conforming program reads the JSON value of a byte sequence from
+its JSON text. From TOML 1.1.0, it takes documents, their
 tables, their keys, and their values, and the rules `toml`, `key`,
 `simple-key`, and `val` of its ABNF. From RFC 3339, it takes the ranges
 of the months, days, hours, minutes, seconds, and offsets of dates and
@@ -126,7 +128,7 @@ its letters only in the same case.
 | [flat object](sinter:#line-object=v1) | an object in which the value of each member is a scalar |
 | [line object](sinter:#line-object=v1) | an object in which the value of each member is a scalar, an array of scalars, or an array of flat objects |
 | [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
-| [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that a byte sequence writes when it is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text holds no `null`, no number with a fraction or an exponent or outside the range of an integer, no string or name with an escape of half of a UTF-16 pair alone, and no object with two names that stand for the same text |
+| [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when the byte sequence is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text has no value `null`, no number with a fraction or an exponent or outside the range of an integer, no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two that write the UTF-16 code units of one character, and no object with two names that stand for the same text |
 | [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, and that has no value error, no key error, and no structure error |
 | key/value pair, inline table, table header, quoted key, basic string, multi-line basic string, literal string, multi-line literal string | the runs of the text of a document that TOML 1.1.0 calls by these names |
 | integer of TOML 1.1.0, float of TOML 1.1.0 | the runs of the text of a document that TOML 1.1.0 calls integers and floats, such as `-17` and `1e400`; the integer part and the exponent part of a float are not integers of TOML 1.1.0 |
@@ -426,30 +428,6 @@ reads a byte sequence as a canonical line: it gives the result "valid"
 and the line object when the byte sequence is the canonical line of a
 line object, and the result "invalid" for every other byte sequence.
 
-A conforming program also reads a byte sequence as a JSON text, such as
-the output of another program: it gives the result "valid" and the JSON
-value of the byte sequence when the byte sequence has one, and the
-result "invalid" for every other byte sequence. A byte sequence has a
-JSON value when it is valid UTF-8, its text is a JSON text, as RFC 8259
-defines it, and that JSON text writes a JSON value:
-
-- no value of the JSON text is `null`;
-- each number of the JSON text has no fraction and no exponent, and it
-  writes a whole number from −(2^53 − 1) to 2^53 − 1;
-- each string and each name of the JSON text stands for a text: no
-  escape `\u` of the first or the second half of a UTF-16 pair stands
-  alone;
-- no object of the JSON text has two names that stand for the same
-  text.
-
-The JSON text can hold spaces, tabs, line feeds, and carriage returns
-around its values and around the characters `{`, `}`, `[`, `]`, `:`,
-and `,`, its strings can hold escapes, and its objects can write their
-members in any order. So the bytes of `{ "b": 1, "a": "\u00e9" }` and
-a line feed have the JSON value whose canonical form is
-`{"a":"é","b":1}`, and the bytes of `{"a":1.0}`, of `{"a":1,"a":2}`, and
-of `"\ud800"` have no JSON value.
-
 A scalar is a string, an integer, or a boolean. A flat object is an
 object in which the value of each member is a scalar. A line object is
 an object in which the value of each member is one of these:
@@ -490,6 +468,33 @@ of the byte sequence, the final 0x0A included:
 | `{"a":"\u0041"}`, 0x0A | the string form of `A` is `A` |
 | `[1]`, 0x0A | the JSON value is not an object |
 
+A conforming program also reads a byte sequence as a JSON text, such as
+the output of another program: it gives the result "valid" and the JSON
+value of the byte sequence when the byte sequence has one, and the
+result "invalid" for every other byte sequence. A byte sequence has a
+JSON value when it is valid UTF-8, its text is a JSON text, as RFC 8259
+defines it, and the value of that JSON text gives a JSON value:
+
+- no value of the JSON text is `null`;
+- each number of the JSON text has no fraction and no exponent, and it
+  writes a whole number from −(2^53 − 1) to 2^53 − 1;
+- each string and each name of the JSON text stands for a text: each
+  escape sequence `\u` of a number from 0xD800 to 0xDFFF is one of two,
+  one right after the other, that write the two UTF-16 code units of one
+  character;
+- no object of the JSON text has two names that stand for the same
+  text.
+
+The JSON text can hold spaces, tabs, line feeds, and carriage returns
+around its values and around the characters `{`, `}`, `[`, `]`, `:`,
+and `,`, its strings can hold escape sequences, and its objects can
+write their members in any order. The JSON value of a byte sequence has
+no limit on the depth of its arrays and objects, and a string can hold
+every character, U+0000 included. So the UTF-8 encoding of
+`{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the JSON value
+whose canonical form is `{"a":"é","b":1}`, and the UTF-8 encodings of
+`{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no JSON value.
+
 ### 4.1 Definitions
 
 #### 4.1.1 Line objects
@@ -523,44 +528,51 @@ canonical byte sequence of the line object, then the byte 0x0A.
     rfc/8259,
     text#{
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
-        text=v1, character=v1, code-point=v1, whole-number=v1,
+        text=v1, character=v1, whole-number=v1, 0x-numeral=v1,
         code-span=v1,
     },
-    #{json-value=v1},
+    #{json-value=v1, utf-16-code-unit=v1},
 }
 
 These definitions use the JSON texts of RFC 8259, with their values,
-objects, members, names, arrays, strings, escapes, numbers, fractions,
-exponents, and the literal names `true`, `false`, and `null`, and the
-rule `JSON-text` of the ABNF of RFC 8259.
+objects, members, names, arrays, strings, escape sequences, numbers,
+fractions, exponents, and the literal names `true`, `false`, and
+`null`, and the rule `JSON-text` of the ABNF of RFC 8259.
 
 - The JSON text of a byte sequence is the text of the byte sequence,
   when the byte sequence is valid UTF-8 and its text matches the rule
   `JSON-text`. Every other byte sequence has no JSON text.
 - A string or a name of a JSON text stands for the text of the
-  characters between its quotation marks, with each escape in place of
-  the character that it stands for, as RFC 8259 defines it. An escape
-  `\u` of a code point from U+D800 to U+DBFF that comes right before an
-  escape `\u` of a code point from U+DC00 to U+DFFF stands, together
-  with it, for one character, as RFC 8259 defines it. A string or a name
-  with another escape `\u` of a code point from U+D800 to U+DFFF stands
-  for no text.
-- `true` gives the JSON value true, and `false` gives the JSON value
-  false. `null` gives no JSON value.
-- A number with no fraction and no exponent gives the integer that is
-  the whole number that it writes, when that whole number is an
-  integer. Every other number gives no JSON value.
-- A string gives the text that it stands for. A string that stands for
-  no text gives no JSON value.
-- An array gives the array of the JSON values that its values give, in
-  their order, when each of its values gives a JSON value. Otherwise,
-  it gives no JSON value.
-- An object gives the object that has, for each of its members, one
-  member whose key is the text that the name of the member stands for
-  and whose value is the JSON value that the value of the member gives.
-  The object gives no JSON value when a name of it stands for no text,
-  when the value of one of its members gives no JSON value, or when two
-  of its names stand for the same text.
+  characters between its quotation marks, with each escape sequence in
+  place of the character that it stands for, as RFC 8259 defines it. An
+  escape sequence `\u` writes the number that its four digits in base
+  16 write. Two escape sequences `\u`, one right after the other, that
+  write a number from 0xD800 to 0xDBFF and then a number from 0xDC00 to
+  0xDFFF stand together for the one character whose UTF-16 code units
+  are these two numbers. A string or a name with any other escape
+  sequence `\u` that writes a number from 0xD800 to 0xDFFF stands for no
+  text.
+- The value `true` of a JSON text gives the JSON value true, and the
+  value `false` gives the JSON value false. The value `null` gives no
+  JSON value.
+- A number of a JSON text with no fraction and no exponent gives the
+  integer that is the whole number that it writes, when that whole
+  number is an integer. Every other number of a JSON text gives no JSON
+  value.
+- A string of a JSON text gives the string that is the text that it
+  stands for. A string of a JSON text that stands for no text gives no
+  JSON value.
+- An array of a JSON text gives the array whose elements are the JSON
+  values that its values give, in their order, when each of its values
+  gives a JSON value. Otherwise, it gives no JSON value.
+- An object of a JSON text gives the object that has one member for each
+  member of the object of the JSON text, and no other member: the key
+  of that member is the text that the name of the member of the JSON
+  text stands for, and its value is the JSON value that the value of the
+  member of the JSON text gives. An object of a JSON text gives no JSON
+  value when one of its names stands for no text, when the value of one
+  of its members gives no JSON value, or when two of its names stand for
+  the same text.
 - The JSON value of a byte sequence is the JSON value that the value of
   its JSON text gives. A byte sequence that has no JSON text, or whose
   JSON text has a value that gives no JSON value, has no JSON value.
@@ -615,11 +627,13 @@ byte sequence of a thing that is not a JSON value.
     #{line-object=v1, canonical-line=v1},
 }
 
-For each byte sequence that is the canonical line of a line object, a
-conforming program must give the result "valid" and that line object,
-and no other result and no other line object. For every other byte
-sequence, it must give the result "invalid", and no other result and no
-line object.
+When a conforming program gives a result for whether a byte sequence is
+the canonical line of a line object, it must give exactly one result:
+"valid" when the byte sequence is the canonical line of a line object,
+and "invalid" when it is not. With "valid", it must give that line
+object, and no other line object, as the line object of the byte
+sequence. With "invalid", it must give no line object as the line
+object of the byte sequence.
 
 ### 4.6 JSON texts as input
 
@@ -632,10 +646,12 @@ line object.
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
-For each byte sequence that has a JSON value, a conforming program must
-give the result "valid" and the JSON value of that byte sequence, and no
-other result and no other JSON value. For every other byte sequence, it
-must give the result "invalid", and no other result and no JSON value.
+When a conforming program gives a result for whether a byte sequence
+has a JSON value, it must give exactly one result: "valid" when the byte
+sequence has a JSON value, and "invalid" when it has none. With "valid",
+it must give the JSON value of the byte sequence, and no other JSON
+value, as the JSON value of the byte sequence. With "invalid", it must
+give no JSON value as the JSON value of the byte sequence.
 
 ### 4.7 Conformance
 
@@ -706,16 +722,13 @@ These rules give what a JSON number and a string of the JSON text give:
   to 2^53 − 1, and that integer is the whole number that it writes. So
   `1.0` gives the integer 1, `1e2` gives the integer 100, and `-0` gives
   the integer 0. Every other JSON number, such as `1.5` or
-  `9007199254740992`, gives no integer.
-- In a string of the JSON text, an escape sequence of `\u` and four
-  digits in base 16 writes the number that these four digits write. When
-  that number is not from 0xD800 to 0xDFFF, the escape sequence writes
-  the character with that code point. Two escape sequences, one right
-  after the other, that write a number from 0xD800 to 0xDBFF and then a
-  number from 0xDC00 to 0xDFFF write the one character whose UTF-16 code
-  units are these two numbers. Each other escape sequence that writes a
-  number from 0xD800 to 0xDFFF, such as `\ud800` alone, writes no
-  character, and a string that holds it gives no text.
+  `9007199254740992`, gives no integer. In this group, a JSON number
+  with a fraction or an exponent can give an integer, but in the JSON
+  value of a byte sequence such a number gives no JSON value.
+- A string of the JSON text gives the text that it stands for, as the
+  term [`json-value-of-a-byte-sequence`](sinter:#json-value-of-a-byte-sequence=v1)
+  defines it. A string that stands for no text, such as `"\ud800"`,
+  gives no text.
 
 So the JSON text gives a thing that is not a JSON value when one of
 these stands in it: `null`, a JSON number that gives no integer, or a
@@ -763,8 +776,9 @@ and what a conforming program gives when it reads the byte sequence as a
 canonical line. The requirement of the group is `read-canonical-line`.
 
 - `input`: the byte sequence.
-- `result`: "valid" when the byte sequence is the canonical line of a
-  line object, and "invalid" when it is not.
+- `result`: the result for whether the byte sequence is the canonical
+  line of a line object: "valid" when it is, and "invalid" when it is
+  not.
 - `values`: with the result "valid", an object with one member,
   `line-object`: the line object whose canonical line the byte sequence
   is. With the result "invalid", the empty object, `{}`.
@@ -785,8 +799,8 @@ and what a conforming program gives when it reads the byte sequence as
 a JSON text. The requirement of the group is `read-json-text`.
 
 - `input`: the byte sequence.
-- `result`: "valid" when the byte sequence has a JSON value, and
-  "invalid" when it does not.
+- `result`: the result for whether the byte sequence has a JSON value:
+  "valid" when it has one, and "invalid" when it has none.
 - `values`: with the result "valid", an object with one member,
   `json-value`: the JSON value of the byte sequence. With the result
   "invalid", the empty object, `{}`.
