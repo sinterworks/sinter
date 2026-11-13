@@ -38,10 +38,10 @@ their locations.
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is its digest as 64 hex digits. A
 hash id is an id prefix, such as `e-`, and then the first hex digits of
-a hash. A test-vector set is a byte sequence that holds vectors, each
-vector as the JSON object of a vector line. In a version sequence, the
-revisions rise by fixed rules when the vectors or the forms of their
-groups change.
+a hash. A test-vector set is a byte sequence that holds vector lines,
+and the JSON object of a vector line can state a vector. In a version
+sequence, the revisions rise by fixed rules when the vectors or the
+forms of their groups change.
 
 From Text and notation, the design takes characters, texts, and their
 places, boundaries, and runs; bytes, byte sequences, and UTF-8; byte
@@ -173,7 +173,7 @@ its letters only in the same case.
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
-| [vector](sinter:#vector-meaning=v1) | an input and what requirements of a specification, or of a design, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group |
+| [vector](sinter:#vector-meaning=v1) | an input and what requirements of a specification, or of a design, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group, when the Conformance part of the specification, or the Conformance section of the design, gives the forms of that group, and the value of `input`, and the value of `values` when the object has that member, have the fixed forms that these forms give; otherwise it states no vector |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [test-vector revision](sinter:#test-vector-revision=v1) | a text of `v` and the decimal numeral of a whole number of 1 or more, such as `v2` |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
@@ -182,7 +182,7 @@ its letters only in the same case.
 | [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result; what the value of `values` stands for, and its fixed form; and the need names, each with the need that it stands for |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds the need names of the needs of the vector |
-| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
+| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector that a vector line states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
 | [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object of one vector, of one group, or of the whole test-vector set, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
@@ -676,9 +676,9 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set of
-this specification, as the specification `test-vectors` defines it. This
-specification gives no need names.
+in the same directory as this design. The file is a test-vector set, as
+the specification `test-vectors` defines it, and its vector lines state
+vectors of this specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2419,9 +2419,9 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`data-forms.toml.test-vectors.jsonl`](data-forms.toml.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set of
-this specification, as the specification `test-vectors` defines it. This
-specification gives no need names.
+in the same directory as this design. The file is a test-vector set, as
+the specification `test-vectors` defines it, and its vector lines state
+vectors of this specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one or more
@@ -2663,9 +2663,9 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`data-forms.hashes.test-vectors.jsonl`](data-forms.hashes.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set of
-this specification, as the specification `test-vectors` defines it. This
-specification gives no need names.
+in the same directory as this design. The file is a test-vector set, as
+the specification `test-vectors` defines it, and its vector lines state
+vectors of this specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2807,9 +2807,9 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set of
-this specification, as the specification `test-vectors` defines it. This
-specification gives no need names.
+in the same directory as this design. The file is a test-vector set, as
+the specification `test-vectors` defines it, and its vector lines state
+vectors of this specification. This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2868,13 +2868,11 @@ of the group is `validate-hash-id`.
 A vector of a specification is an input and what requirements of that
 specification oblige a conforming program of that specification to give
 for that input. A test-vector set is a byte sequence that holds vector
-lines. A test-vector set of a specification holds vectors of that
-specification, and a test-vector set of a design holds vectors of the
-requirements that the design holds outside its specifications. A
-conforming program can read a byte sequence as a test-vector set. It can
-also validate a sequence of versions of the vectors as a version
-sequence: a sequence of versions, from the earliest to the latest, whose
-revisions follow the changes of the vectors.
+lines. The object of a vector line can state a vector, as the term
+`vector-meaning` gives. A conforming program can read a byte sequence as
+a test-vector set. It can also validate a sequence of versions of the
+vectors as a version sequence: a sequence of versions, from the earliest
+to the latest, whose revisions follow the changes of the vectors.
 
 For a design with the name `a` and a specification of that design with
 the name `b`, the test-vector file name of `a` and `b` is
@@ -2887,21 +2885,20 @@ its objects. It starts with its set line, which holds the set object,
 such as `{"rev":"v3"}`, with the revision of the whole test-vector set.
 Then it holds one group line for each group, such as
 `{"group":"offsets","rev":"v2"}`, in the key order of the group names.
-Then it holds one vector line for each vector, in increasing order of
-the numbers `n` of the vectors, such as
+Then it holds its vector lines, in increasing order of the numbers `n`
+of their objects, such as
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`.
 The objects of the vector lines can hold any JSON value in `input` and
 in `values`, so a vector object is not always a line object.
 
-The forms of its group give the meaning of each vector line. The forms
-of a group are five things that the Conformance section of the design of
-the vectors gives for that group, or, for the vectors of a
-specification, the Conformance part of that specification. The text of
-the forms of a group is the whole text of that Conformance section or
-part, other than its headings and the vector lines that it shows, so a
-change anywhere else in it changes the text of the forms of every group
-that it gives.
-These are the five things:
+The forms of its group give the meaning of a vector line, as the term
+`vector-meaning` gives. The forms of a group are five things that the
+Conformance section of the design of the vectors gives for that group,
+or, for the vectors of a specification, the Conformance part of that
+specification. The text of the forms of a group is the whole text of
+that Conformance section or part, other than its headings and the vector
+lines that it shows, so a change anywhere else in it changes the text of
+the forms of every group that it gives. These are the five things:
 
 1. the requirements of the group, from which the vectors of the group
    follow;
@@ -2963,26 +2960,27 @@ about it when the check cannot make a need of the vector hold and
 reports that need. Each other skip of a vector counts as a decision that
 the program does not give what the object states.
 
-Each vector, each group, and the whole test-vector set have a revision,
-such as `v2`. A version of the vectors is a test-vector set together
-with the forms of each of its groups, given as texts. From one
+Each vector line, each group, and the whole test-vector set have a
+revision, such as `v2`. A version of the vectors is a test-vector set
+together with the forms of each of its groups, given as texts. From one
 version to the next, when the group, the input, the result, or the
-values of a vector change, the revision of the vector rises. So does the
-revision of the group of the vector in each of the two versions, when
-that group is in both versions, and so does the revision of the
-test-vector set. When the forms of a group that is in both versions
-change, the revision of each vector that has that group in both versions
-rises, and so do the revision of the group and the revision of the
-test-vector set. When a vector joins or leaves the test-vector set, the
-revision of the test-vector set rises, and so does the revision of the
-group of the vector when that group is in both versions. Without such a
-change, no revision changes. So a change of the note of a vector alone
-changes no revision, and neither does a change of its needs alone. A
-revision can rise by more than 1. A new vector, and a group that is in
-no earlier version, can have any revision. A group that comes back after
-it left gets a revision higher than each revision that it had before. A
-number `n` is given once: a vector that leaves takes its number with it,
-and a new vector gets a number greater than each number before it.
+values of a vector line change, the revision of the vector line rises.
+So does the revision of the group of the vector line in each of the two
+versions, when that group is in both versions, and so does the revision
+of the test-vector set. When the forms of a group that is in both
+versions change, the revision of each vector line that has that group in
+both versions rises, and so do the revision of the group and the
+revision of the test-vector set. When a vector line joins or leaves the
+test-vector set, the revision of the test-vector set rises, and so does
+the revision of the group of the vector line when that group is in both
+versions. Without such a change, no revision changes. So a change of the
+note of a vector line alone changes no revision, and neither does a
+change of its needs alone. A revision can rise by more than 1. A new
+vector line, and a group that is in no earlier version, can have any
+revision. A group that comes back after it left gets a revision higher
+than each revision that it had before. A number `n` is given once: a
+vector line that leaves takes its number with it, and a new vector line
+gets a number greater than each number before it.
 
 ### 8.1 Definitions
 
@@ -3200,19 +3198,20 @@ same lines and line endings.
 
 For a specification S of a design, a vector of S is an input and what
 requirements that S declares oblige a conforming program of S to give
-for that input, and a test-vector set of S is a test-vector set for
-whose groups the Conformance part of S gives forms. For a design D, a
-vector of D is an input and what requirements that D holds outside its
-specifications oblige a conforming program of D to give for that input,
-and a test-vector set of D is a test-vector set for whose groups the
-Conformance section of D gives forms.
+for that input. For a design D, a vector of D is an input and what
+requirements that D holds outside its specifications oblige a
+conforming program of D to give for that input.
 
-For a vector line of a test-vector set of S, or of D, and the group g of
-that vector line, when the values of `input` and `values` of its object
-have the fixed forms that the forms of the group g of S, or of D, give,
-the object states one vector of S, or of D, by these forms. The object
-of each other vector line states no vector. By these forms, the
-object states this:
+For a specification S, or a design D, and a vector line whose group is
+g, the object of the vector line states one vector of S, or of D, when
+the Conformance part of S, or the Conformance section of D, gives the
+forms of the group g, and the value of `input`, and the value of
+`values` when the object has that member, have the fixed forms that
+these forms give. It then states that vector by these forms, whatever
+groups the other vector lines of its test-vector set have. Otherwise,
+the object of the vector line states no vector of S, or of D. By the
+forms of the group g, the object of a vector line that states a vector
+states this:
 
 - The input of the vector is what the value of `input` stands for: one
   input of a conforming program of S, or of D, or several.
@@ -3247,9 +3246,10 @@ object states this:
 - The value of `note` explains the vector, and it is no part of the
   input, the result, or the values. The value of `needs` is also no
   part of the input, the result, or the values.
-- A check of the vectors of a test-vector set of S, or of D, decides,
-  for each vector, whether a program, when it operates while each need
-  of the vector holds, gives what the object of its vector line states.
+- A check of the vectors of S, or of D, in a test-vector set decides,
+  for each vector that a vector line of the test-vector set states,
+  whether a program, when it operates while each need of the vector
+  holds, gives what the object of its vector line states.
   A skip of a vector decides nothing about it when the check cannot make
   a need of the vector hold and reports that need. Each other skip of a
   vector counts as a decision that the program does not give what the
@@ -3362,20 +3362,19 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`data-forms.test-vectors.test-vectors.jsonl`](data-forms.test-vectors.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set of
-this specification. The file holds, for each object, its canonical byte
-sequence, then the byte 0x0A. So the text of each line of the file is a
-JSON text, as RFC 8259 defines it. Only a line feed ends a line of the
-file. A string of the file can hold U+0085, U+2028, or U+2029, and these
-characters do not end a line.
+in the same directory as this design. The file is a test-vector set, and
+its vector lines state vectors of this specification. The file holds,
+for each object, its canonical byte sequence, then the byte 0x0A. So the
+text of each line of the file is a JSON text, as RFC 8259 defines it.
+Only a line feed ends a line of the file. A string of the file can hold
+U+0085, U+2028, or U+2029, and these characters do not end a line.
 
 The first line of the file is the set line. Its object has one member,
 `rev`: the revision of the test-vector set. Then each group has one
 group line, in the key order of the group names. The object of a group
 line has two members: `group`, the group name, and `rev`, the revision
-of the group. Then each vector has one vector line, in increasing order
-of the numbers of the vectors. The object of a vector line has these
-members:
+of the group. Then the vector lines follow, in increasing order of their
+numbers. The object of a vector line has these members:
 
 - `n`: the number of the vector, an integer of 1 or more.
 - `rev`: the revision of the vector.
