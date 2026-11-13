@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on the changes that they make to the ledger when an agent runs them, on the judgments that they append, and on the use of declared tasks.
+Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger when an agent runs them, on the judgments that they append, and on the use of declared tasks.
 
 Sinter traces the items of a repository, such as items of the kind
 design, specification, and requirement, terms, decision records, tests,
@@ -51,7 +51,7 @@ meaning of a vector.
 | [item](sinter:#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [kind of item](sinter:#item=v1) | one of the fourteen kinds of item, such as design or task; each item has one |
 | repository | a git repository |
-| commit, message of a commit, parent, branch, working tree, push, pull request | the thing of git, or of a host of git repositories, that has this name |
+| commit, message of a commit, parent, branch, working tree, clone, push, pull request | the thing of git, or of a host of git repositories, that has this name |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [tree](sinter:#tree=v1) | a set whose members are the files of the tree, in which no two files of the tree have the same valid path, such as the tree of a commit or the tree of a working tree |
 | [file of a tree](sinter:#tree=v1) | a member of a tree: a valid path with a content, which is a byte sequence |
@@ -145,12 +145,12 @@ meaning of a vector.
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
-| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of it |
+| [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of it; a clone can also take in the ledger entries, voids included, of another clone, which is neither appending nor a repair |
 | [point of a ledger](sinter:#ledger=v1) | a point between two ledger entries, before the first, or after the last |
 | [ledger entry](sinter:#ledger-entry=v1) | a record of one event in the ledger, such as one approval |
 | [writer of a ledger entry](sinter:#ledger-entry=v1) | the person, the agent, or the job that a ledger entry records as the one that wrote it |
-| [repair](sinter:#repair=v1) | a write that removes ledger entries from the ledger of a repository and puts a void in the place of each |
-| [void](sinter:#repair=v1) | a ledger entry that takes the place of a ledger entry that a repair removed |
+| [repair](sinter:#repair=v1) | a write that removes ledger entries from the ledger of a repository and puts one void where each of them was |
+| [void](sinter:#repair=v1) | a ledger entry that stands where a ledger entry that a repair removed was |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
 | [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
 | [current definition](sinter:#work-item-state=v1) | the definition that the last accepted definition entry of a work item, in the order of the ledger, records |
@@ -161,6 +161,8 @@ meaning of a vector.
 | [kind of subject of approval](sinter:#subject-of-approval=v1) | which of five units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the items of the kind requirement and the terms that it holds, an item of the kind requirement that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
 | [subject of approval of a declared item](sinter:#subject-of-approval=v1) | for an item of the kind design, an item of the kind specification, an item of the kind requirement or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for an item of the kind requirement or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification |
 | [parameter](sinter:#parameter=v1), [binding of a parameter](sinter:#parameter=v1) | a parameter is a word, such as `external-namespaces`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for the parameter; a binding of the parameter `external-namespaces` is a [binding](sinter:identifiers#binding=v1) as Identifiers defines it |
+| process | one execution of a program |
+| standard input, arguments, environment | the standard input, the command-line arguments, and the environment variables of a process |
 | [judgment](sinter:#judgment=v1) | a ledger entry that records a decision of a person, such as an approval |
 | [record of the job](sinter:#job-record=v1) | a ledger entry that records what the job observed |
 | [state](sinter:#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, in a tree, at a point of a ledger, or both, such as in force or done |
@@ -491,15 +493,15 @@ content of an item of the kind design is the item of the kind design
 without the declared items that it holds. The revised content of an item
 of the kind specification is that item with the declared items that it
 holds, without the `=` and the label of the declaration of each of those
-declared items that has a label. So an alteration of an item
-of the kind requirement that an item of the kind specification holds
-changes the revised content of that item of the kind specification too.
-The revised content of a conformance vector is that conformance vector
-with the forms of its group, and the revised content of a group of
-conformance vectors or of a vector set is its conformance vectors, each
-with the forms of its group. A term with no label has a revised content
-and no revision. A task, a plan, a test, a site, and an external item
-have no revised content and no revision.
+declared items that has a label. So an alteration of the revised content
+of an item of the kind requirement that an item of the kind
+specification holds alters the revised content of that item of the kind
+specification too. The revised content of a conformance vector is that
+conformance vector with the forms of its group, and the revised content
+of a group of conformance vectors or of a vector set is its conformance
+vectors, each with the forms of its group. A term with no label has a
+revised content and no revision. A task, a plan, a test, a site, and an
+external item have no revised content and no revision.
 
 A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
@@ -609,7 +611,7 @@ entry other than a void is appended at the end of the ledger: after each
 ledger entry that is in the ledger at that time. Of two ledger entries
 that were appended to one ledger, the one that was appended later comes
 later in the order of the ledger, whatever times the ledger entries
-record. A void takes the place of a ledger entry that a repair removes.
+record. A void stands where a ledger entry that a repair removes was.
 
 A point of a ledger is given by the ledger entries before it: the first
 n ledger entries of the ledger, for a whole number n of 0 or more. The
@@ -617,8 +619,8 @@ point of a ledger entry is the point right before it. A state that
 depends on ledger entries is a state at a point of a ledger.
 
 A repair is a write that removes ledger entries from the ledger of a
-repository. For each ledger entry that it removes, it puts one void in
-the place of the removed ledger entry: a ledger entry that records the
+repository. For each ledger entry that it removes, it puts one void
+where the removed ledger entry was: a ledger entry that records the
 removal and its reason. A removed ledger entry is no longer in the
 ledger, so no state follows from it.
 
@@ -788,14 +790,16 @@ A statement of an agent is a text that an agent writes, such as a line
 of a file of a tree, a line of the message of a commit, a ledger entry,
 or a message to a person. When its input says that an agent runs it, a
 conforming program appends to the ledger no ledger entry other than a
-definition entry, and makes no repair (section 4.3). A conforming
+definition entry, and makes no repair (section 4.4). A conforming
 program appends a judgment only to record a decision that a person gives
 it by a confirmation that the standard input, the arguments, and the
-environment of the program cannot give (section 4.4). Taking in the
-ledger entries that another clone appended is not appending. So when an
-agent changes the ledger only through a conforming program whose input
-says that an agent runs it, a statement of the agent changes a state
-only in one of these two ways (sections 4.1, 4.3, and 4.4):
+environment of the program cannot give (section 4.5). A conforming
+program changes the ledger only by appending ledger entries, by making
+repairs, and by taking in the ledger entries, voids included, of another
+clone of the repository (section 4.3). So when an agent changes the
+ledger of each clone of the repository only through a conforming program
+whose input says that an agent runs it, a statement of the agent changes
+a state only in one of these two ways (sections 4.1, 4.3, 4.4, and 4.5):
 
 1. through a state input, other than the ledger, that the statement
    alters, such as the tree of a working tree or of a commit, the
@@ -814,7 +818,7 @@ declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text about the work of the
 session that a conforming program gives the agent of that session, in
 no state input. A conforming program uses the declared task of a session
-for nothing other than the brief of that session (section 4.5).
+for nothing other than the brief of that session (section 4.6).
 
 ## 3. Definitions
 
@@ -999,10 +1003,7 @@ in a tree is this:
 ### 3.14 Vector sets
 
 @term vector-set=v1
-@cites {
-    data-forms#{test-vector-set=v1, vector-meaning=v1},
-    #{declared-item=v1, tree=v1},
-}
+@cites {data-forms#{test-vector-set=v1}, #{declared-item=v1, tree=v1}}
 
 In a tree, each item of the kind design and each item of the kind
 specification has at most one vector set: the test-vector set of that
@@ -1502,7 +1503,9 @@ appended later comes later in the order of the ledger, whatever times
 the two ledger entries record. A point of a ledger is given by the
 ledger entries before it: the first n ledger entries of the ledger, for
 a whole number n of 0 or more. The point of a ledger entry is the point
-right before it.
+right before it. A clone of the repository can also take in the ledger
+entries, `void` ledger entries included, that the ledger of another
+clone has; taking them in is not appending.
 
 ### 3.43 Repairs and voids
 
@@ -1511,10 +1514,12 @@ right before it.
 
 A repair is a write that removes one or more ledger entries from the
 ledger of a repository, and that puts one `void` ledger entry, a void,
-in the place of each ledger entry that it removes: after each ledger
-entry that came before the removed one, and before each ledger entry
-that came after it. A void records that a repair removed one ledger
-entry, and the reason for the removal.
+for each ledger entry that it removes, where that ledger entry was:
+after each ledger entry that came before the removed one, and before
+each ledger entry that came after it. A void records that a repair
+removed one ledger entry, and the reason for the removal. Taking in the
+voids that the ledger of another clone of the repository has is not a
+repair.
 
 ### 3.44 Definition entries
 
@@ -1909,7 +1914,19 @@ differ only in the writers, the persons, the branches, and the times
 that their ledger entries record, and that no other process changes
 while the program runs.
 
-### 4.3 The ledger entries that agents write
+### 4.3 The ways in which a ledger changes
+
+@req change-ledger-only-by-appends=v1
+@cites {
+    text#{conforming-program=v1},
+    #{ledger=v1, ledger-entry=v1, repair=v1},
+}
+
+A conforming program must change the ledger only by appending ledger
+entries, by making repairs, and by taking in the ledger entries, voids
+included, that the ledger of another clone of the repository has.
+
+### 4.4 The ledger entries that agents write
 
 @req write-only-definitions-for-agents=v1
 @cites {
@@ -1924,7 +1941,7 @@ When its input says that an agent runs it, a conforming program must
 append to the ledger no ledger entry other than a definition entry, and
 make no repair.
 
-### 4.4 The judgments that persons give
+### 4.5 The judgments that persons give
 
 @req write-judgments-only-for-persons=v1
 @cites {
@@ -1936,7 +1953,7 @@ A conforming program must append a judgment to the ledger only to record
 a decision that a person gives it by a confirmation that the standard
 input, the arguments, and the environment of the program cannot give.
 
-### 4.5 The use of declared tasks
+### 4.6 The use of declared tasks
 
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
