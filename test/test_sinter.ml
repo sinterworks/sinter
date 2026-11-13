@@ -65,6 +65,7 @@ let () =
       ("text", Test_text.tests);
       ("paths", Test_path.tests);
       ("globs", Test_glob_fit.tests);
+      ("path sets", Test_path_set.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);
