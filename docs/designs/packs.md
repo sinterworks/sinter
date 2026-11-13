@@ -133,7 +133,7 @@ functions of memory and strings that a grammar can import.
 | [runner setting](sinter:#runner-setting=v1) | a name and a default value, for a value that configuration can give for a test runner: a TOML string, a TOML boolean, or a TOML array of TOML strings |
 | tree-sitter | a project that defines a format of languages compiled to WebAssembly, the parse trees that its parsing gives for a language and a text, and a query language that finds parts of parse trees |
 | [WebAssembly module](sinter:#webassembly-module=v1) | a byte sequence that is a valid module in the binary format of the WebAssembly Core Specification 2.0 |
-| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
+| [usable grammar](sinter:#usable-grammar=v1) | a WebAssembly module whose imports have only names of a fixed list, whose custom section `dylink.0` gives the sizes and the alignments of its parts of the memory and of the table, and whose export `tree_sitter_<g>` gives a language in the format of tree-sitter, with an ABI version from 13 to 15 and symbol names in valid UTF-8 |
 | [ABI version](sinter:#usable-grammar=v1) | the whole number that a language in the format of tree-sitter gives as the version of that format |
 | [query file](sinter:#query-file=v1) | a byte sequence that holds a tree-sitter query, of one of three kinds: comment, definition, and test |
 | [pattern, capture, capture name, predicate, directive, quantifier](sinter:#query-language=v1) | the things of the query language of tree-sitter with these names: a query is a sequence of patterns; a pattern captures nodes under capture names, such as `@comment`; a predicate, such as `#eq?`, tests the texts of captured nodes, and a directive, such as `#set!`, sets a property; a quantifier says how many times a pattern captures under a capture name |
@@ -374,9 +374,11 @@ With this descriptor, the file grammar of `src/a.test.ts` is
 A grammar of a pack is a tree-sitter grammar, compiled to WebAssembly.
 The content of the file `grammars/<g>.wasm` is a usable grammar when it
 is a WebAssembly module, when each of its imports has a name of a fixed
-list, such as `memory` or `malloc`, when its export `tree_sitter_<g>`
-gives a language in the format of tree-sitter, of an ABI version from 13
-to 15, and when the name of each symbol of that language is valid UTF-8.
+list, such as `memory` or `malloc`, when its custom section `dylink.0`
+gives the sizes and the alignments of its parts of the memory and of the
+table, when its export `tree_sitter_<g>` gives a language in the format
+of tree-sitter, of an ABI version from 13 to 15, and when the name of
+each symbol of that language is valid UTF-8.
 In a valid pack, the hash of the file is the hash that the descriptor
 gives for the grammar.
 
@@ -858,17 +860,19 @@ that specification.
 @cites {
     tree-sitter/language-format, wasm-core/2.0, iso/9899-2024,
     text#{
-        byte-sequence=v1, valid-utf-8=v1, text=v1, whole-number=v1,
-        code-span=v1,
+        byte=v1, byte-sequence=v1, valid-utf-8=v1, text=v1,
+        whole-number=v1, code-span=v1,
     },
     #{webassembly-module=v1, grammar-name=v1},
 }
 
 This definition uses the format of languages that tree-sitter defines,
-in its ABI versions 13 to 15: a language has an ABI version, which is a
-whole number, and symbols, each with a name, which is a byte sequence. A byte sequence
-is a usable grammar with a grammar name g when, and only when, it meets
-each of these conditions:
+in its ABI versions 13 to 15. In that format, a language has an ABI
+version, which is a whole number; symbols, each with a name, which is a
+byte sequence, and each named or anonymous, visible or hidden, and a
+supertype or not; and fields, each with a name, which is a byte
+sequence. A byte sequence is a usable grammar with a grammar name g
+when, and only when, it meets each of these conditions:
 
 1. It is a WebAssembly module.
 2. Each of its imports has, after its module name, a name that is
@@ -894,14 +898,50 @@ each of these conditions:
    give the results of that library, and not those of the C library of
    a system. The functions that act on memory and strings act as
    ISO/IEC 9899:2024 defines them.
-3. It exports a function whose name is `tree_sitter_` followed by g. In
-   an instance of the module whose imports are as that format gives
-   them, the program invokes each of the exports `_initialize`,
-   `__wasm_apply_data_relocs`, and `__wasm_call_ctors` that the module
-   has, in the order in which the module lists them as exports, and then
-   that function. That function then gives a language in that format, of
-   an ABI version from 13 to 15.
-4. The name of each symbol of that language is valid UTF-8.
+3. It has exactly one custom section whose name is `dylink.0`. The
+   content of that section after its name is a sequence of subsections.
+   Each subsection is a byte, which is its type, then a u32 n, then n
+   bytes, which are its content. Exactly one subsection has the type 1,
+   and its content is exactly four u32s: the memory size, the memory
+   alignment, the table size, and the table alignment. Each u32 of this
+   condition is encoded as the binary format of the WebAssembly Core
+   Specification 2.0 encodes a u32.
+4. It exports a function whose name is `tree_sitter_` followed by g. The
+   program makes an instance of the module with values of its own choice
+   for the imports that the module has. Those values have these
+   properties, in which the value of a global is taken as an unsigned
+   integer:
+   - `__memory_base` is a global of type i32 that cannot change. Its
+     value is a multiple of 2 to the power of the memory alignment. The
+     bytes of `memory` from that value on, as many as the memory size,
+     lie inside the memory, and each of them is 0 when the instantiation
+     starts. These bytes are the own bytes of the module.
+   - `__table_base` is a global of type i32 that cannot change. Its value
+     is a multiple of 2 to the power of the table alignment. The elements
+     of `__indirect_function_table` from that value on, as many as the
+     table size, lie inside the table, and each of them is null when the
+     instantiation starts. These elements are the own elements of the
+     module.
+   - `__stack_pointer` is a global of type i32 that can change. When the
+     instantiation starts, its value is the address right after the last
+     byte of a part of `memory`. That part is the stack of the module.
+   - Each function of the list of condition 2 behaves as that condition
+     says. A block is the space that a call of `malloc`, `calloc`, or
+     `realloc` from the code of the module allocates, until a call of
+     `free` or `realloc` deallocates that space.
+   - The own bytes of the module, its stack, and each block have no byte
+     in common. Only the instantiation, the code of the module, and the
+     functions of the list change an own byte or an own element of the
+     module, or a byte of a block. While the code of the module runs,
+     only that code and the functions of the list change a byte of its
+     stack.
+
+   In that instance, the program invokes each of the exports
+   `_initialize`, `__wasm_apply_data_relocs`, and `__wasm_call_ctors`
+   that the module has, in the order in which the module lists them as
+   exports, and then that function. That function then gives a language
+   in that format, of an ABI version from 13 to 15.
+5. The name of each symbol of that language is valid UTF-8.
 
 The language of a usable grammar with the grammar name g is that
 language, and its ABI version is the ABI version of that language.
@@ -911,25 +951,58 @@ language, and its ABI version is the ABI version of that language.
 @term query-language=v1
 @cites {
     tree-sitter/query-language,
-    text#{text=v1, character=v1, line-feed=v1, u-numeral=v1, code-span=v1},
-    #{parse-tree=v1},
+    text#{
+        text=v1, character=v1, line-feed=v1, u-numeral=v1, code-span=v1,
+        byte-sequence=v1, utf-8-encoding=v1,
+    },
+    #{usable-grammar=v1, parse-tree=v1},
 }
 
 The query language is the language of queries that tree-sitter's
-documentation of it defines. A query for a language is a sequence of patterns. A
-pattern captures nodes under capture names, each written `@` followed by
-the capture name, and each capture name of a pattern has a quantifier in
-it: zero, zero or one, zero or more, one, or one or more. A pattern can
-hold predicates and directives, each an element `(#name ...)` of the
-pattern, with a name such as `#eq?` or `#set!`, whose arguments are
-captures and strings. The text of a string is the characters between
-its double quotes, in which `\n`, `\r`, `\t`, and `\0` stand for U+000A,
-U+000D, U+0009, and U+0000, and `\` followed by any other character
-stands for that character; a line feed between the double quotes of a
-string makes the text no query. The matches of a
-query over a parse tree are the parts of the parse tree where a pattern
-of the query matches, each with that pattern and with the nodes that it
-captures under each capture name.
+documentation of it defines. A query for a language is a sequence of
+patterns. A pattern captures nodes under capture names, each written `@`
+followed by the capture name, and each capture name of a pattern has a
+quantifier in it: zero, zero or one, zero or more, one, or one or more.
+
+A string is written between two double quotes. In the characters after
+the opening double quote of a string, taken from the first to the last,
+each `\` that is not in an escape starts an escape: that `\` and the
+character after it. The string ends at the first double quote, after its
+opening double quote, that is not in an escape, and its characters are
+the characters between these two double quotes. The escapes `\n`, `\r`,
+`\t`, and `\0` stand for U+000A, U+000D, U+0009, and U+0000, and `\`
+followed by any other character, a line feed included, stands for that
+character. The text of a string is its characters, with each escape
+replaced by the character that it stands for. A line feed that a string
+holds outside an escape makes the text no query.
+
+A pattern can hold predicates and directives, each an element
+`(#name ...)` of the pattern, with a name such as `#eq?` or `#set!`,
+whose arguments are captures, strings, and bare arguments. A bare
+argument is an argument that is written without `@` and without double
+quotes: one or more characters, each an ASCII letter, an ASCII digit,
+`_`, `-`, or `.`, of which the first is not `.`. In a predicate or a
+directive, a bare argument counts as a string whose text is its
+characters.
+
+In a query for a language, each name that a pattern gives to a named
+node, such as `identifier` in `(identifier)` and in
+`(MISSING identifier)`, and `expression` and `identifier` in
+`(expression/identifier)`, is the name of a symbol of the language that
+is named and that is visible or a supertype. `ERROR` needs no such
+symbol, and neither do `_` and `MISSING` as the first name in
+parentheses. The text of each string that a pattern gives as the name of
+an anonymous node, such as `";"`, is the name of a symbol of the
+language that is anonymous and that is visible or a supertype. Each name
+of a field that a pattern gives, before `:` or after `!`, is the name of
+a field of the language. A text in which a pattern gives another name is
+no query for the language. A name in a query is the name of a symbol or
+of a field when its UTF-8 encoding and that name are the same byte
+sequence.
+
+The matches of a query over a parse tree are the parts of the parse tree
+where a pattern of the query matches, each with that pattern and with
+the nodes that it captures under each capture name.
 
 ### 4.10 Text predicates
 
