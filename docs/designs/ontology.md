@@ -12,13 +12,13 @@ Specifies the kinds of item that Sinter traces, with their names, revisions, and
 Sinter traces the items of a repository, such as items of the kind
 design, specification, and requirement, terms, decision records, tests,
 tasks, plans, and the items outside the repository that external ids
-name. A citation, such as `@verifies packs#limit-size=v2` in a comment
-on a test, gives an edge: a relation from its source, here the test, to
-its cited item, here the item of the kind requirement
-`packs#limit-size`. The label `v2` pins the edge to one revised content
-of that item. The ledger of a repository records events, such as the
-approval that a person gave to one revised content. Each state, such as
-in force, approved, suspect, or done, depends only on the things that
+name. A citation, such as `@verifies billing#limit-amount=v2` in a
+comment on a test, gives an edge: a relation from its source, here the
+test, to its cited item, here the item of the kind requirement
+`billing#limit-amount`. The label `v2` pins the edge to one revised
+content of that item. The ledger of a repository records events, such as
+the approval that a person gave to one revised content. Each state, such
+as in force, approved, suspect, or done, depends only on the things that
 section 4.1 lists, such as the trees of the commits of the repository,
 its ledger, and test evidence.
 
@@ -45,7 +45,9 @@ vector.
 | [kind of item](sinter:#item=v1) | one of the fourteen kinds of item, such as design or task; each item has one |
 | repository | a git repository |
 | commit, message of a commit, parent, branch, file, path, working tree, push, pull request | the thing of git, or of a host of git repositories, that has this name |
-| [tree](sinter:#tree=v1) | the set of the files of a repository, with their contents, at one commit or in one working tree |
+| [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
+| [tree](sinter:#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
+| [tree of a commit](sinter:#tree=v1), [tree of a working tree](sinter:#tree=v1) | the tree of a commit is the tree at that commit: the files at that commit; the tree of a working tree is the tree in that working tree: the files in that working tree |
 | [default branch](sinter:#default-branch=v1) | the branch into which work on a repository merges |
 | actor | a person, an agent, or the job |
 | [person](sinter:#person=v1) | a human who works on a repository |
@@ -68,21 +70,23 @@ vector.
 | [containment](sinter:#containment=v1) | the relation in which an item of the kind design holds items of the kind specification, items of the kind requirement, and terms, and an item of the kind specification holds items of the kind requirement and terms |
 | [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | an item of the kind design holds each of its items of the kind specification, its items of the kind requirement, and its terms, and each of them belongs to that item of the kind design; an item of the kind specification holds its items of the kind requirement and its terms in the same way |
 | [hold directly](sinter:#containment=v1) | an item of the kind design holds an item of the kind requirement or a term directly when that item belongs to it and to no item of the kind specification |
-| [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the slug that its declaration gives it, such as `packs`; for an item of the kind specification, an item of the kind requirement, or a term, when it belongs to an item of the kind design, the name of that item of the kind design, `#`, and the part name that its declaration gives it, such as `packs#size`, and otherwise the slug that its declaration gives it |
-| [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests with the same name whose files have the same path |
+| [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the slug that its declaration gives it, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, when it belongs to an item of the kind design, the name of that item of the kind design, `#`, and the part name that its declaration gives it, such as `billing#amount`, and otherwise the slug that its declaration gives it |
+| [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests whose files have the same path and whose names are equal |
 | [conformance vector](sinter:#conformance-vector=v1) | the vector that one vector line of a vector set states by the forms of its group: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements oblige that program to give for them |
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | the vector line that states the conformance vector |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [number of a conformance vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of the member `n` of its object, a whole number of 1 or more |
 | [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, or of a group line, which is a group name such as `offsets` |
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
-| [test](sinter:#test=v1) | a unit of code that a test framework runs and reports as passed or failed, or a set of such units, with a name |
+| [test](sinter:#test=v1) | a unit of code that a test runner runs and that can pass or fail, or a set of such units, such as the tests of one `describe` block |
+| [name of a test](sinter:#test=v1) | a sequence of names: the own names of the tests of which the test is a part, from the outermost to the innermost, and then the own name of the test; the own name of a test is a name such as the name of a test function or of a `describe` block |
 | [code of a test](sinter:#test=v1) | the part of its file that a test takes up |
 | [comment on a test](sinter:#test=v1) | a comment that is attached to the code of a test, such as the comment right before a test function |
-| [test evidence](sinter:#test-evidence=v1) | the reports that tests gave in one execution, each of which names one test and says whether the test passed or failed |
+| [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that the test that they name passed or that it failed |
+| [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs, which names that test |
 | [site](sinter:#site=v1) | a part of a file that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a markdown file or one comment in code; no two sites of a file have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
-| [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration, when the declaration has one, such as `v2` for the declaration `@req limit-size=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
+| [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration, when the declaration has one, such as `v2` for the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
 | [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for an item of the kind design, the item of the kind design without the declared items that it holds; for a conformance vector, the conformance vector with the forms of its group |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry or an inline citation gives; an edge has at most one source and at most one cited item |
@@ -108,8 +112,8 @@ vector.
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
 | [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each definition entry records one definition of its work item, and each edit of a definition gives a new definition |
 | change | a set of commits that is to merge into the default branch as one unit, such as the commits of a pull request |
-| merge (verb) | to bring the commits of a change into the default branch, with git or with a host of git repositories |
-| merge (noun) | one act that brings the commits of a change into the default branch |
+| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that holds all the work of the change, or with a fast-forward merge, which moves the default branch to the last commit of the change |
+| merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
 | [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of it |
@@ -158,10 +162,10 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 
 | kind of item | what it is | how it is named | has revisions |
 |---|---|---|---|
-| design | a declared item whose declaration word is `@design` | a slug, such as `packs` | yes |
-| specification | a declared item whose declaration word is `@spec`, which specifies one thing of the part of a system that its design specifies | a full name, such as `packs#descriptor`, or a slug when it belongs to no item of the kind design | yes |
-| requirement | a declared item whose declaration word is `@req` | a full name, such as `packs#limit-size`, or a slug when it belongs to no item of the kind design | yes |
-| term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `packs#size`, or a slug when it belongs to no item of the kind design | when it has a label |
+| design | a declared item whose declaration word is `@design` | a slug, such as `billing` | yes |
+| specification | a declared item whose declaration word is `@spec`, which specifies one thing of the part of a system that its design specifies | a full name, such as `billing#invoice`, or a slug when it belongs to no item of the kind design | yes |
+| requirement | a declared item whose declaration word is `@req` | a full name, such as `billing#limit-amount`, or a slug when it belongs to no item of the kind design | yes |
+| term | a declared item whose declaration word is `@term`, which says what one word or one fixed phrase means | a full name, such as `billing#amount`, or a slug when it belongs to no item of the kind design | when it has a label |
 | decision record | a declared item whose declaration word is `@decision`, which records one practice or one choice | a slug, such as `code-comments` | yes |
 | declared finding class | a declared item whose declaration word is `@finding-class`, a finding class that a repository declares for itself | a slug, such as `late-fee` | yes |
 | conformance vector | the vector that one vector line of a vector set states: an input, or several inputs, of a conforming program of its specification or its design, and what the requirements oblige that program to give for them | its vector set and its number | yes |
@@ -169,12 +173,12 @@ An item is a thing that Sinter traces. Each item has one kind of item:
 | vector set | the test-vector set of one item of the kind specification or of one item of the kind design | its item of the kind specification or design | yes |
 | task | one piece of work | a work item id | no |
 | plan | one piece of work that is made up of tasks and plans | a work item id | no |
-| test | a unit of code that a test framework runs | its file and its name | no |
+| test | a unit of code that a test runner runs | its file and its name | no |
 | site | a part of a file that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line | no name | no |
 | external item | a thing outside the repository | an external id, such as `gh/42` | no |
 
 A declared item is what a declaration declares, such as the requirement
-that `@req limit-size=v1` declares. A declared item takes up a part of
+that `@req limit-amount=v1` declares. A declared item takes up a part of
 one file of a tree, and that part has its declaration. The declaration
 word alone gives the kind of the declared item: `@design` gives the kind
 design, `@spec` the kind specification, `@req` the kind requirement,
@@ -190,9 +194,12 @@ the definition entries of the ledger define each one.
 
 ### 2.2 Repositories and actors
 
-A repository is a git repository. A tree is the set of the files of the
-repository, with their contents, at one commit or in one working tree.
-The tree of a commit is the tree at that commit. The default branch is
+A repository is a git repository. A tree is a set of files, each with a
+valid path and a content, in which no two files have the same valid
+path, such as the files at a commit or the files in a working tree of
+the repository. The tree of a commit is the tree at that commit: the
+files at that commit. The tree of a working tree is the tree in that
+working tree: the files in that working tree. The default branch is
 the branch into which work on the repository merges. A change is a set
 of commits that is to merge into the default branch as one unit, such
 as the commits of a pull request.
@@ -235,27 +242,28 @@ specification too. An item of the kind design holds an item of the kind
 requirement or a term directly when that item belongs to it and to no
 item of the kind specification.
 
-Example: an item of the kind design `packs` that holds one item of the
-kind specification `descriptor`, which holds one term `size` and one
-item of the kind requirement `limit-size`.
+Example: an item of the kind design `billing` that holds one item of the
+kind specification `invoice`, which holds one term `amount` and one item
+of the kind requirement `limit-amount`.
 
 ```markdown
-# Language packs
-@design packs=v4
-Specifies the language packs that give Sinter the grammar of a language.
+# Billing
+@design billing=v4
+Specifies the invoices that a billing service sends.
 
-## The pack descriptor
-@spec descriptor=v2
-The descriptor names the files of a pack.
+## Invoices
+@spec invoice=v2
+An invoice asks a customer to pay a sum of money.
 
-### Size
-@term size=v1
-The size of a descriptor is the number of bytes of its file.
+### Amount
+@term amount=v1
+The amount of an invoice is the sum of money that the invoice asks for.
 
-### Size limit
-@req limit-size=v1
-@cites #{size=v1}
-A conforming program must reject a descriptor whose size is more than 1 MiB.
+### Amount limit
+@req limit-amount=v1
+@cites #{amount=v1}
+A conforming program must reject an invoice whose amount is more than
+10,000 euros.
 ```
 
 Only terms and requirements are normative: a term says what a word or a
@@ -268,26 +276,27 @@ examples.
 
 The name of an item of the kind design, of a decision record, and of a
 declared finding class is the slug that its declaration gives it, such
-as `packs`. When an item of the kind specification, an item of the kind
-requirement, or a term belongs to an item of the kind design, its name
-is a full name: the name of that item of the kind design, `#`, and the
-part name that its declaration gives it, such as `packs#descriptor`,
-`packs#size`, and `packs#limit-size`. When it belongs to no item of the
-kind design, its name is the slug that its declaration gives it. A
-citation entry names an item, such as `packs#limit-size` in
-`@cites packs#limit-size=v2`, or `packs#size` in `@cites #{size=v1}` in
-the design `packs`, or the external item `gh/42` in `@cites gh/42`.
+as `billing`. When an item of the kind specification, an item of the
+kind requirement, or a term belongs to an item of the kind design, its
+name is a full name: the name of that item of the kind design, `#`, and
+the part name that its declaration gives it, such as `billing#invoice`,
+`billing#amount`, and `billing#limit-amount`. When it belongs to no item
+of the kind design, its name is the slug that its declaration gives it.
+A citation entry names an item, such as `billing#limit-amount` in
+`@cites billing#limit-amount=v2`, or `billing#amount` in
+`@cites #{amount=v1}` in the design `billing`, or the external item
+`gh/42` in `@cites gh/42`.
 
 An item of one tree and an item of another tree are the same item when
 they are declared items with the same kind of item and the same name,
-such as the item of the kind requirement `packs#limit-size` of two
+such as the item of the kind requirement `billing#limit-amount` of two
 commits. Two conformance vectors are the same item when they have the
 same number in vector sets that are the same item. Two groups of
 conformance vectors are the same item when they have the same name in
 vector sets that are the same item. Two vector sets are the same item
 when their items of the kind specification, or their items of the kind
-design, are the same item. Two tests are the same item when they have
-the same name and their files have the same path. So an item of the kind
+design, are the same item. Two tests are the same item when their files
+have the same path and their names are equal. So an item of the kind
 requirement that moves to another place in its file, or to another file,
 stays the same item.
 
@@ -337,16 +346,21 @@ def test_offsets(vector):
 
 ### 2.7 Tests, sites, and external items
 
-A test is a unit of code that a test framework runs and reports as
-passed or failed, such as a test function. A set of such units, such as
-the tests of one `describe` block, is a test too. Each test has a name
-and a file. The code of a test is the part of its file that the test
-takes up. A comment on a test is a comment that is attached to the code
-of the test, such as the comment right before a test function. The code
-names each test, so a test has no declaration. Test evidence is the set
-of the reports that tests gave in one execution of their test
-frameworks. Each report names one test, and it says whether the test
-passed or failed.
+A test is a unit of code that a test runner runs and that can pass or
+fail, such as a test function. A set of such units, such as the tests of
+one `describe` block, is a test too. Each test has a file and its own
+name, such as the name of a test function. The name of a test is a
+sequence of names: the own names of the tests of which the test is a
+part, from the outermost to the innermost, and then the own name of the
+test. So the test function `t` in the `describe` block `a` and the test
+function `t` in the `describe` block `b` of one file have different
+names. The code of a test is the part of its file that the test takes
+up. A comment on a test is a comment that is attached to the code of the
+test, such as the comment right before a test function. The code names
+each test, so a test has no declaration. A test result is what a test
+runner gives for one test that it runs, and it names that test. Test
+evidence is the set of the test results of one execution of test runners
+that say that the test that they name passed or that it failed.
 
 A site is an item with no name. It is a part of a file that is outside
 every declared item and every comment on a test, and that has a
@@ -372,10 +386,10 @@ Each citation entry of a citation gives one edge, whatever the kinds of
 item of its source and its cited item. The kind of edge is the citation
 word without its `@`. The cited item of the edge is the item that the
 citation entry names. An inline citation, such as
-`[the limit](sinter:packs#limit-size=v2)`, gives one edge of the kind
-`cites`, and the name or the external id in its target names the cited
-item. When the citation entry or the target names no item, the edge has
-no cited item.
+`[the limit](sinter:billing#limit-amount=v2)`, gives one edge of the
+kind `cites`, and the name or the external id in its target names the
+cited item. When the citation entry or the target names no item, the
+edge has no cited item.
 
 A line of a file, a citation, or an inline citation stands in one item,
 or in none: in the innermost declared item of which it is a part (the
@@ -445,18 +459,19 @@ A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
 current revision of an item in a tree is the label that the item has in
 that tree, whatever its revised content, such as `v2` for the
-declaration `@req limit-size=v2`.
+declaration `@req limit-amount=v2`.
 
 An edge is pinned when the revision of the citation entry or of the
 inline citation that gives it is a label: the label of the edge. A
 pinned edge is a relation to the revised content of its cited item that
-its label names. So `@cites packs#limit-size=v2` rests on the revised
-content that `packs#limit-size` has with the label `v2`. The edges of
-`@supersedes docs=v3#*` and of `@verifies data-forms#toml[*]=v3` are
-pinned too, each with the label `v3`. An edge whose citation entry has
-the revision `*`, such as `@cites packs=*`, is not pinned: it rests on
-the cited item at each of its revisions. An edge whose cited item is an
-external item is not pinned, because an external id carries no revision.
+its label names. So `@cites billing#limit-amount=v2` rests on the
+revised content that `billing#limit-amount` has with the label `v2`. The
+edges of `@supersedes docs=v3#*` and of
+`@verifies data-forms#toml[*]=v3` are pinned too, each with the label
+`v3`. An edge whose citation entry has the revision `*`, such as
+`@cites billing=*`, is not pinned: it rests on the cited item at each of
+its revisions. An edge whose cited item is an external item is not
+pinned, because an external id carries no revision.
 
 ### 2.10 Tasks and plans
 
@@ -474,7 +489,7 @@ A task has:
   task whose paths are the empty path set is to change no file;
 - its promises: each a pair of a kind of edge, `satisfies` or
   `verifies`, and the name of an item of the kind requirement, such as
-  `verifies ledger#check-ids`;
+  `verifies billing#check-ids`;
 - at most one external item, such as an issue, which can say what the
   work is; several tasks can name one external item;
 - at most one plan, its plan;
@@ -713,9 +728,9 @@ entries (section 4.3). So when an agent changes the ledger only through
 a conforming program whose input says that an agent runs it, a statement
 of the agent changes a state only in one of these two ways:
 
-1. as a line that the agent adds to a file of a tree or removes from it,
-   such as a line of a change, or a delivery line or a task line in the
-   message of a commit;
+1. as a line that the agent adds to a file of the tree of a commit or of
+   a working tree, or removes from such a file, such as a line of a
+   change, or a delivery line or a task line in the message of a commit;
 2. as a definition entry.
 
 The tasks of a change are the tasks that the delivery lines and the task
@@ -730,9 +745,10 @@ declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
 session. A conforming program gives the same states and the same texts,
-and makes the same changes to the ledger and to the files of trees, for
-two inputs that differ only in the declared task of a session, except
-the brief of that session (section 4.4).
+and makes the same changes to the ledger and to the files of the trees
+of commits and of working trees, for two inputs that differ only in the
+declared task of a session, except the brief of that session
+(section 4.4).
 
 ## 3. Definitions
 
@@ -755,10 +771,13 @@ vectors, vector set, task, plan, test, site, and external item.
 ### 3.2 Trees
 
 @term tree=v1
+@cites files#{path=v1}
 
-A tree of a git repository is the set of the files of the repository,
-with their contents, at one commit or in one working tree of the
-repository. The tree of a commit is the tree at that commit.
+A tree is a set of files, each with a valid path and a content, in which
+no two files have the same valid path, such as the files at a commit or
+the files in a working tree of a git repository. The tree of a commit is
+the tree at that commit: the files at that commit. The tree of a working
+tree is the tree in that working tree: the files in that working tree.
 
 ### 3.3 Default branches
 
@@ -882,12 +901,13 @@ itself.
 
 The name of an item of the kind design, of a decision record, or of a
 declared finding class in a tree is the slug that its declaration gives
-it, such as `packs`. When an item of the kind specification, an item of
-the kind requirement, or a term belongs to an item of the kind design in
-a tree, its name in that tree is a full name: the name of that item of
-the kind design, `#`, and the part name that its declaration gives it,
-such as `packs#size`. When it belongs to no item of the kind design in a
-tree, its name in that tree is the slug that its declaration gives it.
+it, such as `billing`. When an item of the kind specification, an item
+of the kind requirement, or a term belongs to an item of the kind design
+in a tree, its name in that tree is a full name: the name of that item
+of the kind design, `#`, and the part name that its declaration gives
+it, such as `billing#amount`. When it belongs to no item of the kind
+design in a tree, its name in that tree is the slug that its declaration
+gives it.
 
 ### 3.14 Vector sets
 
@@ -962,31 +982,36 @@ when, and only when, one of these is true:
   vector sets are the same item;
 - both are vector sets, of items of the kind specification that are the
   same item, or of items of the kind design that are the same item;
-- both are tests, with the same name, and their files have the same
-  path.
+- both are tests, their files have the same path, and their names are
+  equal.
 
 ### 3.18 Tests
 
 @term test=v1
 @cites {identifiers#{declaration=v1}, #{tree=v1}}
 
-A test is a unit of code that a test framework runs and reports as
-passed or failed, such as a test function, or a set of such units, such
-as the tests of one `describe` block. No declaration declares a test.
-Each test is in one file of a tree, its file, and it has a name, such as
-the name of a test function. The code of a test is the part of its file
-that the test takes up. A comment on a test is a comment that is
-attached to the code of the test, such as the comment right before a
-test function.
+A test is a unit of code that a test runner runs and that can pass or
+fail, such as a test function, or a set of such units, such as the tests
+of one `describe` block. No declaration declares a test. Each test is in
+one file of a tree, its file. Each test has its own name, such as the
+name of a test function or of a `describe` block. The name of a test is
+a sequence of names: the own names of the tests of which the test is a
+part, from the outermost to the innermost, and then the own name of the
+test. So the test function `t` in the `describe` block `a` and the test
+function `t` in the `describe` block `b` of one file have different
+names. The code of a test is the part of its file that the test takes
+up. A comment on a test is a comment that is attached to the code of the
+test, such as the comment right before a test function.
 
 ### 3.19 Test evidence
 
 @term test-evidence=v1
 @cites #{test=v1}
 
-Test evidence is the set of the reports that tests gave in one
-execution of their test frameworks. Each report names one test, and it
-says that the test passed or that it failed.
+A test result is what a test runner gives for one test that it runs,
+and it names that test. Test evidence is the set of the test results of
+one execution of test runners that say that the test that they name
+passed or that it failed.
 
 ### 3.20 Sites
 
@@ -1058,7 +1083,7 @@ A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
 current revision of an item in a tree is the label that the item has in
 that tree, whatever its revised content, such as the label `v2` of the
-declaration `@req limit-size=v2`. A term with no label has a revised
+declaration `@req limit-amount=v2`. A term with no label has a revised
 content and no revision. An item that has no revised content has no
 revision.
 
@@ -1693,10 +1718,10 @@ configuration gives for it, such as a binding of `external-namespaces`.
 
 A conforming program must give the same states for two inputs that agree
 in these things: which commits the repository has, each with its parents
-and its tree; the commit to which each branch points, and which branch
-is the default branch; the delivery lines and the task lines of the
-messages of commits; the ledger, in its order; test evidence; and the
-bindings of the parameters that designs name.
+and its tree; the commit to which each branch points; the commit of the
+default branch; the tree of each working tree; the delivery lines and
+the task lines of the messages of commits; the ledger, in its order;
+test evidence; and the bindings of the parameters that designs name.
 
 ### 4.2 The same treatment of each ledger entry
 
@@ -1734,9 +1759,9 @@ a session is the task that the agent declares as the work of that
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
 session. A conforming program must give the same states and the same
-texts, and make the same changes to the ledger and to the files of
-trees, for two inputs that differ only in the declared task of a
-session, except the brief of that session.
+texts, and make the same changes to the ledger and to the files of the
+trees of commits and of working trees, for two inputs that differ only
+in the declared task of a session, except the brief of that session.
 
 ## 5. Conformance
 
