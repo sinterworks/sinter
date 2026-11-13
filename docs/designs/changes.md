@@ -1558,10 +1558,10 @@ command of the setting `core.fsmonitor`; and a program that runs because
 of a setting of the git configuration, such as `gpg` for the setting
 `log.showSignature`. The files of the conforming program and of the
 programs that it uses, as they are installed, are not such files. To run
-a program is to start a process from a file, or to load a file as native
-code into the process of the program. Code that runs isolated from the
-process of the program, as WebAssembly code runs in a sandbox, is not a
-program that runs in this sense.
+a program is to start a process from a file, or to load a file as code
+that runs in the process of the program. Code that runs isolated from
+the process of the program, as WebAssembly code runs in a sandbox, is
+not a program that runs in this sense.
 
 ### 5.26 No symbolic link followed in a working tree
 
