@@ -374,6 +374,25 @@
 - **A fuzz target for the bridge boundary** — `crowbar` under AFL over
   the result-buffer decoder and the wasm export reader, built outside
   the test suite. `docs/decisions/test-rigor.md` notes the choice.
+- **Grammars that cannot reach outside their tables** — tree-sitter
+  0.26.13 parses in native code, with the parse tables that it copies
+  out of the WebAssembly module of a grammar, and it reads those tables
+  with no bound check (`ts_language_lookup` in its `src/language.h`). So
+  the tables of a crafted grammar in a pack can make the parser read
+  memory outside the tables, in Sinter's own process, or loop. The
+  layered design of language packs states the guarantee that the
+  content of a pack reaches no file outside its folder tree, no network,
+  no clock, and no process, and that each reading ends. Today's bridge
+  does not meet it. Not designed.
+  - One way: check the tables of a grammar when Sinter loads it, so that
+    each index and each count stays inside its table.
+  - Another way: run the parse in a sandbox, such as the parser of
+    tree-sitter itself compiled to WebAssembly and run in wasmtime with
+    limits.
+  - A fuzz target over the tables of grammars, as for the bridge
+    boundary.
+  - Packs are pinned by their hashes, so a crafted grammar reaches Sinter
+    only in a pack that a person installed.
 - **Fuzz targets for the readers of text** — `crowbar` under AFL over
   the readers that Sinter builds from the designs Text and Identifiers:
   the UTF-8 decoder, the reader of tag lines, the reader of id patterns
