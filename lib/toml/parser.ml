@@ -247,6 +247,8 @@ let starts_triple reader quote =
   byte_at reader (reader.pos + 1) = quote
   && byte_at reader (reader.pos + 2) = quote
 
+type part = { text : string; span : Types.span }
+
 let simple_key reader =
   let start = reader.pos in
   let text =
@@ -260,10 +262,14 @@ let simple_key reader =
         String.sub reader.bytes start (reader.pos - start)
     | _ -> syntax reader
   in
-  text
+  { text; span = { start; stop = reader.pos } }
 
-type key = { start : int; first : string; rest : string list }
+type key = { first : string; rest : string list; key : Types.key }
 
+(* @satisfies data-forms#give-only-toml-spans=v1
+   The span of a key runs from the first byte of its first TOML key to the
+   last byte of its last one, with the spaces and dots between them, and each
+   TOML key has its own span with its quotes. *)
 let key reader =
   let start = reader.pos in
   let first = simple_key reader in
@@ -276,7 +282,18 @@ let key reader =
     end
     else rev_rest
   in
-  { start; first; rest = List.rev (more []) }
+  let rev_rest = more [] in
+  let rest = List.rev rev_rest in
+  let last = match rev_rest with last :: _ -> last | [] -> first in
+  {
+    first = first.text;
+    rest = List.map (fun part -> part.text) rest;
+    key =
+      {
+        whole = { start; stop = last.span.stop };
+        parts = List.map (fun part -> part.span) (first :: rest);
+      };
+  }
 
 (* @satisfies data-forms#read-toml=v1
    A run of digits starts with a digit, and each `_` stands between two
@@ -504,13 +521,17 @@ let scalar reader =
   | '0' .. '9' | '+' | '-' -> number reader
   | _ -> syntax reader
 
-type frame =
-  | In_array of { mutable rev : Tree.node list }
-  | In_pair of { table : Tree.table; slot : Tree.slot }
+type inline = { start : int; table : Tree.table }
 
-let walk_failure key = function
+type frame =
+  | In_array of { start : int; mutable rev : Tree.node list }
+  | In_pair of { inline : inline; slot : Tree.slot; key : Types.key }
+
+let span_from reader start : Types.span = { start; stop = reader.pos }
+
+let walk_failure (key : key) = function
   | Ok slot -> slot
-  | Error error -> fail error key.start
+  | Error error -> fail error key.key.whole.start
 
 (* @satisfies data-forms#read-toml=v1
    Between a key and its value, only spaces and tabs stand around `=`, so a
@@ -519,36 +540,47 @@ let key_value_separator reader =
   expect reader "=";
   skip_whitespace reader
 
-(* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
+(* @satisfies data-forms#{
+       read-toml=v1, give-only-root-tables=v1, give-only-toml-spans=v1,
+   }
    Arrays and inline tables match the rules array and inline-table of
-   TOML 1.1.0, with comments and newlines only where those rules allow them,
-   and each array holds its values in order. *)
+   TOML 1.1.0, with comments and newlines only where those rules allow them;
+   each array holds its values in order; and each value of TOML 1.1.0 gets the
+   span from its first byte to its last, with the quotes of a string, the
+   brackets of an array, and the braces of an inline table. *)
 let value reader =
   let rec start_value stack =
     match peek reader with
     | '[' ->
+        let start = reader.pos in
         advance reader 1;
         skip_whitespace_comments_newlines reader;
         if peek reader = ']' then begin
           advance reader 1;
-          deliver stack (Tree.array [])
+          deliver stack (Tree.array [] (span_from reader start))
         end
-        else start_value (In_array { rev = [] } :: stack)
+        else start_value (In_array { start; rev = [] } :: stack)
     | '{' ->
-        let table = Tree.inline () in
+        let inline = { start = reader.pos; table = Tree.inline () } in
         advance reader 1;
         skip_whitespace_comments_newlines reader;
-        if peek reader = '}' then close_inline table stack
-        else start_pair table stack
-    | _ -> deliver stack (Tree.scalar (scalar reader))
-  and start_pair table stack =
+        if peek reader = '}' then close_inline inline stack
+        else start_pair inline stack
+    | _ ->
+        let start = reader.pos in
+        let value = scalar reader in
+        deliver stack (Tree.scalar value (span_from reader start))
+  and start_pair inline stack =
     let key = key reader in
-    let slot = walk_failure key (Tree.walk_pair table key.first key.rest) in
+    let slot =
+      walk_failure key (Tree.walk_pair inline.table key.first key.rest)
+    in
     key_value_separator reader;
-    start_value (In_pair { table; slot } :: stack)
-  and close_inline table stack =
+    start_value (In_pair { inline; slot; key = key.key } :: stack)
+  and close_inline inline stack =
     advance reader 1;
-    deliver stack (Tree.table_value table)
+    deliver stack
+      (Tree.table_value inline.table (span_from reader inline.start))
   and deliver stack node =
     match stack with
     | [] -> node
@@ -557,7 +589,8 @@ let value reader =
         skip_whitespace_comments_newlines reader;
         let close () =
           advance reader 1;
-          deliver below (Tree.array (List.rev array.rev))
+          deliver below
+            (Tree.array (List.rev array.rev) (span_from reader array.start))
         in
         if peek reader = ',' then begin
           advance reader 1;
@@ -567,15 +600,15 @@ let value reader =
         else if peek reader = ']' then close ()
         else syntax reader
     | In_pair pair :: below ->
-        Tree.fill pair.slot node;
+        Tree.fill pair.slot pair.key node;
         skip_whitespace_comments_newlines reader;
         if peek reader = ',' then begin
           advance reader 1;
           skip_whitespace_comments_newlines reader;
-          if peek reader = '}' then close_inline pair.table below
-          else start_pair pair.table below
+          if peek reader = '}' then close_inline pair.inline below
+          else start_pair pair.inline below
         end
-        else if peek reader = '}' then close_inline pair.table below
+        else if peek reader = '}' then close_inline pair.inline below
         else syntax reader
   in
   start_value []
@@ -584,7 +617,7 @@ let key_value reader holding =
   let key = key reader in
   let slot = walk_failure key (Tree.walk_pair holding key.first key.rest) in
   key_value_separator reader;
-  Tree.fill slot (value reader)
+  Tree.fill slot key.key (value reader)
 
 (* @satisfies data-forms#read-toml=v1
    A table header is `[` or `[[`, spaces and tabs, a key, spaces and tabs, and
@@ -595,9 +628,9 @@ let table_header reader root =
   skip_whitespace reader;
   let key = key reader in
   let table =
-    match Tree.walk_header root key.first key.rest ~array with
+    match Tree.walk_header root key.first key.rest ~array key.key with
     | Ok table -> table
-    | Error error -> fail error key.start
+    | Error error -> fail error key.key.whole.start
   in
   expect reader (if array then "]]" else "]");
   table

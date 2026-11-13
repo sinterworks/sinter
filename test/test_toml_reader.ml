@@ -21,10 +21,12 @@ let rec model (value : T.value) : M.value =
       M.Local_date_time (model_date date, model_time time)
   | T.Offset_date_time (date, time, offset) ->
       M.Offset_date_time (model_date date, model_time time, model_offset offset)
-  | T.Array items -> M.Array (List.map model items)
+  | T.Array items ->
+      M.Array (List.map (fun (item : T.item) -> model item.value) items)
   | T.Table table -> M.Table (model_table table)
 
-and model_table table = List.map (fun (key, value) -> (key, model value)) table
+and model_table table =
+  List.map (fun (key, (item : T.item)) -> (key, model item.value)) table
 
 and model_date (date : T.date) =
   { M.year = date.year; month = date.month; day = date.day }
@@ -206,8 +208,8 @@ let rec order_faults document location (table : T.table) =
          (String.concat "," expected);
      ])
   @ List.concat_map
-      (fun (key, value) ->
-        item_order_faults document (location @ [ `String key ]) value)
+      (fun (key, (item : T.item)) ->
+        item_order_faults document (location @ [ `String key ]) item.value)
       table
 
 and item_order_faults document location = function
@@ -215,8 +217,10 @@ and item_order_faults document location = function
   | T.Array items ->
       List.concat
         (List.mapi
-           (fun index value ->
-             item_order_faults document (location @ [ `Int (index + 1) ]) value)
+           (fun index (item : T.item) ->
+             item_order_faults document
+               (location @ [ `Int (index + 1) ])
+               item.value)
            items)
   | _ -> []
 
@@ -242,6 +246,64 @@ let keeps_the_order_of_the_document =
           | [] -> true
           | faults -> QCheck2.Test.fail_reportf "%s" (String.concat "\n" faults)
           )
+      | Error _ as failure ->
+          QCheck2.Test.fail_reportf "gives %s" (failure_text failure))
+
+let rec collect location (item : T.item) (values, keys) =
+  let values =
+    match item.span with
+    | Some span -> (location, span) :: values
+    | None -> values
+  and keys =
+    match item.key with Some key -> (location, key) :: keys | None -> keys
+  in
+  match item.value with
+  | T.Table table ->
+      List.fold_left
+        (fun acc (key, item) -> collect (location @ [ `String key ]) item acc)
+        (values, keys) table
+  | T.Array items ->
+      snd
+        (List.fold_left
+           (fun (index, acc) item ->
+             (index + 1, collect (location @ [ `Int index ]) item acc))
+           (1, (values, keys))
+           items)
+  | _ -> (values, keys)
+
+let byte_span (span : M.span) =
+  { T.start = span.start_byte; stop = span.end_byte }
+
+let gives_the_byte_spans =
+  property ~count:1000
+    ~name:"read gives the byte span of each value and each key, and no other"
+    ~print:M.print_document M.document_gen (fun document ->
+      match T.read document.bytes with
+      | Ok table ->
+          let values, keys =
+            List.fold_left
+              (fun acc (key, item) -> collect [ `String key ] item acc)
+              ([], []) table
+          in
+          let expected_values =
+            List.map
+              (fun (value : M.located) ->
+                (value.location, byte_span value.span))
+              document.values
+          and expected_keys =
+            List.map
+              (fun (key : M.located_key) ->
+                ( key.key_location,
+                  {
+                    T.whole = byte_span key.key_span;
+                    parts = List.map byte_span key.parts;
+                  } ))
+              document.keys
+          in
+          (List.sort compare values = List.sort compare expected_values
+          || QCheck2.Test.fail_reportf "the spans of the values differ")
+          && (List.sort compare keys = List.sort compare expected_keys
+             || QCheck2.Test.fail_reportf "the spans of the keys differ")
       | Error _ as failure ->
           QCheck2.Test.fail_reportf "gives %s" (failure_text failure))
 
@@ -402,7 +464,8 @@ let gives_an_empty_root_table () =
 let gives_the_sign_of_nan () =
   let sign_of bytes =
     match T.read bytes with
-    | Ok [ (_, T.Float x) ] when Float.is_nan x -> Some (Float.sign_bit x)
+    | Ok [ (_, { T.value = T.Float x; _ }) ] when Float.is_nan x ->
+        Some (Float.sign_bit x)
     | _ -> None
   in
   Alcotest.(check (list (option bool)))
@@ -450,6 +513,7 @@ let tests =
     reader_gives_each_edge_case;
     reads_generated_documents;
     keeps_the_order_of_the_document;
+    gives_the_byte_spans;
     reads_corrupted_documents;
     reads_noise;
     Alcotest.test_case

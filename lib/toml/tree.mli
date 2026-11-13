@@ -14,7 +14,7 @@ type table
 (** A table under construction. *)
 
 type node
-(** A value under construction. *)
+(** A value under construction, with its span. *)
 
 type slot
 (** The table and the key to which a key/value pair adds its value. *)
@@ -25,16 +25,17 @@ val root : unit -> table
 val inline : unit -> table
 (** [inline ()] is a new, empty table of an inline table. *)
 
-val scalar : Types.value -> node
-(** [scalar value] is a node of [value], which is not an [Array] and not a
-    [Table]. *)
+val scalar : Types.value -> Types.span -> node
+(** [scalar value span] is a node of [value], which is not an [Array] and not a
+    [Table], with the span [span]. *)
 
-val array : node list -> node
-(** [array elements] is a node of an array that the document writes with
-    brackets, with [elements] in their order. *)
+val array : node list -> Types.span -> node
+(** [array elements span] is a node of an array that the document writes with
+    brackets, with [elements] in their order and the span [span]. *)
 
-val table_value : table -> node
-(** [table_value table] is a node of the table of an inline table. *)
+val table_value : table -> Types.span -> node
+(** [table_value table span] is a node of the table of an inline table, with the
+    span [span] of the inline table. *)
 
 val walk_pair : table -> string -> string list -> (slot, Types.error) result
 (** [walk_pair holding first rest] acts as a key/value pair whose key has the
@@ -55,18 +56,24 @@ val walk_pair : table -> string -> string list -> (slot, Types.error) result
     [Error Duplicate_key] when the table where the walk ends holds the last
     part. A walk that gives an [Error] can have made tables already. *)
 
-val fill : slot -> node -> unit
-(** [fill slot node] adds the last part of [slot] to its table, with [node]. *)
+val fill : slot -> Types.key -> node -> unit
+(** [fill slot key node] adds the last part of [slot] to its table, with [node],
+    whose key is [key]. *)
 
 val walk_header :
-  table -> string -> string list -> array:bool -> (table, Types.error) result
-(** [walk_header root first rest ~array] acts as a table header whose key has
-    the parts [first :: rest], as texts, and is [Ok table] for the table that
-    the header names. [array] is [true] for a header with double brackets. For
-    each part before the last, the walk goes on as {!walk_pair} says, except
-    that a new table is a super-table that no part defines, and that it gives
-    [Error Not_a_table] for a value that is neither a table nor an array of
-    tables that table headers make. Then for the last part:
+  table ->
+  string ->
+  string list ->
+  array:bool ->
+  Types.key ->
+  (table, Types.error) result
+(** [walk_header root first rest ~array key] acts as a table header whose key is
+    [key], with the parts [first :: rest] as texts, and is [Ok table] for the
+    table that the header names. [array] is [true] for a header with double
+    brackets. For each part before the last, the walk goes on as {!walk_pair}
+    says, except that a new table is a super-table that no part defines, and
+    that it gives [Error Not_a_table] for a value that is neither a table nor an
+    array of tables that table headers make. Then for the last part:
     - Without double brackets, the header makes a new table when the table where
       the walk ends does not hold the part, and names it. When that table holds
       a super-table that no part defines, the header names it. It is

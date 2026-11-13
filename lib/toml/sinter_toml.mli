@@ -4,9 +4,10 @@
 (** A reader of TOML 1.1.0 documents.
 
     {!read} takes a byte sequence, an OCaml [string]. When the byte sequence is
-    a TOML document, it gives the root table of the document: its values and the
-    order of its keys in the document. When the byte sequence is not a TOML
-    document, it gives the kind of the fault and a byte offset.
+    a TOML document, it gives the root table of the document: its values, the
+    order of its keys in the document, and the byte span of each value and each
+    key. When the byte sequence is not a TOML document, it gives the kind of the
+    fault and a byte offset.
 
     A byte offset is a whole number from 0 to the length of the byte sequence:
     offset [k] is the place right before the byte at index [k], and the offset
@@ -17,6 +18,20 @@
     The reader follows the specification of TOML 1.1.0 and its ABNF grammar. At
     each point where TOML 1.1.0 lets an implementation choose, the reader makes
     the choice that the description of each type below states. *)
+
+type span = Types.span = { start : int; stop : int }
+(** A span of a byte sequence: [start] is the offset where the span starts, and
+    [stop] is the offset where it ends, so the span holds the bytes at the
+    indexes from [start] to [stop - 1]. From {!read}, [start <= stop]. *)
+
+type key = Types.key = { whole : span; parts : span list }
+(** A key of a key/value pair or of a table header, as the document writes it.
+    [whole] is the span of the whole key: from the first byte of its first part
+    to the last byte of its last part, with the spaces, tabs, and dots between
+    the parts of a dotted key. [parts] is the span of each part, in the order of
+    the document: for the dotted key [a."b".c], the spans of [a], ["b"], and
+    [c]. A part is a bare key, or a quoted key with its quotes. [parts] has one
+    element or more. *)
 
 type date = Types.date = { year : int; month : int; day : int }
 (** A date of the proleptic Gregorian calendar, as RFC 3339 gives it. From
@@ -79,15 +94,34 @@ type value = Types.value =
   | Local_date_time of date * time  (** a local date-time *)
   | Local_date of date  (** a local date *)
   | Local_time of time  (** a local time *)
-  | Array of value list
+  | Array of item list
       (** an array: its elements in their order. An array that the document
           writes with brackets and an array that table headers of an array of
           tables make are both [Array]. *)
   | Table of table  (** a table *)
 
-and table = (string * value) list
+and item = Types.item = { value : value; span : span option; key : key option }
+(** A value of a document, at one place in the tree of the root table.
+
+    [span] is the span of the value as the document writes it, with the quotes
+    of a string, the brackets of an array, and the braces of an inline table,
+    and with no space or tab before or after it. It is [None] for a table that a
+    table header makes, a table that a dotted key makes on its way, and an array
+    that table headers of an array of tables make: the document writes no value
+    for these.
+
+    [key] is the key that leads to this item:
+    - for the value of a key/value pair, the key of that key/value pair;
+    - for the table that a table header names, the key of that table header: for
+      [[a.b]], the table at [b] in the table at [a]; for [[[a]]], the table that
+      the header adds to the array at [a];
+    - [None] for every other item, such as an element of an array that the
+      document writes with brackets, and a table that a dotted key or a table
+      header makes on its way to its last part. *)
+
+and table = (string * item) list
 (** A table: one pair for each key of the table, of the UTF-8 encoding of the
-    text of the key after its escape sequences resolve, and the value of that
+    text of the key after its escape sequences resolve, and the item of that
     key. No two pairs have the same text. Each key comes from one key/value pair
     or table header of the document, the one that adds the key to the table,
     also when it only makes a table on its way to its last part. The pairs are
