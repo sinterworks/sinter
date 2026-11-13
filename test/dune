@@ -35,6 +35,7 @@
   sinter_findings
   sinter_branch_names
   sinter_line_maps
+  sinter_commit_graphs
   digestif.c
   git_fixture
   sinter_bench

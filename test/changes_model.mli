@@ -75,3 +75,62 @@ val print_content : string option -> string
 val a_line_map : string list -> string list -> (int * int) list
 (** [a_line_map old_lines new_lines] is one line map between the two sequences
     of line texts, in increasing order, by the table of {!longest_by_table}. *)
+
+(** {1 Commit graphs} *)
+
+val names_of_json : Yojson.Basic.t -> string list
+(** [names_of_json json] is the strings of the JSON array [json], in order. It
+    fails the test for any other JSON value. *)
+
+type graph = (string * string list) list
+(** A commit graph: each commit with its parents, in their order. *)
+
+val graph_of_json : Yojson.Basic.t -> graph
+(** [graph_of_json json] is the commit graph that [json] writes. *)
+
+val parents : graph -> string -> string list
+(** [parents graph c] is the parents of [c] in [graph], or [[]] when [graph]
+    does not hold [c]. *)
+
+val ancestry : graph -> string -> string list
+(** [ancestry graph c] is the smallest set that holds [c] and each parent of
+    each commit that it holds, in code point order. *)
+
+val reaches : graph -> string -> string -> bool
+(** [reaches graph c c'] holds when [ancestry graph c] holds [c']. *)
+
+val range : graph -> from:string option -> string -> string list
+(** [range graph ~from h] is the commits that [h] reaches and that [from] does
+    not reach, in code point order. *)
+
+val parents_first : graph -> from:string option -> string -> string list
+(** [parents_first graph ~from h] is the order in which the walk of the term
+    [parents-first-order] finishes the commits of the range. *)
+
+val merge_bases : graph -> string -> string -> string list
+(** [merge_bases graph a b] is the common ancestors of [a] and [b] that no other
+    common ancestor reaches, in code point order. *)
+
+val first_parent_line : graph -> string -> string list option
+(** [first_parent_line graph c] is [c], its first parent, and so on, up to a
+    commit with no parent, or [None] when the first parents come back to a
+    commit. *)
+
+val landing_commit : graph -> line_of:string -> string -> string option
+(** [landing_commit graph ~line_of:d c] is each commit of the first-parent line
+    of [d] that reaches [c] and that has no parent or whose first parent does
+    not reach [c], when there is exactly one; [None] when [d] does not reach
+    [c]. It fails the test when [d] reaches [c] and the count is not one. *)
+
+val graph_gen : graph QCheck2.Gen.t
+(** Commit graphs of 1 to 12 commits named [c0], [c1], and so on, in which each
+    parent of [ck] is a commit [cj] with [j < k]. A commit has 0 to 3 parents,
+    and a parent can be named twice. *)
+
+val cyclic_graph_gen : graph QCheck2.Gen.t
+(** Commit graphs as {!graph_gen} gives them, except that each parent can be any
+    commit of the graph, so that a commit can reach itself through its parents.
+*)
+
+val print_graph : graph -> string
+(** [print_graph graph] writes [graph] as a JSON object, for messages. *)
