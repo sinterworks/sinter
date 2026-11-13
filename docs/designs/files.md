@@ -1100,13 +1100,15 @@ The JSON object of a vector line has these members:
   member `values` says nothing about what a conforming program gives for
   its inputs, other than the result.
 - `needs`: the needs of the vector, as a JSON array of one or more need
-  names, each a JSON string. A need is a condition of the run of the
-  vector that a runner can be unable to make true and that the fixed
-  list of section 5.2 names. Section 5.2 gives that list, what each need
-  is, when a vector has each need, and when a runner can skip a vector.
-  The array holds each need of the vector once, in the order of that
-  list, and no other need name. A vector has this member only when it
-  has a need.
+  names, each a JSON string. A need is a condition of the run of a
+  vector that a runner can be unable to make true and that a need name
+  of the vector file names. The need names of the vector file, the same
+  for each group, are `long-names`, `names-kept`, `no-privilege`,
+  `non-utf-8-names`, and `other-owner`, in this order. Section 5.2 says
+  what each need is and when a vector has it; only vectors of the group
+  `file-reads` have needs. The array holds each need of the vector once,
+  in the order of the need names, and no other name. A vector has this
+  member only when it has a need.
 - `note`: an explanation of the vector, as a JSON string, which is no
   part of the input, the result, or the values. A vector has this member
   only when it has an explanation.
@@ -1122,12 +1124,11 @@ leaves it, or changes in it. The revision of the set rises when a vector
 joins the set, leaves it, or changes. A group that comes back after it
 left gets a revision with a greater number than each revision that it
 had before. When the text of this section changes, the revisions of
-every vector, every group, and the set rise, except for a change of the
-vector lines that the text shows, of the list of the needs, of what a
-need is, or of when a vector has a need. A change of the member `note`
-or the member `needs` of a vector, and of no other member, changes no
-revision. The addition or the removal of one of these members is such a
-change. The runner does not need the revisions to run the vectors.
+every vector, every group, and the set rise. A change of the member
+`note` or the member `needs` of a vector, and of no other member,
+changes no revision. The addition or the removal of one of these members
+is such a change. The runner does not need the revisions to run the
+vectors.
 
 A vector writes each input and each value in a fixed form. Inside the
 members `input` and `values`, each text, byte sequence, whole number,
@@ -1314,19 +1315,28 @@ lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 of
 vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64, so it
 does not store the folder tree of vector 30. Some file systems do not
 allow the entry name 0xE9 of vector 41, so they do not store the folder
-tree of vector 41. Condition 3 depends on the process of the program as
-well as on the file system: a process that has an appropriate privilege,
-as POSIX.1-2024 defines it, that gives it a permission that a file
-object takes away does not meet it. The result and the values of a
-vector are the same on every file system that stores its folder tree.
+tree of vector 41. Some file systems allow fewer than 250 bytes in an
+entry name, so they do not store the folder tree of vector 26. Condition
+3 depends on the process of the program as well as on the file system: a
+process that has an appropriate privilege, as POSIX.1-2024 defines it,
+that gives it a permission that a file object takes away does not meet
+it. The result and the values of a vector are the same on every file
+system that stores its folder tree.
 
 A need of a vector is a condition of its run that a runner can be unable
-to make true and that this list names: a condition on the file system
-that holds the folder tree, on the process of the program, or on the
-owners of the files of the folder tree. This is the complete list of the
-needs, by their need names, and of when a vector has each need. No other
-need name stands in the vector file.
+to make true and that a need name of the vector file names: a condition
+on the file system that holds the folder tree, on the process of the
+program, or on the owners of the files of the folder tree. These are the
+need names of the vector file, what each need is, and when a vector has
+it. No other need name stands in the vector file, and a name in the
+member `needs` that is not one of these need names allows no skip.
 
+- `long-names`: the folder tree is on a file system that allows each
+  entry name of the folder tree, with all its bytes. A vector has this
+  need when an entry name of its folder tree has more than 14 bytes, the
+  least number of bytes in a filename that POSIX.1-2024 lets a system
+  allow (`{_POSIX_NAME_MAX}`), such as the entry names of 250 bytes of
+  vector 26.
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the runner makes it, byte for byte:
   for example, the file system does not change an entry name into a
