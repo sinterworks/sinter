@@ -70,3 +70,4 @@
 {"group":"spot-positions","input":{"text":"abc"},"n":66,"note":"a spot without a span has no start position and no position after it","rev":"v1","values":{}}
 {"group":"edit-sets","input":{"edits":[],"files":{"a.md":"abc"}},"n":67,"note":"a sequence that describes an edit set has one or more edit descriptions","result":"invalid","rev":"v1","values":{}}
 {"group":"edit-sets","input":{"edits":[{"after":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":1,"line":1}},{"after":{"column":3,"line":1},"new-text":"Y","path":"a.md","start":{"column":1,"line":1}}],"files":{"a.md":"abc"}},"n":68,"note":"two edits with the same non-empty span","result":"invalid","rev":"v1","values":{}}
+{"group":"spot-positions","input":{"span":{"from":0,"to":2},"text":"a\n"},"n":69,"note":"a non-empty span that ends where a body that ends with a line feed ends","rev":"v1","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
