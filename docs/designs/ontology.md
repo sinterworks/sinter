@@ -7,7 +7,7 @@
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
-Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on the changes that they make to the ledger when an agent runs them, and on the use of declared tasks.
+Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on the changes that they make to the ledger when an agent runs them, on the judgments that they append, and on the use of declared tasks.
 
 Sinter traces the items of a repository, such as items of the kind
 design, specification, and requirement, terms, decision records, tests,
@@ -786,10 +786,12 @@ A statement of an agent is a text that an agent writes, such as a line
 of a file of a tree, a line of the message of a commit, a ledger entry,
 or a message to a person. When its input says that an agent runs it, a
 conforming program changes the ledger only by appending definition
-entries (section 4.3). So when an agent changes the ledger only through
-a conforming program whose input says that an agent runs it, a statement
-of the agent changes a state only in one of these two ways (sections 4.1
-and 4.3):
+entries (section 4.3). A conforming program appends a judgment only to
+record a decision that a person gives it by a confirmation that no
+program that an agent runs can give (section 4.4). So when an agent
+changes the ledger only through a conforming program whose input says
+that an agent runs it, a statement of the agent changes a state only in
+one of these two ways (sections 4.1, 4.3, and 4.4):
 
 1. through a state input, other than the ledger, that the statement
    alters, such as the tree of a working tree or of a commit, the
@@ -808,7 +810,7 @@ declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text about the work of the
 session that a conforming program gives the agent of that session, in
 no state input. A conforming program uses the declared task of a session
-for nothing other than the brief of that session (section 4.4).
+for nothing other than the brief of that session (section 4.5).
 
 ## 3. Definitions
 
@@ -1914,7 +1916,19 @@ while the program runs.
 When its input says that an agent runs it, a conforming program must
 change the ledger only by appending definition entries.
 
-### 4.4 The use of declared tasks
+### 4.4 The judgments that persons give
+
+@req write-judgments-only-for-persons=v1
+@cites {
+    text#{conforming-program=v1},
+    #{judgment=v1, person=v1, agent=v1, ledger=v1},
+}
+
+A conforming program must append a judgment to the ledger only to record
+a decision that a person gives it by a confirmation that no program that
+an agent runs can give.
+
+### 4.5 The use of declared tasks
 
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
