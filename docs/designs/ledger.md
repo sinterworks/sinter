@@ -55,14 +55,15 @@ conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, it takes the remotes of a
-git repository and the URL from which a fetch from a remote takes git
-objects. From RFC 3339, it takes the rule `date-time` of its ABNF, for
-the time at which a ledger entry was written. The production
-`chunk-path` is written in ABNF, the notation of RFC 5234, with the
-case-sensitive strings `%s"…"` of RFC 7405. From RFC 8259, the design
-takes JSON texts, with their objects, members, arrays, strings, and
-numbers: each line of the file that holds the conformance vectors of the
-design is a JSON text.
+git repository, the URL from which a fetch from a remote takes git
+objects, and the settings `remote.<r>.url` and `url.<base>.insteadOf`.
+From RFC 3339, it takes the rule `date-time` of its ABNF, for the time
+at which a ledger entry was written. The production `chunk-path` is
+written in ABNF, the notation of RFC 5234, with the case-sensitive
+strings `%s"…"` of RFC 7405. From RFC 8259, the design takes JSON texts,
+with their objects, members, arrays, strings, and numbers: each line of
+the file that holds the conformance vectors of the design is a JSON
+text.
 
 ## 1. Glossary
 
@@ -79,7 +80,7 @@ design is a JSON text.
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
-| remote | a name, such as `origin`, by which the git configuration of a git repository gives the URL of another git repository |
+| remote | a name, such as `origin`, by which the git configuration of a git repository gives one or more URLs of another git repository |
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object or names another ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
@@ -100,11 +101,11 @@ design is a JSON text.
 | [extend](sinter:#ledger-extension=v1) | a commit extends a commit c when it is c, or when the chain of its single parents leads to c and each commit of the chain holds each line of its parent |
 | [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | the git repository at the URL from which a fetch from the remote of a git repository whose name is the binding of the parameter `ledger-remote` takes git objects, such as the git repository on the host of a project; the stored ledger of that git repository |
+| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the URL from which a fetch from that remote takes git objects, such as the git repository on the host of a project; the stored ledger of that git repository |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
 | [pull of ledger entries](sinter:ontology#ledger=v1), [push of ledger entries](sinter:ontology#ledger=v1) | a pull of ledger entries is a write that a clone makes to its own ledger: it takes the ledger entries, voids included, of another clone and puts them first; a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
-| [pull commit](sinter:#pull-commit=v1) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`; it is s when no line stays |
+| [pull commit](sinter:#pull-commit=v1) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`; it is s when no line stays, as in a pull over no commit, when the clone has no ledger commit |
 | [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; the input of an execution says that an agent runs the execution when a process of that execution has one |
 | [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; the input of an execution says that the execution is the job when a process of that execution has one |
 | environment | the environment variables of a process |
@@ -248,14 +249,13 @@ appends.
 ### 2.6 The shared clone, pulls, and pushes
 
 Each clone has a ledger ref of its own, when it has one, and a stored
-ledger when its ledger is valid. The shared clone of a clone is the git
-repository that the parameter `ledger-remote` names through the remote
-of the clone, such as the git repository on the host of the project
-(term `shared-clone`). Its stored ledger is the shared ledger. A line of
-the ledger commit of a clone is provisional while the ledger commit of
-its shared clone does not account for it (term `accounted-line`); a line
-that a repair of the shared clone replaced with a void is accounted for,
-so it is not provisional.
+ledger when its ledger is valid. A clone can have a shared clone (term
+`shared-clone`), such as the git repository on the host of the project.
+Its stored ledger is the shared ledger. A line of the ledger commit of a
+clone is provisional while the ledger commit of its shared clone does
+not account for it (term `accounted-line`); a line that a repair of the
+shared clone replaced with a void is accounted for, so it is not
+provisional.
 
 A clone pushes its ledger entries to its shared clone. The requirement
 `push-only-extensions` gives the commit that a push sends and what a
@@ -312,13 +312,11 @@ requirement gives. So no ledger entry that the repair keeps changes its
 `seq` or its `id`, and, because the new history is intact, no commit of
 it holds a ledger entry that the repair removed.
 
-When the shared clone pulls from no shared clone of its own, a change of
-its ledger ref to a commit that does not extend its ledger commit, such
-as a commit that a repair made in another clone, is no push: it does not
-put ledger entries after those of the shared ledger. A program makes
-such a change only as a repair of the shared ledger, in the form that
-the requirement `repair-ledgers-with-voids` gives for the ledger commit
-of the shared clone.
+When the shared clone pulls from no shared clone of its own and has a
+ledger commit, a program changes its ledger ref to a commit that does
+not extend that ledger commit, such as a commit that a repair made in
+another clone, only as a repair of the shared ledger, in the form that
+the requirement `repair-ledgers-with-voids` gives.
 
 A void records a removal: a void whose `dropped` names a ledger entry
 that is still in the ledger does not remove it. After a repair of the
@@ -629,9 +627,11 @@ are accepted at no point.
 For the text r of the binding of the parameter `ledger-remote`, the
 shared clone of a git repository is the git repository at the URL from
 which a fetch from its remote with the name r takes git objects, as the
-page git-config gives it. A git repository whose git configuration gives
-no such URL has no shared clone. The shared ledger of a git repository
-is the stored ledger of its shared clone.
+page git-config gives it: the first value of the setting
+`remote.<r>.url` of its git configuration, rewritten by the settings
+`url.<base>.insteadOf` of that git configuration. A git repository whose
+git configuration gives no such URL has no shared clone. The shared
+ledger of a git repository is the stored ledger of its shared clone.
 
 ### 4.14 Accounted lines
 
@@ -949,10 +949,10 @@ each of these is true:
 
 When a conforming program pulls into a git repository A the ledger
 entries of its shared clone S, it must change the ledger ref of A, from
-its commit a, from not existing, or from a ledger ref that has no
-commit, for which a then stands for no commit, to a pull commit of s
-over a, for a commit s to which the ledger ref of S points, or pointed
-after the last change of the ledger ref of A.
+its commit a, or, when that ledger ref does not exist or has no commit,
+with no commit as a, to a pull commit of s over a, for a commit s to
+which the ledger ref of S points, or pointed after the last change of
+the ledger ref of A.
 
 ### 5.15 The pulls that a program refuses
 
