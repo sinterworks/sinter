@@ -17,7 +17,7 @@ let first_invalid_byte bytes =
 (* @satisfies data-forms#read-toml=v1
    A byte sequence that is not valid UTF-8 is not a TOML document, by the rule
    toml-encoding, and the reader replaces no byte. *)
-let read bytes =
+let read ?max_depth ?max_key_parts bytes =
   match first_invalid_byte bytes with
   | Some offset -> Error (Invalid { error = Not_utf_8; offset })
-  | None -> Parser.document bytes
+  | None -> Parser.document ~max_depth ~max_key_parts bytes

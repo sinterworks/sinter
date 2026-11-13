@@ -36,4 +36,8 @@ type error =
   | Inline_table_closed
   | Dotted_key_into_named_table
 
-type failure = Invalid of { error : error; offset : int }
+type limit = Depth | Key_parts
+
+type failure =
+  | Invalid of { error : error; offset : int }
+  | Limit_reached of { limit : limit; offset : int }

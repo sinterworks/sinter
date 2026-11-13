@@ -62,6 +62,10 @@ let failure_text = function
         | T.Dotted_key_into_named_table -> "Dotted_key_into_named_table"
       in
       Printf.sprintf "%s at %d" kind offset
+  | Error (T.Limit_reached { limit; offset }) ->
+      Printf.sprintf "%s at %d"
+        (match limit with T.Depth -> "Depth" | T.Key_parts -> "Key_parts")
+        offset
 
 let suite = "fixtures/toml-test"
 
@@ -108,6 +112,8 @@ let reader bytes =
   match T.read bytes with
   | Ok table -> Ok (M.Table (model_table table))
   | Error (T.Invalid _) as failure -> Error (failure_text failure)
+  | Error (T.Limit_reached _) as failure ->
+      Ok (M.String ("<" ^ failure_text failure ^ ">"))
 
 let every_valid_case_gives_its_value =
   Alcotest.test_case "each valid case of toml-test gives the value of its JSON"
@@ -309,10 +315,13 @@ let gives_the_byte_spans =
 
 let offset_fits bytes = function
   | Ok _ -> true
-  | Error (T.Invalid { offset; _ }) ->
+  | Error (T.Invalid { offset; _ }) | Error (T.Limit_reached { offset; _ }) ->
       offset >= 0 && offset <= String.length bytes
 
-let total bytes = offset_fits bytes (T.read bytes)
+let total bytes =
+  offset_fits bytes (T.read bytes)
+  && offset_fits bytes (T.read ~max_depth:2 ~max_key_parts:2 bytes)
+  && offset_fits bytes (T.read ~max_depth:0 ~max_key_parts:0 bytes)
 
 let corrupted_gen =
   Gen.(M.document_gen >>= fun document -> M.corrupt_gen document.bytes)
@@ -447,6 +456,74 @@ let gives_syntax_faults () =
         (is_syntax (T.read bytes)))
     syntax_faults
 
+let limit_cases =
+  [
+    (Some 2, None, "a = [[[x", "Depth at 6");
+    (Some 2, None, "a = [[ x [[[", "Syntax");
+    (Some 1, None, "a = { b = { } }", "Depth at 10");
+    (Some 2, None, "a = [{ b = [1] }]", "Depth at 11");
+    ( Some 2,
+      None,
+      "a = 9223372036854775808\nb = [[[1]]]",
+      "Integer_out_of_range at 4" );
+    (Some 2, None, "b = [[[1]]]\na = 9223372036854775808", "Depth at 6");
+    (Some 1, None, "a = 1\na = [[1]]", "Duplicate_key at 6");
+    (Some 1, None, "a = [1, [2], 1e400]", "Depth at 8");
+    (Some 2, None, "a = [1, [2], 1e400]", "Float_out_of_range at 13");
+    (None, Some 2, "a.a.a = 1", "Key_parts at 4");
+    (None, Some 2, "[a.a.a]", "Key_parts at 5");
+    (None, Some 2, "[[a . a . \"a\"]]", "Key_parts at 10");
+    (None, Some 2, "x = { a.a.a = 1 }", "Key_parts at 10");
+    (None, Some 2, "a = 1\na.a = 2", "Not_a_table at 6");
+    (Some 0, None, "a = []", "Depth at 4");
+    (None, Some 0, "a = 1", "Key_parts at 0");
+    (Some 0, Some 1, "a = 1", "Ok");
+  ]
+
+let gives_each_limit () =
+  List.iter
+    (fun (max_depth, max_key_parts, bytes, expected) ->
+      let got = T.read ?max_depth ?max_key_parts bytes in
+      let name =
+        Printf.sprintf "%S with max_depth %s and max_key_parts %s" bytes
+          (Option.fold ~none:"-" ~some:string_of_int max_depth)
+          (Option.fold ~none:"-" ~some:string_of_int max_key_parts)
+      in
+      if expected = "Syntax" then
+        Alcotest.(check bool) name true (is_syntax got)
+      else Alcotest.(check string) name expected (failure_text got))
+    limit_cases
+
+let limits_gen =
+  Gen.(pair M.document_gen (pair (int_range 0 5) (int_range 0 5)))
+
+let print_limits ((document : M.document), (depth, parts)) =
+  Printf.sprintf "%s, max_depth %d, max_key_parts %d"
+    (M.print_document document)
+    depth parts
+
+let reads_below_the_limits =
+  property ~count:1000
+    ~name:
+      "read with limits gives the table of read without them, or the limit \
+       that a depth or a key passes" ~print:print_limits limits_gen
+    (fun ((document : M.document), (max_depth, max_key_parts)) ->
+      let past_depth = document.depth > max_depth
+      and past_parts = document.key_parts > max_key_parts in
+      match T.read ~max_depth ~max_key_parts document.bytes with
+      | Error (T.Limit_reached { limit = T.Depth; _ }) -> past_depth
+      | Error (T.Limit_reached { limit = T.Key_parts; _ }) -> past_parts
+      | Ok table -> (
+          (not (past_depth || past_parts))
+          &&
+          match T.read document.bytes with
+          | Ok other ->
+              M.equal
+                (M.Table (model_table table))
+                (M.Table (model_table other))
+          | Error _ -> false)
+      | Error (T.Invalid _) -> false)
+
 let empty_documents =
   [ "\xEF\xBB\xBF\n"; "\n"; "\r\n"; " \t"; "# a"; "\n\n# a\n" ]
 
@@ -527,6 +604,9 @@ let tests =
       gives_each_fault_with_its_offset;
     Alcotest.test_case "read gives Syntax for texts that do not match toml"
       `Quick gives_syntax_faults;
+    Alcotest.test_case "read gives the first limit or fault that it reaches"
+      `Quick gives_each_limit;
+    reads_below_the_limits;
     Alcotest.test_case
       "read gives an empty root table for documents with no key/value pair"
       `Quick gives_an_empty_root_table;
