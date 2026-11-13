@@ -46,9 +46,9 @@ vector.
 | repository | a git repository |
 | commit, message of a commit, parent, branch, file, path, working tree, push, pull request | the thing of git, or of a host of git repositories, that has this name |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
-| [tree](sinter:#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
-| [tree of a commit](sinter:#tree=v1), [tree of a working tree](sinter:#tree=v1) | the tree of a commit is the tree at that commit: the files at that commit; the tree of a working tree is the tree in that working tree: the files in that working tree |
-| [default branch](sinter:#default-branch=v1) | the branch into which work on a repository merges |
+| [tree](sinter:#tree=v1) | a set of files, each with a valid path and a content, which is a byte sequence, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
+| [tree of a commit](sinter:#tree=v1), [tree of a working tree](sinter:#tree=v1) | the one tree that a commit gives, and the one tree that a working tree gives |
+| [default branch](sinter:#default-branch=v1) | the branch into which the people who work on a repository bring the work of changes |
 | actor | a person, an agent, or the job |
 | [person](sinter:#person=v1) | a human who works on a repository |
 | [agent](sinter:#agent=v1) | a program that uses a language model to write texts, such as code, as one person runs it; it acts for that person |
@@ -71,19 +71,20 @@ vector.
 | [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | an item of the kind design holds each of its items of the kind specification, its items of the kind requirement, and its terms, and each of them belongs to that item of the kind design; an item of the kind specification holds its items of the kind requirement and its terms in the same way |
 | [hold directly](sinter:#containment=v1) | an item of the kind design holds an item of the kind requirement or a term directly when that item belongs to it and to no item of the kind specification |
 | [name of a declared item](sinter:#item-name=v1) | for an item of the kind design, a decision record, or a declared finding class, the slug that its declaration gives it, such as `billing`; for an item of the kind specification, an item of the kind requirement, or a term, when it belongs to an item of the kind design, the name of that item of the kind design, `#`, and the part name that its declaration gives it, such as `billing#amount`, and otherwise the slug that its declaration gives it |
-| [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests whose files have the same path and whose names are equal |
+| [same item](sinter:#same-item=v1) | of two items of two trees: two declared items with the same kind of item and the same name; two conformance vectors with the same number in vector sets that are the same item; two groups of conformance vectors with the same name in vector sets that are the same item; two vector sets of items of the kind specification, or of items of the kind design, that are the same item; or two tests whose files have the same valid path and whose names are equal |
 | [conformance vector](sinter:#conformance-vector=v1) | the vector that one vector line of a vector set states by the forms of its group: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements oblige that program to give for them |
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | the vector line that states the conformance vector |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [number of a conformance vector](sinter:#conformance-vector=v1) | the number of the vector line of a conformance vector: the value of the member `n` of its object, a whole number of 1 or more |
 | [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, or of a group line, which is a group name such as `offsets` |
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
-| [test](sinter:#test=v1) | a unit of code that a test runner runs and that can pass or fail, or a set of such units, such as the tests of one `describe` block |
+| [test](sinter:#test=v1) | a unit of code that a test runner runs and that can pass or fail, or a set of such units that the code groups under one name, such as the tests of one `describe` block |
+| test runner | a program that runs tests and gives a test result for each test that it runs |
 | [name of a test](sinter:#test=v1) | a sequence of names: the own names of the tests of which the test is a part, from the outermost to the innermost, and then the own name of the test; the own name of a test is a name such as the name of a test function or of a `describe` block |
 | [code of a test](sinter:#test=v1) | the part of its file that a test takes up |
 | [comment on a test](sinter:#test=v1) | a comment that is attached to the code of a test, such as the comment right before a test function |
-| [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that the test that they name passed or that it failed |
-| [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs, which names that test |
+| [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that their test passed or that it failed |
+| [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs; each test result names its test |
 | [site](sinter:#site=v1) | a part of a file that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a markdown file or one comment in code; no two sites of a file have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the label of its declaration, when the declaration has one, such as `v2` for the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
@@ -111,8 +112,8 @@ vector.
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the item that it waits for; it says that the work of the waiting item is to start only after the work item that it waits for is done |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
 | [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each definition entry records one definition of its work item, and each edit of a definition gives a new definition |
-| change | a set of commits that is to merge into the default branch as one unit, such as the commits of a pull request |
-| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that holds all the work of the change, or with a fast-forward merge, which moves the default branch to the last commit of the change |
+| change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
+| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit; work merges into the default branch when a merge brings it in |
 | merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
@@ -195,14 +196,14 @@ the definition entries of the ledger define each one.
 ### 2.2 Repositories and actors
 
 A repository is a git repository. A tree is a set of files, each with a
-valid path and a content, in which no two files have the same valid
-path, such as the files at a commit or the files in a working tree of
-the repository. The tree of a commit is the tree at that commit: the
-files at that commit. The tree of a working tree is the tree in that
-working tree: the files in that working tree. The default branch is
-the branch into which work on the repository merges. A change is a set
-of commits that is to merge into the default branch as one unit, such
-as the commits of a pull request.
+valid path and a content, which is a byte sequence, in which no two
+files have the same valid path, such as the files at a commit or the
+files in a working tree of the repository. A commit gives one tree, the
+tree of the commit, and a working tree gives one tree, the tree of the
+working tree. The default branch is the branch into which the people
+who work on the repository bring the work of changes. A change is a set
+of commits whose work is to merge into the default branch as one unit,
+such as the commits of a pull request.
 
 An actor is a person, an agent, or the job. Actors write the ledger
 entries that Sinter reads:
@@ -296,9 +297,9 @@ conformance vectors are the same item when they have the same name in
 vector sets that are the same item. Two vector sets are the same item
 when their items of the kind specification, or their items of the kind
 design, are the same item. Two tests are the same item when their files
-have the same path and their names are equal. So an item of the kind
-requirement that moves to another place in its file, or to another file,
-stays the same item.
+have the same valid path and their names are equal. So an item of the
+kind requirement that moves to another place in its file, or to another
+file, stays the same item.
 
 ### 2.5 Decision records and finding classes
 
@@ -347,20 +348,21 @@ def test_offsets(vector):
 ### 2.7 Tests, sites, and external items
 
 A test is a unit of code that a test runner runs and that can pass or
-fail, such as a test function. A set of such units, such as the tests of
-one `describe` block, is a test too. Each test has a file and its own
-name, such as the name of a test function. The name of a test is a
-sequence of names: the own names of the tests of which the test is a
-part, from the outermost to the innermost, and then the own name of the
-test. So the test function `t` in the `describe` block `a` and the test
-function `t` in the `describe` block `b` of one file have different
-names. The code of a test is the part of its file that the test takes
-up. A comment on a test is a comment that is attached to the code of the
-test, such as the comment right before a test function. The code names
-each test, so a test has no declaration. A test result is what a test
-runner gives for one test that it runs, and it names that test. Test
-evidence is the set of the test results of one execution of test runners
-that say that the test that they name passed or that it failed.
+fail, such as a test function. A set of such units that the code groups
+under one name, such as the tests of one `describe` block, is a test
+too. Each test has a file and its own name, such as the name of a test
+function. The name of a test is a sequence of names: the own names of
+the tests of which the test is a part, from the outermost to the
+innermost, and then the own name of the test. So the test function `t`
+in the `describe` block `a` and the test function `t` in the `describe`
+block `b` of one file have different names. The code of a test is the
+part of its file that the test takes up. A comment on a test is a
+comment that is attached to the code of the test, such as the comment
+right before a test function. The code names each test, so a test has no
+declaration. A test result is what a test runner gives for one test that
+it runs. Each test result names its test. The test evidence of one
+execution of test runners is the set of the test results of that
+execution that say that their test passed or that it failed.
 
 A site is an item with no name. It is a part of a file that is outside
 every declared item and every comment on a test, and that has a
@@ -466,12 +468,12 @@ inline citation that gives it is a label: the label of the edge. A
 pinned edge is a relation to the revised content of its cited item that
 its label names. So `@cites billing#limit-amount=v2` rests on the
 revised content that `billing#limit-amount` has with the label `v2`. The
-edges of `@supersedes docs=v3#*` and of
-`@verifies data-forms#toml[*]=v3` are pinned too, each with the label
-`v3`. An edge whose citation entry has the revision `*`, such as
-`@cites billing=*`, is not pinned: it rests on the cited item at each of
-its revisions. An edge whose cited item is an external item is not
-pinned, because an external id carries no revision.
+edges of `@supersedes docs=v3#*` and of `@verifies
+data-forms#toml[*]=v3` are pinned too, each with the label `v3`. An edge
+whose citation entry has the revision `*`, such as `@cites billing=*`,
+is not pinned: it rests on the cited item at each of its revisions. An
+edge whose cited item is an external item is not pinned, because an
+external id carries no revision.
 
 ### 2.10 Tasks and plans
 
@@ -489,7 +491,7 @@ A task has:
   task whose paths are the empty path set is to change no file;
 - its promises: each a pair of a kind of edge, `satisfies` or
   `verifies`, and the name of an item of the kind requirement, such as
-  `verifies billing#check-ids`;
+  `verifies billing#limit-amount`;
 - at most one external item, such as an issue, which can say what the
   work is; several tasks can name one external item;
 - at most one plan, its plan;
@@ -730,7 +732,8 @@ of the agent changes a state only in one of these two ways:
 
 1. as a line that the agent adds to a file of the tree of a commit or of
    a working tree, or removes from such a file, such as a line of a
-   change, or a delivery line or a task line in the message of a commit;
+   change; or as a line of the message of a commit that the agent
+   writes, such as a delivery line or a task line;
 2. as a definition entry.
 
 The tasks of a change are the tasks that the delivery lines and the task
@@ -745,10 +748,11 @@ declare a task as the work of its session: the declared task of the
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
 session. A conforming program gives the same states and the same texts,
-and makes the same changes to the ledger and to the files of the trees
-of commits and of working trees, for two inputs that differ only in the
-declared task of a session, except the brief of that session
-(section 4.4).
+and makes the same changes to the ledger, to which commits the
+repository has, each with its parents, its tree, and its message, to the
+commit to which each branch points, and to the tree of each working
+tree, for two inputs that differ only in the declared task of a session,
+except the brief of that session (section 4.4).
 
 ## 3. Definitions
 
@@ -771,20 +775,20 @@ vectors, vector set, task, plan, test, site, and external item.
 ### 3.2 Trees
 
 @term tree=v1
-@cites files#{path=v1}
+@cites {files#{path=v1}, text#{byte-sequence=v1}}
 
-A tree is a set of files, each with a valid path and a content, in which
-no two files have the same valid path, such as the files at a commit or
-the files in a working tree of a git repository. The tree of a commit is
-the tree at that commit: the files at that commit. The tree of a working
-tree is the tree in that working tree: the files in that working tree.
+A tree is a set of files, each with a valid path and a content, which
+is a byte sequence, in which no two files have the same valid path, such
+as the files at a commit or the files in a working tree of a git
+repository. A commit gives one tree, the tree of the commit, and a
+working tree gives one tree, the tree of the working tree.
 
 ### 3.3 Default branches
 
 @term default-branch=v1
 
-The default branch of a git repository is the branch into which work
-on the repository merges.
+The default branch of a git repository is the branch into which the
+people who work on the repository bring the work of changes.
 
 ### 3.4 People
 
@@ -966,9 +970,12 @@ vectors.
 ### 3.17 Identity of items across trees
 
 @term same-item=v1
-@cites #{
-    item=v1, declared-item=v1, item-name=v1, conformance-vector=v1,
-    vector-set=v1, conformance-vector-group=v1, test=v1, tree=v1,
+@cites {
+    files#{path=v1},
+    #{
+        item=v1, declared-item=v1, item-name=v1, conformance-vector=v1,
+        vector-set=v1, conformance-vector-group=v1, test=v1, tree=v1,
+    },
 }
 
 An item of one tree and an item of another tree are the same item
@@ -982,8 +989,8 @@ when, and only when, one of these is true:
   vector sets are the same item;
 - both are vector sets, of items of the kind specification that are the
   same item, or of items of the kind design that are the same item;
-- both are tests, their files have the same path, and their names are
-  equal.
+- both are tests, their files have the same valid path, and their names
+  are equal.
 
 ### 3.18 Tests
 
@@ -991,8 +998,9 @@ when, and only when, one of these is true:
 @cites {identifiers#{declaration=v1}, #{tree=v1}}
 
 A test is a unit of code that a test runner runs and that can pass or
-fail, such as a test function, or a set of such units, such as the tests
-of one `describe` block. No declaration declares a test. Each test is in
+fail, such as a test function, or a set of such units that the code
+groups under one name, such as the tests of one `describe` block. No
+declaration declares a test. Each test is in
 one file of a tree, its file. Each test has its own name, such as the
 name of a test function or of a `describe` block. The name of a test is
 a sequence of names: the own names of the tests of which the test is a
@@ -1008,10 +1016,10 @@ test, such as the comment right before a test function.
 @term test-evidence=v1
 @cites #{test=v1}
 
-A test result is what a test runner gives for one test that it runs,
-and it names that test. Test evidence is the set of the test results of
-one execution of test runners that say that the test that they name
-passed or that it failed.
+A test result is what a test runner gives for one test that it runs.
+Each test result names its test. The test evidence of one execution of
+test runners is the set of the test results of that execution that say
+that their test passed or that it failed.
 
 ### 3.20 Sites
 
@@ -1716,12 +1724,13 @@ configuration gives for it, such as a binding of `external-namespaces`.
     },
 }
 
-A conforming program must give the same states for two inputs that agree
-in these things: which commits the repository has, each with its parents
-and its tree; the commit to which each branch points; the commit of the
-default branch; the tree of each working tree; the delivery lines and
-the task lines of the messages of commits; the ledger, in its order;
-test evidence; and the bindings of the parameters that designs name.
+A conforming program must give the same states for two inputs that do
+not change while the program runs and that agree in these things: which
+commits the repository has, each with its parents and its tree; the
+commit to which each branch points; the commit of the default branch;
+the tree of each working tree; the delivery lines and the task lines of
+the messages of commits; the ledger, in its order; test evidence; and
+the bindings of the parameters that designs name.
 
 ### 4.2 The same treatment of each ledger entry
 
@@ -1759,9 +1768,11 @@ a session is the task that the agent declares as the work of that
 session. The brief of a session is the text that a conforming program
 gives an agent, when the agent asks for its brief, about the work of the
 session. A conforming program must give the same states and the same
-texts, and make the same changes to the ledger and to the files of the
-trees of commits and of working trees, for two inputs that differ only
-in the declared task of a session, except the brief of that session.
+texts, and make the same changes to the ledger, to which commits the
+repository has, each with its parents, its tree, and its message, to the
+commit to which each branch points, and to the tree of each working
+tree, for two inputs that differ only in the declared task of a session,
+except the brief of that session.
 
 ## 5. Conformance
 
