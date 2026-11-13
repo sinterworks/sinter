@@ -55,14 +55,15 @@ and `url.<base>.pushInsteadOf`. From the page gitignore, it takes the
 patterns of ignore files and their rules. From the page
 git-check-ref-format, it takes the rules for the names of refs and of
 branches. From the page git-fetch, it takes fetch refspecs, with the
-setting `remote.<name>.fetch`, and fetches; and from the page git-push,
-pushes. From the page githooks, it takes hooks, and from the page
-gitattributes, the files of git attributes. These are the versions of
-git's formats that the terms name: the repository format versions 0 and
-1, with the object formats `sha1` and `sha256` and the ref storage
-formats `files` and `reftable`; packs in the pack format versions 2 and
-3, with pack indexes in the versions 1 and 2; the reftable format in its
-versions 1 and 2; and git's index in its versions 2 to 4.
+setting `remote.<name>.fetch`, fetches, and the forms of addresses, with
+the remote helpers that they choose; and from the page git-push, pushes.
+From the page githooks, it takes hooks, and from the page gitattributes,
+the files of git attributes. These are the versions of git's formats
+that the terms name: the repository format versions 0 and 1, with the
+object formats `sha1` and `sha256` and the ref storage formats `files`
+and `reftable`; packs in the pack format versions 2 and 3, with pack
+indexes in the versions 1 and 2; the reftable format in its versions 1
+and 2; and git's index in its versions 2 to 4.
 
 From Text and notation (`text`), the design takes characters, code
 points, spaces, texts, bytes, byte sequences, 0x numerals, valid UTF-8,
@@ -99,7 +100,7 @@ design is a JSON text.
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
 | [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
-| [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` of it, or a file that these files include, in turn, holds |
+| [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, as the page git-config gives includes, holds |
 | [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
 | [commit](sinter:#commit=v1) | a commit object that a git repository holds: it names a git tree object and its parents, in order, and it holds a message |
@@ -117,7 +118,7 @@ design is a JSON text.
 | branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks: for the ref M that the first value of `branch.<name>.merge` names, the ref whose name is the ref name to which the first fetch refspec that maps M to a ref name maps M, in the order of the fetch refspecs of the remote that the last value of `branch.<name>.remote` names, with no effect of a negative refspec; M itself when that value is `.` |
-| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives the setting `remote.<name>.url`; an address of the remote is, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one |
+| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives a value of the setting `remote.<name>.url` with that name for `<name>`; an address of the remote is, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one |
 | [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote, or from the git repository into the git repository at an address of a remote |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
@@ -387,11 +388,10 @@ The requirements `keep-repositories-unchanged`,
 `gain-no-repository-privileges`, `follow-no-working-tree-links`, and
 `avoid-working-tree-waits` state what a conforming program must not do
 in each repository read, and the requirement
-`run-no-configured-programs` states what it must not do in each
-execution in which it makes a repository read, a fetch, or a push. What
-a program gives in a repository read that is not undisturbed, as the
-term `undisturbed-read` defines it, is not specified, and these
-requirements still bind it.
+`run-no-configured-programs` states what it must not run. What a program
+gives in a repository read that is not undisturbed, as the term
+`undisturbed-read` defines it, is not specified, and these requirements
+still bind it.
 
 ## 3. Parameters
 
@@ -1566,20 +1566,20 @@ as they are set up outside these git repositories, such as `ssh` or a
 credential helper; a value of a setting that does not come from a git
 repository is set up outside them. In such a fetch or push, it still
 runs no hook, and no program or command that a value from a git
-repository names or gives, such as the command of the setting
-`core.sshCommand` in the file `config` of the git folder or the command
-of an address `ext::<command>`, other than the program that the form of
-an address chooses for the transfer, such as `ssh` or a remote helper.
-To run a program is to start a process from a file on the system of the
-program, or to load a file as code that runs in the process of the
-program; to run a command is to have a shell or another program carry it
-out; and to give a program or a command to run to another computer, or
-to a server that an address reaches, as through `ssh`, counts as running
-it, but what such a server then runs by its own setup, such as a hook of
-the git repository there, does not, on whatever computer it runs. Code
-that runs isolated from the rest of the process of the program, as
-WebAssembly code runs in a sandbox, is not a program that runs in this
-sense.
+repository names or gives, other than the program that the form of an
+address chooses for the transfer, such as `ssh` or a remote helper: for
+example, not the command of the setting `core.sshCommand` in the file
+`config` of the git folder, and not the command of an address
+`ext::<command>`. To run a program is to start a process from a file on
+the system of the program, or to load a file as code that runs in the
+process of the program; to run a command is to have a shell or another
+program carry it out; and to give a program or a command to run to
+another computer, or to a server that an address reaches, as through
+`ssh`, counts as running it, but what such a server then runs by its own
+setup, such as a hook of the git repository there, does not, on whatever
+computer it runs. Code that runs isolated from the rest of the process
+of the program, as WebAssembly code runs in a sandbox, is not a program
+that runs in this sense.
 
 ### 5.28 No symbolic link followed in a working tree
 
