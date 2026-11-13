@@ -99,6 +99,10 @@ val thing_gen : t QCheck2.Gen.t
 (** JSON values and things that are not JSON values: a null, a number that is no
     integer, a string that gives no text, or a key twice, at any depth. *)
 
+val byte_gen : char QCheck2.Gen.t
+(** Bytes, with the bytes of the syntax of JSON and of UTF-8 more often than
+    others. *)
+
 val corrupt_gen : string -> string QCheck2.Gen.t
 (** [corrupt_gen bytes] gives byte sequences that differ from [bytes] by one
     byte inserted, removed, or replaced, or by two bytes swapped. *)

@@ -66,3 +66,9 @@ val canonical_byte_sequence : t -> string
 val equal : t -> t -> bool
 (** [equal a b] is [true] when, and only when, [a] and [b] are the same JSON
     value. It uses no stack space that grows with the depth of [a] or [b]. *)
+
+val read : string -> t option
+(** [read bytes] is [Some value] when [bytes] is the canonical byte sequence of
+    the JSON value [value], and [None] for every other byte sequence. It never
+    raises. The time is linear in the length of [bytes], and the function uses
+    no stack space that grows with the depth of the JSON value. *)
