@@ -183,7 +183,7 @@ its letters only in the same case.
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
 | [text of the forms of a group](sinter:#group-form-list=v1) | the text of the Conformance part of a specification, or of the Conformance section of a design, without its heading lines, its vector lines, and the line endings right after them |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds the need names of the needs of the vector that the object states |
+| [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
 | [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | the object that a vector line, a group line, or the set line holds, each with fixed members; a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
@@ -676,12 +676,12 @@ A program conforms to the specification `json-lines` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-The vector lines of this specification are in the file
+The file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set, as
-the specification `test-vectors` defines it, and the objects of its
-vector lines state vectors of this specification. This specification
-gives no need names.
+in the same directory as this design, is a test-vector set, as the
+specification `test-vectors` defines it. The term `vector-meaning` gives
+which objects of its vector lines state vectors of this specification.
+This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2418,12 +2418,12 @@ A program conforms to the specification `toml` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-The vector lines of this specification are in the file
+The file
 [`data-forms.toml.test-vectors.jsonl`](data-forms.toml.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set, as
-the specification `test-vectors` defines it, and the objects of its
-vector lines state vectors of this specification. This specification
-gives no need names.
+in the same directory as this design, is a test-vector set, as the
+specification `test-vectors` defines it. The term `vector-meaning` gives
+which objects of its vector lines state vectors of this specification.
+This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one or more
@@ -2497,16 +2497,16 @@ value.
 
 #### 5.5.1 TOML documents
 
-Each vector that a vector line of the groups `give-root-table` and
-`reject-byte-sequence` states gives a byte sequence and what a
-conforming program gives for it as a TOML document. The byte sequence
-decides which of the two groups the vector line has. Together, the
-vectors of the vector lines of the two groups test which byte sequences
+Each vector that the object of a vector line of the groups
+`give-root-table` and `reject-byte-sequence` states gives a byte
+sequence and what a conforming program gives for it as a TOML document.
+The byte sequence decides which of the two groups the vector line has.
+Together, the vectors that these objects state test which byte sequences
 are TOML documents, and the root tables of TOML documents. The vectors
-of the vector lines of the group `reject-byte-sequence` give byte
-sequences that are not valid UTF-8, byte sequences whose text does not
-match the rule `toml`, and byte sequences with a value error, a key
-error, or a structure error.
+that the objects of the vector lines of the group `reject-byte-sequence`
+state give byte sequences that are not valid UTF-8, byte sequences whose
+text does not match the rule `toml`, and byte sequences with a value
+error, a key error, or a structure error.
 
 The group `give-root-table` holds the vector lines whose vectors each
 give a TOML document and its root table. The requirements of the group
@@ -2573,7 +2573,8 @@ When it gives a line number or a column as the line number or the column
 of the end of that span, it gives the line number or the column of
 `end`. The object of a vector line of the group states nothing about the
 other spans that a conforming program gives for the TOML document. The
-note of each vector line of the group gives the text of the span.
+note of each vector line of the group whose object states a vector gives
+the text of the span.
 
 ```
 {"group":"give-span","input":"61203d20310a","n":104,"note":"the text of the span is `a`","result":"valid","rev":"v1","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
@@ -2664,12 +2665,12 @@ A program conforms to the specification `hashes` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-The vector lines of this specification are in the file
+The file
 [`data-forms.hashes.test-vectors.jsonl`](data-forms.hashes.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set, as
-the specification `test-vectors` defines it, and the objects of its
-vector lines state vectors of this specification. This specification
-gives no need names.
+in the same directory as this design, is a test-vector set, as the
+specification `test-vectors` defines it. The term `vector-meaning` gives
+which objects of its vector lines state vectors of this specification.
+This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2809,12 +2810,12 @@ A program conforms to the specification `hash-ids` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-The vector lines of this specification are in the file
+The file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set, as
-the specification `test-vectors` defines it, and the objects of its
-vector lines state vectors of this specification. This specification
-gives no need names.
+in the same directory as this design, is a test-vector set, as the
+specification `test-vectors` defines it. The term `vector-meaning` gives
+which objects of its vector lines state vectors of this specification.
+This specification gives no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
@@ -2868,11 +2869,10 @@ id. The requirement of the group is `validate-hash-id`.
 ## 8. Test vectors
 @spec test-vectors=v1
 
-A vector is an input and what requirements oblige a conforming program
-to give for that input, and the object of a vector line can state a
-vector, as the term `vector-meaning` gives. A conforming program can
-read a byte sequence as a test-vector set. It can also validate a
-sequence of versions as a version sequence, as the term
+A vector is as the term `vector-meaning` gives it, and the object of a
+vector line can state a vector. A conforming program can read a byte
+sequence as a test-vector set. It can also validate a sequence of
+versions as a version sequence, as the term
 `test-vector-version-sequence` gives.
 
 By the term `test-vector-file-name`, the test-vector file name of a
@@ -3297,44 +3297,23 @@ A program conforms to the specification `test-vectors` when it is a
 [specification](sinter:text#specification=v1): it meets every
 requirement that the specification declares.
 
-The vector lines of this specification are in the file
+The file
 [`data-forms.test-vectors.test-vectors.jsonl`](data-forms.test-vectors.test-vectors.jsonl),
-in the same directory as this design. The file is a test-vector set, and
-the objects of its vector lines state vectors of this specification. The
-file holds, for each object, its canonical byte sequence, then the byte
-0x0A. So the text of each line of the file is a JSON text, as RFC 8259
-defines it. Only a line feed ends a line of the file. A string of the
-file can hold U+0085, U+2028, or U+2029, and these characters do not end
-a line.
+in the same directory as this design, is a test-vector set: its lines
+are as the terms `test-vector-set` and `vector-line` give, so the text
+of each line of the file is a JSON text, as RFC 8259 defines it, and the
+members of their objects are as the term `vector-object` gives. Only a
+line feed ends a line of the file. A string of the file can hold U+0085,
+U+2028, or U+2029, and these characters do not end a line. The term
+`vector-meaning` gives which objects of its vector lines state vectors
+of this specification. This specification gives no need names.
 
-The first line of the file is the set line. Its object has one member,
-`rev`: the revision of the test-vector set. Then each group has one
-group line, in the key order of the group names. The object of a group
-line has two members: `group`, the group name, and `rev`, the revision
-of the group. Then the vector lines follow, in increasing order of their
-numbers. The object of a vector line has these members:
-
-- `n`: the number of the vector line, an integer of 1 or more.
-- `rev`: the revision of the vector line.
-- `group`: the group name of the vector line.
-- `input`: the input of the vector that the object states.
-- `result`: a result, as a string of the characters of the result
-  without its double quotes.
-- `values`: what a conforming program gives, or does not give, for the
-  input, other than the result that `result` stands for.
-- `note`: an explanation of the vector line, which a conforming program
-  does not give. Only some vector lines have this member.
-- `needs`: the need names of the needs of the vector that the object
-  states, in key order. This specification gives no need names, and no
-  vector line of the file has this member.
-
-A revision is a string of `v` and the decimal numeral of a whole number
-of 1 or more, such as `"v1"`. The vectors follow from the requirements
-of this specification and add nothing to them. Each subsection below
-gives the forms of one group, as the term `group-form-list` gives them.
-In `input` and `values`, a byte sequence is its hex text, as a string,
-such as `"7b22726576223a227631227d0a"` for the UTF-8 encoding of
-`{"rev":"v1"}`, then the byte 0x0A.
+The vectors follow from the requirements of this specification and add
+nothing to them. Each subsection below gives the forms of one group, as
+the term `group-form-list` gives them. In `input` and `values`, a byte
+sequence is its hex text, as a string, such as
+`"7b22726576223a227631227d0a"` for the UTF-8 encoding of `{"rev":"v1"}`,
+then the byte 0x0A.
 
 #### 8.5.1 Test-vector sets
 
