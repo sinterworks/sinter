@@ -67,6 +67,7 @@ let () =
       ("globs", Test_glob_fit.tests);
       ("path sets", Test_path_set.tests);
       ("file read", Test_file_read.tests);
+      ("packs", Test_packs.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);

@@ -47,13 +47,13 @@ let needs =
 let holds need =
   Option.value (List.assoc_opt need (Lazy.force needs)) ~default:false
 
-let name_classes () =
+let name_classes holds =
   [
     ( None,
       [
         "pack.toml"; "a"; "b"; "x.wasm"; "..."; ".a"; "a."; "queries"; "~"; "d";
       ] );
-    (Some "case-distinct-names", [ "A"; "Pack.toml"; "B"; "D" ]);
+    (None, [ "A"; "Pack.toml"; "B"; "D"; "A."; "Queries" ]);
     ( Some "non-portable-names",
       [ "a b"; " "; "a\tb"; "a\nb"; "a\\b"; "a\x7fb"; "[x]{y}*?"; "a:b" ] );
     (Some "names-kept", [ "\xc3\xa9"; "\xe2\x80\xa8" ]);
@@ -80,10 +80,8 @@ let content_gen =
 let link_gen =
   Gen.oneof_list [ "a"; "."; ".."; "/"; "pack.toml"; "../.."; "d/a"; "missing" ]
 
-let unique entries =
-  let key name =
-    if holds "case-distinct-names" then name else String.lowercase_ascii name
-  in
+let unique ~fold entries =
+  let key name = if fold then String.lowercase_ascii name else name in
   let rec keep seen = function
     | [] -> []
     | (name, file) :: rest ->
@@ -99,8 +97,7 @@ let file kind : Files_tree.file =
     owned_by_other = false;
   }
 
-let tree_gen =
-  let names = lazy (name_classes ()) in
+let gen_of ~names ~fold =
   let name_gen = Gen.delay (fun () -> Gen.oneof_list (Lazy.force names)) in
   let file_gen =
     Gen.fix (fun self depth ->
@@ -116,14 +113,28 @@ let tree_gen =
           Gen.oneof_weighted
             (( 3,
                Gen.map
-                 (fun entries -> file (Folder (unique entries)))
+                 (fun entries -> file (Folder (unique ~fold entries)))
                  (Gen.list_size (Gen.int_bound 4)
                     (Gen.pair name_gen (self (depth - 1)))) )
             :: leaf))
   in
   Gen.map
-    (fun entries -> file (Folder (unique entries)))
+    (fun entries -> file (Folder (unique ~fold entries)))
     (Gen.list_size (Gen.int_bound 5) (Gen.pair name_gen (file_gen 3)))
+
+let tree_gen =
+  Gen.delay (fun () ->
+      gen_of
+        ~names:(lazy (name_classes holds))
+        ~fold:(not (holds "case-distinct-names")))
+
+let unstored_tree_gen =
+  gen_of
+    ~names:
+      (lazy
+        (name_classes (fun _ -> true)
+        @ [ String.make 256 'x'; String.make 300 'z'; String.make 254 'w' ]))
+    ~fold:false
 
 let deep_tree depth =
   let rec go depth =
