@@ -109,7 +109,7 @@ a JSON text.
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
 | [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test suite takes a result link only when it holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
-| [names](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
+| [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: each test that it holds and that holds no test has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
@@ -127,8 +127,9 @@ a JSON text.
 
 A report file, such as `out/junit.xml`, is a file that a test runner
 writes about the tests that it ran. As an input of a conforming program,
-a report file has four things (term `report-file`): its report content,
-its report name, its pack, and its test runner. How a program comes to
+a report file is what the term `report-file` gives, such as the bytes
+of `out/junit.xml`, the name `out/junit.xml`, a TypeScript pack, and
+its test runner vitest. How a program comes to
 the test runner of a report file, such as by a call of the function
 recognise of each adapter, or by an option that a person gives, is its
 own choice.
@@ -251,8 +252,8 @@ when pytest writes `file="tests/test_api.py"`, and the files
 have a test `test_list`, the test result is linked to both, and, unless
 a narrowing removes one of these pairs, each of them gets a finding of
 the class `ambiguous-result`. The line of a test result chooses no
-result link; a program can use it, or anything else that it knows, for a
-narrowing (section 2.7). A pattern is built from the name path of the
+result link; a person, or a tool that runs the tests, can use it, or
+anything else that it knows, to give a narrowing (section 2.7). A pattern is built from the name path of the
 test entry, and, when the data asks for one, from a prefix that comes
 from its path. The separators of the data join the names. A separator
 that the data does not give is a part break: the names on its two sides
@@ -430,7 +431,8 @@ it in that sequence. The narrowing is a finite set of triples, each of
 the number of a report file of the import, a whole number of 1 or more,
 and a test of that tree. The narrowing is given to the program with the
 report files, such as by a person, and it is the empty set when none is
-given.
+given. The narrowing is only what is given with the import: a program
+derives no narrowing from the report files or from the tree.
 
 ### 3.3 The evidence for a tree
 
@@ -839,8 +841,8 @@ in its reading. A test result of an import is linked to a test of the
 tree of the import when, and only when, its reading has a result link of
 that test result and a test entry whose path is the valid path of the
 file of that test, whose name path is equal to the name of that test,
-and whose kind is the kind of the test node of that test, and these two
-conditions hold:
+and whose kind is the kind of the test node of that test, and both of
+these conditions are true:
 
 - the test result has no file, or has a file that matches that valid
   path;
@@ -1116,8 +1118,8 @@ no tree finding of the class `unverified-vector`. The subject of the
 finding is the name of the item of its vector set, then `[`, then the
 decimal numeral of the number of the conformance vector, then `]`. Its
 spot is the valid path of the vector file of that item, with the span of
-the line of the text of its content that the vector line of the
-conformance vector, without its last byte, gives.
+the run of the text of its content that holds the text of the vector
+line of the conformance vector without its last byte.
 
 ## 4. Requirements
 
@@ -1317,8 +1319,8 @@ and no source for another test with it.
 
 When the reading of a report file of an import of the evidence for a
 tree has the result "stopped", a conforming program must give, from that
-evidence, no outcome of a test of that tree in that evidence or in that
-import, no source of such an outcome, no result for whether a `verifies`
+evidence, no outcome of a test of that tree in that evidence or in an
+import of it, no source of such an outcome, no result for whether a `verifies`
 promise is kept in that tree, and no finding of that tree of the classes
 `never-ran`, `failed`, `ambiguous-result`, and `unverified-vector`.
 
@@ -1498,7 +1500,9 @@ these forms:
 
 The group `recognitions` has the vectors of the requirement
 `recognise-junit-reports`. Each vector gives a report content and the
-data of a test runner, and the default recognition.
+data of a test runner, and the default recognition. The binding of
+`runner-settings` of each vector is valid: each runner setting has the
+type of its value in `settings`.
 
 - `input`: a JSON object with the members `match`, the match table of
   the test runner, a TOML table; `settings`, a JSON object with one
@@ -1525,7 +1529,9 @@ The group `readings` has the vectors of the requirements
 `give-reading-result-links`, and `omit-reading-values`, for test runners
 with a match table. Each vector gives a report content, the data of a
 test runner, and test entries, and the default reading: its result, its
-test results, and its result links.
+test results, and its result links. The bindings of `file-readers` and
+of `external-namespaces` are valid, and the binding of `runner-settings`
+is valid: each runner setting has the type of its value in `settings`.
 
 - `input`: a JSON object with the members `match`, `settings`, and
   `report`, as in the group `recognitions`, and `tests`, a JSON array of
