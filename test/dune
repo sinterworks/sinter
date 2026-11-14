@@ -37,6 +37,7 @@
   sinter_line_maps
   sinter_commit_graphs
   sinter_git_model
+  sinter_origins
   digestif.c
   git_fixture
   sinter_bench
