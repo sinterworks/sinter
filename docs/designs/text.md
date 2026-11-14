@@ -7,7 +7,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; conforming programs, inputs, and results; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when it is
@@ -32,6 +32,10 @@ rule of RFC 5234, which matches any one of the characters `0` to `9`.
 In RFC 5234, a quoted string such as `"a"` matches its letters in
 either case. RFC 7405 adds the string `%s"…"`, which matches its
 letters only in the same case.
+
+Some definitions define a value, such as a text, by an algorithm: a
+header sentence, then numbered steps, such as
+`1. Let *s* be the empty text.`, each in one of a fixed set of forms.
 
 From RFC 3629, the design takes UTF-8: how a byte sequence encodes a
 text, the rule `UTF8-char`, which matches the bytes that encode one
@@ -93,6 +97,14 @@ design has one JSON text on each line of its text.
 | [production](sinter:#production=v1) | a rule of ABNF, such as `hex-digit = DIGIT / %x61-66`, that a definition or a requirement of a design holds, and that, with each rule, other than a core rule, that it reaches through its rule names, holds no prose value and has no rule name that names no rule or more than one rule; a text matches a production when, for some choice at each `/`, at each range of terminal values, at each letter of a quoted string that matches either case, and at each repetition, the production gives terminal values that match the characters of the text, one each, in their order |
 | [rule name](sinter:#rule-name=v1) | a name in a rule of ABNF that a definition or a requirement R holds, such as `digit` for the core rule `DIGIT`, which names each rule that has that rule name, without regard to case, and that is a core rule of RFC 5234, a rule that R holds, or a rule that a definition Q holds when R refers to Q as a definition whose meaning R uses; R holds a rule of ABNF when the rule is on the lines of one of the blocks of R |
 | [terminal value](sinter:#production=v1) | one of the numbers into which a rule of ABNF resolves, such as 0x61 for `%x61`; in a production, a terminal value matches the character whose code point it is |
+| [sequence](sinter:#sequence=v1) | a finite number of things in an order, such as the lines of a text in the order of their line numbers |
+| [element](sinter:#sequence=v1) | the k-th element of a sequence is the thing at number k in the order of the sequence, from 1; the empty sequence has no element |
+| [append](sinter:#sequence=v1) | appending a thing to a sequence gives the sequence of its elements, in their order, and then that thing as the last element |
+| [remove](sinter:#sequence=v1) | removing some elements of a sequence gives the sequence of its other elements, in their order |
+| [algorithm](sinter:#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names, such as the spaced text of a text in section 2.9; a program can get that value in any way |
+| [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after it up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
+| [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
+| [give](sinter:#algorithm=v1) | an algorithm gives, for some values, the value V of the step `Give V.` at which its steps end for these values |
 
 ## 2. Numbers, texts, bytes, lines, and notation
 
@@ -491,6 +503,33 @@ mark: that character has no position. It gives a line number or a
 column as the start or the end of a run only when the run is a span. So
 it gives no line number and no column as the start or the end of a run
 that starts at boundary 0 of a text that has a byte order mark.
+
+### 2.9 Sequences and algorithms
+
+A sequence is a finite number of things in an order, its elements, such
+as the lines of a text in the order of their line numbers. A text is a
+sequence of characters, and a byte sequence is a sequence of bytes. So
+the 3rd element of the text `abc` is its 3rd character, `c`.
+
+A definition can define a value by an algorithm: a header sentence, then
+numbered steps, each in one of the forms that the term `algorithm` of
+section 3.39 lists. The steps define only the value that they give. A
+program can get that value in any way. For example, a definition could
+define the spaced text of a text by this algorithm:
+
+The spaced text of a text *t* is the text that these steps give.
+
+1. Let *s* be the empty text.
+2. For each *c* of *t*, in order:
+   1. If *c* is a tab, append a space to *s*.
+   2. Otherwise, append *c* to *s*.
+3. Give *s*.
+
+For the text `a`, a tab, `b`, these steps give the text `a`, a space,
+`b`. The words *t*, *s*, and *c* are value names, and each stands for
+one value. A step can use the value that an algorithm gives, the same
+algorithm included, by the words of its header, such as "the spaced text
+of *s*".
 
 ## 3. Definitions
 
@@ -998,6 +1037,175 @@ the cases of what a conforming program gives for an input. The double
 quotes are not part of the result. A conforming program gives a result
 when it gives something that stands for that result and for no other
 result.
+
+### 3.38 Sequences
+
+@term sequence=v1
+@cites #{whole-number=v1}
+
+A sequence is a finite number of things in an order. For each whole
+number k from 1 to the number of these things, the sequence has one
+k-th element: the thing at number k in that order. The first element of
+a sequence is its 1st element, and its last element is its k-th
+element, where k is the number of its elements. One thing can be the
+k-th element of a sequence for more than one k. The empty sequence has
+no element. Two sequences are the same sequence when, and only when,
+they have the same number of elements and, for each k, the same k-th
+element. Appending a thing to a sequence gives the sequence whose
+elements are the elements of that sequence, in their order, and then
+that thing as the last element. Removing some elements of a sequence
+gives the sequence of its other elements, in their order.
+
+### 3.39 Algorithms
+
+@term algorithm=v1
+@cites #{
+    design=v1, text=v1, character=v1, place=v1, code-point=v1, line=v1,
+    space=v1, code-span=v1, decimal-numeral=v1, whole-number=v1,
+    sequence=v1, byte-sequence=v1, byte=v1,
+}
+
+An algorithm is a header and steps, on lines of the text of a definition
+of a design, that meet the conditions of this definition. The header
+names a value, and the algorithm defines it: the value is the value that
+the algorithm gives. The steps define only that value. They put no
+obligation on a program, and a program can get that value in any way.
+
+In an algorithm, a text is a sequence of characters, and a byte sequence
+is a sequence of bytes, as their own definitions say: the k-th element
+of a text is the character at place k, and the k-th element of a byte
+sequence is the byte at place k.
+
+The lines of an algorithm:
+
+- A step line is a line whose first characters, after zero or more
+  spaces, are a decimal numeral, `.`, and a space. The numeral of the
+  step line is that decimal numeral.
+- The steps of an algorithm are on the lines from its first step line up
+  to the line before the first later line that holds no character other
+  than spaces, or up to the last line of the definition. Each step line
+  of these lines starts a step.
+- The line right before the first step line holds no character other
+  than spaces. The header is on the lines before that line, from the
+  line after the nearest earlier line that holds no character other than
+  spaces.
+- No line of the header or of the steps is a line of a block.
+- The text of the header is the text of its lines, each without the
+  spaces at its start, with one space between two lines. The text of a
+  step is the text of its step line after its numeral, the `.`, and the
+  space, then the text of each later line of the steps up to the next
+  step line, each without the spaces at its start and with one space
+  before it.
+
+The header and the value names:
+
+- The text of the header is one sentence of the form `The `, W, ` of `,
+  I, ` is the `, K, ` that these steps give.`, where W holds no ` of `.
+  W names the value that the algorithm gives, I names the values for
+  which it gives a value, and K says what kind of thing that value is,
+  such as `text`.
+- A value name is a text of one or more words, with one `-` between two
+  words, where each word is one or more of the characters whose code
+  points are 97 to 122, the letters `a` to `z`. A value name stands for
+  one value at a time.
+- In the text of the header and of each step, the `*` outside code spans
+  pair in order: the first with the second, the third with the fourth,
+  and so on. The characters between the two `*` of each pair are a value
+  name. So `*t*` writes the value name `t`.
+- The value names in I are the header value names, and I holds each of
+  them once. W and K hold no value name. The algorithm gives a value for
+  each choice of one value for each header value name.
+
+The steps:
+
+- The steps at the top of the algorithm are the step lines that have as
+  many spaces before their numerals as its first step line. Each other
+  step line has more.
+- The step lines between the step line of a step S and the next step
+  line that has as many spaces before its numeral as the step line of S,
+  or fewer, have more spaces before their numerals than the step line of
+  S. The substeps of S are those of them that have as many spaces before
+  their numerals as the first of them. Each of the others has more, and
+  it is a substep of one of these substeps, by the same rule.
+- The steps at the top, and the substeps of each step, are numbered in
+  order: the numeral of the k-th of them is the decimal numeral of k.
+- Each step has exactly one of these forms, where *n*, *m*, and *s* are
+  value names, V names a value, C is a condition, and S names a
+  sequence:
+  - `Let *n* be V.`: from this step on, *n* stands for V.
+  - `Set *n* to V.`: from this step on, *n* stands for V.
+  - `If C, then:`, with substeps: when C holds, the substeps are taken.
+  - `If C, `, then a step of the form Set, Append, Remove, or Give, with
+    its first letter in lower case: when C holds, that step is taken.
+  - `Otherwise:`, with substeps, or `Otherwise, `, then a step of the
+    form Set, Append, Remove, or Give, with its first letter in lower
+    case. An Otherwise step comes right after an If step, among
+    the steps at the top or among the substeps of one step. Its
+    substeps, or its step, are taken only when the condition of that If
+    step does not hold.
+  - `For each *m* of S, in order:`, with substeps: for each element of
+    S, from the first element to the last element, *m* stands for that
+    element, and the substeps are taken. S is the sequence that S names
+    when this step starts.
+  - `While C:`, with substeps: when C holds, the substeps are taken, and
+    then this step is taken again.
+  - `Append V to *s*.`: when *s* stands for a text and V is a text, or
+    *s* stands for a byte sequence and V is a byte sequence, *s* then
+    stands for the sequence that appending each element of V to *s*, in
+    their order, gives. Otherwise, *s* then stands for the sequence that
+    appending V to *s* gives.
+  - `Remove V from *s*.`, where V names some elements of the sequence
+    for which *s* stands: *s* then stands for the sequence that removing
+    these elements gives.
+  - `Give V.`: the algorithm gives V, and no other step is taken.
+- A step of a form that ends with `:` has one or more substeps. No other
+  step has a substep.
+
+The value names that a step can use:
+
+- The header value names are given to each step.
+- A Let step gives its value name to each later step among the steps at
+  the top, or among the substeps of one step, where the Let step is.
+- A For each step gives its value name to its substeps.
+- A value name that is given to a step is also given to the substeps of
+  that step.
+- A step uses only value names that are given to it, other than the
+  value name that it gives.
+- No step gives a value name that is given to it.
+- A Set, Append, or Remove step changes only a value name that a Let
+  step gives.
+- A step that changes the value for which one value name stands does not
+  change the value for which another value name stands, and it does not
+  change the sequence of a For each step that has started.
+
+Values and conditions:
+
+- A value name stands for its value. A code span stands for the text of
+  its characters.
+- The words of a definition Q name the value that Q defines, such as
+  "the empty text" or "a line feed", only when the definition that holds
+  the algorithm refers to Q as a definition whose meaning it uses.
+- The words W of the header of an algorithm, then ` of `, then a value
+  for each header value name in place of I, name the value that this
+  algorithm gives for these values, such as "the spaced text of *s*".
+  The algorithm can be the algorithm of the step itself. When it is
+  another algorithm, the definition that holds the step refers to the
+  definition that holds that algorithm as a definition whose meaning it
+  uses.
+- A condition holds or does not hold for the values for which the value
+  names stand when the step is taken.
+
+How the steps are taken:
+
+- For a choice of values, each header value name stands for its value,
+  and the steps at the top are taken in their order, from the first.
+- The substeps of a step are taken in their order, from the first. A
+  step with substeps ends after its substeps end, and then the step
+  after it is taken.
+- For each choice of values, taking the steps reaches a Give step after
+  a finite number of steps, the steps of each algorithm that they use
+  included. The value that the algorithm gives for these values is the
+  value V of that Give step.
 
 ## 4. Requirements
 
