@@ -66,10 +66,10 @@ indexes in the versions 1 and 2; the reftable format in its versions 1
 and 2; and git's index in its versions 2 to 4.
 
 From Text and notation (`text`), the design takes characters, code
-points, spaces, texts, bytes, byte sequences, 0x numerals, valid UTF-8,
-the text of a byte sequence, UTF-8 encodings, lines, line numbers, whole
-numbers, code spans, code point order, and what a conforming program
-and a result are. From Files and paths (`files`), it takes the system,
+points, spaces, texts, bytes, byte sequences, 0x numerals, hex digits,
+valid UTF-8, the text of a byte sequence, UTF-8 encodings, lines, line
+numbers, whole numbers, code spans, code point order, and what a
+conforming program and a result are. From Files and paths (`files`), it takes the system,
 file systems, folder trees, folders and their folder entries, regular
 files and their contents, symbolic links, files of another kind, the
 attributes of a file, the bytes that a program takes from a file, valid
@@ -97,7 +97,7 @@ design is a JSON text.
 | git repository | a git folder, with the working trees of the repository |
 | [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs that are not those of one working tree, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
-| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
+| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD, the other refs, and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
 | [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, as the page git-config gives includes, holds |
@@ -113,6 +113,7 @@ design is a JSON text.
 | blob | a git object that holds a content, which is a byte sequence |
 | [reach](sinter:#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
 | [ancestry](sinter:#ancestry=v1) | the set of the commits that a commit reaches |
+| [ref name](sinter:#ref-name=v1) | a text that can be the name of a ref by the rules of the pages git-check-ref-format and gitglossary, such as `refs/heads/main` or `HEAD`: it starts with `refs/`, or it is a root name, such as `ORIG_HEAD` |
 | [ref](sinter:#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object, or that names another ref, as a symbolic ref does; a broken loose ref does neither |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | branch | a ref whose name starts with `refs/heads/` |
@@ -417,10 +418,14 @@ binding.
 The git folder of a git repository is its common folder, as the page
 gitrepository-layout defines the common folder. It holds the object
 database of the git repository, its refs other than the refs of one
-working tree, and its file `config`. Its file `config` gives the
-repository format version, 0 or 1, and the extensions of the repository,
-as the page git-config gives them, such as the object format, `sha1` or
-`sha256`, and the ref storage format, `files` or `reftable`.
+working tree, and its file `config`. The lines of its file `config`
+itself, and not those of a file that it includes, give the repository
+format version, 0 or 1, and the extensions of the repository, as the
+page git-config gives them, such as the object format, `sha1` or
+`sha256`, and the ref storage format, `files` or `reftable`. The
+repository format version is 0 when the file gives none, and at the
+repository format version 0 the file gives no object format and no ref
+storage format. The object format is `sha1` when the file gives none.
 
 ### 4.2 Working trees
 
@@ -478,7 +483,12 @@ sections `includeIf` whose condition starts with `onbranch:`. A setting
 has its value by the rules of the page git-config, and the values of a
 setting are in the order in which the page git-config reads the files
 and their lines, with the lines of an included file at the place of its
-include. For a setting that takes one value, such as `core.excludesFile`
+include. A configuration file includes a file only by the setting
+`include.path` and by the setting `path` of a section `includeIf` whose
+condition starts with `gitdir:`, `gitdir/i:`, `onbranch:`, or
+`hasconfig:remote.*.url:`, as the page git-config gives them; a section
+`includeIf` with any other condition includes no file. For a setting
+that takes one value, such as `core.excludesFile`
 or `core.ignoreCase`, the value is the last of its values. The files of
 the git configuration are the files at the pathnames from which the page
 git-config takes configuration, with the system file of rule 1 in place
@@ -486,7 +496,8 @@ of the system file of the page, and at the pathnames that their includes
 name, whether or not a file is there. A boolean setting is true when its
 value is true by the rules of the page for booleans. A setting whose
 value names a file names the file that the rules of the page for
-pathnames give for that value.
+pathnames give for that value, other than a value that starts with
+`%(prefix)/` or with `:(optional)`, which names no file.
 
 ### 4.4 Commits
 
@@ -498,7 +509,7 @@ pathnames give for that value.
     gitdoc/gitformat-pack,
     text#{
         byte-sequence=v1, byte=v1, 0x-numeral=v1, code-span=v1,
-        whole-number=v1,
+        whole-number=v1, hex-digit=v1,
     },
     #{git-folder=v1},
 }
@@ -527,7 +538,10 @@ The message of a commit is the byte sequence of the content of its
 commit object after the first two bytes 0x0A that follow one another in
 it, or the empty byte sequence when the content holds no two such bytes.
 A commit that the file `shallow` of the git folder names, in a line that
-holds its object id in hex digits, has no parents. The content of a
+holds its object id in hex digits, has no parents. When a parent line
+of a commit that the file `shallow` does not name names no commit of the
+git repository, the parents of that commit, and each thing that this
+design gives from them, are not specified. The content of a
 blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
@@ -558,7 +572,34 @@ The ancestry of a commit c is the smallest set of commits that holds c
 and that holds each parent of each commit that it holds. A commit c
 reaches each commit of its ancestry, c included, and no other commit.
 
-### 4.7 The commits of refs
+### 4.7 Ref names
+
+@term ref-name=v1
+@cites {
+    gitdoc/git-check-ref-format,
+    gitdoc/gitglossary,
+    text#{text=v1, character=v1, code-point=v1, space=v1, code-span=v1},
+}
+
+A ref name is a text n that meets each of these conditions, which are
+the rules of the page git-check-ref-format, other than its rule that a
+ref name holds `/`, with the rules of the page gitglossary for the
+names of refs that do not start with `refs/`, the root names:
+
+1. n starts with `refs/`, or n is a root name: `HEAD`, a text of one or
+   more of the characters `A` to `Z` and `_` that ends with `_HEAD`, or
+   one of `AUTO_MERGE`, `BISECT_EXPECTED_REV`, `NOTES_MERGE_PARTIAL`,
+   `NOTES_MERGE_REF`, and `MERGE_AUTOSTASH`.
+2. n does not end with `/`, and it does not hold `//`.
+3. n does not hold `/.` or `.lock/`, and it does not end with `.lock`.
+4. n does not hold `..` or `@{`.
+5. n does not end with `.`.
+6. n holds no character whose code point is from 0 to 31, and no
+   character whose code point is 127.
+7. n holds no space and none of the characters `~`, `^`, `:`, `?`, `*`,
+   `[`, and `\`.
+
+### 4.8 The commits of refs
 
 @term ref-commit=v1
 @cites {
@@ -566,35 +607,51 @@ reaches each commit of its ancestry, c included, and no other commit.
     gitdoc/gitglossary,
     gitdoc/git-pack-refs,
     gitdoc/reftable,
-    #{git-folder=v1, working-tree=v1, commit=v1},
+    files#{symbolic-link=v1},
+    text#{code-span=v1, hex-digit=v1, utf-8-encoding=v1},
+    #{git-folder=v1, working-tree=v1, commit=v1, ref-name=v1},
 }
 
-A ref of a git repository, or of a working tree of it, points to a git
-object, names another ref, or, as a broken loose ref, does neither, as
-the page gitglossary defines refs and symbolic refs, in the ref storage
-format that the file `config` of the git folder gives: the files format
-of the page gitrepository-layout when that format is `files` or when the
-file gives no ref storage format, and the reftable format, in its
-versions 1 and 2, of git's technical document reftable when it is
-`reftable`. In the files format, a loose ref is a file whose content is
-the object id of its git object in hex digits, or `ref: ` and the name
-of the ref that it names, then the byte 0x0A; a file at the pathname
-that the name of a ref gives in the git folder, or in the folder of a
-working tree, whose content is not in this form is a broken loose ref
-with that name, which neither points to a git object nor names a ref.
-The file `packed-refs`, which the page git-pack-refs defines, holds,
-after a first line that starts with `#` when there is one, a line for
-each ref of the object id in hex digits, a space, and the name of the
-ref, and, after the line of a ref, a line that starts with `^` when that
-ref has a peeled object. A ref of the file `packed-refs` has its value
-there only when no loose ref has its name. A ref exists when the git
-repository, or the working tree, holds a ref with that name, whatever it
-points to or names. The commit of a ref is the git object to which that
-ref resolves, through the refs that it names in turn, when that git
-object is a commit of the git repository. A ref that does not exist, or
-that resolves to no commit of the git repository, has no commit.
+A ref of a git repository, or of a working tree of it, has a ref name,
+and it points to a git object, names another ref, or, as a broken loose
+ref, does neither, as the page gitglossary defines refs and symbolic
+refs, in the ref storage format that the file `config` of the git folder
+gives: the files format of the page gitrepository-layout when that
+format is `files` or when the file gives no ref storage format, and the
+reftable format, in its versions 1 and 2, of git's technical document
+reftable when it is `reftable`. A text that is not a ref name names no
+ref. The refs of one working tree are the refs whose names are root
+names or start with `refs/bisect/`, `refs/worktree/`, or
+`refs/rewritten/`. A working tree holds these refs from the folder of
+that working tree and each other ref from the git folder, and the git
+repository holds each ref from the git folder. The refs that a folder
+holds are, in the files format, its loose refs and, for the git folder,
+the refs of its file `packed-refs`, and, in the reftable format, the
+refs of the stack of tables in its folder `reftable`. In the files
+format, a loose ref of a folder is a file, other than a symbolic link,
+at the pathname that its ref name gives in that folder, whose content is
+the object id of its git object in hex digits, or `ref: ` and the ref
+name of the ref that it names, then the byte 0x0A; such a file whose
+content is not in this form is a broken loose ref with that name, which neither points
+to a git object nor names a ref. A symbolic link at the pathname that a
+ref name gives in a folder is a loose ref with that name that names the
+ref whose name is n when its reference is the UTF-8 encoding of a ref
+name n, and otherwise a broken loose ref with that name, whatever file
+its reference leads to. The file `packed-refs`, which the page
+git-pack-refs defines, holds, after a first line that starts with `#`
+when there is one, a line for each ref of the object id in hex digits, a
+space, and the name of the ref, and, after the line of a ref, a line
+that starts with `^` when that ref has a peeled object. A ref of the
+file `packed-refs` has its value there only when no loose ref of the git
+folder has its name. A ref exists when the git repository, or the
+working tree, holds a ref with that name, whatever it points to or
+names. The commit of a ref is the git object to which that ref resolves,
+through the refs of the same git repository or working tree that it
+names in turn, when that git object is a commit of the git repository.
+A ref that does not exist, or that resolves to no commit of the git
+repository, has no commit.
 
-### 4.8 Head commits
+### 4.9 Head commits
 
 @term head-commit=v1
 @cites {gitdoc/gitglossary, #{working-tree=v1, ref-commit=v1}}
@@ -605,7 +662,7 @@ ref, or, when it is detached, it points to a git object. The head commit
 of a working tree is the commit of its HEAD. A working tree whose HEAD
 has no commit has no head commit.
 
-### 4.9 Branch names
+### 4.10 Branch names
 
 @term branch-name=v1
 @cites {
@@ -632,14 +689,17 @@ ref name that is `refs/heads/` followed by b.
 7. b is not `HEAD`, and it does not start with `-`.
 8. b does not start with `refs/`.
 
-### 4.10 The commit of the default branch
+### 4.11 The commit of the default branch
 
 @term default-branch-commit=v1
 @cites {
     gitdoc/git-fetch,
     ontology#{default-branch=v1, parameter=v1},
-    text#{code-span=v1},
-    #{git-configuration=v1, ref-commit=v1, branch-name=v1},
+    text#{code-span=v1, text=v1},
+    #{
+        git-configuration=v1, ref-name=v1, ref-commit=v1,
+        branch-name=v1,
+    },
 }
 
 Under a binding of the parameter `default-branch-name` that is a branch
@@ -655,10 +715,15 @@ default branch, in this order:
    ref whose name is M. Otherwise, the fetch refspecs of r are the
    values of the setting `remote.<name>.fetch` with r for `<name>`, in
    their order, and the upstream of b is the ref whose name is the ref
-   name to which the first of them that maps M to a ref name maps it, by
-   the rules of the page git-fetch for refspecs; a negative refspec,
-   which starts with `^`, has no effect on the upstream. When none of
-   them maps M to a ref name, b has no upstream.
+   name to which the first of them that maps M to a ref name maps it; a
+   negative refspec, which starts with `^`, has no effect on the
+   upstream. When none of them maps M to a ref name, b has no upstream.
+   A fetch refspec maps M, when M is a ref name, to the ref name D when
+   its source and its destination, as the page git-fetch gives them for
+   refspecs, are M and D, or when each of them holds one `*` and, for a
+   text s, which can be empty and can hold `/`, the source with s in
+   place of its `*` is M and the destination with s in place of its `*`
+   is D.
 2. the ref whose name is `refs/heads/` followed by b.
 3. the ref whose name is `refs/remotes/origin/` followed by b.
 
@@ -668,7 +733,7 @@ or when the first of them that exists has no commit, the default branch
 has no commit. Under a binding of `default-branch-name` that is not a
 branch name, the default branch has no commit.
 
-### 4.11 The files of the tree of a commit
+### 4.12 The files of the tree of a commit
 
 @term commit-file=v1
 @cites {
@@ -713,7 +778,7 @@ other entry of that git tree object has the same byte path as E, the
 file whose valid path is p and whose content is the content of the blob
 that E names.
 
-### 4.12 Ignored paths
+### 4.13 Ignored paths
 
 @term ignored-path=v1
 @cites {
@@ -744,7 +809,7 @@ the git configuration of the working tree is true, a pattern also
 matches each path that differs only in the case of the letters from `A`
 to `Z` from a path that the pattern matches.
 
-### 4.13 The files of the tree of a working tree
+### 4.14 The files of the tree of a working tree
 
 @term working-tree-file=v1
 @cites {
@@ -781,7 +846,7 @@ sparse directory entry followed by the byte path of an entry, other than
 a tree entry, of the git tree object that the sparse directory entry
 names, whether or not the git repository holds that git tree object.
 
-### 4.14 Ranges
+### 4.15 Ranges
 
 @term commit-range=v1
 @cites #{commit=v1, ancestry=v1}
@@ -790,7 +855,7 @@ For two commits s and h of a git repository, the range from s to h is
 the set of the commits that h reaches and that s does not reach. The
 range from no commit to h is the set of the commits that h reaches.
 
-### 4.15 Parents-first orders
+### 4.16 Parents-first orders
 
 @term parents-first-order=v1
 @cites #{commit=v1, commit-range=v1}
@@ -804,7 +869,7 @@ The parents-first order of R is the order in which the walk of R
 finishes the commits of R. So each commit of R comes after each of its
 parents that is in R.
 
-### 4.16 The change of a commit
+### 4.17 The change of a commit
 
 @term change-of-a-commit=v1
 @cites {
@@ -819,7 +884,7 @@ repository, under that binding, is the range from d to h. Its commits
 are the commits of that range, and its last commit is h, also when it
 holds no commit.
 
-### 4.17 Merge bases
+### 4.18 Merge bases
 
 @term merge-base=v1
 @cites #{commit=v1, ancestry=v1}
@@ -828,7 +893,7 @@ A common ancestor of two commits is a commit that each of the two
 reaches. A merge base of two commits is a common ancestor of the two
 that no other common ancestor of the two reaches.
 
-### 4.18 The base of the change of a commit
+### 4.19 The base of the change of a commit
 
 @term change-base=v1
 @cites {
@@ -847,7 +912,7 @@ one merge base. When they have no merge base, or more than one, the
 change of h has no base. When the default branch has no commit under
 that binding, the change of h has no base.
 
-### 4.19 First-parent lines
+### 4.20 First-parent lines
 
 @term first-parent-line=v1
 @cites #{commit=v1}
@@ -856,7 +921,7 @@ The first-parent line of a commit c is the sequence of commits that
 starts with c, in which each other commit is the first parent of the
 commit right before it, and whose last commit has no parent.
 
-### 4.20 Landing commits
+### 4.21 Landing commits
 
 @term landing-commit=v1
 @cites #{commit=v1, ancestry=v1, first-parent-line=v1}
@@ -868,7 +933,7 @@ reach c. The commits of that first-parent line that reach c come first
 in it, so m is the last of them. A commit that d does not reach has no
 landing commit on the first-parent line of d.
 
-### 4.21 Line texts
+### 4.22 Line texts
 
 @term line-text=v1
 @cites {
@@ -886,7 +951,7 @@ of the lines of the text of that content, in the order of their line
 numbers: line text k of p in A is the text of the line whose line number
 is k. Otherwise, p has no line text in A.
 
-### 4.22 Line maps
+### 4.23 Line maps
 
 @term line-map=v1
 @cites {
@@ -907,7 +972,7 @@ between A and B with the greatest number of pairs: no map of p between
 A and B has more pairs. There can be more than one line map of p
 between A and B, and each of them has the same number of pairs.
 
-### 4.23 New line numbers
+### 4.24 New line numbers
 
 @term new-line-number=v1
 @cites {
@@ -927,7 +992,7 @@ new line number of the old line i for M is the whole number j such that
 M holds the pair (i, j). An old line i of p that no pair of M holds as
 its first number has no new line number for M.
 
-### 4.24 Hunks
+### 4.25 Hunks
 
 @term hunk=v1
 @cites {
@@ -971,7 +1036,7 @@ give, and no others. The hunks of p between A and B for each line map
 remove the same number of lines, m less the number of the pairs of a
 line map, and add the same number of lines, n less that number.
 
-### 4.25 The diff of the change of a commit
+### 4.26 The diff of the change of a commit
 
 @term change-diff=v1
 @cites {
@@ -989,7 +1054,7 @@ base, as the old tree, and the tree of h, as the new tree, for one line
 map of p between these two trees. When the change of h has no base, it
 has no diff.
 
-### 4.26 Repository reads
+### 4.27 Repository reads
 
 @term repository-read=v1
 @cites {
@@ -1003,7 +1068,7 @@ git repository or from a working tree of it, one or more things that a
 term of this design defines, such as a commit, the files of a tree, or
 the hunks of a valid path. A fetch or a push is not a repository read.
 
-### 4.27 Undisturbed repository reads
+### 4.28 Undisturbed repository reads
 
 @term undisturbed-read=v1
 @cites {
@@ -1017,7 +1082,7 @@ it included, changes a repository file of the git repository during the
 repository read, other than a file of a working tree from whose files
 the repository read takes no bytes.
 
-### 4.28 Repository files
+### 4.29 Repository files
 
 @term repository-file=v1
 @cites {
@@ -1043,7 +1108,7 @@ of it; the excludes file of each working tree of it; and the files of
 git attributes that the page gitattributes gives for the git repository
 and for each working tree of it.
 
-### 4.29 Values from a git repository
+### 4.30 Values from a git repository
 
 @term repository-value=v1
 @cites {
@@ -1058,7 +1123,7 @@ when the file `config` of the git folder of that git repository, a file
 one of these files includes, in turn, as the page git-config gives
 includes, holds that value.
 
-### 4.30 Fetches and pushes
+### 4.31 Fetches and pushes
 
 @term remote-transfer=v1
 @cites {
