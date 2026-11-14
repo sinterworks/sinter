@@ -144,6 +144,12 @@ module type READER = sig
   (** [list pathname] is the names of the listing of the folder at [pathname],
       without [.] and [..], each once, in the order of {!String.compare}. *)
 
+  val folder_identity : string -> (identity, failure) result
+  (** [folder_identity pathname] is the identity of the folder at [pathname],
+      after each symbolic link on it, the last name included. It gives
+      [Not_a_folder] when the file is not a folder. It opens only a folder, as
+      {!list} does, and it reads no name of the folder. *)
+
   val link_kind : string -> (kind, failure) result
   (** [link_kind pathname] is the kind of the file at [pathname], after each
       symbolic link on it before the last name: [Symbolic_link] when the last

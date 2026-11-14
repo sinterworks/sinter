@@ -33,6 +33,10 @@ let check_result name show_ok expected actual =
   Alcotest.(check string) name (show show_ok expected) (show show_ok actual)
 
 let quoted = Printf.sprintf "%S"
+
+let identity_text (identity : Files.identity) =
+  Printf.sprintf "%d:%d" identity.device identity.inode
+
 let names list = "[" ^ String.concat "; " (List.map quoted list) ^ "]"
 
 module Fake = struct
@@ -329,6 +333,10 @@ let error_tests =
           (Reader.link_kind "f");
         fresh ();
         fail_first ();
+        check_result "folder_identity" identity_text (Error expected)
+          (Reader.folder_identity "d");
+        fresh ();
+        fail_first ();
         check_result "link_text" quoted (Error expected)
           (Reader.link_text "link");
         fresh ();
@@ -364,6 +372,16 @@ let later_error_tests =
               (Reader.list "d");
             check_all_closed ())
           [ "open_folder"; "listing" ]);
+    case "an error of the open or of fstat of a folder closes the folder"
+      (fun () ->
+        List.iter
+          (fun prefix ->
+            fresh ();
+            fail_on prefix Unix.EIO;
+            check_result prefix identity_text (Error Files.Cannot_read)
+              (Reader.folder_identity "d");
+            check_all_closed ())
+          [ "open_folder"; "fstat" ]);
     case "an error of a ranged read is a failure, and the file stays open"
       (fun () ->
         fresh ();
@@ -421,6 +439,7 @@ let fault_properties =
           [
             (fun () -> ignore (Reader.read ~max_size:big "link"));
             (fun () -> ignore (Reader.list "dlink"));
+            (fun () -> ignore (Reader.folder_identity "dlink"));
             (fun () -> ignore (Reader.link_kind "f"));
             (fun () -> ignore (Reader.link_text "link"));
             (fun () ->
@@ -626,6 +645,62 @@ let list_tests =
           (List.exists (String.starts_with ~prefix:"open_file ") (calls ())));
   ]
 
+let folder_identity_tests =
+  let identity name =
+    match Reader.folder_identity name with
+    | Ok identity -> identity_text identity
+    | Error failure -> "Error " ^ failure_name failure
+  in
+  [
+    case "two pathnames of one folder give one identity" (fun () ->
+        fresh ();
+        Alcotest.(check string) "dlink" (identity "d") (identity "dlink");
+        check_all_closed ());
+    case "two folders give two identities" (fun () ->
+        Fake.reset (fake_tree @ [ ("e", Fake.Dir [ "x" ]) ]);
+        Alcotest.(check bool) "d and e" false (identity "d" = identity "e");
+        check_all_closed ());
+    case "the identity of a folder is the identity that fstat gives" (fun () ->
+        fresh ();
+        let expected =
+          match Hashtbl.find_opt Fake.nodes "d" with
+          | Some node -> Printf.sprintf "7:%d" (Fake.identity_of node)
+          | None -> "no d"
+        in
+        Alcotest.(check string) "d" expected (identity "d"));
+    case "a file that is not a folder gives not a folder, and no file no file"
+      (fun () ->
+        List.iter
+          (fun (name, expected) ->
+            fresh ();
+            Alcotest.(check string) name expected (identity name);
+            check_all_closed ())
+          [
+            ("f", "Error not a folder");
+            ("link", "Error not a folder");
+            ("pipe", "Error not a folder");
+            ("gone", "Error no file");
+            ("dangling", "Error no file");
+            ("", "Error no file");
+            ("d\000", "Error no file");
+          ]);
+    case "folder_identity opens no file for reading and reads no name"
+      (fun () ->
+        List.iter
+          (fun name ->
+            fresh ();
+            ignore (Reader.folder_identity name);
+            Alcotest.(check (list string))
+              name []
+              (List.filter
+                 (fun call ->
+                   String.starts_with ~prefix:"open_file " call
+                   || String.starts_with ~prefix:"listing " call
+                   || String.starts_with ~prefix:"read " call)
+                 (calls ())))
+          [ "d"; "dlink"; "f"; "pipe" ]);
+  ]
+
 let link_tests =
   [
     case "link_kind gives the kind without the last link and opens nothing"
@@ -758,6 +833,22 @@ let real_read_tests =
         Alcotest.(check bool)
           "another file" false
           (identity "d/a" = (stat.st_dev, stat.st_ino)));
+    case "the identity of a folder is its device and its file serial number"
+      (fun () ->
+        let root = real_tree () in
+        let stat = Unix.stat (root / "d") in
+        let expected = Printf.sprintf "%d:%d" stat.st_dev stat.st_ino in
+        let identity name =
+          match Files.folder_identity (root / name) with
+          | Ok identity -> identity_text identity
+          | Error failure -> "Error " ^ failure_name failure
+        in
+        List.iter
+          (fun name -> Alcotest.(check string) name expected (identity name))
+          [ "d"; "dlink"; "d/sub/.."; "dlink/." ];
+        Alcotest.(check bool) "d/sub" false (identity "d/sub" = expected);
+        Alcotest.(check string) "f" "Error not a folder" (identity "f");
+        Alcotest.(check string) "gone" "Error no file" (identity "gone"));
     case "a listing gives the names of a folder, through a link" (fun () ->
         let root = real_tree () in
         check_result "d" names
@@ -829,6 +920,7 @@ let no_wait_tests =
                 "Error not a regular file";
                 "Error not a regular file";
                 "Error not a folder";
+                "Error not a folder";
                 (match link with
                 | None -> "Ok other kind"
                 | Some _ -> "Ok symbolic link");
@@ -847,7 +939,11 @@ let no_wait_tests =
         let root = real_tree () in
         Alcotest.(check (list string))
           "the results"
-          [ "Error not a regular file"; "Error not a folder" ]
+          [
+            "Error not a regular file";
+            "Error not a folder";
+            "Error not a folder";
+          ]
           (probe "socket" [ "socket"; root ]));
   ]
 
@@ -1049,11 +1145,13 @@ let only_given_pathnames_tests =
         check_calls "link_kind" (fun () -> ignore (Reader.link_kind "link2"));
         check_calls "link_text" (fun () -> ignore (Reader.link_text "link2"));
         Fake.reset (fake_tree @ [ ("link2", Fake.Link "dlink") ]);
-        check_calls "list" (fun () -> ignore (Reader.list "link2")));
+        check_calls "list" (fun () -> ignore (Reader.list "link2"));
+        check_calls "folder_identity" (fun () ->
+            ignore (Reader.folder_identity "link2")));
   ]
 
 let tests =
   fake_read_tests @ error_tests @ later_error_tests @ fault_properties
   @ chunked_properties @ max_size_tests @ with_file_tests @ list_tests
-  @ link_tests @ real_read_tests @ no_wait_tests @ unchanged_tests
-  @ only_given_pathnames_tests
+  @ folder_identity_tests @ link_tests @ real_read_tests @ no_wait_tests
+  @ unchanged_tests @ only_given_pathnames_tests

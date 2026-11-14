@@ -43,6 +43,7 @@ let () =
           show (Printf.sprintf "%S") (Files.read ~max_size:(1 lsl 30) path);
           show Fun.id (Files.with_file path (fun _ -> "opened"));
           show (fun names -> String.concat "," names) (Files.list path);
+          show (fun _ -> "identity") (Files.folder_identity path);
           show kind_name (Files.link_kind path);
           show (Printf.sprintf "%S") (Files.link_text path);
         ]
@@ -53,7 +54,8 @@ let () =
       print_endline
         (show (Printf.sprintf "%S") (Files.read ~max_size:(1 lsl 30) "s"));
       print_endline
-        (show (fun names -> String.concat "," names) (Files.list "s"))
+        (show (fun names -> String.concat "," names) (Files.list "s"));
+      print_endline (show (fun _ -> "identity") (Files.folder_identity "s"))
   | [ _; "refs"; git_folder; name ] ->
       let refs =
         Refs.create

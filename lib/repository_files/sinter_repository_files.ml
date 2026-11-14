@@ -40,6 +40,7 @@ module type READER = sig
     handle -> offset:int -> length:int -> (string, failure) result
 
   val list : string -> (string list, failure) result
+  val folder_identity : string -> (identity, failure) result
   val link_kind : string -> (kind, failure) result
   val link_text : string -> (string, failure) result
 end
@@ -157,7 +158,7 @@ module Make (S : SYSTEM) = struct
       | Error failure | Ok (Error failure) -> Error failure
       | Ok (Ok content) -> Ok content
 
-  let list pathname =
+  let with_folder pathname f =
     if not (usable pathname) then Error No_file
     else
       match system (fun () -> S.stat pathname) with
@@ -166,16 +167,22 @@ module Make (S : SYSTEM) = struct
       | Ok Folder -> (
           match system (fun () -> S.open_folder pathname) with
           | Error failure -> Error failure
-          | Ok descr ->
-              closing descr (fun () ->
-                  match system (fun () -> S.listing descr) with
-                  | Error failure -> Error failure
-                  | Ok names ->
-                      Ok
-                        (List.sort_uniq String.compare
-                           (List.filter
-                              (fun name -> name <> "." && name <> "..")
-                              names))))
+          | Ok descr -> closing descr (fun () -> f descr))
+
+  let list pathname =
+    with_folder pathname (fun descr ->
+        match system (fun () -> S.listing descr) with
+        | Error failure -> Error failure
+        | Ok names ->
+            Ok
+              (List.sort_uniq String.compare
+                 (List.filter (fun name -> name <> "." && name <> "..") names)))
+
+  let folder_identity pathname =
+    with_folder pathname (fun descr ->
+        match system (fun () -> S.fstat descr) with
+        | Error failure -> Error failure
+        | Ok status -> Ok status.identity)
 
   let link_kind pathname =
     if not (usable pathname) then Error No_file
