@@ -321,6 +321,31 @@
   reports no name for them. The OCaml pack needs a way to bind their
   results before it can read them as tests. This matters because
   Sinter checks its own code. Not designed.
+- **Libraries for Sinter in several languages** — one library for each
+  of a few common languages, each in a repository of its own under
+  `sinterworks`, such as `sinter-rs`, `sinter-go`, and `sinter-py`. A
+  library holds what a program in that language needs to work with
+  Sinter's formats, in modules that a person can use one at a time. Not
+  designed.
+  - One module is for the author of a language pack who writes a runner
+    adapter. A runner adapter is the WebAssembly module of a pack that
+    reads the report file of a test runner and links each test result to
+    a test. The libraries of the languages that compile to WebAssembly
+    have this module.
+  - The module holds the parts that every adapter repeats: it reads the
+    request, gives the report and the test entries as values of the
+    language, writes the response in the form that Sinter reads, and
+    exports the functions that Sinter calls. The author then writes
+    only the part that reads the reports of one language or one test
+    runner, when these are not JUnit XML already.
+  - Where a language has common bindings for WebAssembly, the module is
+    written against them.
+  - Sinter's own packs use these modules for their adapters, so that
+    the libraries are tested on real work before others use them.
+  - Another module is the test adapter for conformance vectors of that
+    language's test frameworks (see the next item).
+  - Which languages come first, and which other modules each library
+    has, are open.
 - **Test adapters for conformance vectors** — a library for each test
   framework that loads the conformance vectors of a design and runs one
   test case for each vector, so that a test of an implementation cites
@@ -336,6 +361,8 @@
     reports each vector that no test exercises. The language pack of the
     test's language must read the citation, in a comment or in the call
     of the adapter.
+  - Each adapter is a module of the library for its language (see
+    "Libraries for Sinter in several languages").
   - The first adapter is for Python and pytest, as a decorator. Others
     follow for the test frameworks of the language packs.
   - In Python, the decorator takes the selection as an expression, not
