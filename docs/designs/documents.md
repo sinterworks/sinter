@@ -901,7 +901,8 @@ of the text of a tag line is instead the position of the place that its
 The file lines of a read file that can be read are runs of its text:
 for a markdown file, its markdown lines; for a code file, the lines that
 its tag texts join. The file lines are in the order of the boundaries
-where they start.
+where they start, and, of two that start at one boundary, in the order
+of the boundaries where they end.
 
 The file lines of a thing of the file are these:
 
