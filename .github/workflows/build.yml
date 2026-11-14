@@ -76,6 +76,8 @@ jobs:
           cache: false
       - name: Install dependencies
         if: steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --with-dev-setup --locked
       - name: Put the switch on the path
         run: |
@@ -169,6 +171,8 @@ jobs:
           cache: false
       - name: Install dependencies
         if: steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --with-dev-setup --locked
       - name: Put the switch on the path
         run: |
@@ -309,6 +313,8 @@ jobs:
           cache: false
       - name: Install the dependencies
         if: steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --locked
       - name: Install the pinned bisect_ppx
         if: steps.opam.outputs.cache-hit != 'true'
@@ -441,6 +447,8 @@ jobs:
           cache: false
       - name: Install the dependencies
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --locked
       - name: Install the pinned mutaml
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
@@ -686,6 +694,8 @@ jobs:
           cache: false
       - name: Install the dependencies
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --locked
       - name: Install the pinned mutaml
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
@@ -863,6 +873,8 @@ jobs:
           cache: false
       - name: Install dependencies
         if: steps.scope.outputs.measure == 'true' && steps.opam.outputs.cache-hit != 'true'
+        env:
+          DUNE_ROOT: .
         run: opam install . --deps-only --with-test --with-dev-setup --locked
       - name: Put the switch on the path
         if: steps.scope.outputs.measure == 'true'
