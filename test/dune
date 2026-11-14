@@ -22,6 +22,8 @@
   sinter_id_patterns
   sinter_identifiers
   sinter_inline_citations
+  sinter_paths
+  sinter_file_read
   git_fixture
   sinter_bench
   alcotest
