@@ -314,7 +314,8 @@ tests stands for every test that it holds, by the suite rule (term
 and `it("large")`. In an import, the test `limits` passed when `small`
 and `large` each have a test result that says passed and no test result
 that names one of the three says failed. It did not run when `large` has
-no test result and no test result says failed. It failed when a test
+no test result and no test result that names one of the three says
+failed. It failed when a test
 result that names `limits` itself, or `small`, or `large`, says
 failed.
 
@@ -351,9 +352,9 @@ vector.
 
 ### 2.11 Findings
 
-The design declares four finding classes, each by a term:
-`never-ran-finding`, `failed-finding`, `ambiguous-result-finding`, and
-`unverified-vector-finding`. For example, the subject of a finding of
+The terms `never-ran-finding`, `failed-finding`,
+`ambiguous-result-finding`, and `unverified-vector-finding` give the
+findings of four finding classes. For example, the subject of a finding of
 the class `unverified-vector` can be `data-forms#toml[12]`.
 
 ## 3. Definitions
