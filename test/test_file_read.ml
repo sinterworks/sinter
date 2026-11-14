@@ -574,10 +574,16 @@ module Fake (F : FAULTS) = struct
 
   let opened : (int, Files_tree.file) Hashtbl.t = Hashtbl.create 8
   let calls = ref []
+  let targets = ref []
+  let paths : (int, string list) Hashtbl.t = Hashtbl.create 8
   let next = ref 0
+  let peak = ref 0
+  let path_of descr = Option.value (Hashtbl.find_opt paths descr) ~default:[]
 
-  let enter call name =
+  let enter call path =
     calls := call :: !calls;
+    targets := (call, path) :: !targets;
+    let name = String.concat "/" path in
     match F.fault call name with
     | Some (Fails error) -> raise (Unix.Unix_error (error, "fake", name))
     | Some Sys_fails -> raise (Sys_error "fake")
@@ -589,9 +595,11 @@ module Fake (F : FAULTS) = struct
     | Some file -> file
     | None -> raise (Unix.Unix_error (Unix.EBADF, "fake", ""))
 
-  let fresh file =
+  let fresh ?(path = []) file =
     incr next;
     Hashtbl.replace opened !next file;
+    Hashtbl.replace paths !next path;
+    peak := max !peak (Hashtbl.length opened);
     !next
 
   let entries (folder : Files_tree.file) =
@@ -618,31 +626,34 @@ module Fake (F : FAULTS) = struct
       raise (Unix.Unix_error (Unix.EACCES, "fake", ""))
 
   let open_root name =
-    enter Open_root name;
+    ignore name;
+    enter Open_root [];
     readable F.tree;
     fresh F.tree
 
   let open_folder descr name =
-    enter Open_folder name;
+    let path = path_of descr @ [ name ] in
+    enter Open_folder path;
     let file = lookup descr name in
     (match file.kind with
     | Files_tree.Link _ -> raise (Unix.Unix_error (Unix.ELOOP, "fake", name))
     | Files_tree.Folder _ -> ()
     | _ -> raise (Unix.Unix_error (Unix.ENOTDIR, "fake", name)));
     readable file;
-    fresh file
+    fresh ~path file
 
   let open_file descr name =
-    enter Open_file name;
+    let path = path_of descr @ [ name ] in
+    enter Open_file path;
     let file = lookup descr name in
     (match file.kind with
     | Files_tree.Link _ -> raise (Unix.Unix_error (Unix.ELOOP, "fake", name))
     | _ -> ());
     readable file;
-    fresh file
+    fresh ~path file
 
   let kind descr name : Sinter_file_read.kind =
-    enter Kind name;
+    enter Kind (path_of descr @ [ name ]);
     match (lookup descr name).kind with
     | Files_tree.Folder _ -> Folder
     | Files_tree.Regular _ -> Regular_file
@@ -650,23 +661,26 @@ module Fake (F : FAULTS) = struct
     | Files_tree.Pipe -> Other_kind
 
   let check_search descr =
-    enter Check_search "";
+    enter Check_search (path_of descr);
     if not (node descr).permissions.search then
       raise (Unix.Unix_error (Unix.EACCES, "fake", "."))
 
   let listing descr =
-    enter Listing "";
+    enter Listing (path_of descr);
     ".." :: List.rev ("." :: List.map fst (entries (node descr)))
 
   let is_regular_file descr =
-    enter Is_regular_file "";
-    match ((node descr).kind, F.fault Is_regular_file "") with
+    enter Is_regular_file (path_of descr);
+    match
+      ( (node descr).kind,
+        F.fault Is_regular_file (String.concat "/" (path_of descr)) )
+    with
     | _, Some Not_regular -> false
     | Files_tree.Regular _, _ -> true
     | _ -> false
 
   let content descr =
-    enter Content "";
+    enter Content (path_of descr);
     match (node descr).kind with
     | Files_tree.Regular pieces -> Files_tree.bytes_of_pieces pieces
     | _ -> raise (Unix.Unix_error (Unix.EISDIR, "fake", ""))
@@ -674,8 +688,9 @@ module Fake (F : FAULTS) = struct
   let close descr =
     if not (Hashtbl.mem opened descr) then
       raise (Unix.Unix_error (Unix.EBADF, "fake", ""));
+    let path = path_of descr in
     Hashtbl.remove opened descr;
-    enter Close ""
+    enter Close path
 
   let eilseq = fake_eilseq
 end
@@ -684,6 +699,7 @@ type fake_read = {
   answer : (answer, exn) result;
   open_after : int;
   calls : call list;
+  targets : (call * string list) list;
 }
 
 let fake_read ?(fault = fun _ _ -> None) tree text =
@@ -697,7 +713,12 @@ let fake_read ?(fault = fun _ _ -> None) tree text =
     | outcome -> Ok (answer_of outcome)
     | exception error -> Error error
   in
-  { answer; open_after = Hashtbl.length S.opened; calls = List.rev !S.calls }
+  {
+    answer;
+    open_after = Hashtbl.length S.opened;
+    calls = List.rev !S.calls;
+    targets = List.rev !S.targets;
+  }
 
 let check_fake_result expected read =
   (match read.answer with
@@ -884,6 +905,598 @@ let walk_follows_the_file_read_result =
          | Ok answer -> answer = reference text tree
          | Error _ -> false))
 
+module Tree = Sinter_file_read.Tree
+
+let by_name entries =
+  List.sort (fun (a, _) (b, _) -> String.compare a b) entries
+
+let rec tree_file value (file : Files_tree.file) : 'a Tree.file =
+  match file.kind with
+  | Folder entries -> Tree.Folder (tree_entries value entries)
+  | Regular pieces -> Tree.Regular_file (value pieces)
+  | Link _ -> Tree.Symbolic_link
+  | Pipe -> Tree.Other_kind
+
+and tree_entries value entries =
+  List.map
+    (fun (name, file) -> { Tree.name; file = tree_file value file })
+    (by_name entries)
+
+let walk_reference (tree : Files_tree.file) =
+  match tree.kind with
+  | Folder entries -> tree_entries (fun _ -> ()) entries
+  | _ -> []
+
+let contents_reference (tree : Files_tree.file) =
+  match tree.kind with
+  | Folder entries -> tree_entries Files_tree.bytes_of_pieces entries
+  | _ -> []
+
+let rec folders_open (file : Files_tree.file) =
+  match file.kind with
+  | Folder entries ->
+      file.permissions.read && file.permissions.search
+      && List.for_all (fun (_, child) -> folders_open child) entries
+  | Regular _ | Link _ | Pipe -> true
+
+let rec folder_depth (file : Files_tree.file) =
+  match file.kind with
+  | Folder entries ->
+      1
+      + List.fold_left
+          (fun deepest (_, child) -> max deepest (folder_depth child))
+          0 entries
+  | Regular _ | Link _ | Pipe -> 0
+
+let rec file_at (file : Files_tree.file) = function
+  | [] -> Some file
+  | name :: rest -> (
+      match file.kind with
+      | Folder entries -> (
+          match List.assoc_opt name entries with
+          | Some child -> file_at child rest
+          | None -> None)
+      | Regular _ | Link _ | Pipe -> None)
+
+let walk_answer_holds tree = function
+  | Ok entries -> entries = walk_reference tree
+  | Error (Sinter_file_read.Cannot_walk _) -> not (folders_open tree)
+
+let walk_follows_the_folder_tree =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:
+         "a walk of a generated folder tree gives its folder entries, or an \
+          error when a folder cannot be opened, and changes no file"
+       ~print:print_file
+       (Gen.oneof [ tree_gen; Pack_trees.tree_gen ])
+       (fun tree ->
+         match
+           Files_tree.run tree (fun root -> Sinter_file_read.walk ~root)
+         with
+         | Files_tree.Not_stored reason ->
+             QCheck2.Test.fail_reportf "not stored: %s" reason
+         | Files_tree.Read { value; changes } ->
+             changes = [] && walk_answer_holds tree value))
+
+let deep_walk_closes_each_descriptor () =
+  let tree = Pack_trees.deep_tree 600 in
+  let value, before, after =
+    read_in tree (fun root ->
+        let before = open_descriptors () in
+        let value = Sinter_file_read.walk ~root in
+        (value, before, open_descriptors ()))
+  in
+  Alcotest.(check int) "the open file descriptors" before after;
+  match value with
+  | Ok entries ->
+      Alcotest.(check bool)
+        "the folder entries" true
+        (entries = walk_reference tree)
+  | Error (Sinter_file_read.Cannot_walk _) -> ()
+
+let root_that_is_no_folder_cannot_be_walked () =
+  let file_root = Filename.temp_file "sinter-root-" "" in
+  Fun.protect
+    ~finally:(fun () -> Sys.remove file_root)
+    (fun () ->
+      List.iter
+        (fun root ->
+          match Sinter_file_read.walk ~root with
+          | Error (Sinter_file_read.Cannot_walk []) -> ()
+          | Error (Sinter_file_read.Cannot_walk names) ->
+              Alcotest.failf "the walk failed at %s" (String.concat "/" names)
+          | Ok _ -> Alcotest.failf "the walk of %s gave a tree" root)
+        [
+          file_root;
+          file_root ^ ".missing";
+          Filename.get_temp_dir_name () ^ "/a\x00b";
+        ])
+
+type 'a fake_run = {
+  value : ('a, exn) result;
+  left_open : int;
+  peak : int;
+  run_targets : (call * string list) list;
+}
+
+let fake_walk ?(fault = fun _ _ -> None) tree =
+  let module S = Fake (struct
+    let tree = tree
+    let fault = fault
+  end) in
+  let module W = Sinter_file_read.Walk (S) in
+  let value =
+    match W.walk ~root:"root" with v -> Ok v | exception e -> Error e
+  in
+  {
+    value;
+    left_open = Hashtbl.length S.opened;
+    peak = !S.peak;
+    run_targets = List.rev !S.targets;
+  }
+
+let fake_content ?(fault = fun _ _ -> None) tree names =
+  let module S = Fake (struct
+    let tree = tree
+    let fault = fault
+  end) in
+  let module W = Sinter_file_read.Walk (S) in
+  let value =
+    match W.content ~root:"root" names with v -> Ok v | exception e -> Error e
+  in
+  {
+    value;
+    left_open = Hashtbl.length S.opened;
+    peak = !S.peak;
+    run_targets = List.rev !S.targets;
+  }
+
+let rec opens_after_kind seen = function
+  | [] -> true
+  | (Kind, path) :: rest -> opens_after_kind (path :: seen) rest
+  | ((Open_folder | Open_file), path) :: rest ->
+      List.mem path seen && opens_after_kind seen rest
+  | _ :: rest -> opens_after_kind seen rest
+
+let only_folders_open tree targets =
+  List.for_all
+    (fun (call, path) ->
+      match call with
+      | Open_file | Content | Is_regular_file -> false
+      | Open_folder -> (
+          match file_at tree path with
+          | Some { Files_tree.kind = Folder _; _ } -> true
+          | _ -> false)
+      | _ -> true)
+    targets
+
+let walk_on_a_fake_system =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:1000
+       ~name:
+         "the walk on a fake system gives the folder entries, opens only \
+          folders, each after its kind, and closes each descriptor"
+       ~print:print_file fake_tree_gen (fun tree ->
+         let run = fake_walk tree in
+         run.left_open = 0
+         && run.peak <= folder_depth tree
+         && opens_after_kind [] run.run_targets
+         && only_folders_open tree run.run_targets
+         &&
+         match run.value with
+         | Ok value -> walk_answer_holds tree value
+         | Error _ -> false))
+
+let faults =
+  [
+    Fails Unix.EIO;
+    Fails Unix.EMFILE;
+    Fails Unix.ENFILE;
+    Fails Unix.EACCES;
+    Sys_fails;
+  ]
+
+let at call path =
+ fun called name ->
+  if called = call && String.equal name (String.concat "/" path) then Some ()
+  else None
+
+let call_name = function
+  | Open_root -> "open_root"
+  | Open_folder -> "open_folder"
+  | Open_file -> "open_file"
+  | Kind -> "kind"
+  | Check_search -> "check_search"
+  | Listing -> "listing"
+  | Is_regular_file -> "is_regular_file"
+  | Content -> "content"
+  | Close -> "close"
+
+let walk_failure_names_its_file =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:
+         "a failed call of the walk gives the entry names of its file and no \
+          tree, and closes each descriptor" ~print:print_file fake_tree_gen
+       (fun tree ->
+         let baseline = fake_walk tree in
+         let targets = baseline.run_targets in
+         List.for_all
+           (fun (call, path) ->
+             List.for_all
+               (fun fault ->
+                 let run =
+                   fake_walk
+                     ~fault:(fun called name ->
+                       Option.map (fun () -> fault) (at call path called name))
+                     tree
+                 in
+                 let holds =
+                   run.left_open = 0
+                   &&
+                   match (call, fault, run.value) with
+                   | Close, _, Ok value -> (
+                       match baseline.value with
+                       | Ok expected -> value = expected
+                       | Error _ -> false)
+                   | Close, _, _ -> false
+                   | _, _, Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                       names = path
+                   | _ -> false
+                 in
+                 holds
+                 || QCheck2.Test.fail_reportf "a fault of %s at %s gives %s"
+                      (call_name call) (String.concat "/" path)
+                      (match run.value with
+                      | Ok (Ok _) -> "a tree"
+                      | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                          "no tree at " ^ String.concat "/" names
+                      | Error error -> Printexc.to_string error))
+               (if call = Close then
+                  List.filter (fun fault -> fault <> Sys_fails) faults
+                else faults)
+             && (call = Close
+                ||
+                let run =
+                  fake_walk
+                    ~fault:(fun called name ->
+                      Option.map
+                        (fun () -> Raises Other_failure)
+                        (at call path called name))
+                    tree
+                in
+                run.left_open = 0
+                &&
+                match run.value with
+                | Error Other_failure -> true
+                | _ -> false))
+           targets))
+
+let in_fiber action =
+  Effect.Deep.match_with action ()
+    { retc = Fun.id; exnc = raise; effc = (fun _ -> None) }
+
+let with_small_stack action =
+  let before = Gc.get () in
+  Fun.protect
+    ~finally:(fun () -> Gc.set before)
+    (fun () ->
+      Gc.set { before with stack_limit = 8192 };
+      in_fiber action)
+
+let deep_walk_needs_no_deep_stack () =
+  let tree = Pack_trees.deep_tree 4000 in
+  let run = with_small_stack (fun () -> fake_walk tree) in
+  (match run.value with
+  | Ok value ->
+      Alcotest.(check bool)
+        "the folder entries" true
+        (walk_answer_holds tree value)
+  | Error error ->
+      Alcotest.failf "the walk raised %s" (Printexc.to_string error));
+  Alcotest.(check int) "the descriptors left open" 0 run.left_open
+
+let content_reference names (tree : Files_tree.file) :
+    (string, Sinter_file_read.content_failure) result =
+  let open Files_tree in
+  let rec walk (folder : file) = function
+    | [] -> Error Sinter_file_read.No_content_file
+    | name :: rest -> (
+        match folder.kind with
+        | Folder entries -> (
+            if not (folder.permissions.search && folder.permissions.read) then
+              Error Cannot_take
+            else
+              match List.assoc_opt name entries with
+              | None -> Error No_content_file
+              | Some file -> (
+                  match (file.kind, rest) with
+                  | Link _, _ -> Error Content_symbolic_link
+                  | Folder _, _ :: _ -> walk file rest
+                  | (Regular _ | Pipe), _ :: _ -> Error No_content_file
+                  | (Folder _ | Pipe), [] -> Error Not_regular
+                  | Regular _, [] when not file.permissions.read ->
+                      Error Cannot_take
+                  | Regular pieces, [] -> Ok (bytes_of_pieces pieces)))
+        | Regular _ | Link _ | Pipe -> Error No_content_file)
+  in
+  let entry_name name =
+    name <> "" && name <> "." && name <> ".."
+    && not (String.exists (fun c -> c = '/' || c = '\x00') name)
+  in
+  if names <> [] && List.for_all entry_name names then walk tree names
+  else Error Not_entry_names
+
+let names_gen =
+  Gen.oneof_weighted
+    [
+      ( 8,
+        Gen.list_size (Gen.int_range 1 4)
+          (Gen.oneof_list
+             [
+               "a";
+               "A";
+               "b";
+               "d";
+               "x";
+               "...";
+               "\xc3\xa9";
+               "e\xcc\x81";
+               "\xe9";
+               "\xff";
+               "pack.toml";
+             ]) );
+      ( 1,
+        Gen.oneof_list
+          [ []; [ "" ]; [ "." ]; [ ".." ]; [ "a/b" ]; [ "a\x00" ]; [ "d"; "" ] ]
+      );
+    ]
+
+let print_names names = String.concat " / " (List.map String.escaped names)
+
+let content_follows_the_folder_tree =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:
+         "the content of entry names in a generated folder tree is the bytes \
+          of the regular file that they lead to, or why not, and changes no \
+          file"
+       ~print:(fun (tree, names) ->
+         print_names names ^ " in " ^ print_file tree)
+       (Gen.pair (Gen.oneof [ tree_gen; Pack_trees.tree_gen ]) names_gen)
+       (fun (tree, names) ->
+         match
+           Files_tree.run tree (fun root ->
+               Sinter_file_read.content ~root names)
+         with
+         | Files_tree.Not_stored reason ->
+             QCheck2.Test.fail_reportf "not stored: %s" reason
+         | Files_tree.Read { value; changes } ->
+             changes = [] && value = content_reference names tree))
+
+let content_of_no_entry_names_makes_no_call () =
+  List.iter
+    (fun names ->
+      let run = fake_content fake_tree names in
+      (match run.value with
+      | Ok (Error Sinter_file_read.Not_entry_names) -> ()
+      | _ -> Alcotest.failf "the content of %s" (print_names names));
+      Alcotest.(check int) "the calls" 0 (List.length run.run_targets))
+    [
+      [];
+      [ "" ];
+      [ "." ];
+      [ ".." ];
+      [ "a/b" ];
+      [ "a\x00" ];
+      [ "d"; "" ];
+      [ "d"; ".." ];
+    ]
+
+let content_makes_the_calls_of_read =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:1000
+       ~name:
+         "the content of the names of a valid path makes the calls of read in \
+          their order and gives the case of read" ~print:print_case
+       (Gen.pair fake_tree_gen path_text_gen) (fun (tree, text) ->
+         QCheck2.assume (Paths_reference.is_path (uchars_of_string text));
+         let names = String.split_on_char '/' text in
+         let read = fake_read tree text in
+         let run = fake_content tree names in
+         run.left_open = 0
+         && run.run_targets = read.targets
+         &&
+         match (read.answer, run.value) with
+         | Ok { result = "found"; text = Some bytes }, Ok (Ok content) ->
+             String.equal bytes content
+         | Ok { result = "not UTF-8"; _ }, Ok (Ok content) ->
+             not (String.is_valid_utf_8 content)
+         | Ok { result = "no file"; _ }, Ok (Error No_content_file)
+         | Ok { result = "symbolic link"; _ }, Ok (Error Content_symbolic_link)
+         | Ok { result = "not a regular file"; _ }, Ok (Error Not_regular)
+         | Ok { result = "cannot read"; _ }, Ok (Error Cannot_take) ->
+             true
+         | _ -> false))
+
+let rec files_readable (file : Files_tree.file) =
+  match file.kind with
+  | Folder entries ->
+      List.for_all (fun (_, child) -> files_readable child) entries
+  | Regular _ -> file.permissions.read
+  | Link _ | Pipe -> true
+
+let walk_contents_follows_the_folder_tree =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:
+         "a walk with contents of a generated folder tree gives its folder \
+          entries and the content of each regular file, or an error when a \
+          folder or a regular file cannot be read, and changes no file"
+       ~print:print_file
+       (Gen.oneof [ tree_gen; Pack_trees.tree_gen ])
+       (fun tree ->
+         match
+           Files_tree.run tree (fun root ->
+               Sinter_file_read.walk_contents ~root Fun.id)
+         with
+         | Files_tree.Not_stored reason ->
+             QCheck2.Test.fail_reportf "not stored: %s" reason
+         | Files_tree.Read { value; changes } -> (
+             changes = []
+             &&
+             match value with
+             | Ok entries -> entries = contents_reference tree
+             | Error (Sinter_file_read.Cannot_walk _) ->
+                 not (folders_open tree && files_readable tree))))
+
+let fake_walk_contents ?(fault = fun _ _ -> None) tree value =
+  let module S = Fake (struct
+    let tree = tree
+    let fault = fault
+  end) in
+  let module W = Sinter_file_read.Walk (S) in
+  let result =
+    match W.walk_contents ~root:"root" value with
+    | v -> Ok v
+    | exception e -> Error e
+  in
+  {
+    value = result;
+    left_open = Hashtbl.length S.opened;
+    peak = !S.peak;
+    run_targets = List.rev !S.targets;
+  }
+
+let rec values_in_order entries =
+  List.concat_map
+    (fun (entry : 'a Tree.entry) ->
+      match entry.file with
+      | Tree.Regular_file value -> [ value ]
+      | Tree.Folder entries -> values_in_order entries
+      | Tree.Symbolic_link | Tree.Other_kind -> [])
+    entries
+
+let regular_at tree path =
+  match file_at tree path with
+  | Some { Files_tree.kind = Regular _; _ } -> true
+  | _ -> false
+
+let walk_contents_on_a_fake_system =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:1000
+       ~name:
+         "the walk with contents on a fake system takes each content once, in \
+          the order of the walk, opens only folders and regular files, each \
+          after its kind, and closes each descriptor"
+       ~print:print_file fake_tree_gen (fun tree ->
+         let count = ref 0 in
+         let run =
+           fake_walk_contents tree (fun bytes ->
+               incr count;
+               (!count, bytes))
+         in
+         let contents =
+           List.filter_map
+             (function Content, path -> Some path | _ -> None)
+             run.run_targets
+         in
+         run.left_open = 0
+         && opens_after_kind [] run.run_targets
+         && List.for_all
+              (fun (call, path) ->
+                match call with
+                | Open_folder -> (
+                    match file_at tree path with
+                    | Some { Files_tree.kind = Folder _; _ } -> true
+                    | _ -> false)
+                | Open_file | Content | Is_regular_file -> regular_at tree path
+                | _ -> true)
+              run.run_targets
+         && List.length (List.sort_uniq compare contents) = List.length contents
+         &&
+         match run.value with
+         | Ok (Ok entries) -> (
+             let values = values_in_order entries in
+             List.map fst values
+             = List.init (List.length values) (fun index -> index + 1)
+             && List.length values = !count
+             && entries
+                =
+                match tree.kind with
+                | Folder children ->
+                    let numbered = ref 0 in
+                    let rec number = function
+                      | Tree.Folder entries ->
+                          Tree.Folder (List.map number_entry entries)
+                      | Tree.Regular_file bytes ->
+                          incr numbered;
+                          Tree.Regular_file (!numbered, bytes)
+                      | Tree.Symbolic_link -> Tree.Symbolic_link
+                      | Tree.Other_kind -> Tree.Other_kind
+                    and number_entry (entry : string Tree.entry) =
+                      { entry with file = number entry.file }
+                    in
+                    List.map number_entry
+                      (tree_entries Files_tree.bytes_of_pieces children)
+                | _ -> [])
+         | Ok (Error (Sinter_file_read.Cannot_walk _)) ->
+             not (folders_open tree && files_readable tree)
+         | Error _ -> false))
+
+let walk_contents_failure_names_its_file =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:200
+       ~name:
+         "a failed call of the walk with contents gives the entry names of its \
+          file and no tree, and closes each descriptor"
+       ~print:print_file fake_tree_gen (fun tree ->
+         let targets = (fake_walk_contents tree Fun.id).run_targets in
+         List.for_all
+           (fun (call, path) ->
+             call = Close
+             || List.for_all
+                  (fun fault ->
+                    let run =
+                      fake_walk_contents
+                        ~fault:(fun called name ->
+                          Option.map
+                            (fun () -> fault)
+                            (at call path called name))
+                        tree Fun.id
+                    in
+                    (run.left_open = 0
+                    &&
+                    match run.value with
+                    | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                        names = path
+                    | _ -> false)
+                    || QCheck2.Test.fail_reportf
+                         "a fault of %s at %s gives %s with %d open"
+                         (call_name call) (String.concat "/" path)
+                         (match run.value with
+                         | Ok (Ok _) -> "a tree"
+                         | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                             "no tree at " ^ String.concat "/" names
+                         | Error error -> Printexc.to_string error)
+                         run.left_open)
+                  (if call = Is_regular_file then [ Not_regular ] else faults))
+           targets))
+
+let exception_of_value_goes_through () =
+  let calls = ref 0 in
+  let run =
+    fake_walk_contents fake_tree (fun _ ->
+        incr calls;
+        raise Other_failure)
+  in
+  (match run.value with
+  | Error Other_failure -> ()
+  | _ -> Alcotest.fail "the exception of the value did not go through");
+  Alcotest.(check int) "the calls of the value" 1 !calls;
+  Alcotest.(check int) "the descriptors left open" 0 run.left_open
+
 let tests =
   Vectors.tests "files" [ file_read_vectors ]
   @ [
@@ -926,4 +1539,22 @@ let tests =
       walk_follows_the_file_read_result;
       Alcotest.test_case "a root that is no folder cannot be read" `Quick
         root_that_is_no_folder_cannot_be_read;
+      walk_follows_the_folder_tree;
+      Alcotest.test_case "a deep walk closes each descriptor" `Quick
+        deep_walk_closes_each_descriptor;
+      Alcotest.test_case "a root that is no folder cannot be walked" `Quick
+        root_that_is_no_folder_cannot_be_walked;
+      walk_on_a_fake_system;
+      walk_failure_names_its_file;
+      Alcotest.test_case "a deep walk needs no deep stack" `Quick
+        deep_walk_needs_no_deep_stack;
+      content_follows_the_folder_tree;
+      Alcotest.test_case "the content of no entry names makes no call" `Quick
+        content_of_no_entry_names_makes_no_call;
+      content_makes_the_calls_of_read;
+      walk_contents_follows_the_folder_tree;
+      walk_contents_on_a_fake_system;
+      walk_contents_failure_names_its_file;
+      Alcotest.test_case "an exception of the value goes through" `Quick
+        exception_of_value_goes_through;
     ]
