@@ -36,7 +36,7 @@ let is_regular_file_entry entry =
   | Regular_file_entry -> true
   | Tree_entry | Symbolic_link_entry | Submodule_entry -> false
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    Condition 3 of a valid ledger tree: the root holds only the tree entry
    `entries`, that folder only tree entries of two hex digits, and each such
    folder only chunks with the mode 100644. *)
@@ -49,7 +49,7 @@ let allowed level entry =
       && Option.is_some
            (Chunk_path.chunk_id ("entries/" ^ hh ^ "/" ^ entry.name))
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    Conditions 1 and 2 of a valid ledger tree: no name holds the byte `/`, and
    no git tree object lists one name twice; with no `/` in a name, two
    entries at any depth have one byte path only when a git tree object on the
@@ -65,7 +65,7 @@ let distinct_names (entries : _ entry list) =
        true))
     entries
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    Condition 3 for one git tree object: the folders `entries` and
    `entries/<hh>` hold at least one entry, since a folder with no chunk is not
    allowed; and each entry is allowed at its level. *)
@@ -119,7 +119,9 @@ module Make (Id : Hashtbl.HashedType) = struct
       (fun id -> Result.map Chunk_content.read (session.objects.blob id))
       id
 
-  (* @satisfies ledger#{give-stored-ledgers=v1, validate-ledgers=v1}
+  (* @satisfies ledger#{
+         give-stored-ledgers=v1, validate-histories=v1, validate-ledgers=v1,
+     }
      The ledger objects of a git tree object are each git tree object that a
      tree entry names, at any depth, and the blob of each chunk: each regular-file
      entry whose byte path is a chunk path, whatever its mode. Each one is read,

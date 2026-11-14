@@ -10,7 +10,7 @@ type t = {
   ledger_lines : Ledger_line.t list option;
 }
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    The content is cut right after each byte 0x0A; a last part without 0x0A is
    a line, and nothing after the last 0x0A is a line. *)
 let cut content =
@@ -25,7 +25,7 @@ let cut content =
   in
   from 0 []
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    A newer line is a line whose JSON value is an object whose `v` is an
    integer greater than 1, whether or not the line is a canonical line. *)
 let is_newer (value : Json.t option) =

@@ -4,7 +4,11 @@
 (library
  (name sinter_ledger_trees)
  (public_name sinter.ledger_trees)
- (libraries sinter_json_lines sinter_ledger_lines sinter_git_model)
+ (libraries
+  sinter_json_lines
+  sinter_ledger_lines
+  sinter_git_model
+  sinter_commit_graphs)
  (private_modules chunk_path chunk_content tree_read)
  (instrumentation
   (backend bisect_ppx))

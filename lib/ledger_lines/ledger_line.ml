@@ -21,7 +21,7 @@ let integer (value : Json.t option) =
   | Some (Integer number) -> Some number
   | Some (String _ | Boolean _ | Array _ | Object _) | None -> None
 
-(* @satisfies ledger#validate-ledgers=v1
+(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
    Conditions 5 and 6 of a valid ledger tree: `id` and `kind` are strings, `v`
    is the integer 1, `seq` is an integer of 1 or more, and `id` is the entry id
    of the object. *)
