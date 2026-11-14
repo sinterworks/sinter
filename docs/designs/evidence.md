@@ -253,11 +253,12 @@ have a test `test_list`, the test result is linked to both, and, unless
 a narrowing removes one of these pairs, each of them gets a finding of
 the class `ambiguous-result`. The line of a test result chooses no
 result link; a person, or a tool that runs the tests, can use it, or
-anything else that it knows, to give a narrowing (section 2.7). A pattern is built from the name path of the
-test entry, and, when the data asks for one, from a prefix that comes
-from its path. The separators of the data join the names. A separator
-that the data does not give is a part break: the names on its two sides
-stand in two name parts.
+anything else that it knows, to give a narrowing (section 2.7). A
+pattern is built from the name path of the test entry, and, when the
+data asks for one, from a prefix that comes from its path. The
+separators of the data join the names. A separator that the data does
+not give is a part break: the names on its two sides stand in two name
+parts.
 
 For example, vitest writes this case element for a test in the file
 `src/math.test.ts`:
