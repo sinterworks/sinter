@@ -28,6 +28,8 @@
   sinter_hashes
   sinter_hash_ids
   sinter_test_vectors
+  sinter_toml
+  sinter_data_forms_toml
   digestif.c
   git_fixture
   sinter_bench
