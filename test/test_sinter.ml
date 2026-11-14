@@ -74,6 +74,10 @@ let () =
       ("json lines", Test_json_lines.tests);
       ("hashes", Test_hashes.tests);
       ("hash ids", Test_hash_ids.tests);
+      ("branch names", Test_branch_names.tests);
+      ("line maps", Test_line_maps.tests);
+      ("commit graphs", Test_commit_graphs.tests);
+      ("git model", Test_git_model.tests);
       ("test vectors", Test_test_vectors.tests);
       ("toml reader", Test_toml_reader.tests);
       ("data forms toml", Test_data_forms_toml.tests);
