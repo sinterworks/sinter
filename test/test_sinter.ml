@@ -79,6 +79,8 @@ let () =
       ("line maps", Test_line_maps.tests);
       ("commit graphs", Test_commit_graphs.tests);
       ("git model", Test_git_model.tests);
+      ("ledger reference", Ledger_vectors.reference_tests);
+      ("ledger lines", Test_ledger_lines.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
