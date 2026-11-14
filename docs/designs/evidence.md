@@ -356,8 +356,9 @@ and says passed, and no test result that names one of the three says
 failed. It did not run when no test result names `large` and says
 passed, and no test result that names one of the three says failed. It
 failed when a test result that names `limits` itself, or `small`, or
-`large`, says failed. A test that holds no test case, such as a `describe`
-block that holds only an empty `describe` block, never passes.
+`large`, says failed. A test that holds no test case, such as a
+`describe` block that holds only an empty `describe` block, never
+passes.
 
 The outcome of a test in an import (term `import-outcome`) is "passed",
 "failed", or "not run". Each import counts alone: by the term
@@ -767,13 +768,14 @@ parts has a result link to each test entry that these rules give:
 
 Under a valid binding of `file-readers`, the test entries of the reading
 of a report file of an import are these: for each code file of the tree
-of the import that can be read and whose pack has a test runner with
-the name of the test runner of the report file, and for each test node that the reading of the text of
-that code file, with that pack, gives, the test entry of that test node
-whose test entry id is the text of the valid path of the code file, then
-`#`, then the decimal numeral of the number of the test node. The number
-of a test node is 1 more than the number of the test nodes of that code
-file before it in the order of the parse tree.
+of the import that can be read and whose pack has a test runner with the
+name of the test runner of the report file, and for each test node that
+the reading of the text of that code file, with that pack, gives, the
+test entry of that test node whose test entry id is the text of the
+valid path of the code file, then `#`, then the decimal numeral of the
+number of the test node. The number of a test node is 1 more than the
+number of the test nodes of that code file before it in the order of the
+parse tree.
 
 ### 3.13 Readings of report files
 
