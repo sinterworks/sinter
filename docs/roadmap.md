@@ -142,6 +142,18 @@
     exists, from start to end, in about 15 minutes. The user manual
     (plan `sinter-user-manual`) could start the same way, on a
     repository that the reader already has.
+- **The coverage ladder** — whether a test ran the code that it claims
+  to verify (design notes section 4). The layered design of test
+  evidence counts a promise as kept from test results alone: a passing
+  test keeps it, also when the test never ran the code that satisfies
+  the requirement. A later layered design of its own adds coverage: a
+  promise then counts in full only when a coverage report shows that
+  the test ran that code. Not designed.
+  - Most coverage formats have no specification, and none ties a
+    coverage record to a test name of a report file. The design starts
+    from research on the formats.
+  - The finding classes `unexercised` and `unmeasured` wait for that
+    design.
 - **The coverage of each test for Rust and Go** — rung 4 of the
   evidence ladder needs the coverage of each test (design notes
   section 4). To run each test that carries a `@verifies` in its own
