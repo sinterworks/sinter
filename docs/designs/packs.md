@@ -586,7 +586,8 @@ one test runner and binds their test results to test entries, which
 stand for test nodes. A pack has at most one adapter for each test
 runner: the file `adapters/<r>.wasm`. In a decision of a program, the
 module is a valid adapter when it is a WebAssembly module of the
-WebAssembly Core Specification 2.0, when it imports nothing (no
+WebAssembly Core Specification 2.0 whose decoding and validation the
+program does not stop for limits of its own, when it imports nothing (no
 function, no memory, no table, and no global), when it exports these
 five names, with these types, and when it gives the version of the
 interface, as the paragraph after the table says:
