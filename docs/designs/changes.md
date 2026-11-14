@@ -96,11 +96,12 @@ design is a JSON text.
 |---|---|
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
+| [configuration line](sinter:#configuration-line=v1) | a line of a file in the format of git's configuration files, as the page git-config gives them, where a carriage return right before a line feed ends the line together with it, and the UTF-8 byte order mark, EF BB BF, at the start of the file is part of no line |
 | [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs of the git repository, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
-| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; in each file, a carriage return right before a line feed ends a line, and a byte order mark at the start of the file is part of no line; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
+| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; the settings of each file come from its configuration lines; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, by the includes that the term `git-configuration` gives, holds |
 | [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
@@ -406,7 +407,19 @@ binding.
 
 ## 4. Definitions
 
-### 4.1 Git folders
+### 4.1 Configuration lines
+
+@term configuration-line=v1
+@cites {gitdoc/git-config, text#{byte=v1, 0x-numeral=v1}}
+
+The configuration lines of a file are the lines that the page
+git-config gives for a configuration file, with these rules: a byte
+0x0D right before a byte 0x0A ends a line together with that byte 0x0A;
+and, when the file starts with the bytes 0xEF, 0xBB, and 0xBF, in this
+order, these three bytes are part of no line. Each other byte of the
+file is in the lines of the file as the page git-config gives them.
+
+### 4.2 Git folders
 
 @term git-folder=v1
 @cites {
@@ -414,21 +427,22 @@ binding.
     gitdoc/git-config,
     files#{folder=v1},
     text#{code-span=v1},
+    #{configuration-line=v1},
 }
 
 The git folder of a git repository is its common folder, as the page
 gitrepository-layout defines the common folder. It holds the object
 database of the git repository, the refs of the git repository, and its
-file `config`. The lines of its file `config` itself, and not those of a
-file that it includes, give the repository format version, 0 or 1, and
-the extensions of the repository, as the page git-config gives them,
-such as the object format, `sha1` or `sha256`, and the ref storage
-format, `files` or `reftable`. The repository format version is 0 when
-the file gives none, and at the repository format version 0 the file
-gives no object format and no ref storage format. The object format is
-`sha1` when the file gives none.
+file `config`. The configuration lines of its file `config` itself, and
+not those of a file that it includes, give the repository format
+version, 0 or 1, and the extensions of the repository, as the page
+git-config gives them, such as the object format, `sha1` or `sha256`,
+and the ref storage format, `files` or `reftable`. The repository format
+version is 0 when the file gives none, and at the repository format
+version 0 the file gives no object format and no ref storage format. The
+object format is `sha1` when the file gives none.
 
-### 4.2 Working trees
+### 4.3 Working trees
 
 @term working-tree=v1
 @cites {
@@ -453,13 +467,13 @@ files of the folder tree whose root is its root folder, other than the
 file of the folder entry `.git` of the root folder and, when that file
 is a folder, the files of the folder tree whose root is that folder.
 
-### 4.3 Git configurations
+### 4.4 Git configurations
 
 @term git-configuration=v1
 @cites {
     gitdoc/git-config,
-    text#{code-span=v1, byte=v1, 0x-numeral=v1},
-    #{git-folder=v1, working-tree=v1},
+    text#{code-span=v1},
+    #{git-folder=v1, working-tree=v1, configuration-line=v1},
 }
 
 The git configuration of a working tree of a git repository is the set
@@ -475,11 +489,8 @@ include, in the order that the page gives, and with these rules:
 2. The set holds the settings of the configuration files of the git
    repository whatever the owner of the git repository and whatever the
    setting `safe.directory`.
-3. In each file from which the set takes settings, a byte 0x0D right
-   before a byte 0x0A ends a line together with that byte 0x0A, and,
-   when the file starts with the bytes 0xEF, 0xBB, and 0xBF, in this
-   order, these three bytes are part of no line. Each other byte of the
-   file is in the lines of the file as the page git-config gives them.
+3. The set takes the settings of each file from the configuration
+   lines of that file.
 
 The git configuration of a git repository is the set of the settings
 that these files and variables hold in the same way, by the same rules,
@@ -505,7 +516,7 @@ setting whose value names a file names the file that the rules of the
 page for pathnames give for that value, other than a value that starts
 with `%(prefix)/` or with `:(optional)`, which names no file.
 
-### 4.4 Commits
+### 4.5 Commits
 
 @term commit=v1
 @cites {
@@ -515,7 +526,8 @@ with `%(prefix)/` or with `:(optional)`, which names no file.
     gitdoc/gitformat-pack,
     text#{
         byte-sequence=v1, byte=v1, 0x-numeral=v1, code-span=v1,
-        whole-number=v1, hex-digit=v1,
+        whole-number=v1, hex-digit=v1, decimal-numeral=v1,
+        utf-8-encoding=v1, text=v1, space=v1,
     },
     #{git-folder=v1},
 }
@@ -526,34 +538,41 @@ database that the files `objects/info/alternates` name, in turn, holds
 it, as the page gitrepository-layout defines object databases and
 alternates, and the pages gitformat-loose and gitformat-pack define
 loose objects and packs, with packs in the versions 2 and 3 of the pack
-format and their indexes in the versions 1 and 2. A commit of a git
-repository is a commit object, as the page gitglossary defines it, that
-the git repository holds. The content of a commit object is lines of a
-header, each ended by the byte 0x0A, then, when there is one, an empty
-line and the message. The first line is `tree`, the byte 0x20, and the
-object id, in hex digits, of the git tree object of the commit. Let k be
-the greatest whole number such that each of the lines 2 to k + 1 of the
-content starts with `parent` and the byte 0x20: the parent lines of the
-content are these lines, and there are none when k is 0. Each parent
-line names one parent by the object id, in hex digits, after that byte,
-and no other line names a parent. A commit names one git tree object,
-the git tree object of the commit, and zero or more commits. Its parents
-are the commits that it names, in the order in which it names them, each
-as often as it names it. The first of its parents is its first parent.
-The message of a commit is the byte sequence of the content of its
-commit object after the first two bytes 0x0A that follow one another in
-it, or the empty byte sequence when the content holds no two such bytes.
-A commit that the file `shallow` of the git folder names, in a line that
-holds its object id in hex digits, has no parents. The content of a
-blob, the entries of a git tree object, and the git tree object and the
-parents of a commit, apart from this rule, are those that the git object
-itself holds: no replacement ref, which is a ref whose name starts with
-`refs/replace/`, has an effect on them. When a commit is not named by
-the file `shallow`, and a parent line of that commit does not give the
-object id of a commit of the git repository, the parents of that commit
-are not specified.
+format and their indexes in the versions 1 and 2. The object id of a git
+object is the hash that the page gitformat-loose gives, SHA-1 for the
+object format `sha1` and SHA-256 for `sha256`, of the UTF-8 encoding of
+the text of its kind, `blob`, `tree`, `commit`, or `tag`, a space, and
+the decimal numeral of the number of the bytes of its content, then the
+byte 0x00, and then its content. A loose object, or an object of a pack,
+from whose bytes this hash is not its object id is not that git object,
+and the content of the file of a loose object is exactly one zlib stream
+of these bytes. A commit of a git repository is a commit object, as the
+page gitglossary defines it, that the git repository holds. The content
+of a commit object is lines of a header, each ended by the byte 0x0A,
+then, when there is one, an empty line and the message. The first line
+is `tree`, the byte 0x20, and the object id, in hex digits, of the git
+tree object of the commit. Let k be the greatest whole number such that
+each of the lines 2 to k + 1 of the content starts with `parent` and the
+byte 0x20: the parent lines of the content are these lines, and there
+are none when k is 0. Each parent line names one parent by the object
+id, in hex digits, after that byte, and no other line names a parent. A
+commit names one git tree object, the git tree object of the commit, and
+zero or more commits. Its parents are the commits that it names, in the
+order in which it names them, each as often as it names it. The first of
+its parents is its first parent. The message of a commit is the byte
+sequence of the content of its commit object after the first two bytes
+0x0A that follow one another in it, or the empty byte sequence when the
+content holds no two such bytes. A commit that the file `shallow` of the
+git folder names, in a line that holds its object id in hex digits, has
+no parents. The content of a blob, the entries of a git tree object, and
+the git tree object and the parents of a commit, apart from this rule,
+are those that the git object itself holds: no replacement ref, which is
+a ref whose name starts with `refs/replace/`, has an effect on them.
+When a commit is not named by the file `shallow`, and a parent line of
+that commit does not give the object id of a commit of the git
+repository, the parents of that commit are not specified.
 
-### 4.5 The texts of messages
+### 4.6 The texts of messages
 
 @term message-text=v1
 @cites {
@@ -569,7 +588,7 @@ commit whose byte sequence is not valid UTF-8 has no text. The header
 `encoding` of the commit object has no effect on the text of its
 message.
 
-### 4.6 Ancestry
+### 4.7 Ancestry
 
 @term ancestry=v1
 @cites #{commit=v1}
@@ -578,7 +597,7 @@ The ancestry of a commit c is the smallest set of commits that holds c
 and that holds each parent of each commit that it holds. A commit c
 reaches each commit of its ancestry, c included, and no other commit.
 
-### 4.7 Ref names
+### 4.8 Ref names
 
 @term ref-name=v1
 @cites {
@@ -605,7 +624,7 @@ names of refs that do not start with `refs/`, the root names:
 7. n holds no space and none of the characters `~`, `^`, `:`, `?`, `*`,
    `[`, and `\`.
 
-### 4.8 The commits of refs
+### 4.9 The commits of refs
 
 @term ref-commit=v1
 @cites {
@@ -666,7 +685,7 @@ that it names in turn, when that git object is a commit of the git
 repository. A ref that does not exist, or that resolves to no commit of
 the git repository, has no commit.
 
-### 4.9 Head commits
+### 4.10 Head commits
 
 @term head-commit=v1
 @cites {gitdoc/gitglossary, #{working-tree=v1, ref-commit=v1}}
@@ -677,7 +696,7 @@ ref, or, when it is detached, it points to a git object. The head commit
 of a working tree is the commit of its HEAD. A working tree whose HEAD
 has no commit has no head commit.
 
-### 4.10 Branch names
+### 4.11 Branch names
 
 @term branch-name=v1
 @cites {
@@ -704,7 +723,7 @@ text that is `refs/heads/` followed by b.
 7. b is not `HEAD`, and it does not start with `-`.
 8. b does not start with `refs/`.
 
-### 4.11 The commit of the default branch
+### 4.12 The commit of the default branch
 
 @term default-branch-commit=v1
 @cites {
@@ -748,7 +767,7 @@ or when the first of them that exists has no commit, the default branch
 has no commit. Under a binding of `default-branch-name` that is not a
 branch name, the default branch has no commit.
 
-### 4.12 The files of the tree of a commit
+### 4.13 The files of the tree of a commit
 
 @term commit-file=v1
 @cites {
@@ -793,7 +812,7 @@ other entry of that git tree object has the same byte path as E, the
 file whose valid path is p and whose content is the content of the blob
 that E names.
 
-### 4.13 Ignored paths
+### 4.14 Ignored paths
 
 @term ignored-path=v1
 @cites {
@@ -824,7 +843,7 @@ the git configuration of the working tree is true, a pattern also
 matches each path that differs only in the case of the letters from `A`
 to `Z` from a path that the pattern matches.
 
-### 4.14 The files of the tree of a working tree
+### 4.15 The files of the tree of a working tree
 
 @term working-tree-file=v1
 @cites {
@@ -861,7 +880,7 @@ sparse directory entry followed by the byte path of an entry, other than
 a tree entry, of the git tree object that the sparse directory entry
 names, whether or not the git repository holds that git tree object.
 
-### 4.15 Ranges
+### 4.16 Ranges
 
 @term commit-range=v1
 @cites #{commit=v1, ancestry=v1}
@@ -870,7 +889,7 @@ For two commits s and h of a git repository, the range from s to h is
 the set of the commits that h reaches and that s does not reach. The
 range from no commit to h is the set of the commits that h reaches.
 
-### 4.16 Parents-first orders
+### 4.17 Parents-first orders
 
 @term parents-first-order=v1
 @cites #{commit=v1, commit-range=v1}
@@ -884,7 +903,7 @@ The parents-first order of R is the order in which the walk of R
 finishes the commits of R. So each commit of R comes after each of its
 parents that is in R.
 
-### 4.17 The change of a commit
+### 4.18 The change of a commit
 
 @term change-of-a-commit=v1
 @cites {
@@ -899,7 +918,7 @@ repository, under that binding, is the range from d to h. Its commits
 are the commits of that range, and its last commit is h, also when it
 holds no commit.
 
-### 4.18 Merge bases
+### 4.19 Merge bases
 
 @term merge-base=v1
 @cites #{commit=v1, ancestry=v1}
@@ -908,7 +927,7 @@ A common ancestor of two commits is a commit that each of the two
 reaches. A merge base of two commits is a common ancestor of the two
 that no other common ancestor of the two reaches.
 
-### 4.19 The base of the change of a commit
+### 4.20 The base of the change of a commit
 
 @term change-base=v1
 @cites {
@@ -927,7 +946,7 @@ one merge base. When they have no merge base, or more than one, the
 change of h has no base. When the default branch has no commit under
 that binding, the change of h has no base.
 
-### 4.20 First-parent lines
+### 4.21 First-parent lines
 
 @term first-parent-line=v1
 @cites #{commit=v1}
@@ -936,7 +955,7 @@ The first-parent line of a commit c is the sequence of commits that
 starts with c, in which each other commit is the first parent of the
 commit right before it, and whose last commit has no parent.
 
-### 4.21 Landing commits
+### 4.22 Landing commits
 
 @term landing-commit=v1
 @cites #{commit=v1, ancestry=v1, first-parent-line=v1}
@@ -948,7 +967,7 @@ reach c. The commits of that first-parent line that reach c come first
 in it, so m is the last of them. A commit that d does not reach has no
 landing commit on the first-parent line of d.
 
-### 4.22 Line texts
+### 4.23 Line texts
 
 @term line-text=v1
 @cites {
@@ -966,7 +985,7 @@ of the lines of the text of that content, in the order of their line
 numbers: line text k of p in A is the text of the line whose line number
 is k. Otherwise, p has no line text in A.
 
-### 4.23 Line maps
+### 4.24 Line maps
 
 @term line-map=v1
 @cites {
@@ -987,7 +1006,7 @@ between A and B with the greatest number of pairs: no map of p between
 A and B has more pairs. There can be more than one line map of p
 between A and B, and each of them has the same number of pairs.
 
-### 4.24 New line numbers
+### 4.25 New line numbers
 
 @term new-line-number=v1
 @cites {
@@ -1007,7 +1026,7 @@ new line number of the old line i for M is the whole number j such that
 M holds the pair (i, j). An old line i of p that no pair of M holds as
 its first number has no new line number for M.
 
-### 4.25 Hunks
+### 4.26 Hunks
 
 @term hunk=v1
 @cites {
@@ -1051,7 +1070,7 @@ give, and no others. The hunks of p between A and B for each line map
 remove the same number of lines, m less the number of the pairs of a
 line map, and add the same number of lines, n less that number.
 
-### 4.26 The diff of the change of a commit
+### 4.27 The diff of the change of a commit
 
 @term change-diff=v1
 @cites {
@@ -1069,7 +1088,7 @@ base, as the old tree, and the tree of h, as the new tree, for one line
 map of p between these two trees. When the change of h has no base, it
 has no diff.
 
-### 4.27 Repository reads
+### 4.28 Repository reads
 
 @term repository-read=v1
 @cites {
@@ -1083,7 +1102,7 @@ git repository or from a working tree of it, one or more things that a
 term of this design defines, such as a commit, the files of a tree, or
 the hunks of a valid path. A fetch or a push is not a repository read.
 
-### 4.28 Undisturbed repository reads
+### 4.29 Undisturbed repository reads
 
 @term undisturbed-read=v1
 @cites {
@@ -1097,7 +1116,7 @@ it included, changes a repository file of the git repository during the
 repository read, other than a file of a working tree from whose files
 the repository read takes no bytes.
 
-### 4.29 Repository files
+### 4.30 Repository files
 
 @term repository-file=v1
 @cites {
@@ -1123,7 +1142,7 @@ of it; the excludes file of each working tree of it; and the files of
 git attributes that the page gitattributes gives for the git repository
 and for each working tree of it.
 
-### 4.30 Values from a git repository
+### 4.31 Values from a git repository
 
 @term repository-value=v1
 @cites {
@@ -1138,7 +1157,7 @@ when the file `config` of the git folder of that git repository, a file
 one of these files includes, in turn, by the includes that the term
 `git-configuration` gives, holds that value.
 
-### 4.31 Fetches and pushes
+### 4.32 Fetches and pushes
 
 @term remote-transfer=v1
 @cites {
