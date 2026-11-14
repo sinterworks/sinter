@@ -41,6 +41,7 @@
   sinter_origins
   sinter_tag_inputs
   sinter_markdown_tag_texts
+  sinter_readings
   digestif.c
   git_fixture
   sinter_bench

@@ -90,6 +90,7 @@ let () =
       ("origins", Test_origins.tests);
       ("markdown tag texts", Test_markdown_tag_texts.tests);
       ("tag inputs", Test_tag_inputs.tests);
+      ("readings", Test_readings.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
