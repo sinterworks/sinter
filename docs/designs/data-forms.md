@@ -181,7 +181,8 @@ its letters only in the same case.
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
 | [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names, each with the need that it stands for |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
-| [text of the forms of a group](sinter:#group-form-list=v1) | the text of the Conformance part of a specification, or of the Conformance section of a design, without its heading lines, its vector lines, and the line endings right after them |
+| [Conformance part](sinter:#group-form-list=v1), [Conformance section](sinter:#group-form-list=v1) | lines of the text of a design, in their order, given together with a specification or with the design, or none; they give the forms of the groups of that specification or that design |
+| [text of the forms of a group](sinter:#group-form-list=v1) | a text that is given for a group together with the Conformance part of a specification, or the Conformance section of a design; a version gives one for each of its groups |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
@@ -3023,13 +3024,9 @@ the revision of a test-vector set is the revision of its set line.
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
-        byte-sequence=v1, byte=v1, line=v1, line-ending=v1, run=v1,
-        utf-8-encoding=v1, 0x-numeral=v1, code-span=v1,
+        byte-sequence=v1, line=v1, code-span=v1,
     },
-    #{
-        json-value=v1, hex-text=v1, group-name=v1, vector-object=v1,
-        vector-line=v1,
-    },
+    #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
 
 For a specification S of a design and a group name g, the forms of the
@@ -3083,38 +3080,20 @@ is any of these shapes. Whether a value has a fixed form depends on that
 value alone: not on what it stands for, and not on the value of another
 member, such as `input` or `result`.
 
-These definitions give the Conformance part of S:
-
-- A heading line is a line of the text of the design whose first
-  characters are one to six `#`, then a space, such as
-  `#### 4.1 Inputs`, and that is in no block of lines that lines of
-  three backticks open and close, with the blocks counted from the
-  first line of the text, as in the term `code-span`.
-- The declaration line of S is the line of the text of the design that
-  starts with `@spec`, a space, the name of S, and `=`.
-- The section of S is the run of the text of the design from the
-  heading line right before the declaration line of S up to the start of
-  the next heading line with as many `#` as that heading line, or fewer,
-  or up to the end of the text.
-- The Conformance part of S is the run of the section of S from the
-  start of the line right after its last heading line with one `#` more
-  than its first heading line, up to the end of the section of S.
-
 For a design D and a group name g, the forms of the group g of D are the
 same five things, which the Conformance section of D gives for g, with
 the requirements that D holds outside its specifications in place of the
 requirements that S declares, with the need names of D in place of the
 need names of S, and with a conforming program of D in place of a
-conforming program of S. The Conformance section of D is the run of the
-text of the design from the start of the line right after its last
-heading line with two `#` up to the end of the text, unless the
-declaration line of a specification of D comes right after that heading
-line; then D has no Conformance section, and no group has forms of D.
-The text of the forms of g of S, or of D, is the text of the Conformance
-part of S, or of the Conformance section of D, without its heading
-lines, without each line whose UTF-8 encoding, then the byte 0x0A, is a
-vector line, and without the line ending right after each heading line
-and each such line.
+conforming program of S.
+
+The Conformance part of S is given together with S, and the Conformance
+section of D together with D: each is lines of the text of the design,
+in their order, or none. When none is given, S has no Conformance part,
+or D has no Conformance section, and no group has forms of S, or of D.
+The text of the forms of g of S, or of D, is a text that is given for g
+together with the Conformance part of S, or the Conformance section of
+D.
 
 #### 8.1.8 The meaning of a vector
 
