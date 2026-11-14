@@ -30,6 +30,9 @@
   sinter_test_vectors
   sinter_toml
   sinter_data_forms_toml
+  sinter_packs
+  sinter_pack_descriptor
+  sinter_adapter_protocol
   digestif.c
   git_fixture
   sinter_bench
