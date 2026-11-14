@@ -27,15 +27,16 @@ branch approves it. An `approval` or `decline` ledger entry names its
 subject of approval by the kind word of its kind of subject of approval
 and the name of its declared item, such as `req:billing#limit`, and its
 revised content by an extent hash. Each `approval` or `decline` ledger
-entry also has the field `saw`, which names the kind of the most recent
-`approval` or `decline` ledger entry of the same subject text and hash
-that the program gave the person whose decision the new ledger entry
-records, or `none`. A program records `approval` or `decline` in `saw`
-only when it gave that person the earlier ledger entry that `saw` names
+entry also has the field `saw`, which names the kind of the judgment
+before the new ledger entry at the point at which a program appends it
+(term `judgment-before`), or `none` when there is none. A program
+records `approval` or `decline` in `saw` only when it gave that
+judgment to the person whose decision the new ledger entry records
 before the person confirmed (requirement `record-seen-judgments`). The
-term `judgment-acceptance-rule` gives the points at which such a ledger
-entry is accepted, and a program appends it only at such a point
-(requirement `ledger#append-only-accepted-entries`).
+term `judgment-acceptance-rule` gives the condition under which such a
+ledger entry is accepted at a point, and a program appends it only at a
+point at which it is accepted (requirement
+`ledger#append-only-accepted-entries`).
 
 From the Ontology (`ontology`), the design takes subjects of approval,
 their five kinds, their declared items, and when two of them are the
@@ -172,15 +173,15 @@ The field `hash` names the revised content by its extent hash: the
 extent hash of the declared item of the subject of approval in the tree
 whose revised content the person approved or declined (requirement
 `record-judged-content`). After an edit back to a revised content that a
-person approved or declined, the latest judgment of that subject text
-and that hash decides the state again.
+person approved or declined, the latest judgment of the subject of
+approval can be the same ledger entry again, and it decides the state
+again.
 
-The field `saw` names the kind of the most recent `approval` or
-`decline` ledger entry of the same subject text and hash that the
-program gave the person whose decision this ledger entry records, or
-`none` when it gave that person none. A program records `approval` or
-`decline` in `saw` only when it gave that person the earlier ledger
-entry that `saw` names before the person confirmed (requirement
+The field `saw` names the kind of the judgment before this ledger entry
+at the point at which a program appends it, or `none` when there is
+none. A program records `approval` or `decline` in `saw` only when it
+gave that judgment to the person whose decision this ledger entry
+records before the person confirmed (requirement
 `record-seen-judgments`). The field `reason` of a decline holds the
 reason that the person gave. No state and no acceptance depends on the
 member `reason`, whatever its value.
@@ -194,19 +195,18 @@ approval, is malformed.
 ### 2.3 Acceptance
 
 Each kind of ledger entry that a program appends has an acceptance rule
-(term `ledger#accepted-entry`). The term
-`judgment-acceptance-rule` gives the rule of the kinds `approval` and
-`decline`. It reads only the ledger entry itself and the ledger entries
-before the point, never a tree, a binding, or a commit. Its condition
-on `saw` reads the judgment before the ledger entry at the point (term
-`judgment-before`), and the rule compares `saw` only with the kind of
-that judgment. A program appends a ledger entry only at a point at which
-it is accepted (requirement `ledger#append-only-accepted-entries`).
-Each index of a ledger has its own point, and the ledger entry at an
-index counts there when it is accepted at the point of that index (term
-`ledger-index`). Whether the ledger entry at each index counts there
-follows from the ledger entries at the indexes before it, in the order
-of the ledger.
+(term `ledger#accepted-entry`). The term `judgment-acceptance-rule`
+gives the rule of the kinds `approval` and `decline`. It reads only the
+ledger entry itself and the ledger entries before the point, never a
+tree, a binding, or a commit. Its condition on `saw` reads the judgment
+before the ledger entry at the point (term `judgment-before`), and the
+rule compares `saw` only with the kind of that judgment. A program
+appends a ledger entry only at a point at which it is accepted
+(requirement `ledger#append-only-accepted-entries`). Each index of a
+ledger has its own point, and the ledger entry at an index counts there
+when it is accepted at the point of that index (term `ledger-index`).
+Whether the ledger entry at each index counts there follows from the
+ledger entries at the indexes before it, in the order of the ledger.
 
 These cases show the rule. In each, X is one subject text and one hash.
 
@@ -222,7 +222,7 @@ These cases show the rule. In each, X is one subject text and one hash.
 3. Two clones each approve X with `saw` `none`, one after the other. The
    second approval is not accepted at its point. An approval with `saw`
    `approval` is never accepted either. So no accepted approval of X has
-   an approval as its judgment before it.
+   an approval as its judgment before it at its point.
 4. A person declines X twice, with two reasons. The second decline has
    `saw` `decline`, and it is accepted.
 5. A person approves X, and later declines it. The decline has `saw`
@@ -340,15 +340,14 @@ holds no line feed, so it is a subject of a finding (term
 subject of approval whose declared item is in force under the bindings,
 or an edge whose cited item of the kind requirement is in force under
 the bindings (term `bound-in-force-item`), so a retired item gives no
-finding of these classes. A subject of approval that is
-declined gives no finding of the class `awaiting-approval`. Two subjects
-of approval of one tree whose declared items have the same kind of item
-and the same name have the same subject text, so they give at most one
-finding of each class. The spot of that finding is that of the first
-subject of approval of the tree with that subject text in the subject
-order (term `subject-order`), whatever its state and whether its
-declared item is in force. So the spot does not depend on the ledger or
-on the states. Two
+finding of these classes. A subject of approval that is declined gives
+no finding of the class `awaiting-approval`. Two subjects of approval of
+one tree whose declared items have the same kind of item and the same
+name have the same subject text, so they give at most one finding of
+each class. The spot of that finding is that of the first subject of
+approval of the tree with that subject text in the subject order (term
+`subject-order`), whatever its state and whether its declared item is in
+force. So the spot does not depend on the ledger or on the states. Two
 such subjects of approval can give a finding of the class `declined` and
 a finding of the class `awaiting-approval`: both are in force, one of
 them is declined, and the other needs approval and is neither.
@@ -387,7 +386,7 @@ and only when, its kind is in A.
 @cites {
     rfc/5234,
     rfc/7405,
-    identifiers#{slug=v1, full-name=v1},
+    identifiers#{slug=v1, full-name=v1, kind-word=v1},
     ontology#{
         subject-of-approval=v1, declared-item=v1, item-name=v1, tree=v1,
         term=v1, decision-record=v1, containment=v1,
@@ -405,14 +404,14 @@ subject-text  = ( %s"design" / %s"decision" ) ":" slug
 The five texts `design`, `spec`, `req`, `term`, and `decision` are kind
 words of Identifiers. In a subject text, each of them names a kind of
 subject of approval. The kind word of a kind of subject of approval is
-`design` for an item
-of the kind design without the declared items that it holds, `spec` for
-an item of the kind specification with the items that it holds, `req`
-for an item of the kind requirement that an item of the kind design
-holds directly, `term` for a term that an item of the kind design holds
-directly, and `decision` for a decision record. The subject text of a
-subject of approval of a tree is the kind word of its kind of subject of
-approval, then `:`, then the name of its declared item in that tree.
+`design` for an item of the kind design without the declared items that
+it holds, `spec` for an item of the kind specification with the items
+that it holds, `req` for an item of the kind requirement that an item of
+the kind design holds directly, `term` for a term that an item of the
+kind design holds directly, and `decision` for a decision record. The
+subject text of a subject of approval of a tree is the kind word of its
+kind of subject of approval, then `:`, then the name of its declared
+item in that tree.
 
 ### 4.3 The fields of `approval` and `decline` ledger entries
 
@@ -435,10 +434,10 @@ with these values:
   declared item of that subject of approval that the person approved or
   declined;
 - `saw`, one of the strings `none`, `approval`, and `decline`: the kind
-  of the ledger entry of the kind `approval` or `decline` with the same
-  values of `subject` and `hash` that the program gave the person whose
-  decision this ledger entry records, as the most recent one, or `none`
-  when it gave that person none.
+  of the earlier ledger entry of the kind `approval` or `decline`, with
+  the same values of `subject` and `hash`, that the program gave the
+  person whose decision this ledger entry records before that person
+  confirmed, or `none` when it gave that person none.
 
 A ledger entry of the kind `decline` can also have the field `reason`, a
 string: the reason that the person gave.
@@ -454,12 +453,13 @@ string: the reason that the person gave.
 }
 
 An index in a ledger is the index of an element of the sequence of the
-ledger. The point of the
-index k is the point of the first k − 1 ledger entries, and the indexes
-before the point of the first n ledger entries are the indexes 1 to n.
-The ledger entry at the index k counts at that index when, and only
-when, it is of the kind `approval` or `decline` and is accepted at the
-point of the index k.
+ledger. The point of the index k is the point of the first k − 1 ledger
+entries, and the indexes before the point of the first n ledger entries
+are the indexes 1 to n. The ledger entry at the index k counts at that
+index when, and only when, it is of the kind `approval` or `decline` and
+is accepted at the point of the index k. Whether the ledger entry at the
+index k counts there depends only on the ledger entries at the indexes 1
+to k.
 
 ### 4.5 The judgment before a ledger entry
 
