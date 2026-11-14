@@ -545,8 +545,8 @@ parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
 `refs/replace/`, has an effect on them. When the file `shallow` does not
 name a commit, and a parent line of that commit does not give the object
-id of a commit of the git repository, the parents of that commit, and
-each thing that is defined from them, are not specified.
+id of a commit of the git repository, the parents of that commit are not
+specified.
 
 ### 4.5 The texts of messages
 
