@@ -6,11 +6,13 @@ release binary, the components that are checked into the repository,
 and the components that the test suite links. Each row of a table
 gives one component, the license of that component, and a link.
 
-The parser bridge pins its Rust dependencies in `bridge/Cargo.lock`.
-That file names every crate and its version, and the tables below do
-not repeat it. The licensing workflow reads the license of every crate
-in that lock file and fails on a forbidden one. Some rows below are
-components that the design expects and the project does not pin yet.
+The parser bridge pins its Rust dependencies in `bridge/Cargo.lock`,
+and the WebAssembly engine pins its Rust dependencies in
+`wasm_engine/Cargo.lock`. These files name every crate and its version,
+and the tables below do not repeat them. The licensing workflow reads
+the license of every crate in each of these lock files and fails on a
+forbidden one. Some rows below are components that the design expects
+and the project does not pin yet.
 
 | component | license | link |
 |---|---|---|

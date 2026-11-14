@@ -64,7 +64,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-build-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+          key: cargo-build-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock', 'wasm_engine/Cargo.lock') }}
           restore-keys: cargo-build-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -91,6 +91,11 @@ jobs:
           mkdir -p "$first" "$second"
           one=$(sh lib/bridge/build.sh --target-dir "$first")
           two=$(sh lib/bridge/build.sh --target-dir "$second")
+          echo "one: $one"
+          echo "two: $two"
+          test "$one" != "$two"
+          one=$(sh lib/wasm_engine/build.sh --target-dir "$first")
+          two=$(sh lib/wasm_engine/build.sh --target-dir "$second")
           echo "one: $one"
           echo "two: $two"
           test "$one" != "$two"
@@ -213,7 +218,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             bridge/target
-          key: cargo-rust-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+            wasm_engine/target
+          key: cargo-rust-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock', 'wasm_engine/Cargo.lock') }}
           restore-keys: cargo-rust-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Check that the crate is formatted
         run: cargo fmt --check --manifest-path bridge/Cargo.toml
@@ -234,6 +240,27 @@ jobs:
       - name: Report the libraries that a static link needs
         run: >
           cargo rustc --release --manifest-path bridge/Cargo.toml
+          -- --print native-static-libs
+      - name: Check that the engine crate is formatted
+        run: cargo fmt --check --manifest-path wasm_engine/Cargo.toml
+      - name: Check the engine crate with clippy
+        run: >
+          cargo clippy --release --manifest-path wasm_engine/Cargo.toml
+          --all-targets -- -D warnings
+      - name: Run the engine crate's tests
+        run: cargo test --release --manifest-path wasm_engine/Cargo.toml
+      - name: Check that the engine crate refuses panic = "abort"
+        run: |
+          set -u
+          mkdir -p wasm_engine/target
+          if RUSTFLAGS="-C panic=abort" cargo check --release --manifest-path wasm_engine/Cargo.toml --target-dir wasm_engine/target/abort-check 2>wasm_engine/target/abort.log; then
+            echo "the crate built with panic = \"abort\", and it must not"
+            exit 1
+          fi
+          grep -q 'the engine needs unwinding panics' wasm_engine/target/abort.log || { cat wasm_engine/target/abort.log; exit 1; }
+      - name: Report the libraries that a static link of the engine needs
+        run: >
+          cargo rustc --release --manifest-path wasm_engine/Cargo.toml
           -- --print native-static-libs
 
   coverage:
@@ -270,7 +297,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+          key: cargo-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock', 'wasm_engine/Cargo.lock') }}
           restore-keys: cargo-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -370,6 +397,7 @@ jobs:
             sinter.opam.locked sinter.opam dune-project \
             .github/workflows/build.yml \
             bridge/Cargo.lock bridge/Cargo.toml bridge/rust-toolchain.toml \
+            wasm_engine/Cargo.lock wasm_engine/Cargo.toml wasm_engine/rust-toolchain.toml \
             lib/markdown/tree-sitter-markdown.wasm \
             test/run-mutants.sh test/mutant-shares.sh \
             test/run-mutant-share.sh test/join-mutant-reports.sh \
@@ -499,7 +527,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+          key: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock', 'wasm_engine/Cargo.lock') }}
           restore-keys: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -781,10 +809,11 @@ jobs:
           fi
           base=$(git merge-base "origin/$GITHUB_BASE_REF" HEAD)
           changed=$(git diff --name-only "$base" -- \
-            lib bin bridge bench \
+            lib bin bridge wasm_engine bench \
             sinter.opam.locked sinter.opam dune-project \
             .github/workflows/build.yml \
             bridge/Cargo.lock bridge/Cargo.toml bridge/rust-toolchain.toml \
+            wasm_engine/Cargo.lock wasm_engine/Cargo.toml wasm_engine/rust-toolchain.toml \
             lib/markdown/tree-sitter-markdown.wasm \
             test/run-mutants.sh | wc -l)
           if [ "$changed" -eq 0 ]; then
@@ -822,7 +851,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-performance-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+          key: cargo-performance-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock', 'wasm_engine/Cargo.lock') }}
           restore-keys: cargo-performance-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Turn off git background maintenance
         if: steps.scope.outputs.measure == 'true' && steps.opam.outputs.cache-hit != 'true'
