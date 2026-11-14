@@ -96,7 +96,7 @@ design is a JSON text.
 |---|---|
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
-| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, its refs other than the own refs of a working tree other than the main working tree, and its file `config`, such as the folder `.git` of its main working tree |
+| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs of the git repository, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
@@ -418,16 +418,15 @@ binding.
 
 The git folder of a git repository is its common folder, as the page
 gitrepository-layout defines the common folder. It holds the object
-database of the git repository, its refs other than the own refs of a
-working tree other than the main working tree, and its file `config`.
-The lines of its file `config` itself, and not those of a file that it
-includes, give the repository format version, 0 or 1, and the extensions
-of the repository, as the page git-config gives them, such as the object
-format, `sha1` or `sha256`, and the ref storage format, `files` or
-`reftable`. The repository format version is 0 when the file gives none,
-and at the repository format version 0 the file gives no object format
-and no ref storage format. The object format is `sha1` when the file
-gives none.
+database of the git repository, the refs of the git repository, and its
+file `config`. The lines of its file `config` itself, and not those of a
+file that it includes, give the repository format version, 0 or 1, and
+the extensions of the repository, as the page git-config gives them,
+such as the object format, `sha1` or `sha256`, and the ref storage
+format, `files` or `reftable`. The repository format version is 0 when
+the file gives none, and at the repository format version 0 the file
+gives no object format and no ref storage format. The object format is
+`sha1` when the file gives none.
 
 ### 4.2 Working trees
 
@@ -494,12 +493,12 @@ For a setting that takes one value, such as `core.excludesFile` or
 `core.ignoreCase`, the value is the last of its values. The files of the
 git configuration are the files at the pathnames from which the page
 git-config takes configuration, with the system file of rule 1 in place
-of the system file of the page, and at the pathnames that their includes
-name, whether or not a file is there. A boolean setting is true when its
-value is true by the rules of the page for booleans. A setting whose
-value names a file names the file that the rules of the page for
-pathnames give for that value, other than a value that starts with
-`%(prefix)/` or with `:(optional)`, which names no file.
+of the system file of the page, and at the pathnames that the includes
+of its settings name, whether or not a file is there. A boolean setting
+is true when its value is true by the rules of the page for booleans. A
+setting whose value names a file names the file that the rules of the
+page for pathnames give for that value, other than a value that starts
+with `%(prefix)/` or with `:(optional)`, which names no file.
 
 ### 4.4 Commits
 
@@ -544,10 +543,10 @@ holds its object id in hex digits, has no parents. The content of a
 blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
-`refs/replace/`, has an effect on them. When a parent line of a commit
-that the file `shallow` does not name does not give the object id of a
-commit of the git repository, the parents of that commit are not
-specified.
+`refs/replace/`, has an effect on them. When the file `shallow` does not
+name a commit, and a parent line of that commit does not give the object
+id of a commit of the git repository, the parents of that commit, and
+each thing that is defined from them, are not specified.
 
 ### 4.5 The texts of messages
 
@@ -615,7 +614,7 @@ names of refs that do not start with `refs/`, the root names:
     },
     text#{
         text=v1, byte=v1, 0x-numeral=v1, code-span=v1, hex-digit=v1,
-        utf-8-encoding=v1, space=v1,
+        utf-8-encoding=v1, space=v1, byte-sequence=v1,
     },
     #{git-folder=v1, working-tree=v1, commit=v1, ref-name=v1},
 }
@@ -647,19 +646,20 @@ is the UTF-8 encoding of a ref name n, whatever file its reference leads
 to. Any other loose ref is a broken loose ref, which neither points to a
 git object nor names a ref. A folder, or a file of another kind, at such
 a pathname is no loose ref. The content of the file `packed-refs`, which
-the page git-pack-refs defines, is runs of bytes, each followed by the
-byte 0x0A: first a run that starts with `#` when there is one; then, for
-each ref, a run that is the UTF-8 encoding of the object id of its git
-object in hex digits, a space, and its ref name, and, after it, a run
-that starts with `^` when that ref has a peeled object. A ref of the
-file `packed-refs` has its value there only when no loose ref of the git
-folder has its ref name. A ref exists when the git repository, or the
-working tree, holds a ref with that ref name, whatever it points to or
-names. The commit of a ref is the git object to which that ref resolves,
-through the refs of the same git repository or working tree that it
-names in turn, when that git object is a commit of the git repository. A
-ref that does not exist, or that resolves to no commit of the git
-repository, has no commit.
+the page git-pack-refs defines, is byte sequences, each followed by the
+byte 0x0A. Each of them that is the UTF-8 encoding of a text that is an
+object id in hex digits, a space, and a ref name gives the ref with that
+ref name, which points to the git object with that object id, and the
+byte sequence after it, when it starts with `^`, gives the peeled object
+of that ref; no other byte sequence of the content gives a ref. A ref of
+the file `packed-refs` has its value there only when no loose ref of the
+git folder has its ref name. A ref exists when the git repository, or
+the working tree, holds a ref with that ref name, whatever it points to
+or names. The commit of a ref is the git object to which that ref
+resolves, through the refs of the same git repository or working tree
+that it names in turn, when that git object is a commit of the git
+repository. A ref that does not exist, or that resolves to no commit of
+the git repository, has no commit.
 
 ### 4.9 Head commits
 
