@@ -105,17 +105,17 @@ a JSON text.
 | [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
 | [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
 | [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
-| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack is the pack of the report file, or, for a test runner with a match table, whose pack has a test runner with that name and a match table; each with the test entry id that the term gives |
+| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
 | [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
-| [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: each test that it holds and that holds no test has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
+| [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
 | [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
 | [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test or of a test alike to it, and the test results that made it, each with the number and the hash of the report content of its report file, its number, its name, and its status |
+| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test or of a test alike to it, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
 | [verified](sinter:#verified-vector=v1) | a conformance vector is verified when it says a vector and a test with a `verifies` edge to the vector, to its group, or to its vector set has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a conformance vector, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
@@ -144,11 +144,12 @@ a person gives the three report files to the program in one import. The
 import is then one execution of test runners. When the person gives each
 report file in an import of its own, the program has three imports, and
 each is one execution. When one run of a test runner covers the tests of
-two packs, such as `*.test.js` and `*.test.ts`, and the test runner has
-an adapter, the report content is given twice in the import, once with
-the test runner of each pack. When the test runner has a match table in
-both packs, the report content is given once, and its reading takes the
-tests of both packs.
+two packs, such as `*.test.js` and `*.test.ts`, each reading of its
+report content takes the tests of both packs, so a test result that fits
+tests of both packs is linked to each. The report content is then given
+once with a test runner that has a match table, when one of the packs
+has one, and once with each test runner that has an adapter, because the
+code of each adapter is its own.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
 given for that tree. A program can keep imports from one of its runs to
@@ -241,7 +242,10 @@ result links only to test entries whose path the file matches (term
 `/home/ci/work/src/math.test.ts` all match the valid path
 `src/math.test.ts`, and `test/math.test.ts` does not. When the file
 `pkg/tests/test_utils.py` matches both `pkg/tests/test_utils.py` and
-`tests/test_utils.py`, only the longer match counts.
+`tests/test_utils.py`, only the first counts, because it matches every
+path part of the file. When the file `/home/ci/work/src/math.test.ts`
+matches both `src/math.test.ts` and `work/src/math.test.ts`, neither
+matches every path part, so both count.
 
 The name parts of the test result then decide: it has a result link to
 each of these test entries that has a pattern that its name parts match
@@ -352,7 +356,8 @@ and says passed, and no test result that names one of the three says
 failed. It did not run when no test result names `large` and says
 passed, and no test result that names one of the three says failed. It
 failed when a test result that names `limits` itself, or `small`, or
-`large`, says failed.
+`large`, says failed. A test that holds no test case, such as a `describe`
+block that holds only an empty `describe` block, never passes.
 
 The outcome of a test in an import (term `import-outcome`) is "passed",
 "failed", or "not run". Each import counts alone: by the term
@@ -739,8 +744,9 @@ result with no name parts has no result link. A test result with name
 parts has a result link to each test entry that these rules give:
 
 1. The candidates are the test entries. When the test result has a file,
-   the candidates are only those whose path the file matches, with the
-   greatest length of the match among them.
+   the candidates are only those whose path the file matches; and when
+   the length of the match of one of them is the number of the path
+   parts of the file, only those with that length of the match.
 2. The test result has a result link to each candidate that has a
    pattern that its name parts match.
 
@@ -761,10 +767,8 @@ parts has a result link to each test entry that these rules give:
 
 Under a valid binding of `file-readers`, the test entries of the reading
 of a report file of an import are these: for each code file of the tree
-of the import that can be read and whose pack is the pack of the report
-file, or, when the test runner of the report file has a match table,
-whose pack has a test runner with the name of that test runner and with
-a match table, and for each test node that the reading of the text of
+of the import that can be read and whose pack has a test runner with
+the name of the test runner of the report file, and for each test node that the reading of the text of
 that code file, with that pack, gives, the test entry of that test node
 whose test entry id is the text of the valid path of the code file, then
 `#`, then the decimal numeral of the number of the test node. The number
@@ -920,6 +924,7 @@ when, T holds U.
 @term suite-rule=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, promise=v1, tree=v1},
+    packs#{test-node=v1},
     #{import=v1, linked-test=v1, held-test=v1, named-test=v1, status-meaning=v1},
 }
 
@@ -927,8 +932,9 @@ The suite rule is the rule, for a test of which one or more other tests
 are a part, that the term `promise` of the Ontology leaves to a design.
 By the suite rule, the test evidence of the execution for which an
 import stands shows that a test T of the tree of the import that holds
-one or more tests passed when, and only when, each test that T holds and
-that holds no test has a test result of the import that names it and
+one or more tests passed when, and only when, T holds at least one test
+whose test node is a test case, each test that T holds and whose test
+node is a test case has a test result of the import that names it and
 says that it passed, and no test result of the import names T, or a test
 that T holds, and says that the tests that it names failed.
 
@@ -991,7 +997,9 @@ it stands in the evidence, with these values:
   names T, or a test that T holds, and says that the tests that it names
   passed; when it is "failed", each test result of the import that names
   T, or a test that T holds, and says that the tests that it names
-  failed; and when it is "not run", no test result. These test results
+  failed; and when it is "not run", each test result of the import that
+  names T, or a test that T holds, and has the status `skip`. These test
+  results
   stand in the order of the numbers of their report files, and then of
   their numbers.
 
