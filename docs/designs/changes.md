@@ -45,9 +45,10 @@ git-pack-refs, the file `packed-refs`; and from git's technical document
 reftable, refs in the reftable format. From the page gitglossary, it
 takes git objects: commit objects, git tree objects, blobs, and tag
 objects; and refs, symbolic refs, branches, remote-tracking branches,
-and HEAD. From the page gitformat-index, it takes git's index. From the
-page git-config, it takes the configuration files of a repository, their
-order, their includes, the values of settings, and the settings
+and HEAD, with the names of refs at the root, the root names. From the
+page gitformat-index, it takes git's index. From the page git-config, it
+takes the configuration files of a repository, their order, their
+includes, the values of settings, and the settings
 `branch.<name>.remote`, `branch.<name>.merge`, `core.excludesFile`,
 `core.ignoreCase`, `core.fsmonitor`, `core.sshCommand`,
 `remote.<name>.url`, `remote.<name>.pushurl`, `url.<base>.insteadOf`,
@@ -69,15 +70,15 @@ From Text and notation (`text`), the design takes characters, code
 points, spaces, texts, bytes, byte sequences, 0x numerals, hex digits,
 valid UTF-8, the text of a byte sequence, UTF-8 encodings, lines, line
 numbers, whole numbers, code spans, code point order, and what a
-conforming program and a result are. From Files and paths (`files`), it takes the system,
-file systems, folder trees, folders and their folder entries, regular
-files and their contents, symbolic links, files of another kind, the
-attributes of a file, the bytes that a program takes from a file, valid
-paths and their file names, the files and the folders of the path of a
-valid path in a folder tree, and file objects, folder tree objects, and
-stored folder trees, the forms in which the vectors write folder trees.
-From the Ontology (`ontology`), it takes trees, the default branch, and
-parameters with their bindings.
+conforming program and a result are. From Files and paths (`files`), it
+takes the system, file systems, folder trees, folders and their folder
+entries, regular files and their contents, symbolic links, files of
+another kind, the attributes of a file, the bytes that a program takes
+from a file, valid paths and their file names, the files and the folders
+of the path of a valid path in a folder tree, and file objects, folder
+tree objects, and stored folder trees, the forms in which the vectors
+write folder trees. From the Ontology (`ontology`), it takes trees, the
+default branch, and parameters with their bindings.
 
 From Data forms (`data-forms`), the design takes test-vector sets: the
 file that holds the conformance vectors of the design is one. From
@@ -95,12 +96,12 @@ design is a JSON text.
 |---|---|
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
-| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs that are not those of one working tree, and its file `config`, such as the folder `.git` of its main working tree |
+| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs that are not those of a working tree other than the main working tree, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
-| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD, the other refs, and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
+| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
 | [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
-| [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, as the page git-config gives includes, holds |
+| [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, as the git configuration includes files, holds |
 | [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
 | [commit](sinter:#commit=v1) | a commit object that a git repository holds: it names a git tree object and its parents, in order, and it holds a message |
@@ -113,8 +114,8 @@ design is a JSON text.
 | blob | a git object that holds a content, which is a byte sequence |
 | [reach](sinter:#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
 | [ancestry](sinter:#ancestry=v1) | the set of the commits that a commit reaches |
-| [ref name](sinter:#ref-name=v1) | a text that can be the name of a ref by the rules of the pages git-check-ref-format and gitglossary, such as `refs/heads/main` or `HEAD`: it starts with `refs/`, or it is a root name, such as `ORIG_HEAD` |
-| [ref](sinter:#ref-commit=v1) | a name, such as `refs/heads/main`, that points to a git object, or that names another ref, as a symbolic ref does; a broken loose ref does neither |
+| [ref name](sinter:#ref-name=v1) | a text that can be the name of a ref, such as `refs/heads/main` or `HEAD`: it meets the rules of the page git-check-ref-format other than its rule on `/`, and it starts with `refs/` or is a root name of the page gitglossary, such as `ORIG_HEAD` |
+| [ref](sinter:#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that names another ref, as a symbolic ref does; a broken loose ref does neither |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
@@ -418,14 +419,15 @@ binding.
 The git folder of a git repository is its common folder, as the page
 gitrepository-layout defines the common folder. It holds the object
 database of the git repository, its refs other than the refs of one
-working tree, and its file `config`. The lines of its file `config`
-itself, and not those of a file that it includes, give the repository
-format version, 0 or 1, and the extensions of the repository, as the
-page git-config gives them, such as the object format, `sha1` or
-`sha256`, and the ref storage format, `files` or `reftable`. The
-repository format version is 0 when the file gives none, and at the
-repository format version 0 the file gives no object format and no ref
-storage format. The object format is `sha1` when the file gives none.
+working tree that is not the main working tree, and its file `config`.
+The lines of its file `config` itself, and not those of a file that it
+includes, give the repository format version, 0 or 1, and the extensions
+of the repository, as the page git-config gives them, such as the object
+format, `sha1` or `sha256`, and the ref storage format, `files` or
+`reftable`. The repository format version is 0 when the file gives none,
+and at the repository format version 0 the file gives no object format
+and no ref storage format. The object format is `sha1` when the file
+gives none.
 
 ### 4.2 Working trees
 
@@ -538,14 +540,15 @@ The message of a commit is the byte sequence of the content of its
 commit object after the first two bytes 0x0A that follow one another in
 it, or the empty byte sequence when the content holds no two such bytes.
 A commit that the file `shallow` of the git folder names, in a line that
-holds its object id in hex digits, has no parents. When a parent line
-of a commit that the file `shallow` does not name names no commit of the
-git repository, the parents of that commit, and each thing that this
-design gives from them, are not specified. The content of a
+holds its object id in hex digits, has no parents. The content of a
 blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
-`refs/replace/`, has an effect on them.
+`refs/replace/`, has an effect on them. When a parent line of a commit
+that the file `shallow` does not name holds the object id of no git
+object that the git repository holds, the parents of that commit, and
+each thing that a term of this design defines from them, are not
+specified.
 
 ### 4.5 The texts of messages
 
@@ -608,7 +611,10 @@ names of refs that do not start with `refs/`, the root names:
     gitdoc/git-pack-refs,
     gitdoc/reftable,
     files#{symbolic-link=v1},
-    text#{code-span=v1, hex-digit=v1, utf-8-encoding=v1},
+    text#{
+        text=v1, byte=v1, 0x-numeral=v1, code-span=v1, hex-digit=v1,
+        utf-8-encoding=v1,
+    },
     #{git-folder=v1, working-tree=v1, commit=v1, ref-name=v1},
 }
 
@@ -630,9 +636,10 @@ the refs of its file `packed-refs`, and, in the reftable format, the
 refs of the stack of tables in its folder `reftable`. In the files
 format, a loose ref of a folder is a file, other than a symbolic link,
 at the pathname that its ref name gives in that folder, whose content is
-the object id of its git object in hex digits, or `ref: ` and the ref
-name of the ref that it names, then the byte 0x0A; such a file whose
-content is not in this form is a broken loose ref with that name, which neither points
+the UTF-8 encoding of the object id of its git object in hex digits, or
+of `ref: ` and the ref name of the ref that it names, and then the byte
+0x0A; such a file whose content is not in this form is a broken loose
+ref with that name, which neither points
 to a git object nor names a ref. A symbolic link at the pathname that a
 ref name gives in a folder is a loose ref with that name that names the
 ref whose name is n when its reference is the UTF-8 encoding of a ref
@@ -640,7 +647,7 @@ name n, and otherwise a broken loose ref with that name, whatever file
 its reference leads to. The file `packed-refs`, which the page
 git-pack-refs defines, holds, after a first line that starts with `#`
 when there is one, a line for each ref of the object id in hex digits, a
-space, and the name of the ref, and, after the line of a ref, a line
+space, and the ref name of the ref, and, after the line of a ref, a line
 that starts with `^` when that ref has a peeled object. A ref of the
 file `packed-refs` has its value there only when no loose ref of the git
 folder has its name. A ref exists when the git repository, or the
@@ -675,7 +682,7 @@ before the first `/`, each text between a `/` and the next `/`, and the
 text after the last `/`. A text with no `/` has one part, which is the
 text. A branch name is a text b that meets each of these conditions.
 Conditions 1 to 6 are the rules of the page git-check-ref-format for the
-ref name that is `refs/heads/` followed by b.
+text that is `refs/heads/` followed by b.
 
 1. b is not empty. It does not start with `/`, it does not end with
    `/`, and it does not hold `//`.
@@ -720,10 +727,10 @@ default branch, in this order:
    upstream. When none of them maps M to a ref name, b has no upstream.
    A fetch refspec maps M, when M is a ref name, to the ref name D when
    its source and its destination, as the page git-fetch gives them for
-   refspecs, are M and D, or when each of them holds one `*` and, for a
-   text s, which can be empty and can hold `/`, the source with s in
-   place of its `*` is M and the destination with s in place of its `*`
-   is D.
+   refspecs, are M and D, or when each of them holds exactly one `*`
+   and, for a text s, which can be empty and can hold `/`, the source
+   with s in place of its `*` is M and the destination with s in place
+   of its `*` is D.
 2. the ref whose name is `refs/heads/` followed by b.
 3. the ref whose name is `refs/remotes/origin/` followed by b.
 
@@ -1120,8 +1127,8 @@ and for each working tree of it.
 A value of a setting of a git configuration comes from a git repository
 when the file `config` of the git folder of that git repository, a file
 `config.worktree` in the folder of a working tree of it, or a file that
-one of these files includes, in turn, as the page git-config gives
-includes, holds that value.
+one of these files includes, in turn, as the git configuration includes
+files, holds that value.
 
 ### 4.31 Fetches and pushes
 
