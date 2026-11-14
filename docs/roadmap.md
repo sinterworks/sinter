@@ -321,24 +321,29 @@
   reports no name for them. The OCaml pack needs a way to bind their
   results before it can read them as tests. This matters because
   Sinter checks its own code. Not designed.
-- **Libraries for writing runner adapters** — a small library, in each
-  of a few common languages that compile to WebAssembly, for the author
-  of a language pack who writes a runner adapter. A runner adapter is
-  the WebAssembly module of a pack that reads the report file of a test
-  runner and links each test result to a test. Not designed.
-  - The library holds the parts that every adapter repeats: it reads
-    the request, gives the report and the test entries as values of the
+- **Libraries for Sinter in several languages** — one library for each
+  of a few common languages, each in a repository of its own under
+  `sinterworks`, such as `sinter-rs`, `sinter-go`, and `sinter-py`. A
+  library holds what a program in that language needs to work with
+  Sinter's formats, in modules that a person can use one at a time. Not
+  designed.
+  - One module is for the author of a language pack who writes a runner
+    adapter. A runner adapter is the WebAssembly module of a pack that
+    reads the report file of a test runner and links each test result to
+    a test. The libraries of the languages that compile to WebAssembly
+    have this module.
+  - The module holds the parts that every adapter repeats: it reads the
+    request, gives the report and the test entries as values of the
     language, writes the response in the form that Sinter reads, and
-    exports the functions that Sinter calls.
-  - The author then writes only how the reports of one test runner name
-    their tests.
-  - The languages are open; candidates are Rust, C, Zig, and Go. Where a
-    language has common bindings for WebAssembly, the library is
+    exports the functions that Sinter calls. The author then writes
+    only the part that reads the reports of one language or one test
+    runner, when these are not JUnit XML already.
+  - Where a language has common bindings for WebAssembly, the module is
     written against them.
-  - A helper for the common report formats, such as JUnit XML, can be
-    part of each library.
-  - The libraries can live in the repository `sinterworks/sinter-packs`,
-    beside the packs that use them.
+  - Sinter's own packs use these modules for their adapters, so that
+    the libraries are tested on real work before others use them.
+  - Which languages come first, and which other modules each library
+    has, are open.
 - **Test adapters for conformance vectors** — a library for each test
   framework that loads the conformance vectors of a design and runs one
   test case for each vector, so that a test of an implementation cites
