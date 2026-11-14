@@ -27,12 +27,8 @@ branch approves it. An `approval` or `decline` ledger entry names its
 subject of approval by the kind word of its kind of subject of approval
 and the name of its declared item, such as `req:billing#limit`, and its
 revised content by an extent hash. The fields of these two kinds also
-hold `saw` (term `judgment-field`). What a program records in `saw` is
-limited by conditions 2 and 3 of the acceptance rule of these two kinds
-(term `judgment-acceptance-rule`), because a program appends only
-accepted ledger entries (requirement
-`ledger#append-only-accepted-entries`), and by the requirement
-`record-seen-judgments`.
+include `saw` (term `judgment-field`), whose value the acceptance rule
+and the requirement `record-seen-judgments` limit (section 2.2).
 
 From the Ontology (`ontology`), the design takes subjects of approval,
 their five kinds, their declared items, and when two of them are the
@@ -47,7 +43,9 @@ From the Ledger (`ledger`), the design takes the fields of a kind of
 ledger entry and the common fields, acceptance rules, and when a ledger
 entry is accepted at a point; the ledger of a git repository, which is
 its stored ledger; and when that ledger is broken or newer, and the
-ledger objects of a git repository; and the requirements
+ledger objects of a git repository; clones, the shared clone, pulls,
+pushes, and the ledger entries that leave in a pull; and the
+requirements
 `ledger#append-only-accepted-entries`,
 `ledger#give-states-only-from-valid-ledgers`, and
 `ledger#report-leaving-entries`.
@@ -88,6 +86,7 @@ text.
 | [subject of approval](sinter:ontology#subject-of-approval=v1) | a unit that a person approves, or that the merge approves, as a whole |
 | [kind of subject of approval](sinter:ontology#subject-of-approval=v1) | which of five units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the items of the kind requirement and the terms that it holds, an item of the kind requirement that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
 | [declared item of a subject of approval](sinter:ontology#subject-of-approval=v1) | the item of the kind design, for a subject of approval of the first kind, and otherwise the item of the kind specification, the item of the kind requirement, the term, or the decision record that the subject of approval is |
+| [subject of approval of a declared item](sinter:ontology#subject-of-approval=v1) | for an item of the kind design, an item of the kind specification, an item of the kind requirement or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for an item of the kind requirement or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification; each other declared item has none |
 | [same subject of approval](sinter:ontology#subject-of-approval=v1) | two subjects of approval of two trees are the same when their declared items have the same kind of item and the same name |
 | [revised content](sinter:ontology#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement |
 | [extent hash](sinter:documents#extent-hash=v1) | the hash that measures the revised content of a declared item of a tree: two revised contents of the same declared item are the same when, and only when, their extent hashes are equal |
@@ -204,9 +203,9 @@ These cases show the rule. In each, X is one subject text and one hash.
    judgment before it, so the approval has `saw` `none`. Before A
    pushes, clone B pushes a decline of X with `saw` `none`. After the
    pull, the decline of B comes first, and the approval is not accepted
-   at its new point. So the pull drops it and reports it
-   (requirement `ledger#report-leaving-entries`), and the person decides
-   again.
+   at its new point. So it leaves the ledger in the pull, the pull
+   reports it (requirement `ledger#report-leaving-entries`), and the
+   person decides again.
 2. A person declines X, and later approves X on purpose. The approval
    has `saw` `decline`, and it is accepted.
 3. Two clones each approve X with `saw` `none` before either pushes.
@@ -332,8 +331,9 @@ the production `subject` of the term `identifiers#ack-line`, and it
 holds no line feed, so it is a subject of a finding (term
 `findings#finding-subject`). Each of the three classes reports only a
 subject of approval whose declared item is in force under the bindings,
-or an edge whose cited item of the kind requirement is in force under
-the bindings (term `bound-in-force-item`), so a retired item gives no
+or an edge whose cited item is an item of the kind requirement that has
+a subject of approval and is in force under the bindings (term
+`bound-in-force-item`), so a retired item gives no
 finding of these classes. A subject of approval that is declined gives
 no finding of the class `awaiting-approval`. Two subjects of approval of
 one tree whose declared items have the same kind of item and the same
