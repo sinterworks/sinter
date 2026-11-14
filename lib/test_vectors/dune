@@ -1,0 +1,11 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_test_vectors)
+ (public_name sinter.test_vectors)
+ (libraries sinter_text sinter_json_lines)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

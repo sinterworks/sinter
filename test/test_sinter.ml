@@ -70,6 +70,10 @@ let () =
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);
+      ("json lines", Test_json_lines.tests);
+      ("hashes", Test_hashes.tests);
+      ("hash ids", Test_hash_ids.tests);
+      ("test vectors", Test_test_vectors.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
