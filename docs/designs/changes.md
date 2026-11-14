@@ -100,7 +100,7 @@ design is a JSON text.
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
-| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
+| [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; in each file, a carriage return right before a line feed ends a line, and a byte order mark at the start of the file is part of no line; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, by the includes that the term `git-configuration` gives, holds |
 | [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
@@ -476,10 +476,10 @@ include, in the order that the page gives, and with these rules:
    repository whatever the owner of the git repository and whatever the
    setting `safe.directory`.
 3. In each file from which the set takes settings, a byte 0x0D right
-   before a byte 0x0A ends a line together with that byte 0x0A, and the
-   bytes 0xEF, 0xBB, and 0xBF are part of no line when they are the
-   first three bytes of the file. Each other byte of the file is in the
-   lines of the file as the page git-config gives them.
+   before a byte 0x0A ends a line together with that byte 0x0A, and,
+   when the file starts with the bytes 0xEF, 0xBB, and 0xBF, in this
+   order, these three bytes are part of no line. Each other byte of the
+   file is in the lines of the file as the page git-config gives them.
 
 The git configuration of a git repository is the set of the settings
 that these files and variables hold in the same way, by the same rules,
@@ -548,10 +548,10 @@ holds its object id in hex digits, has no parents. The content of a
 blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
-`refs/replace/`, has an effect on them. When the file `shallow` does not
-name a commit, and a parent line of that commit does not give the object
-id of a commit of the git repository, the parents of that commit are not
-specified.
+`refs/replace/`, has an effect on them. When a commit is not named by
+the file `shallow`, and a parent line of that commit does not give the
+object id of a commit of the git repository, the parents of that commit
+are not specified.
 
 ### 4.5 The texts of messages
 
