@@ -399,6 +399,20 @@ let equal_holds_for_the_same_characters =
       Text.equal (Text.of_uchars a) (Text.of_uchars b)
       = List.equal Uchar.equal a b)
 
+let concat_joins_the_characters_in_order =
+  property ~name:"concat gives the characters of each text in order"
+    ~print:(fun texts -> String.concat " | " (List.map print_uchars texts))
+    Gen.(list_size (int_range 0 5) (uchars_gen edge_uchar))
+    (fun texts ->
+      let joined = Text.concat (List.map Text.of_uchars texts) in
+      uchars_of_text joined = List.concat texts
+      && Text.length joined = List.length (List.concat texts))
+
+let concat_of_no_text_is_empty () =
+  Alcotest.(check bool)
+    "concat of no text" true
+    (Text.equal (Text.concat []) Text.empty)
+
 let any_bytes =
   Gen.oneof
     [
@@ -668,6 +682,9 @@ let tests =
       of_uchars_keeps_each_character;
       sub_gives_the_characters_of_the_run;
       equal_holds_for_the_same_characters;
+      concat_joins_the_characters_in_order;
+      Alcotest.test_case "concat of no text is the empty text" `Quick
+        concat_of_no_text_is_empty;
       decode_answers_every_byte_sequence;
       decode_refuses_corrupted_encodings;
       body_and_byte_order_mark_agree;

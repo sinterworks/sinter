@@ -62,6 +62,7 @@ let () =
       ("usage", Test_usage.tests);
       ("tag line", Test_tag_line.tests);
       ("slug", Test_slug.tests);
+      ("slug form", Test_slug_form.tests);
       ("text", Test_text.tests);
       ("paths", Test_path.tests);
       ("globs", Test_glob_fit.tests);
@@ -76,6 +77,10 @@ let () =
       ("test vectors", Test_test_vectors.tests);
       ("toml reader", Test_toml_reader.tests);
       ("data forms toml", Test_data_forms_toml.tests);
+      ("tree", Test_tree.tests);
+      ("spots", Test_spots.tests);
+      ("edit sets", Test_edit_sets.tests);
+      ("finding parts", Test_finding_parts.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
