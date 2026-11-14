@@ -1418,18 +1418,24 @@ place that node stands. Each node has a symbol, and each symbol has a
 name. The supertypes of a node are the symbols that are supertypes among
 its own symbol and the symbols of the nodes in whose place it stands.
 Each node has a start byte and an end byte, which are whole numbers less
-than 4,294,967,296. A node has an error when it, or a node that the
-parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
-node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
-parsing inserts for a token that the text lacks. For a text whose parse
-text has fewer than 4,294,967,296 bytes in its UTF-8 encoding, and a
-usable grammar with a grammar name g, the parse tree is the parse tree
-that this parsing gives for the language of that usable grammar and the
-UTF-8 encoding of that parse text; such a text alone can have a parse
-tree. When this parsing gives no parse tree, the text has no parse tree
-with that usable grammar. The parse text of a text is that text,
-followed by a line feed when the text does not end with a line feed. So
-the parse text of the empty text is one line feed.
+than 4,294,967,296. In a parse tree, the start byte of each node is at
+most its end byte; the start byte of each child of a node is at least
+the start byte of that node, and its end byte is at most the end byte of
+that node; and the end byte of each child of a node is at most the start
+byte of the next child of that node. A parsing that gives a tree that
+breaks one of these conditions gives no parse tree. A node has an error
+when it, or a node that the parsing gives inside it, nodes of hidden
+symbols included, is an `ERROR` node, a node of the symbol `ERROR`, or a
+`MISSING` node, a node that the parsing inserts for a token that the
+text lacks. For a text whose parse text has fewer than 4,294,967,296
+bytes in its UTF-8 encoding, and a usable grammar with a grammar name g,
+the parse tree is the parse tree that this parsing gives for the
+language of that usable grammar and the UTF-8 encoding of that parse
+text; such a text alone can have a parse tree. When this parsing gives
+no parse tree, the text has no parse tree with that usable grammar. The
+parse text of a text is that text, followed by a line feed when the text
+does not end with a line feed. So the parse text of the empty text is
+one line feed.
 
 ### 4.15 The order of the parse tree
 
@@ -1461,7 +1467,15 @@ the start byte, and e for the end byte. For a text, b is the boundary
 where the body of the text starts, and l is the last boundary of the
 text. The run of a node of the parse tree of a text is the run of that
 text that starts at the greater of b and the lesser of s and l, and that
-ends at the greater of b and the lesser of e and l.
+ends at the greater of b and the lesser of e and l. So, for two nodes of
+a parse tree, the first before the second in the order of the parse
+tree, the run of the second lies inside the run of the first, which is
+to say that it starts at or after the boundary where the run of the
+first starts and ends at or before the boundary where the run of the
+first ends, or the run of the first ends at or before the boundary where
+the run of the second starts. Two nodes can have the same run, such as a
+node and its only child, and two nodes can each have a run that starts
+and ends at one boundary, the same for both.
 
 ### 4.17 Node types
 
