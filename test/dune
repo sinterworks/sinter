@@ -16,6 +16,7 @@
   (glob_files ../docs/designs/*.test-vectors.jsonl)
   (glob_files ../lib/repository_files/*)
   (glob_files ../lib/git_objects/*)
+  (glob_files ../lib/wildmatch/*)
   (source_tree cases)
   (env_var SINTER_PROMOTE))
  (libraries
@@ -53,6 +54,7 @@
   sinter_ledger_sync
   sinter_repository_files
   sinter_git_objects
+  sinter_wildmatch
   digestif.c
   git_fixture
   sinter_bench
