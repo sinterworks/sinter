@@ -19,6 +19,7 @@
   (glob_files ../lib/wildmatch/*)
   (glob_files ../lib/ref_names/*)
   (glob_files ../lib/git_config/*)
+  (glob_files ../lib/git_refs/*)
   (source_tree cases)
   (env_var SINTER_PROMOTE))
  (libraries
@@ -59,6 +60,7 @@
   sinter_wildmatch
   sinter_ref_names
   sinter_git_config
+  sinter_git_refs
   digestif.c
   git_fixture
   sinter_bench
