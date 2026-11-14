@@ -18,53 +18,58 @@ A label says which revised content of an item a citation rests on. When
 the revised content of an item changes, its label must change too, so
 that each pinned citation of the item becomes suspect and a person
 checks it again. A conforming program compares a tree with a base tree,
-such as the tree of the commit on which a change starts. It reports each
-declared item, conformance vector, group of conformance vectors, and
-vector set whose revised content changed while its label did not change
-as it must. It also reports each suspect edge of a tree.
+such as the tree of the base of the change of a commit. It reports each
+declared item whose revised content or kind changed while its label
+stayed the same, and each conformance vector, group of conformance
+vectors, and vector set whose label did not become higher when it had
+to. It also reports each suspect edge of a tree.
 
 From the Ontology (`ontology`), the design takes trees and their files,
-the tree of a commit, declared items and their kinds, names, labels,
-current revisions, revised contents, conformance vectors, groups of
-conformance vectors, vector sets, the same item in two trees, edges,
-pinned edges, suspect edges, findings, finding classes, and parameters.
-From Documents (`documents`), it takes the declared items of a tree and
-their files, the text of a declaration and its origin position, extent
-hashes as the measure of revised content, sets of names, vector files,
-the edges of a tree, position subjects, the spots of runs, tree
-findings, and bindings of the parameter `file-readers`. From Changes
-(`changes`), it takes commits, the change of a commit, and the base of
-the change of a commit under a binding of the parameter
-`default-branch-name`. From Data forms (`data-forms`), it takes
-test-vector revisions and the order "higher" on them, vector lines,
-group lines, set lines, test-vector sets, the text of the forms of a
-group, versions, and the rules of version sequences. From Findings
-(`findings`), it takes subjects and spots of findings. From Identifiers
-(`identifiers`), it takes labels, kind words, bindings of the parameter
-`external-namespaces`, and the result "valid" of a binding. From Files
-and paths (`files`), it takes valid paths. From Text and notation
-(`text`), it takes texts, lines, runs, spans, UTF-8 encodings, decimal
-numerals, and what a conforming program and a result are. From RFC
-8259, it takes JSON texts: each line of the file that holds the
-conformance vectors of the design is one.
+the tree of a commit, declared items and their kinds, containment,
+declared finding classes, names, labels, current revisions, revised
+contents, conformance vectors, groups of conformance vectors, vector
+sets, the same item in two trees, edges, pinned edges, suspect edges,
+findings, finding classes, and parameters. From Documents (`documents`),
+it takes the declared items of a tree and their files, the text of a
+declaration and its origin position, extent hashes as the measure of
+revised content, sets of names, vector files, the edges of a tree,
+position subjects, the spots of runs, tree findings, and bindings of the
+parameter `file-readers` with their readers. From Changes (`changes`),
+it takes commits, the change of a commit, and the base of the change of
+a commit under a binding of the parameter `default-branch-name`. From
+Data forms (`data-forms`), it takes test-vector revisions and the order
+"higher" on them, vector lines, group lines, set lines, test-vector
+sets, the text of the forms of a group, versions, the rules of version
+sequences, canonical byte sequences, and hex texts. From Findings
+(`findings`), it takes the subjects, spots, messages, marks, related
+messages, and fixes of findings, and ackable findings. From Identifiers
+(`identifiers`), it takes the texts of tag lines, citation entries,
+inline citations, vector selections, slugs, bindings of the parameter
+`external-namespaces` with their namespace names, and the result
+"valid" of such a binding. From Files and paths (`files`), it takes
+valid paths and path sets. From Text and notation (`text`), it takes
+texts, lines, runs, spans, UTF-8 encodings, decimal numerals, and what a
+conforming program and a result are. From RFC 8259, it takes JSON
+texts: each line of the file that holds the conformance vectors of the
+design is one.
 
 ## 1. Glossary
 
 | word or phrase | meaning |
 |---|---|
-| tree | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
+| [tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
 | base tree | the tree with which a conforming program compares a tree, such as the tree of the base of the change of a commit |
 | [label](sinter:ontology#revised-content=v1) | the text after `=` in the declaration of a declared item, such as `v2` in `@req size=v2`; the revision of the vector line of a conformance vector, of the group line of a group of conformance vectors, or of the set line of a vector set |
 | [current revision](sinter:ontology#item-revision=v1) | the label that an item has in a tree; a term with no label has no current revision |
 | [revised content](sinter:ontology#revised-content=v1) | the part of an item that its label covers |
 | [extent hash](sinter:documents#extent-hash=v1) | the hash of the text of the revised content of a declared item after Documents takes out some parts, such as the revisions of citation entries; two revised contents of the same declared item are the same when their extent hashes are equal |
-| [set of names](sinter:documents#name-set=v1) | a set of declared items of a tree in which each name names one item: the shared set, the set of the declared finding classes, and the set of each item of the kind design |
-| [base item](sinter:#base-item=v1) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind |
+| [set of names](sinter:documents#name-set=v1) | one of the sets into which the declared items of a tree fall by their names: the shared set, the set of the declared finding classes, and the set of each item of the kind design |
+| [base item](sinter:#base-item=v1) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
 | [version of a vector set](sinter:#tree-version=v1) | a vector set of a tree, together with the text of the forms of each of its groups in that tree |
 | [higher](sinter:data-forms#test-vector-revision=v1) | a test-vector revision is higher than another when the number after its `v` is greater |
-| [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge whose cited item has no current revision, or a current revision other than the label of the edge |
+| [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge whose cited item has no current revision, or a current revision other than the revision of its citation entry or inline citation |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot, that is not ackable |
-| [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of an item of a tree whose revised content changed against the base tree while its label did not change as it must |
+| [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same, and of a conformance vector, group of conformance vectors, or vector set whose label did not become higher when it had to |
 | [`suspect`](sinter:#suspect-finding=v1) | the class of the findings of the suspect edges of a tree |
 
 ## 2. Labels, changes, and findings
@@ -80,11 +85,10 @@ section number of a heading, or an `@ack` line.
 
 Labels are free texts, such as `v2`, `2026-11`, or `rc1`, and no order
 is defined on them. So, for a declared item, a new label is a label
-other than the label at the base. A declared item of the tree gives a
-finding of the class `needs-revision` when it has a label, it has a base
-item, the base item has the same label, and the two items differ in
-their kinds or in their extent hashes. A new label with no other change
-gives no finding of that class, and neither does a term with no label.
+other than the label of the item with which it is compared at the base.
+The term `needs-revision-finding` gives which declared items of the tree
+need a new label. A new label with no other change gives no finding of
+that class, and neither does a term with no label.
 
 For example, a base tree declares `@req size=v2` in the item of the kind
 design `billing`. In the tree, the text of the requirement changes and
@@ -110,11 +114,13 @@ names that corresponds to the set of names of the item. The kind does
 not count in this match. So when `@design x=v1` becomes `@decision x=v1`
 with the same text, the two items are compared, and the tree has a
 finding of the class `needs-revision` for `x`, because their kinds
-differ. Without it, a citation of `x` that rested on the item of the
-kind design would rest on the decision record and not be suspect.
+differ. A citation of `x` then rests on the decision record, and its
+pin becomes suspect only when the label changes.
 
-An item whose name another item of its set of names also has, in the
-tree or in the base tree, has no base item. Declared items are matched
+The term `base-item` gives when a declared item has no base item: for
+example, when another item of its set of names has its name, in the
+tree or in the base tree, or when the item is in no set of names.
+Declared items are matched
 by their names, so a file that moves changes no declared item. A
 declared item in a file that cannot be read is not a declared item of
 its tree, so it has no base item and it is no base item.
@@ -126,10 +132,10 @@ each have a label: a test-vector revision, such as `v3`. Their labels
 are ordered, and the rules of version sequences say when a label must
 become higher. The version of a vector set in a tree is its
 test-vector set together with the text of the forms of each of its
-groups in that tree. A conformance vector, group of conformance vectors,
-or vector set of the tree gives a finding of the class `needs-revision`
-when these rules, for the version at the base and the version in the
-tree, say that its label is higher than at the base, and it is not.
+groups in that tree. The term `needs-revision-finding` gives, from
+these rules for the version at the base and the version in the tree,
+which conformance vectors, groups of conformance vectors, and vector
+sets of the tree need a higher label.
 
 For example, the base tree holds the vector line
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`
@@ -138,9 +144,11 @@ group line `{"group":"offsets","rev":"v2"}` and the set line
 `{"rev":"v3"}`. In the tree, its `input` becomes `"y"`, and no label
 changes. The tree has three findings of the class `needs-revision`,
 with the subjects `data-forms#toml[12]`, `data-forms#toml[offsets][*]`,
-and `data-forms#toml[*]`. An edit of the text of the forms of the group
-`offsets` changes each conformance vector of that group in the same
-way.
+and `data-forms#toml[*]`. An edit of the text of the Conformance part
+of `data-forms#toml`, other than its headings and vector lines, changes
+the text of the forms of each group. Then each conformance vector, each
+group, and the vector set need a higher label, and the item of the kind
+specification `data-forms#toml` needs a new label.
 
 ### 2.4 Suspect edges
 
@@ -167,7 +175,7 @@ file is a matter of the quality of an implementation.
 
 The findings of both classes are tree findings: no finding of either
 class is ackable, and the program that gives a finding gives its
-message, its mark, its related messages, and its fix. A related message
+message, its mark, its related messages, and any fix of it. A related message
 can have a spot in the base tree, such as the spot of the declaration of
 the base item.
 
@@ -236,7 +244,7 @@ as the text of the design.
 
 @term needs-revision-finding=v1
 @cites {
-    identifiers#{binding=v1},
+    identifiers#{binding=v1, tag-line-text=v1},
     files#{path=v1},
     ontology#{
         declared-item=v1, declared-finding-class=v1, item-name=v1,
@@ -277,13 +285,13 @@ against the base tree B:
   file in T.
 - For each conformance vector, group of conformance vectors, and vector
   set X of T that is the same item as an item Y of B: one tree finding
-  when, by the rules of the term `test-vector-version-sequence` for the
+  when the rules of the term `test-vector-version-sequence`, for the
   sequence of two versions whose first version is the version of the
   vector set of Y in B and whose second version is the version of the
-  vector set of X in T, the revision of X in the second version is
-  higher than the revision of Y in the first version, and the label of
-  X in T is not higher than the label of Y in B. Let x be the item whose
-  vector set in T holds X, or is X. The subject of the finding is the
+  vector set of X in T, require the revision of X in the second version
+  to be higher than the revision of Y in the first version, and the
+  label of X in T is not higher than the label of Y in B. Let x be the
+  item whose vector set in T holds X, or whose vector set is X. The subject of the finding is the
   name of x, then: for a conformance vector, `[`, the decimal numeral of
   its number, and `]`; for a group of conformance vectors, `[`, its
   name, `]`, and `[*]`; for a vector set, `[*]`. Its spot has the valid
@@ -441,8 +449,8 @@ the vector lines that it shows, the revisions of every vector, the
 group, and the set rise. A change of a note alone changes no revision. A
 program does not need the revisions to run the vectors.
 
-The group `trees` holds the vectors whose inputs are a base tree and a
-tree whose files are all markdown files. Its requirements are
+The group `trees` holds the vectors whose inputs are a base tree, a
+tree, and a binding of `file-readers` whose readers are all `markdown`. Its requirements are
 `give-needs-revision-findings` and `give-suspect-findings`. The member
 `input` of its vectors is a JSON object with these four members:
 
