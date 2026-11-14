@@ -39,27 +39,24 @@ ledger, points of a ledger, and repairs; states, the states approved and
 declined, and in force; trees, the default branch, edges with their
 kinds and cited items, and when an edge says what its kind of edge says;
 findings, finding classes, and parameters with their bindings; and the
-requirements `ontology#write-judgments-only-for-persons` and
-`ontology#treat-ledger-entries-alike`.
+requirement `ontology#treat-ledger-entries-alike`.
 
 From the Ledger (`ledger`), the design takes the fields of a kind of
 ledger entry and the common fields, acceptance rules, and when a ledger
 entry is accepted at a point; the ledger of a git repository, which is
 its stored ledger; and when that ledger is broken or newer, and the
-ledger objects of a git repository; pull commits (term
-`ledger#pull-commit`); and the requirements
-`ledger#append-only-accepted-entries` and
-`ledger#give-states-only-from-valid-ledgers`.
+ledger objects of a git repository; and the requirements
+`ledger#append-only-accepted-entries`,
+`ledger#give-states-only-from-valid-ledgers`, and
+`ledger#report-leaving-entries`.
 
 From Documents (`documents`), the design takes the declared items of a
 tree with their files and declarations, the bindings of the parameter
 `file-readers`, extent hashes, the edges of a tree, origins and origin
 positions, position subjects, the order of positions, the spots of runs,
-and tree findings; and the requirement
-`documents#give-nothing-under-invalid-bindings`. From Changes
-(`changes`), it takes commits and their parents, the parameter
-`default-branch-name` with its bindings, the commit of the default
-branch, first-parent lines, and the requirement
+and tree findings. From Changes (`changes`), it takes commits and their
+parents, the parameter `default-branch-name` with its bindings, the
+commit of the default branch, first-parent lines, and the requirement
 `changes#take-objects-only-from-repositories`. From Findings
 (`findings`), it takes the subjects of findings. From Identifiers
 (`identifiers`), it takes slugs, full names, kind words, citation
@@ -103,7 +100,7 @@ text.
 | [fields of an `approval` or `decline` ledger entry](sinter:#judgment-field=v1) | `subject`, a string that is a subject text; `hash`, a string that fits the hash form; `saw`, one of the strings `none`, `approval`, and `decline`; and, for a decline only, the optional `reason`, a string |
 | [malformed](sinter:#judgment-acceptance-rule=v1) | of a ledger entry of the kind `approval` or `decline`: its object lacks one of the members `subject`, `hash`, and `saw`, or its `subject` is not a string that is a subject text, its `hash` is not a string that fits the hash form, or its `saw` is not one of the strings `none`, `approval`, and `decline` |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger; the point of the index k is the point of the first k − 1 ledger entries |
+| [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger; the point of the index k is the point of the first k − 1 ledger entries; the indexes before the point of the first n ledger entries are the indexes 1 to n |
 | [count at an index](sinter:#judgment-acceptance-rule=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none |
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when E is not malformed, its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
@@ -165,11 +162,11 @@ approval can be the same ledger entry again, and it decides the state
 again.
 
 The field `saw` holds `none`, `approval`, or `decline`. Its value at the
-point at which a program appends the ledger entry is fixed by condition
-2 of the acceptance rule (term `judgment-acceptance-rule`) and by the
-requirement `record-seen-judgments`. The field `reason` of a decline
-holds the reason that the person gave. No state and no acceptance
-depends on the member `reason`, whatever its value.
+point at which a program appends the ledger entry is limited by
+condition 2 of the acceptance rule (term `judgment-acceptance-rule`) and
+by the requirement `record-seen-judgments`. The field `reason` of a
+decline holds the reason that the person gave. No state and no
+acceptance depends on the member `reason`, whatever its value.
 
 A malformed `approval` or `decline` ledger entry (term
 `judgment-acceptance-rule`) is accepted at no point, so it decides no
@@ -184,8 +181,8 @@ Each kind of ledger entry that a program appends has an acceptance rule
 gives the rule of the kinds `approval` and `decline`. It reads only the
 ledger entry itself and the ledger entries before the point, never a
 tree, a binding, or a commit. Its condition on `saw` reads the judgment
-before the ledger entry at the point, and the rule compares `saw` only
-with the kind of that judgment. A program appends a ledger entry only at
+before the ledger entry at the point, and of that judgment the rule uses
+only its kind. A program appends a ledger entry only at
 a point at which it is accepted (requirement
 `ledger#append-only-accepted-entries`). Each index of a ledger has its
 own point (term `ledger-index`), and the ledger entry at an index counts
@@ -296,10 +293,12 @@ broken or newer and a git repository that does not hold its ledger
 objects, also for a kind that does not need approval, and the
 requirement `give-no-findings-from-invalid-ledgers` covers the findings
 there. A program takes no git object from another git repository
-(requirement `changes#take-objects-only-from-repositories`), so when a
-git repository lacks the git objects of a tree of the first-parent line,
-a program gives, by the requirement `give-subject-states`, the state
-that the term `subject-state` gives, or no state.
+(requirement `changes#take-objects-only-from-repositories`). So when a
+git repository lacks the git objects that a tree of the first-parent
+line needs, a program gives, by the requirement `give-subject-states`,
+the state that the term `subject-state` gives, or no state, and, by the
+requirement `give-approval-findings`, the findings that the finding
+terms give, or none.
 
 What a program gives while another process changes a file, a ref, or
 the ledger is a matter of the quality of an implementation.
@@ -976,7 +975,7 @@ accepted at its point, it gives "accepted" when the element of
 `accepted` for it is `true`, and "not accepted" when it is `false`.
 
 ```
-{"group":"acceptance","input":{"ledger":[{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"decline","saw":"none","subject":"req:billing#limit"},{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"approval","saw":"none","subject":"req:billing#limit"}]},"n":3,"note":"an approval after a decline that the person was not given is not accepted","rev":"v1","values":{"accepted":[true,false]}}
+{"group":"acceptance","input":{"ledger":[{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"decline","saw":"none","subject":"req:billing#limit"},{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"approval","saw":"none","subject":"req:billing#limit"}]},"n":3,"note":"an approval with `saw` `none` after a decline is not accepted","rev":"v1","values":{"accepted":[true,false]}}
 ```
 
 ### 6.2 Findings
