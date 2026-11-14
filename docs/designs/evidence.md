@@ -106,7 +106,7 @@ a JSON text.
 | [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
 | [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
 | [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
-| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
+| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
 | [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
@@ -145,14 +145,16 @@ a person gives the three report files to the program in one import. The
 import is then one execution of test runners. When the person gives each
 report file in an import of its own, the program has three imports, and
 each is one execution. When one run of a test runner covers the tests of
-two packs, such as `*.test.js` and `*.test.ts`, and both packs have a
-test runner with its name, each reading of that report file takes the
-test entries of both packs (term `reading-entry`). So the default reader
-links a test result whose name parts match tests of both packs to each.
-The report content is then given once with a test runner that has a
-match table, when one of the packs has one, and once with each test
-runner that has an adapter, because the code of each adapter is its
-own.
+two packs, such as `*.test.js` and `*.test.ts`, and the descriptors of
+both packs have a test runner with its name, each reading of that report
+file takes the test entries of both packs (term `reading-entry`). So the
+default reader links a test result whose name parts match tests of both
+packs to each. The default reader builds the patterns of every test
+entry of the reading from the data of the test runner of the report
+file. A person can then give the report content once with a test runner
+that has a match table, when one of the packs has one, and once with
+each test runner that has an adapter, because the code of each adapter
+is its own.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
 given for that tree. A program can keep imports from one of its runs to
@@ -772,7 +774,8 @@ parts has a result link to each test entry that these rules give:
 
 Under a valid binding of `file-readers`, the test entries of the reading
 of a report file of an import are these: for each code file of the tree
-of the import that can be read and whose pack has a test runner with the
+of the import that can be read and whose pack has, in its descriptor, a
+test runner with the
 name of the test runner of the report file, and for each test node that
 the reading of the text of that code file, with that pack, gives, the
 test entry of that test node whose test entry id is the text of the
