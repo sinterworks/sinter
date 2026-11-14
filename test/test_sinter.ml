@@ -80,6 +80,7 @@ let () =
       ("commit graphs", Test_commit_graphs.tests);
       ("git model", Test_git_model.tests);
       ("test vectors", Test_test_vectors.tests);
+      ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
       ("data forms toml", Test_data_forms_toml.tests);
       ("tree", Test_tree.tests);
