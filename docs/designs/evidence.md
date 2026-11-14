@@ -65,7 +65,8 @@ ledger, conformance vectors, groups of conformance vectors, vector sets,
 promises, and finding classes. From Language packs, it takes valid packs
 and valid descriptors, test runners with their adapter hashes, match
 tables, and runner settings; the bindings of `runner-settings`; the
-readings of texts, test nodes, the runs of nodes, enclosed nodes, the
+readings of texts, test nodes with their kinds test case and test
+suite, the runs of nodes, enclosed nodes, the
 order of the parse tree, and the names of test nodes; test entries, the
 requests of the function bind, calls, valid adapters, instances of
 adapters, and the results of calls with their test results and binding
@@ -144,12 +145,14 @@ a person gives the three report files to the program in one import. The
 import is then one execution of test runners. When the person gives each
 report file in an import of its own, the program has three imports, and
 each is one execution. When one run of a test runner covers the tests of
-two packs, such as `*.test.js` and `*.test.ts`, each reading of its
-report content takes the tests of both packs, so a test result that fits
-tests of both packs is linked to each. The report content is then given
-once with a test runner that has a match table, when one of the packs
-has one, and once with each test runner that has an adapter, because the
-code of each adapter is its own.
+two packs, such as `*.test.js` and `*.test.ts`, and both packs have a
+test runner with its name, each reading of that report file takes the
+test entries of both packs (term `reading-entry`). So the default reader
+links a test result whose name parts match tests of both packs to each.
+The report content is then given once with a test runner that has a
+match table, when one of the packs has one, and once with each test
+runner that has an adapter, because the code of each adapter is its
+own.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
 given for that tree. A program can keep imports from one of its runs to
@@ -348,7 +351,8 @@ say failed. A test result with the status `skip` says neither.
 
 A test can hold other tests (term `held-test`), as a `describe` block
 holds the tests whose code is in it. A `verifies` edge on a test that
-holds other tests stands for every test that it holds, by the suite rule
+holds other tests stands for every test case that it holds, by the suite
+rule
 (term `suite-rule`). For example, `describe("limits")` holds
 `it("small")` and `it("large")`. In an import, the test `limits` passed
 when `small` and `large` each have a test result that names that test
@@ -356,7 +360,7 @@ and says passed, and no test result that names one of the three says
 failed. It did not run when no test result names `large` and says
 passed, and no test result that names one of the three says failed. It
 failed when a test result that names `limits` itself, or `small`, or
-`large`, says failed. A test that holds no test case, such as a
+`large`, says failed. A test suite that holds no test case, such as a
 `describe` block that holds only an empty `describe` block, never
 passes.
 
@@ -927,7 +931,10 @@ when, T holds U.
 @cites {
     ontology#{test=v1, test-evidence=v1, promise=v1, tree=v1},
     packs#{test-node=v1},
-    #{import=v1, linked-test=v1, held-test=v1, named-test=v1, status-meaning=v1},
+    #{
+        import=v1, linked-test=v1, held-test=v1, named-test=v1,
+        status-meaning=v1,
+    },
 }
 
 The suite rule is the rule, for a test of which one or more other tests
@@ -1001,9 +1008,8 @@ it stands in the evidence, with these values:
   T, or a test that T holds, and says that the tests that it names
   failed; and when it is "not run", each test result of the import that
   names T, or a test that T holds, and has the status `skip`. These test
-  results
-  stand in the order of the numbers of their report files, and then of
-  their numbers.
+  results stand in the order of the numbers of their report files, and
+  then of their numbers.
 
 Each of these test results is given with the number of its report file,
 the hash of the report content of that report file, its number, its
