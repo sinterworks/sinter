@@ -528,11 +528,11 @@ when, each of these is true:
 2. The name of none of its entries, at any depth, holds the byte 0x2F,
    the byte of `/`.
 3. Its entries, at any depth, are exactly these: its chunks, each with
-   the mode that 100644 writes in base 8; for each of its chunks, the
-   tree entry whose byte path is the UTF-8 encoding of the first 10
-   characters of the chunk path of that chunk; and, when it has at least
-   one chunk, the tree entry whose byte path is the UTF-8 encoding of
-   `entries`.
+   a mode whose number is the whole number that `100644` writes in base
+   8; for each of its chunks, the tree entry whose byte path is the
+   UTF-8 encoding of the first 10 characters of the chunk path of that
+   chunk; and, when it has at least one chunk, the tree entry whose byte
+   path is the UTF-8 encoding of `entries`.
 4. The content of each of its chunks has at least one line, and each
    line of each of its chunks is the canonical line of a line object.
 5. The object of each of its lines has the member `id` with a string,
