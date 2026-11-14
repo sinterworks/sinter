@@ -90,15 +90,15 @@ file of the conformance vectors of the design is a JSON text.
 | [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with its parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
 | [part of a test result](sinter:#case-result=v1) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
 | [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when it has path parts, and the shorter of its path parts and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the shorter |
-| [patterns of a test entry](sinter:#name-pattern=v1) | for a test case, sequences of parts that the default reader compares with the parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
+| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of parts that the default reader compares with the parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
 | [match a pattern](sinter:#pattern-match=v1) | the parts of a test result match a pattern when they are as many as its parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each part of the pattern equal to the part of the test result |
 | [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
 | [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
 | [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry, which a reading gives: by the reader, the test result is about the test of that test entry |
-| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack is the pack of the report file, with the test entry id that the term gives |
+| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack is the pack of the report file, or, for a test runner with a match table, whose pack has a test runner with that name; each with the test entry id that the term gives |
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
-| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path and the name of the test, and it has no file or a file that matches that path |
-| [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file and equal names, and a test is alike to itself |
+| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path |
+| [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [names](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
@@ -131,9 +131,12 @@ continuous integration each run one third of the tests of a commit, and
 a person gives the three report files to the program in one import. The
 import is then one execution of test runners. When the person gives
 each report file in an import of its own, the program has three
-imports, and each is one execution. When one vitest run covers the
-tests of two packs, the import has its report content twice, once with
-the test runner of each pack.
+imports, and each is one execution. When one run of a test runner
+covers the tests of two packs, such as `*.test.js` and `*.test.ts`, and
+the test runner has an adapter, the import has the report content
+twice, once with the test runner of each pack. When the test runner has
+a match table, the import has the report content once, and its reading
+takes the tests of both packs.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
 given for that tree. A program can keep imports between its
@@ -219,7 +222,7 @@ gives a duration of 1 millisecond, and a value such as `1,203.5` or
 ### 2.5 The result links of the default reader
 
 The default reader gives result links of each test result to test
-entries of the kind test case (term `default-reader-result`). A test
+entries (term `default-reader-result`). A test
 result with a file gets result links only to test entries whose path the
 file matches (term `report-path-match`). For example, the files
 `src/math.test.ts`, `./src/math.test.ts`, `math.test.ts`, and
@@ -257,6 +260,14 @@ becomes a placeholder, and the pattern has one part:
 has no line, and the one part `outer > each 1 + 2 = 3` matches the
 pattern, so the test result has a result link to the test entry.
 
+A test result can also have a result link to a test suite. For example,
+a Go test `TestFoo` runs the subtest `x`, which passes, and then fails.
+The test node of `TestFoo` encloses the test node of `x`, so it is a
+test suite. gotestsum writes one case element with the name `TestFoo`
+and a `failure` child, and one with the name `TestFoo/x`. With `path`
+set to `name` and both separators set to `/`, the one part `TestFoo`
+matches the pattern of the test suite, so its failure counts.
+
 ### 2.6 Readings of report files
 
 The reading of a report file of an import (term
@@ -283,8 +294,10 @@ adapter the same request for the same report file.
 A test result is linked to a test of the tree (term `linked-test`) by a
 result link to a test entry with the path and the name of that test,
 when the file of the test result, if it has one, matches that path.
-Two tests of one file with equal names, such as two top-level
-`it("adds")`, are linked to the same test results.
+Two tests of one file with equal names whose test nodes are of one kind,
+such as two top-level `it("adds")`, are linked to the same test
+results. A test case `it("parse")` and a test suite `describe("parse")`
+of one file are not.
 
 One test result can be linked to two tests with different files. For
 example, `src/a.test.ts` and `lib/a.test.ts` each have `it("adds")`,
@@ -295,7 +308,7 @@ gives, that removes some of these pairs: a narrowing, which is part of
 the import. So two programs that get the same import give the same
 outcomes. The term `narrowing-of-an-import`
 says when a narrowing is valid. A valid narrowing removes a pair for
-two tests of one file with equal names together, and it leaves each
+two such tests together, and it leaves each
 test result that it pairs naming at least one test, so no failure can
 disappear. A narrowing that is not valid removes no pair. A program with
 no such input gives the import the empty narrowing.
@@ -581,7 +594,7 @@ shorter of the two sequences.
     #{runner-data=v1},
 }
 
-For a test entry of the kind test case and the valid data of a runner,
+For a test entry and the valid data of a runner,
 the patterns of the test entry are sequences of parts, each a sequence
 of elements. An element is a character, a placeholder, or an affix slot
 of one of the keys `lead`, `suite-suffixes`, and `name-suffixes`. A part
@@ -695,11 +708,12 @@ order, and its result links: pairs of a test result and a test entry. A
 test result with no parts has no result link. A test result with parts
 has a result link to each test entry that these rules give:
 
-1. The candidates are the test entries of the kind test case. When the
-   test result has a file, the candidates are only those whose path the
-   file matches, with the greatest length of the match among them.
-2. A candidate contains a line when its first line is not after that
-   line and its last line is not before it. When the test result has a
+1. The candidates are the test entries. When the test result has a
+   file, the candidates are only those whose path the file matches, with
+   the greatest length of the match among them.
+2. A candidate contains a line when it is of the kind test case, its
+   first line is not after that line, and its last line is not before
+   it. When the test result has a
    file and a line, and at least one candidate contains the line, then,
    for each valid path, the test result has a result link to each
    candidate with that path that contains the line and whose first line
@@ -725,8 +739,10 @@ has a result link to each test entry that these rules give:
 
 Under a valid binding of `file-readers`, the test entries of the reading
 of a report file of an import are these: for each code file of the tree
-of the import whose pack is the pack of the report file and that can be
-read, and for each test node that the reading of the text of that code
+of the import that can be read and whose pack is the pack of the report
+file, or, when the test runner of the report file has a match table,
+whose pack has a test runner with the name of that test runner, and for
+each test node that the reading of the text of that code
 file, with that pack, gives, the test entry of that test node whose test
 entry id is the text of the valid path of the code file, then `#`, then
 the decimal numeral of the number of the test node. The number of a test
@@ -786,7 +802,7 @@ test entry that the reading gives with the result "bound".
 @term linked-test=v1
 @cites {
     documents#{file-reader-binding=v1, file-test=v1},
-    packs#{test-entry=v1, test-name=v1},
+    packs#{test-entry=v1, test-name=v1, test-node=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     files#{path=v1},
     text#{whole-number=v1},
@@ -801,16 +817,17 @@ number of a test result is 1 more than the number of the test results
 before it in its reading. A test result of an import is linked to a test
 of the tree of the import when, and only when, its reading has a result
 link of that test result and a test entry whose path is the valid path
-of the file of that test and whose name path is equal to the name of
-that test, and the test result has no file, or has a file that matches
-that valid path.
+of the file of that test, whose name path is equal to the name of that
+test, and whose kind is the kind of the test node of that test, and the
+test result has no file, or has a file that matches that valid path.
 
 ### 3.15 Valid narrowings
 
 @term narrowing-of-an-import=v1
 @cites {
     ontology#{test=v1, test-evidence=v1},
-    packs#{test-name=v1},
+    documents#{file-test=v1},
+    packs#{test-name=v1, test-node=v1},
     #{import=v1, linked-test=v1},
 }
 
@@ -818,8 +835,8 @@ A triple of the narrowing of an import stands for the pair of the test
 result of the import whose report file has the number that is the first
 whole number of the triple, and whose number is the second whole number
 of the triple, and the test of the triple, when the import has that test
-result. Two tests are alike when they have one file and equal names,
-and a test is alike to itself.
+result. Two tests are alike when they have one file, equal names, and
+test nodes of one kind, and a test is alike to itself.
 The narrowing of an import is valid when, and only when, each of its
 triples stands for a pair, and, for each of these pairs, the test result
 is linked to that test, and is linked to a test that is alike to the
@@ -1036,8 +1053,8 @@ citation entry in the text of the file.
 A tree that has evidence has one tree finding of the class
 `ambiguous-result` for each test T of the tree that a test result of an
 import of the evidence names, when that test result also names a test of
-the tree that is not alike to T. A tree that has no evidence has no tree finding of the
-class `ambiguous-result`. The subject of the finding is the position
+the tree that is not alike to T. A tree that has no evidence has no
+tree finding of the class `ambiguous-result`. The subject of the finding is the position
 subject of the position of the start of the code of T, which is the run
 of its test node, in its file. Its spot is the spot of that run.
 
@@ -1509,8 +1526,10 @@ bindings of `file-readers` and of `external-namespaces` are valid.
   - `tests` is a JSON array of tests of the tree. A test is a JSON
     object with the members `path`, the valid path of its file; `name`,
     its name, a JSON array with a JSON string for each of its names, in
-    their order, for a name of one text piece with that text; and
-    `suites`, a JSON array of the indexes in `tests`, from 0, of the
+    their order, for a name of one text piece with that text; `suite`,
+    true when its test node is a test suite, and false when it is a test
+    case; and `suites`, a JSON array of the indexes in `tests`, from 0,
+    of the
     tests that hold it.
   - `imports` is a JSON array of the imports of the evidence for the
     tree. An import is a JSON object with the member `files`, a JSON
@@ -1525,7 +1544,8 @@ bindings of `file-readers` and of `external-namespaces` are valid.
     object with the members `name`, its name; `status`, its status;
     `file`, its file, only when it has one; and `links`, a JSON array
     with, for each of its result links, the index in `tests` of one test
-    whose path and name are those of the test entry of that result link.
+    whose path, name, and kind are those of the test entry of that result
+    link.
   - `test` is the index in `tests` of the test whose outcome the vector
     gives.
 - `result`: "passed", "failed", or "not run": the outcome of that test
@@ -1553,7 +1573,7 @@ what it gives. When it gives the findings of the class
 `ambiguous` is true, and none for that test when it is false.
 
 ```
-{"group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suites":[]},{"name":["limits","small"],"path":"t.ts","suites":[0]},{"name":["limits","large"],"path":"t.ts","suites":[0]}]},"n":201,"note":"a test that holds tests passed: each test that it holds passed","result":"passed","rev":"v1","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
+{"group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"n":201,"note":"a test that holds tests passed: each test that it holds passed","result":"passed","rev":"v1","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
 ```
 
 ### 5.4 Findings
