@@ -1670,7 +1670,7 @@ kinds of line, in this order:
    `change-diffs`, `changes`, `commit-files`, `default-branch-commits`,
    `head-commits`, `hunks`, `landing-commits`, `message-texts`,
    `parent-lines`, `parents`, `ranges`, `reach`, `ref-commits`,
-   `tree-objects`, `working-tree-files`.
+   `tree-objects`, `upstreams`, `working-tree-files`.
    Its JSON object has two members: `group`, the name of the group, as a
    JSON string, and `rev`, the revision of the group.
 3. Then each vector has a vector line, in increasing order of the
@@ -2250,4 +2250,35 @@ its entry, which the vectors do not give.
 
 ```
 {"group":"tree-objects","input":{"format":"sha1","tree":"ce23d1908c4c894ba11fc09618cae7029af61bf3","trees":{"ce23d1908c4c894ba11fc09618cae7029af61bf3":{"bytes":"31303036343420612e6d6400d47374d55ae9ea207200dc5fff6716645caad40531303036343420622e6d640078981922613b2afb6025042ff6bd878ac1994e85"}}},"n":206,"note":"an object id is 20 bytes, whatever bytes it holds, such as 0x00 and 0x20","rev":"v1","values":{"paths":["a.md","b.md"]}}
+```
+
+### 6.17 The upstreams of default branches
+
+The group `upstreams` holds the vectors of the requirement
+`give-default-branch-commits`. Each vector gives a binding of
+`default-branch-name`, the content of the file `config` of the git
+folder, the refs of the git repository, and the commit of the default
+branch.
+
+- `input`: a JSON object. Its member `binding` is the binding of
+  `default-branch-name`, a text b, which is a branch name. Its member
+  `config` is the content of the file `config` of the git folder, as a
+  byte sequence. No other file of the git configuration of the git
+  repository holds a setting, and no environment variable gives one.
+  Its member `refs` is a JSON object with one member for each ref of
+  the git repository: its key is the name of the ref, a text, and its
+  value is the commit to which the ref points.
+- `result`: no vector of the group has this member.
+- `values`: when the default branch has a commit, a JSON object with one
+  member, `commit`: that commit. When it has none, the empty JSON
+  object, `{}`.
+
+When a conforming program gives the commit of the default branch under
+the binding, or gives that the default branch has no commit under it, it
+gives the commit that `commit` holds when `values` has that member, and
+it gives that the default branch has no commit when `values` is
+`{}`.
+
+```
+{"group":"upstreams","input":{"binding":"main","config":"[branch \"main\"]\n\tremote = up\n\tmerge = refs/heads/main\n[remote \"up\"]\n\turl = /nowhere\n\tfetch = ^refs/heads/main\n\tfetch = refs/heads/*:refs/remotes/up/*\n","refs":{"refs/heads/main":"l","refs/remotes/up/main":"u"}},"n":217,"note":"a negative refspec has no effect on the upstream","rev":"v1","values":{"commit":"u"}}
 ```
