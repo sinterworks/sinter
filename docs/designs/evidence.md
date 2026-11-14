@@ -231,14 +231,16 @@ file matches (term `report-path-match`). For example, the files
 `pkg/tests/test_utils.py` matches both `pkg/tests/test_utils.py` and
 `tests/test_utils.py`, only the longer match counts.
 
-When the test result also has a line that is in the lines of one or
-more of these test entries, the line decides, for each valid path
-alone. So when pytest writes `file="tests/test_api.py"` and `line="11"`,
-and the files `packages/a/tests/test_api.py` and
-`packages/b/tests/test_api.py` each have a test on that line, the test
-result has a result link to a test of each file. Otherwise, the parts
-of the test result decide: they must match a pattern of the test entry
-(terms `name-pattern` and `pattern-match`). A pattern is built from the
+The parts of the test result then decide: it has a result link to each
+of these test entries that has a pattern that its parts match (terms
+`name-pattern` and `pattern-match`). When the parts match test entries
+of two files, the test result has a result link to each. So when pytest
+writes `file="tests/test_api.py"`, and the files
+`packages/a/tests/test_api.py` and `packages/b/tests/test_api.py` each
+have a test `test_list`, the test result is linked to both, and each of
+them gets a finding of the class `ambiguous-result`. The line of a test
+result chooses no result link; a program can use it, or anything else
+that it knows, for a narrowing (section 2.7). A pattern is built from the
 name path of the test entry, and, when the data asks for one, from a
 prefix that comes from its path. The separators of the data join the
 names. A separator that the data does not give is a part break: the
@@ -256,8 +258,7 @@ The test case `it.each(...)('each %i + %i = %i', ...)` in
 `each %i + %i = %i`. With the data of vitest in section 2.3, each `%i`
 becomes a placeholder, and the pattern has one part:
 `outer > each … + … = …`, where each `…` is a placeholder. The file
-`src/math.test.ts` matches the path of the test entry, the case element
-has no line, and the one part `outer > each 1 + 2 = 3` matches the
+`src/math.test.ts` matches the path of the test entry, and the one part `outer > each 1 + 2 = 3` matches the
 pattern, so the test result has a result link to the test entry.
 
 A test result can also have a result link to a test suite. For example,
@@ -711,16 +712,8 @@ has a result link to each test entry that these rules give:
 1. The candidates are the test entries. When the test result has a
    file, the candidates are only those whose path the file matches, with
    the greatest length of the match among them.
-2. A candidate contains a line when it is of the kind test case, its
-   first line is not after that line, and its last line is not before
-   it. When the test result has a
-   file and a line, and at least one candidate contains the line, then,
-   for each valid path, the test result has a result link to each
-   candidate with that path that contains the line and whose first line
-   is not before the first line of any other candidate with that path
-   that contains the line.
-3. Otherwise, it has a result link to each candidate that has a pattern
-   that its parts match.
+2. The test result has a result link to each candidate that has a
+   pattern that its parts match.
 
 ### 3.12 The test entries of readings
 
