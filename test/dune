@@ -10,9 +10,11 @@
   %{exe:../bin/main.exe}
   %{exe:../bench/generate.exe}
   %{exe:../bench/run.exe}
+  wait_probe/wait_probe.exe
   (glob_files_rec fixtures/*)
   (glob_files ../spec/*.md)
   (glob_files ../docs/designs/*.test-vectors.jsonl)
+  (glob_files ../lib/repository_files/*)
   (source_tree cases)
   (env_var SINTER_PROMOTE))
  (libraries
@@ -48,6 +50,7 @@
   sinter_ledger_lines
   sinter_ledger_trees
   sinter_ledger_sync
+  sinter_repository_files
   digestif.c
   git_fixture
   sinter_bench
