@@ -129,7 +129,7 @@ the conformance vectors of the design is a JSON text.
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
-| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text that the lines of the revised content of a declared item give after some changes, such as the change of the line of its declaration to its inline description; and the hash of the UTF-8 encoding of that text |
+| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text that the lines of the revised content of a declared item give after some changes, such as the change of the line of its declaration to its inline description; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the lines of the run of the text from the least boundary where the run of a body node of an attachment target starts to the greatest boundary where the run of a body node of it ends, or of its own run for a test node that is no definition node, each without the spaces and tabs at its end and with a line feed after it; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
@@ -1311,6 +1311,9 @@ and each character of these texts keeps the place that it comes from.
    followed by one line feed.
 
 The extent hash of d is the hash of the UTF-8 encoding of its hash text.
+The extent hash is the measure of revised content: two revised contents
+of the same declared item are the same when, and only when, their extent
+hashes are equal.
 
 ### 4.32 Code hashes
 
