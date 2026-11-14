@@ -90,7 +90,7 @@ text.
 | [line of a chunk](sinter:#chunk=v1), [object of a line](sinter:#chunk=v1) | a part of the content of a chunk that ends with the byte 0x0A, or the part after the last 0x0A; the line object whose canonical line the line of a chunk is |
 | [canonical line](sinter:data-forms#canonical-line=v1), [line object](sinter:data-forms#line-object=v1) | the canonical byte sequence of a line object, then the byte 0x0A; an object in which the value of each member is a string, an integer, a boolean, an array of these, or an array of objects whose members hold these |
 | [member](sinter:data-forms#json-value=v1) | a key and a value of an object, such as the member `seq` with the value 7 |
-| [entry id](sinter:#entry-id=v1) | `e-` and the first 12 hex digits of the SHA-256 hash of the canonical byte sequence of an object without its member `id` |
+| [entry id](sinter:#entry-id=v1) | `e-` and the first 32 hex digits of the SHA-256 hash of the canonical byte sequence of an object without its member `id` |
 | [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
 | [writer that a ledger entry records](sinter:#entry-field=v1) | the agent that its `agent` names, or else, when it has `by`, the person or the job that its `by` names; with neither, it records no writer |
 | [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
@@ -123,13 +123,14 @@ not exist, the stored ledger is empty (term `stored-ledger`).
 
 The git tree object of the ledger commit holds the ledger entries in
 chunks: regular files at chunk paths, such as
-`entries/5b/e-5b1c0a9d2e11.jsonl` (terms `chunk-path` and `chunk`). The
-term `ledger-validity` gives the form of a valid ledger. For example, a
-valid ledger of 87 ledger entries can have two chunks:
+`entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl` (terms
+`chunk-path` and `chunk`). The term `ledger-validity` gives the form of
+a valid ledger. For example, a valid ledger of 87 ledger entries can
+have two chunks:
 
 ```
-entries/5b/e-5b1c0a9d2e11.jsonl    50 lines
-entries/a0/e-a03f77c1d9e2.jsonl    37 lines
+entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl    50 lines
+entries/a0/e-a03f77c1d9e26b1d09e4c87f2a53d61e.jsonl    37 lines
 ```
 
 The number of lines in a chunk is free, and the lines of a chunk need
@@ -153,13 +154,13 @@ the object of this void, without its member `id`, has the canonical
 byte sequence
 
 ```
-{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e11","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
+{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
 ```
 
-and the entry id `e-9f4ed52acf42`. So its line is:
+and the entry id `e-0dc878fd2dc3c179e4b8fa1829666011`. So its line is:
 
 ```
-{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e11","id":"e-9f4ed52acf42","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
+{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c","id":"e-0dc878fd2dc3c179e4b8fa1829666011","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
 ```
 
 The entry id depends on `seq`, so two ledger entries with the same other
@@ -388,7 +389,7 @@ which the two hex digits right after `entries/` are the same as the two
 hex digits right after `e-`:
 
 ```abnf
-chunk-path  = %s"entries/" 2hex-digit "/" %s"e-" 12hex-digit %s".jsonl"
+chunk-path  = %s"entries/" 2hex-digit "/" %s"e-" 32hex-digit %s".jsonl"
 ```
 
 ### 4.3 Chunks and their lines
@@ -426,7 +427,7 @@ line of a line object.
     text#{code-span=v1},
 }
 
-The entry id of an object is the hash id, with the id prefix `e-` and 12
+The entry id of an object is the hash id, with the id prefix `e-` and 32
 hex digits, of the canonical byte sequence of the object that has each
 member of that object other than the member `id`, and no other member.
 
@@ -1266,8 +1267,8 @@ ledger entries that `ledger` names, in their order, and no other
 ledger entry, and it gives no ledger entry when `values` is `{}`.
 
 ```
-{"group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"n":4,"note":"one chunk with one line","result":"valid","rev":"v1","values":{"ledger":["e-0001d7a41cb7"]}}
-{"group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"content":"{\"by\":\"Ada Lovelace <ada@example.com>\",\"id\":\"e-0001d7a41cb7\",\"kind\":\"task\",\"seq\":1,\"v\":1}\r\n","mode":"100644","name":"e-0001d7a41cb7.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"n":20,"note":"a carriage return before the line feed","result":"broken","rev":"v1","values":{}}
+{"group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"n":4,"note":"one chunk with one line","result":"valid","rev":"v1","values":{"ledger":["e-0001d7a41cb7db6191dc42c69bda336b"]}}
+{"group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"content":"{\"by\":\"Ada Lovelace <ada@example.com>\",\"id\":\"e-0001d7a41cb7db6191dc42c69bda336b\",\"kind\":\"task\",\"seq\":1,\"v\":1}\r\n","mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"n":20,"note":"a carriage return before the line feed","result":"broken","rev":"v1","values":{}}
 ```
 
 ### 6.2 Histories
@@ -1293,7 +1294,7 @@ intact, it gives the result that `result` holds, and no other result. It
 gives neither result when `values` is `{}`.
 
 ```
-{"group":"histories","input":{"commit":"b","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":[]},"b":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7","kind":"task","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a428b9073a24","kind":"task","seq":2,"v":2}],"mode":"100644","name":"e-0001d7a41cb7.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":["a"]}}},"n":52,"note":"the ledger is newer, so a program gives no result for its history","rev":"v1","values":{}}
+{"group":"histories","input":{"commit":"b","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":[]},"b":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a428b9073a24ea938e73df882b1f7c3c","kind":"task","seq":2,"v":2}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":["a"]}}},"n":52,"note":"the ledger is newer, so a program gives no result for its history","rev":"v1","values":{}}
 ```
 
 ### 6.3 Pulls
@@ -1337,5 +1338,5 @@ that leave, the texts of `left`, each once, and no other text. It
 does not pull into A from s when `values` is `{}`.
 
 ```
-{"group":"pulls","input":{"clone":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc1","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-0b9425768148","kind":"approval","seq":6,"subject":"billing#limit","v":1}],"refused":[],"shared":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc1","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-4891f1b18c5e","kind":"decline","seq":6,"subject":"billing#fee","v":1}]},"n":57,"note":"the provisional ledger entry stays, after the ledger entry that another clone pushed first","rev":"v1","values":{"left":[],"lines":["e-375ba17af01d","e-a0a6c96226e1","e-1ffc8aea3614","e-504f23998c18","e-3ab978f3adc1","e-4891f1b18c5e","e-bdd7d3d6e47c"]}}
+{"group":"pulls","input":{"clone":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d4048ae09fc0d93db3bb4","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1f7ff15e5c79b08511528","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614f41b15b8d38b86cc8b5b","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18ecdabe7a5b86789d09ce","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc11b0be9d1a9d1504fdc6c","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-0b942576814876b5a2ff866731d65266","kind":"approval","seq":6,"subject":"billing#limit","v":1}],"refused":[],"shared":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d4048ae09fc0d93db3bb4","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1f7ff15e5c79b08511528","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614f41b15b8d38b86cc8b5b","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18ecdabe7a5b86789d09ce","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc11b0be9d1a9d1504fdc6c","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-4891f1b18c5e8bfd213cf0cced3eb824","kind":"decline","seq":6,"subject":"billing#fee","v":1}]},"n":57,"note":"the provisional ledger entry stays, after the ledger entry that another clone pushed first","rev":"v1","values":{"left":[],"lines":["e-375ba17af01d4048ae09fc0d93db3bb4","e-a0a6c96226e1f7ff15e5c79b08511528","e-1ffc8aea3614f41b15b8d38b86cc8b5b","e-504f23998c18ecdabe7a5b86789d09ce","e-3ab978f3adc11b0be9d1a9d1504fdc6c","e-4891f1b18c5e8bfd213cf0cced3eb824","e-bdd7d3d6e47cdfad406f73031fbed41c"]}}
 ```
