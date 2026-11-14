@@ -181,7 +181,8 @@ the results of the functions that act on characters.
 | [choice of the program in an instance of an adapter](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits on the resources of the instance and on the time that its code runs, or for the sizes of the memories and the tables that the instantiation makes; a refusal of a growth of a memory or of a table within its maximum; the depth of calls at which the call stack is exhausted; or the bits of a NaN |
 | [choice of the program in an instance of a grammar](sinter:#grammar-instance=v1) | an outcome in an instance of a grammar that the program decides: a failure for limits; the values that it gives for the imports, and with them the size of the stack of the module, the places of the own bytes and of the own elements, and the sizes of the memory and of the table; the places of the space that the allocation functions give, and the content of that space that they do not set; the content, at each moment, of the other bytes of the memory and the other elements of the table, and the content of the stack of the module when each invocation starts; the places through which the parsing gives values to the code; the use of an instance in which code ran for another text; or the bits of a NaN |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack with a query file that holds a pattern that, without its predicates, matches no part of any parse tree that the language of its grammar can give |
-| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
+| [choice of the program in a decision whether a byte sequence is a valid adapter](sinter:#valid-adapter=v1) | a stop by the program, for limits of its own, of the decoding or the validation of a WebAssembly module, in that decision |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module whose decoding and validation the program does not stop for limits of its own, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
 | [test entry](sinter:#test-entry=v1) | a test entry id, a path, a first and a last line, a kind, a name path, and test labels, which a call of the function bind gives an adapter for one test node |
@@ -605,7 +606,8 @@ runs, in a new instance of the module, the instantiation and then one
 invocation of `sinter_interface`, and nothing else in that instance, and
 these do not fail, and the invocation gives the value 1. Two decisions
 can differ when a choice of the program in an instance of an adapter,
-such as a stop for its limits, changes them.
+such as a stop for its limits, changes them, or when the program stops
+the decoding or the validation of the module for its limits.
 
 A call runs one function of an adapter, with a request, a report
 content, and, for the function bind, its test entry ids. The report
@@ -2250,7 +2252,10 @@ instance of an adapter.
 A byte sequence is a valid adapter, in one decision of a program whether
 it is one, when, and only when, it meets each of these conditions:
 
-1. It is a WebAssembly module.
+1. It is a WebAssembly module, and the program does not stop the
+   decoding or the validation of the module in that decision for limits
+   of its own, a choice of the program in a decision whether a byte
+   sequence is a valid adapter.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
    function of the type `[] -> [i32]`, `sinter_alloc` as a function of
@@ -2666,9 +2671,10 @@ byte sequence is a valid adapter. The requirements of the group are
   valid adapter, when a conforming program gives that result: "valid"
   when the byte sequence is a valid adapter in that decision, and
   "invalid" when it is not. The requirements of the group oblige the
-  result "valid" only for a decision in which no choice of the program
-  in an instance of an adapter changes the instantiation or the
-  invocation. The group holds no vector with the result "invalid" whose
+  result "valid" only for a decision in which the program does not stop
+  the decoding or the validation of the module for limits of its own,
+  and in which no choice of the program in an instance of an adapter
+  changes the instantiation or the invocation. The group holds no vector with the result "invalid" whose
   result such a choice can change.
 - `values`: no vector of the group has this member.
 
