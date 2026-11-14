@@ -1648,11 +1648,13 @@ commits.
 The input of a vector stands for a text, a git repository, a working
 tree, or two trees, in the forms that the subsection of its group gives.
 A vector names each commit by a short name, such as `a`, which stands
-for that commit. The git repository of a vector holds the commits that
-its input names, and, for a vector of the groups `commit-files`,
-`message-texts`, and `parents`, the commit that its input stands for,
-and no other commit. Each vector whose input stands for a git repository
-or a working tree stands for an undisturbed repository read.
+for that commit, or, in a vector of the group `parent-lines`, by its
+object id in hex digits, each in lower case. The git repository of a
+vector holds the commits that its input names, and, for a vector of the
+groups `commit-files`, `message-texts`, `parent-lines`, and `parents`,
+the commit that its input stands for, and no other commit. Each vector
+whose input stands for a git repository or a working tree stands for an
+undisturbed repository read.
 
 The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
 Each line of the file is the
@@ -1667,7 +1669,8 @@ kinds of line, in this order:
 2. Then each group has a group line, in this order: `branch-names`,
    `change-diffs`, `changes`, `commit-files`, `default-branch-commits`,
    `head-commits`, `hunks`, `landing-commits`, `message-texts`,
-   `parents`, `ranges`, `reach`, `ref-commits`, `working-tree-files`.
+   `parent-lines`, `parents`, `ranges`, `reach`, `ref-commits`,
+   `working-tree-files`.
    Its JSON object has two members: `group`, the name of the group, as a
    JSON string, and `rev`, the revision of the group.
 3. Then each vector has a vector line, in increasing order of the
@@ -2188,4 +2191,27 @@ is `{}`.
 
 ```
 {"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1","trees":{"a":{},"b":{"b.md":"b\n"},"c":{"c.md":"c\n"},"m1":{},"m2":{}}},"n":148,"note":"the change has no base, so it has no diff","rev":"v1","values":{}}
+```
+
+### 6.15 The parent lines of commit objects
+
+The group `parent-lines` holds the vectors of the requirement
+`give-commit-parents`. Each vector gives the content of the commit
+object of a commit, the object format of the git repository, whether
+the file `shallow` names the commit, and the parents of the commit.
+
+- `input`: a JSON object. Its member `content` is the content of the
+  commit object, as a byte sequence. Its member `format` is the object
+  format of the git repository, `sha1` or `sha256`, a text. Its member
+  `shallow` is the JSON literal name `true` when the file `shallow`
+  names the commit, and `false` when it does not.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `parents`: the parents of the
+  commit, as a sequence.
+
+When a conforming program gives the parents of the commit, it gives the
+elements of `parents`, in their order, and no other commit.
+
+```
+{"group":"parent-lines","input":{"content":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nparent b8da0a7c10a81dcd1f1dc2340788d0ab7c47f941\nauthor A U Thor <a@example.invalid> 1767225600 +0000\nparent 631e5cce8d655f8c644a6803a76a9c203aa73439\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\nm\n","format":"sha1","shallow":false},"n":198,"note":"a line that starts with `parent` after another header line names no parent","rev":"v1","values":{"parents":["b8da0a7c10a81dcd1f1dc2340788d0ab7c47f941"]}}
 ```
