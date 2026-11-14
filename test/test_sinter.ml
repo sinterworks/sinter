@@ -89,6 +89,7 @@ let () =
       ("finding parts", Test_finding_parts.tests);
       ("documents", Test_documents.tests);
       ("tree inputs", Test_tree_inputs.tests);
+      ("tree items", Test_tree_items.tests);
       ("origins", Test_origins.tests);
       ("markdown tag texts", Test_markdown_tag_texts.tests);
       ("tag inputs", Test_tag_inputs.tests);

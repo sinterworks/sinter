@@ -44,6 +44,7 @@
   sinter_readings
   sinter_code_tag_texts
   sinter_tree_inputs
+  sinter_tree_items
   digestif.c
   git_fixture
   sinter_bench

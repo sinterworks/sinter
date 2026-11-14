@@ -8,6 +8,8 @@ open Sinter_identifiers
 open Sinter_file_readers
 open Sinter_readings
 open Sinter_code_tag_texts
+open Sinter_tree_inputs
+open Sinter_tree_items
 module Gen = QCheck2.Gen
 
 let property ?(count = 300) ~name ~print generator check =
@@ -92,6 +94,7 @@ let namespaces input =
 type 'pack given = {
   read_files : 'pack Read_file.t list;
   tests : File_test.t list;
+  declared : Declared_items.t;
 }
 
 let read_files_member given =
@@ -185,9 +188,46 @@ let tests_member given =
            ])
        given.tests)
 
-let members = function
-  | "code" -> [ ("read-files", read_files_member); ("tests", tests_member) ]
-  | _ -> [ ("read-files", read_files_member) ]
+(* The given items take the member extent-hash from the stated items of the
+   vector. *)
+let with_stated_hashes stated given =
+  let stated =
+    match List.assoc_opt "items" stated with
+    | Some (`List items) -> items
+    | _ -> []
+  in
+  `List
+    (List.mapi
+       (fun k element ->
+         match (element, List.nth_opt stated k) with
+         | `Assoc members, Some (`Assoc s) -> (
+             match List.assoc_opt "extent-hash" s with
+             | Some hash -> `Assoc (members @ [ ("extent-hash", hash) ])
+             | None -> element)
+         | _ -> element)
+       (list given))
+
+let members stated =
+  let items given =
+    with_stated_hashes stated (Items_json.of_declared given.declared)
+  in
+  function
+  | "code" ->
+      [
+        ("read-files", read_files_member);
+        ("tests", tests_member);
+        ("items", items);
+      ]
+  | _ -> [ ("read-files", read_files_member); ("items", items) ]
+
+let tree_files binding read_files =
+  List.filter_map
+    (fun file ->
+      match Readable_file.read pack_reading file with
+      | Ok readable ->
+          Some (Tree_file.make binding (Read_file.path file) readable)
+      | Error _ -> None)
+    read_files
 
 let file_tests read_files =
   List.concat_map
@@ -207,12 +247,18 @@ let give (vector : Vectors.vector) =
         namespaces input )
     with
     | Ok readers, Ok binding ->
-        let read_files = Read_file.read_files readers binding (tree input) in
-        let given = { read_files; tests = file_tests read_files } in
+        let tree = tree input in
+        let read_files = Read_file.read_files readers binding tree in
+        let declared =
+          match Declared_items.make tree (tree_files binding read_files) with
+          | Ok declared -> declared
+          | Error _ -> Alcotest.fail "two read files have one valid path"
+        in
+        let given = { read_files; tests = file_tests read_files; declared } in
         let stated =
           match vector.values with Some (`Assoc fields) -> fields | _ -> []
         in
-        let members = members vector.group in
+        let members = members stated vector.group in
         let not_given =
           List.filter
             (fun (name, _) -> not (List.mem_assoc name members))
@@ -227,18 +273,65 @@ let give (vector : Vectors.vector) =
 let set = Vectors.read "documents"
 
 (* @verifies documents[markdown][*]=v1
-   The test compares the read files that the program gives, and that it gives
-   none under bindings that are not valid, with the member read-files and with
-   the values {} of each vector of the group. *)
+   The test compares the read files that the program gives, and the declared
+   items, each with its kind, name, file, origin position, extent, design,
+   specification, and vector file, in the order of the member, with the
+   members read-files and items of each vector of the group, and checks that
+   the program gives none of them under bindings that are not valid, by the
+   values {}. *)
 let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
 
 (* @verifies documents[code][*]=v1
    The test compares the read files that the program gives, each with the pair
    of its reader, and the tests of the read files, each with its file, name,
-   code, and comments, in the order of the member, with the members read-files
-   and tests of each vector of the group. *)
+   code, and comments, and the declared items, each with its kind, name, file,
+   origin position, extent, design, specification, and vector file, in the
+   order of each member, with the members read-files, tests, and items of each
+   vector of the group. *)
 let code_vectors = Vectors.group set ~name:"code" ~rev:"v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
+
+let proposed_vectors =
+  List.map
+    (fun line ->
+      let json = Yojson.Basic.from_string line in
+      let field name = List.assoc_opt name (fields json) in
+      ( (match field "note" with Some (`String note) -> note | _ -> ""),
+        {
+          Vectors.number = (match field "n" with Some (`Int n) -> n | _ -> 0);
+          group = string (member "group" json);
+          input = member "input" json;
+          result = None;
+          values = field "values";
+          needs = [];
+        } ))
+    (List.filter
+       (fun line -> line <> "")
+       (String.split_on_char '\n'
+          (In_channel.with_open_bin "fixtures/documents-proposed.jsonl"
+             In_channel.input_all)))
+
+(* @verifies documents#give-vector-files=v1
+   Each case is a tree for which the term vector-file gives a vector file, or
+   none, that no vector of the file checks: a design at the root; a
+   specification of no design; a specification of a markdown file and one of
+   a code file, each in another folder than its design; two designs with one
+   name in two folders, and in one folder; and a requirement and a term. A
+   wrong vector path, or a vector file given where the term gives none, makes
+   the member items differ. *)
+let proposed_vectors_pass =
+  List.map
+    (fun (note, (vector : Vectors.vector)) ->
+      Alcotest.test_case note `Quick (fun () ->
+          let given = member "values" (give vector) in
+          match vector.values with
+          | Some stated ->
+              if not (Vectors.equal_json stated given) then
+                Alcotest.failf "vector %d\nstated %s\ngiven %s" vector.number
+                  (Yojson.Basic.to_string stated)
+                  (Yojson.Basic.to_string given)
+          | None -> Alcotest.fail "a proposed vector has values"))
+    proposed_vectors
 
 let member_texts =
   [
@@ -500,8 +593,9 @@ let read_files_give_their_lines () =
 
 let tests =
   Vectors.tests "documents" vector_groups
+  @ [ Vectors.covers "documents" set vector_groups ]
+  @ proposed_vectors_pass
   @ [
-      Vectors.covers "documents" set vector_groups;
       read_files_follow_the_terms;
       no_binding_from_invalid_path_sets;
       errors_carry_what_path_sets_give;
