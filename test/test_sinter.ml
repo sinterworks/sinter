@@ -88,6 +88,7 @@ let () =
       ("object contents", Test_object_contents.tests);
       ("wildmatch", Test_wildmatch.tests);
       ("ref names", Test_ref_names.tests);
+      ("git configuration", Test_git_configuration.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
