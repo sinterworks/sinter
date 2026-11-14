@@ -583,9 +583,10 @@ stored ledger.
 @term ledger-extension=v1
 @cites {changes#{commit=v1}, #{chunk=v1}}
 
-A commit d extends a commit c when, and only when, d is c, or d has
-exactly one parent, that parent extends c, and each line of the git tree
-object of that parent is a line of the git tree object of d.
+Extension is the smallest relation between commits in which each commit
+d extends d, and a commit d extends a commit c when d has exactly one
+parent, that parent extends c, and each line of the git tree object of
+that parent is a line of the git tree object of d.
 
 ### 4.11 Intact histories
 
