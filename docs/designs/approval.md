@@ -33,13 +33,13 @@ approval never stands after a decline that its writer did not see.
 
 From the Ontology (`ontology`), the design takes subjects of approval,
 their five kinds, their declared items, and when two of them are the
-same subject of approval; revised content; persons, judgments, ledger
-entries, the ledger, points of a ledger, and repairs; states, the states
+same subject of approval; revised content; persons, ledger entries,
+the ledger, points of a ledger, and repairs; states, the states
 approved and declined, and in force; trees, the default branch, edges
 with their kinds and cited items, and when an edge says what its kind of
 edge says; findings, finding classes, and parameters with their
-bindings. The Ontology requires that a program appends a judgment only
-on a confirmation that a person gives (requirement
+bindings. The Ontology requires that a program appends an `approval`
+or `decline` ledger entry only on a confirmation that a person gives (requirement
 `ontology#write-judgments-only-for-persons`), and that the writer, the
 person, the branch, and the time that a ledger entry records change no
 state (requirement `ontology#treat-ledger-entries-alike`).
@@ -91,19 +91,21 @@ text.
 | [declared item of a subject of approval](sinter:ontology#subject-of-approval=v1) | the item of the kind design, for a subject of approval of the first kind, and otherwise the item of the kind specification, the item of the kind requirement, the term, or the decision record that the subject of approval is |
 | [same subject of approval](sinter:ontology#subject-of-approval=v1) | two subjects of approval of two trees are the same when their declared items have the same kind of item and the same name |
 | [revised content](sinter:ontology#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement |
-| [extent hash](sinter:documents#extent-hash=v1) | the hash of the revised content of a declared item of a tree; two revised contents of the same declared item are the same when their extent hashes are equal |
+| [extent hash](sinter:documents#extent-hash=v1) | the hash that measures the revised content of a declared item of a tree: two revised contents of the same declared item are the same when, and only when, their extent hashes are equal |
 | [hash form](sinter:data-forms#hash-form=v1) | the form of a text of exactly 64 hex digits, which a hash has |
 | [binding of `approval-kinds`](sinter:#approval-binding=v1) | a set of kinds of subject of approval |
 | [need approval](sinter:#approval-binding=v1) | a subject of approval needs approval by a person under a binding of `approval-kinds` when its kind is in that binding |
 | [kind word of a kind of subject of approval](sinter:#subject-text=v1) | `design` for an item of the kind design without the declared items that it holds, `spec` for an item of the kind specification with the items that it holds, `req` for an item of the kind requirement that an item of the kind design holds directly, `term` for a term that an item of the kind design holds directly, and `decision` for a decision record |
 | [subject text](sinter:#subject-text=v1) | a text that matches the production `subject-text`, such as `req:billing#limit`; the subject text of a subject of approval of a tree is the kind word of its kind of subject of approval, `:`, and the name of its declared item in that tree |
-| [judgment](sinter:ontology#judgment=v1) | a ledger entry of the kind `approval` or `decline`, which records a decision of a person about a subject of approval |
-| approval, decline (as nouns) | a ledger entry of the kind `approval`; a ledger entry of the kind `decline` |
+| judgment | a ledger entry of the kind `approval` or `decline`, which records a decision of a person about a subject of approval |
+| an approval, a decline | with an article: a ledger entry of the kind `approval`; a ledger entry of the kind `decline`; without an article, "approval" is the act of a person who approves |
 | [field of a kind](sinter:ledger#entry-field=v1) | a member of the object of a ledger entry that a design names for its kind, other than the common fields, such as `subject` |
+| [fields of a judgment](sinter:#judgment-field=v1) | `subject`, a subject text; `hash`, a text of the hash form; `saw`, one of `none`, `approval`, and `decline`; and, for a decline only, the optional `reason`, a text |
 | [malformed](sinter:#judgment-acceptance-rule=v1) | of a ledger entry of the kind `approval` or `decline`: its object lacks one of the members `subject`, `hash`, and `saw`, or it holds one of them, or the member `reason` of a `decline`, with a value that does not have the form of that field |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the latest ledger entry before P of the kind `approval` or `decline` that is accepted at its point and has the values of `subject` and `hash` of E, or none |
-| [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger: the latest ledger entry of the kind `approval` or `decline` before the point that is accepted at its point and that names the subject text and the extent hash that the subject of approval has in the tree, or none |
+| [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when E is not malformed, its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
+| [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: the latest ledger entry of the kind `approval` or `decline` before the point that is accepted at its point and that names the subject text and the extent hash that the subject of approval has in the tree, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
 | [commit of the default branch](sinter:changes#default-branch-commit=v1) | under a binding of the parameter `default-branch-name`, the commit of the first of the three refs of the default branch that exists: the upstream of the branch, the branch itself, and the remote-tracking branch of `origin` with its name; none when none of them exists, when the first that exists has no commit, or when the binding is not a branch name |
 | [has merged](sinter:#merged-content=v1) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, the revised content of a subject of approval in a tree has merged into the default branch when the default branch has a commit, and the tree of a commit of the first-parent line of that commit gives the same subject of approval the same extent hash |
@@ -171,8 +173,8 @@ approval, is malformed.
 
 ### 2.3 Acceptance
 
-The Ledger asks each kind of ledger entry that a program appends for an
-acceptance rule (term `ledger#accepted-entry`). The term
+Each kind of ledger entry that a program appends has an acceptance rule
+(term `ledger#accepted-entry`). The term
 `judgment-acceptance-rule` gives the rule of the kinds `approval` and
 `decline`. It reads only the ledger entries before the point, never a
 tree, a binding, or a commit. A program appends a ledger entry only at a
@@ -214,8 +216,7 @@ A subject of approval of a tree has, at a point of a ledger, a latest
 judgment, or none (term `latest-judgment`). The term `subject-state`
 gives the three states approved, declined, and neither. The states
 approved and declined that it gives are those of subjects of approval
-that the term
-`ontology#approval-state` names.
+that the term `ontology#approval-state` names.
 
 For a subject of approval that needs approval, the latest judgment
 decides. For example, a ledger holds an approval of `req:billing#limit`
@@ -593,9 +594,9 @@ for each text t that is the subject text of a subject of approval S of
 T such that each of these is true:
 
 1. S needs approval under A.
-2. The declared item of S is in force in T at P, when the states
-   approved and declined are those that the term `subject-state` gives
-   under A, D, F, and N.
+2. The declared item of S is in force in T at P, where each state
+   approved or declined on which in force depends is the state that the
+   term `subject-state` gives under A, D, F, and N.
 3. S is neither in T at P under A, D, F, and N.
 
 Its subject is t. Its spot is the spot of the run of the text of the
@@ -674,7 +675,7 @@ that it is accepted when, and only when, the acceptance rule of the
 kinds `approval` and `decline` holds for that ledger entry at that
 point.
 
-### 5.3 The content that an `approval` or `decline` ledger entry records
+### 5.3 The revised content that an `approval` or `decline` ledger entry records
 
 @req record-judged-content=v1
 @cites {
