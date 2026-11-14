@@ -14,7 +14,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the files of a tree that a conforming program reads, with their readers; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hash texts, extent hashes, containment, and names of declared items; the Conformance parts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
+Specifies the files of a tree that a conforming program reads, with their readers; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the written lines of blocks and of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
 
 A conforming program reads the files of a tree to find the items that
 Sinter traces and the edges between them. A binding of the parameter
@@ -48,8 +48,10 @@ and spans; whole numbers and decimal numerals; valid UTF-8 and UTF-8
 encodings; the notation of productions; sequences and algorithms; and
 conforming programs, inputs, and results. From Identifiers, it takes tag lines, tag words, and Sinter
 tag words; declarations, citations, citation entries, status tags,
-directives, and continuation lines; links, inline citations, and the
-markdown document of a text; the texts of tag lines and inline
+directives, and continuation lines; links, inline citations, their
+destinations, the raw content and the link texts of paragraphs and
+headings, the plain string content of link texts, and the markdown
+document of a text; the texts of tag lines and inline
 descriptions; targets, names, slugs, segments, part names, full names,
 kind words, labels, revisions, vector selections, every-part targets,
 and external ids; the productions of the forms of tag lines and of
@@ -73,8 +75,13 @@ sigils and foreign tag words. From Findings, it takes the subjects, the
 spots, and the other parts of a finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
-ATX headings, setext headings, code blocks, block quotes, lists, list
-items, link reference definitions, links, and code spans. From RFC 8259, it takes
+ATX headings, setext headings, thematic breaks, code blocks with their
+info strings and content, HTML blocks, block quotes, lists with their
+start numbers, list items, and link reference definitions; and its
+inline elements: textual content, backslash escapes, entity and numeric
+character references, code spans, emphasis, strong emphasis, links with
+their link destinations and link titles, autolinks, images, raw HTML,
+and hard and soft line breaks. From RFC 8259, it takes
 JSON texts, with their objects, members, arrays, strings, numbers, and
 the literal names `true`, `false`, and `null`: each line of the file of
 the conformance vectors of the design is a JSON text.
@@ -129,7 +136,11 @@ the conformance vectors of the design is a JSON text.
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
-| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text that the lines of the revised content of a declared item give after some changes, such as the change of the line of its declaration to its inline description; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
+| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the written lines of the front matter, the blocks, and the tag texts in the hashed lines of a declared item, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
+| [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
+| [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document, or the lines of a tag text, give: a mark, such as `heading +1:`, `paragraph:`, `tag:`, `code:`, or `item:`, and then its text; the written lines of the blocks inside a block quote, a list, or a list item stand two spaces deeper; a tag line is written without its pins and is not read as markdown |
+| [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`; a `\` stands before each `\`, `{`, and `}` of a text, and `\n` stands for a line feed |
+| [forms text](sinter:#forms-text=v1) | the written lines of the blocks of the Conformance part of a design or of a specification, in its hashed lines, without its headings and without the content lines of code blocks that are vector lines, each followed by a line feed; an item that has no Conformance part has none |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, line by line; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [Conformance part](sinter:#conformance-part=v1) | the markdown lines of the Conformance section of a design, or of the Conformance part of a specification: the last section inside its section whose level is one more than the level of its heading; a design has none when the first paragraph of that section declares a specification that belongs to it, and an item whose declaration is in a list item, in the section of level 0, or in a code file has none |
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
@@ -417,11 +428,28 @@ would stand in that site.
 ### 2.9 Extent hashes and code hashes
 
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
-of its hash text, which its revised content gives. For example, for the
+of its hash text, which its revised content gives. The hash text is made
+of the [written lines](sinter:#written-line=v1) of the blocks of its
+extent, as CommonMark 0.31.2 reads them, and of its tag lines, as
+Sinter reads them. Each written line has a mark, such as `heading:`,
+`paragraph:`, or `tag:`, and the written lines of the blocks inside a
+block quote, a list, or a list item stand two spaces deeper. Inline elements are written on one line
+as their [written text](sinter:#written-inline=v1), such as
+`{em:steps}` for `*steps*` and for `_steps_`. For example, for the
 requirement of section 2.2, the hash text is the line
-`### Amount limit`, an empty line, and the line of its text, each with a
-line feed after it. Its extent hash is
-`39096d6a3499d398332a59e6882377d2f0b81e206429b16f163df9cb16c00656`.
+`heading: Amount limit` and the line
+`paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
+each with a line feed after it. Its extent hash is
+`1e77c01469ff12271c9f8edf96f64665af7da043b375abb1a390cd9a300b9ad2`.
+
+So an edit that CommonMark 0.31.2 reads as the same blocks and inline
+elements, such as a paragraph wrapped again or `*` in place of `-` in
+each item of a list, does not change an extent hash. The hash text of
+an item of the kind design holds no line of an item that belongs to it,
+so the place of such an item among the blocks of the file, such as among
+the items of a list, is not in the hash text of the design. The
+[forms text](sinter:#forms-text=v1) of a design or of a specification is
+made from its Conformance part by the same written lines.
 
 The [code hash](sinter:#code-hash=v1) of a run of comments is the hash
 of the code text of the attachment target to which it attaches.
@@ -1274,59 +1302,56 @@ section-number  = 1*DIGIT "." [ 1*DIGIT *( "." 1*DIGIT ) [ "." ] ] 1*WSP
 @term extent-hash=v1
 @cites {
     data-forms#{hash=v1},
-    identifiers#{
-        tag-line=v1, tag-word=v1, inline-description=v1, target=v1,
-        citation=v1, citation-entry=v1, citation-line=v1, label=v1,
-    },
-    ontology#{revised-content=v1, containment=v1, declared-item=v1},
+    ontology#{revised-content=v1, declared-item=v1, parameter=v1, tree=v1},
     text#{
-        text=v1, character=v1, place=v1, run=v1, space=v1, tab=v1,
-        line-feed=v1, utf-8-encoding=v1, code-span=v1,
+        text=v1, line-feed=v1, utf-8-encoding=v1, code-span=v1,
+        boundary=v1, algorithm=v1, sequence=v1,
     },
     #{
-        item-file=v1, extent=v1, tree-containment=v1, file-line=v1,
-        origin=v1, accepted-input=v1, markdown-section=v1,
-        section-number=v1, blank-line=v1, tag-text=v1,
+        written-line=v1, item-file=v1, read-file=v1, front-matter=v1,
+        markdown-section=v1, markdown-list-item=v1, tag-text=v1,
+        file-line=v1,
     },
 }
 
-The hash text of a declared item d of a tree is the text that these
-steps give. The steps start from the texts of the lines of the revised
-content of d, in the order of the file lines: for an item of the kind
-design, the lines of its extent that are not lines of the extent of a
-declared item that it holds; for each other declared item, the lines of
-its extent. Each step changes the texts that the steps before it leave,
-and each character of these texts keeps the place that it comes from.
+The hash text of a declared item *d* of a tree is the text that these steps give.
 
-1. Leave out each line that is a file line of a line of a tag text of
-   the file that is a tag line whose tag word is `@ack`.
-2. Leave out the blank lines after the last line that is not blank.
-3. When the file of d is a markdown file, change the text of each line
-   of a heading that opens a section. Its heading text starts after the
-   spaces before its opening sequence of `#`, that sequence, and the
-   spaces and tabs after that sequence. Remove the longest run at the
-   start of its heading text whose text is a section number.
-4. Remove the spaces and tabs at the end of the text of each line.
-5. Replace the text of the file line of the declaration of d with the
-   inline description of that declaration, without the spaces and tabs
-   at its end.
-6. When d is of the kind specification: for each declared item that d
-   holds and whose declaration has a `=` in its target, remove each
-   character that comes from the place of a character of that target
-   from its `=` to its end.
-7. For each accepted input whose file is the file of d and that is a
-   citation, and for each of its citation entries whose run in the text
-   of the citation has a `=`: remove each character that comes from the
-   place of that `=`, or from the place of a character of that run after
-   that `=`, up to the end of that run or, when the citation entry is an
-   every-part target, up to the `#` after that `=`, which stays.
-8. Join the texts of the lines that remain, in their order, each
-   followed by one line feed.
+1. Let *e* be the hashed lines of *d*.
+2. Let *lines* be the empty sequence.
+3. If the file of *d* is a markdown file, then:
+   1. If the file of *d* has front matter and the first line of its front
+      matter is in *e*, then:
+      1. Append `front matter:` to *lines*.
+      2. For each *f* of the lines of the front matter of the file of *d*,
+         in order:
+         1. Let *line* be `| `.
+         2. Append the text of *f* to *line*.
+         3. Append *line* to *lines*.
+   2. Let *blocks* be the sequence of the blocks of the document itself of
+      the markdown document of the file of *d*, in their order.
+   3. If the declaration of *d* is in the tag text of the first paragraph
+      of a list item, set *blocks* to the children of that list item.
+   4. For each *b* of *blocks*, in order:
+      1. For each *w* of the written lines of *b* at depth 0 for *d*, in *e*
+         and without the empty set of texts, in order:
+         1. Append *w* to *lines*.
+4. If the file of *d* is a code file, then:
+   1. For each *t* of the sequence of the tag texts of the file of *d*, in
+      the order of the boundaries where their first lines start, in order:
+      1. For each *w* of the written lines of *t* at depth 0 for *d* in *e*,
+         in order:
+         1. Append *w* to *lines*.
+5. Let *text* be the empty text.
+6. For each *w* of *lines*, in order:
+   1. Append *w* to *text*.
+   2. Append a line feed to *text*.
+7. Give *text*.
 
 The extent hash of d is the hash of the UTF-8 encoding of its hash text.
 The extent hash is the measure of revised content: two revised contents
-of the same declared item are the same when, and only when, their extent
-hashes are equal.
+of the same declared item, in two trees under one binding of each
+parameter, are the same when, and only when, the extent hashes of that
+item in the two trees are equal.
 
 ### 4.32 Code hashes
 
@@ -2081,6 +2106,416 @@ x is of the kind design and the tag text of the first paragraph of the
 section of C has the declaration of an item of the kind specification
 that belongs to x; then x has none. In each other case, x has none.
 
+### 4.60 The written text of inline elements
+
+@term written-inline=v1
+@cites {
+    commonmark/0.31.2,
+    identifiers#{
+        link=v1, destination=v1, inline-citation=v1, link-text=v1,
+        plain-string-content=v1, input=v1, binding=v1,
+    },
+    text#{
+        text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
+        code-span=v1, conforming-program=v1, result=v1, algorithm=v1,
+        sequence=v1,
+    },
+    #{markdown-line=v1, accepted-input=v1},
+}
+
+This term is for a tree, a valid binding of `file-readers`, and a
+binding of `external-namespaces`, as in the term `accepted-input`. The
+inline elements are those of CommonMark 0.31.2: textual content, code
+spans, emphasis, strong emphasis, links, images, raw HTML, hard line
+breaks, and soft line breaks, where a link is a link as the term `link`
+gives it. An inline citation is valid when a conforming program of the
+design Identifiers, under that binding of `external-namespaces`, gives
+the result "valid" for an inline citation with the same destination and
+the same plain string content of its link text.
+
+The text of textual content is its characters, with each backslash
+escape, entity reference, and numeric character reference replaced by
+the characters that CommonMark 0.31.2 gives for it. The content of a
+code span is its content as CommonMark 0.31.2 gives it. The destination
+of an image is the destination that the term `destination` gives for an
+inline link with the same link destination. The written destination of
+an inline link, a reference link, or an image is its destination. The
+written destination of a URI autolink is its text between `<` and `>`,
+and that of an email autolink is `mailto:`, then its text between `<`
+and `>`. The title of a link or of an
+image that has a link title is that link title as CommonMark 0.31.2 gives
+it, without the characters that enclose it and with each backslash
+escape, entity reference, and numeric character reference replaced by
+the characters that CommonMark 0.31.2 gives for it, and then with each
+markdown line ending of that text replaced by a line feed. Another link
+or image, and each autolink, has no title. The raw text of raw HTML is
+its characters, with each markdown line ending of them replaced by a
+line feed.
+
+The escaped text of a text *t* is the text that these steps give.
+
+1. Let *u* be the empty text.
+2. For each *c* of *t*, in order:
+   1. If *c* is a line feed, append `\n` to *u*.
+   2. Otherwise:
+      1. If *c* is `\`, `{`, or `}`, append `\` to *u*.
+      2. Append *c* to *u*.
+3. Give *u*.
+
+The single-spaced text of a text *t* is the text that these steps give.
+
+1. Let *u* be the empty text.
+2. For each *c* of *t*, in order:
+   1. If *c* is a space or a tab, then:
+      1. If *u* is empty or the last character of *u* is not a space,
+         append a space to *u*.
+   2. Otherwise, append *c* to *u*.
+3. Give *u*.
+
+The written text of a sequence *s* of inline elements is the text that these steps give.
+
+1. Let *w* be the empty text.
+2. Let *run* be the empty text.
+3. For each *x* of *s*, in order:
+   1. If *x* is textual content, append the text of *x* to *run*.
+   2. If *x* is a soft line break, append a space to *run*.
+   3. If *x* is neither textual content nor a soft line break, then:
+      1. Append the escaped text of the single-spaced text of *run* to
+         *w*.
+      2. Set *run* to the empty text.
+   4. If *x* is a code span, then:
+      1. Append `{code:` to *w*.
+      2. Append the escaped text of the content of *x* to *w*.
+      3. Append `}` to *w*.
+   5. If *x* is emphasis, then:
+      1. Append `{em:` to *w*.
+      2. Append the written text of the inline elements of *x* to *w*.
+      3. Append `}` to *w*.
+   6. If *x* is strong emphasis, then:
+      1. Append `{strong:` to *w*.
+      2. Append the written text of the inline elements of *x* to *w*.
+      3. Append `}` to *w*.
+   7. If *x* is a link or an image, then:
+      1. Let *to* be the written destination of *x*.
+      2. If *x* is a valid inline citation and *to* holds a `=`, set *to*
+         to the text of the characters of *to* before its first `=`.
+      3. If *x* is a link, append `{link{` to *w*.
+      4. Otherwise, append `{image{` to *w*.
+      5. If *x* is an autolink, then:
+         1. Let *shown* be the text of *x* between `<` and `>`.
+         2. If *x* is a valid inline citation and *shown* holds a `=`, set
+            *shown* to the text of the characters of *shown* before its
+            first `=`.
+         3. Append the escaped text of *shown* to *w*.
+      6. Otherwise, append the written text of the inline elements of *x*
+         to *w*.
+      7. Append `}{` to *w*.
+      8. Append the escaped text of *to* to *w*.
+      9. If *x* has a title, then:
+         1. Append `}{` to *w*.
+         2. Append the escaped text of the title of *x* to *w*.
+      10. Append `}}` to *w*.
+   8. If *x* is raw HTML, then:
+      1. Append `{html:` to *w*.
+      2. Append the escaped text of the raw text of *x* to *w*.
+      3. Append `}` to *w*.
+   9. If *x* is a hard line break, append `{br}` to *w*.
+4. Append the escaped text of the single-spaced text of *run* to *w*.
+5. Give *w*.
+
+The inline elements of emphasis and of strong emphasis are the inline
+elements that they hold. The inline elements of an inline link or a
+reference link are the inline elements between the `[` that starts it
+and the `]` that closes that `[`, and those of an image are the inline
+elements of its description, each in their order.
+
+### 4.61 Written lines
+
+@term written-line=v1
+@cites {
+    commonmark/0.31.2,
+    identifiers#{
+        tag-line=v1, tag-word=v1, declaration=v1, citation=v1,
+        continuation-line=v1, tag-line-text=v1, inline-description=v1,
+        target=v1, citation-entry=v1, citation-line=v1, directive=v1,
+        link=v1, link-text=v1,
+    },
+    ontology#{declared-item=v1, containment=v1},
+    text#{
+        text=v1, character=v1, run=v1, space=v1, tab=v1, line-feed=v1,
+        code-span=v1, decimal-numeral=v1, whole-number=v1, algorithm=v1,
+        sequence=v1,
+    },
+    #{
+        written-inline=v1, read-file=v1, unreadable-file=v1,
+        markdown-line=v1, front-matter=v1, markdown-section=v1,
+        markdown-list-item=v1, tag-text=v1, file-line=v1, origin=v1,
+        accepted-input=v1, item-file=v1, extent=v1,
+        tree-containment=v1, section-number=v1,
+    },
+}
+
+This term is for a tree, a valid binding of `file-readers`, and a
+binding of `external-namespaces`, as in the term `accepted-input`. A
+block in this term is a block of CommonMark 0.31.2 of a markdown
+document: of the markdown document of a markdown file that can be read,
+as the term `markdown-section` gives these blocks, or of a markdown
+document that the steps of this term parse. A blank line is no block, and a
+link reference definition is a block.
+
+The hashed lines of a declared item d of the tree are the lines of its
+extent, without, when d is of the kind design, the lines of the extent
+of each declared item that belongs to d.
+
+The base level of d is the level of the last heading that opens a
+section and whose line comes before the file lines of the declaration of
+d, when the file of d is a markdown file and such a heading exists, and
+otherwise 0. The own heading of d is the heading that opens a section
+whose first paragraph gives the tag text that has the declaration of d.
+The level of an ATX heading is the number of `#` of its opening
+sequence. The level of a setext heading is 1 when its underline is of
+`=`, and 2 when it is of `-`.
+
+The children of a block quote or of a list item are the blocks that it
+contains and that no other block inside it contains, in their order. The
+children of a list are its list items, in their order. The start number
+of an ordered list is the start number that CommonMark 0.31.2 gives it.
+The info string of a fenced code block is its info string as CommonMark
+0.31.2 gives it, without the spaces and tabs at its start and end and
+with each backslash escape, entity reference, and numeric character
+reference replaced by the characters that CommonMark 0.31.2 gives for
+it. A code block has an info string only when it is a fenced code block
+and this text is not empty.
+
+The content lines of a code block or of an HTML block are the markdown
+lines of the content that CommonMark 0.31.2 gives the block, in their
+order. CommonMark 0.31.2 gives each content line from one line of
+CommonMark 0.31.2 that the block takes, and the content line comes from
+the markdown line that this line comes from. A block of the markdown
+document of a markdown file starts in a set of file lines when the first
+markdown line that it takes is in that set, and a content line of such
+a block comes from a set of file lines when the markdown line that it
+comes from is in that set. Each block of another markdown document
+starts in each set of file lines, and each content line of such a block
+comes from each set of file lines.
+
+The prose text of a line of a tag text of a markdown file is the text
+of the characters of the file line of that line that CommonMark 0.31.2
+gives to the content of the paragraph, in their order.
+The prose text of a line of a tag text of a code file is the text of the
+line.
+
+The pin of a citation entry is the run of the text of its citation from
+the first `=` of the run of the citation entry, as the term `origin`
+gives that run, to the end of that run, or, when the citation entry is
+an every-part target, to the character right before the `#` after that
+`=`. A citation entry whose run has no `=` has no pin.
+
+The written lines of a block *b* at depth *k* for a declared item *d*, in a set *e* of file lines and without a set *v* of texts, is the sequence that these steps give.
+
+1. Let *lines* be the empty sequence.
+2. Let *pad* be the text of two times *k* spaces.
+3. If *b* is an ATX heading or a setext heading, and *b* starts in *e*,
+   then:
+   1. Let *inlines* be the inline elements of *b*.
+   2. If *b* is a heading that opens a section, then:
+      1. Let *content* be the raw content of *b*.
+      2. Remove the characters of the longest run at the start of
+         *content* whose text is a section number from *content*.
+      3. Set *inlines* to the inline elements that CommonMark 0.31.2
+         gives for a heading whose raw content is *content*, with the
+         link reference definitions of the markdown document that holds
+         *b*.
+   3. Let *line* be *pad*.
+   4. If *b* is the own heading of *d*, append `heading` to *line*.
+   5. Otherwise:
+      1. Append `heading ` to *line*.
+      2. If the level of *b* is greater than the base level of *d*,
+         then:
+         1. Append `+` to *line*.
+         2. Append the decimal numeral of the level of *b* minus the base
+            level of *d* to *line*.
+      3. If the level of *b* is the base level of *d*, append `0` to
+         *line*.
+      4. If the level of *b* is less than the base level of *d*, then:
+         1. Append `-` to *line*.
+         2. Append the decimal numeral of the base level of *d* minus the
+            level of *b* to *line*.
+   6. Append `: ` to *line*.
+   7. Append the written text of *inlines* to *line*.
+   8. Append *line* to *lines*.
+4. If *b* is a paragraph that gives a tag text that holds a tag line,
+   then:
+   1. For each *w* of the written lines of the tag text that *b* gives
+      at depth *k* for *d* in *e*, in order:
+      1. Append *w* to *lines*.
+5. If *b* is a paragraph that gives no tag text that holds a tag line,
+   and *b* starts in *e*, then:
+   1. Let *line* be *pad*.
+   2. Append `paragraph: ` to *line*.
+   3. Append the written text of the inline elements of *b* to *line*.
+   4. Append *line* to *lines*.
+6. If *b* is a code block and *b* starts in *e*, then:
+   1. Let *line* be *pad*.
+   2. Append `code` to *line*.
+   3. If *b* has an info string, then:
+      1. Append a space to *line*.
+      2. Append the info string of *b* to *line*.
+   4. Append `:` to *line*.
+   5. Append *line* to *lines*.
+   6. For each *c* of the content lines of *b*, in order:
+      1. If *c* comes from *e* and the text of *c* is not in *v*, then:
+         1. Let *row* be *pad*.
+         2. Append `| ` to *row*.
+         3. Append the text of *c* to *row*.
+         4. Append *row* to *lines*.
+7. If *b* is an HTML block and *b* starts in *e*, then:
+   1. Let *line* be *pad*.
+   2. Append `html:` to *line*.
+   3. Append *line* to *lines*.
+   4. For each *c* of the content lines of *b*, in order:
+      1. If *c* comes from *e*, then:
+         1. Let *row* be *pad*.
+         2. Append `| ` to *row*.
+         3. Append the text of *c* to *row*.
+         4. Append *row* to *lines*.
+8. If *b* is a thematic break and *b* starts in *e*, then:
+   1. Let *line* be *pad*.
+   2. Append `break` to *line*.
+   3. Append *line* to *lines*.
+9. If *b* is a block quote, a list, or a list item, then:
+   1. Let *inner* be the empty sequence.
+   2. For each *child* of the children of *b*, in order:
+      1. For each *w* of the written lines of *child* at depth *k* plus 1
+         for *d*, in *e* and without *v*, in order:
+         1. Append *w* to *inner*.
+   3. If *inner* is not empty, then:
+      1. Let *line* be *pad*.
+      2. If *b* is a block quote, append `quote:` to *line*.
+      3. If *b* is a bullet list, append `bullet list:` to *line*.
+      4. If *b* is an ordered list, then:
+         1. Append `ordered list from ` to *line*.
+         2. Append the decimal numeral of the start number of *b* to
+            *line*.
+         3. Append `:` to *line*.
+      5. If *b* is a list item, append `item:` to *line*.
+      6. Append *line* to *lines*.
+      7. For each *w* of *inner*, in order:
+         1. Append *w* to *lines*.
+10. Give *lines*.
+
+The written lines of a tag text *t* at depth *k* for a declared item *d* in a set *e* of file lines is the sequence that these steps give.
+
+1. Let *lines* be the empty sequence.
+2. Let *pad* be the text of two times *k* spaces.
+3. Let *run* be the empty sequence.
+4. For each *l* of the lines of *t* that are in *e*, in order:
+   1. If *l* is a tag line, then:
+      1. For each *w* of the written prose of *run* for *t* at depth *k*,
+         *d*, and *e*, in order:
+         1. Append *w* to *lines*.
+      2. Set *run* to the empty sequence.
+      3. If *l* is the declaration of a declared item, then:
+         1. If *l* is not the declaration of *d*, then:
+            1. Let *name* be the target of *l*.
+            2. If *l* is the declaration of a declared item that belongs
+               to *d* and *name* holds a `=`, set *name* to the text of
+               the characters of *name* before its first `=`.
+            3. Let *line* be *pad*.
+            4. Append `tag: ` to *line*.
+            5. Append the tag word of *l* to *line*.
+            6. Append a space to *line*.
+            7. Append *name* to *line*.
+            8. Append *line* to *lines*.
+         2. If the inline description of *l* is not empty, append the
+            inline description of *l* to *run*.
+      4. If *l* is not the declaration of a declared item and the tag
+         word of *l* is not `@ack`, then:
+         1. Let *text* be the text of *l*.
+         2. If *l* is an accepted input that is a citation, remove the
+            characters of the pins of the citation entries of *l* from
+            *text*.
+         3. Let *flat* be the empty text.
+         4. For each *c* of *text*, in order:
+            1. If *c* is a line feed, append a space to *flat*.
+            2. Otherwise, append *c* to *flat*.
+         5. Set *flat* to the single-spaced text of *flat*.
+         6. Remove the spaces at the start and at the end of *flat* from
+            *flat*.
+         7. Let *line* be *pad*.
+         8. Append `tag: ` to *line*.
+         9. Append *flat* to *line*.
+         10. Append *line* to *lines*.
+   2. If *l* is neither a tag line nor a continuation line, append the
+      prose text of *l* to *run*.
+5. For each *w* of the written prose of *run* for *t* at depth *k*, *d*,
+   and *e*, in order:
+   1. Append *w* to *lines*.
+6. Give *lines*.
+
+The written prose of a sequence *r* of texts for a tag text *t* at depth *k*, a declared item *d*, and a set *e* of file lines is the sequence that these steps give.
+
+1. Let *lines* be the empty sequence.
+2. Let *raw* be the empty text.
+3. For each *x* of *r*, in order:
+   1. If *raw* is not empty, append a line feed to *raw*.
+   2. Append *x* to *raw*.
+4. If the file of *d* is a markdown file, then:
+   1. Remove the spaces and tabs at the start and at the end of *raw*
+      from *raw*.
+   2. If *raw* is not empty, then:
+      1. Let *line* be the text of two times *k* spaces.
+      2. Append `paragraph: ` to *line*.
+      3. Append the written text of the inline elements that CommonMark
+         0.31.2 gives for a paragraph whose raw content is the markdown
+         document of *raw*, with the link reference definitions of the
+         markdown document of the file of *d*, to *line*.
+      4. Append *line* to *lines*.
+5. If the file of *d* is a code file, then:
+   1. For each *b* of the blocks of the markdown document of *raw* that
+      no other block contains, as CommonMark 0.31.2 parses that document
+      when the link reference definitions of the markdown document of
+      *t* come before its own, in order:
+      1. For each *w* of the written lines of *b* at depth *k* for *d*,
+         in *e* and without the empty set of texts, in order:
+         1. Append *w* to *lines*.
+6. Give *lines*.
+
+### 4.62 Forms texts
+
+@term forms-text=v1
+@cites {
+    data-forms#{vector-line=v1},
+    ontology#{declared-item=v1},
+    text#{
+        text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, 0x-numeral=v1,
+        code-span=v1, algorithm=v1, sequence=v1,
+    },
+    #{
+        conformance-part=v1, written-line=v1, read-file=v1,
+        markdown-line=v1, markdown-section=v1, item-file=v1,
+    },
+}
+
+An item of the kind design or of the kind specification of a tree that
+has no Conformance part has no forms text.
+
+The forms text of an item *x* of the kind design or of the kind specification that has a Conformance part is the text that these steps give.
+
+1. Let *part* be the set of the lines of the Conformance part of *x* that
+   are hashed lines of *x* and that no ATX heading and no setext heading
+   takes.
+2. Let *vectors* be the set of the texts whose UTF-8 encoding, followed
+   by the byte 0x0A, is a vector line.
+3. Let *text* be the empty text.
+4. For each *b* of the sequence of the blocks of the document itself of
+   the markdown document of the file of *x*, in their order, in order:
+   1. For each *w* of the written lines of *b* at depth 0 for *x*, in
+      *part* and without *vectors*, in order:
+      1. Append *w* to *text*.
+      2. Append a line feed to *text*.
+5. Give *text*.
+
 ## 5. Requirements
 
 ### 5.1 Nothing under bindings that are not valid
@@ -2095,8 +2530,8 @@ that belongs to x; then x has none. In each other case, x has none.
     text#{conforming-program=v1, result=v1},
     #{
         file-reader-binding=v1, read-file=v1, item-file=v1, extent=v1,
-        extent-hash=v1, code-hash=v1, tree-containment=v1, file-test=v1,
-        tree-site=v1, tree-edge=v1, accepted-input=v1, extern-mark=v1,
+        extent-hash=v1, forms-text=v1, code-hash=v1, tree-containment=v1,
+        file-test=v1, tree-site=v1, tree-edge=v1, accepted-input=v1, extern-mark=v1,
         vector-file=v1, parse-error-finding=v1, typo-tag-finding=v1,
         ignored-tag-finding=v1, invalid-target-finding=v1,
         duplicate-finding=v1, dangling-finding=v1,
@@ -2110,8 +2545,8 @@ Under a binding of `file-readers` that is not valid, or under a binding
 of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "invalid", a conforming program must give,
 for any tree, no read file, no declared item, no extent, no hash text,
-no extent hash, no code text, no code hash, no item to which a declared item belongs, no test, no
-site, no edge, no status tag, no extern mark, no vector file, and no
+no extent hash, no forms text, no code text, no code hash, no item to
+which a declared item belongs, no test, no site, no edge, no status tag, no extern mark, no vector file, and no
 finding of the classes `parse-error`, `typo-tag`, `ignored-tag`,
 `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`,
 `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`.
@@ -2408,6 +2843,23 @@ code file of the tree that has a code hash attaches, under these
 bindings, it must give the code text of that attachment target, and
 nothing else as that code text.
 
+### 5.17 Forms texts
+
+@req give-forms-texts=v1
+@cites {
+    identifiers#{binding=v1, accept-inputs=v1},
+    ontology#{declared-item=v1, tree=v1},
+    text#{conforming-program=v1, result=v1},
+    #{file-reader-binding=v1, forms-text=v1},
+}
+
+Under a valid binding of `file-readers` and a binding of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", when a conforming program gives
+the forms text of an item of the kind design or of the kind
+specification of a tree under these bindings, it must give the forms
+text of that item, and nothing else as that forms text.
+
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
@@ -2534,8 +2986,9 @@ element of a thing that has no such item has no such member.
   `decision record`, and `declared finding class`; `name`, its name;
   `file`, its file; `at`, the origin position of the text of its
   declaration; `extent`, a JSON array of the file lines of its extent,
-  each a run, in their order; `hash-text`, its hash text; `extent-hash`,
-  its extent hash; `design`,
+  each a run, in their order; `hash-text`, its hash text; `forms-text`,
+  its forms text, only for an item of the kind design or specification
+  that has a forms text; `extent-hash`, its extent hash; `design`,
   the index of the item of the kind design to which it belongs, only
   when it belongs to one; `specification`, the index of the item of the
   kind specification to which it belongs, only when it belongs to one;
@@ -2628,11 +3081,12 @@ member names, it gives what that member states for it:
 - When it gives the declared items, it gives one for each element of
   `items`, with its kind of item, its name, its file, and the origin
   position of the text of its declaration, and no other declared item.
-- When it gives the extent, the hash text, the extent hash, the item of
-  the kind design or of the kind specification to which a declared item
-  belongs, or the vector file of a declared item, it gives what the
-  element of that item states, and for a member that the element does not
-  have, that the item belongs to no such item or has no vector file.
+- When it gives the extent, the hash text, the forms text, the extent
+  hash, the item of the kind design or of the kind specification to which
+  a declared item belongs, or the vector file of a declared item, it
+  gives what the element of that item states, and for a member that the
+  element does not have, that the item has no forms text, belongs to no
+  such item, or has no vector file.
 - When it gives the sites, the edges, the items in which status tags
   stand, the extern marks, the tests, or the code hashes, it gives one
   for each element of the member, with what that element states, and no
@@ -2656,7 +3110,8 @@ The group `markdown` has the vectors of trees that have no code file.
 Its vectors follow from the requirements
 `give-nothing-under-invalid-bindings`, `give-read-files`,
 `give-declared-items`, `give-extents`, `give-extent-hashes`,
-`give-hash-texts`, `give-containment`, `give-sites`, `give-edges`,
+`give-hash-texts`, `give-forms-texts`, `give-containment`,
+`give-sites`, `give-edges`,
 `give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
 `give-tree-findings`.
 
@@ -2674,7 +3129,7 @@ These lines of the file are vectors of the group:
 ```
 {"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/a.md":"# A\n@design a=v1\n"}},"n":2,"note":"a namespace name with an upper-case letter makes the binding of external-namespaces invalid","rev":"v1","values":{}}
 {"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"README.md":"@cites b=v1\n","docs/bad.md":{"bytes":"4064657369676e20623d76310aff"}}},"n":8,"note":"a file that is not valid UTF-8 cannot be read: one parse-error finding, and no declared item","rev":"v1","values":{"edges":[{"at":{"column":8,"line":1},"file":"README.md","kind":"cites","source":{"site":1}}],"extern-marks":[],"findings":[{"class":"dangling","spot":{"path":"README.md","span":{"from":7,"to":11}},"subject":"README.md@L1C8"},{"class":"parse-error","spot":{"path":"docs/bad.md"},"subject":"docs/bad.md"}],"items":[],"read-files":{"README.md":1,"docs/bad.md":1},"sites":[{"file":"README.md","lines":[{"from":0,"to":11}]}],"status-tags":[]}}
-{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/top.md":"@design top=v1\nIntro.\n\n# Part\nMore.\n"}},"n":17,"note":"a declaration in the first paragraph of the section of level 0 claims that section","rev":"v1","values":{"edges":[],"extern-marks":[],"findings":[],"items":[{"at":{"column":1,"line":1},"extent":[{"from":0,"to":14},{"from":15,"to":21}],"extent-hash":"63b969dd84c36a464f6003892afe796144b01af0a813773b0126952b67ac6a2a","file":"docs/top.md","kind":"design","name":"top"}],"read-files":{"docs/top.md":1},"sites":[],"status-tags":[]}}
+{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/top.md":"@design top=v1\nIntro.\n\n# Part\nMore.\n"}},"n":17,"note":"a declaration in the first paragraph of the section of level 0 claims that section","rev":"v1","values":{"edges":[],"extern-marks":[],"findings":[],"items":[{"at":{"column":1,"line":1},"extent":[{"from":0,"to":14},{"from":15,"to":21}],"extent-hash":"bcdff15e7a16a1ea22a1866e34152410fa12d71126730cbfb114ae3f364f9275","file":"docs/top.md","hash-text":"paragraph: Intro.\n","kind":"design","name":"top"}],"read-files":{"docs/top.md":1},"sites":[],"status-tags":[]}}
 ```
 
 ### 6.2 Code files
