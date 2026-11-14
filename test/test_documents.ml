@@ -6,6 +6,8 @@ open Sinter_paths
 open Sinter_tree
 open Sinter_identifiers
 open Sinter_file_readers
+open Sinter_readings
+open Sinter_code_tag_texts
 module Gen = QCheck2.Gen
 
 let property ?(count = 300) ~name ~print generator check =
@@ -87,7 +89,10 @@ let namespaces input =
            string (member "id-pattern" pair) ))
        (list (member "external-namespaces" input)))
 
-type 'pack given = { read_files : 'pack Read_file.t list }
+type 'pack given = {
+  read_files : 'pack Read_file.t list;
+  tests : File_test.t list;
+}
 
 let read_files_member given =
   `Assoc
@@ -96,7 +101,103 @@ let read_files_member given =
          (path_text (Read_file.path file), `Int (Read_file.pair file)))
        given.read_files)
 
-let members _group = [ ("read-files", read_files_member) ]
+let texts json = List.map (fun s -> text_of (string s)) (list json)
+
+let sigils pack =
+  {
+    Comment_sigils.line = texts (member "line" pack);
+    block =
+      List.map
+        (fun pair ->
+          match list pair with
+          | [ opening; closing ] ->
+              (text_of (string opening), text_of (string closing))
+          | _ -> Alcotest.fail "a block pair is two texts")
+        (list (member "block" pack));
+    inner = texts (member "inner" pack);
+  }
+
+let run_of json =
+  match (member "from" json, member "to" json) with
+  | `Int from, `Int until -> { Text.from; until }
+  | _ -> Alcotest.fail "not a run"
+
+let json_of_run { Text.from; until } =
+  `Assoc [ ("from", `Int from); ("to", `Int until) ]
+
+let piece_of = function
+  | `Assoc [ ("text", `String t) ] -> Reading.Text_piece (text_of t)
+  | `Assoc [ ("placeholder", `String t) ] -> Reading.Placeholder (text_of t)
+  | other -> Alcotest.failf "not a piece: %s" (Yojson.Basic.to_string other)
+
+let json_of_piece = function
+  | Reading.Text_piece t -> `Assoc [ ("text", `String (Text.encode t)) ]
+  | Reading.Placeholder t -> `Assoc [ ("placeholder", `String (Text.encode t)) ]
+
+let node_of json =
+  let field name = List.assoc_opt name (fields json) in
+  {
+    Reading.run = run_of (member "run" json);
+    comment =
+      (match field "comment" with
+      | Some (`String "tagged") -> Some Reading.Tagged
+      | Some (`String "untagged") -> Some Reading.Untagged
+      | None -> None
+      | Some other ->
+          Alcotest.failf "not a comment: %s" (Yojson.Basic.to_string other));
+    body = Option.map (fun runs -> List.map run_of (list runs)) (field "body");
+    decoration = field "decoration" = Some (`Bool true);
+    test =
+      Option.map
+        (fun path ->
+          List.map (fun own -> List.map piece_of (list own)) (list path))
+        (field "test");
+  }
+
+let reading_of pack path =
+  match List.assoc_opt (path_text path) (fields (member "readings" pack)) with
+  | None -> Alcotest.failf "no reading of %s" (path_text path)
+  | Some reading -> (
+      match member "result" reading with
+      | `String "no grammar" -> Reading.No_grammar
+      | `String "parse failure" -> Reading.Parse_failure
+      | `String "parsed" ->
+          Reading.Parsed (List.map node_of (list (member "nodes" reading)))
+      | other ->
+          Alcotest.failf "not a result: %s" (Yojson.Basic.to_string other))
+
+let pack_reading pack path _text = (sigils pack, reading_of pack path)
+
+let tests_member given =
+  `List
+    (List.map
+       (fun (test : File_test.t) ->
+         `Assoc
+           [
+             ("file", `String (path_text test.file));
+             ( "name",
+               `List
+                 (List.map
+                    (fun own -> `List (List.map json_of_piece own))
+                    test.name) );
+             ("code", json_of_run test.code);
+             ("comments", `List (List.map json_of_run test.comments));
+           ])
+       given.tests)
+
+let members = function
+  | "code" -> [ ("read-files", read_files_member); ("tests", tests_member) ]
+  | _ -> [ ("read-files", read_files_member) ]
+
+let file_tests read_files =
+  List.concat_map
+    (fun file ->
+      match Readable_file.read pack_reading file with
+      | Ok readable -> File_test.of_file readable
+      | Error (Readable_file.Cannot_be_read _) -> []
+      | Error (Readable_file.Invalid_reading _) ->
+          Alcotest.fail "a vector gives a reading that fails the checks")
+    read_files
 
 let give (vector : Vectors.vector) =
   let input = vector.input in
@@ -106,9 +207,8 @@ let give (vector : Vectors.vector) =
         namespaces input )
     with
     | Ok readers, Ok binding ->
-        let given =
-          { read_files = Read_file.read_files readers binding (tree input) }
-        in
+        let read_files = Read_file.read_files readers binding (tree input) in
+        let given = { read_files; tests = file_tests read_files } in
         let stated =
           match vector.values with Some (`Assoc fields) -> fields | _ -> []
         in
@@ -134,9 +234,9 @@ let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
 
 (* @verifies documents[code][*]=v1
    The test compares the read files that the program gives, each with the pair
-   of its reader, and that it gives none under bindings that are not valid,
-   with the member read-files and with the values {} of each vector of the
-   group. *)
+   of its reader, and the tests of the read files, each with its file, name,
+   code, and comments, in the order of the member, with the members read-files
+   and tests of each vector of the group. *)
 let code_vectors = Vectors.group set ~name:"code" ~rev:"v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
 
