@@ -85,6 +85,7 @@ let () =
       ("ledger histories", Test_ledger_histories.tests);
       ("ledger sync", Test_ledger_sync.tests);
       ("repository files", Test_repository_files.tests);
+      ("object contents", Test_object_contents.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
