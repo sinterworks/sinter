@@ -184,7 +184,7 @@ its letters only in the same case.
 | [text of the forms of a group](sinter:#group-form-list=v1) | the text of the Conformance part of a specification, or of the Conformance section of a design, without its heading lines, its vector lines, and the line endings right after them |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
-| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states |
+| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
 | [vector object](sinter:#vector-object=v1), [group object](sinter:#vector-object=v1), [set object](sinter:#vector-object=v1) | an object with fixed members: a group object has the members `group` and `rev`, a set object has the member `rev`, and a vector object always has the members `n`, `rev`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `note` and `needs` |
 | [vector line](sinter:#vector-line=v1), [group line](sinter:#vector-line=v1), [set line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, of a group object, or of a set object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of one set line, then zero or more group lines, then zero or more vector lines, in a fixed order |
@@ -3187,7 +3187,10 @@ group g, the object of a vector line that states a vector states this:
   states. A skip of a vector decides nothing about it when the check
   cannot make a need of the vector hold and reports that need. Each
   other skip of a vector counts as a decision that the program does not
-  give what the object of its vector line states.
+  give what the object of its vector line states. Each of these
+  decisions, a decision about a skip included, is a decision of the
+  check, such as one run of a test that checks the vectors, and not of a
+  reader of what the check reports.
 
 #### 8.1.9 Version sequences
 
