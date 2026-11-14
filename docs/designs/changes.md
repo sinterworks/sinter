@@ -610,7 +610,10 @@ names of refs that do not start with `refs/`, the root names:
     gitdoc/gitglossary,
     gitdoc/git-pack-refs,
     gitdoc/reftable,
-    files#{folder=v1, regular-file=v1, symbolic-link=v1},
+    files#{
+        folder=v1, regular-file=v1, symbolic-link=v1,
+        file-of-another-kind=v1,
+    },
     text#{
         text=v1, byte=v1, 0x-numeral=v1, code-span=v1, hex-digit=v1,
         utf-8-encoding=v1, line=v1, space=v1,
@@ -634,28 +637,28 @@ repository holds each ref from the git folder. The refs that a folder
 holds are, in the files format, its loose refs and, for the git folder,
 the refs of its file `packed-refs`, and, in the reftable format, the
 refs of the stack of tables in its folder `reftable`. In the files
-format, a loose ref of a folder is a regular file at the pathname that
-its ref name gives in that folder, whose content is the UTF-8 encoding
-of a text t followed by the byte 0x0A, where t is the object id of its
-git object in hex digits, or `ref: ` and the ref name of the ref that it
-names; such a regular file whose content is not in this form is a broken
-loose ref with that ref name, which neither points to a git object nor
-names a ref. A symbolic link at the pathname that a ref name gives in a
-folder is a loose ref with that ref name that names the ref whose ref
-name is n when its reference is the UTF-8 encoding of a ref name n, and
-otherwise a broken loose ref with that ref name, whatever file its
-reference leads to. The file `packed-refs`, which the page git-pack-refs
-defines, holds, after a first line that starts with `#` when there is
-one, a line for each ref of the object id in hex digits, a space, and
-the ref name of the ref, and, after the line of a ref, a line that
-starts with `^` when that ref has a peeled object. A ref of the file
-`packed-refs` has its value there only when no loose ref of the git
+format, the loose refs of a folder are the regular files and the
+symbolic links at the pathnames that ref names give in that folder, each
+with that ref name. A loose ref that is a regular file points to a git
+object or names a ref when its content is the UTF-8 encoding of a text
+t, and then the byte 0x0A, where t is the object id of that git object
+in hex digits, or `ref: ` and the ref name of that ref. A loose ref that
+is a symbolic link names the ref whose ref name is n when its reference
+is the UTF-8 encoding of a ref name n, whatever file its reference leads
+to. Any other loose ref is a broken loose ref, which neither points to a
+git object nor names a ref. A folder, or a file of another kind, at such
+a pathname is no loose ref. The file `packed-refs`, which the page
+git-pack-refs defines, holds, after a first line that starts with `#`
+when there is one, a line for each ref of the object id in hex digits, a
+space, and the ref name of the ref, and, after the line of a ref, a line
+that starts with `^` when that ref has a peeled object. A ref of the
+file `packed-refs` has its value there only when no loose ref of the git
 folder has its ref name. A ref exists when the git repository, or the
 working tree, holds a ref with that ref name, whatever it points to or
 names. The commit of a ref is the git object to which that ref resolves,
 through the refs of the same git repository or working tree that it
-names in turn, when that git object is a commit of the git repository.
-A ref that does not exist, or that resolves to no commit of the git
+names in turn, when that git object is a commit of the git repository. A
+ref that does not exist, or that resolves to no commit of the git
 repository, has no commit.
 
 ### 4.9 Head commits
