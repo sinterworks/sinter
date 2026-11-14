@@ -155,7 +155,7 @@ the results of the functions that act on characters.
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, when each node starts at or before its end, each child lies inside its node, and each child ends at or before the start of the next child; a tree that breaks one of these conditions is no parse tree |
+| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, when each node starts at or before its end, each child lies inside its node, each child ends at or before the start of the next child, and each start and each end is at a boundary of the parse text; a tree whose nodes, other than those of hidden symbols, break one of these conditions is no parse tree |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
@@ -1421,13 +1421,16 @@ Each node has a start byte and an end byte, which are whole numbers less
 than 4,294,967,296. In a parse tree, the start byte of each node is at
 most its end byte; the start byte of each child of a node is at least
 the start byte of that node, and its end byte is at most the end byte of
-that node; and the end byte of each child of a node is at most the start
-byte of the next child of that node. When the tree that this parsing
-gives breaks one of these conditions, it gives no parse tree. A node has
-an error when it, or a node that the parsing gives inside it, nodes of
-hidden symbols included, is an `ERROR` node, a node of the symbol
-`ERROR`, or a `MISSING` node, a node that the parsing inserts for a
-token that the text lacks. For a text whose parse text has fewer than
+that node; the end byte of each child of a node is at most the start
+byte of the next child of that node; and the start byte and the end byte
+of each node are each the number of bytes of the UTF-8 encoding of the
+characters of the parse text before a boundary of the parse text. When
+the nodes of the tree that this parsing gives, other than the nodes of
+hidden symbols, break one of these conditions, it gives no parse tree. A
+node has an error when it, or a node that the parsing gives inside it,
+nodes of hidden symbols included, is an `ERROR` node, a node of the
+symbol `ERROR`, or a `MISSING` node, a node that the parsing inserts for
+a token that the text lacks. For a text whose parse text has fewer than
 4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
 grammar name g, the parse tree is the parse tree that this parsing gives
 for the language of that usable grammar and the UTF-8 encoding of that
