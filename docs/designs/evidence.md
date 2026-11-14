@@ -151,7 +151,7 @@ file takes the test entries of both packs (term `reading-entry`). So the
 default reader links a test result whose name parts match tests of both
 packs to each. The default reader builds the patterns of every test
 entry of the reading from the data of the test runner of the report
-file. A person can then give the report content once with a test runner
+file. A person can give the report content once with a test runner
 that has a match table, when one of the packs has one, and once with
 each test runner that has an adapter, because the code of each adapter
 is its own.
@@ -775,14 +775,13 @@ parts has a result link to each test entry that these rules give:
 Under a valid binding of `file-readers`, the test entries of the reading
 of a report file of an import are these: for each code file of the tree
 of the import that can be read and whose pack has, in its descriptor, a
-test runner with the
-name of the test runner of the report file, and for each test node that
-the reading of the text of that code file, with that pack, gives, the
-test entry of that test node whose test entry id is the text of the
-valid path of the code file, then `#`, then the decimal numeral of the
-number of the test node. The number of a test node is 1 more than the
-number of the test nodes of that code file before it in the order of the
-parse tree.
+test runner with the name of the test runner of the report file, and for
+each test node that the reading of the text of that code file, with that
+pack, gives, the test entry of that test node whose test entry id is the
+text of the valid path of the code file, then `#`, then the decimal
+numeral of the number of the test node. The number of a test node is 1
+more than the number of the test nodes of that code file before it in
+the order of the parse tree.
 
 ### 3.13 Readings of report files
 
