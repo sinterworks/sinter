@@ -71,6 +71,7 @@ let () =
       ("packs", Test_packs.tests);
       ("packs descriptor", Test_pack_descriptor.tests);
       ("packs adapters", Test_adapter_protocol.tests);
+      ("wasm engine", Test_wasm_engine.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);

@@ -66,6 +66,7 @@
   sinter_packs
   sinter_pack_descriptor
   sinter_adapter_protocol
+  sinter_wasm_engine
   digestif.c
   decompress.de
   decompress.zl
@@ -74,6 +75,7 @@
   alcotest
   qcheck-core
   qcheck-alcotest
+  wasm
   yojson
   unix))
 

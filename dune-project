@@ -35,6 +35,10 @@
    (and
     :with-test
     (>= 0.90)))
+  (wasm
+   (and
+    :with-test
+    (= 2.0.2)))
   (ocamlformat
    (and
     :with-dev-setup

@@ -54,3 +54,4 @@ release binary, and the release notices do not name them.
 | qcheck | BSD-2-Clause | https://github.com/c-cube/qcheck |
 | qcheck-alcotest | BSD-2-Clause | https://github.com/c-cube/qcheck |
 | yojson | BSD-3-Clause | https://github.com/ocaml-community/yojson |
+| wasm, the reference interpreter of the WebAssembly Core Specification 2.0 | Apache-2.0 | https://github.com/WebAssembly/spec |

@@ -170,7 +170,7 @@ Before you commit, check that all of these pass:
   rewrites files in place; commit the files it changes.
 - `reuse lint`. Install the tool once, for example with
   `pipx install reuse`.
-- In `bridge/`: `cargo fmt --check` and
+- In `bridge/` and in `wasm_engine/`: `cargo fmt --check` and
   `cargo clippy --all-targets -- -D warnings`.
 
 CI runs all of them.
@@ -196,6 +196,13 @@ done
 
 A directory with no `checkout` file predates the file; remove it by
 hand, and the next build writes a new one.
+
+The dune rule that builds the WebAssembly engine in `wasm_engine/` keeps
+its build output in a directory of its own in the same place, by the
+same rule. Each of the two rules builds with the toolchain channel that
+the file `rust-toolchain.toml` of its crate names, and `dune test` fails
+when the two files name different channels: Rust archives from two
+toolchains do not link into one executable.
 
 ### Coverage
 
