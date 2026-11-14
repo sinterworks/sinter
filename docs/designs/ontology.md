@@ -111,12 +111,12 @@ meaning of a vector.
 | [file of a test](sinter:#test=v1) | the file of a tree in which a test is |
 | [code of a test](sinter:#test=v1) | the part of the file of a test that the test takes up |
 | [comment on a test](sinter:#test=v1) | a comment that is attached to the code of a test, such as the comment right before a test function |
-| [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that their test passed or that it failed |
-| [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs; each test result names its test |
+| [test evidence](sinter:#test-evidence=v1) | the test results of one execution of test runners that say that the tests that they name passed or that those tests failed |
+| [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs; each test result names no test, one test, or more than one test, and it says the same of each test that it names |
 | [site](sinter:#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a file of a tree in markdown, or one comment in code; no two sites of a file of a tree have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
 | [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that an item has in a given tree: for a declared item, the text that `label` matches in its declaration, when its declaration has one, such as `v2` in the declaration `@req limit-amount=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, its group line, or its set line |
-| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for each declared item, without the `=` and the label of its own declaration; also, for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the `=` and the label of the declaration of each of those declared items that has a label; for a conformance vector, the members `group`, `input`, `result`, and `values` of the object of its vector line, with the text of the forms of its group; for a group of conformance vectors or a vector set, the revised contents of its conformance vectors |
+| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement; for each declared item, without the `=` and the label of its own declaration; also, for an item of the kind design, the item of the kind design without the declared items that it holds; for an item of the kind specification, that item with the declared items that it holds, without the `=` and the label of the declaration of each of those declared items that has a label; two revised contents of the same declared item in two trees are the same when the measure of revised content that a design names gives the same value for that declared item in the two trees; for a conformance vector, the members `group`, `input`, `result`, and `values` of the object of its vector line, with the text of the forms of its group; for a group of conformance vectors or a vector set, the revised contents of its conformance vectors |
 | [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry or an inline citation gives; an edge has at most one source and at most one cited item |
 | [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
@@ -134,15 +134,15 @@ meaning of a vector.
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to a conformance vector, a group of conformance vectors, or a vector set, when its cited item is, or has in it, a conformance vector that says a vector and among the requirements of whose group is the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree has a test result that names the test that is the source of that edge and says that it passed, and none that says that it failed |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has the edge that it promises (for `verifies`, also an edge to a conformance vector, a group of conformance vectors, or a vector set, when its cited item is, or has in it, a conformance vector that says a vector and among the requirements of whose group is the requirement), from a citation in a file of that tree whose valid path is in the set of the paths of its task, the edge says what its kind of edge says, the edge is not suspect in that tree, and, for `verifies`, test evidence of an execution of test runners on the code of that tree shows that the test that is the source of that edge passed: for a test of which no other test is a part, the test evidence has a test result that names the test and says that it passed, and none that says that it failed; for a test of which one or more other tests are a part, the rule that a design names for such a test gives that that test passed, from the test results that name that test or one of those other tests |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
 | [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each alteration of a definition gives a new definition |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
-| merge (verb) | to bring the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit; work, or a revised content, merges into the default branch when a merge brings it in |
-| merge (noun) | one act that brings the work of a change into the default branch, in any way, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
+| merge (verb) | to bring the work of a change into the default branch, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit |
+| merge (noun) | one act that brings the work of a change into the default branch, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
 | [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries is a write that a clone makes to its own ledger: it takes the ledger entries, voids included, of another clone and puts them first, and a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
@@ -171,7 +171,7 @@ meaning of a vector.
 | [in force](sinter:#in-force-item=v1) | a declared item is in force when it is not retired |
 | [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, rejected, or deferred, and its source is a declared finding class or is approved |
 | [deprecated](sinter:#deprecated-item=v1), [rejected](sinter:#rejected-record=v1), [deferred](sinter:#deferred-record=v1) | the states that the three status words give, through a status tag that stands in the item |
-| [approved, declined](sinter:#approval-state=v1) | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; a subject of approval of such a kind is approved, or declined, only when an `approval`, or a `decline`, ledger entry before the point records that a person approved, or declined, the revised content that it has in the tree, and it is never both approved and declined; a subject of approval of another kind is approved when the revised content that it has in the tree has merged into the default branch, and it is never declined; an item of the kind specification, an item of the kind requirement or a term that an item of the kind design holds directly, and a decision record are each approved, or declined, when their subject of approval is; an item of the kind requirement or a term that an item of the kind specification holds is approved, or declined, when that item of the kind specification is; an item of the kind design is approved when that item of the kind design without the declared items that it holds, each item of the kind specification that it holds, and each item of the kind requirement and each term that it holds directly are approved |
+| [approved, declined](sinter:#approval-state=v1) | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; a subject of approval of such a kind is approved, or declined, only when an `approval`, or a `decline`, ledger entry before the point records that a person approved, or declined, the revised content that it has in the tree, and it is never both approved and declined; a subject of approval of another kind is approved when the rule that a design names for merges gives that the revised content that it has in the tree has merged into the default branch, and it is never declined; an item of the kind specification, an item of the kind requirement or a term that an item of the kind design holds directly, and a decision record are each approved, or declined, when their subject of approval is; an item of the kind requirement or a term that an item of the kind specification holds is approved, or declined, when that item of the kind specification is; an item of the kind design is approved when that item of the kind design without the declared items that it holds, each item of the kind specification that it holds, and each item of the kind requirement and each term that it holds directly are approved |
 | [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
 | [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when it has a cited item, and that item has no current revision or a current revision other than the label of the edge |
 | [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
@@ -395,9 +395,10 @@ the test that the test takes up. A comment on a test is a comment that
 is attached to the code of the test, such as the comment right before a
 test function. The code names each test, so a test has no declaration. A
 test result is what a test runner gives for one test that it runs. Each
-test result names its test. The test evidence of one execution of test
-runners is the set of the test results of that execution that say that
-their test passed or that it failed.
+test result names no test, one test, or more than one test, and it says
+the same of each test that it names. The test evidence of one execution
+of test runners is the set of the test results of that execution that
+say that the tests that they name passed or that those tests failed.
 
 A site is an item with no name. It is a part of a file of a tree that
 is outside every declared item and every comment on a test, and that has
@@ -493,16 +494,17 @@ content of an item of the kind design is the item of the kind design
 without the declared items that it holds. The revised content of an item
 of the kind specification is that item with the declared items that it
 holds, without the `=` and the label of the declaration of each of those
-declared items that has a label. So an alteration of the revised content
-of an item of the kind requirement that an item of the kind
-specification holds alters the revised content of that item of the kind
-specification too. The revised content of a conformance vector is the
-members `group`, `input`, `result`, and `values` of the object of its
-vector line, with the text of the forms of its group, and the revised
-content of a group of conformance vectors or of a vector set is the
-revised contents of its conformance vectors. A term with no label has a
-revised content and no revision. A task, a plan, a test, a site, and an
-external item have no revised content and no revision.
+declared items that has a label. So the revised content of an item of
+the kind specification includes the revised content of each declared
+item that it holds. The term `revised-content` says when two revised
+contents of the same declared item in two trees are the same. The
+revised content of a conformance vector is the members `group`, `input`,
+`result`, and `values` of the object of its vector line, with the text
+of the forms of its group, and the revised content of a group of
+conformance vectors or of a vector set is the revised contents of its
+conformance vectors. A term with no label has a revised content and no
+revision. A task, a plan, a test, a site, and an external item have no
+revised content and no revision.
 
 A revision of an item is a label that the item has, and it names the
 revised content that the item has with that label in a given tree. The
@@ -554,8 +556,8 @@ edge too, as the term `promise` gives it. The promise is kept in a tree
 when the tree has such an edge, the edge says what its kind of edge
 says, the edge is not suspect in that tree, and, for a `verifies`
 promise, test evidence of an execution of test runners on the code of
-that tree has a test result that names the test that is the source of
-that edge and says that it passed, and none that says that it failed.
+that tree shows that the test that is the source of that edge passed,
+as the term `promise` gives it.
 
 A task has no description of its own: the items of the kind requirement
 that it promises, or its external item, say what to build. A task has no
@@ -687,7 +689,7 @@ state.
 | deprecated | an item of the kind design, specification, or requirement, a term, a decision record, or a declared finding class | a `@deprecated` status tag stands in the item and says that it no longer applies and that nothing replaces it |
 | rejected | a decision record | a `@rejected` status tag stands in the record and says that its choice was considered and not made |
 | deferred | a decision record | a `@deferred` status tag stands in the record and says that its choice is not made yet |
-| approved | a subject of approval, or an item of the kind design, specification, or requirement, a term, or a decision record | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; for such a kind, the subject of approval is approved only when an `approval` ledger entry before the point records that a person approved the revised content that it has in the tree; for another kind, it is approved when the revised content that it has in the tree has merged into the default branch; an item of the kind design is approved when that item of the kind design without the declared items that it holds, its items of the kind specification, and the items of the kind requirement and the terms that it holds directly are approved; an item of the kind requirement or a term that belongs to no item of the kind design and to no item of the kind specification has no subject of approval, so it is never approved |
+| approved | a subject of approval, or an item of the kind design, specification, or requirement, a term, or a decision record | a binding of a parameter that a design names gives the kinds of subject of approval that need approval by a person; for such a kind, the subject of approval is approved only when an `approval` ledger entry before the point records that a person approved the revised content that it has in the tree; for another kind, it is approved when the rule that a design names for merges gives that the revised content that it has in the tree has merged into the default branch; an item of the kind design is approved when that item of the kind design without the declared items that it holds, its items of the kind specification, and the items of the kind requirement and the terms that it holds directly are approved; an item of the kind requirement or a term that belongs to no item of the kind design and to no item of the kind specification has no subject of approval, so it is never approved |
 | declined | a subject of approval, or an item of the kind specification or requirement, a term, or a decision record | the kind of the subject of approval needs approval by a person, and the subject of approval is declined only when a `decline` ledger entry before the point records that a person declined the revised content that it has in the tree; nothing is both approved and declined |
 | draft | an item of the kind design | the item is not approved |
 | suspect | a pinned edge | the edge has a cited item, and that item has no current revision or a current revision other than the label of the edge |
@@ -728,16 +730,15 @@ ledger entry before that point records that a person approved the
 revised content that the subject of approval has in the tree. It is
 declined only when a `decline` ledger entry before that point records
 that a person declined that revised content. It is never both approved
-and declined. For each other kind, the merge into the default branch is
-the approval: a subject of approval of that kind is approved when the
-revised content that it has in the tree has merged into the default
-branch, and it is never declined. An item of the kind requirement or a
-term that an item of the kind specification holds is approved when that
-item of the kind specification is approved, and declined when it is
-declined. An item of the kind design is approved when that item of the
-kind design without the declared items that it holds, each item of the
-kind specification that it holds, and each item of the kind requirement
-and each term that it holds directly are approved.
+and declined. For each other kind, a subject of approval is approved
+through the default branch, as the term `approval-state` gives it, and
+it is never declined. An item of the kind requirement or a term that an
+item of the kind specification holds is approved when that item of the
+kind specification is approved, and declined when it is declined. An
+item of the kind design is approved when that item of the kind design
+without the declared items that it holds, each item of the kind
+specification that it holds, and each item of the kind requirement and
+each term that it holds directly are approved.
 
 A declared item is retired when it is deprecated, rejected, or deferred;
 when it is the cited item of an effective `supersedes` edge; or when it
@@ -1117,9 +1118,11 @@ test, such as the comment right before a test function.
 @cites #{test=v1}
 
 A test result is what a test runner gives for one test that it runs.
-Each test result names its test. The test evidence of one execution of
-test runners is the set of the test results of that execution that say
-that their test passed or that it failed.
+Each test result names no test, one test, or more than one test, and it
+says the same of each test that it names. The test evidence of one
+execution of test runners is the set of the test results of that
+execution that say that the tests that they name passed or that those
+tests failed.
 
 ### 3.20 Sites
 
@@ -1155,12 +1158,12 @@ external item too.
         label=v1, declaration=v1, declaration-line=v1, match=v1,
     },
     data-forms#{vector-line=v1, vector-object=v1, group-form-list=v1},
-    text#{text=v1},
+    text#{text=v1, design=v1},
     #{
         item=v1, declared-item=v1, containment=v1, term=v1,
         conformance-vector=v1, conformance-vector-group=v1,
         vector-set=v1, task=v1, plan=v1, test=v1, site=v1,
-        external-item=v1,
+        external-item=v1, same-item=v1, tree=v1,
     },
 }
 
@@ -1178,12 +1181,15 @@ content of an item of the kind design is the item of the kind design
 without the declared items that it holds. The revised content of an item
 of the kind specification is that item with the declared items that it
 holds, without the `=` and the label of the declaration of each of those
-declared items that has a label. The revised content of a conformance
-vector is the members `group`, `input`, `result`, and `values` of the
-object of its vector line, with the text of the forms of its group, and
-the revised content of a group of conformance vectors or of a vector set
-is the revised contents of its conformance vectors.
-Each declared item, each conformance vector, each group of conformance
+declared items that has a label. Two revised contents of the same
+declared item in two trees are the same revised content when, and only
+when, the measure of revised content that a design names gives the same
+value for that declared item in the two trees. The revised content of a
+conformance vector is the members `group`, `input`, `result`, and
+`values` of the object of its vector line, with the text of the forms of
+its group, and the revised content of a group of conformance vectors or
+of a vector set is the revised contents of its conformance vectors. Each
+declared item, each conformance vector, each group of conformance
 vectors, and each vector set has a revised content. A task, a plan, a
 test, a site, and an external item have no revised content.
 
@@ -1400,7 +1406,7 @@ branch.
     identifiers#{citation=v1},
     files#{path=v1, path-set-membership=v1},
     data-forms#{group-form-list=v1},
-    text#{requirement=v1},
+    text#{requirement=v1, design=v1},
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
@@ -1422,9 +1428,15 @@ that that item of the kind requirement declares. The
 promise is kept in a tree when, and only when, that tree has such an
 edge, and the edge says what its kind of edge says, and the edge is not
 suspect in that tree, and, for a `verifies` promise, test evidence of an
-execution of test runners on the code of that tree has a test result
-that names the test that is the source of that edge and says that it
-passed, and none that says that it failed.
+execution of test runners on the code of that tree shows that the test
+that is the source of that edge passed. Test evidence shows that a test
+of which no other test is a part passed when, and only when, that test
+evidence has a test result that names that test and says that it
+passed, and none that says that it failed. Test evidence shows that a
+test of which one or more other tests are a part passed when, and only
+when, the rule that a design names for such a test gives that that test
+passed, from the test results that name that test or one of those other
+tests.
 
 ### 3.35 Plans
 
@@ -1757,8 +1769,9 @@ a point of a ledger, these are the states approved and declined:
   ledger entry before that point records that a person declined that
   revised content. It is never both approved and declined.
 - A subject of approval of a kind that needs no approval by a person is
-  approved when, and only when, the revised content that it has in that
-  tree has merged into the default branch. It is not declined.
+  not declined. It is approved when, and only when, the rule that a
+  design names for merges gives that the revised content that it has in
+  that tree has merged into the default branch.
 - A declared item other than an item of the kind design is approved,
   or declined, when, and only when, its subject of approval is approved,
   or declined.
