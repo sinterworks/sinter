@@ -96,7 +96,7 @@ design is a JSON text.
 |---|---|
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
-| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, its refs other than the refs of a working tree other than the main working tree, and its file `config`, such as the folder `.git` of its main working tree |
+| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, its refs other than the own refs of a working tree other than the main working tree, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
@@ -418,7 +418,7 @@ binding.
 
 The git folder of a git repository is its common folder, as the page
 gitrepository-layout defines the common folder. It holds the object
-database of the git repository, its refs other than the refs of a
+database of the git repository, its refs other than the own refs of a
 working tree other than the main working tree, and its file `config`.
 The lines of its file `config` itself, and not those of a file that it
 includes, give the repository format version, 0 or 1, and the extensions
@@ -485,14 +485,14 @@ sections `includeIf` whose condition starts with `onbranch:`. A setting
 has its value by the rules of the page git-config, and the values of a
 setting are in the order in which the page git-config reads the files
 and their lines, with the lines of an included file at the place of its
-include. A configuration file includes a file only by the setting
-`include.path` and by the setting `path` of a section `includeIf` whose
+include. A setting includes a file only when it is a setting
+`include.path`, or a setting `includeIf.<condition>.path` whose
 condition starts with `gitdir:`, `gitdir/i:`, `onbranch:`, or
-`hasconfig:remote.*.url:`, as the page git-config gives them; a section
-`includeIf` with any other condition includes no file. For a setting
-that takes one value, such as `core.excludesFile`
-or `core.ignoreCase`, the value is the last of its values. The files of
-the git configuration are the files at the pathnames from which the page
+`hasconfig:remote.*.url:`, as the page git-config gives them; a setting
+`includeIf.<condition>.path` with any other condition includes no file.
+For a setting that takes one value, such as `core.excludesFile` or
+`core.ignoreCase`, the value is the last of its values. The files of the
+git configuration are the files at the pathnames from which the page
 git-config takes configuration, with the system file of rule 1 in place
 of the system file of the page, and at the pathnames that their includes
 name, whether or not a file is there. A boolean setting is true when its
@@ -545,9 +545,8 @@ blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
 itself holds: no replacement ref, which is a ref whose name starts with
 `refs/replace/`, has an effect on them. When a parent line of a commit
-that the file `shallow` does not name gives an object id that no git
-object of the git repository has, the parents of that commit, and
-each thing that a term of this design defines from them, are not
+that the file `shallow` does not name does not give the object id of a
+commit of the git repository, the parents of that commit are not
 specified.
 
 ### 4.5 The texts of messages
@@ -616,7 +615,7 @@ names of refs that do not start with `refs/`, the root names:
     },
     text#{
         text=v1, byte=v1, 0x-numeral=v1, code-span=v1, hex-digit=v1,
-        utf-8-encoding=v1, line=v1, space=v1,
+        utf-8-encoding=v1, space=v1,
     },
     #{git-folder=v1, working-tree=v1, commit=v1, ref-name=v1},
 }
@@ -629,9 +628,9 @@ gives: the files format of the page gitrepository-layout when that
 format is `files` or when the file gives no ref storage format, and the
 reftable format, in its versions 1 and 2, of git's technical document
 reftable when it is `reftable`. A text that is not a ref name names no
-ref. The refs of one working tree are the refs whose ref names are root
-names or start with `refs/bisect/`, `refs/worktree/`, or
-`refs/rewritten/`. A working tree holds these refs from the folder of
+ref. The own refs of a working tree are the refs whose ref names are
+root names or start with `refs/bisect/`, `refs/worktree/`, or
+`refs/rewritten/`. A working tree holds its own refs from the folder of
 that working tree and each other ref from the git folder, and the git
 repository holds each ref from the git folder. The refs that a folder
 holds are, in the files format, its loose refs and, for the git folder,
@@ -647,10 +646,11 @@ is a symbolic link names the ref whose ref name is n when its reference
 is the UTF-8 encoding of a ref name n, whatever file its reference leads
 to. Any other loose ref is a broken loose ref, which neither points to a
 git object nor names a ref. A folder, or a file of another kind, at such
-a pathname is no loose ref. The file `packed-refs`, which the page
-git-pack-refs defines, holds, after a first line that starts with `#`
-when there is one, a line for each ref of the object id in hex digits, a
-space, and the ref name of the ref, and, after the line of a ref, a line
+a pathname is no loose ref. The content of the file `packed-refs`, which
+the page git-pack-refs defines, is runs of bytes, each followed by the
+byte 0x0A: first a run that starts with `#` when there is one; then, for
+each ref, a run that is the UTF-8 encoding of the object id of its git
+object in hex digits, a space, and its ref name, and, after it, a run
 that starts with `^` when that ref has a peeled object. A ref of the
 file `packed-refs` has its value there only when no loose ref of the git
 folder has its ref name. A ref exists when the git repository, or the
