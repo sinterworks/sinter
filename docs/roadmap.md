@@ -342,6 +342,8 @@
     written against them.
   - Sinter's own packs use these modules for their adapters, so that
     the libraries are tested on real work before others use them.
+  - Another module is the test adapter for conformance vectors of that
+    language's test frameworks (see the next item).
   - Which languages come first, and which other modules each library
     has, are open.
 - **Test adapters for conformance vectors** — a library for each test
@@ -359,6 +361,8 @@
     reports each vector that no test exercises. The language pack of the
     test's language must read the citation, in a comment or in the call
     of the adapter.
+  - Each adapter is a module of the library for its language (see
+    "Libraries for Sinter in several languages").
   - The first adapter is for Python and pytest, as a decorator. Others
     follow for the test frameworks of the language packs.
   - In Python, the decorator takes the selection as an expression, not
