@@ -2255,8 +2255,8 @@ it is one, when, and only when, it meets each of these conditions:
 
 1. It is a WebAssembly module, and the program does not stop the
    decoding or the validation of the module in that decision for limits
-   of its own, a choice of the program in a decision whether a byte
-   sequence is a valid adapter.
+   of its own. Such a stop is a choice of the program in a decision
+   whether a byte sequence is a valid adapter.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
    function of the type `[] -> [i32]`, `sinter_alloc` as a function of
