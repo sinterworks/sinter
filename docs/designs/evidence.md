@@ -51,7 +51,7 @@ an element zero or more times and one or more times, and `[ ]` makes an
 element optional. `DIGIT` is an ASCII digit, a core rule of RFC 5234.
 
 From Text and notation, the design takes texts, characters, spaces,
-places, runs, line feeds, positions, and spans; whole numbers and
+places, runs, positions, and spans; whole numbers and
 decimal numerals; bytes and byte sequences; the notation of productions;
 and conforming programs, inputs, and results. From Identifiers, it takes
 citation entries, id patterns, the fit of a text to an id pattern, and
@@ -100,14 +100,14 @@ a JSON text.
 | [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
 | [name part of a test result](sinter:#case-result=v1) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
 | [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when it has path parts, and the shorter of its path parts and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the shorter |
-| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of name parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
-| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when they are as many as its name parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each name part of the pattern equal to the name part of the test result |
+| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
+| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
 | [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
 | [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
-| [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry, which a reading gives: by the reader, the test result is about the test of that test entry |
+| [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
 | [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack is the pack of the report file, or, for a test runner with a match table, whose pack has a test runner with that name and a match table; each with the test entry id that the term gives |
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
-| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test suite takes a result link only when it holds a test |
+| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
@@ -151,11 +151,11 @@ both packs, the report content is given once, and its reading takes the
 tests of both packs.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
-given for that tree. A program can keep imports between its executions,
-in a form of its own; the requirement `take-evidence-for-own-tree`
-limits where it counts them. When a person edits a comment after an
-import, the tree changes, and the import is not in the evidence for the
-new tree.
+given for that tree. A program can keep imports from one of its runs to
+the next, in a form of its own; the requirement
+`take-evidence-for-own-tree` limits where it counts them. When a person
+edits a comment after an import, the tree changes, and the import is not
+in the evidence for the new tree.
 
 A report file or a tree that changes while a program reads it is a
 matter of the quality of the implementation.
@@ -252,13 +252,13 @@ when pytest writes `file="tests/test_api.py"`, and the files
 have a test `test_list`, the test result is linked to both, and, unless
 a narrowing removes one of these pairs, each of them gets a finding of
 the class `ambiguous-result`. The line of a test result chooses no
-result link; a person, or a tool that runs the tests, can use it, or
-anything else that it knows, to give a narrowing (section 2.7). A
+result link; a person can use the line, or anything else that the person
+knows, to give a narrowing (section 2.7). A
 pattern is built from the name path of the test entry, and, when the
 data asks for one, from a prefix that comes from its path. The
 separators of the data join the names. A separator that the data does
-not give is a part break: the names on its two sides stand in two name
-parts.
+not give is a part break: the names on its two sides stand in two
+pattern parts.
 
 For example, vitest writes this case element for a test in the file
 `src/math.test.ts`:
@@ -270,7 +270,7 @@ For example, vitest writes this case element for a test in the file
 The test case `it.each(...)('each %i + %i = %i', ...)` in
 `describe('outer', ...)` has the name path `outer`, then `each %i + %i =
 %i`. With the data of vitest in section 2.3, each `%i` becomes a
-placeholder, and the pattern has one name part: `outer > each … + … =
+placeholder, and the pattern has one pattern part: `outer > each … + … =
 …`, where each `…` is a placeholder. The file `src/math.test.ts` matches
 the path of the test entry, and the one name part `outer > each 1 + 2 =
 3` matches the pattern, so the test result has a result link to the test
@@ -324,14 +324,14 @@ One test result can be linked to two tests with different files. For
 example, `src/a.test.ts` and `lib/a.test.ts` each have `it("adds")`, and
 a report file that names no folder gives the test result `adds` with the
 file `a.test.ts`. That test result is linked to both tests. A program
-can take an input of its own, such as an option that a person gives,
-that removes some of these pairs: a narrowing, which is part of the
+can take an input, such as an option that a person gives, that removes
+some of these pairs: a narrowing, which is part of the
 import. So two programs that get the same import give the same outcomes.
 The term `narrowing-of-an-import` says when a narrowing is valid. A
 valid narrowing removes a pair for two alike tests together, and it
 leaves each test result that it pairs naming at least one test, so no
-failure can disappear. A narrowing that is not valid removes no pair. A
-program with no such input gives the import the empty narrowing.
+failure can disappear. A narrowing that is not valid removes no pair.
+When no narrowing is given, the import has the empty narrowing.
 
 A test result names a test when it is linked to the test, and a valid
 narrowing does not remove that pair (term `named-test`). A test result
@@ -624,10 +624,10 @@ shorter of the two sequences.
 }
 
 For a test entry and the valid data of a runner, the patterns of the
-test entry are sequences of name parts, each a sequence of elements. An
-element is a character, a placeholder, or an affix slot of one of the
+test entry are sequences of pattern parts, each a sequence of elements.
+An element is a character, a placeholder, or an affix slot of one of the
 keys `lead`, `suite-suffixes`, and `name-suffixes`. A part break
-separates two name parts. These steps give the patterns:
+separates two pattern parts. These steps give the patterns:
 
 1. Rewrite. In each text piece of the name path of the test entry, for
    each pair of `rewrite`, in their order, whose first text is not
@@ -665,8 +665,8 @@ separates two name parts. These steps give the patterns:
    then, for each of its names in their order, the separator before it,
    the elements of the name, and, after a suite name, an affix slot of
    `suite-suffixes`, or, after the own name, an affix slot of
-   `name-suffixes`. Its name parts are the runs of this sequence between
-   its part breaks.
+   `name-suffixes`. Its pattern parts are the runs of this sequence
+   between its part breaks.
 
 ### 3.9 Matches of patterns
 
@@ -680,11 +680,11 @@ separates two name parts. These steps give the patterns:
 A text is an instance of an affix pattern, which is a text, when the
 text is the affix pattern with each character `*` replaced by some text,
 the empty text included. The name parts of a test result match a pattern
-when, and only when, they are as many as the name parts of the pattern,
-and some choice of a text for each placeholder, and, for each affix
-slot, of the empty text or an instance of a member of the key of the
-slot, makes each name part of the pattern, with each element replaced by
-its text, equal to the name part of the test result at the same index.
+when, and only when, they are as many as the pattern parts of the
+pattern, and some choice of a text for each placeholder, and, for each
+affix slot, of the empty text or an instance of a member of the key of
+the slot, makes each pattern part, with each element replaced by its
+text, equal to the name part of the test result at the same index.
 
 ### 3.10 Default recognitions
 
@@ -857,6 +857,7 @@ these conditions are true:
     ontology#{test=v1, test-evidence=v1},
     documents#{file-test=v1},
     packs#{test-name=v1, test-node=v1},
+    text#{whole-number=v1},
     #{import=v1, linked-test=v1},
 }
 
@@ -1104,8 +1105,8 @@ that run.
     findings#{spot=v1},
     files#{path=v1},
     text#{
-        decimal-numeral=v1, span=v1, text-of-a-byte-sequence=v1,
-        line-feed=v1, code-span=v1,
+        decimal-numeral=v1, span=v1, run=v1, text-of-a-byte-sequence=v1,
+        code-span=v1,
     },
     #{tree-evidence=v1, verified-vector=v1},
 }
@@ -1118,9 +1119,9 @@ verified in the evidence for the tree. A tree that has no evidence has
 no tree finding of the class `unverified-vector`. The subject of the
 finding is the name of the item of its vector set, then `[`, then the
 decimal numeral of the number of the conformance vector, then `]`. Its
-spot is the valid path of the vector file of that item, with the span of
-the run of the text of its content that holds the text of the vector
-line of the conformance vector without its last byte.
+spot is the valid path of the vector file of that item, with the span
+that is the run of the text of its content that holds the text of the
+vector line of the conformance vector without its last byte.
 
 ## 4. Requirements
 
@@ -1178,7 +1179,6 @@ that reading.
 @cites {
     documents#{file-reader-binding=v1},
     ontology#{test-evidence=v1},
-    packs#{test-entry=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
@@ -1260,7 +1260,7 @@ only when that import is given for that tree.
 @cites {
     documents#{file-reader-binding=v1},
     ontology#{test=v1, tree=v1},
-    text#{conforming-program=v1, result=v1},
+    text#{conforming-program=v1},
     #{import=v1, tree-evidence=v1, import-outcome=v1, tree-outcome=v1},
 }
 
@@ -1321,9 +1321,10 @@ and no source for another test with it.
 When the reading of a report file of an import of the evidence for a
 tree has the result "stopped", a conforming program must give, from that
 evidence, no outcome of a test of that tree in that evidence or in an
-import of it, no source of such an outcome, no result for whether a `verifies`
-promise is kept in that tree, and no finding of that tree of the classes
-`never-ran`, `failed`, `ambiguous-result`, and `unverified-vector`.
+import of it, no source of such an outcome, no result for whether a
+`verifies` promise is kept in that tree, and no finding of that tree of
+the classes `never-ran`, `failed`, `ambiguous-result`, and
+`unverified-vector`.
 
 ### 4.14 Nothing under bindings that are not valid
 
@@ -1331,7 +1332,6 @@ promise is kept in that tree, and no finding of that tree of the classes
 @cites {
     identifiers#{binding=v1, accept-inputs=v1},
     documents#{file-reader-binding=v1},
-    packs#{test-entry=v1},
     ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{
@@ -1356,9 +1356,9 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 @req give-nothing-under-invalid-runner-settings=v1
 @cites {
-    packs#{runner-setting-binding=v1, test-runner=v1, test-entry=v1},
+    packs#{runner-setting-binding=v1, test-runner=v1},
     ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
-    text#{conforming-program=v1},
+    text#{conforming-program=v1, result=v1},
     #{
         report-file=v1, import=v1, tree-evidence=v1,
         reading-of-a-report-file=v1, import-outcome=v1, tree-outcome=v1,
@@ -1577,8 +1577,9 @@ whether the tree has a finding of the class `ambiguous-result` for that
 test. The readings of the report files are given by their results, their
 test results, and their result links, and the tests are given by their
 valid paths, their names, their kinds, and the tests that hold them. The
-tree of each vector has no other test that a test result names, and the
-bindings of `file-readers` and of `external-namespaces` are valid.
+tree of each vector has no other test that a test result names, the
+bindings of `file-readers` and of `external-namespaces` are valid, and
+the binding of `runner-settings` for each test runner is valid.
 
 - `input`: a JSON object with the members `tests`, `imports`, and
   `test`.
@@ -1627,10 +1628,10 @@ bindings of `file-readers` and of `external-namespaces` are valid.
 When a conforming program gives the outcome of that test in the evidence
 for the tree, it gives the outcome that `result` gives, and no other
 outcome. With that outcome, it gives the sources that `sources` gives,
-and no other source; the order of the sources is not part of what it
-gives. When it gives the findings of the class `ambiguous-result` of the
-tree, it gives one for that test when `ambiguous` is true, and none for
-that test when it is false.
+and no other source; the order of the sources, and of the triples of a
+source, is not part of what it gives. When it gives the findings of the
+class `ambiguous-result` of the tree, it gives one for that test when
+`ambiguous` is true, and none for that test when it is false.
 
 ```
 {"group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"n":201,"note":"a test that holds tests passed: each test that it holds passed","result":"passed","rev":"v1","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
@@ -1645,7 +1646,9 @@ evidence for a tree, the edges of the kind `verifies` of the tree, and
 the conformance vectors of vector sets of the tree, and the findings of
 these classes that the tree has. The outcome of each test is given as an
 input. The tree of each vector has no other edge of the kind `verifies`
-and no other vector set.
+and no other vector set. The bindings of `file-readers`, of
+`external-namespaces`, and of `runner-settings` are valid, and no
+reading of a report file of the evidence has the result "stopped".
 
 - `input`: a JSON object with the members `evidence`, `tests`, `edges`,
   and `sets`.
