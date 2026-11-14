@@ -96,7 +96,7 @@ let read_files_member given =
          (path_text (Read_file.path file), `Int (Read_file.pair file)))
        given.read_files)
 
-let members = [ ("read-files", read_files_member) ]
+let members _group = [ ("read-files", read_files_member) ]
 
 let give (vector : Vectors.vector) =
   let input = vector.input in
@@ -112,6 +112,7 @@ let give (vector : Vectors.vector) =
         let stated =
           match vector.values with Some (`Assoc fields) -> fields | _ -> []
         in
+        let members = members vector.group in
         let not_given =
           List.filter
             (fun (name, _) -> not (List.mem_assoc name members))
