@@ -1178,7 +1178,6 @@ that reading.
 @req give-reading-result-links=v1
 @cites {
     documents#{file-reader-binding=v1},
-    ontology#{test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
@@ -1646,9 +1645,10 @@ evidence for a tree, the edges of the kind `verifies` of the tree, and
 the conformance vectors of vector sets of the tree, and the findings of
 these classes that the tree has. The outcome of each test is given as an
 input. The tree of each vector has no other edge of the kind `verifies`
-and no other vector set. The bindings of `file-readers`, of
-`external-namespaces`, and of `runner-settings` are valid, and no
-reading of a report file of the evidence has the result "stopped".
+and no other vector set. The bindings of `file-readers` and of
+`external-namespaces` are valid, the binding of `runner-settings` for
+each test runner is valid, and no reading of a report file of the
+evidence has the result "stopped".
 
 - `input`: a JSON object with the members `evidence`, `tests`, `edges`,
   and `sets`.
