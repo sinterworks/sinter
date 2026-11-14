@@ -181,7 +181,7 @@ the results of the functions that act on characters.
 | [choice of the program in an instance of an adapter](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits on the resources of the instance and on the time that its code runs, or for the sizes of the memories and the tables that the instantiation makes; a refusal of a growth of a memory or of a table within its maximum; the depth of calls at which the call stack is exhausted; or the bits of a NaN |
 | [choice of the program in an instance of a grammar](sinter:#grammar-instance=v1) | an outcome in an instance of a grammar that the program decides: a failure for limits; the values that it gives for the imports, and with them the size of the stack of the module, the places of the own bytes and of the own elements, and the sizes of the memory and of the table; the places of the space that the allocation functions give, and the content of that space that they do not set; the content, at each moment, of the other bytes of the memory and the other elements of the table, and the content of the stack of the module when each invocation starts; the places through which the parsing gives values to the code; the use of an instance in which code ran for another text; or the bits of a NaN |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack with a query file that holds a pattern that, without its predicates, matches no part of any parse tree that the language of its grammar can give |
-| [choice of the program in a decision whether a byte sequence is a valid adapter](sinter:#valid-adapter=v1) | a stop by the program, for limits of its own, of the decoding or the validation of a WebAssembly module, in that decision |
+| [choice of the program in a decision whether a byte sequence is a valid adapter](sinter:#valid-adapter=v1) | a stop by the program, for limits of its own, of the decoding or the validation of a WebAssembly module in a decision whether it is a valid adapter |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module whose decoding and validation the program does not stop for limits of its own, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
@@ -654,8 +654,9 @@ Specification 2.0 defines, and the call goes on.
 The code of an adapter imports nothing, so it can read no file, use no
 network, see no clock, and start no process. No file, network, clock, or
 process gets to the code of an adapter; only the choices of the program
-in an instance of an adapter can make two runs of one call give
-different results.
+in an instance of an adapter, and a stop by the program of the decoding
+or the validation of the module for its limits, can make two runs of one
+call give different results.
 
 ### 2.8 Requests and responses
 
@@ -2674,8 +2675,9 @@ byte sequence is a valid adapter. The requirements of the group are
   result "valid" only for a decision in which the program does not stop
   the decoding or the validation of the module for limits of its own,
   and in which no choice of the program in an instance of an adapter
-  changes the instantiation or the invocation. The group holds no vector with the result "invalid" whose
-  result such a choice can change.
+  changes the instantiation or the invocation. The group holds no
+  vector with the result "invalid" whose result a choice of the program
+  in an instance of an adapter can change.
 - `values`: no vector of the group has this member.
 
 ```
@@ -2775,8 +2777,11 @@ group are `give-call-results`, `give-call-values`, `omit-call-values`,
   a call in which no choice of the program in an instance of an adapter
   changes the instantiation or an invocation, in the instance of the
   call or in the instance of the decision whether its adapter is a valid
-  adapter that the call uses. The group holds no vector with the result
-  "failed" whose result such a choice can change.
+  adapter that the call uses, and in which the program does not stop
+  the decoding or the validation of the module in that decision for
+  limits of its own. The group holds no vector with the result "failed"
+  whose result a choice of the program in an instance of an adapter can
+  change.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
