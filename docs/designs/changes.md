@@ -1651,10 +1651,10 @@ A vector names each commit by a short name, such as `a`, which stands
 for that commit, or, in a vector of the group `parent-lines`, by its
 object id in hex digits, each in lower case. The git repository of a
 vector holds the commits that its input names, and, for a vector of the
-groups `commit-files`, `message-texts`, `parent-lines`, and `parents`,
-the commit that its input stands for, and no other commit. Each vector
-whose input stands for a git repository or a working tree stands for an
-undisturbed repository read.
+groups `commit-files`, `message-texts`, `parent-lines`, `parents`, and
+`tree-objects`, the commit that its input stands for, and no other
+commit. Each vector whose input stands for a git repository or a working
+tree stands for an undisturbed repository read.
 
 The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
 Each line of the file is the
@@ -1670,7 +1670,7 @@ kinds of line, in this order:
    `change-diffs`, `changes`, `commit-files`, `default-branch-commits`,
    `head-commits`, `hunks`, `landing-commits`, `message-texts`,
    `parent-lines`, `parents`, `ranges`, `reach`, `ref-commits`,
-   `working-tree-files`.
+   `tree-objects`, `working-tree-files`.
    Its JSON object has two members: `group`, the name of the group, as a
    JSON string, and `rev`, the revision of the group.
 3. Then each vector has a vector line, in increasing order of the
@@ -2214,4 +2214,40 @@ elements of `parents`, in their order, and no other commit.
 
 ```
 {"group":"parent-lines","input":{"content":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nparent b8da0a7c10a81dcd1f1dc2340788d0ab7c47f941\nauthor A U Thor <a@example.invalid> 1767225600 +0000\nparent 631e5cce8d655f8c644a6803a76a9c203aa73439\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\nm\n","format":"sha1","shallow":false},"n":198,"note":"a line that starts with `parent` after another header line names no parent","rev":"v1","values":{"parents":["b8da0a7c10a81dcd1f1dc2340788d0ab7c47f941"]}}
+```
+
+### 6.16 The git tree objects of commits
+
+The group `tree-objects` holds the vectors of the requirements
+`give-commit-files` and `give-commit-file-at-path`. Each vector gives
+the object format of a git repository, the content of the git tree
+object of a commit and of each git tree object that a tree entry names
+in it, in turn, and the valid paths of the files of the tree of the
+commit. A vector of the group names each git object by its object id in
+hex digits, each in lower case.
+
+- `input`: a JSON object. Its member `format` is the object format of
+  the git repository, `sha1` or `sha256`, a text. Its member `tree` is
+  the git tree object of the commit. Its member `trees` is a JSON object
+  with one member for each git tree object that is the git tree object
+  of the commit or that a tree entry of a git tree object of `trees`
+  names: its key is the object id of that git tree object in hex
+  digits, each in lower case, and its value is the content of that git
+  tree object, as a byte sequence. A regular-file entry and a
+  symbolic-link entry name blobs, and a submodule entry names a commit;
+  the vectors do not give their contents.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `paths`: the set of the valid
+  paths of the files of the tree of the commit.
+
+When a conforming program gives the valid paths of the files of the tree
+of the commit, or those files, it gives one valid path, or one file with
+that valid path, for each element of `paths`, and no other. When it
+gives the file with a valid path, or gives that there is none, it gives
+the file when `paths` holds that valid path, and that there is none when
+`paths` does not. The content of each file is the content of the blob of
+its entry, which the vectors do not give.
+
+```
+{"group":"tree-objects","input":{"format":"sha1","tree":"ce23d1908c4c894ba11fc09618cae7029af61bf3","trees":{"ce23d1908c4c894ba11fc09618cae7029af61bf3":{"bytes":"31303036343420612e6d6400d47374d55ae9ea207200dc5fff6716645caad40531303036343420622e6d640078981922613b2afb6025042ff6bd878ac1994e85"}}},"n":206,"note":"an object id is 20 bytes, whatever bytes it holds, such as 0x00 and 0x20","rev":"v1","values":{"paths":["a.md","b.md"]}}
 ```
