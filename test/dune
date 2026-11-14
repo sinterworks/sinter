@@ -63,6 +63,7 @@
   sinter_git_config
   sinter_git_refs
   sinter_git_object_store
+  sinter_packs
   digestif.c
   decompress.de
   decompress.zl

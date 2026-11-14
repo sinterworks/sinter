@@ -19,6 +19,11 @@ val tree_gen : Files_tree.file QCheck2.Gen.t
     special files. No two entry names of one folder are the same text after
     ASCII case folding when the need [case-distinct-names] does not hold. *)
 
+val unstored_tree_gen : Files_tree.file QCheck2.Gen.t
+(** Folder trees as {!tree_gen} gives them, but with the names of every class,
+    whatever the needs, and also with names of 254, 256, and 300 bytes, for a
+    use that stores no folder tree. *)
+
 val deep_tree : int -> Files_tree.file
 (** [deep_tree depth] is a folder tree of [depth] nested folders [a], with a
     regular file [f] in the deepest one. *)
