@@ -1018,27 +1018,39 @@ characters `sinter:`.
     #{link=v1},
     text#{
         text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
-        carriage-return=v1, code-span=v1,
+        carriage-return=v1, code-span=v1, algorithm=v1, sequence=v1,
     },
 }
 
-The raw content of a paragraph or a heading is the text that these
-steps give:
+A line of CommonMark 0.31.2 is a line as CommonMark 0.31.2 gives it. It
+holds no line feed and no carriage return: a line feed, a carriage
+return that no line feed follows, and a carriage return with the line
+feed right after it each end a line.
 
-1. Take the lines of CommonMark 0.31.2 of the paragraph or the heading,
-   in their order. A line of CommonMark 0.31.2 is a line as CommonMark
-   0.31.2 gives it. It holds no line feed and no carriage return: a line
-   feed, a carriage return that no line feed follows, and a carriage
-   return with the line feed right after it each end a line. Leave out
-   the underline of a setext heading.
-2. From each line, remove the markers and the indentation of the block
-   quotes and the list items that hold the paragraph or the heading, as
-   CommonMark 0.31.2 gives them. From the line of an ATX heading, also
-   remove its opening sequence of `#` and its closing sequence of `#`.
-3. From each line, remove the spaces and tabs at its start.
-4. Join the lines in their order, with a line feed after each line
-   except the last line.
-5. Remove the spaces and tabs at the end of the text.
+The raw content of a paragraph or a heading *b* is the text that these
+steps give.
+
+1. Let *lines* be the sequence of the lines of CommonMark 0.31.2 of *b*,
+   in their order.
+2. If *b* is a setext heading, remove the underline of *b* from *lines*.
+3. Let *content* be the empty text.
+4. For each *l* of *lines*, in order:
+   1. Let *t* be *l* without the markers and the indentation of the
+      block quotes and the list items that hold *b*, as CommonMark
+      0.31.2 gives them.
+   2. If *b* is an ATX heading, set *t* to *t* without its opening
+      sequence of `#` and its closing sequence of `#`.
+   3. While *t* is not empty and the first character of *t* is a space
+      or a tab:
+      1. Remove the first character of *t* from *t*.
+   4. Append *t* to *content*.
+   5. Append a line feed to *content*.
+5. If *lines* is not empty, remove the last character of *content* from
+   *content*.
+6. While *content* is not empty and the last character of *content* is a
+   space or a tab:
+   1. Remove the last character of *content* from *content*.
+7. Give *content*.
 
 The link text of an inline link or a reference link is the text between
 the `[` that starts the link and the `]` that closes that `[`, as
