@@ -119,6 +119,7 @@ let () =
       ("cli", Test_cli.tests);
       ("git", Test_git.tests);
       ("git objects", Test_git_objects.tests);
+      ("git object delta", Test_git_object_delta.tests);
       ("commitment set", Test_commitment_set.tests);
       ("ledger", Test_ledger.tests);
       ("ledger commands", Test_ledger_cli.tests);

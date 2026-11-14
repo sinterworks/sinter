@@ -20,6 +20,7 @@
   (glob_files ../lib/ref_names/*)
   (glob_files ../lib/git_config/*)
   (glob_files ../lib/git_refs/*)
+  (glob_files ../lib/git_object_store/*)
   (source_tree cases)
   (env_var SINTER_PROMOTE))
  (libraries
@@ -61,6 +62,7 @@
   sinter_ref_names
   sinter_git_config
   sinter_git_refs
+  sinter_git_object_store
   digestif.c
   git_fixture
   sinter_bench
