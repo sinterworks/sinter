@@ -15,7 +15,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies report files and imports, the evidence for a tree, JUnit XML reports and the default reader of JUnit XML with the data of a runner, the readings of report files and their test entries, the tests that a test result names and narrowings, the outcomes of tests in an import and in the evidence for a tree with the suite rule, the sources of outcomes, the conformance vectors that tests exercise, the finding classes `never-ran`, `failed`, `ambiguous-result`, and `unverified-vector`, and requirements for conforming programs that read report files and give outcomes, sources, and these findings.
+Specifies report files and imports, the evidence for a tree, JUnit XML reports and the default reader of JUnit XML with the data of a runner, the readings of report files and their test entries, the tests that a test result names and narrowings, the outcomes of tests in an import and in the evidence for a tree with the suite rule, the sources of outcomes, the verified conformance vectors, the finding classes `never-ran`, `failed`, `ambiguous-result`, and `unverified-vector`, and requirements for conforming programs that read report files and give outcomes, sources, and these findings.
 
 A test runner, such as pytest or vitest, runs the tests of a repository
 and writes report files: files that say which tests ran, and whether
@@ -106,10 +106,10 @@ file of the conformance vectors of the design is a JSON text.
 | [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
 | [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
 | [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, the hash and the result of the reading of each of its report files, the outcome in that import, and the test results that made it, each with the hash of the report content of its report file, its number, its name, and its status |
-| [exercise](sinter:#exercised-vector=v1) | a test exercises a conformance vector when the vector says a vector, the test has a `verifies` edge to the vector, to its group, or to its vector set, and the outcome of the test in the evidence for the tree is "passed" |
+| [verified](sinter:#verified-vector=v1) | a conformance vector is verified when it says a vector and a test with a `verifies` edge to the vector, to its group, or to its vector set has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes of a `verifies` edge to a requirement, a conformance vector, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class of a test that a test result names, when the test result also names a test that is not alike to it |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class of a conformance vector that says a vector and that no test exercises |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class of a conformance vector that says a vector and that is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -339,16 +339,16 @@ one system and fails on another. When the program gives whether a
 promise takes, that outcome and its sources (requirement
 `give-promise-sources`).
 
-### 2.10 Conformance vectors that tests exercise
+### 2.10 Verified conformance vectors
 
 A test with a `verifies` edge to a conformance vector, to a group of
-conformance vectors, or to a vector set can exercise the conformance
-vectors that it cites (term `exercised-vector`). Skips of vectors inside
+conformance vectors, or to a vector set can make the conformance vectors
+that it cites verified (term `verified-vector`). Skips of vectors inside
 such a test are not visible in a report file: the pass counts for each
 vector. For example, the test `test_offsets` with
 `@verifies data-forms#toml[offsets][*]=v2` has the outcome "passed", so
-it exercises each conformance vector of the group `offsets` that says a
-vector.
+each conformance vector of the group `offsets` that says a vector is
+verified.
 
 ### 2.11 Findings
 
@@ -944,9 +944,9 @@ that it stands in the evidence, with these values:
 Each of these test results is given with the hash of the report content
 of its report file, its number, its name, and its status.
 
-### 3.23 Exercised conformance vectors
+### 3.23 Verified conformance vectors
 
-@term exercised-vector=v1
+@term verified-vector=v1
 @cites {
     documents#{tree-edge=v1},
     ontology#{
@@ -956,13 +956,12 @@ of its report file, its number, its name, and its status.
     #{tree-evidence=v1, tree-outcome=v1},
 }
 
-A test of a tree exercises a conformance vector of a vector set of that
-tree, in the evidence for that tree, when, and only when, the
-conformance vector says a vector, the test is the source of an edge of
-the tree of the kind `verifies` whose cited item is that conformance
-vector, the group of conformance vectors of that vector set that has it,
-or that vector set, and the outcome of the test in the evidence for the
-tree is "passed".
+A conformance vector of a vector set of a tree is verified in the
+evidence for that tree when, and only when, it says a vector, and a test
+of the tree that is the source of an edge of the tree of the kind
+`verifies` whose cited item is that conformance vector, the group of
+conformance vectors of that vector set that has it, or that vector set
+has the outcome "passed" in the evidence for the tree.
 
 ### 3.24 Findings of the class `never-ran`
 
@@ -1047,13 +1046,13 @@ of its test node, in its file. Its spot is the spot of that run.
     findings#{spot=v1},
     files#{path=v1},
     text#{decimal-numeral=v1, span=v1, text-of-a-byte-sequence=v1, line-feed=v1, code-span=v1},
-    #{tree-evidence=v1, exercised-vector=v1},
+    #{tree-evidence=v1, verified-vector=v1},
 }
 
 A tree that has evidence has one tree finding of the class
 `unverified-vector` for each conformance vector of a vector set of the
-tree that says a vector and that no test of the tree exercises in the
-evidence for the tree. A tree that has no evidence has no tree finding
+tree that says a vector and that is not verified in the evidence for the
+tree. A tree that has no evidence has no tree finding
 of the class `unverified-vector`. The subject of the finding is the
 name of the item of its vector set, then `[`, then the decimal numeral
 of the number of the conformance vector, then `]`. Its spot is the
