@@ -1,0 +1,138 @@
+{"rev":"v1"}
+{"group":"read-json","rev":"v1"}
+{"group":"read-line","rev":"v1"}
+{"group":"write-json","rev":"v1"}
+{"group":"write-line","rev":"v1"}
+{"group":"write-json","input":"{ \"b\": 1, \"a\": [true, false] }","n":1,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a5b747275652c66616c73655d2c2262223a317d"}}
+{"group":"write-json","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
+{"group":"write-json","input":"{}","n":3,"rev":"v1","values":{"canonical-byte-sequence":"7b7d"}}
+{"group":"write-json","input":"[]","n":4,"rev":"v1","values":{"canonical-byte-sequence":"5b5d"}}
+{"group":"write-json","input":"{ \"\": 0 }","n":5,"rev":"v1","values":{"canonical-byte-sequence":"7b22223a307d"}}
+{"group":"write-json","input":"{ \"z\": [{ \"b\": true, \"a\": false }], \"a\": [] }","n":6,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a5b5d2c227a223a5b7b2261223a66616c73652c2262223a747275657d5d7d"}}
+{"group":"write-json","input":"[1, [2, [3]], {\"k\": {\"j\": \"x\"}}]","n":7,"rev":"v1","values":{"canonical-byte-sequence":"5b312c5b322c5b335d5d2c7b226b223a7b226a223a2278227d7d5d"}}
+{"group":"write-json","input":"9007199254740991","n":8,"rev":"v1","values":{"canonical-byte-sequence":"39303037313939323534373430393931"}}
+{"group":"write-json","input":"-9007199254740991","n":9,"rev":"v1","values":{"canonical-byte-sequence":"2d39303037313939323534373430393931"}}
+{"group":"write-json","input":"0","n":10,"rev":"v1","values":{"canonical-byte-sequence":"30"}}
+{"group":"write-json","input":"\"a/b\"","n":11,"rev":"v1","values":{"canonical-byte-sequence":"22612f6222"}}
+{"group":"write-json","input":"\"\\\"\\\\\"","n":12,"rev":"v1","values":{"canonical-byte-sequence":"225c225c5c22"}}
+{"group":"write-json","input":"\"\\b\\t\\n\\f\\r\"","n":13,"rev":"v1","values":{"canonical-byte-sequence":"225c625c745c6e5c665c7222"}}
+{"group":"write-json","input":"\"\\u0000\\u000b\\u001F\"","n":14,"rev":"v1","values":{"canonical-byte-sequence":"225c75303030305c75303030625c753030316622"}}
+{"group":"write-json","input":"\"\\u0041\"","n":15,"rev":"v1","values":{"canonical-byte-sequence":"224122"}}
+{"group":"write-json","input":"\"\\u007f\"","n":16,"rev":"v1","values":{"canonical-byte-sequence":"227f22"}}
+{"group":"write-json","input":"\"\\u2028\"","n":17,"rev":"v1","values":{"canonical-byte-sequence":"22e280a822"}}
+{"group":"write-json","input":"\"\\ud83d\\ude00\"","n":18,"rev":"v1","values":{"canonical-byte-sequence":"22f09f988022"}}
+{"group":"write-json","input":"{ \"\\ue000\": 1, \"\\ud83d\\ude00\": 2 }","n":19,"rev":"v1","values":{"canonical-byte-sequence":"7b22f09f9880223a322c22ee8080223a317d"}}
+{"group":"write-json","input":"{ \"\\u00e9\": 1, \"e\\u0301\": 2 }","n":20,"rev":"v1","values":{"canonical-byte-sequence":"7b2265cc81223a322c22c3a9223a317d"}}
+{"group":"write-json","input":"{ \"B\": 1, \"a\": 2 }","n":21,"rev":"v1","values":{"canonical-byte-sequence":"7b2242223a312c2261223a327d"}}
+{"group":"write-json","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
+{"group":"write-json","input":"1.5","n":23,"note":"`1.5` is not an integer","rev":"v1","values":{}}
+{"group":"write-json","input":"9007199254740992","n":24,"note":"the number is greater than 9,007,199,254,740,991","rev":"v1","values":{}}
+{"group":"write-json","input":"{ \"a\": null }","n":25,"note":"the value of `a` is not a JSON value","rev":"v1","values":{}}
+{"group":"write-line","input":"{ \"b\": 1, \"a\": 2 }","n":26,"rev":"v1","values":{"canonical-line":"7b2261223a322c2262223a317d0a"}}
+{"group":"write-line","input":"{}","n":27,"rev":"v1","values":{"canonical-line":"7b7d0a"}}
+{"group":"write-line","input":"{ \"t\": \"\\r\", \"s\": \"x\\ny\" }","n":28,"rev":"v1","values":{"canonical-line":"7b2273223a22785c6e79222c2274223a225c72227d0a"}}
+{"group":"write-line","input":"{ \"z\": [{ \"b\": true, \"a\": 1 }], \"a\": [1, \"x\", false] }","n":29,"rev":"v1","values":{"canonical-line":"7b2261223a5b312c2278222c66616c73655d2c227a223a5b7b2261223a312c2262223a747275657d5d7d0a"}}
+{"group":"write-line","input":"{ \"\\ue000\": 1, \"\\ud83d\\ude00\": 2 }","n":30,"rev":"v1","values":{"canonical-line":"7b22f09f9880223a322c22ee8080223a317d0a"}}
+{"group":"write-line","input":"{ \"a\": { \"b\": 1 } }","n":31,"note":"the value of `a` is an object","rev":"v1","values":{}}
+{"group":"write-line","input":"{ \"a\": [1, { \"b\": 1 }] }","n":32,"note":"the value of `a` mixes a scalar and an object","rev":"v1","values":{}}
+{"group":"write-line","input":"[1]","n":33,"note":"the JSON value is not an object","rev":"v1","values":{}}
+{"group":"write-line","input":"{ \"a\": 1.5 }","n":34,"note":"the input is not a JSON value","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a322c2262223a317d0a","n":35,"result":"valid","rev":"v1","values":{"line-object":{"a":2,"b":1}}}
+{"group":"read-line","input":"7b7d0a","n":36,"result":"valid","rev":"v1","values":{"line-object":{}}}
+{"group":"read-line","input":"7b2261223a5b312c2278222c747275655d7d0a","n":37,"result":"valid","rev":"v1","values":{"line-object":{"a":[1,"x",true]}}}
+{"group":"read-line","input":"7b2261223a5b7b2262223a317d2c7b2263223a2278227d5d7d0a","n":38,"result":"valid","rev":"v1","values":{"line-object":{"a":[{"b":1},{"c":"x"}]}}}
+{"group":"read-line","input":"7b2261223a5b7b2261223a317d5d7d0a","n":39,"result":"valid","rev":"v1","values":{"line-object":{"a":[{"a":1}]}}}
+{"group":"read-line","input":"7b2261223a5b7b7d5d7d0a","n":40,"result":"valid","rev":"v1","values":{"line-object":{"a":[{}]}}}
+{"group":"read-line","input":"7b2261223a5b5d7d0a","n":41,"result":"valid","rev":"v1","values":{"line-object":{"a":[]}}}
+{"group":"read-line","input":"7b2261223a2d393030373139393235343734303939317d0a","n":42,"result":"valid","rev":"v1","values":{"line-object":{"a":-9007199254740991}}}
+{"group":"read-line","input":"7b2261223a2d393030373139393235343734303939327d0a","n":43,"note":"the number is less than −9,007,199,254,740,991","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303062227d0a","n":44,"result":"valid","rev":"v1","values":{"line-object":{"a":"\u000b"}}}
+{"group":"read-line","input":"7b2261223a22f09f9880227d0a","n":45,"result":"valid","rev":"v1","values":{"line-object":{"a":"😀"}}}
+{"group":"read-line","input":"7b22f09f9880223a322c22ee8080223a317d0a","n":46,"result":"valid","rev":"v1","values":{"line-object":{"😀":2,"":1}}}
+{"group":"read-line","input":"7b22ee8080223a312c22f09f9880223a327d0a","n":47,"note":"the keys are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2262223a312c2261223a327d0a","n":48,"note":"the keys are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a5b7b2262223a312c2261223a327d5d7d0a","n":49,"note":"the keys of a flat object are not in key order","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a312c2261223a317d0a","n":50,"note":"an object holds no key twice","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a5b7b2262223a312c2262223a327d5d7d0a","n":51,"note":"an object holds no key twice","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a322c2262223a317d","n":52,"note":"the byte sequence does not end with 0x0A","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a322c2262223a317d0d0a","n":53,"note":"the byte 0x0D stands before the byte 0x0A","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a327d0a7b2262223a317d0a","n":54,"note":"the byte sequence holds two canonical lines","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"efbbbf7b7d0a","n":55,"note":"the bytes 0xEF, 0xBB, 0xBF stand before `{`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a20327d0a","n":56,"note":"a space stands outside a string","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a312e307d0a","n":57,"note":"`1.0` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a3165327d0a","n":58,"note":"`1e2` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a2d307d0a","n":59,"note":"`-0` is not the canonical form of an integer","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a30317d0a","n":60,"note":"the canonical form of an integer has no leading `0`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a393030373139393235343734303939327d0a","n":61,"note":"the number is greater than 9,007,199,254,740,991","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a6e756c6c7d0a","n":62,"note":"null is not a string, an integer, a boolean, an array, or an object","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a547275657d0a","n":63,"note":"`True` is not the canonical form of a boolean","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303431227d0a","n":64,"note":"the string form of `A` is `A`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c2f227d0a","n":65,"note":"the string form of `/` is `/`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303041227d0a","n":66,"note":"the string form of the line feed is `\\n`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303042227d0a","n":67,"note":"the string form of U+000B is `\\u000b`, and `B` is not a hex digit","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303766227d0a","n":68,"note":"the string form of U+007F is the character U+007F","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c75643833645c7564653030227d0a","n":69,"note":"the string form of U+1F600 is the character U+1F600","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a2209227d0a","n":70,"note":"the string form of the tab is `\\t`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a22ff227d0a","n":71,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a22eda080227d0a","n":72,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"5b315d0a","n":73,"note":"the JSON value is not an object","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"2261220a","n":74,"note":"the JSON value is not an object","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a7b2262223a317d7d0a","n":75,"note":"the value of `a` is an object","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a5b5b315d5d7d0a","n":76,"note":"the value of `a` is an array that holds an array","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a5b312c7b2262223a317d5d7d0a","n":77,"note":"the value of `a` mixes a scalar and an object","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a5b7b2262223a5b315d7d5d7d0a","n":78,"note":"`{\"b\":[1]}` is not a flat object","result":"invalid","rev":"v1","values":{}}
+{"group":"write-json","input":"1.0","n":79,"note":"the JSON number `1.0` writes the whole number 1, so it gives the integer 1","rev":"v1","values":{"canonical-byte-sequence":"31"}}
+{"group":"write-json","input":"\"\\ud800\"","n":80,"note":"the escape sequence `\\ud800` is not one of the two escape sequences of a character, so the string is not a text","rev":"v1","values":{}}
+{"group":"read-json","input":"7b2261223a317d","n":81,"result":"valid","rev":"v1","values":{"json-value":{"a":1}}}
+{"group":"read-json","input":"7b20226222203a205b312c20325d202c092261223a74727565207d0d0a","n":82,"note":"spaces, a tab, a carriage return, and a line feed stand around values and around `:` and `,`, and the members do not stand in key order","result":"valid","rev":"v1","values":{"json-value":{"a":true,"b":[1,2]}}}
+{"group":"read-json","input":"7b2261223a317d0a","n":83,"note":"the final line feed is whitespace of the JSON text","result":"valid","rev":"v1","values":{"json-value":{"a":1}}}
+{"group":"read-json","input":"227822","n":84,"note":"the value of the JSON text is a string","result":"valid","rev":"v1","values":{"json-value":"x"}}
+{"group":"read-json","input":"2d3432","n":85,"note":"the value of the JSON text is a number","result":"valid","rev":"v1","values":{"json-value":-42}}
+{"group":"read-json","input":"5b747275652c66616c73652c5b5d5d","n":86,"result":"valid","rev":"v1","values":{"json-value":[true,false,[]]}}
+{"group":"read-json","input":"","n":87,"note":"the empty byte sequence does not match the rule `JSON-text`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b2261223a22ff227d","n":88,"note":"the byte sequence is not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"efbbbf7b7d","n":89,"note":"the text starts with U+FEFF, which the rule `JSON-text` does not allow","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b613a317d","n":90,"note":"a name of a member is not a string","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"5b312c5d","n":91,"note":"a comma stands right before `]`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"312032","n":92,"note":"the text holds two values","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"276127","n":93,"note":"a string of RFC 8259 starts with a quotation mark, not with `'`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"3031","n":94,"note":"a number of RFC 8259 does not start with `0` and then a digit","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"22610122","n":95,"note":"the string holds the character U+0001 with no escape","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"4e614e","n":96,"note":"`NaN` is not a value of RFC 8259","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"6e756c6c","n":97,"note":"the value of the JSON text is `null`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b2261223a6e756c6c7d","n":98,"note":"the value of the member `a` is `null`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"5b312c6e756c6c5d","n":99,"note":"an element of the array is `null`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"312e30","n":100,"note":"the number has a fraction","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"316532","n":101,"note":"the number has an exponent","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"302e35","n":102,"note":"the number has a fraction","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"2d30","n":103,"note":"the number `-0` writes the whole number 0","result":"valid","rev":"v1","values":{"json-value":0}}
+{"group":"read-json","input":"39303037313939323534373430393931","n":104,"note":"the number writes 2^53 − 1","result":"valid","rev":"v1","values":{"json-value":9007199254740991}}
+{"group":"read-json","input":"2d39303037313939323534373430393931","n":105,"note":"the number writes −(2^53 − 1)","result":"valid","rev":"v1","values":{"json-value":-9007199254740991}}
+{"group":"read-json","input":"39303037313939323534373430393932","n":106,"note":"the number writes 2^53, which is greater than 2^53 − 1","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"2d39303037313939323534373430393932","n":107,"note":"the number writes −2^53, which is less than −(2^53 − 1)","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c75643833645c756465303022","n":108,"note":"the two escape sequences write the two UTF-16 code units of U+1F600","result":"valid","rev":"v1","values":{"json-value":"😀"}}
+{"group":"read-json","input":"225c756438303022","n":109,"note":"the escape sequence `\\ud800` is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c756463303022","n":110,"note":"the escape sequence `\\udc00` is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c75646530305c756438336422","n":111,"note":"the escape sequence `\\ude00` comes before the escape sequence `\\ud83d`, so the two do not write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b225c7564383030223a317d","n":112,"note":"the escape sequence `\\ud800` in the name is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c75303034315c2f5c6e5c745c225c5c22","n":113,"note":"the escape sequences stand for `A`, `/`, a line feed, a tab, `\"`, and `\\`","result":"valid","rev":"v1","values":{"json-value":"A/\n\t\"\\"}}
+{"group":"read-json","input":"225c753030653920c3a922","n":114,"note":"the escape sequence `\\u00e9` and the two bytes 0xC3, 0xA9 both stand for U+00E9","result":"valid","rev":"v1","values":{"json-value":"é é"}}
+{"group":"read-json","input":"7b2261223a312c2261223a327d","n":115,"note":"two names stand for the text `a`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b2261223a312c225c7530303631223a327d","n":116,"note":"the names `\"a\"` and `\"\\u0061\"` both stand for the text `a`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b22c3a9223a312c2265cc81223a327d","n":117,"note":"the names stand for two different texts: U+00E9, and `e` then U+0301","result":"valid","rev":"v1","values":{"json-value":{"é":2,"é":1}}}
+{"group":"read-json","input":"5b7b2261223a312c2261223a317d5d","n":118,"note":"two names of the object in the array stand for the text `a`, and their values are the same","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d","n":119,"note":"the arrays stand 200 deep, and the JSON value of a byte sequence has no limit on depth","result":"valid","rev":"v1","values":{"json-value":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}}
+{"group":"read-json","input":"225c753030303022","n":120,"note":"the string holds U+0000","result":"valid","rev":"v1","values":{"json-value":"\u0000"}}
+{"group":"read-json","input":"225c75643830304122","n":121,"note":"the escape sequence `\\ud800` comes right before `A`, not before an escape sequence of a number from 0xDC00 to 0xDFFF","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c75643830305c75643830305c756463303022","n":122,"note":"the first escape sequence `\\ud800` comes right before another escape sequence `\\ud800`, so it is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"7b2261223a312e307d","n":123,"note":"the number of the member `a` has a fraction","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"5b225c7564633030225d","n":124,"note":"the escape sequence `\\udc00` in the element of the array is not one of two that write the UTF-16 code units of one character","result":"invalid","rev":"v1","values":{}}
+{"group":"read-json","input":"225c75443833445c754445303022","n":125,"note":"the escape sequences write their digits in upper case, and they write the two UTF-16 code units of U+1F600","result":"valid","rev":"v1","values":{"json-value":"😀"}}
+{"group":"read-json","input":"22eda08022","n":126,"note":"the bytes 0xED, 0xA0, 0x80 are not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"write-json","input":"1e0","n":127,"note":"the exponent 0 makes the number write the whole number 1","rev":"v1","values":{"canonical-byte-sequence":"31"}}
+{"group":"write-json","input":"1E+0000000000000000002","n":128,"note":"the exponent +0000000000000000002 is 2, so the number writes the whole number 100","rev":"v1","values":{"canonical-byte-sequence":"313030"}}
+{"group":"write-json","input":"\"\\udc00\\udc00\"","n":129,"note":"two escape sequences of numbers from 0xDC00 to 0xDFFF are not the two escape sequences of a character","rev":"v1","values":{}}
+{"group":"write-json","input":"\"\\ud800\\ue000\"","n":130,"note":"0xE000 is not from 0xDC00 to 0xDFFF, so the escape sequence `\\ud800` is not one of the two escape sequences of a character","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303039227d0a","n":131,"note":"the string form of the tab is `\\t`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303061227d0a","n":132,"note":"the string form of the line feed is `\\n`","result":"invalid","rev":"v1","values":{}}
+{"group":"read-line","input":"7b2261223a225c7530303161227d0a","n":133,"note":"the string form of U+001A is `\\u001a`","result":"valid","rev":"v1","values":{"line-object":{"a":"\u001a"}}}
