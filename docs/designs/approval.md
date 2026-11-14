@@ -29,13 +29,14 @@ and the name of its declared item, such as `req:billing#limit`, and its
 revised content by an extent hash. Each `approval` or `decline` ledger
 entry also has the field `saw`, which names the kind of the latest
 earlier `approval` or `decline` ledger entry of the same subject text
-and hash that the writer of this ledger entry saw, or `none`. A program
-records `approval` or `decline` in `saw` only when it gave the person
-that ledger entry before the person confirmed (requirement
+and hash that the program gave the person whose decision the new ledger
+entry records, or `none`. A program records `approval` or `decline` in
+`saw` only when it gave that person the earlier ledger entry that `saw`
+names before the person confirmed (requirement
 `record-seen-judgments`). Such a ledger entry is accepted at a point
 only when its `saw` is the kind of the latest earlier `approval` or
 `decline` ledger entry of the same subject text and hash that counts at
-its own index, or `none` when there is none.
+the index where it stands, or `none` when there is none.
 
 From the Ontology (`ontology`), the design takes subjects of approval,
 their five kinds, their declared items, and when two of them are the
@@ -81,7 +82,8 @@ the form of `@ack` lines with its production `subject`, the parameter
 conforming program of Identifiers gives. From Files and paths (`files`),
 it takes valid paths. From Data forms (`data-forms`), it takes JSON
 values with their objects, members, and strings; canonical byte
-sequences; the hash form; and test-vector sets: the file that holds the
+sequences; the index of an element of a finite sequence; the hash form;
+and test-vector sets: the file that holds the
 conformance vectors of the design is one. From Text and notation
 (`text`), it takes texts, code point order, the notation of productions,
 and what a conforming program, an input, and a result are.
@@ -114,8 +116,8 @@ text.
 | [fields of an `approval` or `decline` ledger entry](sinter:#judgment-field=v1) | `subject`, a subject text; `hash`, a text of the hash form; `saw`, one of `none`, `approval`, and `decline`; and, for a decline only, the optional `reason`, a string |
 | [malformed](sinter:#judgment-acceptance-rule=v1) | of a ledger entry of the kind `approval` or `decline`: its object lacks one of the members `subject`, `hash`, and `saw`, or it holds one of them with a value that does not have the form of that field |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [index in a ledger](sinter:#judgment-acceptance-rule=v1), [point of an index](sinter:#judgment-acceptance-rule=v1) | the number, counted from 1, of an element of the sequence of a ledger, so that one ledger entry can stand at two indexes; the point of the index k is the point of the first k − 1 ledger entries |
-| [count at an index](sinter:#judgment-acceptance-rule=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
+| [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger, so that one ledger entry can stand at two indexes; the point of the index k is the point of the first k − 1 ledger entries |
+| [count at an index](sinter:#ledger-index=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which a ledger entry of the kind `approval` or `decline` with the values of `subject` and `hash` of E counts, or none |
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when E is not malformed, its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
 | [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: the ledger entry at the greatest index before the point at which a ledger entry of the kind `approval` or `decline` that names the subject text and the extent hash that the subject of approval has in the tree counts, or none |
@@ -124,7 +126,7 @@ text.
 | [has merged](sinter:#merged-content=v1) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, the revised content of a subject of approval in a tree has merged into the default branch of a git repository when the default branch of that git repository has a commit, and the tree of a commit of the first-parent line of that commit gives the same subject of approval the same extent hash |
 | [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree, at a point of the ledger of a git repository, under the bindings of the parameters |
 | [in force](sinter:ontology#in-force-item=v1) | a declared item is in force in a tree, at a point of a ledger, when it is not retired there: when it still applies |
-| [in force under the bindings](sinter:#in-force-state=v1) | the Ontology's "in force", read with the states approved and declined that the term `subject-state` gives and under the bindings of the parameters; it is not a second meaning of "in force" |
+| [in force under the bindings](sinter:#bound-in-force-item=v1) | in force as the term `ontology#in-force-item` gives it, where the state approved of the source of each `supersedes` edge follows from the states that the term `subject-state` gives, and where each status tag and each edge is read under the bindings of `file-readers` and `external-namespaces` |
 | [subject order](sinter:#subject-order=v1) | the order of the subjects of approval of a tree by the valid paths of the files of their declared items, and then by the positions of their declarations |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
@@ -175,10 +177,11 @@ person approved or declined, that approval or decline decides the state
 again.
 
 The field `saw` names the kind of the `approval` or `decline` ledger
-entry of the same subject text and hash that the writer of this ledger
-entry saw as the latest, or `none` when that writer saw none. A program
-records `approval` or `decline` in `saw` only when it gave the person
-that ledger entry before the person confirmed (requirement
+entry of the same subject text and hash that the program gave, as the
+latest, to the person whose decision this ledger entry records, or
+`none` when it gave that person none. A program records `approval` or
+`decline` in `saw` only when it gave that person the earlier ledger
+entry that `saw` names before the person confirmed (requirement
 `record-seen-judgments`). The field `reason` of a decline holds the
 reason that the person gave. No state and no acceptance depends on the
 member `reason`, whatever its value.
@@ -194,16 +197,19 @@ approval, is malformed.
 Each kind of ledger entry that a program appends has an acceptance rule
 (term `ledger#accepted-entry`). The term
 `judgment-acceptance-rule` gives the rule of the kinds `approval` and
-`decline`. It reads only the ledger entries before the point, never a
-tree, a binding, or a commit. A program appends a ledger entry only at a
-point at which it is accepted. So the `saw` of an `approval` or
+`decline`. It reads only the ledger entry itself and the ledger entries
+before the point, never a tree, a binding, or a commit. A program
+appends a ledger entry only at a point at which it is accepted. So the
+`saw` of an `approval` or
 `decline` ledger entry that a program appends is the kind of the latest
 earlier `approval` or `decline` ledger entry of the same subject text
-and hash that counts at its index, at the end of the ledger of its
-clone, or `none`. The rule compares `saw` only with the kind of that
-ledger entry. The indexes of a ledger, and not the ledger entries
-alone, carry the rule: when one ledger entry stands at two indexes, each
-index has its own point (term `judgment-acceptance-rule`).
+and hash that counts at the index where it stands, at the end of the
+ledger of its clone, or `none`. The rule compares `saw` only with the
+kind of that ledger entry. The indexes of a ledger, and not the ledger
+entries alone, carry the rule: when one ledger entry stands at two
+indexes, each index has its own point (term `ledger-index`). Whether
+the ledger entry at each index counts there follows from the ledger
+entries at the indexes before it, in the order of the ledger.
 
 These cases show the rule. In each, X is one subject text and one hash.
 
@@ -219,7 +225,7 @@ These cases show the rule. In each, X is one subject text and one hash.
    second approval is not accepted at its point. An approval with `saw`
    `approval` is never accepted either. So no accepted approval of X has
    an approval as the latest earlier `approval` or `decline` ledger
-   entry of X that counts at its index.
+   entry of X that counts at the index where it stands.
 4. A person declines X twice, with two reasons. The second decline has
    `saw` `decline`, and it is accepted.
 5. A person approves X, and later declines it. The decline has `saw`
@@ -230,17 +236,16 @@ These cases show the rule. In each, X is one subject text and one hash.
    decline D2 of X with `saw` `decline` and pushes it. A pulls: D2
    comes before the approval, which is accepted at its new point,
    because its `saw` is the kind of D2. So an approval can stand after
-   a decline that its writer did not see, when its writer saw another
-   decline of X.
+   a decline that the program did not give the person, when it gave
+   that person another decline of X.
 
-Only an `approval` or `decline` ledger entry that counts at its index
-counts for a state (term `latest-judgment`). So such a ledger entry
-that is not accepted at the point of its index, such as a repeated
-approval that a program that does not conform appended, decides no
-state. When
-a repair removes an `approval` or `decline` ledger entry, each later one
-of the same subject text and hash is accepted, or not, by the ledger
-entries that remain before it.
+Only an `approval` or `decline` ledger entry that counts at the index
+where it stands can decide a state (term `latest-judgment`). So such a
+ledger entry that is not accepted at the point of its index, such as a
+repeated approval that a program that does not conform appended,
+decides no state. When a repair removes an `approval` or `decline`
+ledger entry, each later one of the same subject text and hash is
+accepted, or not, by the ledger entries that remain before it.
 
 ### 2.4 The latest judgment and the states
 
@@ -266,11 +271,11 @@ same ledger entry can decide the state.
 Only `seq` orders `approval` and `decline` ledger entries, because it
 gives the order of the ledger. The writer, the person, the branch, and
 the time of a ledger entry change no state (requirement
-`ontology#treat-ledger-entries-alike`), so an approval counts for a
+`ontology#treat-ledger-entries-alike`), so an approval can decide a
 state whatever person it records. The `approval` and `decline` ledger
-entries that a pull brought from another clone count for a state as
-those of the clone itself do. One that a clone holds and for which its
-shared clone does not account counts for a state in that clone.
+entries that a pull brought from another clone decide states as those
+of the clone itself do. One that a clone holds and for which its shared
+clone does not account can decide a state in that clone.
 
 ### 2.5 Merges
 
@@ -335,9 +340,10 @@ is a subject text, such as `req:billing#limit`. A subject text matches
 the production `subject` of the term `identifiers#ack-line`, and it
 holds no line feed, so it is a subject of a finding (term
 `findings#finding-subject`). Each of the three classes reports only a
-subject of approval, or an item of the kind requirement, that is in
-force under the bindings (term `in-force-state`), so a retired item
-gives no finding of these classes. A subject of approval that is
+subject of approval whose declared item is in force under the bindings,
+or an edge whose cited item of the kind requirement is in force under
+the bindings (term `bound-in-force-item`), so a retired item gives no
+finding of these classes. A subject of approval that is
 declined gives no finding of the class `awaiting-approval`. Two subjects
 of approval of one tree whose declared items have the same kind of item
 and the same name have the same subject text, so they give at most one
@@ -429,35 +435,46 @@ with these values:
   declined;
 - `saw`, one of the strings `none`, `approval`, and `decline`: the kind
   of the ledger entry of the kind `approval` or `decline` with the same
-  values of `subject` and `hash` that the writer of this ledger entry
-  saw as the latest, or `none` when that writer saw none.
+  values of `subject` and `hash` that the program gave, as the latest,
+  to the person whose decision this ledger entry records, or `none` when
+  it gave that person none.
 
 A ledger entry of the kind `decline` can also have the field `reason`, a
 string: the reason that the person gave.
 
-### 4.4 The acceptance rule of `approval` and `decline` ledger entries
+### 4.4 Indexes in a ledger
+
+@term ledger-index=v1
+@cites {
+    ledger#{accepted-entry=v1},
+    ontology#{ledger=v1, ledger-entry=v1},
+    data-forms#{index=v1},
+    text#{code-span=v1, whole-number=v1},
+}
+
+An index in a ledger is the index of an element of the sequence of the
+ledger, so one ledger entry can stand at two indexes. The point of the
+index k is the point of the first k − 1 ledger entries, and the indexes
+before the point of the first n ledger entries are the indexes 1 to n.
+The ledger entry at the index k counts at that index when, and only
+when, it is of the kind `approval` or `decline` and is accepted at the
+point of the index k.
+
+### 4.5 The acceptance rule of `approval` and `decline` ledger entries
 
 @term judgment-acceptance-rule=v1
 @cites {
     ledger#{accepted-entry=v1},
     ontology#{ledger=v1, ledger-entry=v1},
-    data-forms#{json-value=v1, index=v1},
+    data-forms#{json-value=v1},
     text#{code-span=v1},
-    #{judgment-field=v1},
+    #{judgment-field=v1, ledger-index=v1},
 }
 
 A ledger entry of the kind `approval` or `decline` is malformed when,
 and only when, its object lacks one of the members `subject`, `hash`,
 and `saw`, or holds one of them with a value that does not have the
 form that the term `judgment-field` gives for that field.
-
-An index in a ledger is the index of an element of the sequence of the
-ledger, so one ledger entry can stand at two indexes. The point of the
-index k is the point of the first k − 1 ledger entries, and the indexes
-before the point of the first n ledger entries are the indexes 1 to n.
-The ledger entry at the index k counts at that index when it is of the
-kind `approval` or `decline` and is accepted at the point of the index
-k.
 
 The rule is for a ledger entry E of the kind `approval` or `decline` and
 a point P of a ledger such that P is the point of an index of E in that
@@ -466,7 +483,8 @@ to which a program appends E. For such E and P, the judgment before E at
 P is the ledger entry at the greatest index before P at which the
 ledger entry counts and has, as its values of `subject` and `hash`, the
 values of `subject` and `hash` of E; E has no judgment before it at P
-when no index before P is such. The acceptance rule of the kinds
+when no index before P is such. The judgment before E is of the kind
+`approval` or `decline`. The acceptance rule of the kinds
 `approval` and `decline` holds for such E at P when, and only when, each
 of these is true:
 
@@ -476,11 +494,7 @@ of these is true:
 3. When E is of the kind `approval`, the value of `saw` of E is not
    `approval`.
 
-The rule reads only the ledger entries before P. So whether the ledger
-entry at each index counts there follows from the ledger entries at the
-indexes before it, in the order of the ledger.
-
-### 4.5 Latest judgments
+### 4.6 Latest judgments
 
 @term latest-judgment=v1
 @cites {
@@ -491,7 +505,7 @@ indexes before it, in the order of the ledger.
     identifiers#{binding=v1},
     documents#{extent-hash=v1, file-reader-binding=v1},
     text#{code-span=v1},
-    #{subject-text=v1, judgment-field=v1, judgment-acceptance-rule=v1},
+    #{subject-text=v1, judgment-field=v1, ledger-index=v1},
 }
 
 For a subject of approval S of a tree T, a binding F of `file-readers`,
@@ -502,7 +516,7 @@ greatest index before P at which the ledger entry counts, whose value of
 the extent hash of the declared item of S in T under F and N. S has no
 latest judgment at P under F and N when no index before P is such.
 
-### 4.6 The rule for merges
+### 4.7 The rule for merges
 
 @term merged-content=v1
 @cites {
@@ -528,7 +542,7 @@ under F and N. When the default branch of R has no commit under D, the
 revised content of no subject of approval has merged into it under D,
 F, and N.
 
-### 4.7 The states of subjects of approval
+### 4.8 The states of subjects of approval
 
 @term subject-state=v1
 @cites {
@@ -564,13 +578,14 @@ approved and declined of S in T at P that the term
 `ontology#approval-state` names. A subject of approval that is neither
 is neither approved nor declined.
 
-### 4.8 In force under the bindings
+### 4.9 In force under the bindings
 
-@term in-force-state=v1
+@term bound-in-force-item=v1
 @cites {
     ontology#{
-        declared-item=v1, in-force-item=v1, approval-state=v1, edge=v1,
-        tree=v1, ledger=v1,
+        declared-item=v1, in-force-item=v1, retired-item=v1,
+        effective-supersedes-edge=v1, supersedes-edge=v1,
+        approval-state=v1, edge=v1, tree=v1, ledger=v1,
     },
     identifiers#{binding=v1, status-tag=v1},
     changes#{default-branch-commit=v1},
@@ -585,13 +600,14 @@ For a git repository R, a binding A of `approval-kinds`, a binding D of
 `external-namespaces`, a tree T, and a point P of the ledger of R, a
 declared item of T is in force in T at P under A, D, F, and N when, and
 only when, it is in force in T at P (term `ontology#in-force-item`),
-where each state approved of a declared item on which in force depends
-follows, by the term `ontology#approval-state`, from the states that
-the term `subject-state` gives for R under A, D, F, and N, and where
-each status tag and each edge on which in force depends is read under F
-and N.
+where the state approved of the source of each `supersedes` edge, which
+the terms `ontology#effective-supersedes-edge` and
+`ontology#retired-item` read, follows, by the term
+`ontology#approval-state`, from the states that the term
+`subject-state` gives for R under A, D, F, and N, and where each status
+tag and each edge that these terms read is read under F and N.
 
-### 4.9 The subject order
+### 4.10 The subject order
 
 @term subject-order=v1
 @cites {
@@ -610,7 +626,7 @@ the origin position of the text of the declaration of its declared item
 comes before the origin position of the text of the declaration of the
 declared item of the other in the order of positions.
 
-### 4.10 Findings of the class `declined`
+### 4.11 Findings of the class `declined`
 
 @term declined-finding=v1
 @cites {
@@ -628,7 +644,7 @@ declared item of the other in the order of positions.
     text#{code-span=v1},
     #{
         approval-binding=v1, subject-text=v1, subject-state=v1,
-        in-force-state=v1, subject-order=v1,
+        bound-in-force-item=v1, subject-order=v1,
     },
 }
 
@@ -644,7 +660,7 @@ is the spot of the run of the text of the declaration of the declared
 item of the first subject of approval of T whose subject text is t, in
 the subject order, in the text of the file of that declared item.
 
-### 4.11 Findings of the class `awaiting-approval`
+### 4.12 Findings of the class `awaiting-approval`
 
 @term awaiting-approval-finding=v1
 @cites {
@@ -662,7 +678,7 @@ the subject order, in the text of the file of that declared item.
     text#{code-span=v1},
     #{
         approval-binding=v1, subject-text=v1, subject-state=v1,
-        in-force-state=v1, subject-order=v1,
+        bound-in-force-item=v1, subject-order=v1,
     },
 }
 
@@ -682,7 +698,7 @@ declaration of the declared item of the first subject of approval of T
 whose subject text is t, in the subject order, in the text of the file
 of that declared item.
 
-### 4.12 Findings of the class `unapproved-req`
+### 4.13 Findings of the class `unapproved-req`
 
 @term unapproved-req-finding=v1
 @cites {
@@ -699,7 +715,7 @@ of that declared item.
     changes#{default-branch-commit=v1},
     ledger#{stored-ledger=v1},
     text#{code-span=v1},
-    #{approval-binding=v1, subject-state=v1, in-force-state=v1},
+    #{approval-binding=v1, subject-state=v1, bound-in-force-item=v1},
 }
 
 For a git repository R, a binding A of `approval-kinds`, a binding D of
@@ -709,8 +725,8 @@ at P under A, D, F, and N, one tree finding of the class
 `unapproved-req` for each edge of T of the kind `satisfies` or
 `verifies` that says what its kind of edge says, and whose cited item is
 an item of the kind requirement that is in force in T at P under A, D,
-F, and N, and whose subject of approval needs approval under A and is
-not approved in T at P under A, D, F, and N. Its subject
+F, and N, such that its subject of approval needs approval under A and
+is not approved in T at P under A, D, F, and N. Its subject
 is the position subject of the origin position of the citation entry of
 the edge. Its spot is the spot of the run of that citation entry in the
 text of the file of the edge.
@@ -746,9 +762,8 @@ when, and only when, it is declined there.
 @cites {
     ledger#{accepted-entry=v1},
     ontology#{ledger=v1, ledger-entry=v1},
-    data-forms#{index=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{judgment-acceptance-rule=v1},
+    #{ledger-index=v1, judgment-acceptance-rule=v1},
 }
 
 When a conforming program gives whether a ledger entry of the kind
@@ -793,7 +808,8 @@ A conforming program must append a ledger entry of the kind `approval`
 or `decline` whose value of `saw` is `approval` or `decline` only when,
 before the person whose decision that ledger entry records confirmed the
 decision, the program gave that person the judgment before that ledger
-entry at the point at which the program appends it.
+entry, of the kind `approval` or `decline`, at the point at which the
+program appends it.
 
 ### 5.5 No state under bindings that are not valid
 
@@ -977,7 +993,7 @@ accepted at its point, it gives "accepted" when the element of
 `accepted` for it is `true`, and "not accepted" when it is `false`.
 
 ```
-{"group":"acceptance","input":{"ledger":[{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"decline","saw":"none","subject":"req:billing#limit"},{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"approval","saw":"none","subject":"req:billing#limit"}]},"n":3,"note":"an approval after a decline that its writer did not see is not accepted","rev":"v1","values":{"accepted":[true,false]}}
+{"group":"acceptance","input":{"ledger":[{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"decline","saw":"none","subject":"req:billing#limit"},{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","kind":"approval","saw":"none","subject":"req:billing#limit"}]},"n":3,"note":"an approval after a decline that the person was not given is not accepted","rev":"v1","values":{"accepted":[true,false]}}
 ```
 
 ### 6.2 Findings
@@ -985,20 +1001,21 @@ accepted at its point, it gives "accepted" when the element of
 The group `findings` holds the vectors of the requirement
 `give-approval-findings`. Each vector gives the subjects of approval of
 a tree with their states, whether their declared items are in force,
-and the edges of the tree, and it gives the findings of the three
-classes of the tree at a point of a ledger, by their subjects.
+and the edges of the tree, each with whether its cited item of the kind
+requirement is in force, and it gives the findings of the three classes
+of the tree at a point of a ledger, by their subjects.
 
 - `input`: a JSON object with three members. `binding` is a binding of
   `approval-kinds`. `subjects` is the subjects of approval of the tree,
   as a sequence, each a JSON object with three members: `subject`, its
   subject text; `state`, its state in the tree at the point under the
   bindings, one of the JSON strings `"approved"`, `"declined"`, and
-  `"neither"`; and `in-force`, `true` when its declared item is in force
-  in the tree at the point under the bindings (term `in-force-state`),
-  and `false` when it is not. `edges` is the
-  edges of the tree, as a sequence, each a JSON object with these
-  members: `kind`, its kind of edge, a text; `fits`, `true` when the
-  edge says what its kind of edge says, and `false` when it does not;
+`"neither"`; and `in-force`, `true` when its declared item is in force
+in the tree at the point under the bindings (term
+`bound-in-force-item`), and `false` when it is not. `edges` is the edges
+of the tree, as a sequence, each a JSON object with these members:
+`kind`, its kind of edge, a text; `fits`, `true` when the edge says what
+its kind of edge says, and `false` when it does not;
   `at`, the position subject of the origin position of its citation
   entry or of its inline citation (an inline citation gives only edges
   of the kind `cites`); and, when its cited item is an item of the
@@ -1007,7 +1024,7 @@ classes of the tree at a point of a ledger, by their subjects.
   number written as the decimal numeral of a whole number of 1 or more,
   counted from 1; and `in-force`, `true` when that item of the kind
   requirement is in force in the tree at the point under the bindings
-  (term `in-force-state`), and `false` when it is not.
+  (term `bound-in-force-item`), and `false` when it is not.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `findings`: a JSON object
   with three members, `awaiting-approval`, `declined`, and
