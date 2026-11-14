@@ -83,6 +83,7 @@ let () =
       ("ledger lines", Test_ledger_lines.tests);
       ("ledger trees", Test_ledger_trees.tests);
       ("ledger histories", Test_ledger_histories.tests);
+      ("ledger sync", Test_ledger_sync.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);

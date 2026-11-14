@@ -47,6 +47,7 @@
   sinter_tree_items
   sinter_ledger_lines
   sinter_ledger_trees
+  sinter_ledger_sync
   digestif.c
   git_fixture
   sinter_bench
