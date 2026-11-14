@@ -458,7 +458,7 @@ is a folder, the files of the folder tree whose root is that folder.
 @term git-configuration=v1
 @cites {
     gitdoc/git-config,
-    text#{code-span=v1},
+    text#{code-span=v1, byte=v1, 0x-numeral=v1},
     #{git-folder=v1, working-tree=v1},
 }
 
@@ -475,6 +475,11 @@ include, in the order that the page gives, and with these rules:
 2. The set holds the settings of the configuration files of the git
    repository whatever the owner of the git repository and whatever the
    setting `safe.directory`.
+3. In each file from which the set takes settings, a byte 0x0D right
+   before a byte 0x0A ends a line together with that byte 0x0A, and the
+   bytes 0xEF, 0xBB, and 0xBF are part of no line when they are the
+   first three bytes of the file. Each other byte of the file is in the
+   lines of the file as the page git-config gives them.
 
 The git configuration of a git repository is the set of the settings
 that these files and variables hold in the same way, by the same rules,
