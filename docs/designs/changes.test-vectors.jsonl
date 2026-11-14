@@ -1,0 +1,199 @@
+{"rev":"v1"}
+{"group":"branch-names","rev":"v1"}
+{"group":"change-diffs","rev":"v1"}
+{"group":"changes","rev":"v1"}
+{"group":"commit-files","rev":"v1"}
+{"group":"default-branch-commits","rev":"v1"}
+{"group":"head-commits","rev":"v1"}
+{"group":"hunks","rev":"v1"}
+{"group":"landing-commits","rev":"v1"}
+{"group":"message-texts","rev":"v1"}
+{"group":"parents","rev":"v1"}
+{"group":"ranges","rev":"v1"}
+{"group":"reach","rev":"v1"}
+{"group":"ref-commits","rev":"v1"}
+{"group":"working-tree-files","rev":"v1"}
+{"group":"branch-names","input":"main","n":1,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"feature/x","n":2,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"release/2.0","n":3,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"@","n":4,"note":"only the whole ref name `@` is refused, and `refs/heads/@` is not `@`","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a@b","n":5,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a{b","n":6,"note":"`@{` is refused, and `{` alone is not","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"été","n":7,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a b","n":8,"note":"U+00A0 is not a space","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"HEAD","n":9,"note":"condition 7","result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"-x","n":10,"note":"condition 7","result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a]b","n":11,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a.lockx","n":12,"note":"only a part that ends with `.lock` is refused","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a./b","n":13,"note":"only the end of the whole text is checked for `.`","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"refs","n":14,"note":"the text does not start with `refs/`","result":"valid","rev":"v1"}
+{"group":"branch-names","input":"","n":15,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"/a","n":16,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a/","n":17,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a//b","n":18,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":".a","n":19,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a/.b","n":20,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a.lock","n":21,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a/b.lock","n":22,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"x.lock/y","n":23,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a..b","n":24,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a@{b","n":25,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a.","n":26,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a/b.","n":27,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a\tb","n":28,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"ab","n":29,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a\u0001b","n":30,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a b","n":31,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a~b","n":32,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a^b","n":33,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a:b","n":34,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a?b","n":35,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a*b","n":36,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a[b","n":37,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"a\\b","n":38,"result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"refs/heads/main","n":39,"note":"condition 8","result":"invalid","rev":"v1"}
+{"group":"branch-names","input":"refs/x","n":40,"note":"condition 8","result":"invalid","rev":"v1"}
+{"group":"default-branch-commits","input":{"binding":"main","local":"l","remote":"r","upstream":"u"},"n":41,"note":"the upstream comes first","rev":"v1","values":{"commit":"u"}}
+{"group":"default-branch-commits","input":{"binding":"main","local":"l","remote":"r"},"n":42,"note":"the local branch has no upstream","rev":"v1","values":{"commit":"l"}}
+{"group":"default-branch-commits","input":{"binding":"main","remote":"r"},"n":43,"note":"a clone with no local branch `main`","rev":"v1","values":{"commit":"r"}}
+{"group":"default-branch-commits","input":{"binding":"main","upstream":"u"},"n":44,"rev":"v1","values":{"commit":"u"}}
+{"group":"default-branch-commits","input":{"binding":"main","local":"l"},"n":45,"rev":"v1","values":{"commit":"l"}}
+{"group":"default-branch-commits","input":{"binding":"main"},"n":46,"note":"none of the three refs exists","rev":"v1","values":{}}
+{"group":"default-branch-commits","input":{"binding":"release/2.0","local":"l","remote":"r"},"n":47,"rev":"v1","values":{"commit":"l"}}
+{"group":"default-branch-commits","input":{"binding":"a..b"},"n":48,"note":"the binding is not a branch name","rev":"v1","values":{}}
+{"group":"default-branch-commits","input":{"binding":"refs/heads/main","local":"l"},"n":49,"note":"the binding is not a branch name","rev":"v1","values":{}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"c","to":"e"},"n":50,"note":"the change of `e` while the default branch points to `c`","rev":"v1","values":{"order":["d","e"]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"b","to":"g"},"n":51,"note":"the walk from `g` takes the first parent `c` of `f` before its second parent `e`","rev":"v1","values":{"order":["c","d","e","f","g"]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"to":"e"},"n":52,"note":"the range from no commit is the ancestry","rev":"v1","values":{"order":["a","b","d","e"]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"g","to":"e"},"n":53,"note":"`g` reaches `e`, so the range is empty","rev":"v1","values":{"order":[]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"e","to":"g"},"n":54,"rev":"v1","values":{"order":["c","f","g"]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"e","to":"e"},"n":55,"rev":"v1","values":{"order":[]}}
+{"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"to":"a"},"n":56,"rev":"v1","values":{"order":["a"]}}
+{"group":"ranges","input":{"commits":{"base":[],"m":["x","y"],"x":["base"],"y":["base"]},"from":"base","to":"m"},"n":57,"note":"the first parent `x` comes first","rev":"v1","values":{"order":["x","y","m"]}}
+{"group":"ranges","input":{"commits":{"base":[],"m":["y","x"],"x":["base"],"y":["base"]},"from":"base","to":"m"},"n":58,"note":"the first parent `y` comes first","rev":"v1","values":{"order":["y","x","m"]}}
+{"group":"ranges","input":{"commits":{"o":["p","q","s"],"p":["r"],"q":["r"],"r":[],"s":["r"]},"to":"o"},"n":59,"note":"the parents of `o` in their order","rev":"v1","values":{"order":["r","p","q","s","o"]}}
+{"group":"ranges","input":{"commits":{"m":["q","s"],"n":["m"],"p":["r"],"q":["p"],"r":[],"s":["r"]},"to":"n"},"n":60,"note":"`r` comes once, before `p`, and `s` comes after `q`","rev":"v1","values":{"order":["r","p","q","s","m","n"]}}
+{"group":"ranges","input":{"commits":{"m":["q","s"],"n":["m"],"p":["r"],"q":["p"],"r":[],"s":["r"]},"from":"s","to":"n"},"n":61,"rev":"v1","values":{"order":["p","q","m","n"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"e"},"n":62,"note":"the example of section 2.4","rev":"v1","values":{"base":"b","change":["d","e"],"merge-bases":["b"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"e","last":"c"},"n":63,"rev":"v1","values":{"base":"b","change":["c"],"merge-bases":["b"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"g","last":"e"},"n":64,"note":"the default branch reaches `e`: the change holds no commit, and its base is `e`","rev":"v1","values":{"base":"e","change":[],"merge-bases":["e"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"c"},"n":65,"rev":"v1","values":{"base":"c","change":[],"merge-bases":["c"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"g","last":"a"},"n":66,"rev":"v1","values":{"base":"a","change":[],"merge-bases":["a"]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"g"},"n":67,"rev":"v1","values":{"base":"c","change":["d","e","f","g"],"merge-bases":["c"]}}
+{"group":"changes","input":{"commits":{"x":[],"y":[]},"default":"y","last":"x"},"n":68,"note":"no common ancestor","rev":"v1","values":{"change":["x"],"merge-bases":[]}}
+{"group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1"},"n":69,"note":"merges that cross: two merge bases, so no base","rev":"v1","values":{"change":["m1"],"merge-bases":["b","c"]}}
+{"group":"changes","input":{"commits":{"m":["q","s"],"n":["m"],"p":["r"],"q":["p"],"r":[],"s":["r"]},"default":"s","last":"q"},"n":70,"rev":"v1","values":{"base":"r","change":["p","q"],"merge-bases":["r"]}}
+{"group":"changes","input":{"commits":{"s":[],"t":["s"],"u":["t"],"v":["s"]},"default":"v","last":"u"},"n":71,"note":"`s` stands for a commit of a shallow clone, with no parents","rev":"v1","values":{"base":"s","change":["t","u"],"merge-bases":["s"]}}
+{"group":"landing-commits","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"n":72,"note":"`d` landed on the first-parent line of `g` through the merge commit `f`","rev":"v1","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"f"}}
+{"group":"landing-commits","input":{"commit":"e","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"n":73,"rev":"v1","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"f"}}
+{"group":"landing-commits","input":{"commit":"c","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"n":74,"note":"`c` is on the first-parent line","rev":"v1","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"c"}}
+{"group":"landing-commits","input":{"commit":"g","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"n":75,"rev":"v1","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"g"}}
+{"group":"landing-commits","input":{"commit":"a","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"n":76,"rev":"v1","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"a"}}
+{"group":"landing-commits","input":{"commit":"e","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"f"},"n":77,"rev":"v1","values":{"first-parent-line":["f","c","b","a"],"landing-commit":"f"}}
+{"group":"landing-commits","input":{"commit":"c","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"e"},"n":78,"note":"`e` does not reach `c`","rev":"v1","values":{"first-parent-line":["e","d","b","a"]}}
+{"group":"landing-commits","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"c"},"n":79,"note":"`c` does not reach `d`","rev":"v1","values":{"first-parent-line":["c","b","a"]}}
+{"group":"landing-commits","input":{"commit":"s","commits":{"a":[],"b":["a"],"s":["b"],"t":["b"]},"line-of":"s"},"n":80,"note":"a squash commit is its own landing commit","rev":"v1","values":{"first-parent-line":["s","b","a"],"landing-commit":"s"}}
+{"group":"landing-commits","input":{"commit":"t","commits":{"a":[],"b":["a"],"s":["b"],"t":["b"]},"line-of":"s"},"n":81,"note":"`s` does not reach `t`","rev":"v1","values":{"first-parent-line":["s","b","a"]}}
+{"group":"landing-commits","input":{"commit":"y","commits":{"x":[],"y":["x"],"z":["y"]},"line-of":"z"},"n":82,"note":"after a fast-forward, each commit is on the first-parent line","rev":"v1","values":{"first-parent-line":["z","y","x"],"landing-commit":"y"}}
+{"group":"landing-commits","input":{"commit":"x","commits":{"base":[],"m":["y","x"],"x":["base"],"y":["base"]},"line-of":"m"},"n":83,"note":"`x` is the second parent of `m`","rev":"v1","values":{"first-parent-line":["m","y","base"],"landing-commit":"m"}}
+{"group":"landing-commits","input":{"commit":"s","commits":{"o":["p","q","s"],"p":["r"],"q":["r"],"r":[],"s":["r"]},"line-of":"o"},"n":84,"rev":"v1","values":{"first-parent-line":["o","p","r"],"landing-commit":"o"}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"README.md"}]},"n":85,"rev":"v1","values":{"paths":["README.md"]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"mode":"100755","name":"run"}],"mode":"40000","name":"bin"}]},"n":86,"note":"an executable file","rev":"v1","values":{"paths":["bin/run"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100664","name":"old.md"}]},"n":87,"note":"an old mode of a regular file","rev":"v1","values":{"paths":["old.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a.md"},{"mode":"120000","name":"link"}]},"n":88,"note":"a symbolic link gives no file","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a.md"},{"mode":"160000","name":"lib"}]},"n":89,"note":"a submodule gives no file","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"entries":[{"mode":"100644","name":"a.md"}],"mode":"40000","name":"guide"},{"mode":"100644","name":"b.md"}],"mode":"40000","name":"docs"}]},"n":90,"rev":"v1","values":{"paths":["docs/b.md","docs/guide/a.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":{"bytes":"636166e92e6d64"}},{"mode":"100644","name":"ok.md"}]},"n":91,"note":"a name that is not valid UTF-8","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"mode":"100644","name":"a.md"}],"mode":"40000","name":{"bytes":"64ff"}}]},"n":92,"note":"a folder whose name is not valid UTF-8","rev":"v1","values":{"paths":[]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"mode":"100644","name":"a.md"}],"mode":"40000","name":".."},{"mode":"100644","name":"..."}]},"n":93,"note":"`..` is no file name, and `...` is one","rev":"v1","values":{"paths":["..."]}}
+{"group":"commit-files","input":{"entries":[{"entries":[],"mode":"40000","name":"empty"}]},"n":94,"note":"a git tree object with no entry gives no file","rev":"v1","values":{"paths":[]}}
+{"group":"commit-files","input":{"entries":[]},"n":95,"note":"the git tree object of the commit lists no entry","rev":"v1","values":{"paths":[]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"entries":[],"type":"directory"},"name":"2e676974"},{"file":{"content":[{"bytes":"6275696c642f0a","times":1}],"type":"regular file"},"name":"2e67697469676e6f7265"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"6f75742e6d64"}],"type":"directory"},"name":"6275696c64"},{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"622e6d64"}],"type":"directory"},"name":"646f6373"},{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"2e676974"},{"file":{"content":[],"type":"regular file"},"name":"632e6d64"}],"type":"directory"},"name":"6c6962"},{"file":{"reference":"646f6373","type":"symbolic link"},"name":"6c696e6b"}],"type":"directory"},"ignored":["build/out.md"],"tracked":[".gitignore","a.md","docs/b.md","lib"]},"n":96,"note":"the example of section 2.6","rev":"v1","values":{"paths":[".gitignore","a.md","docs/b.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"content":[],"type":"regular file"},"name":"622e6d64"}],"type":"directory"},"ignored":[],"tracked":["a.md"]},"n":97,"note":"a file that git neither tracks nor ignores","rev":"v1","values":{"paths":["a.md","b.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"content":[],"type":"regular file"},"name":"67656e2e6d64"}],"type":"directory"},"ignored":["gen.md"],"tracked":["a.md","gen.md"]},"n":98,"note":"a tracked file that a pattern matches","rev":"v1","values":{"paths":["a.md","gen.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"content":[],"type":"regular file"},"name":"746d702e6d64"}],"type":"directory"},"ignored":["tmp.md"],"tracked":["a.md"]},"n":99,"note":"an untracked file that git ignores","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"2e676974"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"ignored":[],"tracked":["a.md"]},"n":100,"note":"the file `.git` of a linked working tree","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"entries":[{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"73746f7265"}],"type":"directory"},"name":"7265706f"}],"type":"directory"},"name":"2e6a6a"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"ignored":[],"tracked":["a.md"]},"n":101,"note":"a colocated jj repository","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"entries":[{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"name":"2e6a6a"}],"type":"directory"},"name":"78"}],"type":"directory"},"ignored":[],"tracked":[]},"n":102,"note":"only the folder `.jj` of the root folder","rev":"v1","values":{"paths":["x/.jj/a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"entries":[{"file":{"entries":[],"type":"directory"},"name":"2e676974"},{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"622e6d64"}],"type":"directory"},"name":"737562"}],"type":"directory"},"name":"6e6573746564"}],"type":"directory"},"ignored":[],"tracked":[]},"n":103,"note":"a git repository inside the working tree","rev":"v1","values":{"paths":[]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"entries":[],"type":"directory"},"name":"646972"},{"file":{"type":"FIFO special file"},"name":"6669666f"}],"type":"directory"},"ignored":[],"tracked":[]},"n":104,"note":"only regular files","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"636166e92e6d64"},{"file":{"content":[],"type":"regular file"},"name":"6f6b2e6d64"}],"type":"directory"},"ignored":[],"tracked":["ok.md"]},"n":105,"needs":["non-utf-8-names"],"note":"a name that is not valid UTF-8","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"},{"file":{"reference":"656c73657768657265","type":"symbolic link"},"name":"646f6373"}],"type":"directory"},"ignored":[],"tracked":["a.md","docs/b.md"]},"n":106,"note":"git's index holds `docs/b.md`, and `docs` is now a symbolic link","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"ignored":[],"tracked":["a.md","gone.md"]},"n":107,"note":"a tracked file that a person deleted","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"hunks","input":{"new":"one\n2\nthree\nfour\n","old":"one\ntwo\nthree\n"},"n":108,"note":"the example of section 2.7","rev":"v1","values":{"added":2,"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":1},{"added":1,"new-start":4,"old-start":4,"removed":0}],"map":[[1,1],[3,3]],"removed":1}}
+{"group":"hunks","input":{"new":"x\ny\n"},"n":109,"note":"an added file","rev":"v1","values":{"added":2,"hunks":[{"added":2,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"old":"x\ny\nz\n"},"n":110,"note":"a deleted file","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":3}],"map":[],"removed":3}}
+{"group":"hunks","input":{"new":""},"n":111,"note":"an added empty file","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"old":""},"n":112,"note":"a deleted empty file","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"new":"x\nx\n","old":"x\n"},"n":113,"note":"two line maps: either `x` of the new content stays","rev":"v1","values":{"added":1,"removed":0}}
+{"group":"hunks","input":{"new":"x\n","old":"x\nx\n"},"n":114,"note":"two line maps: either `x` of the old content stays","rev":"v1","values":{"added":0,"removed":1}}
+{"group":"hunks","input":{"new":"b\na\n","old":"a\nb\n"},"n":115,"note":"two line maps: `a` stays, or `b` stays","rev":"v1","values":{"added":1,"removed":1}}
+{"group":"hunks","input":{"new":"a\nb\n","old":"a\r\nb\r\n"},"n":116,"note":"the contents differ only in their line endings, so no line differs","rev":"v1","values":{"added":0,"hunks":[],"map":[[1,1],[2,2]],"removed":0}}
+{"group":"hunks","input":{"new":"a\n","old":"﻿a\n"},"n":117,"note":"the contents differ only in a byte order mark, so no line differs","rev":"v1","values":{"added":0,"hunks":[],"map":[[1,1]],"removed":0}}
+{"group":"hunks","input":{"new":"a\n","old":"a"},"n":118,"note":"the contents differ only in the last line ending, so no line differs","rev":"v1","values":{"added":0,"hunks":[],"map":[[1,1]],"removed":0}}
+{"group":"hunks","input":{"new":"a\n","old":"a\r"},"n":119,"note":"a carriage return with no line feed after it is part of the line","rev":"v1","values":{"added":1,"hunks":[{"added":1,"new-start":1,"old-start":1,"removed":1}],"map":[],"removed":1}}
+{"group":"hunks","input":{"new":{"bytes":"fe"},"old":{"bytes":"ff"}},"n":120,"note":"two contents that are not valid UTF-8","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"new":"x\ny\n","old":{"bytes":"ff"}},"n":121,"note":"the old content is not valid UTF-8, so it has no line texts","rev":"v1","values":{"added":2,"hunks":[{"added":2,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"new":{"bytes":"ff"},"old":"x\ny\n"},"n":122,"rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":2}],"map":[],"removed":2}}
+{"group":"hunks","input":{"new":"same\n","old":"same\n"},"n":123,"note":"the same file in both trees","rev":"v1","values":{"added":0,"hunks":[],"map":[[1,1]],"removed":0}}
+{"group":"hunks","input":{},"n":124,"note":"no file in either tree","rev":"v1","values":{"added":0,"hunks":[],"map":[],"removed":0}}
+{"group":"hunks","input":{"new":"A\n}\n\nC\n}\n\nB\n","old":"A\n}\n\nB\n"},"n":125,"note":"an added block","rev":"v1","values":{"added":3,"removed":0}}
+{"group":"hunks","input":{"new":"A\n}\n\nB\n","old":"A\n}\n\nC\n}\n\nB\n"},"n":126,"note":"a removed block","rev":"v1","values":{"added":0,"removed":3}}
+{"group":"hunks","input":{"new":"a\nB\nc\nD\ne\nf\n","old":"a\nb\nc\nd\ne\n"},"n":127,"rev":"v1","values":{"added":3,"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":1},{"added":1,"new-start":4,"old-start":4,"removed":1},{"added":1,"new-start":6,"old-start":6,"removed":0}],"map":[[1,1],[3,3],[5,5]],"removed":2}}
+{"group":"hunks","input":{"new":"","old":"a\nb\n"},"n":128,"note":"every line removed, and the file stays","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":2}],"map":[],"removed":2}}
+{"group":"hunks","input":{"new":"\n","old":"\n\n"},"n":129,"rev":"v1","values":{"added":0,"removed":1}}
+{"group":"hunks","input":{"new":"y\n","old":"x\n"},"n":130,"rev":"v1","values":{"added":1,"hunks":[{"added":1,"new-start":1,"old-start":1,"removed":1}],"map":[],"removed":1}}
+{"group":"branch-names","input":"HEADx","n":131,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"x-","n":132,"result":"valid","rev":"v1"}
+{"group":"branch-names","input":"a/-b","n":133,"note":"only a name that starts with `-` is refused","result":"valid","rev":"v1"}
+{"group":"head-commits","input":{"head":{"ref":"refs/heads/main"},"refs":{"refs/heads/feature":"d","refs/heads/main":"c"}},"n":134,"rev":"v1","values":{"commit":"c"}}
+{"group":"head-commits","input":{"head":{"commit":"d"},"refs":{"refs/heads/main":"c"}},"n":135,"note":"a detached HEAD","rev":"v1","values":{"commit":"d"}}
+{"group":"head-commits","input":{"head":{"ref":"refs/heads/main"},"refs":{}},"n":136,"note":"a new repository: the branch points to no commit","rev":"v1","values":{}}
+{"group":"head-commits","input":{"head":{"ref":"refs/remotes/origin/main"},"refs":{"refs/remotes/origin/main":"e"}},"n":137,"note":"HEAD can name a ref that is not a branch","rev":"v1","values":{"commit":"e"}}
+{"group":"commit-files","input":{"entries":[{"mode":"100600","name":"odd.md"},{"mode":"100777","name":"all.md"}]},"n":138,"note":"every mode of the type of a regular file","rev":"v1","values":{"paths":["all.md","odd.md"]}}
+{"group":"commit-files","input":{"entries":[{"entries":[{"mode":"100644","name":"a.md"}],"mode":"040000","name":"sub"}]},"n":139,"note":"a mode with a leading 0","rev":"v1","values":{"paths":["sub/a.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"d.md"},{"mode":"100644","name":"d.md"},{"mode":"100644","name":"e.md"}]},"n":141,"note":"two entries with one path give no file","rev":"v1","values":{"paths":["e.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"170000","name":"x"},{"mode":"100644","name":"y.md"}]},"n":142,"note":"a mode of no other type is a submodule","rev":"v1","values":{"paths":["y.md"]}}
+{"group":"hunks","input":{"new":{"bytes":"ff"},"old":""},"n":143,"note":"the new content is not valid UTF-8, and neither content has a line","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
+{"group":"hunks","input":{"new":"a\nc\n","old":"a\r\nb\r\n"},"n":144,"note":"the line endings change, and one line differs","rev":"v1","values":{"added":1,"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":1}],"map":[[1,1]],"removed":1}}
+{"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"e","trees":{"a":{},"b":{"a.md":"x\n"},"c":{"a.md":"x\n","c.md":"c\n"},"d":{"a.md":"x\ny\n"},"e":{"a.md":"x\ny\n","e.md":"e\n"},"f":{"a.md":"x\ny\n","c.md":"c\n","e.md":"e\n"},"g":{"a.md":"x\ny\n"}}},"n":145,"note":"the base is `b`, so `c.md`, which the default branch added, is in no hunk","rev":"v1","values":{"diff":[{"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":0}],"path":"a.md"},{"hunks":[{"added":1,"new-start":1,"old-start":1,"removed":0}],"path":"e.md"}]}}
+{"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"c","last":"e","trees":{"a":{},"b":{"a.md":"x\n"},"c":{"a.md":"x\n"},"d":{"a.md":"x\n"},"e":{"a.md":"x\n"},"f":{"a.md":"x\n"},"g":{"a.md":"x\n"}}},"n":146,"note":"the change leaves every file as it was","rev":"v1","values":{"diff":[]}}
+{"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"default":"e","last":"c","trees":{"a":{},"b":{"a.md":"x\n"},"c":{"b.md":"x\n"},"d":{},"e":{"a.md":"x\n"},"f":{},"g":{}}},"n":147,"note":"a file that moves gives the hunks of a removed file and of an added file","rev":"v1","values":{"diff":[{"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":1}],"path":"a.md"},{"hunks":[{"added":1,"new-start":1,"old-start":1,"removed":0}],"path":"b.md"}]}}
+{"group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1","trees":{"a":{},"b":{"b.md":"b\n"},"c":{"c.md":"c\n"},"m1":{},"m2":{}}},"n":148,"note":"the change has no base, so it has no diff","rev":"v1","values":{}}
+{"group":"ranges","input":{"commits":{"a":[],"c":["x","y"],"x":["y"],"y":["a"]},"to":"c"},"n":149,"note":"the walk of the first parent `x` starts `y`, so the walk does not walk the second parent `y` again","rev":"v1","values":{"order":["a","y","x","c"]}}
+{"group":"reach","input":{"commit":"g","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"d"},"n":154,"note":"through the second parent of `f`","result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"g","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"g"},"n":155,"note":"a commit reaches itself","result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"c","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"d"},"n":156,"result":"does not reach","rev":"v1"}
+{"group":"reach","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"other":"g"},"n":157,"result":"does not reach","rev":"v1"}
+{"group":"reach","input":{"commit":"m1","commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"other":"a"},"n":158,"result":"reaches","rev":"v1"}
+{"group":"reach","input":{"commit":"x","commits":{"x":[],"y":[]},"other":"y"},"n":159,"result":"does not reach","rev":"v1"}
+{"group":"default-branch-commits","input":{"binding":"main","local":"l","upstream":{}},"n":160,"note":"the upstream exists and has no commit, so the local branch does not count","rev":"v1","values":{}}
+{"group":"parents","input":{"named":["a"],"shallow":false},"n":161,"rev":"v1","values":{"parents":["a"]}}
+{"group":"parents","input":{"named":["a","b"],"shallow":false},"n":162,"note":"the first parent comes first","rev":"v1","values":{"parents":["a","b"]}}
+{"group":"parents","input":{"named":["a"],"shallow":true},"n":163,"note":"the file `shallow` names the commit","rev":"v1","values":{"parents":[]}}
+{"group":"parents","input":{"named":[],"shallow":false},"n":165,"note":"a commit with no parent","rev":"v1","values":{"parents":[]}}
+{"group":"ref-commits","input":{"ref":"refs/heads/main","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":166,"rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/alias","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":167,"note":"a symbolic ref","rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/alias2","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":168,"note":"a symbolic ref that names a symbolic ref","rev":"v1","values":{"commit":"c"}}
+{"group":"ref-commits","input":{"ref":"refs/heads/dangling","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":169,"note":"a symbolic ref that names a ref that does not exist","rev":"v1","values":{}}
+{"group":"ref-commits","input":{"ref":"refs/tags/v1","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":170,"note":"an annotated tag is a git object that is not a commit","rev":"v1","values":{}}
+{"group":"ref-commits","input":{"ref":"refs/heads/none","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"n":171,"note":"a ref that does not exist","rev":"v1","values":{}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\nSubject\n\nBody\n","n":173,"note":"the message starts after the first empty line","rev":"v1","values":{"text":"Subject\n\nBody\n"}}
+{"group":"message-texts","input":{"bytes":"7472656520346238323564633634326362366562396130363065353462663864363932383866626565343930340a617574686f72204120552054686f72203c61406578616d706c652e696e76616c69643e2031373637323235363030202b303030300a636f6d6d6974746572204120552054686f72203c61406578616d706c652e696e76616c69643e2031373637323235363030202b303030300a656e636f64696e672049534f2d383835392d310a0a636166e90a"},"n":174,"note":"the bytes are not valid UTF-8, whatever the header `encoding`","rev":"v1","values":{}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\nencoding ISO-8859-1\n\ncafé\n","n":175,"note":"the header `encoding` has no effect","rev":"v1","values":{"text":"café\n"}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\ngpgsig -----BEGIN PGP SIGNATURE-----\n \n abc\n -----END PGP SIGNATURE-----\n\nSigned\n","n":176,"note":"a line of one space in a header is not an empty line","rev":"v1","values":{"text":"Signed\n"}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\n","n":177,"note":"an empty message","rev":"v1","values":{"text":""}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n","n":178,"note":"no empty line: the message is empty","rev":"v1","values":{"text":""}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\na\r\nb","n":179,"note":"the text keeps the carriage return","rev":"v1","values":{"text":"a\r\nb"}}
+{"group":"message-texts","input":"tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\nauthor A U Thor <a@example.invalid> 1767225600 +0000\ncommitter A U Thor <a@example.invalid> 1767225600 +0000\n\n﻿Subject\n","n":180,"note":"the text keeps U+FEFF","rev":"v1","values":{"text":"﻿Subject\n"}}
+{"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"636166c3a92e6d64"},{"file":{"content":[],"type":"regular file"},"name":"6f6b2e6d64"}],"type":"directory"},"ignored":[],"tracked":["ok.md"]},"n":181,"needs":["names-kept"],"note":"a name that is valid UTF-8 and holds a byte of 0x80 or more","rev":"v1","values":{"paths":["café.md","ok.md"]}}
+{"group":"parents","input":{"named":["a","a"],"shallow":false},"n":184,"note":"a parent named twice is a parent twice","rev":"v1","values":{"parents":["a","a"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"00000000000000000000100644","name":"a.md"}]},"n":185,"note":"a mode with many leading zeros","rev":"v1","values":{"paths":["a.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"1000000000000000000000100644","name":"x"},{"mode":"100644","name":"y.md"}]},"n":186,"note":"a mode of many digits whose quotient by 4096 is of no other type","rev":"v1","values":{"paths":["y.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a/b.md"}]},"n":187,"note":"a name that holds `/` gives the valid path of its byte path","rev":"v1","values":{"paths":["a/b.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a"},{"entries":[{"mode":"100644","name":"x.md"}],"mode":"40000","name":"a"}]},"n":188,"note":"a tree entry and a regular-file entry with one byte path: the regular-file entry gives no file","rev":"v1","values":{"paths":["a/x.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":"a/b"},{"entries":[{"mode":"100644","name":"b"}],"mode":"40000","name":"a"}]},"n":189,"note":"a name that holds `/` and an entry of a tree entry with the same byte path give no file","rev":"v1","values":{"paths":[]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100644","name":""},{"mode":"100644","name":"ok.md"}]},"n":190,"note":"an empty name is no file name","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"100684","name":"a.md"},{"mode":"100644","name":"ok.md"}]},"n":191,"note":"a mode that holds the digit 8 is not a number in base 8, so its entry is a submodule entry","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"commit-files","input":{"entries":[{"mode":"","name":"a.md"},{"mode":"10064x","name":"b.md"},{"mode":"100644","name":"ok.md"}]},"n":192,"note":"an empty mode, and a mode that holds a letter, give submodule entries","rev":"v1","values":{"paths":["ok.md"]}}
+{"group":"ref-commits","input":{"ref":"refs/heads/alias","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/main":{}}},"n":193,"note":"a symbolic ref that names a broken loose ref, which exists and neither points to a git object nor names a ref","rev":"v1","values":{}}
