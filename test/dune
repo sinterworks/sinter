@@ -39,6 +39,7 @@
   sinter_git_model
   sinter_file_readers
   sinter_origins
+  sinter_markdown_tag_texts
   digestif.c
   git_fixture
   sinter_bench

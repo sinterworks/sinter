@@ -88,6 +88,7 @@ let () =
       ("finding parts", Test_finding_parts.tests);
       ("documents", Test_documents.tests);
       ("origins", Test_origins.tests);
+      ("markdown tag texts", Test_markdown_tag_texts.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
