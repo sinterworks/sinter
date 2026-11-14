@@ -81,6 +81,7 @@ let () =
       ("git model", Test_git_model.tests);
       ("ledger reference", Ledger_vectors.reference_tests);
       ("ledger lines", Test_ledger_lines.tests);
+      ("ledger trees", Test_ledger_trees.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
