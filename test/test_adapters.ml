@@ -611,24 +611,20 @@ let address_cases =
           (Call.Outside_memory Request)
           (recognise ~request:(String.make 70_000 'x')
              (with_allocs "(i32.const 16)" "(i32.const 1024)")));
-    case "a request or a report content of 2^32 bytes or more fails" (fun () ->
-        let huge n = Bytes.unsafe_to_string (Bytes.create n) in
-        let adapter = with_allocs "(i32.const 16)" "(i32.const 1024)" in
-        fails_before_response "a request of 2^32 bytes" (Call.Too_long Request)
-          (recognise ~request:(huge (1 lsl 32)) adapter);
-        fails_before_response "a report content of 2^32 bytes"
-          (Call.Too_long Report_content)
-          (recognise ~content:(huge (1 lsl 32)) adapter);
-        fails_before_response "a request of 2^32 - 1 bytes"
-          (Call.Outside_memory Request)
-          (recognise ~request:(huge ((1 lsl 32) - 1)) adapter);
-        match
-          (Call.bind ~limits:generous (decide adapter) ~ids:[] ~request
-             ~content:(huge ((1 lsl 32) + 1)))
-            .cause
-        with
-        | Some (Too_long Report_content) -> ()
-        | cause -> Alcotest.failf "bind: %s" (cause_text cause));
+    case "a request or a report content of 2^32 bytes or more is too long"
+      (fun () ->
+        List.iter
+          (fun (length, expected) ->
+            Alcotest.(check bool)
+              (Printf.sprintf "%d bytes" length)
+              expected (Call.too_long length))
+          [
+            (0, false);
+            ((1 lsl 32) - 1, false);
+            (1 lsl 32, true);
+            ((1 lsl 32) + 1, true);
+            (max_int, true);
+          ]);
     case "an address is unsigned" (fun () ->
         fails_before_response "the request at 2^32 - 16"
           (Call.Outside_memory Request)

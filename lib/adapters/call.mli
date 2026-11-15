@@ -41,6 +41,11 @@ type 'result outcome = private {
     before it gave a response; the result is then "failed" with no error text.
     The cause is for a person, and it is never the error text of the adapter. *)
 
+val too_long : int -> bool
+(** [too_long length] is [true] exactly when a request or a report content of
+    [length] bytes is too long for a call: when [length] is 4,294,967,296 or
+    more. *)
+
 val recognise :
   limits:Instance.limits ->
   Adapter.decision ->
@@ -50,10 +55,11 @@ val recognise :
 (** [recognise ~limits decision ~request ~content] is the result of the call of
     the function recognise of the adapter of [decision], with the request
     [request] and the report content [content]. The call fails when [request] or
-    [content] has 4,294,967,296 bytes or more, or when [decision] is [Error].
-    Otherwise, in a new instance of the module of the adapter with no import
-    under [limits], it runs only these steps, and it changes no byte of the
-    memory [memory] other than by the writes of steps 2 and 3:
+    [content] is too long ({!too_long} of its number of bytes), or when
+    [decision] is [Error]. Otherwise, in a new instance of the module of the
+    adapter with no import under [limits], it runs only these steps, and it
+    changes no byte of the memory [memory] other than by the writes of steps 2
+    and 3:
 
     + the instantiation;
     + an invocation of [sinter_alloc] with the number of bytes of [request]; the

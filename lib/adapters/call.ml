@@ -21,8 +21,10 @@ let memory = "memory"
 (* @satisfies packs#give-call-results=v1
    A call fails when its request or its report content has 4,294,967,296
    bytes or more. *)
+let too_long length = length >= 4_294_967_296
+
 let check_length part bytes =
-  if String.length bytes >= 4_294_967_296 then Error (Too_long part) else Ok ()
+  if too_long (String.length bytes) then Error (Too_long part) else Ok ()
 
 let unsigned bits = Int32.to_int bits land 0xFFFF_FFFF
 let step result = Result.map_error (fun failure -> Failed failure) result
