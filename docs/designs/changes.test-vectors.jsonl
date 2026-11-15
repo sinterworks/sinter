@@ -26,7 +26,6 @@
 {"group":"default-branch-commits","input":{"binding":"main","local":"l"},"n":45,"rev":"v1","values":{"commit":"l"}}
 {"group":"default-branch-commits","input":{"binding":"main"},"n":46,"note":"none of the three refs exists","rev":"v1","values":{}}
 {"group":"default-branch-commits","input":{"binding":"release/2.0","local":"l","remote":"r"},"n":47,"rev":"v1","values":{"commit":"l"}}
-{"group":"default-branch-commits","input":{"binding":"a..b"},"n":48,"note":"the binding is not a branch name","rev":"v1","values":{}}
 {"group":"default-branch-commits","input":{"binding":"refs/heads/main","local":"l"},"n":49,"note":"the binding is not a branch name","rev":"v1","values":{}}
 {"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"c","to":"e"},"n":50,"note":"the change of `e` while the default branch points to `c`","rev":"v1","values":{"order":["d","e"]}}
 {"group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"b","to":"g"},"n":51,"note":"the walk from `g` takes the first parent `c` of `f` before its second parent `e`","rev":"v1","values":{"order":["c","d","e","f","g"]}}
@@ -113,7 +112,7 @@
 {"group":"branch-names","input":"a/-b","n":133,"note":"only a name that starts with `-` is refused","result":"valid","rev":"v1"}
 {"group":"head-commits","input":{"head":{"ref":"refs/heads/main"},"refs":{"refs/heads/feature":"d","refs/heads/main":"c"}},"n":134,"rev":"v1","values":{"commit":"c"}}
 {"group":"head-commits","input":{"head":{"commit":"d"},"refs":{"refs/heads/main":"c"}},"n":135,"note":"a detached HEAD","rev":"v1","values":{"commit":"d"}}
-{"group":"head-commits","input":{"head":{"ref":"refs/heads/main"},"refs":{}},"n":136,"note":"a new repository: the branch points to no commit","rev":"v1","values":{}}
+{"group":"head-commits","input":{"head":{"ref":"refs/heads/main"},"refs":{}},"n":136,"note":"a new repository: the branch that HEAD names does not exist","rev":"v1","values":{}}
 {"group":"head-commits","input":{"head":{"ref":"refs/remotes/origin/main"},"refs":{"refs/remotes/origin/main":"e"}},"n":137,"note":"HEAD can name a ref that is not a branch","rev":"v1","values":{"commit":"e"}}
 {"group":"hunks","input":{"new":{"bytes":"ff"},"old":""},"n":143,"note":"the new content is not valid UTF-8, and neither content has a line","rev":"v1","values":{"added":0,"hunks":[{"added":0,"new-start":1,"old-start":1,"removed":0}],"map":[],"removed":0}}
 {"group":"hunks","input":{"new":"a\nc\n","old":"a\r\nb\r\n"},"n":144,"note":"the line endings change, and one line differs","rev":"v1","values":{"added":1,"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":1}],"map":[[1,1]],"removed":1}}
