@@ -509,7 +509,8 @@ that starts at boundary 0 of a text that has a byte order mark.
 A sequence is a number of elements, 0 or more, each a thing at its own
 number from 1, such as the lines of a text in the order of their line
 numbers. A text is a sequence of characters, and a byte sequence is a
-sequence of bytes. So the 3rd element of the text `abc` is its 3rd character, `c`.
+sequence of bytes. So the 3rd element of the text `abc` is its 3rd
+character, `c`.
 
 A definition can define a value by an algorithm: a header sentence, then
 numbered steps, each in one of the forms that the term `algorithm` of
@@ -1043,17 +1044,16 @@ result.
 @term sequence=v1
 @cites #{whole-number=v1}
 
-A sequence is a whole number n that is 0 or more, its number of
-elements, and, for each whole number k from 1 to n, one thing, its k-th
-element. The first element of a sequence is its 1st element, and its
-last element is its k-th element, where k is the number of its
-elements. One thing can be the k-th element of a sequence for more than
-one k. The empty sequence has
-no element. Two sequences are the same sequence when, and only when,
-they have the same number of elements and, for each k, the same k-th
-element. Appending a thing to a sequence gives the sequence whose
-elements are the elements of that sequence, in their order, and then
-that thing as the last element. Removing the k-th elements of a
+A sequence has a number of elements, a whole number n that is 0 or more,
+and, for each whole number k from 1 to n, one thing, its k-th element.
+The first element of a sequence is its 1st element, and its last element
+is its k-th element, where k is the number of its elements. One thing
+can be the k-th element of a sequence for more than one k. The empty
+sequence has no element. Two sequences are the same sequence when, and
+only when, they have the same number of elements and, for each k, the
+same k-th element. Appending a thing to a sequence gives the sequence
+whose elements are the elements of that sequence, in their order, and
+then that thing as the last element. Removing the k-th elements of a
 sequence for some numbers k gives the sequence of its elements at the
 other numbers, in their order.
 
