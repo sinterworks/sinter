@@ -14,7 +14,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the files of a tree that a conforming program reads, with their readers; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the written lines of blocks and of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
+Specifies the files of a tree that a conforming program reads, with their readers; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
 
 A conforming program reads the files of a tree to find the items that
 Sinter traces and the edges between them. A binding of the parameter
@@ -139,7 +139,8 @@ the conformance vectors of the design is a JSON text.
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the written lines of the front matter, the blocks, and the tag texts in the hashed lines of a declared item, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
-| [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document, or the lines of a tag text, give: a mark, such as `heading +1:`, `paragraph:`, `tag:`, `code:`, or `item:`, and then its text; the written lines of the blocks inside a block quote, a list, or a list item stand two spaces deeper; a tag line is written without its pins and is not read as markdown |
+| [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each a mark, such as `heading +1:` or `paragraph:`, and then a text |
+| [written tag lines](sinter:#written-line=v1) | the lines that a tag text gives for a declared item, each a mark, such as `tag:` or `paragraph:`, and then a text |
 | [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`; a `\` stands before each `\`, `{`, and `}` of a text, and `\n` stands for a line feed |
 | [forms text](sinter:#forms-text=v1) | the written lines of the blocks of the Conformance part of a design or of a specification, in its hashed lines, without its headings and without the content lines of code blocks that are vector lines, each followed by a line feed; an item that has no Conformance part has none |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, line by line; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
@@ -1358,8 +1359,8 @@ The hash text of a declared item *d* of a tree is the text that these steps give
 4. If the file of *d* is a code file, then:
    1. For each *t* of the sequence of the tag texts of the file of *d*, in
       the order of the boundaries where their first lines start, in order:
-      1. For each *w* of the written lines of *t* at depth 0 for *d* in *e*,
-         in order:
+      1. For each *w* of the written tag lines of *t* at depth 0 for *d* in
+         *e*, in order:
          1. Append *w* to *lines*.
 5. Let *text* be the empty text.
 6. For each *w* of *lines*, in order:
@@ -2367,8 +2368,8 @@ The written lines of a block *b* at depth *k* for a declared item *d*, in a set 
    8. Append *line* to *lines*.
 4. If *b* is a paragraph that gives a tag text that holds a tag line,
    then:
-   1. For each *w* of the written lines of the tag text that *b* gives
-      at depth *k* for *d* in *e*, in order:
+   1. For each *w* of the written tag lines of the tag text that *b*
+      gives at depth *k* for *d* in *e*, in order:
       1. Append *w* to *lines*.
 5. If *b* is a paragraph that gives no tag text that holds a tag line,
    and *b* starts in *e*, then:
@@ -2425,7 +2426,8 @@ The written lines of a block *b* at depth *k* for a declared item *d*, in a set 
          1. Append *w* to *lines*.
 10. Give *lines*.
 
-The written lines of a tag text *t* at depth *k* for a declared item *d* in a set *e* of file lines is the sequence that these steps give.
+The written tag lines of a tag text *t* at depth *k* for a declared item
+*d* in a set *e* of file lines is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the text of two times *k* spaces.
