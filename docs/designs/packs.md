@@ -155,7 +155,7 @@ the results of the functions that act on characters.
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, when each node starts at or before its end, each child lies inside its node, each child ends at or before the start of the next child, and each start byte and each end byte is the number of bytes of the UTF-8 encoding of the characters of the parse text before one of its boundaries; a tree whose nodes, other than those of hidden symbols, break one of these conditions is no parse tree |
+| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, when, with the nodes of hidden symbols left out and their children in their place, each node starts at or before its end, each child lies inside its node, each child ends at or before the start of the next child, and each start byte and each end byte is the number of bytes of the UTF-8 encoding of the characters of the parse text before one of its boundaries; a tree that breaks one of these conditions is no parse tree |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
@@ -1425,21 +1425,21 @@ that node; the end byte of each child of a node is at most the start
 byte of the next child of that node; and the start byte and the end byte
 of each node are each the number of bytes of the UTF-8 encoding of the
 characters of the parse text before a boundary of the parse text. These
-conditions hold for the nodes and the children of the parse tree, in
-which the nodes of hidden symbols are left out and their children stand
-in their place; when the tree that this parsing gives does not meet
-them, it gives no parse tree. A node has an error when it, or a node
-that the parsing gives inside it, nodes of hidden symbols included, is
-an `ERROR` node, a node of the symbol `ERROR`, or a `MISSING` node, a
-node that the parsing inserts for a token that the text lacks. For a
-text whose parse text has fewer than 4,294,967,296 bytes in its UTF-8
-encoding, and a usable grammar with a grammar name g, the parse tree is
-the parse tree that this parsing gives for the language of that usable
-grammar and the UTF-8 encoding of that parse text; such a text alone can
-have a parse tree. When this parsing gives no parse tree, the text has
-no parse tree with that usable grammar. The parse text of a text is that
-text, followed by a line feed when the text does not end with a line
-feed. So the parse text of the empty text is one line feed.
+conditions hold for the nodes of the tree that this parsing gives, with
+the nodes of hidden symbols left out and their children in their place;
+when that tree does not meet them, this parsing gives no parse tree. A
+node has an error when it, or a node that the parsing gives inside it,
+nodes of hidden symbols included, is an `ERROR` node, a node of the
+symbol `ERROR`, or a `MISSING` node, a node that the parsing inserts for
+a token that the text lacks. For a text whose parse text has fewer than
+4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
+grammar name g, the parse tree is the parse tree that this parsing gives
+for the language of that usable grammar and the UTF-8 encoding of that
+parse text; such a text alone can have a parse tree. When this parsing
+gives no parse tree, the text has no parse tree with that usable
+grammar. The parse text of a text is that text, followed by a line feed
+when the text does not end with a line feed. So the parse text of the
+empty text is one line feed.
 
 ### 4.15 The order of the parse tree
 
@@ -1465,20 +1465,21 @@ second of them.
 }
 
 For each node of the parse tree of a text, s is the boundary of the
-parse text before which the UTF-8 encoding of the characters of the
-parse text has as many bytes as the start byte of the node, and e the
-boundary for its end byte. For a text, b is the boundary where the body
-of the text starts, and l is the last boundary of the text. The run of a
-node of the parse tree of a text is the run of that text that starts at
-the greater of b and the lesser of s and l, and that ends at the greater
-of b and the lesser of e and l. So, for two nodes of a parse tree, when
-the first comes before the second in the order of the parse tree, one of
-two things holds: the run of the second starts at or after the boundary
-where the run of the first starts and ends at or before the boundary
-where the run of the first ends; or the run of the first ends at or
-before the boundary where the run of the second starts. Two nodes can
-have the same run, such as a node and its only child, and two nodes can
-each have a run that starts and ends at one boundary, the same for both.
+parse text such that the UTF-8 encoding of the characters of the parse
+text before s has as many bytes as the start byte of the node, and e is
+the boundary for the end byte in the same way. For a text, b is the
+boundary where the body of the text starts, and l is the last boundary
+of the text. The run of a node of the parse tree of a text is the run of
+that text that starts at the greater of b and the lesser of s and l, and
+that ends at the greater of b and the lesser of e and l. So, for two
+nodes of a parse tree, when the first comes before the second in the
+order of the parse tree, one of two things holds: the run of the second
+starts at or after the boundary where the run of the first starts and
+ends at or before the boundary where the run of the first ends; or the
+run of the first ends at or before the boundary where the run of the
+second starts. Two nodes can have the same run, such as a node and its
+only child, and two nodes can each have a run that starts and ends at
+one boundary, the same for both.
 
 ### 4.17 Node types
 
