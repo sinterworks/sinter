@@ -105,7 +105,7 @@ vectors of the design is a JSON text.
 | [citation entry](sinter:#citation-entry=v1) | a single target of a citation, or a single target for which a part of a scoped list stands |
 | [entry name](sinter:#citation-entry=v1) | the name in a citation entry: its slug, its full name, its `#` and part name, or its external id with its `#` and part name; for an every-part target, its slug |
 | [canonical identifier](sinter:#canonical-id=v1) | a kind word, `:`, and a slug, a full name, or an external id with an optional `#` and part name, such as `req:packs#size-limit`; or, with no kind word, the slug, the full name, or the external id alone, such as `gh/42` |
-| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that a citation entry gives with a slug or no slug and a kind word or no kind word: its entry name, with the slug before it when it starts with `#`, as a canonical identifier with that kind word; then its vector selection, and `#*` for an every-part target; it holds no revision, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term` |
+| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that gives one name to a citation entry, with a slug or no slug and a kind word or no kind word; it holds no revision, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term` |
 | parameter | a word, such as `external-namespaces`, for which a conforming program takes a binding |
 | [binding](sinter:#binding=v1) | a finite set of pairs of a namespace name and an id pattern, which a conforming program takes for the parameter `external-namespaces` |
 | [external namespace](sinter:#external-namespace=v1) | a pair of a binding, with its namespace name and its id pattern; the external namespaces of a line, a link, or an image are those of the binding under which a conforming program reads it |
@@ -715,7 +715,9 @@ A conforming program can give the canonical form of a citation entry of
 a valid citation together with a slug, or no slug, and a kind word, or
 no kind word, that it takes. The slug goes before an entry name that
 starts with `#`, so `#notation=v1` with the slug `docs` gives the name
-`docs#notation`. The kind word of the canonical form is the kind word
+`docs#notation`. With no slug, such a name stays as it is, so the
+canonical form of `#notation=v1` with no slug and the kind word `req` is
+`req:#notation`, which is not a canonical identifier. The kind word of the canonical form is the kind word
 that the program takes, and not the kind word of the citation entry. The
 canonical form holds no revision. It keeps the vector selection of the
 citation entry, and the canonical form of an every-part target ends with
@@ -727,6 +729,7 @@ citation entry, and the canonical form of an every-part target ends with
 | `req:packs#size=v2` | none | `req` | `req:packs#size` |
 | `spec:packs#size=*` | `docs` | `req` | `req:packs#size` |
 | `req:#notation=v1` | none | none | `#notation` |
+| `#notation=v1` | none | `req` | `req:#notation` |
 | `docs#descriptor[12]=v1` | none | `spec` | `spec:docs#descriptor[12]` |
 | `docs=v3#*` | none | `design` | `design:docs#*` |
 | `gh/42` | `docs` | none | `gh/42` |
@@ -2205,9 +2208,10 @@ file has three kinds of line, in this order:
 1. The first line is the set line. Its JSON object has one member,
    `rev`: the revision of the whole set of vectors.
 2. Then each group has a group line, in this order: `bindings`,
-   `canonical-entries`, `citations`, `continuation-lines`, `declarations`, `directives`,
-   `fit`, `id-patterns`, `inline-citations`, `other-lines`,
-   `rejected-bindings`, `status-tags`. Its JSON object has two members:
+   `canonical-entries`, `citations`, `continuation-lines`,
+   `declarations`, `directives`, `fit`, `id-patterns`,
+   `inline-citations`, `other-lines`, `rejected-bindings`,
+   `status-tags`. Its JSON object has two members:
    `group`, the name of the group, as a JSON string, and `rev`, the
    revision of the group.
 3. Then each vector has a vector line, in increasing order of the
@@ -2275,19 +2279,19 @@ values:
 - A sequence, such as the citation entries of a citation, is a JSON
   array of its elements, in order.
 
-In the groups `other-lines`, `declarations`, `citations`,
-`status-tags`, `directives`, `continuation-lines`, `inline-citations`,
-and `canonical-entries`, a program reads a text under a binding of
+In the groups `other-lines`, `declarations`, `citations`, `status-tags`,
+`directives`, `continuation-lines`, `inline-citations`, and
+`canonical-entries`, a program reads a text under a binding of
 `external-namespaces`. The input of each vector of these groups is a
 JSON object with the members `binding`, the binding, and `text`, the
 text, and, in the group `canonical-entries`, the members that section
-6.6 adds. The program takes the
-binding, and it reads the text under that binding. In the file, the
-binding of each vector of these groups holds two pairs: the namespace
-name `gh` with the id pattern `[1-9][0-9]*`, and the namespace name
-`rfc` with the id pattern `[1-9][0-9]*`. A conforming program gives the
-result "valid" for this binding, as a vector of the group `bindings`
-states. The vectors of these eight groups do not state this result.
+6.6 adds. The program takes the binding, and it reads the text under
+that binding. In the file, the binding of each vector of these groups
+holds two pairs: the namespace name `gh` with the id pattern
+`[1-9][0-9]*`, and the namespace name `rfc` with the id pattern
+`[1-9][0-9]*`. A conforming program gives the result "valid" for this
+binding, as a vector of the group `bindings` states. The vectors of
+these eight groups do not state this result.
 
 In a vector, the values that a conforming program gives for a line, a
 link, or an image stand in a JSON object. For each value that
