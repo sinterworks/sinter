@@ -55,8 +55,8 @@ byte sequences, UTF-8 encodings, code spans, productions, and what a
 conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
-the page git-config of git's documentation, it takes the address of a
-remote from which a fetch from that remote takes git objects.
+the page git-config of git's documentation, it takes which address of a
+remote a fetch from that remote uses.
 From RFC 3339, it takes the rule `date-time` of its ABNF, for the time
 at which a ledger entry was written. The production `chunk-path` is
 written in ABNF, the notation of RFC 5234, with the case-sensitive
@@ -80,8 +80,8 @@ text.
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
-| [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; an address of the remote is such a value, after its rewrite by the settings `url.<base>.insteadOf` |
-| [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object or names another ref; the commit to which a ref resolves, when it resolves to a commit |
+| [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; an address of the remote is such a value, after its rewrite, as the term `changes#remote-transfer` gives it |
+| [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
 | [reach](sinter:changes#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
@@ -1220,11 +1220,11 @@ object, a list of lines, or a sequence has this form:
   tree object that the tree entry names, in the same form. The JSON
   object of a regular-file entry can also have one of two members for
   the content of its blob: `content`, the content, a byte sequence; or
-  `lines`, a JSON array of JSON objects,
-  each of which stands for a line object, for the content that is the
-  canonical lines of these line objects, one after another, in the
-  order of the array. An entry that is not a chunk can have neither
-  member, and the content of its blob has no effect on the vector.
+  `lines`, a JSON array of JSON objects, each of which stands for a line
+  object, for the content that is the canonical lines of these line
+  objects, one after another, in the order of the array. An entry that
+  is not a chunk can have neither member, and the content of its blob
+  has no effect on the vector.
 - A list of lines is a JSON array of JSON objects, each of which stands
   for a line object: the lines of the git tree object of a ledger commit
   that lays out its chunks in the form of a valid ledger tree, which are
