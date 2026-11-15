@@ -380,10 +380,12 @@ program gives its sources (term `outcome-source`), so that a person can
 see where the outcome came from. So a report file whose reading has the
 result "unreadable" is visible. When a test passed in one import and
 failed in another, the sources show both, and a person sees a test that
-passes on one system and fails on another. When the program gives
-whether a `verifies` promise is kept, it gives, for each test whose
-outcome the promise takes, that outcome and its sources (requirement
-`give-promise-sources`).
+passes on one system and fails on another. When a narrowing removes the
+pair of a failing test result and `it("adds")` in `lib/a.test.ts`, the
+source of the suite `describe("math")` that holds it shows that triple.
+When the program gives whether a `verifies` promise is kept, it gives,
+for each test whose outcome the promise takes, that outcome and its
+sources (requirement `give-promise-sources`).
 
 ### 2.10 Verified conformance vectors
 
