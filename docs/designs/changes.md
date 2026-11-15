@@ -74,7 +74,10 @@ of addresses, with the remote helpers that they choose; from the page
 git-push, pushes; and from the page git-remote-ext, addresses of the
 form `ext::<command>`. From the page githooks, it takes hooks, and from
 the page gitattributes, the files of git attributes. The terms name
-git's index in its versions 2 to 4.
+packs in the versions 2 and 3 of the pack format, with pack indexes in
+the versions 1 and 2, as the page gitformat-pack gives them; the
+reftable format in its versions 1 and 2; and git's index in its versions
+2 to 4.
 
 From Text and notation (`text`), the design takes characters, texts,
 bytes, byte sequences, decimal numerals, 0x numerals, hex digits, valid
@@ -145,13 +148,13 @@ JSON text.
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
 | jj | Jujutsu, a version control program that can keep its data in a git repository |
 | colocated jj repository | a git repository whose working tree also holds the folder `.jj`, in which jj keeps its data |
-| [branch name](sinter:#branch-name=v1) | a text, such as `main` or `release/2.0`, that can be the name of a branch without its start `refs/heads/` |
+| [branch name](sinter:#branch-name=v1) | a text, such as `main` or `release/2.0`, such that `refs/heads/` followed by it meets the rules of the page git-check-ref-format, other than `HEAD`, a text that starts with `-`, and a text that starts with `refs/` |
 | [default branch](sinter:ontology#default-branch=v1) | the branch into which the people who work on a repository bring their work |
 | [commit of the default branch](sinter:#default-branch-commit=v1) | under a binding of `default-branch-name` that is a branch name, the commit of the first of the three refs of the default branch, in their order, that exists |
 | [parameter](sinter:ontology#parameter=v1), binding | a parameter is a word, such as `default-branch-name`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for it |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or in a working tree |
 | [file of the tree of a commit](sinter:#commit-file=v1) | a file that a regular-file entry gives, through the git tree object of the commit, when its path is a valid path |
-| [file of the tree of a working tree](sinter:#working-tree-file=v1) | a regular file that a valid path names from the root folder of a working tree, outside the data of git, of jj, and of other git repositories, that git tracks or does not ignore |
+| [file of the tree of a working tree](sinter:#working-tree-file=v1) | a regular file that a valid path names from the root folder of a working tree, outside the folder entries `.git` and `.jj` and the folders of other git repositories, that git tracks or does not ignore |
 | [range](sinter:#commit-range=v1) | the set of the commits that one commit reaches and that another commit does not reach |
 | [parents-first order](sinter:#parents-first-order=v1) | the order in which a walk from the commit h of a range from s to h, which takes the parents of each commit in their order, finishes the commits of the range; each commit comes after each of its parents in the range |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
@@ -342,8 +345,8 @@ type that the mode of an entry gives is its kind. For example, an entry
 with the mode 100644, or 100755 for an executable file, is a
 regular-file entry and gives a file; an entry with the mode 40000, which
 the page gitdatamodel writes as 040000, is a tree entry, whose git tree
-object lists more entries; and an entry with
-the mode 120000, a symbolic link, or 160000, a submodule, gives no file.
+object lists more entries; and an entry with the mode 120000, a symbolic
+link, or 160000, a submodule, gives no file.
 
 The term `working-tree-file` defines the files of the tree of a working
 tree. They come from the files on disk, git's index, and the ignore
@@ -509,23 +512,25 @@ git folder and each folder that the alternates of one of its object
 databases name, in turn, as the page gitrepository-layout defines object
 databases and alternates. A git repository holds a git object when one
 of its object databases holds that git object, as a loose object or in a
-pack, as the pages gitformat-loose and gitformat-pack define loose
-objects and packs. A commit of a git repository is a commit object, as
-the page gitglossary defines it, that the git repository holds. A commit
-names one git tree object, the git tree object of the commit, and its
-parents, in the order in which it names them, and it holds a message, a
-byte sequence, as the page gitdatamodel gives these parts of a commit.
-The first of its parents is its first parent. A commit that the file
-`shallow` of the git folder names has no parents, as the pages
-gitglossary and gitrepository-layout define shallow repositories and
-that file. When a commit is not named by the file `shallow`, and its
-commit object names, as a parent, a git object that is not a commit of
-the git repository, the parents of that commit are not specified. The
-content of a blob, the entries of a git tree object, and the git tree
-object and the message of a commit are those that the git object itself
-holds, and so are the parents of a commit, apart from the rule of the
-file `shallow`: no replacement ref, which is a ref whose name starts
-with `refs/replace/`, has an effect on them.
+pack, in the versions 2 and 3 of the pack format with a pack index in
+the versions 1 and 2, as the pages gitformat-loose and gitformat-pack
+define loose objects, packs, and pack indexes. A commit of a git
+repository is a commit object, as the page gitglossary defines it, that
+the git repository holds. A commit names one git tree object, the git
+tree object of the commit, and its parents, in the order in which it
+names them, and it holds a message, a byte sequence, as the page
+gitdatamodel gives these parts of a commit. The first of its parents is
+its first parent. A commit that the file `shallow` of the git folder
+names has no parents, as the pages gitglossary and gitrepository-layout
+define shallow repositories and that file. When a commit is not named by
+the file `shallow`, and its commit object names, as a parent, a git
+object that is not a commit of the git repository, the parents of that
+commit are not specified. The content of a blob, the entries of a git
+tree object, and the git tree object and the message of a commit are
+those that the git object itself holds, and so are the parents of a
+commit, apart from the rule of the file `shallow`: no replacement ref,
+which is a ref whose name starts with `refs/replace/`, has an effect on
+them.
 
 ### 4.5 The texts of messages
 
@@ -590,9 +595,9 @@ its loose refs, with the refs in the root of the hierarchy of refs, as
 the pages gitrepository-layout, git-pack-refs, and git-worktree give
 them, and, for the git folder, each ref of its file `packed-refs` whose
 ref name no loose ref of the git folder has, as the page git-pack-refs
-gives it; for the format `reftable`, the refs that the stack of tables
-of that folder gives, as the page reftable gives them. The own refs of a
-working tree are the refs that the page
+gives it; for the format `reftable`, in its versions 1 and 2, the refs
+that the stack of tables of that folder gives, as the page reftable
+gives them. The own refs of a working tree are the refs that the page
 git-worktree, in its section on refs, gives as not shared between
 working trees. A working tree holds its own refs from the folder of that
 working tree and each other ref from the git folder, and the git
@@ -641,10 +646,7 @@ A branch name is a text b that meets each of these conditions:
     gitdoc/git-fetch,
     ontology#{default-branch=v1, parameter=v1},
     text#{code-span=v1, text=v1},
-    #{
-        git-configuration=v1, ref-commit=v1, branch-name=v1,
-        remote-transfer=v1,
-    },
+    #{git-configuration=v1, ref-commit=v1, branch-name=v1},
 }
 
 Under a binding of the parameter `default-branch-name` that is a branch
@@ -656,9 +658,10 @@ default branch, in this order:
    git-config, in its entries for the settings `branch.<name>.remote`
    and `branch.<name>.merge`, and git-fetch give as the upstream branch
    of the branch b, from these two settings, with b for `<name>`, in the
-   git configuration of the git repository, and, when
-   `branch.<name>.remote` names a remote, from the fetch refspecs of
-   that remote, as a mapping. When the git configuration gives no such
+   git configuration of the git repository, and, when the value of
+   `branch.<name>.remote` is not `.`, from the values of the setting
+   `remote.<name>.fetch`, with that value for `<name>`, as fetch
+   refspecs used as a mapping. When the git configuration gives no such
    ref name, b has no upstream.
 2. the ref whose name is `refs/heads/` followed by b.
 3. the ref whose name is `refs/remotes/origin/` followed by b.
@@ -732,9 +735,8 @@ that their pathnames name, with the symbolic links on these pathnames
 followed. When the setting `core.ignoreCase` of the git configuration of
 the working tree is true, as the page git-config gives the value of a
 setting and the values of booleans, a pattern also matches each valid
-path that differs only in
-the case of the letters from `A` to `Z` from a valid path that the
-pattern matches.
+path that differs only in the case of the letters from `A` to `Z` from a
+valid path that the pattern matches.
 
 ### 4.14 The files of the tree of a working tree
 
@@ -1025,11 +1027,12 @@ trees whose roots are its git folder, each of its object databases, and
 the root folder of each working tree of it; the files to which the
 symbolic links of the folder tree of the git folder, and of the folder
 trees of its object databases, lead, and the files of the folder tree
-whose root is each such file that is a folder, in turn; the files
-of the git configuration of the git repository and of each working tree
-of it; the excludes file of each working tree of it; and the files of
-git attributes that the page gitattributes gives for the git repository
-and for each working tree of it.
+whose root is each such file that is a folder, in turn; the files of the
+git configuration of the git repository and of each working tree of it;
+the excludes file of each working tree of it; and the files of git
+attributes that the page gitattributes gives for the git repository and
+for each working tree of it, with the symbolic links on their pathnames
+followed.
 
 ### 4.30 Values from a git repository
 
@@ -1485,6 +1488,7 @@ repository, such as the remote repository of a partial clone.
 
 @req read-only-repository-files=v1
 @cites {
+    posix/2024,
     #{repository-file=v1, repository-read=v1},
     files#{
         system=v1, symbolic-link=v1, file-of-another-kind=v1,
@@ -1544,33 +1548,32 @@ any program that it uses, reads, fetches into or from, or pushes from or
 to in that execution (these git repositories): a hook that the page
 githooks defines, or a program that is a repository file of the git
 repository, where the files of the conforming program and of the
-programs that it uses, as they are installed, other than a program that
-it finds by a search of folders, such as the folders that the
-environment variable `PATH` names, are not repository files in this
-sense; and a program or command that the git configuration of
-the git repository or of a working tree of it names, gives, or causes to
-run, such as a filter, the command of the setting `core.fsmonitor`, or
-the command of an address `ext::<command>`. In a fetch into a git
-repository from a remote of it, or in a push from a git repository to a
-remote of it, it may still run the programs that make that fetch or push
-as they are set up outside these git repositories, such as `ssh` or a
-credential helper; a value of a setting that does not come from a git
-repository is set up outside them. In such a fetch or push, it still
-runs no hook, and no program or command that a value from a git
-repository names or gives, other than the program that the form of an
-address chooses for the transfer, such as `ssh` or a remote helper: for
-example, not the command of the setting `core.sshCommand` in the file
-`config` of the git folder, and not the command of an address
-`ext::<command>`. To run a program is to start a process from a file on
-the system of the program, or to load a file as code that runs in the
-process of the program; to run a command is to have a shell or another
-program carry it out; and to give a program or a command to run to
-another computer, or to a server that an address reaches, as through
-`ssh`, counts as running it, but what such a server then runs by its own
-setup, such as a hook of the git repository there, does not, on whatever
-computer it runs. Code that runs isolated from the rest of the process
-of the program, as WebAssembly code runs in a sandbox, is not a program
-that runs in this sense.
+programs that it uses, as they are installed, are not repository files
+in this sense unless it finds them by a search of folders, such as the
+folders that the environment variable `PATH` names; and a program or
+command that the git configuration of the git repository or of a working
+tree of it names, gives, or causes to run, such as a filter, the command
+of the setting `core.fsmonitor`, or the command of an address
+`ext::<command>`. In a fetch into a git repository from a remote of it,
+or in a push from a git repository to a remote of it, it may still run
+the programs that make that fetch or push as they are set up outside
+these git repositories, such as `ssh` or a credential helper; a value of
+a setting that does not come from a git repository is set up outside
+them. In such a fetch or push, it still runs no hook, and no program or
+command that a value from a git repository names or gives, other than
+the program that the form of an address chooses for the transfer, such
+as `ssh` or a remote helper: for example, not the command of the setting
+`core.sshCommand` in the file `config` of the git folder, and not the
+command of an address `ext::<command>`. To run a program is to start a
+process from a file on the system of the program, or to load a file as
+code that runs in the process of the program; to run a command is to
+have a shell or another program carry it out; and to give a program or a
+command to run to another computer, or to a server that an address
+reaches, as through `ssh`, counts as running it, but what such a server
+then runs by its own setup, such as a hook of the git repository there,
+does not, on whatever computer it runs. Code that runs isolated from the
+rest of the process of the program, as WebAssembly code runs in a
+sandbox, is not a program that runs in this sense.
 
 ### 5.28 No symbolic link followed in a working tree
 
@@ -1843,11 +1846,11 @@ tree of the commit.
   entry has the member `name`, the name of the entry, a byte sequence,
   and the member `mode`, the mode of the entry, a text of octal digits,
   such as `100644`, or `40000`, which the page gitdatamodel writes as
-  `040000`. The JSON object of a tree entry also has
-  the member `entries`, in the same form, for the entries that the git
-  tree object that it names lists. A regular-file entry and a
-  symbolic-link entry name blobs, and a submodule entry names a commit
-  of another git repository; the vectors do not give their contents.
+  `040000`. The JSON object of a tree entry also has the member
+  `entries`, in the same form, for the entries that the git tree object
+  that it names lists. A regular-file entry and a symbolic-link entry
+  name blobs, and a submodule entry names a commit of another git
+  repository; the vectors do not give their contents.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `paths`: the set of the valid
   paths of the files of the tree of the commit.
