@@ -107,6 +107,12 @@ for file in "$@"; do
     exit 1
   fi
   if [ "$status" != 0 ]; then
+    for baseline in _mutations/baseline-*.output; do
+      if [ -f "$baseline" ]; then
+        echo "The last lines of $baseline:"
+        tail -n 80 "$baseline"
+      fi
+    done
     echo "mutaml-runner failed with status $status on $file."
     exit "$status"
   fi
