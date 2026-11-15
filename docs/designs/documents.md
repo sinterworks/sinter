@@ -14,7 +14,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the files of a tree that a conforming program reads, with their readers; the sets of stopped files and the files that cannot be read; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the canonical identifiers of declared items and the tree forms of citation entries; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
+Specifies the files of a tree that a conforming program reads, with their readers; the sets of stopped files and the files that cannot be read; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the kind words and the canonical identifiers of declared items and the tree forms of citation entries; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
 
 A conforming program reads the files of a tree to find the items that
 Sinter traces and the edges between them. A binding of the parameter
@@ -142,8 +142,9 @@ the conformance vectors of the design is a JSON text.
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
-| [written tag lines](sinter:#written-line=v1), part | the lines that a tag text gives for a declared item; a block of the tag text is cut into parts before each declaration other than its first, and each part gives a line `task:` for a task marker before one of its tag lines other than the declaration of the item, then a line `tag:` for each tree form of a citation entry and for each other tag line other than an `@ack` line and the declaration of the item, in the order of the Sinter tag words, and then the written lines of the inline descriptions of its tag lines and of the prose after them |
-| [kind word of a declared item](sinter:#item-canonical-id=v1), [canonical identifier of a declared item](sinter:#item-canonical-id=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement; that kind word, `:`, and the name of the item, such as `req:billing#limit-amount` |
+| [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of the lines of a tag text other than its `@ack` lines and continuation lines, from one cut to the next, where a cut comes before a tag line that comes right after prose, and before a declaration of a declared item when the cluster already holds one |
+| [kind word of a declared item](sinter:#item-kind-word=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement |
+| [canonical identifier of a declared item](sinter:#item-canonical-id=v1) | the kind word of a declared item, `:`, and its name, such as `req:billing#limit-amount` |
 | [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry in a tree: with the name of the home design of its citation as the slug, and with the kind word of the declared item that its entry name names, or, when it names no declared item, with its own kind word or none, such as `req:billing#limit-amount` for `#limit-amount=v2` in the design `billing` |
 | [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`, with `\`, `{`, `}`, and line feeds escaped |
 | [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
@@ -462,15 +463,18 @@ each with a line feed after it. Its extent hash is
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
-prose of each [part](sinter:#written-line=v1) of a block is read alone,
-so there this holds when each tag line stays a tag line at the start of
-its own line and the prose of each part, read alone, gives the same
-blocks and inline elements.
+prose of each [cluster](sinter:#written-line=v1) is read alone, so there
+this holds when each tag line stays a tag line at the start of its own
+line and the prose of each cluster, read alone, gives the same blocks
+and inline elements.
 
-The tag lines of a part are written from what they name, not from their
-layout. Each citation entry gives one line with its
-[tree form](sinter:#tree-form=v1), which holds no revision, the full
-name of the item, and the kind word of that item. The lines stand in the
+The tag lines of a cluster are written from what they name, not from
+their layout. Each citation entry gives one line with its
+[tree form](sinter:#tree-form=v1): the kind word of the item that it
+names, `:`, and the name of that item, then the vector selection of the
+entry, and `#*` for an every-part target. The tree form holds no
+revision. A name that starts with `#` gets the name of the home design
+of its citation before it, also when it names no item. The lines stand in the
 order of the Sinter tag words, and the lines of one tag word in code
 point order, each once. So in the design `billing`, when `amount` and
 `limit` are requirements, `@cites #{amount=v1, limit=v2}`, the same two
@@ -481,7 +485,7 @@ lines, `tag: @cites req:billing#amount` and
 such as `gh/42`, keeps its own kind word, or none. The declaration of
 another item gives the [canonical identifier](sinter:#item-canonical-id=v1)
 of that item, such as `tag: @req req:billing#limit`. The inline
-descriptions of the tag lines of a part are read with the prose after
+descriptions of the tag lines of a cluster are read with the prose after
 them, so `@cites o=v1 The rule.` and the same words over two lines give
 one hash text. A task marker before the declaration of an item, such as
 `[x]` in `- [x] @req r=v1`, is not in the hash text of that item. A task
@@ -2319,20 +2323,31 @@ these steps give.
 5. Give *w*.
 
 
-### 4.61 Canonical identifiers of declared items
+### 4.61 Kind words of declared items
 
-@term item-canonical-id=v1
+@term item-kind-word=v1
 @cites {
-    identifiers#{kind-word=v1, canonical-id=v1},
-    ontology#{declared-item=v1, item-name=v1},
+    identifiers#{kind-word=v1},
+    ontology#{declared-item=v1},
     #{stated-kind=v1},
 }
 
 The kind word of a declared item is the one kind word that states its
-kind of item. The canonical identifier of a declared item is the
-canonical identifier of its kind word and its name.
+kind of item.
 
-### 4.62 Tree forms of citation entries
+### 4.62 Canonical identifiers of declared items
+
+@term item-canonical-id=v1
+@cites {
+    identifiers#{canonical-id=v1},
+    ontology#{declared-item=v1, item-name=v1},
+    #{item-kind-word=v1},
+}
+
+The canonical identifier of a declared item is the canonical identifier
+of its kind word and its name.
+
+### 4.63 Tree forms of citation entries
 
 @term tree-form=v1
 @cites {
@@ -2342,10 +2357,7 @@ canonical identifier of its kind word and its name.
     },
     ontology#{declared-item=v1, item-name=v1, tree=v1},
     text#{text=v1, algorithm=v1},
-    #{
-        accepted-input=v1, home-design=v1, named-item=v1,
-        item-canonical-id=v1,
-    },
+    #{accepted-input=v1, home-design=v1, named-item=v1, item-kind-word=v1},
 }
 
 The tree form of a citation entry *c* of an accepted citation of a tree
@@ -2361,7 +2373,7 @@ is the text that these steps give.
    1. If *c* starts with a kind word, set *k* to that kind word.
 6. Give the canonical form of *c* with *s* and *k*.
 
-### 4.63 Written lines
+### 4.64 Written lines
 
 @term written-line=v1
 @cites {
@@ -2557,40 +2569,39 @@ sequence that these steps give.
          1. Append *w* to *lines*.
 10. Give *lines*.
 
+The clusters of a tag text t in a set e of file lines are sequences of
+lines. Let L be the sequence of the lines of t that are in e and that
+are neither `@ack` lines nor continuation lines, in their order. L is
+cut right before each tag line of L that comes right after a line of L
+that is not a tag line, and right before each declaration of a declared
+item when the lines of L from the last cut before it, or from the first
+line of L when there is no such cut, hold another declaration of a
+declared item. The clusters of t in e are the sequences of the lines of
+L from the first line of L or a cut to the next cut or the last line of
+L, in their order.
+
 The written tag lines of a tag text *t* at depth *k* for a declared item
 *d* in a set *e* of file lines is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
-2. Let *part* be the empty sequence.
-3. Let *notes* be the empty sequence.
-4. Let *after* be the empty sequence.
-5. For each *l* of the lines of *t* that are in *e*, in order:
-   1. If *l* is a tag line and the tag word of *l* is not `@ack`, then:
-      1. If *after* is not empty, or if *l* and an element of *part* are
-         both declarations of declared items, then:
-         1. For each *x* of *after*, in order:
-            1. Append *x* to *notes*.
-         2. For each *w* of the written part of *part* and *notes* for
-            *t* at depth *k*, *d*, and *e*, in order:
-            1. Append *w* to *lines*.
-         3. Set *part* to the empty sequence.
-         4. Set *notes* to the empty sequence.
-         5. Set *after* to the empty sequence.
-      2. Append *l* to *part*.
-      3. If *l* is an accepted input that is a declaration, a citation, a
-         status tag, or an `@extern` line, and the inline description of
-         *l* is not empty, append the inline description of *l* to
-         *notes*.
-   2. If *l* is neither a tag line nor a continuation line, append the
-      prose text of *l* to *after*.
-6. For each *x* of *after*, in order:
-   1. Append *x* to *notes*.
-7. For each *w* of the written part of *part* and *notes* for *t* at
-   depth *k*, *d*, and *e*, in order:
-   1. Append *w* to *lines*.
-8. Give *lines*.
+2. For each *c* of the clusters of *t* in *e*, in order:
+   1. Let *tags* be the empty sequence.
+   2. Let *notes* be the empty sequence.
+   3. For each *l* of *c*, in order:
+      1. If *l* is a tag line, then:
+         1. Append *l* to *tags*.
+         2. If *l* is an accepted input that is a declaration, a
+            citation, a status tag, or an `@extern` line, and the inline
+            description of *l* is not empty, append the inline
+            description of *l* to *notes*.
+      2. Otherwise, append the
+         prose text of *l* to *notes*.
+   4. For each *w* of the written cluster of *tags* and *notes* for *t* at
+      depth *k*, *d*, and *e*, in order:
+      1. Append *w* to *lines*.
+3. Give *lines*.
 
-The written part of a sequence *p* of tag lines and a sequence *r* of
+The written cluster of a sequence *p* of tag lines and a sequence *r* of
 texts for a tag text *t* at depth *k*, a declared item *d*, and a set
 *e* of file lines is the sequence that these steps give.
 
@@ -2683,7 +2694,7 @@ that these steps give.
          1. Append *w* to *lines*.
 9. Give *lines*.
 
-### 4.64 Forms texts
+### 4.65 Forms texts
 
 @term forms-text=v1
 @cites {
