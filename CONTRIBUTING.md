@@ -147,10 +147,13 @@ compiler that `sinter.opam.locked` pins, 5.5.2, for example with
 `opam switch create 5.5.2`. The install below fails on any other
 compiler. The parser bridge in `bridge/` is a Rust crate, so also
 install the Rust toolchain with [rustup](https://rustup.rs) and
-install `cmake`, which a build script of wasmtime runs. Then, from the
-repository root:
+install `cmake`, which a build script of wasmtime runs. The build
+reads the C sources of QuickJS from the git submodule under
+`third_party/`: run `git submodule update --init` once in each clone.
+Then, from the repository root:
 
 ```
+git submodule update --init
 eval $(opam env --switch=5.5.2)
 opam install . --deps-only --with-test --with-dev-setup --locked
 dune build

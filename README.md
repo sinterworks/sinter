@@ -21,14 +21,18 @@ directory specifies the formats that other tools can implement.
 
 ## Build
 
-We write Sinter in OCaml, and its parser bridge in Rust. To build
-it, install [opam](https://opam.ocaml.org/), the Rust toolchain from
+We write Sinter in OCaml, and its parser bridge in Rust. The build
+reads the C sources of QuickJS from a git submodule, so clone the
+repository with `git clone --recurse-submodules`, or run
+`git submodule update --init` in a clone. To build it, install
+[opam](https://opam.ocaml.org/), the Rust toolchain from
 [rustup](https://rustup.rs), and `cmake`, which a build script of
 wasmtime runs. Create an opam switch with the compiler that
 `sinter.opam.locked` pins, 5.5.2; the install below fails on any other
 compiler. Then, from the repository root:
 
 ```
+git submodule update --init
 opam switch create 5.5.2
 eval $(opam env --switch=5.5.2)
 opam install . --deps-only --with-test --with-dev-setup --locked

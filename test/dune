@@ -68,6 +68,7 @@
   sinter_adapter_protocol
   sinter_wasm_engine
   sinter_adapters
+  sinter_ecma_pattern
   digestif.c
   decompress.de
   decompress.zl

@@ -38,6 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           fetch-depth: 0
       - name: Name the runner image
         id: image
@@ -148,6 +149,8 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Name the runner image
         id: image
         run: |
@@ -277,6 +280,8 @@ jobs:
       COVERAGE_MINIMUM: "94"
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Name the runner image
         id: image
         run: |
@@ -374,6 +379,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           fetch-depth: 0
       # @cites mutation-job-scope
       - name: Decide what this run measures
@@ -405,6 +411,7 @@ jobs:
             bridge/Cargo.lock bridge/Cargo.toml bridge/rust-toolchain.toml \
             wasm_engine/Cargo.lock wasm_engine/Cargo.toml wasm_engine/rust-toolchain.toml \
             lib/markdown/tree-sitter-markdown.wasm \
+            .gitmodules third_party \
             test/run-mutants.sh test/mutant-shares.sh \
             test/run-mutant-share.sh test/join-mutant-reports.sh \
             test/mutant-groups.sh test/mutant-count.sh \
@@ -510,6 +517,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           fetch-depth: 0
       - name: Name the runner image
         id: image
@@ -807,6 +815,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           fetch-depth: 0
       - name: Decide whether this run measures
         id: scope
@@ -825,6 +834,7 @@ jobs:
             bridge/Cargo.lock bridge/Cargo.toml bridge/rust-toolchain.toml \
             wasm_engine/Cargo.lock wasm_engine/Cargo.toml wasm_engine/rust-toolchain.toml \
             lib/markdown/tree-sitter-markdown.wasm \
+            .gitmodules third_party \
             test/run-mutants.sh | wc -l)
           if [ "$changed" -eq 0 ]; then
             echo "measure=false" >>"$GITHUB_OUTPUT"

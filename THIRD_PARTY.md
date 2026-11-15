@@ -28,6 +28,8 @@ and the project does not pin yet.
 | optint (a dependency of decompress) | ISC | https://github.com/mirage/optint |
 | wasmtime | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
 | tree-sitter runtime | MIT | https://github.com/tree-sitter/tree-sitter |
+| QuickJS, its files `libregexp.c`, `libunicode.c`, and `cutils.c` with their headers, at commit e585640f, compiled into the binary from the submodule `third_party/quickjs` | MIT | https://github.com/bellard/quickjs |
+| Unicode Character Database 17.0.0, the version that QuickJS's `unicode_download.sh` names, as the tables that QuickJS generated from it into `libunicode-table.h` | Unicode-3.0 | https://www.unicode.org/license.txt |
 | tree-sitter-markdown block grammar, release v0.5.4, embedded in the binary; the file and its license are in `lib/markdown/` | MIT | https://github.com/tree-sitter-grammars/tree-sitter-markdown |
 | cranelift (a dependency of wasmtime) | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
 | jq (only if bundled) | MIT | https://github.com/jqlang/jq |
