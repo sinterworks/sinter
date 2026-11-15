@@ -2912,8 +2912,8 @@ Under a valid binding of `file-readers` and a binding of
 Identifiers gives the result "valid", when a conforming program gives
 the forms text of an item of the kind design or of the kind
 specification of a tree under these bindings and a set of stopped files,
-it must give the forms text of that item, and nothing else as that forms
-text.
+it must give the forms text of that item, or that it has none when it
+has none, and nothing else as that forms text.
 
 ## 6. Conformance
 
