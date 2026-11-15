@@ -64,6 +64,8 @@
   sinter_git_refs
   sinter_git_object_store
   digestif.c
+  decompress.de
+  decompress.zl
   git_fixture
   sinter_bench
   alcotest

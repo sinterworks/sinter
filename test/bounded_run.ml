@@ -15,11 +15,12 @@ let read_all descr =
   loop ();
   Buffer.contents buffer
 
-let probe ~seconds args =
+let probe ?(env = []) ~seconds args =
   let output, input = Unix.pipe ~cloexec:true () in
   let pid =
-    Unix.create_process program
+    Unix.create_process_env program
       (Array.of_list (program :: args))
+      (Array.append (Unix.environment ()) (Array.of_list env))
       Unix.stdin input Unix.stderr
   in
   Unix.close input;

@@ -4,6 +4,7 @@
 module Files = Sinter_repository_files
 module Refs = Sinter_git_refs.Refs
 module Id = Sinter_git_objects.Object_id
+module Store = Sinter_git_object_store.Object_store
 
 let failure_name = function
   | Files.No_file -> "no file"
@@ -70,7 +71,34 @@ let () =
             | Ok None -> "none"
             | Error error -> refs_error error))
         [ name; "HEAD" ]
+  | [ _; "objects"; git_folder; format; hex; max_deltas; max_databases ] ->
+      let format = if format = "sha256" then Id.Sha256 else Id.Sha1 in
+      let limits =
+        {
+          Store.max_content_size = 1 lsl 24;
+          max_deltas = int_of_string max_deltas;
+          max_databases = int_of_string max_databases;
+          max_packs = 1000;
+          max_alternates_size = 1 lsl 16;
+        }
+      in
+      let store = Store.create limits format ~git_folder in
+      print_endline
+        (match Id.of_hex format hex with
+        | None -> "not an id"
+        | Some id -> (
+            match Store.find store id with
+            | Ok { held = Some obj; damage } ->
+                Printf.sprintf "held %d %d"
+                  (String.length obj.content)
+                  (List.length damage)
+            | Ok { held = None; damage } ->
+                Printf.sprintf "not held %d" (List.length damage)
+            | Error (Store.Unread { pathname; failure }) ->
+                Printf.sprintf "unread %s: %s" pathname (failure_name failure)
+            | Error _ -> "another failure"))
   | _ ->
       prerr_endline
-        "usage: wait_probe (files PATH | socket DIR | refs GIT_FOLDER NAME)";
+        "usage: wait_probe (files PATH | socket DIR | refs GIT_FOLDER NAME | \
+         objects GIT_FOLDER FORMAT HEX MAX_DELTAS MAX_DATABASES)";
       exit 2

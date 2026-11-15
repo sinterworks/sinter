@@ -9,6 +9,7 @@ let folders =
     "git_objects";
     "git_refs";
     "ref_names";
+    "git_object_store";
   ]
 
 let ( / ) = Filename.concat
@@ -219,6 +220,10 @@ let allowed_libraries =
     "sinter_repository_files";
     "sinter_git_objects";
     "sinter_ref_names";
+    "sinter_git_object_store";
+    "decompress.de";
+    "decompress.zl";
+    "digestif";
   ]
 
 let found_calls path =
@@ -279,8 +284,8 @@ let found_calls path =
    opens a socket, changes a user ID or a group ID, opens a file to write, or
    changes a file, and for each library outside the chunk's own and `unix`; a
    source that holds one fails the test. It cannot see a call made through
-   another library, a call under a name that the search does not know, or what
-   2b and 2c add. *)
+   another library, such as decompress, a call under a name that the search
+   does not know, or what 2c adds. *)
 let tests =
   [
     Alcotest.test_case

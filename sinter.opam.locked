@@ -18,14 +18,16 @@ depends: [
   "base-threads" {= "base"}
   "base-unix" {= "base"}
   "camlp-streams" {= "5.0.1" & with-dev-setup}
+  "checkseum" {= "0.5.4"}
   "cmarkit" {= "0.4.0"}
   "cmdliner" {= "2.1.1"}
   "compiler-cloning" {= "disabled"}
-  "csexp" {= "1.5.2" & with-dev-setup}
+  "csexp" {= "1.5.2"}
+  "decompress" {= "1.6.1"}
   "digestif" {= "1.4.1"}
   "dune" {= "3.24.2"}
   "dune-build-info" {= "3.24.2"}
-  "dune-configurator" {= "3.24.2" & with-dev-setup}
+  "dune-configurator" {= "3.24.2"}
   "either" {= "1.0.0" & with-dev-setup}
   "eqaf" {= "0.10"}
   "fix" {= "20250919" & with-dev-setup}
@@ -48,6 +50,7 @@ depends: [
   "ocamlformat" {= "0.29.0" & with-dev-setup}
   "ocamlformat-lib" {= "0.29.0" & with-dev-setup}
   "ocp-indent" {= "1.10.0" & with-dev-setup}
+  "optint" {= "0.3.0"}
   "qcheck-alcotest" {= "0.91" & with-test}
   "qcheck-core" {= "0.91" & with-test}
   "re" {= "1.14.0" & with-test}
