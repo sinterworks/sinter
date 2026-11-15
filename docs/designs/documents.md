@@ -112,7 +112,7 @@ the conformance vectors of the design is a JSON text.
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it: a line feed, a carriage return with a line feed right after it, and a carriage return that no line feed follows each end one |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
-| [section](sinter:#markdown-section=v1), [heading that opens a section](sinter:#markdown-section=v1) | the markdown lines from an ATX heading that no block quote and no list item contains, up to the line before the next such heading of the same or a smaller level, or to the end of the markdown text; the lines before the first such heading are the section of level 0 |
+| [section](sinter:#markdown-section=v1), [heading that opens a section](sinter:#markdown-section=v1) | the markdown lines from the first line of an ATX heading or a setext heading that no block quote and no list item contains, up to the line before the next such heading of the same or a smaller level, or to the end of the markdown text; the lines before the first such heading are the section of level 0 |
 | [first paragraph](sinter:#markdown-section=v1) | the first block after the heading of a section that no block quote, no list, and no list item contains, or the first such block of the markdown document for the section of level 0; or the first block of a list item that no block quote, no list, and no list item inside that list item contains; each only when that block is a paragraph |
 | [list item](sinter:#markdown-list-item=v1) | a list item of CommonMark 0.31.2 that no block quote contains |
 | [line of a paragraph](sinter:#paragraph-line=v1), task marker | the part of a markdown line that a paragraph takes: the first line starts at the first character of the paragraph that is not a space or a tab, and, in the first paragraph of a list item, after a task marker such as `[x]`; each other line is a whole markdown line |
@@ -242,8 +242,10 @@ Another paragraph gives no tag text, and each of its tag lines can be a
 finding of the class [`ignored-tag`](sinter:#ignored-tag-finding=v1),
 such as a line `@req r=v1` in the second paragraph of a section. For
 example, the lines `@req r=v1`, `Text.`, and `---` make a setext
-heading, whose line `@req r=v1` is such a finding too, and the same
-lines in an indented code block are no finding. A Sinter tag word in
+heading of level 2. Its line `@req r=v1` is such a finding too, and, as
+a block of the document itself, the heading opens a
+[section](sinter:#markdown-section=v1). The same lines in an indented
+code block are no finding. A Sinter tag word in
 the inline description of a declaration is such a finding too, such as
 `@cites` in the line `@req r=v1 @cites x=v1 Text.`, which a formatter
 gives when it joins two tag lines. A Sinter tag word in a code span of
@@ -639,17 +641,20 @@ document comes from the k-th markdown line of the markdown text. The
 markdown lines that a block takes are the markdown lines that the lines
 of CommonMark 0.31.2 that the block takes come from.
 
-A heading that opens a section is an ATX heading that is a block of the
-document itself. Its line is the markdown line that it takes. Its level
-is the number of `#` of its opening sequence. Its section is the
-markdown lines from its line to the markdown line right before the line
-of the next heading that opens a section and whose level is the same as
-its level or less, or to the last markdown line of the markdown text
-when no such heading comes after it. The section of level 0 is the
-markdown lines of the markdown text that come before the line of the
-first heading that opens a section, or all of these markdown lines when
-no heading opens a section; it can be empty. The first line of a section
-is its first markdown line, and its last line is its last markdown line.
+A heading that opens a section is a block of the document itself that
+is an ATX heading or a setext heading. Its line is the first markdown
+line that it takes. Its level is the number of `#` of its opening
+sequence when it is an ATX heading. When it is a setext heading, its
+level is 1 when its underline is of `=`, and 2 when its underline is of
+`-`. Its section is the markdown lines from its line to the markdown
+line right before the line of the next heading that opens a section and
+whose level is the same as its level or less, or to the last markdown
+line of the markdown text when no such heading comes after it. The
+section of level 0 is the markdown lines of the markdown text that come
+before the line of the first heading that opens a section, or all of
+these markdown lines when no heading opens a section; it can be empty.
+The first line of a section is its first markdown line, and its last
+line is its last markdown line.
 
 The first paragraph of the section of a heading that opens a section is
 the first block of the document itself after that heading, when that
