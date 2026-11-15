@@ -45,34 +45,35 @@ rules of RFC 5234.
 From Text and notation, the design takes characters, texts, places,
 boundaries, runs, bodies, line endings, lines, line numbers, positions,
 and spans; whole numbers and decimal numerals; bytes and 0x numerals;
-valid UTF-8 and UTF-8 encodings; the notation of productions; sequences
-and algorithms; and conforming programs, inputs, and results. From
-Identifiers, it takes tag lines, tag words, and Sinter tag words;
-declarations, citations, citation entries, status tags, directives, and
-continuation lines; links, inline citations, their destinations, the raw
-content and the link texts of paragraphs and headings, the plain string
-content of link texts, and the markdown document of a text; the texts of
-tag lines and inline descriptions; targets, names, slugs, segments, part
-names, full names, kind words, labels, revisions, vector selections,
-every-part targets, and external ids; the productions of the forms of
-tag lines and of inline citations; the parameter `external-namespaces`;
-and the inputs of a conforming program of Identifiers and the results
-that it gives. From Files and paths, it takes valid paths, path sets,
-valid path sets, and the set of a path set. From Data forms, it takes
-hashes, indexes, hex texts, canonical byte sequences, test-vector file
-names, test-vector sets, and vector lines. From the Ontology, it takes
-trees and their files; parameters; items and their kinds, declared
-items, containment, and the names of declared items; tests and comments
-on tests; sites; external items; vector sets, conformance vectors, and
-groups of conformance vectors; revised content; edges, their kinds,
-sources, and cited items, and the item in which a line, a citation, or
-an inline citation stands; and findings and finding classes. From
-Language packs, it takes packs and valid packs; the reading of a text
-with a pack; comment nodes, definition nodes with their body nodes,
-decoration nodes, and test nodes with their name paths; the runs of
-nodes, enclosed nodes, and the order of the parse tree; and descriptors,
-with their comment sigils and foreign tag words. From Findings, it takes
-the subjects, the spots, and the other parts of a finding.
+valid UTF-8 and UTF-8 encodings; the notation of productions and code
+spans; sequences and algorithms; and conforming programs, inputs, and
+results. From Identifiers, it takes tag lines, tag words, and Sinter tag
+words; declarations, citations, citation entries, status tags,
+directives, and continuation lines; links, inline citations, their
+destinations, the raw content and the link texts of paragraphs and
+headings, the plain string content of link texts, and the markdown
+document of a text; the texts of tag lines and inline descriptions;
+targets, names, slugs, segments, part names, full names, kind words,
+labels, revisions, vector selections, every-part targets, and external
+ids; the productions of the forms of tag lines and of inline citations;
+the parameter `external-namespaces`; and the inputs of a conforming
+program of Identifiers and the results that it gives. From Files and
+paths, it takes valid paths, path sets, valid path sets, and the set of
+a path set. From Data forms, it takes hashes, indexes, hex texts,
+canonical byte sequences, test-vector file names, test-vector sets, and
+vector lines. From the Ontology, it takes trees and their files;
+parameters; items and their kinds, declared items, containment, and the
+names of declared items; tests and comments on tests; sites; external
+items; vector sets, conformance vectors, and groups of conformance
+vectors; revised content; edges, their kinds, sources, and cited items,
+and the item in which a line, a citation, or an inline citation stands;
+and findings and finding classes. From Language packs, it takes packs
+and valid packs; the reading of a text with a pack; comment nodes,
+definition nodes with their body nodes, decoration nodes, and test nodes
+with their name paths; the runs of nodes, enclosed nodes, and the order
+of the parse tree; and descriptors, with their comment sigils and
+foreign tag words. From Findings, it takes the subjects, the spots, and
+the other parts of a finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
 ATX headings, setext headings, thematic breaks, code blocks with their
@@ -136,14 +137,14 @@ the conformance vectors of the design is a JSON text.
 | [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names that requirement or term by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
-| [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
+| [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 ` in `## 2.1 Amount limit` |
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each a mark, such as `heading +1:` or `paragraph:`, and then a text |
 | [written tag lines](sinter:#written-line=v1) | the lines that a tag text gives for a declared item, each a mark, such as `tag:` or `paragraph:`, and then a text |
 | [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`; a `\` stands before each `\`, `{`, and `}` of a text, and `\n` stands for a line feed |
 | [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
-| [forms text](sinter:#forms-text=v1) | the written lines of the blocks of the Conformance part of a design or of a specification, in its hashed lines, without its headings and without the content lines of code blocks that are vector lines, each followed by a line feed; an item that has no Conformance part has none |
+| [forms text](sinter:#forms-text=v1) | the text of the lines that the Conformance part of a design or of a specification gives, each followed by a line feed |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, line by line; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [Conformance part](sinter:#conformance-part=v1) | the markdown lines of the Conformance section of a design, or of the Conformance part of a specification: the last section inside its section whose level is one more than the level of its heading; a design has none when the first paragraph of that section declares a specification that belongs to it, and an item whose declaration is in a list item, in the section of level 0, or in a code file has none |
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
@@ -441,13 +442,15 @@ The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
 of its hash text. The term `extent-hash` gives the hash text from the
 [hashed lines](sinter:#written-line=v1) of the item: from what
 CommonMark 0.31.2 reads in them, and from its tag lines, as Sinter reads
-them. Each [written line](sinter:#written-line=v1) has a mark, such as
+them. Each [written line](sinter:#written-line=v1) and each
+[written tag line](sinter:#written-line=v1) has a mark, such as
 `heading:`, `paragraph:`, or `tag:`, and the written lines of the blocks
 inside a block quote, a list, or a list item stand two spaces deeper.
 Inline elements are written on one line as their
 [written text](sinter:#written-inline=v1), such as `{em:steps}` for
 `*steps*` and for `_steps_`. For example, for the requirement of
-section 2.2, the hash text is the line `heading: Amount limit` and the line
+section 2.2, the hash text is the line `heading: Amount limit` and the
+line
 `paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
 each with a line feed after it. Its extent hash is
 `1e77c01469ff12271c9f8edf96f64665af7da043b375abb1a390cd9a300b9ad2`.
@@ -2340,7 +2343,7 @@ The empty set of texts is the set that holds no text.
 
 The indent of a whole number *k* is the text that these steps give.
 
-1. If *k* is 0, give the empty text.
+1. If *k* is less than 1, give the empty text.
 2. Let *j* be *k* minus 1.
 3. Let *pad* be the indent of *j*.
 4. Append a space to *pad*.
