@@ -103,14 +103,14 @@ conformance vectors of the design is a JSON text.
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
 | [configuration line](sinter:#configuration-line=v1) | a line of a file in the format of git's configuration files, as the page git-config gives the lines of such a file, where a byte 0x0D right before a byte 0x0A ends a line together with that byte 0x0A, any other byte 0x0D is white space as the bytes 0x20 and 0x09 are, and the bytes 0xEF, 0xBB, and 0xBF, in this order, at the start of the file are part of no line |
-| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds its object database, the refs of the git repository, and its file `config`, such as the folder `.git` of its main working tree |
+| [git folder](sinter:#git-folder=v1) | the common folder of a git repository, which holds an object database of the git repository, the refs of the git repository, and its file `config`, such as the folder `.git` of its main working tree |
 | [working tree](sinter:#working-tree=v1) | the folder tree of the files of a git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
 | [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each other working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
 | [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; the settings of each file come from its configuration lines; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, by the includes that the term `git-configuration` gives, holds |
 | [object id, hashed bytes](sinter:#commit=v1) | the SHA-1 digest, for the object format `sha1`, or the SHA-256 digest, for `sha256`, that names a git object, of its hashed bytes: the UTF-8 encoding of its object type, the byte 0x20, the UTF-8 encoding of the decimal numeral of the number of the bytes of its content, the byte 0x00, and its content |
-| [object database](sinter:#commit=v1) | a folder that holds git objects of a git repository: the folder `objects` of its git folder, or a folder that the alternates of one of its object databases name, in turn; the git objects that a git repository holds are those of its object databases |
+| [object database](sinter:#commit=v1) | a folder that holds git objects of a git repository: the folder `objects` of its git folder, or a folder that the file `info/alternates` of one of its object databases names, in turn; the git objects that a git repository holds are those of its object databases |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
 | [commit](sinter:#commit=v1) | a commit object that a git repository holds: it names a git tree object and its parents, in order, and it holds a message |
 | merge commit | a commit with two or more parents, as git names it |
@@ -136,7 +136,7 @@ conformance vectors of the design is a JSON text.
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index whose path ends with `/` and that names a git tree object; it stands for an entry for its path followed by the path of each entry, other than a tree entry, of that git tree object |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, as the page git-config defines it: the file that the setting names, or its default file, such as `~/.config/git/ignore` |
 | [ignored](sinter:#ignored-path=v1) | a path is ignored when the patterns of the regular files `.gitignore`, of the file `info/exclude`, and of the excludes file ignore it, by the rules of the page gitignore, as for a file that git's index does not hold; with the setting `core.ignoreCase`, without regard to the case of the letters from `A` to `Z` |
-| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of the object databases that its alternates name, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of those object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, and its git attributes |
+| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, and its git attributes |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from a remote repository |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -440,7 +440,7 @@ and 0x09 are.
 }
 
 The git folder of a git repository is its common folder, as the page
-gitrepository-layout defines the common folder. It holds the object
+gitrepository-layout defines the common folder. It holds an object
 database of the git repository, the refs of the git repository, and its
 file `config`. The configuration lines of its file `config` itself, and
 not those of a file that it includes, give the repository format
@@ -544,13 +544,15 @@ with `%(prefix)/` or with `:(optional)`, which names no file.
     #{git-folder=v1},
 }
 
-A git repository holds a git object when the object database of its git
-folder holds that git object, loose or in a pack, or when an object
-database that the files `objects/info/alternates` name, in turn, holds
-it, as the page gitrepository-layout defines object databases and
-alternates, and the pages gitformat-loose and gitformat-pack define
-loose objects and packs, with packs in the versions 2 and 3 of the pack
-format and their indexes in the versions 1 and 2. The hashed bytes of a
+The object databases of a git repository are the object database of its
+git folder and each object database that the file `info/alternates` of
+one of its object databases names, in turn, as the page
+gitrepository-layout defines object databases and alternates. A git
+repository holds a git object when one of its object databases holds
+that git object, loose or in a pack, as the pages gitformat-loose and
+gitformat-pack define loose objects and packs, with packs in the
+versions 2 and 3 of the pack format and their indexes in the versions 1
+and 2. The hashed bytes of a
 git object are, in this order: the UTF-8 encoding of its object type,
 `blob`, `tree`, `commit`, or `tag`, as the page gitglossary names it;
 the byte 0x20; the UTF-8 encoding of the decimal numeral of the number
@@ -1153,17 +1155,16 @@ the repository read takes no bytes.
     text#{code-span=v1},
     #{
         git-folder=v1, working-tree=v1, git-configuration=v1,
-        ignored-path=v1,
+        ignored-path=v1, commit=v1,
     },
 }
 
 The repository files of a git repository are the files of the folder
-trees whose roots are its git folder, each folder that the files
-`objects/info/alternates` name, in turn, and the root folder of each
-working tree of it; the files to which the symbolic links of the folder
-tree of the git folder, and of the folder trees of the folders that the
-files `objects/info/alternates` name, lead, and the files of the folder
-tree whose root is each such file that is a folder, in turn; the files
+trees whose roots are its git folder, each of its object databases, and
+the root folder of each working tree of it; the files to which the
+symbolic links of the folder tree of the git folder, and of the folder
+trees of its object databases, lead, and the files of the folder tree
+whose root is each such file that is a folder, in turn; the files
 of the git configuration of the git repository and of each working tree
 of it; the excludes file of each working tree of it; and the files of
 git attributes that the page gitattributes gives for the git repository
