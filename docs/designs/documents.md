@@ -145,8 +145,8 @@ the conformance vectors of the design is a JSON text.
 | [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of the lines of a tag text other than its `@ack` lines and continuation lines, from one cut to the next, where a cut comes before a tag line that comes right after prose, and before a declaration of a declared item when the cluster already holds one |
 | [kind word of a declared item](sinter:#item-kind-word=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement |
 | [canonical identifier of a declared item](sinter:#item-canonical-id=v1) | the kind word of a declared item, `:`, and its name, such as `req:billing#limit-amount` |
-| [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry in a tree: with the name of the home design of its citation as the slug, and with the kind word of the declared item that its entry name names, or, when it names no declared item, with its own kind word or none, such as `req:billing#limit-amount` for `#limit-amount=v2` in the design `billing` |
-| [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`, with `\`, `{`, `}`, and line feeds escaped |
+| [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry, or of the target of an inline citation, with a home design: with the name of that home design as the slug, and with the kind word of the declared item that its entry name names with that home design, or, when it names no declared item, with its own kind word or none, such as `req:billing#limit-amount` for `#limit-amount=v2` with the home design `billing`; a citation entry of a tag line takes the home design of its citation, and a valid inline citation in a hash text takes that of the declaration of the item |
+| [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line for a declared item: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:req:packs#size-limit}}`, where the destination of a valid inline citation is `sinter:` and a tree form, with `\`, `{`, `}`, and line feeds escaped |
 | [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
 | [forms text](sinter:#forms-text=v1) | the text of the written lines that the Conformance part of a design or of a specification gives, without its headings, the lines of the items that belong to the design, and the vector lines that it shows, each followed by a line feed |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, or of the body nodes of a definition node, line by line, without the spaces and tabs at the end of each line and without the indentation that its lines share; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
@@ -453,7 +453,12 @@ them. Each [written line](sinter:#written-line=v1) and each
 inside a block quote, a list, or a list item stand two spaces deeper.
 Inline elements are written on one line as their
 [written text](sinter:#written-inline=v1), such as `{em:steps}` for
-`*steps*` and for `_steps_`. For example, for the requirement of
+`*steps*` and for `_steps_`. The destination of a valid inline citation
+is written as `sinter:` and its tree form, with the home design of the
+declaration of the item whose hash text it is. So in the design
+`billing`, when `limit` is a requirement, `[the limit](sinter:#limit=v2)`
+and `[the limit](sinter:spec:billing#limit=v1)` both give
+`{link{the limit}{sinter:req:billing#limit}}`. For example, for the requirement of
 section 2.2, the hash text is the line `heading: Amount limit` and the
 line
 `paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
@@ -1526,6 +1531,7 @@ conformance vectors, or a vector set.
         citation-entry=v1, inline-citation=v1, inline-destination=v1,
         destination=v1, name=v1, slug=v1, full-name=v1, part-name=v1,
         kind-word=v1, external-id=v1, external-target=v1, match=v1,
+        input-match=v1,
     },
     ontology#{external-item=v1, item-name=v1, declared-finding-class=v1},
     text#{text=v1},
@@ -1534,8 +1540,13 @@ conformance vectors, or a vector set.
 
 In a tree, the entry name of a citation entry of an accepted citation,
 and the text that `name` or `external-ref` matches in the match of the
-destination of an accepted inline citation, each name one item or
-nothing, by the first of these rules that applies:
+destination of an accepted inline citation, or in the match of an input
+of the destination of another inline citation, each name one item or
+nothing with a home design, which is an item of the kind design or none.
+For an accepted citation or an accepted inline citation, that home
+design is the home design of the citation or of the inline citation,
+when it has one, and otherwise none. They name, by the first of these
+rules that applies:
 
 1. When the match of the citation entry, or of the destination, uses
    `external-ref`: the text is an external id, with its `#` and part
@@ -1548,9 +1559,9 @@ nothing, by the first of these rules that applies:
 3. A full name names the item of the set of the design of its slug
    whose name is that full name. When its slug has no design, it names
    nothing.
-4. `#` and a part name p name the item, in the set of the home design of
-   the citation or of the inline citation, whose name is the name of
-   that home design, `#`, and p. With no home design, they name nothing.
+4. `#` and a part name p name the item, in the set of that home design,
+   whose name is the name of that home design, `#`, and p. With no home
+   design, they name nothing.
 
 A name that two or more items of the set in which a rule looks for it
 have names none of them, and a name that no item of that set has names
@@ -2205,14 +2216,18 @@ together with x.
     commonmark/0.31.2,
     identifiers#{
         link=v1, destination=v1, inline-citation=v1, link-text=v1,
-        plain-string-content=v1, input=v1, binding=v1,
+        plain-string-content=v1, input=v1, binding=v1, target=v1,
     },
     text#{
         text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
         code-span=v1, conforming-program=v1, result=v1, algorithm=v1,
         sequence=v1,
     },
-    #{markdown-line=v1, accepted-input=v1},
+    ontology#{declared-item=v1},
+    #{
+        markdown-line=v1, accepted-input=v1, item-file=v1, home-design=v1,
+        tree-form=v1,
+    },
 }
 
 This term is for a tree, a valid binding of `file-readers`, and a
@@ -2270,8 +2285,8 @@ The single-spaced text of a text *t* is the text that these steps give.
    2. Otherwise, append *c* to *u*.
 3. Give *u*.
 
-The written text of a sequence *s* of inline elements is the text that
-these steps give.
+The written text of a sequence *s* of inline elements for a declared
+item *d* is the text that these steps give.
 
 1. Let *w* be the empty text.
 2. Let *run* be the empty text.
@@ -2288,26 +2303,30 @@ these steps give.
       3. Append `}` to *w*.
    5. If *x* is emphasis, then:
       1. Append `{em:` to *w*.
-      2. Append the written text of the inline elements of *x* to *w*.
+      2. Append the written text of the inline elements of *x* for *d* to
+         *w*.
       3. Append `}` to *w*.
    6. If *x* is strong emphasis, then:
       1. Append `{strong:` to *w*.
-      2. Append the written text of the inline elements of *x* to *w*.
+      2. Append the written text of the inline elements of *x* for *d* to
+         *w*.
       3. Append `}` to *w*.
    7. If *x* is a link or an image, then:
       1. Let *to* be the written destination of *x*.
-      2. If *x* is a valid inline citation and *to* holds a `=`, set *to*
-         to the text of the characters of *to* before its first `=`.
+      2. If *x* is a valid inline citation, then:
+         1. Let *h* be the empty text.
+         2. If the declaration of *d* has a home design, set *h* to the
+            home design of the declaration of *d*.
+         3. Set *to* to `sinter:`.
+         4. Append the tree form of the target of *x* with *h* to *to*.
       3. If *x* is a link, append `{link{` to *w*.
       4. Otherwise, append `{image{` to *w*.
       5. If *x* is an autolink, then:
          1. Let *shown* be the text of *x* between `<` and `>`.
-         2. If *x* is a valid inline citation and *shown* holds a `=`, set
-            *shown* to the text of the characters of *shown* before its
-            first `=`.
+         2. If *x* is a valid inline citation, set *shown* to *to*.
          3. Append the escaped text of *shown* to *w*.
       6. Otherwise, append the written text of the inline elements of *x*
-         to *w*.
+         for *d* to *w*.
       7. Append `}{` to *w*.
       8. Append the escaped text of *to* to *w*.
       9. If *x* has a title, then:
@@ -2353,22 +2372,27 @@ of its kind word and its name.
 @cites {
     identifiers#{
         citation=v1, citation-entry=v1, canonical-entry=v1, kind-word=v1,
-        external-target=v1,
+        external-target=v1, inline-citation=v1, target=v1, destination=v1,
+        input-match=v1,
     },
     ontology#{declared-item=v1, item-name=v1, tree=v1},
     text#{text=v1, algorithm=v1},
     #{accepted-input=v1, home-design=v1, named-item=v1, item-kind-word=v1},
 }
 
-The tree form of a citation entry *c* of an accepted citation of a tree
+In this term, *c* is a citation entry of an accepted citation of a tree,
+or the target of an inline citation whose destination has a match of an
+input, and *h* is an item of the kind design of the tree, or the empty
+text for no home design.
+
+The tree form of a citation entry or a target *c* with a home design *h*
 is the text that these steps give.
 
 1. Let *s* be the empty text.
-2. If the citation of *c* has a home design, set *s* to the name of that
-   home design.
+2. If *h* is an item of the kind design, set *s* to the name of *h*.
 3. Let *k* be the empty text.
-4. If the entry name of *c* names a declared item, set *k* to the kind
-   word of that declared item.
+4. If the entry name of *c* names a declared item with *h* as its home
+   design, set *k* to the kind word of that declared item.
 5. Otherwise:
    1. If *c* starts with a kind word, set *k* to that kind word.
 6. Give the canonical form of *c* with *s* and *k*.
@@ -2396,7 +2420,7 @@ is the text that these steps give.
         markdown-list-item=v1, tag-text=v1, file-line=v1,
         accepted-input=v1, item-file=v1, extent=v1,
         tree-containment=v1, section-number=v1, paragraph-line=v1,
-        item-canonical-id=v1, tree-form=v1,
+        item-canonical-id=v1, tree-form=v1, home-design=v1,
     },
 }
 
@@ -2507,7 +2531,7 @@ sequence that these steps give.
          2. Append the decimal numeral of the base level of *d* minus the
             level of *b* to *line*.
    6. Append `: ` to *line*.
-   7. Append the written text of *inlines* to *line*.
+   7. Append the written text of *inlines* for *d* to *line*.
    8. Append *line* to *lines*.
 4. If *b* is a paragraph that gives a tag text that holds a tag line,
    then:
@@ -2518,7 +2542,8 @@ sequence that these steps give.
    and *b* starts in *e*, then:
    1. Let *line* be *pad*.
    2. Append `paragraph: ` to *line*.
-   3. Append the written text of the inline elements of *b* to *line*.
+   3. Append the written text of the inline elements of *b* for *d* to
+      *line*.
    4. Append *line* to *lines*.
 6. If *b* is a code block and *b* starts in *e*, then:
    1. Let *line* be *pad*.
@@ -2623,8 +2648,10 @@ texts for a tag text *t* at depth *k*, a declared item *d*, and a set
          1. If *l* is a declaration, append the canonical identifier of
             the declared item whose declaration is *l* to *forms*.
          2. If *l* is a citation, then:
-            1. For each *c* of the citation entries of *l*, in order:
-               1. Append the tree form of *c* to *forms*.
+            1. Let *h* be the empty text.
+            2. If *l* has a home design, set *h* to the home design of *l*.
+            3. For each *c* of the citation entries of *l*, in order:
+               1. Append the tree form of *c* with *h* to *forms*.
          3. If *l* is an `@extern` line, append the target of *l* to
             *forms*.
          4. If *l* is a status tag, append the empty text to *forms*.
@@ -2677,12 +2704,12 @@ that these steps give.
    2. If *raw* is not empty, then:
       1. Let *line* be the indent of *k*.
       2. Append `paragraph: ` to *line*.
-      3. Append the written text of the inline elements that CommonMark
-         0.31.2 gives when it parses the markdown document of *raw* as
-         inlines, as it parses the raw content of a paragraph, with the
-         link reference definitions of the markdown document of the file
-         of *d*, to *line*.
-      4. Append *line* to *lines*.
+      3. Let *inner* be the inline elements that CommonMark 0.31.2 gives
+         when it parses the markdown document of *raw* as inlines, as it
+         parses the raw content of a paragraph, with the link reference
+         definitions of the markdown document of the file of *d*.
+      4. Append the written text of *inner* for *d* to *line*.
+      5. Append *line* to *lines*.
 8. If the file of *d* is a code file, then:
    1. For each *b* of the blocks of the markdown document of *raw* that
       no other block contains, as CommonMark 0.31.2 parses that document,
