@@ -284,6 +284,21 @@ let looping =
            (export \"fill\") (memory.fill (i32.const 0) (i32.const 1) \
            (i32.const 65536))) (func $r (export \"recurse\") (call $r)))"))
 
+let rec spin_when_free i =
+  match Instance.invoke i "spin" [] Instance.Result_type.Nothing with
+  | Error Busy ->
+      Domain.cpu_relax ();
+      spin_when_free i
+  | result -> result
+
+let rec wait_for_the_use i =
+  match Instance.memory_size i "memory" with
+  | Error Busy -> ()
+  | Ok _ ->
+      Domain.cpu_relax ();
+      wait_for_the_use i
+  | Error f -> Alcotest.fail (failure_text f)
+
 let instance_cases =
   [
     case "an instantiation with an import raises Invalid_argument" (fun () ->
@@ -615,26 +630,22 @@ let instance_cases =
                 (i32.const 1)))")
         in
         with_instance ~limits:(changed ~fuel:300_000_000 small) m (fun i ->
-            let started = Atomic.make false in
             let finished = Atomic.make false in
             let spinner =
               Domain.spawn (fun () ->
-                  Atomic.set started true;
-                  let result =
-                    Instance.invoke i "spin" [] Instance.Result_type.Nothing
-                  in
+                  let result = spin_when_free i in
                   Atomic.set finished true;
                   result)
             in
-            while not (Atomic.get started) do
-              Domain.cpu_relax ()
-            done;
+            wait_for_the_use i;
             let busy = ref 0 in
             while not (Atomic.get finished) do
               (match Instance.write i ~memory:"memory" ~address:9 "\x01" with
               | Error Busy -> incr busy
-              | Ok () ->
-                  Instance.write i ~memory:"memory" ~address:9 "\x00" |> ignore
+              | Ok () -> (
+                  match Instance.write i ~memory:"memory" ~address:9 "\x00" with
+                  | Ok () -> ()
+                  | Error f -> Alcotest.fail (failure_text f))
               | Error f -> Alcotest.fail (failure_text f));
               (match Instance.invoke i "one" [] Instance.Result_type.I32 with
               | Error Busy -> incr busy
@@ -659,21 +670,15 @@ let instance_cases =
       (fun () ->
         let m =
           compile
-            (W.of_text "(module (func (export \"spin\") (loop $l (br $l))))")
+            (W.of_text
+               "(module (memory (export \"memory\") 1) (func (export \"spin\") \
+                (loop $l (br $l))))")
         in
         match Instance.create m (changed ~fuel:300_000_000 small) with
         | Error f -> Alcotest.fail (failure_text f)
         | Ok i ->
-            let started = Atomic.make false in
-            let spinner =
-              Domain.spawn (fun () ->
-                  Atomic.set started true;
-                  Instance.invoke i "spin" [] Instance.Result_type.Nothing)
-            in
-            while not (Atomic.get started) do
-              Domain.cpu_relax ()
-            done;
-            Unix.sleepf 0.02;
+            let spinner = Domain.spawn (fun () -> spin_when_free i) in
+            wait_for_the_use i;
             Instance.release i;
             (match Domain.join spinner with
             | Error (Stopped Fuel) -> ()
