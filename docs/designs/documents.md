@@ -140,7 +140,7 @@ the conformance vectors of the design is a JSON text.
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 ` in `## 2.1 Amount limit` |
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
-| [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
+| [hashed lines](sinter:#hashed-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
 | [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of lines of a tag text that the term cuts at declarations and after prose |
 | [kind word of a declared item](sinter:#item-kind-word=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement |
@@ -444,7 +444,7 @@ would stand in that site.
 
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
 of the UTF-8 encoding of its hash text. The term `extent-hash` gives the
-hash text from the [hashed lines](sinter:#written-line=v1) of the item:
+hash text from the [hashed lines](sinter:#hashed-line=v1) of the item:
 from what CommonMark 0.31.2 reads in them, and from its tag lines, as
 Sinter reads them. Each [written line](sinter:#written-line=v1) and each
 [written tag line](sinter:#written-line=v1) has a mark, such as
@@ -1378,9 +1378,9 @@ section-number  = 1*DIGIT "." [ 1*DIGIT *( "." 1*DIGIT ) [ "." ] ] 1*WSP
         boundary=v1, algorithm=v1, sequence=v1, line=v1,
     },
     #{
-        written-line=v1, item-file=v1, read-file=v1, front-matter=v1,
-        markdown-section=v1, markdown-list-item=v1, tag-text=v1,
-        file-line=v1,
+        hashed-line=v1, written-line=v1, item-file=v1, read-file=v1,
+        front-matter=v1, markdown-section=v1, markdown-list-item=v1,
+        tag-text=v1, file-line=v1,
     },
 }
 
@@ -2400,7 +2400,19 @@ is the text that these steps give.
    1. If *c* starts with a kind word, set *k* to that kind word.
 6. Give the canonical form of *c* with *s* and *k*.
 
-### 4.64 Written lines
+### 4.64 Hashed lines
+
+@term hashed-line=v1
+@cites {
+    ontology#{declared-item=v1, containment=v1, tree=v1},
+    #{extent=v1, tree-containment=v1, file-line=v1},
+}
+
+The hashed lines of a declared item d of a tree are the lines of its
+extent, without, when d is of the kind design, the lines of the extent
+of each declared item that belongs to d.
+
+### 4.65 Written lines
 
 @term written-line=v1
 @cites {
@@ -2411,7 +2423,7 @@ is the text that these steps give.
         inline-description=v1, target=v1, citation-entry=v1, directive=v1,
         status-tag=v1, link=v1, link-text=v1,
     },
-    ontology#{declared-item=v1, containment=v1},
+    ontology#{declared-item=v1},
     text#{
         text=v1, character=v1, run=v1, space=v1, tab=v1, line-feed=v1,
         code-span=v1, decimal-numeral=v1, whole-number=v1, algorithm=v1,
@@ -2421,9 +2433,9 @@ is the text that these steps give.
         written-inline=v1, read-file=v1, unreadable-file=v1,
         markdown-line=v1, front-matter=v1, markdown-section=v1,
         markdown-list-item=v1, tag-text=v1, file-line=v1,
-        accepted-input=v1, item-file=v1, extent=v1,
-        tree-containment=v1, section-number=v1, paragraph-line=v1,
-        item-canonical-id=v1, tree-form=v1, home-design=v1,
+        accepted-input=v1, item-file=v1, section-number=v1,
+        paragraph-line=v1, item-canonical-id=v1, tree-form=v1,
+        home-design=v1,
     },
 }
 
@@ -2435,10 +2447,6 @@ as the term `markdown-section` gives these blocks, or of a markdown
 document that the steps of this term parse. A blank line is no block, and a
 link reference definition is a block. A heading of a markdown document
 that the steps of this term parse opens no section.
-
-The hashed lines of a declared item d of the tree are the lines of its
-extent, without, when d is of the kind design, the lines of the extent
-of each declared item that belongs to d.
 
 The base level of d is the level of the last heading that opens a
 section and whose line comes before the file line of the declaration of
@@ -2750,7 +2758,7 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
             1. Append *w* to *lines*.
 7. Give *lines*.
 
-### 4.65 Forms texts
+### 4.66 Forms texts
 
 @term forms-text=v1
 @cites {
@@ -2761,8 +2769,9 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
         code-span=v1, algorithm=v1, sequence=v1,
     },
     #{
-        conformance-part=v1, written-line=v1, read-file=v1,
-        markdown-line=v1, markdown-section=v1, item-file=v1,
+        conformance-part=v1, hashed-line=v1, written-line=v1,
+        read-file=v1, markdown-line=v1, markdown-section=v1,
+        item-file=v1,
     },
 }
 
