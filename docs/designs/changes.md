@@ -43,8 +43,11 @@ differ in some of their lines: the hunks.
 The design takes git repositories as git's documentation defines them.
 From the pages git, gitrepository-layout, and git-worktree, it takes the
 folder of a repository that its working trees share, `$GIT_COMMON_DIR`,
-and the environment variables `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`,
-and `GIT_ALTERNATE_OBJECT_DIRECTORIES`. From the page
+and the environment variables `GIT_DIR`, `GIT_WORK_TREE`,
+`GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, and
+`GIT_ALTERNATE_OBJECT_DIRECTORIES`, with the git repository and the
+working tree that git takes from them or from the folder in which a
+program starts. From the page
 gitrepository-layout, it takes the versions of the repository format,
 the object database and its alternates, the file `shallow`, replacement
 refs, and refs in the files format. From the page git-worktree, it takes
@@ -102,7 +105,7 @@ their bindings.
 From Data forms (`data-forms`), the design takes test-vector sets: the
 file that holds the conformance vectors of the design is one. From
 POSIX.1-2024, it takes processes and the shell, pathnames, environment
-variables, such as `PATH`, the permissions and the appropriate
+variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`: each
@@ -116,9 +119,10 @@ JSON text.
 | git | the version control system whose repository formats git's documentation gives |
 | git repository | a git folder, with the working trees of the repository |
 | [git folder](sinter:#git-folder=v1) | the folder of a git repository that its working trees share, `$GIT_COMMON_DIR`, or `$GIT_DIR` when no such folder is set, as the pages git, gitrepository-layout, and git-worktree give it, such as the folder `.git` of its main working tree |
-| [working tree](sinter:#working-tree=v1) | the main working tree or a linked working tree of a git repository, as the page git-worktree defines them: the folder tree of the files of the git repository that a person edits, with a folder of its own, which holds its HEAD and git's index; a git repository can have none, one, or more |
-| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each linked working tree |
+| [working tree](sinter:#working-tree=v1) | the main working tree or a linked working tree of a git repository, as the page git-worktree defines them: the folder tree of the files of the git repository that a person edits, with a folder of its own, which holds its HEAD and, usually, git's index; a git repository can have none, one, or more |
+| [folder of a working tree](sinter:#working-tree=v1) | the folder that holds the HEAD and, usually, git's index of one working tree: the git folder for the main working tree, and a folder inside the folder `worktrees` of the git folder for each linked working tree |
 | [root folder of a working tree](sinter:#working-tree=v1) | the top folder of a working tree, which usually holds the folder entry `.git` |
+| [files of a working tree](sinter:#working-tree=v1) | the files of the folder tree whose root is the root folder of a working tree, other than the file of the folder entry `.git` of that root folder and the files under it; not the same as the files of the tree of the working tree |
 | [git configuration](sinter:#git-configuration=v1) | the settings, each with its values in order, that the configuration of git gives for a working tree, or for a git repository, with its git folder and no working tree, as the page git-config defines it, in the environment in which the program started |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, by the includes that the page git-config gives, holds |
 | [object database](sinter:#commit=v1) | a folder that holds git objects of a git repository, such as the folder `objects` of its git folder or a folder that its alternates name; the git objects that a git repository holds are those of its object databases |
@@ -137,17 +141,17 @@ JSON text.
 | [ref](sinter:#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref, as the page gitglossary defines them |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | branch | a ref whose name starts with `refs/heads/` |
-| remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of a remote repository pointed |
+| remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of the git repository at an address of a remote pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks, as the pages gitglossary, git-config, and git-fetch define the upstream branch of a branch |
-| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives a value of the setting `remote.<name>.url` with that name for `<name>`; an address of the remote is, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give, a value of that setting, or, for a push, of `remote.<name>.pushurl` when it has one |
-| [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote, or from the git repository into the git repository at an address of a remote |
+| [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives a value of the setting `remote.<name>.url` with that name for `<name>`; its addresses for a fetch and for a push are those that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give |
+| [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote for a fetch, or from the git repository into the git repository at an address of a remote for a push |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
 | [git's index](sinter:#working-tree=v1) | the file in which git records the paths of the files that it tracks in a working tree, usually the file `index` in the folder of that working tree |
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index that names a git tree object and summarizes the paths of that git tree object, as the page gitformat-index defines it |
-| [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, as the page git-config defines it |
+| [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
 | [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it |
-| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and its files of git attributes, with the symbolic links on their pathnames followed, other than the files `.gitattributes` in its working trees |
+| [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from the git repository at an address of a remote |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -254,8 +258,8 @@ The term `commit` defines the message of a commit, and the term
 
 A branch is a ref under `refs/heads/`, such as `refs/heads/main`. A
 remote-tracking branch is a ref under `refs/remotes/`, such as
-`refs/remotes/origin/main`, which records where a branch of a remote
-repository pointed when git last fetched it. A ref can also name another
+`refs/remotes/origin/main`, which records where a branch of the git
+repository at an address of a remote pointed when git last fetched it. A ref can also name another
 ref, as a symbolic ref does. The term `ref-commit` defines the commit of
 a ref, and the term `head-commit` defines the HEAD and the head commit
 of a working tree. For example, in a new repository the HEAD names a
@@ -468,7 +472,7 @@ A working tree of a git repository is its main working tree or one of
 its linked working trees, as the page git-worktree defines them. It has
 a root folder, which is the root of the folder tree of the files that a
 person edits, and a folder of its own, which holds the HEAD of that
-working tree and its index, which is git's index. The folder of the main
+working tree. The folder of the main
 working tree is the git folder. The folder of each linked working tree
 is its folder inside the folder `worktrees` of the git folder, as the
 pages git-worktree and gitrepository-layout give it. Git's index of a
@@ -504,8 +508,8 @@ of a git repository is the set of the settings that the configuration of
 git gives in the same way for the git repository, with its git folder
 and with no working tree. The files of a git configuration are the files
 that the pathnames from which the page git-config takes its settings
-name, and the files that their includes name, whether or not the
-condition of an include holds, each with the symbolic links on its
+name, and the files that their includes name, in turn, whether or not
+the condition of an include holds, each with the symbolic links on its
 pathname followed and whether or not a file is there.
 
 ### 4.4 Commits
@@ -751,7 +755,9 @@ path, the files of the tree of that commit are not specified.
 
 The excludes file of a working tree is the file that the setting
 `core.excludesFile` gives in the git configuration of the working tree,
-as the page git-config defines that setting.
+or, when that setting has no value there, the file that the page
+git-config gives as its default, in the environment in which the program
+started, as the page git-config defines that setting.
 
 A valid path is ignored in a working tree when the patterns of the
 sources that the page gitignore gives for the paths of a working tree,
@@ -1078,9 +1084,9 @@ git configuration of the git repository and of each working tree of it;
 the excludes file of each working tree of it; git's index of each
 working tree of it, with the files that the format of that index names;
 and the files of git attributes that the page gitattributes gives for
-the git repository and for each working tree of it, with the symbolic
-links on their pathnames followed, other than the files `.gitattributes`
-in its working trees.
+the git repository and for each working tree of it other than as files
+`.gitattributes` in the folders of its working trees, with the symbolic
+links on their pathnames followed.
 
 ### 4.30 Values from a git repository
 
@@ -1110,16 +1116,16 @@ git-config gives, holds that value.
 
 A remote of a git repository is a name r for which the git configuration
 of the git repository gives a value of the setting `remote.<name>.url`
-with r for `<name>`. An address of the remote r is, after the rewrite
-that the page git-config gives by the settings `url.<base>.insteadOf`
-and `url.<base>.pushInsteadOf`, a value of that setting, or, for a push,
-a value of the setting `remote.<name>.pushurl` with r for `<name>` when
-that setting has one. A fetch from a remote is a transfer of git objects
-and refs into the git repository from the git repository at an address
-of the remote, as the page git-fetch defines fetches. A push to a remote
-is a transfer of git objects and refs from the git repository into the
-git repository at an address of the remote, as the page git-push defines
-pushes.
+with r for `<name>`. The addresses of the remote r for a fetch and for a
+push are those that the page git-config gives for them by the settings
+`remote.<name>.url` and `remote.<name>.pushurl`, with r for `<name>`,
+after the rewrite that it gives by the settings `url.<base>.insteadOf`
+and `url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of
+git objects and refs into the git repository from the git repository at
+an address of the remote for a fetch, as the page git-fetch defines
+fetches. A push to a remote is a transfer of git objects and refs from
+the git repository into the git repository at an address of the remote
+for a push, as the page git-push defines pushes.
 
 ## 5. Requirements
 
@@ -1511,7 +1517,7 @@ when the change of h has no base under that binding.
 @req keep-repositories-unchanged=v1
 @cites {
     #{repository-file=v1, repository-read=v1},
-    files#{file-system=v1, attribute=v1},
+    files#{system=v1, file-system=v1, attribute=v1},
     text#{conforming-program=v1},
 }
 
@@ -1519,8 +1525,11 @@ In each repository read, a conforming program, itself or through any
 program that it uses, must not create, delete, or change a repository
 file of the git repository, or change an attribute of one, other than a
 file that was open for the program when it started, such as its standard
-output, and other than when the file system itself changes an attribute
-of a file that the program uses, such as its time of last access.
+output; other than a file that the installation of the conforming
+program placed or that the system loads to start the conforming program,
+such as its executable file, its libraries, and its modules; and other
+than when the file system itself changes an attribute of a file that the
+program uses, such as its time of last access.
 
 ### 5.24 Git objects only from the repository
 
@@ -1551,9 +1560,11 @@ program that it uses, must take bytes only from the repository files of
 the git repository; from the symbolic links on the pathnames by which it
 reaches them; from a pipe between it and a program that it uses; from a
 file or a pipe that was open for the program when it started, such as
-its standard input; from a file that it created in that execution; and
-from the files that the system or the libraries of a program read to run
-it, such as its executable file and its libraries.
+its standard input; from a file that it created in that execution; from
+a file that the installation of the conforming program placed or that
+the system loads to start the conforming program, such as its executable
+file, its libraries, and its modules; and from the files that the system
+or the libraries of any program read to run it.
 
 ### 5.26 No permission or privilege that the process did not have
 
@@ -1598,7 +1609,7 @@ githooks defines; a program that is a file of the folder tree of the git
 folder of the git repository or a file of a working tree of it, or that
 it reaches through a symbolic link that is such a file (a file of these
 git repositories), other than a file that the installation of the
-conforming program placed, or that the system loads to start the
+conforming program placed or that the system loads to start the
 conforming program, such as its executable file, its libraries, and its
 modules, while a program that another installation placed, such as `git`
 or `ssh`, has no such exemption; and a program or command that the git
@@ -1639,7 +1650,7 @@ not a program that runs in this sense.
         git-folder=v1, working-tree=v1, git-configuration=v1,
         ignored-path=v1, repository-read=v1,
     },
-    files#{symbolic-link=v1},
+    files#{system=v1, symbolic-link=v1},
     text#{conforming-program=v1},
 }
 
@@ -1648,10 +1659,13 @@ program that it uses, must follow no symbolic link that is a file of a
 working tree of the git repository, other than a symbolic link on the
 way to a file of the git configuration of the git repository or of a
 working tree of it, to the file `info/exclude` of the git folder, to the
-excludes file of a working tree of it, or to a file of git attributes of
-the git repository or of a working tree of it other than a file
-`.gitattributes` in a working tree: it must find no file by the
-reference of such a symbolic link.
+excludes file of a working tree of it, to a file of git attributes that
+the page gitattributes gives for the git repository or for a working
+tree of it other than as a file `.gitattributes` in a folder of a
+working tree, or to a file that the installation of the conforming
+program placed or that the system loads to start the conforming program,
+such as its executable file, its libraries, and its modules: it must
+find no file by the reference of such a symbolic link.
 
 ### 5.29 No wait on a repository file
 
