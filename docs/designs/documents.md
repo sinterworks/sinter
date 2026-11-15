@@ -633,29 +633,30 @@ its markdown text.
     },
 }
 
-This term is for a markdown file that can be read, and for the blocks of
-its markdown document as CommonMark 0.31.2 parses that document. A blank
-line is no block, and a link reference definition is a block. A block
-of the document itself is a block that no block quote, no list, and no
-list item contains. The k-th line of CommonMark 0.31.2 of the markdown
-document comes from the k-th markdown line of the markdown text. The
-markdown lines that a block takes are the markdown lines that the lines
-of CommonMark 0.31.2 that the block takes come from.
+The level of an ATX heading is the number of `#` of its opening
+sequence. The level of a setext heading is 1 when its underline is of
+`=`, and 2 when its underline is of `-`.
 
-A heading that opens a section is a block of the document itself that
-is an ATX heading or a setext heading. Its line is the first markdown
-line that it takes. Its level is the number of `#` of its opening
-sequence when it is an ATX heading. When it is a setext heading, its
-level is 1 when its underline is of `=`, and 2 when its underline is of
-`-`. Its section is the markdown lines from its line to the markdown
-line right before the line of the next heading that opens a section and
-whose level is the same as its level or less, or to the last markdown
-line of the markdown text when no such heading comes after it. The
-section of level 0 is the markdown lines of the markdown text that come
-before the line of the first heading that opens a section, or all of
-these markdown lines when no heading opens a section; it can be empty.
-The first line of a section is its first markdown line, and its last
-line is its last markdown line.
+The rest of this term is for a markdown file that can be read, and for
+the blocks of its markdown document as CommonMark 0.31.2 parses that
+document. A blank line is no block, and a link reference definition is a
+block. A block of the document itself is a block that no block quote, no
+list, and no list item contains. The k-th line of CommonMark 0.31.2 of
+the markdown document comes from the k-th markdown line of the markdown
+text. The markdown lines that a block takes are the markdown lines that
+the lines of CommonMark 0.31.2 that the block takes come from.
+
+A heading that opens a section is a block of the document itself that is
+an ATX heading or a setext heading. Its line is the first markdown line
+that it takes. Its section is the markdown lines from its line to the
+markdown line right before the line of the next heading that opens a
+section and whose level is the same as its level or less, or to the last
+markdown line of the markdown text when no such heading comes after it.
+The section of level 0 is the markdown lines of the markdown text that
+come before the line of the first heading that opens a section, or all
+of these markdown lines when no heading opens a section; it can be
+empty. The first line of a section is its first markdown line, and its
+last line is its last markdown line.
 
 The first paragraph of the section of a heading that opens a section is
 the first block of the document itself after that heading, when that
@@ -2293,9 +2294,8 @@ section and whose line comes before the file lines of the declaration of
 d, when the file of d is a markdown file and such a heading exists, and
 otherwise 0. The own heading of d is the heading that opens a section
 whose first paragraph gives the tag text that has the declaration of d.
-The level of an ATX heading is the number of `#` of its opening
-sequence. The level of a setext heading is 1 when its underline is of
-`=`, and 2 when it is of `-`.
+The level of an ATX heading or of a setext heading is the level that the
+term `markdown-section` gives it.
 
 The children of a block quote or of a list item are the blocks that it
 contains and that no other block inside it contains, in their order. The
