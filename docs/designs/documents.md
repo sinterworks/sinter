@@ -439,8 +439,9 @@ would stand in that site.
 ### 2.9 Extent hashes and code hashes
 
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
-of the UTF-8 encoding of its hash text. The term `extent-hash` gives the hash text from the
-[hashed lines](sinter:#written-line=v1) of the item: from what
+of the UTF-8 encoding of its hash text. The term `extent-hash` gives the
+hash text from the [hashed lines](sinter:#written-line=v1) of the item:
+from what
 CommonMark 0.31.2 reads in them, and from its tag lines, as Sinter reads
 them. Each [written line](sinter:#written-line=v1) and each
 [written tag line](sinter:#written-line=v1) has a mark, such as
@@ -1042,7 +1043,7 @@ only when, its text has no character other than spaces and tabs.
 @cites {
     identifiers#{tag-line=v1, continuation-line=v1},
     text#{text=v1, line=v1},
-    #{tag-text=v1, blank-line=v1},
+    #{tag-text=v1},
 }
 
 A block of a tag text starts at each line of the tag text that is a tag
@@ -1050,9 +1051,10 @@ line and that is the first line of the tag text or comes right after a
 line that is neither a tag line nor a continuation line. The lines of
 the block are that line; each line right after it, one after another,
 that is a tag line or a continuation line; and then its trailing prose:
-each line right after these, one after another, that is not a tag line. The lines of a block are in their order in the
-tag text. Its first line is the line at which it starts, and its last
-line is its last line in that order.
+each line right after these, one after another, that is not a tag
+line. The lines of a block are in their order in the tag text. Its first
+line is the line at which it starts, and its last line is its last line
+in that order.
 
 ### 4.20 Attachment
 
@@ -1343,7 +1345,7 @@ section-number  = 1*DIGIT "." [ 1*DIGIT *( "." 1*DIGIT ) [ "." ] ] 1*WSP
     ontology#{revised-content=v1, declared-item=v1, parameter=v1, tree=v1},
     text#{
         text=v1, line-feed=v1, utf-8-encoding=v1, code-span=v1,
-        boundary=v1, algorithm=v1, sequence=v1,
+        boundary=v1, algorithm=v1, sequence=v1, line=v1,
     },
     #{
         written-line=v1, item-file=v1, read-file=v1, front-matter=v1,
@@ -1407,7 +1409,7 @@ item in the two trees are equal.
         utf-8-encoding=v1, algorithm=v1, sequence=v1, line=v1,
         character=v1,
     },
-    #{run-line=v1, attachment=v1, comment-run=v1},
+    #{read-file=v1, run-line=v1, attachment=v1, comment-run=v1},
 }
 
 The measured lines of a run r of the text of a code file are the lines
@@ -1425,15 +1427,22 @@ give.
    file of *a* from the least boundary where the run of a body node of
    *a* starts to the greatest boundary where the run of a body node of
    *a* ends.
-3. Let *shared* be the shared indentation of *r*.
-4. Let *c* be the empty text.
-5. For each *x* of the lines of the run *r*, in order:
+3. Let *l* be the line of the text of the file of *a* that starts at or
+   before the boundary where *r* starts and that ends at or after that
+   boundary.
+4. If each character of the run of that text from the boundary where *l*
+   starts to the boundary where *r* starts is a space or a tab, set *r*
+   to the run of that text from the boundary where *l* starts to the
+   boundary where *r* ends.
+5. Let *shared* be the shared indentation of *r*.
+6. Let *c* be the empty text.
+7. For each *x* of the lines of the run *r*, in order:
    1. Let *t* be the text of *x* without the spaces and tabs at its end.
    2. If *x* is a measured line of *r*, remove the first characters of
       *t*, as many as *shared* has, from *t*.
    3. Append *t* to *c*.
    4. Append a line feed to *c*.
-6. Give *c*.
+8. Give *c*.
 
 A run of comments that has a tagged comment node and that attaches to
 an attachment target has a code hash: the hash of the UTF-8 encoding of
@@ -2298,7 +2307,7 @@ these steps give.
         tag-line=v1, tag-word=v1, declaration=v1, citation=v1,
         continuation-line=v1, tag-line-text=v1, inline-description=v1,
         target=v1, citation-entry=v1, citation-line=v1, directive=v1,
-        link=v1, link-text=v1,
+        status-tag=v1, link=v1, link-text=v1,
     },
     ontology#{declared-item=v1, containment=v1},
     text#{
@@ -2365,10 +2374,16 @@ line.
 
 A line of a tag text of a markdown file has a task marker when it comes
 from the first line of the first paragraph of a list item, and the term
-`paragraph-line` gives that first line as the part of a run after the
-longest run at its start whose text matches `task-marker`. The task
-marker of the line is then the text of that longest run without the
-spaces and tabs at its end.
+`paragraph-line` gives that first line as the part of its run after the
+longest run at the start of that run whose text matches `task-marker`.
+The task marker of the line is then the text of that longest run
+without the spaces and tabs at its end.
+
+The margin of a sequence r of texts is the empty text when
+the first text of r has no character other than a space or a tab, or
+when no text of r has one. Otherwise, it is the longest text of only
+spaces and tabs with which each text of r that has a character other
+than a space or a tab starts.
 
 The pin of a citation entry is the run of the text of its citation from
 the first `=` of the run of the citation entry, as the term `origin`
@@ -2549,13 +2564,18 @@ The written prose of a sequence *r* of texts for a tag text *t* at depth
 that these steps give.
 
 1. Let *lines* be the empty sequence.
-2. Let *raw* be the empty text.
-3. Let *gap* be the empty text.
-4. For each *x* of *r*, in order:
+2. Let *shared* be the empty text.
+3. If the file of *d* is a code file, set *shared* to the margin of *r*.
+4. Let *raw* be the empty text.
+5. Let *gap* be the empty text.
+6. For each *x* of *r*, in order:
    1. Append *gap* to *raw*.
-   2. Append *x* to *raw*.
-   3. Set *gap* to a line feed.
-5. If the file of *d* is a markdown file, then:
+   2. Let *y* be *x*.
+   3. If *y* has a character other than a space or a tab, remove the
+      first characters of *y*, as many as *shared* has, from *y*.
+   4. Append *y* to *raw*.
+   5. Set *gap* to a line feed.
+7. If the file of *d* is a markdown file, then:
    1. Remove the spaces and tabs at the start and at the end of *raw*
       from *raw*.
    2. If *raw* is not empty, then:
@@ -2567,9 +2587,8 @@ that these steps give.
          link reference definitions of the markdown document of the file
          of *d*, to *line*.
       4. Append *line* to *lines*.
-6. If the file of *d* is a code file, then:
-   1. Remove the spaces and tabs at the start of *raw* from *raw*.
-   2. For each *b* of the blocks of the markdown document of *raw* that
+8. If the file of *d* is a code file, then:
+   1. For each *b* of the blocks of the markdown document of *raw* that
       no other block contains, as CommonMark 0.31.2 parses that document,
       where a link label that matches the link label of a link reference
       definition of the markdown document of *t* takes the first such
@@ -2577,7 +2596,7 @@ that these steps give.
       1. For each *w* of the written lines of *b* at depth *k* for *d*,
          in *e* and without the empty set of texts, in order:
          1. Append *w* to *lines*.
-7. Give *lines*.
+9. Give *lines*.
 
 ### 4.62 Forms texts
 
