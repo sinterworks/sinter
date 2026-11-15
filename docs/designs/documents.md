@@ -468,10 +468,12 @@ each with a line feed after it. Its extent hash is
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
-blocks of the prose of each [cluster](sinter:#written-line=v1) are read
-apart from those of the other clusters, so there this holds when each
-tag line stays a tag line at the start of its own line and the prose of
-each cluster gives the same blocks and inline elements.
+prose of each [cluster](sinter:#written-line=v1) is read as markdown
+apart from the prose of the other clusters. So in a tag text, this
+holds when each tag line stays a tag line at the start of its own line,
+with the same indentation against the other lines of its cluster, and
+CommonMark 0.31.2 reads the prose of each cluster as the same blocks and
+inline elements.
 
 The tag lines of a cluster are written from what they name, not from
 their layout: by the [tree forms](sinter:#tree-form=v1) of their
@@ -489,8 +491,8 @@ requirement `limit` has the line `tag: @req req:billing#limit` in its
 hash text. `@cites o=v1 The rule.` and the same words over two lines
 give one hash text. The items `- [ ] @req r=v1` and `- [x] @req r=v1`
 give `r` one hash text. In the text of an item of `billing`,
-`- [ ] @cites billing=v1` gives the lines `task: [ ]` and
-`tag: @cites design:billing`, and `- [x] @cites billing=v1` and
+`- [ ] @cites billing=v1` gives, inside its lines `bullet list:` and
+`item:`, the lines `task: [ ]` and `tag: @cites design:billing`, and `- [x] @cites billing=v1` and
 `- [X] @cites billing=v1` both give `task: [x]` in place of
 `task: [ ]`, so a tick changes that hash text. A requirement
 moved among the items of a list of its design does not change the hash
@@ -1414,9 +1416,8 @@ steps give.
          and without the empty set of texts, in order:
          1. Append *w* to *lines*.
 4. If the file of *d* is a code file, then:
-   1. Let *texts* be the sequence of the tag texts of the file of *d* that
-      have a line, in the order of the boundaries where their first lines
-      start.
+   1. Let *texts* be the sequence of the tag texts of the file of *d*, in
+      the order of the boundaries where their first lines start.
    2. For each *t* of *texts*, in order:
       1. For each *w* of the written tag lines of *t* at depth 0 for *d* in
          *e*, in order:
@@ -2458,10 +2459,10 @@ document that the steps of this term parse. A blank line is no block, and a
 link reference definition is a block. A heading of a markdown document
 that the steps of this term parse opens no section.
 
-The base level of d is the level of the last heading that opens a
+The base level of a declared item d is the level of the last heading that opens a
 section and whose line comes before the file line of the declaration of
 d, when the file of d is a markdown file and such a heading exists, and
-otherwise 0. The own heading of d is the heading that opens a section
+otherwise 0. The own heading of a declared item d is the heading that opens a section
 whose first paragraph gives the tag text that has the declaration of d.
 
 The children of a block quote or of a list item are the blocks that it
@@ -2489,7 +2490,8 @@ comes from each set of file lines.
 
 The prose text of a line of a tag text of a markdown file is the text
 of the characters of the file line of that line that CommonMark 0.31.2
-gives to the content of the paragraph, in their order.
+gives to the content of the paragraph, in their order, without the
+spaces and tabs at the start of this text.
 The prose text of a line of a tag text of a code file is the text of the
 line.
 
@@ -2612,8 +2614,8 @@ sequence that these steps give.
 The clusters of a tag text t in a set e of file lines are sequences of
 lines. Let L be the sequence of the lines of t that are in e and that
 are neither `@ack` lines nor continuation lines, in their order. L is
-cut right before each tag line of L whose element right before it in L
-is not a tag line, and right before each declaration of a declared
+cut right before each tag line of L that comes right after a line of L
+that is not a tag line, and right before each declaration of a declared
 item when the lines of L from the last cut before it, or from the first
 line of L when there is no such cut, hold another declaration of a
 declared item. The clusters of t in e are the sequences of the lines of
@@ -2725,9 +2727,9 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
       1. Let *line* be the indent of *k*.
       2. Append `paragraph: ` to *line*.
       3. Let *inner* be the inline elements that CommonMark 0.31.2 gives
-         when it parses the markdown document of *raw* as inlines, as it
-         parses the raw content of a paragraph, with the link reference
-         definitions of the markdown document of the file of *d*.
+         when it parses *raw* as inlines, as it parses the raw content of
+         a paragraph, with the link reference definitions of the markdown
+         document of the file of *d*.
       4. Append the written text of *inner* for *d* to *line*.
       5. Append *line* to *lines*.
 6. If the file of *d* is a code file, then:
@@ -2782,7 +2784,7 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
     #{
         conformance-part=v1, hashed-line=v1, written-line=v1,
         read-file=v1, markdown-line=v1, markdown-section=v1,
-        item-file=v1,
+        item-file=v1, front-matter=v1,
     },
 }
 
