@@ -55,8 +55,8 @@ conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, it takes the remotes of a
-git repository, the URL from which a fetch from a remote takes git
-objects, and the settings `remote.<r>.url` and `url.<base>.insteadOf`.
+git repository and the URL from which a fetch from a remote takes git
+objects.
 From RFC 3339, it takes the rule `date-time` of its ABNF, for the time
 at which a ledger entry was written. The production `chunk-path` is
 written in ABNF, the notation of RFC 5234, with the case-sensitive
@@ -94,7 +94,7 @@ text.
 | [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
 | [writer that a ledger entry records](sinter:#entry-field=v1) | the agent that its `agent` names, or else, when it has `by`, the person or the job that its `by` names; with neither, it records no writer |
 | [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
-| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with the git objects that each names as its parents when the file `shallow` does not name it |
+| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with its parents; a commit that the file `shallow` names has none |
 | [valid ledger tree](sinter:#ledger-validity=v1) | a git tree object that is not newer and that holds chunks of canonical lines, and nothing else, in the form that the term gives |
 | [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three conditions of the ledger of a git repository: its ledger ref does not exist, or the git tree object of its ledger commit is a valid ledger tree; it is neither newer nor valid; the git tree object of its ledger commit holds a newer line |
 | [stored ledger](sinter:#stored-ledger=v1) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
@@ -497,13 +497,13 @@ The ledger objects of a commit are the commit, its git tree object, each
 git tree object that a tree entry among the entries of that git tree
 object names, at any depth, and each blob that a chunk of that git tree
 object names. The ledger objects of a git repository are, when its
-ledger ref exists, the git object to which its ledger ref resolves,
-through the refs that it names in turn, and, when that git object is a
+ledger ref exists, the git object to which its ledger ref resolves, as
+the term `changes#ref-commit` gives it, and, when that git object is a
 commit, the ledger objects of that commit. The history objects of a git
 repository are its ledger objects, and, for each commit that the ledger
-commit reaches, the ledger objects of that commit and each git object
-whose object id that commit names on a line of its header that starts
-with `parent`, when the file `shallow` does not name that commit.
+commit reaches, the ledger objects of that commit and its parents, as
+the term `changes#commit` gives them; a commit that the file `shallow`
+names has none.
 
 ### 4.8 Valid, broken, and newer ledgers
 
@@ -529,11 +529,10 @@ when, each of these is true:
 2. The name of none of its entries, at any depth, holds the byte 0x2F,
    the byte of `/`.
 3. Its entries, at any depth, are exactly these: its chunks, each with
-   a mode whose number is the whole number that `100644` writes in base
-   8; for each of its chunks, the tree entry whose byte path is the
-   UTF-8 encoding of the first 10 characters of the chunk path of that
-   chunk; and, when it has at least one chunk, the tree entry whose byte
-   path is the UTF-8 encoding of `entries`.
+   the mode 100644; for each of its chunks, the tree entry whose byte
+   path is the UTF-8 encoding of the first 10 characters of the chunk
+   path of that chunk; and, when it has at least one chunk, the tree
+   entry whose byte path is the UTF-8 encoding of `entries`.
 4. The content of each of its chunks has at least one line, and each
    line of each of its chunks is the canonical line of a line object.
 5. The object of each of its lines has the member `id` with a string,
@@ -629,11 +628,9 @@ are accepted at no point.
 For the text r of the binding of the parameter `ledger-remote`, the
 shared clone of a git repository is the git repository at the URL from
 which a fetch from its remote with the name r takes git objects, as the
-page git-config gives it: the first value of the setting
-`remote.<r>.url` of its git configuration, rewritten by the settings
-`url.<base>.insteadOf` of that git configuration. A git repository whose
-git configuration gives no such URL has no shared clone. The shared
-ledger of a git repository is the stored ledger of its shared clone.
+page git-config gives it. A git repository whose git configuration gives
+no such URL has no shared clone. The shared ledger of a git repository
+is the stored ledger of its shared clone.
 
 ### 4.14 Accounted lines
 
@@ -1220,9 +1217,8 @@ object, a list of lines, or a sequence has this form:
 - A git tree object is a JSON array with one JSON object for each entry
   that the git tree object lists, in the order in which it lists them.
   The JSON object of an entry has the member `name`, the name of the
-  entry, a byte sequence, and the member `mode`, the characters of the
-  mode of the entry, as the git tree object holds them, as a text, such
-  as `100644` or `40000`. The JSON object of a tree entry also has the
+  entry, a byte sequence, and the member `mode`, the mode of the entry, a
+  text of octal digits, such as `100644` or `40000`. The JSON object of a tree entry also has the
   member `entries`: the git tree object that the tree entry names, in
   the same form. The JSON object of a regular-file entry can also have
   one of two members for the content of its blob: `content`, the
