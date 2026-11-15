@@ -116,7 +116,7 @@ a JSON text.
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
 | [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
 | [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test or of a test alike to it, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
+| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
 | [verified](sinter:#verified-vector=v1) | a conformance vector is verified when it says a vector and a test with a `verifies` edge to the vector, to its group, or to its vector set has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a conformance vector, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
@@ -1002,8 +1002,8 @@ it stands in the evidence, with these values:
   report content and the result of its reading;
 - the outcome of T in that import;
 - each triple of the narrowing of the import, when that narrowing is
-  valid, that stands for the pair of a test result and T or a test that
-  is alike to T;
+  valid, that stands for the pair of a test result and a test that is
+  T, a test that T holds, or a test alike to one of these;
 - when that outcome is "passed", each test result of the import that
   names T, or a test that T holds, and says that the tests that it names
   passed; when it is "failed", each test result of the import that names
