@@ -2131,9 +2131,8 @@ number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when a
-vector that it covers changes, joins, or leaves. When the text of this
-section changes, the revisions of every vector, every group, and the
-set rise. A change of a note alone changes no revision. A program does not need the revisions to run
+vector that it covers changes, joins, or leaves. A change of a note
+alone changes no revision. A program does not need the revisions to run
 the vectors.
 
 A vector writes each input and each value in one fixed form. A text is
