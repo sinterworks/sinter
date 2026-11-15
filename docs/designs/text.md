@@ -97,10 +97,10 @@ design has one JSON text on each line of its text.
 | [production](sinter:#production=v1) | a rule of ABNF, such as `hex-digit = DIGIT / %x61-66`, that a definition or a requirement of a design holds, and that, with each rule, other than a core rule, that it reaches through its rule names, holds no prose value and has no rule name that names no rule or more than one rule; a text matches a production when, for some choice at each `/`, at each range of terminal values, at each letter of a quoted string that matches either case, and at each repetition, the production gives terminal values that match the characters of the text, one each, in their order |
 | [rule name](sinter:#rule-name=v1) | a name in a rule of ABNF that a definition or a requirement R holds, such as `digit` for the core rule `DIGIT`, which names each rule that has that rule name, without regard to case, and that is a core rule of RFC 5234, a rule that R holds, or a rule that a definition Q holds when R refers to Q as a definition whose meaning R uses; R holds a rule of ABNF when the rule is on the lines of one of the blocks of R |
 | [terminal value](sinter:#production=v1) | one of the numbers into which a rule of ABNF resolves, such as 0x61 for `%x61`; in a production, a terminal value matches the character whose code point it is |
-| [sequence](sinter:#sequence=v1) | a finite number of things in an order, such as the lines of a text in the order of their line numbers |
+| [sequence](sinter:#sequence=v1) | finitely many things in an order, such as the lines of a text in the order of their line numbers |
 | [element](sinter:#sequence=v1) | the k-th element of a sequence is the thing at number k in the order of the sequence, from 1; the empty sequence has no element |
 | [append](sinter:#sequence=v1) | appending a thing to a sequence gives the sequence of its elements, in their order, and then that thing as the last element |
-| [remove](sinter:#sequence=v1) | removing some elements of a sequence gives the sequence of its other elements, in their order |
+| [remove](sinter:#sequence=v1) | removing the k-th elements of a sequence for some numbers k gives the sequence of its elements at the other numbers, in their order |
 | [algorithm](sinter:#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names, such as the spaced text of a text in section 2.9; a program can get that value in any way |
 | [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after it up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
 | [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
@@ -506,7 +506,7 @@ that starts at boundary 0 of a text that has a byte order mark.
 
 ### 2.9 Sequences and algorithms
 
-A sequence is a finite number of things in an order, its elements, such
+A sequence is finitely many things in an order, its elements, such
 as the lines of a text in the order of their line numbers. A text is a
 sequence of characters, and a byte sequence is a sequence of bytes. So
 the 3rd element of the text `abc` is its 3rd character, `c`.
@@ -1043,7 +1043,7 @@ result.
 @term sequence=v1
 @cites #{whole-number=v1}
 
-A sequence is a finite number of things in an order. For each whole
+A sequence is finitely many things in an order. For each whole
 number k from 1 to the number of these things, the sequence has one
 k-th element: the thing at number k in that order. The first element of
 a sequence is its 1st element, and its last element is its k-th
@@ -1053,8 +1053,9 @@ no element. Two sequences are the same sequence when, and only when,
 they have the same number of elements and, for each k, the same k-th
 element. Appending a thing to a sequence gives the sequence whose
 elements are the elements of that sequence, in their order, and then
-that thing as the last element. Removing some elements of a sequence
-gives the sequence of its other elements, in their order.
+that thing as the last element. Removing the k-th elements of a
+sequence for some numbers k gives the sequence of its elements at the
+other numbers, in their order.
 
 ### 3.39 Algorithms
 
@@ -1158,8 +1159,9 @@ The steps:
     step whose V is the words `the empty sequence`, *s* stands for no text
     and no byte sequence in this rule.
   - `Remove V from *s*.`, where V names some elements of the sequence
-    for which *s* stands: *s* then stands for the sequence that removing
-    these elements gives.
+    for which *s* stands, each by its number, such as "the last character
+    of *t*": *s* then stands for the sequence that removing the elements
+    at these numbers gives.
   - `Give V.`: the algorithm gives V, and no other step is taken.
 - A step of a form that ends with `:` has one or more substeps. No other
   step has a substep.
@@ -1188,9 +1190,12 @@ Values and conditions:
 - The words of a definition Q name the value that Q defines, such as
   "the empty text" or "a line feed", only when the definition that holds
   the algorithm refers to Q as a definition whose meaning it uses.
-- The words W of the header of an algorithm, then ` of `, then a value
-  for each header value name in place of I, name the value that this
+- The words W of the header of an algorithm, then ` of `, then I with a
+  value in place of each header value name, name the value that this
   algorithm gives for these values, such as "the spaced text of *s*".
+  Each word of I other than a header value name can stay or be left
+  out, so the values stand in the order of the header value names in
+  I.
   The algorithm can be the algorithm of the step itself. When it is
   another algorithm, the definition that holds the step refers to the
   definition that holds that algorithm as a definition whose meaning it
@@ -1417,9 +1422,7 @@ number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. When the text of this
-section changes, the revisions of every vector, every group, and the
-set rise. A change of a note alone changes no revision. A program does not need the revisions to run the vectors.
+vectors that it covers change, join, or leave. A change of a note alone changes no revision. A program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
