@@ -105,7 +105,7 @@ vectors of the design is a JSON text.
 | [citation entry](sinter:#citation-entry=v1) | a single target of a citation, or a single target for which a part of a scoped list stands |
 | [entry name](sinter:#citation-entry=v1) | the name in a citation entry: its slug, its full name, its `#` and part name, or its external id with its `#` and part name; for an every-part target, its slug |
 | [canonical identifier](sinter:#canonical-id=v1) | a kind word, `:`, and a slug, a full name, or an external id with an optional `#` and part name, such as `req:packs#size-limit`; or, with no kind word, the slug, the full name, or the external id alone, such as `gh/42` |
-| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that gives one name to a citation entry, with a slug or no slug and a kind word or no kind word; it holds no revision, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term` |
+| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that gives one name to a citation entry or to the target of an inline citation, with a slug or no slug and a kind word or no kind word; it holds no revision, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term` |
 | parameter | a word, such as `external-namespaces`, for which a conforming program takes a binding |
 | [binding](sinter:#binding=v1) | a finite set of pairs of a namespace name and an id pattern, which a conforming program takes for the parameter `external-namespaces` |
 | [external namespace](sinter:#external-namespace=v1) | a pair of a binding, with its namespace name and its id pattern; the external namespaces of a line, a link, or an image are those of the binding under which a conforming program reads it |
@@ -733,6 +733,11 @@ citation entry, and the canonical form of an every-part target ends with
 | `docs#descriptor[12]=v1` | none | `spec` | `spec:docs#descriptor[12]` |
 | `docs=v3#*` | none | `design` | `design:docs#*` |
 | `gh/42` | `docs` | none | `gh/42` |
+
+The target of a valid inline citation has a canonical form in the same
+way, from the name or the external id of its destination. So the target
+of `[the notation](sinter:#notation=v1)`, with the slug `docs` and the
+kind word `term`, gives `term:docs#notation`.
 
 So the two citation entries of `@cites packs#{size=v1, limit=v2}`, with
 no slug and the kind word `req`, give `req:packs#size` and
@@ -1731,14 +1736,21 @@ that these steps give.
     #{
         canonical-id=v1, citation=v1, tag-line-text=v1, citation-entry=v1,
         citation-line=v1, slug=v1, kind-word=v1, vector-selection=v1,
-        match=v1,
+        match=v1, inline-citation=v1, destination=v1, target=v1,
+        inline-destination=v1, name=v1, external-id=v1,
     },
-    text#{text=v1, character=v1, code-span=v1, algorithm=v1, rule-name=v1},
+    text#{
+        text=v1, character=v1, code-span=v1, algorithm=v1, production=v1,
+        rule-name=v1,
+    },
 }
 
 In this term, *c* is a citation entry of a match of the text of a
-citation by `citation-line`, *s* is a slug or the empty text, and *k* is
-a kind word or the empty text.
+citation by `citation-line`, or the target of an inline citation whose
+destination has a match by `inline-destination`; *s* is a slug or the
+empty text; and *k* is a kind word or the empty text. The entry name of
+such a target is the text that `name` or `external-ref` matches in that
+match of its destination.
 
 The canonical form of a citation entry *c* with a slug *s* and a kind
 word *k* is the text that these steps give.
@@ -1755,9 +1767,10 @@ word *k* is the text that these steps give.
       2. Append `:` to *form*.
    2. Append *n* to *form*.
 5. Otherwise, set *form* to the canonical identifier of *k* and *n*.
-6. If the match of *c* uses `vector-selection`, append the vector
-   selection of *c* to *form*.
-7. If the match of *c* uses `every-part`, append `#*` to *form*.
+6. If *c* is a citation entry whose match uses `vector-selection`,
+   append the vector selection of *c* to *form*.
+7. If *c* is a citation entry whose match uses `every-part`, append `#*`
+   to *form*.
 8. Give *form*.
 
 ## 5. Requirements
@@ -2163,7 +2176,7 @@ citation, this obligation holds under a binding of
 @cites {
     #{
         binding=v1, citation=v1, citation-entry=v1, canonical-entry=v1,
-        slug=v1, kind-word=v1,
+        slug=v1, kind-word=v1, inline-citation=v1, target=v1,
     },
     text#{
         conforming-program=v1, requirement=v1, result=v1, text=v1,
@@ -2173,12 +2186,12 @@ citation, this obligation holds under a binding of
 
 Under a binding of `external-namespaces` for which it gives the result
 "valid", when a conforming program gives the canonical form of a
-citation entry of a citation for which it gives the result "valid",
-together with a slug or no slug and a kind word or no kind word, it must
-give the canonical form of that citation entry with that slug, or with
-the empty text when there is no slug, and with that kind word, or with
-the empty text when there is no kind word, and nothing else as that
-canonical form.
+citation entry of a citation, or of the target of an inline citation,
+for which it gives the result "valid", together with a slug or no slug
+and a kind word or no kind word, it must give the canonical form of that
+citation entry or that target with that slug, or with the empty text
+when there is no slug, and with that kind word, or with the empty text
+when there is no kind word, and nothing else as that canonical form.
 
 ## 6. Conformance
 
@@ -2537,31 +2550,35 @@ binding of `external-namespaces` for which it gives the result
 
 ### 6.6 Canonical forms
 
-The group `canonical-entries` holds valid citations, each with a slug
-or no slug, and with a kind word or no kind word for each of its
-citation entries. Its vectors follow from the requirement
-`give-canonical-entries`. Each vector gives a text and the canonical
-form of each citation entry of the citation of the text.
+The group `canonical-entries` holds valid citations and valid inline
+citations, each with a slug or no slug, and with a kind word or no kind
+word for each of its citation entries or for its target. Its vectors
+follow from the requirement `give-canonical-entries`. Each vector gives
+a text and the canonical form of each citation entry of the citation of
+the text, or of the target of the inline citation of the text. Below,
+the citation entries of an inline citation are its target alone.
 
 - `input`: a JSON object with these members. `binding` and `text` are
-  the binding and the text, as described above. The first line of the
-  text is a citation, and its other lines are the continuation lines of
-  that citation. The markdown document of the text holds no link and no
-  image. `slug` is the slug, a text, only when there is a slug.
-  `entries` is a JSON array with one element for each citation entry of
-  the citation, in the order of the citation entries. Each element is a
-  JSON object with the member `kind-word`, the kind word for that
-  citation entry, as a text, when there is one, and with no member when
-  there is no kind word.
+  the binding and the text, as described above. Either the first line of
+  the text is a citation, its other lines are the continuation lines of
+  that citation, and the markdown document of the text holds no link and
+  no image; or no line of the text is a tag line, and the markdown
+  document of the text holds one link and no image, and that link is an
+  inline citation. `slug` is the slug, a text, only when there is a
+  slug. `entries` is a JSON array with one element for each citation
+  entry, in the order of the citation entries. Each element is a JSON
+  object with the member `kind-word`, the kind word for that citation
+  entry, as a text, when there is one, and with no member when there is
+  no kind word.
 - `result`: no vector of the group has this member. A conforming program
-  gives the result "valid" for the citation, and the vectors do not state
-  this result or the values of the citation.
+  gives the result "valid" for the citation or the inline citation, and
+  the vectors do not state this result or its values.
 - `values`: a JSON object with one member, `forms`: a JSON array with one
   element for each citation entry, in the order of the citation entries:
   its canonical form, as a text.
 
 When a conforming program gives the canonical form of the k-th citation
-entry of the citation, together with the slug of the input, or no slug
+entry, together with the slug of the input, or no slug
 when the input has no member `slug`, and with the kind word of the k-th
 element of `entries`, or no kind word when that element has no member,
 it gives the k-th element of `forms`.
