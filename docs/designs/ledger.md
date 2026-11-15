@@ -81,7 +81,7 @@ text.
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
 | remote | a name, such as `origin`, by which the git configuration of a git repository gives one or more URLs of another git repository |
-| [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, names another ref, or does neither; the commit to which a ref resolves, when it resolves to a commit |
+| [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object or names another ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
 | [reach](sinter:changes#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
@@ -94,7 +94,7 @@ text.
 | [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
 | [writer that a ledger entry records](sinter:#entry-field=v1) | the agent that its `agent` names, or else, when it has `by`, the person or the job that its `by` names; with neither, it records no writer |
 | [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
-| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with its parents; a commit that the file `shallow` names has none |
+| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches, with its parents; a commit that the file `shallow` names has no parents, so its parents add no git objects |
 | [valid ledger tree](sinter:#ledger-validity=v1) | a git tree object that is not newer and that holds chunks of canonical lines, and nothing else, in the form that the term gives |
 | [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three conditions of the ledger of a git repository: its ledger ref does not exist, or the git tree object of its ledger commit is a valid ledger tree; it is neither newer nor valid; the git tree object of its ledger commit holds a newer line |
 | [stored ledger](sinter:#stored-ledger=v1) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
@@ -503,7 +503,7 @@ commit, the ledger objects of that commit. The history objects of a git
 repository are its ledger objects, and, for each commit that the ledger
 commit reaches, the ledger objects of that commit and its parents, as
 the term `changes#commit` gives them; a commit that the file `shallow`
-names has none.
+names has no parents, so its parents add no git objects.
 
 ### 4.8 Valid, broken, and newer ledgers
 
@@ -1217,10 +1217,10 @@ object, a list of lines, or a sequence has this form:
 - A git tree object is a JSON array with one JSON object for each entry
   that the git tree object lists, in the order in which it lists them.
   The JSON object of an entry has the member `name`, the name of the
-  entry, a byte sequence, and the member `mode`, the mode of the entry, a
-  text of octal digits, such as `100644` or `40000`. The JSON object of a tree entry also has the
-  member `entries`: the git tree object that the tree entry names, in
-  the same form. The JSON object of a regular-file entry can also have
+  entry, a byte sequence, and the member `mode`, the mode of the entry,
+  a text of octal digits, such as `100644` or `40000`. The JSON object
+  of a tree entry also has the member `entries`: the git tree object
+  that the tree entry names, in the same form. The JSON object of a regular-file entry can also have
   one of two members for the content of its blob: `content`, the
   content, a byte sequence; or `lines`, a JSON array of JSON objects,
   each of which stands for a line object, for the content that is the
