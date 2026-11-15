@@ -160,7 +160,7 @@ the results of the functions that act on characters.
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
 | [run of a node](sinter:#node-run=v1) | the run of the text that a node takes up, without a line feed that only the parse text has, and without the byte order mark of the text |
-| [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when the parsing of tree-sitter gives no parse tree for it, or when the root node of the parse tree has an error |
+| [parse failure](sinter:#parse-failure=v1) | a text has a parse failure with a grammar when it has no parse tree with that grammar, or when the root node of the parse tree has an error |
 | [query match](sinter:#query-match=v1) | for a valid query file and a text whose parse tree has no error, a match of the query of the query file without its predicates over that parse tree, as the query language defines the matches, in which each text predicate of its pattern holds |
 | [joined match](sinter:#joined-match=v1) | the query matches of one pattern that give one node the same role, taken as one match |
 | [kept match](sinter:#joined-match=v1) | a joined match whose pattern comes first among the joined matches that give one node the same role |
