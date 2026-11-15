@@ -889,11 +889,10 @@ a character other than a space or a tab starts.
 
 The bare lines of the comment node are each other line of a block
 comment from which these rules remove no inner sigil, and each other
-line of a comment with no sigil. Last, from each bare line that has a
-character other than a space or a tab, remove the margin of the
-sequence of the texts of the bare lines, in their order, each as the
-rules of the list make it; and from each other bare line, remove the
-spaces and tabs at its start.
+line of a comment with no sigil. Last, from each bare line that starts
+with the margin of the sequence of the texts of the bare lines, in their
+order, each as the rules of the list make it, remove that margin; and
+from each other bare line, remove the spaces and tabs at its start.
 
 ### 4.13 Tag texts
 
@@ -2645,9 +2644,10 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
       2. Otherwise:
          1. Let *y* be the
             prose text of *l*.
-         2. If *y* has a character other than a space or a tab, remove the
-            first characters of *y*, as many as *shared* has, from *y*.
-         3. Append *y* to *notes*.
+         2. If *y* starts with *shared*, remove the first characters of
+            *y*, as many as *shared* has, from *y*.
+         3. Otherwise, set *y* to the empty text.
+         4. Append *y* to *notes*.
    6. For each *w* of the written cluster of *tags* and *notes* for *t* at
       depth *k*, *d*, and *e*, in order:
       1. Append *w* to *lines*.
