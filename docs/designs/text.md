@@ -97,7 +97,7 @@ design has one JSON text on each line of its text.
 | [production](sinter:#production=v1) | a rule of ABNF, such as `hex-digit = DIGIT / %x61-66`, that a definition or a requirement of a design holds, and that, with each rule, other than a core rule, that it reaches through its rule names, holds no prose value and has no rule name that names no rule or more than one rule; a text matches a production when, for some choice at each `/`, at each range of terminal values, at each letter of a quoted string that matches either case, and at each repetition, the production gives terminal values that match the characters of the text, one each, in their order |
 | [rule name](sinter:#rule-name=v1) | a name in a rule of ABNF that a definition or a requirement R holds, such as `digit` for the core rule `DIGIT`, which names each rule that has that rule name, without regard to case, and that is a core rule of RFC 5234, a rule that R holds, or a rule that a definition Q holds when R refers to Q as a definition whose meaning R uses; R holds a rule of ABNF when the rule is on the lines of one of the blocks of R |
 | [terminal value](sinter:#production=v1) | one of the numbers into which a rule of ABNF resolves, such as 0x61 for `%x61`; in a production, a terminal value matches the character whose code point it is |
-| [sequence](sinter:#sequence=v1) | a number n of elements and, for each whole number k from 1 to n, one thing as its k-th element, such as the lines of a text in the order of their line numbers |
+| [sequence](sinter:#sequence=v1) | a number n of elements, 0 or more, and, for each whole number k from 1 to n, one thing as its k-th element, such as the lines of a text in the order of their line numbers |
 | [element](sinter:#sequence=v1) | the k-th element of a sequence is its thing at number k, from 1; one thing can be its element at more than one number; the empty sequence has no element |
 | [append](sinter:#sequence=v1) | appending a thing to a sequence gives the sequence of its elements, in their order, and then that thing as the last element |
 | [remove](sinter:#sequence=v1) | removing the k-th elements of a sequence for some numbers k gives the sequence of its elements at the other numbers, in their order |
@@ -506,10 +506,10 @@ that starts at boundary 0 of a text that has a byte order mark.
 
 ### 2.9 Sequences and algorithms
 
-A sequence is a number of elements, each a thing at its own number
-from 1, such as the lines of a text in the order of their line numbers.
-A text is a sequence of characters, and a byte sequence is a sequence of
-bytes. So the 3rd element of the text `abc` is its 3rd character, `c`.
+A sequence is a number of elements, 0 or more, each a thing at its own
+number from 1, such as the lines of a text in the order of their line
+numbers. A text is a sequence of characters, and a byte sequence is a
+sequence of bytes. So the 3rd element of the text `abc` is its 3rd character, `c`.
 
 A definition can define a value by an algorithm: a header sentence, then
 numbered steps, each in one of the forms that the term `algorithm` of
@@ -1043,11 +1043,12 @@ result.
 @term sequence=v1
 @cites #{whole-number=v1}
 
-A sequence is a whole number n, its number of elements, and, for each
-whole number k from 1 to n, one thing, its k-th element. The first
-element of a sequence is its 1st element, and its last element is its
-k-th element, where k is the number of its elements. One thing can be the
-k-th element of a sequence for more than one k. The empty sequence has
+A sequence is a whole number n that is 0 or more, its number of
+elements, and, for each whole number k from 1 to n, one thing, its k-th
+element. The first element of a sequence is its 1st element, and its
+last element is its k-th element, where k is the number of its
+elements. One thing can be the k-th element of a sequence for more than
+one k. The empty sequence has
 no element. Two sequences are the same sequence when, and only when,
 they have the same number of elements and, for each k, the same k-th
 element. Appending a thing to a sequence gives the sequence whose
