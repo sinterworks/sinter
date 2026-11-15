@@ -14,7 +14,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the files of a tree that a conforming program reads, with their readers; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
+Specifies the files of a tree that a conforming program reads, with their readers; the sets of stopped files and the files that cannot be read; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
 
 A conforming program reads the files of a tree to find the items that
 Sinter traces and the edges between them. A binding of the parameter
@@ -44,35 +44,35 @@ rules of RFC 5234.
 
 From Text and notation, the design takes characters, texts, places,
 boundaries, runs, bodies, line endings, lines, line numbers, positions,
-and spans; whole numbers and decimal numerals; valid UTF-8 and UTF-8
-encodings; the notation of productions; sequences and algorithms; and
-conforming programs, inputs, and results. From Identifiers, it takes tag lines, tag words, and Sinter
-tag words; declarations, citations, citation entries, status tags,
-directives, and continuation lines; links, inline citations, their
-destinations, the raw content and the link texts of paragraphs and
-headings, the plain string content of link texts, and the markdown
-document of a text; the texts of tag lines and inline
-descriptions; targets, names, slugs, segments, part names, full names,
-kind words, labels, revisions, vector selections, every-part targets,
-and external ids; the productions of the forms of tag lines and of
-inline citations; the parameter `external-namespaces`; and the inputs of
-a conforming program of Identifiers and the results that it gives. From
-Files and paths, it takes valid paths, path sets, valid path sets, and
-the set of a path set. From Data forms, it takes hashes, indexes, hex
-texts, canonical byte sequences, test-vector file names, test-vector
-sets, and vector lines. From the Ontology, it takes trees and their
-files; parameters; items and their kinds, declared items, containment,
-and the names of declared items; tests and comments on tests; sites;
-external items; vector sets, conformance vectors, and groups of
-conformance vectors; revised content; edges, their kinds, sources, and
-cited items, and the item in which a line, a citation, or an inline
-citation stands; and findings and finding classes. From Language packs,
-it takes packs and valid packs; the reading of a text with a pack;
-comment nodes, definition nodes with their body nodes, decoration nodes,
-and test nodes with their name paths; the runs of nodes, enclosed nodes,
-and the order of the parse tree; and descriptors, with their comment
-sigils and foreign tag words. From Findings, it takes the subjects, the
-spots, and the other parts of a finding.
+and spans; whole numbers and decimal numerals; bytes and 0x numerals;
+valid UTF-8 and UTF-8 encodings; the notation of productions; sequences
+and algorithms; and conforming programs, inputs, and results. From
+Identifiers, it takes tag lines, tag words, and Sinter tag words;
+declarations, citations, citation entries, status tags, directives, and
+continuation lines; links, inline citations, their destinations, the raw
+content and the link texts of paragraphs and headings, the plain string
+content of link texts, and the markdown document of a text; the texts of
+tag lines and inline descriptions; targets, names, slugs, segments, part
+names, full names, kind words, labels, revisions, vector selections,
+every-part targets, and external ids; the productions of the forms of
+tag lines and of inline citations; the parameter `external-namespaces`;
+and the inputs of a conforming program of Identifiers and the results
+that it gives. From Files and paths, it takes valid paths, path sets,
+valid path sets, and the set of a path set. From Data forms, it takes
+hashes, indexes, hex texts, canonical byte sequences, test-vector file
+names, test-vector sets, and vector lines. From the Ontology, it takes
+trees and their files; parameters; items and their kinds, declared
+items, containment, and the names of declared items; tests and comments
+on tests; sites; external items; vector sets, conformance vectors, and
+groups of conformance vectors; revised content; edges, their kinds,
+sources, and cited items, and the item in which a line, a citation, or
+an inline citation stands; and findings and finding classes. From
+Language packs, it takes packs and valid packs; the reading of a text
+with a pack; comment nodes, definition nodes with their body nodes,
+decoration nodes, and test nodes with their name paths; the runs of
+nodes, enclosed nodes, and the order of the parse tree; and descriptors,
+with their comment sigils and foreign tag words. From Findings, it takes
+the subjects, the spots, and the other parts of a finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
 ATX headings, setext headings, thematic breaks, code blocks with their
@@ -137,11 +137,12 @@ the conformance vectors of the design is a JSON text.
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 `, at the start of the text of a heading |
-| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the written lines of the front matter, the blocks, and the tag texts in the hashed lines of a declared item, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
+| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each a mark, such as `heading +1:` or `paragraph:`, and then a text |
 | [written tag lines](sinter:#written-line=v1) | the lines that a tag text gives for a declared item, each a mark, such as `tag:` or `paragraph:`, and then a text |
 | [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:packs#size-limit}}`; a `\` stands before each `\`, `{`, and `}` of a text, and `\n` stands for a line feed |
+| [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
 | [forms text](sinter:#forms-text=v1) | the written lines of the blocks of the Conformance part of a design or of a specification, in its hashed lines, without its headings and without the content lines of code blocks that are vector lines, each followed by a line feed; an item that has no Conformance part has none |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, line by line; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [Conformance part](sinter:#conformance-part=v1) | the markdown lines of the Conformance section of a design, or of the Conformance part of a specification: the last section inside its section whose level is one more than the level of its heading; a design has none when the first paragraph of that section declares a specification that belongs to it, and an item whose declaration is in a list item, in the section of level 0, or in a code file has none |
@@ -242,15 +243,15 @@ after `### 1.1 Amount limit`. The section of level 0 is empty.
 Another paragraph gives no tag text, and each of its tag lines can be a
 finding of the class [`ignored-tag`](sinter:#ignored-tag-finding=v1),
 such as a line `@req r=v1` in the second paragraph of a section. For
-example, the lines `@req r=v1`, `Text.`, and `---` make a setext
-heading of level 2. Its line `@req r=v1` is such a finding too, and, as
-a block of the document itself, the heading opens a
+example, the lines `@req r=v1`, `Text.`, and `---` make a setext heading
+of level 2. Its line `@req r=v1` is such a finding too, and, as a block
+of the document itself, the heading opens a
 [section](sinter:#markdown-section=v1). The same lines in an indented
-code block are no finding. A Sinter tag word in
-the inline description of a declaration is such a finding too, such as
-`@cites` in the line `@req r=v1 @cites x=v1 Text.`, which a formatter
-gives when it joins two tag lines. A Sinter tag word in a code span of
-that inline description is no finding.
+code block are no finding. A Sinter tag word in the inline description
+of a declaration is such a finding too, such as `@cites` in the line
+`@req r=v1 @cites x=v1 Text.`, which two tag lines give when they are
+joined into one line. A Sinter tag word in a code span of that inline
+description is no finding.
 
 ### 2.3 Code files
 
@@ -409,11 +410,12 @@ vector line is the vector line with the number 12 of the vector set of
 that specification.
 
 The [Conformance part](sinter:#conformance-part=v1) of a design or of a
-specification in a markdown file is a section inside its own section.
-In the example of section 2.2, the design `billing` has none,
-because the first paragraph of `## 1. Invoices` declares a specification
-that belongs to it. The Conformance part of that specification is the
-section of `### 1.1 Amount limit`.
+specification in a markdown file is a section inside its own section. In
+the example of section 2.2, the design `billing` has none, because the
+first paragraph of `## 1. Invoices` declares a specification that
+belongs to it. When a heading `### 1.2 Conformance` comes after the
+lines of `### 1.1 Amount limit`, its section is the Conformance part of
+that specification.
 
 ### 2.8 Edges, sites, and status tags
 
@@ -436,16 +438,16 @@ would stand in that site.
 ### 2.9 Extent hashes and code hashes
 
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
-of its hash text, which its revised content gives. The hash text is made
-of the [written lines](sinter:#written-line=v1) of the blocks of its
-extent, as CommonMark 0.31.2 reads them, and of its tag lines, as
-Sinter reads them. Each written line has a mark, such as `heading:`,
-`paragraph:`, or `tag:`, and the written lines of the blocks inside a
-block quote, a list, or a list item stand two spaces deeper. Inline elements are written on one line
-as their [written text](sinter:#written-inline=v1), such as
-`{em:steps}` for `*steps*` and for `_steps_`. For example, for the
-requirement of section 2.2, the hash text is the line
-`heading: Amount limit` and the line
+of its hash text. The term `extent-hash` gives the hash text from the
+[hashed lines](sinter:#written-line=v1) of the item: from what
+CommonMark 0.31.2 reads in them, and from its tag lines, as Sinter reads
+them. Each [written line](sinter:#written-line=v1) has a mark, such as
+`heading:`, `paragraph:`, or `tag:`, and the written lines of the blocks
+inside a block quote, a list, or a list item stand two spaces deeper.
+Inline elements are written on one line as their
+[written text](sinter:#written-inline=v1), such as `{em:steps}` for
+`*steps*` and for `_steps_`. For example, for the requirement of
+section 2.2, the hash text is the line `heading: Amount limit` and the line
 `paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
 each with a line feed after it. Its extent hash is
 `1e77c01469ff12271c9f8edf96f64665af7da043b375abb1a390cd9a300b9ad2`.
@@ -1336,7 +1338,8 @@ section-number  = 1*DIGIT "." [ 1*DIGIT *( "." 1*DIGIT ) [ "." ] ] 1*WSP
     },
 }
 
-The hash text of a declared item *d* of a tree is the text that these steps give.
+The hash text of a declared item *d* of a tree is the text that these
+steps give.
 
 1. Let *e* be the hashed lines of *d*.
 2. Let *lines* be the empty sequence.
@@ -2119,14 +2122,14 @@ The Conformance part of an item x of the kind design or of the kind
 specification of a tree is a set of markdown lines of its file, or none.
 When the file of x is a markdown file, let S be the section or the list
 item whose first paragraph gives the tag text that has the declaration
-of x. When S is the section of a heading H that opens a section, and
-the lines of S have the line of at least one heading that opens a
-section and whose level is the level of H plus 1, let C be the last of
-these headings. Then the
-Conformance part of x is the markdown lines of the section of C, unless
-x is of the kind design and the tag text of the first paragraph of the
-section of C has the declaration of an item of the kind specification
-that belongs to x; then x has none. In each other case, x has none.
+of x. When S is the section of a heading H that opens a section, and the
+lines of S have the line of at least one heading that opens a section
+and whose level is the level of H plus 1, let C be the last of these
+headings. Then the Conformance part of x is the markdown lines of the
+section of C, unless x is of the kind design and the tag text of the
+first paragraph of the section of C has the declaration of an item of
+the kind specification that belongs to x; then x has none. In each other
+case, x has none.
 
 ### 4.60 The written text of inline elements
 
@@ -2194,7 +2197,8 @@ The single-spaced text of a text *t* is the text that these steps give.
    2. Otherwise, append *c* to *u*.
 3. Give *u*.
 
-The written text of a sequence *s* of inline elements is the text that these steps give.
+The written text of a sequence *s* of inline elements is the text that
+these steps give.
 
 1. Let *w* be the empty text.
 2. Let *run* be the empty text.
@@ -2343,7 +2347,9 @@ The indent of a whole number *k* is the text that these steps give.
 5. Append a space to *pad*.
 6. Give *pad*.
 
-The written lines of a block *b* at depth *k* for a declared item *d*, in a set *e* of file lines and without a set *v* of texts, is the sequence that these steps give.
+The written lines of a block *b* at depth *k* for a declared item *d*,
+in a set *e* of file lines and without a set *v* of texts, is the
+sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the indent of *k*.
@@ -2487,7 +2493,9 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
    1. Append *w* to *lines*.
 6. Give *lines*.
 
-The written prose of a sequence *r* of texts for a tag text *t* at depth *k*, a declared item *d*, and a set *e* of file lines is the sequence that these steps give.
+The written prose of a sequence *r* of texts for a tag text *t* at depth
+*k*, a declared item *d*, and a set *e* of file lines is the sequence
+that these steps give.
 
 1. Let *lines* be the empty sequence.
 2. Let *raw* be the empty text.
@@ -2534,7 +2542,9 @@ The written prose of a sequence *r* of texts for a tag text *t* at depth *k*, a 
 An item of the kind design or of the kind specification of a tree that
 has no Conformance part has no forms text.
 
-The forms text of an item *x* of the kind design or of the kind specification that has a Conformance part is the text that these steps give.
+The forms text of an item *x* of the kind design or of the kind
+specification that has a Conformance part is the text that these steps
+give.
 
 1. Let *part* be the set of the lines of the Conformance part of *x* that
    are hashed lines of *x* and that no ATX heading and no setext heading
@@ -2565,7 +2575,8 @@ The forms text of an item *x* of the kind design or of the kind specification th
     #{
         file-reader-binding=v1, read-file=v1, item-file=v1, extent=v1,
         extent-hash=v1, forms-text=v1, code-hash=v1, tree-containment=v1,
-        file-test=v1, tree-site=v1, tree-edge=v1, accepted-input=v1, extern-mark=v1,
+        file-test=v1, tree-site=v1, tree-edge=v1, accepted-input=v1,
+        extern-mark=v1,
         vector-file=v1, parse-error-finding=v1, typo-tag-finding=v1,
         ignored-tag-finding=v1, invalid-target-finding=v1,
         duplicate-finding=v1, dangling-finding=v1,
@@ -2580,10 +2591,11 @@ of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "invalid", a conforming program must give,
 for any tree, no read file, no declared item, no extent, no hash text,
 no extent hash, no forms text, no code text, no code hash, no item to
-which a declared item belongs, no test, no site, no edge, no status tag, no extern mark, no vector file, and no
-finding of the classes `parse-error`, `typo-tag`, `ignored-tag`,
-`invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`,
-`misplaced-declaration`, `req-outside-design`, and `extern-mismatch`.
+which a declared item belongs, no test, no site, no edge, no status tag,
+no extern mark, no vector file, and no finding of the classes
+`parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`,
+`dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`,
+`req-outside-design`, and `extern-mismatch`.
 
 ### 5.2 Read files
 
