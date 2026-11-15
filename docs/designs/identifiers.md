@@ -39,8 +39,9 @@ as in `%s"@req"`. The productions also use four core rules of RFC 5234:
 or a tab, and `LF` is a line feed.
 
 From Text and notation (`text`), the design takes the basics of
-characters, texts, runs, lines, numerals, and productions, and what a
-conforming program and a result are, and it narrows what an input is.
+characters, texts, runs, lines, numerals, and productions; sequences and
+algorithms; and what a conforming program and a result are, and it
+narrows what an input is.
 From CommonMark 0.31.2, the design takes its links and images, their
 link destinations, the block and inline elements that hold them, and the
 replacement of U+0000 by U+FFFD. From RFC 8259, the design takes JSON
@@ -81,7 +82,7 @@ vectors of the design is a JSON text.
 | [destination](sinter:#destination=v1) | the address of a link, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)`, with each backslash escape, entity reference, and numeric character reference replaced by its characters, and with no percent-decoding; for an autolink, its text between `<` and `>`, with no backslash escape, entity reference, or numeric character reference replaced |
 | [link text](sinter:#link-text=v1) | the text between the `[` that starts an inline link or a reference link and the `]` that closes that `[`, in the raw content that holds the link, such as `the limit` in `[the limit](sinter:packs#size-limit=v2)`; an autolink has no brackets, and its link text is its text between `<` and `>`, with no backslash escape, entity reference, or numeric character reference replaced |
 | [line of CommonMark 0.31.2](sinter:#link-text=v1) | a line as CommonMark 0.31.2 gives it, which a carriage return that no line feed follows also ends |
-| [raw content](sinter:#link-text=v1) | the lines of CommonMark 0.31.2 of a paragraph or a heading, without the underline of a setext heading, without the markers of block quotes, list items, and ATX headings, and without the spaces and tabs at the start of each line; then joined by line feeds, and without the spaces and tabs at the end |
+| [raw content](sinter:#link-text=v1) | the text of the lines of a paragraph or a heading, joined by line feeds, without the marks of the blocks, such as `>` and `#`, and without indentation |
 | [inline citation](sinter:#inline-citation=v1) | a link whose destination starts with `sinter:` |
 | [target](sinter:#target=v1) | the text after the tag word of a declaration, a citation, or an `@extern` line and the spaces and tabs after the tag word, up to the first space or tab before which the text from the start of the target holds no more `{` than `}`, or up to the end of the text of the tag line; also the destination of an inline citation after `sinter:` |
 | [inline description](sinter:#inline-description=v1) | the text of a tag line after its target, or after the tag word of a status tag, without the spaces and tabs at its start; an `@ack` line has none |
