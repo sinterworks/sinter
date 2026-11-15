@@ -110,7 +110,7 @@ conformance vectors of the design is a JSON text.
 | [git configuration](sinter:#git-configuration=v1) | the settings of a working tree from the configuration files and the environment variables that the page git-config gives, in the environment in which the program started, with the file that `GIT_CONFIG_SYSTEM` names, or else `/etc/gitconfig`, as the system file, none when `GIT_CONFIG_NOSYSTEM` is true, and the file `config` of the git folder whatever its owner; the settings of each file come from its configuration lines; for a git repository, the same with no working tree, without the settings of one working tree, and without the sections `includeIf` whose condition starts with `onbranch:` |
 | [value from a git repository](sinter:#repository-value=v1) | a value of a setting of a git configuration that the file `config` of the git folder of a git repository, a file `config.worktree` in the folder of a working tree of it, or a file that one of these files includes, in turn, by the includes that the term `git-configuration` gives, holds |
 | [object id, hashed bytes](sinter:#commit=v1) | the SHA-1 digest, for the object format `sha1`, or the SHA-256 digest, for `sha256`, that names a git object, of its hashed bytes: the UTF-8 encoding of its object type, the byte 0x20, the UTF-8 encoding of the decimal numeral of the number of the bytes of its content, the byte 0x00, and its content |
-| [object database](sinter:#commit=v1) | the git objects that a git repository holds, in its git folder and in the object databases that its alternates name |
+| [object database](sinter:#commit=v1) | a folder that holds git objects: the folder `objects` of the git folder of a git repository, or a folder that a file `objects/info/alternates` names; the git objects that a git repository holds are those of these folders |
 | git object | a commit object, a git tree object, a blob, or a tag object, as the page gitglossary defines them |
 | [commit](sinter:#commit=v1) | a commit object that a git repository holds: it names a git tree object and its parents, in order, and it holds a message |
 | merge commit | a commit with two or more parents, as git names it |
@@ -557,36 +557,39 @@ the byte 0x20; the UTF-8 encoding of the decimal numeral of the number
 of the bytes of its content; the byte 0x00; and its content. Its object
 id is the SHA-1 digest of its hashed bytes for the object format `sha1`,
 and the SHA-256 digest for `sha256`, as FIPS 180-4 defines these
-digests. A regular file of an object database, at the pathname that the
-page gitformat-loose gives for an object id X, is a loose object only
-when the content of that file is one zlib stream, as RFC 1950 defines
-it, of the hashed bytes of a git object, with no byte before or after
-that stream. A loose object at the pathname for an object id X, or an
-object of a pack that the index of that pack lists under X, holds the
-git object X only when the hashed bytes that it gives have the object id
-X, and it holds no other git object. An object of a pack that is a delta
-gives hashed bytes only when its base gives hashed bytes; when the delta
-names its base by an object id B, its base is the object of the same
-pack that the index of that pack lists under B, and it gives no hashed
-bytes when that index lists no object under B; and an object that is its
-own base, through any number of deltas, gives none. A commit of a git
-repository is a commit object, as the page gitglossary defines it, that
-the git repository holds. The content of a commit object is lines of a
-header, each ended by the byte 0x0A, then, when there is one, an empty
-line and the message. The first line is `tree`, the byte 0x20, and the
-object id, in hex digits, of the git tree object of the commit. Let k be
-the greatest whole number such that each of the lines 2 to k + 1 of the
-content starts with `parent` and the byte 0x20: the parent lines of the
-content are these lines, and there are none when k is 0. Each parent
-line names one parent by the object id, in hex digits, after that byte,
-and no other line names a parent. A commit names one git tree object,
-the git tree object of the commit, and zero or more commits. Its parents
-are the commits that it names, in the order in which it names them, each
-as often as it names it. The first of its parents is its first parent.
-The message of a commit is the byte sequence of the content of its
-commit object after the first two bytes 0x0A that follow one another in
-it, or the empty byte sequence when the content holds no two such bytes.
-A commit that the file `shallow` of the git folder names, in a line that
+digests. A regular file in a folder of an object database, where the
+name of that folder is the first two hex digits of an object id X and
+the name of the file is the other hex digits of X, as the page
+gitformat-loose gives the pathname of a loose object in the folder of an
+object database, is a loose object only when the content of that file is
+one zlib stream, as RFC 1950 defines it, of the hashed bytes of a git
+object, with no byte before or after that stream. A loose object at the
+pathname for an object id X in this way, or an object of a pack that the
+index of that pack lists under X, holds the git object X only when the
+hashed bytes that it gives have the object id X, and it holds no other
+git object. An object of a pack that is a delta gives hashed bytes only
+when its base gives hashed bytes; when the delta names its base by an
+object id B, its base is the object of the same pack that the index of
+that pack lists under B, and it gives no hashed bytes when that index
+lists no object under B; and an object that is its own base, through any
+number of deltas, gives none. A commit of a git repository is a commit
+object, as the page gitglossary defines it, that the git repository
+holds. The content of a commit object is lines of a header, each ended
+by the byte 0x0A, then, when there is one, an empty line and the
+message. The first line is `tree`, the byte 0x20, and the object id, in
+hex digits, of the git tree object of the commit. Let k be the greatest
+whole number such that each of the lines 2 to k + 1 of the content
+starts with `parent` and the byte 0x20: the parent lines of the content
+are these lines, and there are none when k is 0. Each parent line names
+one parent by the object id, in hex digits, after that byte, and no
+other line names a parent. A commit names one git tree object, the git
+tree object of the commit, and zero or more commits. Its parents are the
+commits that it names, in the order in which it names them, each as
+often as it names it. The first of its parents is its first parent. The
+message of a commit is the byte sequence of the content of its commit
+object after the first two bytes 0x0A that follow one another in it, or
+the empty byte sequence when the content holds no two such bytes. A
+commit that the file `shallow` of the git folder names, in a line that
 holds its object id in hex digits, has no parents. The content of a
 blob, the entries of a git tree object, and the git tree object and the
 parents of a commit, apart from this rule, are those that the git object
