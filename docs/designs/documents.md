@@ -108,7 +108,8 @@ the conformance vectors of the design is a JSON text.
 | [binding of `file-readers`](sinter:#file-reader-binding=v1), [reader](sinter:#file-reader-binding=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
-| [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
+| [set of stopped files](sinter:#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files for whose reading it gives "parse failure" by the exception for limits of Language packs; each set of read files is valid |
+| [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it: a line feed, a carriage return with a line feed right after it, and a carriage return that no line feed follows each end one |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
 | [section](sinter:#markdown-section=v1), [heading that opens a section](sinter:#markdown-section=v1) | the markdown lines from an ATX heading that no block quote and no list item contains, up to the line before the next such heading of the same or a smaller level, or to the end of the markdown text; the lines before the first such heading are the section of level 0 |
@@ -192,7 +193,11 @@ pack for OCaml, and the file `README.md` is not read.
 
 A read file that [cannot be read](sinter:#unreadable-file=v1), such as
 one whose content is not valid UTF-8, gives a finding of the class
-[`parse-error`](sinter:#parse-error-finding=v1).
+[`parse-error`](sinter:#parse-error-finding=v1). A program can stop the
+reading of a file for limits of its own, such as a limit on the depth of
+nested square brackets. The files whose reading it stops are in its
+[set of stopped files](sinter:#unreadable-file=v1), an input of the
+program, and the program reads the rest of the tree.
 
 ### 2.2 Markdown files
 
@@ -338,7 +343,7 @@ In this OCaml text, with the block pair `(*` and `*)`, the specification
    Each entry of the ledger has an id that its own bytes fix. *)
 module Entry_id = struct
   (* @req id-form=v1
-     An id is "e-" and the first twelve hex digits of a SHA-256. *)
+     An id is "e-" and the first hex digits of a SHA-256. *)
   let of_line line = digest line
 end
 ```
@@ -527,17 +532,27 @@ the code file.
 @term unreadable-file=v1
 @cites {
     files#{path=v1},
-    packs#{reading-of-a-text=v1},
-    text#{valid-utf-8=v1, text=v1, result=v1},
+    packs#{reading-of-a-text=v1, give-reading-results=v1},
+    text#{valid-utf-8=v1, text=v1, result=v1, input=v1},
     ontology#{tree=v1},
-    #{read-file=v1},
+    #{read-file=v1, file-reader-binding=v1},
 }
 
-A read file of a tree cannot be read when, and only when, its content is
-not valid UTF-8, or it is a code file and the reading of its text, as
-the text of a file at its valid path, with its pack has the result "no
-grammar" or the result "parse failure". Each other read file can be
-read.
+This term is for a tree, a valid binding of `file-readers`, and a set of
+stopped files of the tree. A set of stopped files of a tree is a set of
+read files of the tree that a program takes as an input of its own: the
+markdown files whose reading the program stops for limits of its own,
+and the code files for whose reading the program gives the result "parse
+failure" by the exception for limits of the requirement
+`give-reading-results` of Language packs. Each set of read files of a
+tree is a valid set of stopped files of the tree. The set is empty when
+the program makes no such stop.
+
+A read file of the tree cannot be read when, and only when, it is in the
+set of stopped files, its content is not valid UTF-8, or it is a code
+file and the reading of its text, as the text of a file at its valid
+path, with its pack has the result "no grammar" or the result "parse
+failure". Each other read file can be read.
 
 ### 4.4 Markdown lines
 
@@ -2576,17 +2591,17 @@ file of the tree once, with its reader, and no other read file.
     text#{conforming-program=v1, result=v1},
     #{
         file-reader-binding=v1, item-file=v1, tree-containment=v1,
-        origin-position=v1,
+        origin-position=v1, unreadable-file=v1,
     },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the declared items of a tree under these bindings, it must give each
-declared item of the tree once, with its kind of item, its name, its
-file, and the origin position of the text of its declaration, and no
-other declared item.
+the declared items of a tree under these bindings and a set of stopped
+files, it must give each declared item of the tree once, with its kind
+of item, its name, its file, and the origin position of the text of its
+declaration, and no other declared item.
 
 ### 5.4 Extents
 
@@ -2595,14 +2610,18 @@ other declared item.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, extent=v1, file-line=v1},
+    #{
+        file-reader-binding=v1, extent=v1, file-line=v1,
+        unreadable-file=v1,
+    },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the extent of a declared item of a tree under these bindings, it must
-give the extent of that item, and nothing else as that extent.
+the extent of a declared item of a tree under these bindings and a set
+of stopped files, it must give the extent of that item, and nothing else
+as that extent.
 
 ### 5.5 Extent hashes
 
@@ -2611,15 +2630,15 @@ give the extent of that item, and nothing else as that extent.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, extent-hash=v1},
+    #{file-reader-binding=v1, extent-hash=v1, unreadable-file=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the extent hash of a declared item of a tree under these bindings, it
-must give the extent hash of that item, and nothing else as that extent
-hash.
+the extent hash of a declared item of a tree under these bindings and a
+set of stopped files, it must give the extent hash of that item, and
+nothing else as that extent hash.
 
 ### 5.6 Code hashes
 
@@ -2628,16 +2647,20 @@ hash.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{tree=v1},
     text#{conforming-program=v1, result=v1, boundary=v1},
-    #{file-reader-binding=v1, code-hash=v1, comment-run=v1, read-file=v1},
+    #{
+        file-reader-binding=v1, code-hash=v1, comment-run=v1,
+        read-file=v1, unreadable-file=v1,
+    },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the code hashes of a tree under these bindings, it must give each run of
-comments of a code file of the tree that has a code hash once, with its
-file, the boundaries where that run of comments starts and ends, and its
-code hash, and no other run of comments with a code hash.
+the code hashes of a tree under these bindings and a set of stopped
+files, it must give each run of comments of a code file of the tree that
+has a code hash once, with its file, the boundaries where that run of
+comments starts and ends, and its code hash, and no other run of
+comments with a code hash.
 
 ### 5.7 Containment
 
@@ -2646,17 +2669,17 @@ code hash, and no other run of comments with a code hash.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, containment=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, tree-containment=v1},
+    #{file-reader-binding=v1, tree-containment=v1, unreadable-file=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the item of the kind design, or the item of the kind specification, to
-which a declared item of a tree belongs under these bindings, it must
-give the item of that kind to which the declared item belongs, or that
-it belongs to no item of that kind when it belongs to none, and nothing
-else as that item.
+which a declared item of a tree belongs under these bindings and a set
+of stopped files, it must give the item of that kind to which the
+declared item belongs, or that it belongs to no item of that kind when
+it belongs to none, and nothing else as that item.
 
 ### 5.8 Tests
 
@@ -2665,15 +2688,19 @@ else as that item.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{test=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, file-test=v1, read-file=v1},
+    #{
+        file-reader-binding=v1, file-test=v1, read-file=v1,
+        unreadable-file=v1,
+    },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the tests of a tree under these bindings, it must give each test of each
-read file of the tree once, with its file, its name, its code, and each
-comment on it, and no other test and no other comment on a test.
+the tests of a tree under these bindings and a set of stopped files, it
+must give each test of each read file of the tree once, with its file,
+its name, its code, and each comment on it, and no other test and no
+other comment on a test.
 
 ### 5.9 Sites
 
@@ -2682,15 +2709,18 @@ comment on it, and no other test and no other comment on a test.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{site=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, tree-site=v1, read-file=v1, file-line=v1},
+    #{
+        file-reader-binding=v1, tree-site=v1, read-file=v1,
+        file-line=v1, unreadable-file=v1,
+    },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the sites of a tree under these bindings, it must give each site of each
-read file of the tree once, with its file and its file lines, and no
-other site.
+the sites of a tree under these bindings and a set of stopped files, it
+must give each site of each read file of the tree once, with its file
+and its file lines, and no other site.
 
 ### 5.10 Edges
 
@@ -2705,17 +2735,18 @@ other site.
     #{
         file-reader-binding=v1, accepted-input=v1, tree-edge=v1,
         named-item=v1, selected-item=v1, item-part=v1, tree-site=v1,
-        file-test=v1, origin-position=v1,
+        file-test=v1, origin-position=v1, unreadable-file=v1,
     },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the edges of a tree under these bindings, it must give each edge of the
-tree once, with its file, the origin position of its citation entry or
-inline citation, its kind of edge, its source or that it has none, and
-its cited item or that it has none, and no other edge.
+the edges of a tree under these bindings and a set of stopped files, it
+must give each edge of the tree once, with its file, the origin position
+of its citation entry or inline citation, its kind of edge, its source
+or that it has none, and its cited item or that it has none, and no
+other edge.
 
 ### 5.11 The items in which status tags stand
 
@@ -2729,16 +2760,18 @@ its cited item or that it has none, and no other edge.
     #{
         file-reader-binding=v1, accepted-input=v1, item-part=v1,
         tree-site=v1, file-test=v1, origin-position=v1,
+        unreadable-file=v1,
     },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the items in which the status tags of a tree stand under these bindings,
-it must give each status tag that is an accepted input of the tree once,
-with its file, the origin position of its text, and the item in which it
-stands or that it stands in no item, and no other status tag.
+the items in which the status tags of a tree stand under these bindings
+and a set of stopped files, it must give each status tag that is an
+accepted input of the tree once, with its file, the origin position of
+its text, and the item in which it stands or that it stands in no item,
+and no other status tag.
 
 ### 5.12 Extern marks
 
@@ -2749,17 +2782,17 @@ stands or that it stands in no item, and no other status tag.
     text#{conforming-program=v1, result=v1},
     #{
         file-reader-binding=v1, accepted-input=v1, extern-mark=v1,
-        valid-extern-mark=v1, origin-position=v1,
+        valid-extern-mark=v1, origin-position=v1, unreadable-file=v1,
     },
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the extern marks of a tree under these bindings, it must give each
-extern mark of the tree once, with the file and the origin position of
-the text of its `@extern` line, its item of the kind design, and whether
-it is valid, and no other extern mark.
+the extern marks of a tree under these bindings and a set of stopped
+files, it must give each extern mark of the tree once, with the file and
+the origin position of the text of its `@extern` line, its item of the
+kind design, and whether it is valid, and no other extern mark.
 
 ### 5.13 Vector files
 
@@ -2768,16 +2801,16 @@ it is valid, and no other extern mark.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, vector-file=v1},
+    #{file-reader-binding=v1, vector-file=v1, unreadable-file=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the vector file of an item of the kind design or of the kind
-specification of a tree under these bindings, it must give the vector
-file of that item, or that it has none when it has none, and nothing
-else as that vector file.
+specification of a tree under these bindings and a set of stopped files,
+it must give the vector file of that item, or that it has none when it
+has none, and nothing else as that vector file.
 
 ### 5.14 The findings of a tree
 
@@ -2793,6 +2826,7 @@ else as that vector file.
         dangling-finding=v1, wrong-source-finding=v1,
         wrong-kind-finding=v1, misplaced-declaration-finding=v1,
         req-outside-design-finding=v1, extern-mismatch-finding=v1,
+        unreadable-file=v1,
     },
 }
 
@@ -2802,9 +2836,9 @@ Identifiers gives the result "valid", when a conforming program gives
 the findings of a tree of one of the classes `parse-error`, `typo-tag`,
 `ignored-tag`, `invalid-target`, `duplicate`, `dangling`,
 `wrong-source`, `wrong-kind`, `misplaced-declaration`,
-`req-outside-design`, and `extern-mismatch` under these bindings, it
-must give each tree finding of that class that the tree has once, and no
-other finding of that class.
+`req-outside-design`, and `extern-mismatch` under these bindings and a
+set of stopped files, it must give each tree finding of that class that
+the tree has once, and no other finding of that class.
 
 ### 5.15 Hash texts
 
@@ -2813,14 +2847,15 @@ other finding of that class.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, extent-hash=v1},
+    #{file-reader-binding=v1, extent-hash=v1, unreadable-file=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the hash text of a declared item of a tree under these bindings, it must
-give the hash text of that item, and nothing else as that hash text.
+the hash text of a declared item of a tree under these bindings and a
+set of stopped files, it must give the hash text of that item, and
+nothing else as that hash text.
 
 ### 5.16 Code texts
 
@@ -2831,7 +2866,7 @@ give the hash text of that item, and nothing else as that hash text.
     text#{conforming-program=v1, result=v1},
     #{
         file-reader-binding=v1, code-hash=v1, comment-run=v1,
-        attachment=v1, read-file=v1,
+        attachment=v1, read-file=v1, unreadable-file=v1,
     },
 }
 
@@ -2840,8 +2875,8 @@ Under a valid binding of `file-readers` and a binding of
 Identifiers gives the result "valid", when a conforming program gives
 the code text of the attachment target to which a run of comments of a
 code file of the tree that has a code hash attaches, under these
-bindings, it must give the code text of that attachment target, and
-nothing else as that code text.
+bindings and a set of stopped files, it must give the code text of that
+attachment target, and nothing else as that code text.
 
 ### 5.17 Forms texts
 
@@ -2850,15 +2885,16 @@ nothing else as that code text.
     identifiers#{binding=v1, accept-inputs=v1},
     ontology#{declared-item=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, forms-text=v1},
+    #{file-reader-binding=v1, forms-text=v1, unreadable-file=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the forms text of an item of the kind design or of the kind
-specification of a tree under these bindings, it must give the forms
-text of that item, and nothing else as that forms text.
+specification of a tree under these bindings and a set of stopped files,
+it must give the forms text of that item, and nothing else as that forms
+text.
 
 ## 6. Conformance
 
@@ -2878,6 +2914,11 @@ name, such as the extent of a declared item. So a vector checks a
 program only on what the program gives for the input: a program that
 gives the declared items of a tree, and not their extents, is checked
 only on the declared items.
+
+Each vector is for the empty set of
+[stopped files](sinter:#unreadable-file=v1). So a vector checks a
+program only when the set of stopped files of the program for the tree
+of the vector is empty.
 
 The file is a sequence of the
 [canonical byte sequences](sinter:data-forms#canonical-byte-sequence=v1)
@@ -3071,7 +3112,8 @@ JSON object `{"text":t}` and a placeholder is the JSON object
 `{"placeholder":t}`, where t is the text of the piece.
 
 For the input of a vector, a conforming program that reads the tree
-under the two bindings of the input gives what `values` states. When
+under the two bindings of the input and the empty set of stopped files
+gives what `values` states. When
 `values` is `{}`, it gives, for the tree, none of the things that the
 members above name. Otherwise, when it gives one of the things that a
 member names, it gives what that member states for it:
@@ -3167,7 +3209,12 @@ from the requirements `give-tests`, `give-code-hashes`, and
   body nodes, in the order of the parse tree, for a definition node;
   `decoration`, the JSON value `true`, for a decoration node; and `test`,
   its name path, for a test node. A node that is a definition node and a
-  test node has the members `body` and `test`.
+  test node has the members `body` and `test`. For each element of the
+  array and each element after it, the run of the later element starts
+  at or after the boundary where the run of the earlier element starts
+  and ends at or before the boundary where the run of the earlier
+  element ends, or the run of the earlier element ends at or before the
+  boundary where the run of the later element starts.
 - `values`: as the section above describes, with the members `tests` and
   `code-hashes`.
 
