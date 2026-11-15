@@ -2341,7 +2341,8 @@ The written lines of a block *b* at depth *k* for a declared item *d*, in a set 
    2. If *b* is a heading that opens a section, then:
       1. Let *content* be the raw content of *b*.
       2. Remove the characters of the longest run at the start of
-         *content* whose text is a section number from *content*.
+         *content* whose text, with each line feed of it replaced by a
+         space, is a section number from *content*.
       3. Set *inlines* to the inline elements that CommonMark 0.31.2
          gives for a heading whose raw content is *content*, with the
          link reference definitions of the markdown document that holds
