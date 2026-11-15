@@ -50,29 +50,28 @@ working tree that git takes from them or from the folder in which a
 program starts. From the page gitrepository-layout, it takes the
 versions of the repository format, the object database and its
 alternates, the file `shallow`, replacement refs, and refs in the files
-format. From the page git-worktree, it takes
-the main working tree and the linked working trees of a repository, with
-the refs that a working tree does not share and the refs in the root of
-the hierarchy of refs. From the page gitdatamodel, it takes the parts of
-a commit object, its tree, its parents, and its message, and the file
-types of the entries of a git tree object. From the pages
-gitformat-loose and gitformat-pack, it takes loose objects and packs;
-from the page git-commit-tree, the header `encoding` of a commit object;
-from the page git-pack-refs, loose refs and the file `packed-refs`; and
-from the page reftable, refs in the reftable format. From the page
-gitglossary, it takes git objects: commit objects, git tree objects,
-blobs, and tag objects; shallow repositories; and refs, symbolic refs,
-pseudorefs, branches, remote-tracking branches, upstream branches, and
-HEAD, with the names of refs that do not start with `refs/`, the root
-names, and the irregular refs among them. From the page gitformat-index,
-it takes git's index and its sparse directory entries. From the page
-git-config, it takes git's configuration, with its files, their order,
-their includes, and the values of settings, and the settings
-`extensions.refStorage`, `branch.<name>.remote`, `branch.<name>.merge`,
-`core.excludesFile`, `core.ignoreCase`, `core.precomposeUnicode`,
-`core.fsmonitor`, `core.sshCommand`, `remote.<name>.url`,
-`remote.<name>.pushurl`, `url.<base>.insteadOf`, and
-`url.<base>.pushInsteadOf`. From the page gitignore, it takes the
+format. From the page git-worktree, it takes the main working tree and
+the linked working trees of a repository, with the refs that a working
+tree does not share and the refs in the root of the hierarchy of refs.
+From the page gitdatamodel, it takes the parts of a commit object, its
+tree, its parents, and its message, and the file types of the entries of
+a git tree object. From the pages gitformat-loose and gitformat-pack, it
+takes loose objects and packs; from the page git-commit-tree, the header
+`encoding` of a commit object; from the page git-pack-refs, loose refs
+and the file `packed-refs`; and from the page reftable, refs in the
+reftable format. From the page gitglossary, it takes git objects: commit
+objects, git tree objects, blobs, and tag objects; shallow repositories;
+and refs, symbolic refs, pseudorefs, branches, remote-tracking branches,
+upstream branches, and HEAD, with the names of refs that do not start
+with `refs/`, the root names, and the irregular refs among them. From
+the page gitformat-index, it takes git's index and its sparse directory
+entries. From the page git-config, it takes git's configuration, with
+its files, their order, their includes, and the values of settings, and
+the settings `extensions.refStorage`, `branch.<name>.remote`,
+`branch.<name>.merge`, `core.excludesFile`, `core.ignoreCase`,
+`core.precomposeUnicode`, `core.fsmonitor`, `core.sshCommand`,
+`remote.<name>.url`, `remote.<name>.pushurl`, `url.<base>.insteadOf`,
+and `url.<base>.pushInsteadOf`. From the page gitignore, it takes the
 sources of ignore patterns and their rules. From the page
 git-check-ref-format, it takes the rules for the names of refs. From the
 page git-fetch, it takes fetch refspecs, with the setting
@@ -152,7 +151,7 @@ JSON text.
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
 | [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it |
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
-| [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
+| [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, as that act put them, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from the git repository at an address of a remote |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -1136,10 +1135,11 @@ for a push, as the page git-push defines pushes.
 The program files of a conforming program are the files that the system
 loads to start it, such as its executable file and its libraries, and
 the files that the act that installed the conforming program put on the
-system, with the files of the other programs and libraries that the same
-act put there, such as its modules, its data, and the modules of its
-libraries. A file that the program or its runtime creates as it runs,
-such as a cache of compiled code, is not a program file.
+system, as that act put them, with the files of the other programs and
+libraries that the same act put there, such as its modules, its data,
+and the modules of its libraries. A file that the program or its runtime
+creates as it runs, such as a cache of compiled code, is not a program
+file.
 
 ## 5. Requirements
 
@@ -1625,25 +1625,24 @@ as `git` or `ssh` installed on their own, is not one; and a program or
 command that the git configuration of the git repository or of a working
 tree of it names, gives, or causes to run, such as a filter, the command
 of the setting `core.fsmonitor`, or the command of an address
-`ext::<command>`. In a
-fetch into a git repository from a remote of it, or in a push from a git
-repository to a remote of it, it may still run the programs that make
-that fetch or push as they are set up outside these git repositories,
-such as `ssh` or a credential helper, other than a program that is a
-file of these git repositories; a value of a setting that does not come
-from a git repository is set up outside them. In such a fetch or push,
-it still runs no hook, and no program or command that a value from a git
-repository names or gives, other than the program that the form of an
-address chooses for the transfer and the command that the form of that
-address gives to the git repository at that address, such as `ssh` or a
-remote helper and `git-upload-pack` with the path of the address: for
-example, not the command of the setting `core.sshCommand` in the file
-`config` of the git folder, and not the command of an address
-`ext::<command>`. To run a program is to start a process from a file on
-the system of the program, or to load a file as code that runs in the
-process of the program; to run a command is to have a shell or another
-program carry it out; and to give a program or a command to run to
-another computer, or to a server that an address reaches, as through
+`ext::<command>`. In a fetch into a git repository from a remote of it,
+or in a push from a git repository to a remote of it, it may still run
+the programs that make that fetch or push as they are set up outside
+these git repositories, such as `ssh` or a credential helper, other than
+a program that is a file of these git repositories; a value of a setting
+that does not come from a git repository is set up outside them. In such
+a fetch or push, it still runs no hook, and no program or command that a
+value from a git repository names or gives, other than the program that
+the form of an address chooses for the transfer and the command that the
+form of that address gives to the git repository at that address, such
+as `ssh` or a remote helper and `git-upload-pack` with the path of the
+address: for example, not the command of the setting `core.sshCommand`
+in the file `config` of the git folder, and not the command of an
+address `ext::<command>`. To run a program is to start a process from a
+file on the system of the program, or to load a file as code that runs
+in the process of the program; to run a command is to have a shell or
+another program carry it out; and to give a program or a command to run
+to another computer, or to a server that an address reaches, as through
 `ssh` or at an address that is a local path, counts as running it, but
 what such a server then runs by its own setup, such as a hook of the git
 repository there, does not, on whatever computer it runs, also when that
