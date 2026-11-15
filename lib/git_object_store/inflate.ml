@@ -7,9 +7,7 @@ let chunk = 65536
 let first_chunk = 4096
 
 let blit_string text input =
-  String.iteri
-    (fun index byte -> Bigarray.Array1.unsafe_set input index byte)
-    text
+  String.iteri (fun index byte -> Bigarray.Array1.set input index byte) text
 
 (* @satisfies changes#take-objects-only-from-repositories=v1
    A loose object is one zlib stream as RFC 1950 defines it: a stream whose
