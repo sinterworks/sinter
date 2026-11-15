@@ -16,6 +16,8 @@ type error =
   | Reserved_entry of string
   | Repository_with_base
   | Message_without_base
+  | Ledger_without_repository
+  | Ledger_chunk_without_id
   | Bad_variable of string
   | Did_not_end of float
   | Ended_by_signal of int
@@ -29,10 +31,18 @@ let ( let* ) = Result.bind
 
 let known =
   [
-    "args"; "env"; "tree"; "base"; "message"; "repository"; "stdin"; "expected";
+    "args";
+    "env";
+    "tree";
+    "base";
+    "message";
+    "repository";
+    "ledger.jsonl";
+    "stdin";
+    "expected";
   ]
 
-let reserved = [ "ledger.jsonl"; "evidence" ]
+let reserved = [ "evidence" ]
 let outputs = [ "stdout"; "stderr"; "exit" ]
 
 let message ~case error =
@@ -52,7 +62,7 @@ let message ~case error =
     | Unknown_entry entry ->
         Printf.sprintf
           "unknown entry %s. A case folder holds only args, env, tree, base, \
-           repository, stdin, and expected."
+           repository, ledger.jsonl, stdin, and expected."
           entry
     | Missing_entry entry when String.starts_with ~prefix:"expected/" entry ->
         Printf.sprintf
@@ -75,6 +85,12 @@ let message ~case error =
     | Message_without_base ->
         "the case holds message and no base. The message is the message of a \
          commit of tree on top of base; add base, or remove message."
+    | Ledger_without_repository ->
+        "the case holds ledger.jsonl with neither base nor repository. A \
+         ledger lives in a git repository; add repository or base."
+    | Ledger_chunk_without_id ->
+        "ledger.jsonl holds a line with no id at the start of a chunk. Each \
+         line is the exact line of one entry, with its id."
     | Bad_variable line ->
         Printf.sprintf
           "the line %S of env is not NAME=value, with a name that is not empty."
@@ -336,13 +352,13 @@ type repository = { workspace : workspace; program : string }
 
 let root repository = repository.workspace.root
 
-let git repository arguments =
+let git ?(input = "/dev/null") repository arguments =
   let { root; environment; scratch } = repository.workspace in
   let output = Filename.concat scratch "git-stdout"
   and errors = Filename.concat scratch "git-stderr" in
   let* code =
-    execute ~environment ~folder:root ~input:"/dev/null" ~output ~errors
-      ~bound:10. repository.program arguments
+    execute ~environment ~folder:root ~input ~output ~errors ~bound:10.
+      repository.program arguments
   in
   if code = 0 then Ok (read_file output)
   else
@@ -410,6 +426,27 @@ let with_repository ?message ~base ~tree f =
       in
       Ok (f repository))
 
+let ledger_lines text =
+  match String.split_on_char '\n' text with
+  | [ "" ] -> []
+  | pieces -> (
+      match List.rev pieces with "" :: rest -> List.rev rest | _ -> pieces)
+
+let make_ledger repository path =
+  let lines = ledger_lines (read_file path) in
+  let* files =
+    match Sinter_bench.Generated_ledger.chunks lines with
+    | files -> Ok files
+    | exception Invalid_argument _ -> Error Ledger_chunk_without_id
+  in
+  let stream = Filename.concat repository.workspace.scratch "ledger-stream" in
+  write_file stream
+    (Git_fixture.commit ~ref:Sinter_core.Ledger.ref_name ~mark:1
+       ~message:"ledger"
+       (List.map (fun (path, text) -> Git_fixture.File (path, text)) files));
+  let* _ = git ~input:stream repository [ "fast-import"; "--quiet" ] in
+  Ok ()
+
 type layout = {
   args : string;
   env : string option;
@@ -417,6 +454,7 @@ type layout = {
   base : string option;
   message : string option;
   repository : bool;
+  ledger : string option;
   stdin : string option;
   expected : string;
 }
@@ -458,6 +496,12 @@ let read_layout mode case =
       | Some _, Some _ -> Error Repository_with_base
       | _ -> Ok ()
     in
+    let* ledger = find case "ledger.jsonl" ~folder:false in
+    let* () =
+      match (ledger, base, repository) with
+      | Some _, None, None -> Error Ledger_without_repository
+      | _ -> Ok ()
+    in
     let* message = find case "message" ~folder:false in
     let* () =
       match (message, base) with
@@ -491,6 +535,7 @@ let read_layout mode case =
         base;
         message;
         repository = Option.is_some repository;
+        ledger;
         stdin;
         expected = Filename.concat case "expected";
       }
@@ -675,18 +720,25 @@ let run ?(bound = 10.) ?caller ~binary mode case =
       in
       with_temporary_folder (fun temporary ->
           let workspace = prepare ?caller temporary in
-          let* () =
+          let* repository =
             match (layout.base, layout.repository) with
-            | None, false -> Ok (copy_folder layout.tree workspace.root)
+            | None, false ->
+                copy_folder layout.tree workspace.root;
+                Ok None
             | None, true ->
-                let* _ = build_committed workspace ~tree:layout.tree in
-                Ok ()
+                let* repository = build_committed workspace ~tree:layout.tree in
+                Ok (Some repository)
             | Some base, _ ->
-                let* _ =
+                let* repository =
                   build ?message:layout.message workspace ~base
                     ~tree:layout.tree
                 in
-                Ok ()
+                Ok (Some repository)
+          in
+          let* () =
+            match (layout.ledger, repository) with
+            | Some path, Some repository -> make_ledger repository path
+            | _ -> Ok ()
           in
           let output = Filename.concat temporary "stdout"
           and errors = Filename.concat temporary "stderr" in

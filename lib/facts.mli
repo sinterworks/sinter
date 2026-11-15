@@ -13,11 +13,10 @@
     [external] record.
 
     The records take the values that hold when the evidence and the session are
-    absent, and as if the ledger held no entry: every plan is open, no plan and
-    no step is active, nothing is declined, an item of a kind that needs
-    approval is not approved, and a step without promises is not approved while
-    [proof.step] is ["approval"]. Every other step is approved when its plan is.
-*)
+    absent. Declarations, plans, and steps read the approvals and the declines
+    of the ledger. No plan and no step is active. A plan with a [completed] or
+    an [abandoned] entry for its full form is closed: its record stays with
+    [open] false, and its steps and promises still print. *)
 
 type t
 (** The facts of one tree. *)
@@ -26,14 +25,13 @@ val may_hold_plan : string -> bool
 (** [may_hold_plan path] is [true] when [path] starts with [.plans/]: only a
     file at such a path can be a plan file. *)
 
-val make :
-  Manifest.t -> ledger:Ledger.entry list -> (string * Markdown.t) list -> t
-(** [make manifest ~ledger files] is the facts of [files] with the entries
-    [ledger] of the ledger, in the order of their [seq] ({!Ledger.compare}).
-    Each pair is the path of one file, relative to the repository root, and the
-    document that {!Markdown.read} gave for the file. No path occurs twice. The
-    manifest gives the namespaces, the kinds that need approval, and the default
-    locations of the kinds. No fact and no record depends on [ledger].
+val make : Manifest.t -> ledger:Folds.t -> (string * Markdown.t) list -> t
+(** [make manifest ~ledger files] is the facts of [files] with the folds
+    [ledger] of the ledger. One command builds {!Folds.of_entries} once, and
+    each [make] shares it. Each pair is the path of one file, relative to the
+    repository root, and the document that {!Markdown.read} gave for the file.
+    No path occurs twice. The manifest gives the namespaces, the kinds that need
+    approval, and the default locations of the kinds.
 
     @raise Invalid_argument
       if the document of a plan file that gives a plan holds no text of a
@@ -42,9 +40,8 @@ val make :
 val manifest : t -> Manifest.t
 (** [manifest facts] is the manifest that {!make} took. *)
 
-val ledger : t -> Ledger.entry list
-(** [ledger facts] is the entries of the ledger that {!make} took, in their
-    order. *)
+val ledger : t -> Folds.t
+(** [ledger facts] is the folds of the ledger that {!make} took. *)
 
 val files : t -> (string * Markdown.t) list
 (** [files facts] is the files that {!make} took, in their order. *)
@@ -59,10 +56,11 @@ type identity = private {
 (** The identity of one fact. *)
 
 val identities : t -> identity list
-(** [identities facts] is the identity of each fact that {!records} gives a
-    record for: each declaration, edge, site, ack, plan, step, promise, and
-    external id, in this order of kinds. An external id that several edges name
-    comes once. *)
+(** [identities facts] is the identity of each fact of the tree that {!records}
+    gives a record for: each declaration, edge, site, ack, plan, step, promise,
+    and external id, in this order of kinds. An external id that several edges
+    name comes once. It leaves out each [decline] record, because a [decline]
+    comes from the ledger, and only a fact of the tree leaves a tombstone. *)
 
 val iter_identities :
   ?within:(string -> bool) -> t -> (identity -> unit) -> unit
@@ -78,13 +76,23 @@ val records : ?deliveries:Delivery_line.found list -> t -> Jsonl.record list
     change; it is empty when absent.
 
     A step is delivered when a line of [deliveries] counts for it: the line
-    matches the pattern, {!named} gives the step for it, and {!counts} holds.
-    The record of each step holds [delivered]; its step hash, [csh], as
-    {!step.hash} gives it; and [delivery], the text of {!delivery} of the step,
-    when there is one. A step with no promise is done only when [proof.step] is
-    ["delivered"] and the step is delivered: under ["approval"] no step is
-    approved while the ledger is absent, and under ["promises"] such a step is
-    never done.
+    matches the pattern, {!named} gives the step for it, and {!counts} holds. A
+    step is also delivered when the ledger holds a [delivered] entry whose
+    subject is the step and whose [csh] is its current step hash. The record of
+    each step holds [delivered]; its step hash, [csh], as {!step.hash} gives it;
+    and [delivery], the text of {!delivery} of the step, when there is one. A
+    step with no promise is done only when [proof.step] is ["delivered"] and the
+    step is delivered; or when [proof.step] is ["approval"] and {!step_judgment}
+    approves it. Under ["promises"] such a step is never done.
+
+    A declaration of the kinds [req], [design], and [decision] holds [approved],
+    which is {!is_approved}; [approval], the id of the approval that counts,
+    only when its kind needs approval and such an approval exists; and
+    [declined], which is [true] when a decline of it is live, whatever its kind.
+    A plan and a step hold [approved] and [approval] from {!plan_judgment} and
+    {!step_judgment}, and [declined] when a decline of them is live. Each live
+    decline gives one [decline] record, once for each entry, in the byte order
+    of the ids, after the records that have a path.
 
     Every string of the result is valid UTF-8 when every path of [make] is. *)
 
@@ -168,7 +176,9 @@ type step = private {
   slug : string;
   title : string;
   span : Markdown.span;  (** the heading line *)
-  own_scope : string list option;  (** the globs of the [@scope] of the step *)
+  own_scope : string list option;
+      (** the globs of the first [@scope] of the step that holds a glob; [None]
+          when no such line exists *)
   promises : promise list;
       (** in the order of the file, each word and tag target once *)
   hash : string;
@@ -188,10 +198,15 @@ type plan = private {
   path : string;
   span : Markdown.span;  (** the tag line of [@plan] *)
   title : string option;
-  scope : string list;  (** the globs of the [@scope] of the plan *)
+  scope : string list;
+      (** the globs of the first [@scope] of the first tag block of the plan
+          that holds a glob; empty when no such line exists *)
   steps : step list;  (** in the order of the file *)
   tag : Markdown.tag;
       (** the tag line of [@plan], as the document of the file holds it *)
+  empty_scopes : Markdown.tag list;
+      (** each [@scope] line of the plan or of a step that holds no glob, in the
+          order of the file. Such a line counts as no [@scope] line. *)
 }
 (** One plan file. *)
 
@@ -215,15 +230,48 @@ val delivery : plan -> step -> Delivery_line.t option
     letter and no digit. *)
 
 val named : t -> Delivery_line.t -> (plan * step) option
-(** [named facts line] is the step that [line] names: the first plan of {!plans}
-    whose {!full_form} is the plan of [line], and its first step whose slug is
-    the step of [line]. It is [None] when [facts] hold no such step.
+(** [named facts line] is the step that [line] names: the first open plan of
+    {!plans} whose {!full_form} is the plan of [line], and its first step whose
+    slug is the step of [line]. It is [None] when [facts] hold no such step.
     [named facts] builds its table once, and gives a function that each line can
     share. *)
 
 val counts : step -> Delivery_line.t -> bool
 (** [counts step line] is [true] when the hash of [line] is {!short_hash}
     [step]. *)
+
+type judgment = private {
+  approved : bool;
+      (** the plan or the step is approved: [true] for a plan when its kind
+          needs no approval *)
+  judged : Folds.judged;  (** the judgments of the ledger on its current text *)
+}
+(** How the ledger judges a plan or a step. *)
+
+val plan_judgment : t -> plan -> judgment
+(** [plan_judgment facts plan] is how the ledger judges [plan]. While the kind
+    [plan] needs approval, [plan] is approved when it has a latest approval with
+    its set, no live decline, and no {!plan_difference}. {!Commitment_set} takes
+    the set of the entry that that approval names. [plan_judgment facts] makes
+    the comparison once for each plan.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
+
+val plan_difference : t -> plan -> Commitment_set.difference option
+(** [plan_difference facts plan] is how the current set of [plan] differs from
+    the set of its latest approval that has its set. It is [None] when the sets
+    agree, when no such approval exists, and when the kind [plan] needs no
+    approval.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
+
+val step_judgment : t -> plan -> step -> judgment
+(** [step_judgment facts plan step] is how the ledger judges [step] of [plan]. A
+    step without promises is approved under [proof.step = "approval"] when an
+    approval counts for it at its current step hash. Every other step is
+    approved when its plan is.
+
+    @raise Invalid_argument if [plan] is not one of {!plans} [facts]. *)
 
 val full_form : plan -> string
 (** [full_form plan] is the full form of [plan]: its slug, then [@] and its plan
@@ -249,8 +297,22 @@ val is_in_force : t -> int -> bool
 (** [is_in_force facts index] is [true] when the declaration at [index] is in
     force: it carries no status and no effective [supersedes] edge points at it.
     A [supersedes] edge is effective when its source is a declaration that
-    carries no status and whose kind needs no approval. A declaration with no
+    carries no status and that {!is_approved} holds for. A declaration with no
     status on a cycle of [supersedes] edges is in force.
+
+    @raise Invalid_argument if [index] is not an index of {!declarations}. *)
+
+val declaration_judged : t -> int -> Folds.judged
+(** [declaration_judged facts index] is how the ledger judges the current text
+    of the declaration at [index], whatever its kind.
+
+    @raise Invalid_argument if [index] is not an index of {!declarations}. *)
+
+val is_approved : t -> int -> bool
+(** [is_approved facts index] is [true] when the kind of the declaration at
+    [index] needs no approval, or when an approval of its current slug,
+    revision, and extent hash counts: it is later than each decline at that
+    extent hash. A declaration of the kind [rule] counts as approved.
 
     @raise Invalid_argument if [index] is not an index of {!declarations}. *)
 
@@ -295,6 +357,18 @@ val block_acks : t -> string -> int -> ack list
 val plans : t -> plan list
 (** [plans facts] is every plan, in the order of the files of {!make}. *)
 
+val is_open : t -> plan -> bool
+(** [is_open facts plan] is [true] until the ledger holds a [completed] or an
+    [abandoned] entry whose subject is {!plan_fact_id} [plan], by its bytes. *)
+
+val open_plans : t -> plan list
+(** [open_plans facts] is each plan of {!plans} that {!is_open} holds for, in
+    its order. *)
+
+val closed_plan_files : t -> string list
+(** [closed_plan_files facts] is the path of each plan of {!plans} that
+    {!is_open} does not hold for, in the order of {!plans}. *)
+
 val plan_files : t -> string list
 (** [plan_files facts] is the path of each plan file of {!make}, in the order of
     the files: the path of each plan of {!plans}, and the path of each plan file
@@ -306,9 +380,9 @@ val effective_scope : plan -> step -> string list
     [plan] when the step has none. *)
 
 val covering : t -> string -> string list
-(** [covering facts path] is the id of each step of each plan of [facts] whose
-    effective scope holds [path], in the order of {!plans} and then of the
-    steps. The steps of every plan count. A glob of a scope that is not valid
+(** [covering facts path] is the id of each step of each open plan of [facts]
+    whose effective scope holds [path], in the order of {!plans} and then of the
+    steps. A closed plan gives no scope. A glob of a scope that is not valid
     holds no path. [covering facts] builds one path set for each scope that one
     or more steps have, and an index of them ({!Path_index}), and gives a
     function that each path can share. *)
@@ -319,10 +393,10 @@ val covers : t -> string -> bool
     can share. *)
 
 val covered : t -> string list -> string list
-(** [covered facts paths] is the id of each step of each plan of [facts] whose
-    effective scope holds one or more of [paths], in the order of {!plans} and
-    then of the steps. It is the ids of {!covering} for each of [paths], each id
-    once. *)
+(** [covered facts paths] is the id of each step of each open plan of [facts]
+    whose effective scope holds one or more of [paths], in the order of {!plans}
+    and then of the steps. It is the ids of {!covering} for each of [paths],
+    each id once. *)
 
 type meeting_fact = private { id : string; path : string; span : Markdown.span }
 (** A fact that would meet a promise: its id, its path, and its span. *)

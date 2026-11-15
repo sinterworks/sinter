@@ -22,12 +22,17 @@
       exists, the run starts in a git repository whose one commit holds [tree/],
       and whose working tree holds the same files. Without it and without
       [base/], the run starts in a plain folder.
+    - [ledger.jsonl]: a file, optional, in a case with [repository] or [base/].
+      Each line is the exact line of one entry of the ledger, in canonical form,
+      with its [id], in [seq] order. The run then finds the ref
+      [refs/sinter/ledger] with one commit, with fixed dates, whose tree holds
+      these lines in chunks of {!Sinter_core.Ledger.chunk_size}. A case without
+      this file has no ledger.
     - [stdin]: a file, optional, the bytes on standard input. Without it,
       standard input is empty.
     - [expected/stdout], [expected/stderr], [expected/exit]: files. [exit] holds
       the exit code in decimal and one line feed.
-    - [ledger.jsonl] and [evidence/]: reserved names. A case that holds one of
-      them fails. *)
+    - [evidence/]: a reserved name. A case that holds it fails. *)
 
 (** {1 Errors} *)
 
@@ -55,10 +60,15 @@ type error =
       (** The entry is a file where a folder belongs ([folder] is [true]), or a
           folder where a file belongs. *)
   | Reserved_entry of string
-      (** The case holds [ledger.jsonl] or [evidence], which the harness does
-          not read. *)
+      (** The case holds [evidence], which the harness does not read. *)
   | Repository_with_base  (** The case holds both [base/] and [repository]. *)
   | Message_without_base  (** The case holds [message] and no [base/]. *)
+  | Ledger_without_repository
+      (** The case holds [ledger.jsonl], with neither [base/] nor [repository].
+      *)
+  | Ledger_chunk_without_id
+      (** A line of [ledger.jsonl] that starts a chunk holds no id of the form
+          of an entry, so the chunk has no name. *)
   | Bad_variable of string
       (** A line of [env] has no [=], or starts with [=]. *)
   | Did_not_end of float
@@ -194,8 +204,8 @@ val with_repository :
 val root : repository -> string
 (** The real path of the root of the repository. *)
 
-val git : repository -> string list -> (string, error) result
-(** [git repository arguments] runs git in the root of [repository] with the
-    same environment as the builder, and returns what git wrote to standard
+val git : ?input:string -> repository -> string list -> (string, error) result
+(** [git ~input repository arguments] runs git in the root of [repository] with
+    the same environment as the builder, and returns what git wrote to standard
     output. The rule of {!run} on the working folder of the process holds here
     too. *)

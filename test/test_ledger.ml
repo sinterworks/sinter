@@ -10,32 +10,12 @@ let property ?(count = 200) ~name ~print generator check =
     (QCheck2.Test.make ~count ~name ~print generator check)
 
 let holds name condition = Alcotest.(check bool) name true condition
-let hash n = Sha256.hex (string_of_int n)
-let commit_id = String.make 40 'c'
-
-let common ?(kind = "approval") ?(seq = 1) () =
-  [
-    ("v", Json.Int 1);
-    ("seq", Json.Int seq);
-    ("kind", Json.String kind);
-    ("by", Json.String "a@example.com");
-    ("ts", Json.String "2026-10-31T14:05:09Z");
-    ("head", Json.String commit_id);
-    ("branch", Json.String "main");
-    ("tool", Json.String "sinter 0.1.0");
-  ]
-
-let printed value =
-  match Json.to_string value with
-  | Ok text -> text
-  | Error _ -> Alcotest.fail "the value does not print"
-
-let with_id fields =
-  match Ledger.id_of (Json.Object fields) with
-  | Ok id -> ("id", Json.String id) :: fields
-  | Error _ -> Alcotest.fail "the value does not print"
-
-let line_of fields = printed (Json.Object (with_id fields))
+let hash = Ledger_lines.hash
+let commit_id = Ledger_lines.commit_id
+let common = Ledger_lines.common
+let printed = Ledger_lines.printed
+let with_id = Ledger_lines.with_id
+let line_of = Ledger_lines.line_of
 
 let approval =
   common ()
@@ -746,35 +726,10 @@ let an_unknown_kind_gives_its_seq () =
   | _ -> Alcotest.fail "the line gives another result"
 
 let set_fields ~csh scopes promises =
-  common ~kind:"commitment-set" ()
-  @ [
-      ("csh", Json.String csh);
-      ( "scopes",
-        Json.Array
-          (List.map
-             (fun (step, glob) ->
-               Json.Object
-                 (("glob", Json.String glob)
-                 ::
-                 (match step with
-                 | Some s -> [ ("step", Json.String s) ]
-                 | None -> [])))
-             scopes) );
-      ( "promises",
-        Json.Array
-          (List.map
-             (fun (step, word, target) ->
-               Json.Object
-                 [
-                   ("step", Json.String step);
-                   ("target", Json.String target);
-                   ("word", Json.String word);
-                 ])
-             promises) );
-    ]
+  Ledger_lines.set_fields ~csh scopes promises
 
 let lockout_bytes =
-  {|{"promises":[{"scope":["src/**"],"target":"lockout-policy","word":"decision"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"req"},{"scope":["src/auth/**"],"target":"auth-lockout","word":"verifies"}],"scope":["src/**"]}|}
+  {|{"groups":[{"promises":[{"target":"lockout-policy","word":"decision"}],"scope":["src/**"]},{"promises":[{"target":"auth-lockout","word":"req"},{"target":"auth-lockout","word":"verifies"}],"scope":["src/auth/**"]}],"scope":["src/**"]}|}
 
 let lockout_scopes =
   [ (None, "src/**"); (Some "lock-the-account", "src/auth/**") ]
@@ -836,7 +791,7 @@ let a_step_without_scopes_takes_the_plan_scope () =
        (set_fields
           ~csh:
             (Sha256.hex
-               {|{"promises":[{"scope":["src/**"],"target":"a","word":"req"}],"scope":["src/**"]}|})
+               {|{"groups":[{"promises":[{"target":"a","word":"req"}],"scope":["src/**"]}],"scope":["src/**"]}|})
           [ (None, "src/**"); (Some "other", "lib/**") ]
           [ ("s", "req", "a") ]))
 
@@ -846,7 +801,7 @@ let a_step_with_scopes_does_not_take_the_plan_scope () =
        (set_fields
           ~csh:
             (Sha256.hex
-               {|{"promises":[{"scope":["lib/**","src/a/**"],"target":"a","word":"req"}],"scope":["src/**"]}|})
+               {|{"groups":[{"promises":[{"target":"a","word":"req"}],"scope":["lib/**","src/a/**"]}],"scope":["src/**"]}|})
           [
             (Some "s", "src/a/**");
             (None, "src/**");
@@ -855,65 +810,72 @@ let a_step_with_scopes_does_not_take_the_plan_scope () =
           ]
           [ ("s", "req", "a") ]))
 
-let near_the_limit extra =
-  let globs = List.init 400 (Printf.sprintf "dir/%04d/**") in
-  let promises pad =
-    List.init 180 (fun n ->
-        ( "s",
-          "req",
-          Printf.sprintf "t%d" n ^ if n = 0 then String.make pad 'x' else "" ))
+let the_set_of_an_entry () =
+  let entry =
+    match
+      Ledger_lines.entries
+        [
+          Ledger_lines.commitment_set ~seq:1
+            [ (None, "src/**"); (Some "own", "src/a/**") ]
+            [ ("own", "req", "a"); ("inherits", "cites", "b") ];
+        ]
+    with
+    | [ entry ] -> entry
+    | _ -> Alcotest.fail "the line gives another result"
   in
-  let steps pad =
-    [
-      {
-        Commitment_set.scope = globs;
-        promises =
-          List.map (fun (_, word, target) -> (word, target)) (promises pad);
-      };
-    ]
-  in
-  let pad =
-    Ledger.set_limit - Commitment_set.size ~scope:globs (steps 0) + extra
-  in
-  let csh = Commitment_set.hash ~scope:globs (steps pad) in
-  ( Commitment_set.size ~scope:globs (steps pad),
-    line_of
-      (set_fields ~csh
-         (List.map (fun glob -> (None, glob)) globs)
-         (promises pad)) )
+  match Ledger.commitment_set entry with
+  | None -> Alcotest.fail "the entry gives no set"
+  | Some set ->
+      Alcotest.(check (list string))
+        "the plan scope" [ "src/**" ] set.plan_scope;
+      Alcotest.(
+        check
+          (list
+             (triple string (option (list string)) (list (pair string string)))))
+        "the steps"
+        [
+          ("inherits", None, [ ("cites", "b") ]);
+          ("own", Some [ "src/a/**" ], [ ("req", "a") ]);
+        ]
+        (List.sort compare
+           (List.map
+              (fun (step : Commitment_set.stated) ->
+                (step.slug, step.own, step.stated_promises))
+              set.steps))
 
-let a_set_at_the_limit_holds () =
-  let size, line = near_the_limit 0 in
-  Alcotest.(check int) "the size" Ledger.set_limit size;
-  holds "the hash holds"
-    (match read line with
-    | Ok
-        (Ledger.Known
-           { entry = { body = Ledger.Commitment_set { csh_holds; _ }; _ }; _ })
-      ->
-        csh_holds
-    | _ -> false)
+let another_kind_has_no_set () =
+  match Ledger_lines.entries [ Ledger_lines.completed ~seq:1 "plan:p" ] with
+  | [ entry ] -> holds "no set" (Option.is_none (Ledger.commitment_set entry))
+  | _ -> Alcotest.fail "the line gives another result"
 
-let a_set_past_the_limit_does_not_hold_and_costs_no_hash () =
-  let size, over = near_the_limit 1 in
-  let _, under = near_the_limit 0 in
-  Alcotest.(check int) "the size" (Ledger.set_limit + 1) size;
-  holds "the hash does not hold"
-    (match read over with
-    | Ok
-        (Ledger.Known
-           { entry = { body = Ledger.Commitment_set { csh_holds; _ }; _ }; _ })
-      ->
-        not csh_holds
-    | _ -> false);
-  let words_over = Counted_work.words (fun () -> read over)
-  and words_under = Counted_work.words (fun () -> read under) in
-  holds
-    (Printf.sprintf
-       "a read past the limit allocates %d words, less than a quarter of the \
-        %d words of a read at the limit"
-       words_over words_under)
-    (4 * words_over < words_under)
+let promises_of_one_wide_scope count =
+  let globs = List.init count (Printf.sprintf "dir/%05d/**") in
+  let promises = List.init count (Printf.sprintf "t%05d") in
+  let csh =
+    Commitment_set.hash ~scope:[]
+      [
+        {
+          Commitment_set.scope = globs;
+          promises = List.map (fun target -> ("req", target)) promises;
+        };
+      ]
+  in
+  line_of
+    (set_fields ~csh
+       (List.map (fun glob -> (Some "s", glob)) globs)
+       (List.map (fun target -> ("s", "req", target)) promises))
+
+let a_set_whose_promises_share_a_wide_scope_holds () =
+  match read (promises_of_one_wide_scope 2_000) with
+  | Ok
+      (Ledger.Known
+         { entry = { body = Ledger.Commitment_set { csh_holds; _ }; _ }; _ }) ->
+      holds "the hash holds" csh_holds
+  | _ -> Alcotest.fail "the line does not read as a commitment set"
+
+let the_work_of_a_set_grows_with_its_line () =
+  Counted_work.check_growth ~margin:3. ~sizes:(100, 1_600)
+    ~input:promises_of_one_wide_scope read
 
 let many_steps_share_one_plan_scope () =
   let set count =
@@ -1033,8 +995,7 @@ let kind_names () =
 let constants () =
   Alcotest.(check string) "the ref" "refs/sinter/ledger" Ledger.ref_name;
   Alcotest.(check int) "the version" 1 Ledger.version;
-  Alcotest.(check int) "the size of a chunk" 50 Ledger.chunk_size;
-  Alcotest.(check int) "the limit of a set" 1_048_576 Ledger.set_limit
+  Alcotest.(check int) "the size of a chunk" 50 Ledger.chunk_size
 
 let line_tests =
   [
@@ -1076,10 +1037,12 @@ let line_tests =
       a_step_without_scopes_takes_the_plan_scope;
     Alcotest.test_case "a step with scopes does not take the plan scope" `Quick
       a_step_with_scopes_does_not_take_the_plan_scope;
-    Alcotest.test_case "a set at the limit holds" `Quick
-      a_set_at_the_limit_holds;
-    Alcotest.test_case "a set past the limit does not hold and costs no hash"
-      `Quick a_set_past_the_limit_does_not_hold_and_costs_no_hash;
+    Alcotest.test_case "the set of an entry" `Quick the_set_of_an_entry;
+    Alcotest.test_case "another kind has no set" `Quick another_kind_has_no_set;
+    Alcotest.test_case "a set whose promises share a wide scope holds" `Quick
+      a_set_whose_promises_share_a_wide_scope_holds;
+    Alcotest.test_case "the work of a set grows with its line" `Quick
+      the_work_of_a_set_grows_with_its_line;
     Alcotest.test_case
       "the work of a set grows linearly when many steps share one plan scope"
       `Quick many_steps_share_one_plan_scope;

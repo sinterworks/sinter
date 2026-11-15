@@ -1,0 +1,6 @@
+.plans/lockout.md:4:1: block[invalid-target] the @scope line holds no glob
+.plans/lockout.md:6:1: block[scope-outside-plan] step:lockout@abc123/lock has src/a/** in its scope, outside the scope of the plan
+.plans/lockout.md:8:1: block[invalid-target] the @scope line holds no glob
+.plans/lockout.md:9:1: block[invalid-target] the @scope line holds no glob
+.plans/lockout.md:15:1: block[invalid-target] the @scope line holds no glob
+.plans/lockout.md:20:1: block[invalid-target] the @scope line holds no glob

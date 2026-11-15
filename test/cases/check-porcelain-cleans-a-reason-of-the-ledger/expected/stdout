@@ -1,0 +1,9 @@
+# porcelain 1
+block	declined	.plans/lockout.md	3	1	3	21	plan:lockout@abc123	a plan reason
+block	declined	.plans/lockout.md	6	1	6	20	step:lockout@abc123/lock-the-account	a line that another writer added
+block	declined	.plans/lockout.md	11	1	11	18	step:lockout@abc123/tidy-the-cache	a step reason
+block	declined	docs/items.md	3	1	3	13	req:lockout	the wording is    too�broad �[31m�evil
+warn	untraced	docs/items.md	3	1	3	13	req:lockout	nothing satisfies req:lockout, and nothing verifies it
+block	declined	docs/items.md	8	1	8	15	design:screen	the later reason
+warn	untraced	docs/items.md	8	1	8	15	design:screen	nothing satisfies design:screen, and nothing verifies it
+block	declined	docs/items.md	13	1	13	17	decision:policy	decision:policy is declined, with no reason

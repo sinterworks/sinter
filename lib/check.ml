@@ -497,10 +497,10 @@ let run ?phases ~env ~dir ~manifest ~base ~mode ~gate ~strict ~form ~verbose
       | Some Finding_class.Merged -> Ledger.History
       | Some (Finding_class.Turn | Finding_class.Review) | None -> Ledger.Tip)
   in
-  let entries = Scan.entries ledger in
+  let folds = Scan.folds ?phases ledger in
   let facts =
     Allocation.measure phases "facts" (fun () ->
-        Facts.make tree.manifest ~ledger:entries tree.documents)
+        Facts.make tree.manifest ~ledger:folds tree.documents)
   in
   let findings =
     Allocation.measure phases "findings" (fun () ->
@@ -509,7 +509,7 @@ let run ?phases ~env ~dir ~manifest ~base ~mode ~gate ~strict ~form ~verbose
           ~not_text:tree.not_text)
   in
   let findings =
-    compare_with_base ?phases ~mode ~gate ~ledger:entries tree compared facts
+    compare_with_base ?phases ~mode ~gate ~ledger:folds tree compared facts
       findings
   in
   let entries =

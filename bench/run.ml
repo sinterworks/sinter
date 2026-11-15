@@ -40,6 +40,7 @@ let ledger_commands = [ "ledger-log"; "ledger-verify" ]
 
 let arguments = function
   | "check-diff" -> [ "check"; "--diff" ]
+  | "check-ledger" -> [ "check" ]
   | "ledger-log" -> [ "ledger"; "log" ]
   | "ledger-verify" -> [ "ledger"; "verify" ]
   | command -> [ command ]
@@ -328,6 +329,38 @@ let ledger ~generator ~trees entries =
     commands = ledger_commands;
   }
 
+let tree_with_ledger ~generator ~trees ~seed ~declarations entries =
+  let name = Printf.sprintf "n%d-l%d" declarations entries in
+  let dir = Filename.concat trees (Printf.sprintf "%s-seed%d" name seed) in
+  let root = Filename.concat dir "repo" in
+  (if not (Sys.file_exists root) then
+     let errors = scratch_file "generate.err" in
+     let code =
+       spawn ~stdout:"/dev/null" ~stderr:errors
+         [|
+           generator;
+           "--seed";
+           string_of_int seed;
+           "--with-ledger";
+           string_of_int entries;
+           string_of_int declarations;
+           dir;
+         |]
+     in
+     if code <> 0 then
+       stop
+         "the generator exited with %d for %d declarations and a ledger of %d \
+          entries:\n\
+          %s"
+         code declarations entries (read errors));
+  {
+    name;
+    root;
+    manifest = None;
+    declarations = Some declarations;
+    commands = [ "check-ledger" ];
+  }
+
 let self_target ~manifest dir =
   match
     capture ~env:(Lazy.force sinter_env)
@@ -445,6 +478,13 @@ let measure_trees ~platform ~phases ~sinter ~time ~generator ~self
             ~some:(fun generator -> [ ledger ~generator ~trees size ])
             generator)
         ledgers
+    @
+    match (generator, sizes) with
+    | Some generator, declarations :: _ ->
+        List.map
+          (tree_with_ledger ~generator ~trees ~seed ~declarations)
+          ledgers
+    | _ -> []
   in
   let results =
     List.concat_map
@@ -565,11 +605,14 @@ let () =
          measured. The results name $(i,sinter check --diff) $(i,check-diff). \
          On each ledger of $(b,--ledgers), run $(i,sinter ledger log) and \
          $(i,sinter ledger verify) in the same way, named $(i,ledger-log) and \
-         $(i,ledger-verify). On Linux, GNU $(i,time) gives the peak resident \
-         memory, and $(i,perf stat) counts the instructions in user space when \
-         $(i,perf) is on the PATH and can count them. On macOS, $(i,time -l) \
-         gives the peak resident memory, the instructions, and the peak memory \
-         footprint. $(b,--time) names the program $(i,time).";
+         $(i,ledger-verify). On the first size of $(b,--sizes), with each \
+         ledger of $(b,--ledgers), run $(i,sinter check), named \
+         $(i,check-ledger), on the trees n<S>-l<N>. On Linux, GNU $(i,time) \
+         gives the peak resident memory, and $(i,perf stat) counts the \
+         instructions in user space when $(i,perf) is on the PATH and can \
+         count them. On macOS, $(i,time -l) gives the peak resident memory, \
+         the instructions, and the peak memory footprint. $(b,--time) names \
+         the program $(i,time).";
       `P
         "When no file is at the path of $(b,--time), the run measures no peak \
          memory and no peak memory footprint, and on macOS no instructions. \
@@ -596,17 +639,20 @@ let () =
         "With $(b,--budgets), the run checks the growth limits of that file. \
          The file is TOML, with the tables $(i,scan) and $(i,check), and the \
          table $(i,check-diff) when $(i,sinter check --diff) has a limit, and \
-         the tables $(i,ledger-log) and $(i,ledger-verify) when those commands \
-         have a limit. Each table holds $(i,allocation-growth), the limit, for \
-         each phase, of the words on the tree of 10,000 declarations divided \
-         by the words on the tree of 1,000 declarations; for the commands of \
-         the ledger, of the words on the ledger of 100,000 entries divided by \
-         the words on the ledger of 1,000 entries. A table may also hold the \
-         table $(i,phases), with the limit of a named phase in place of \
-         $(i,allocation-growth); a name there that is not a phase of the run \
-         stops the run. The run skips the limit of a phase that does not have \
-         its words on both trees. No limit applies to the peak memory or to \
-         the instruction counts.";
+         the tables $(i,check-ledger), $(i,ledger-log), and $(i,ledger-verify) \
+         when those commands have a limit. Each table holds \
+         $(i,allocation-growth), the limit, for each phase, of the words on \
+         the tree of 10,000 declarations divided by the words on the tree of \
+         1,000 declarations; for the commands of the ledger, of the words on \
+         the ledger of 100,000 entries divided by the words on the ledger of \
+         1,000 entries; for $(i,check-ledger), of the words on the tree of \
+         1,000 declarations with the ledger of 100,000 entries divided by the \
+         words on that tree with the ledger of 1,000 entries. A table may also \
+         hold the table $(i,phases), with the limit of a named phase in place \
+         of $(i,allocation-growth); a name there that is not a phase of the \
+         run stops the run. The run skips the limit of a phase that does not \
+         have its words on both trees. No limit applies to the peak memory or \
+         to the instruction counts.";
       `S "OUTPUT";
       `P
         "A JSON object, on standard output or in the file of $(b,--json). Its \
@@ -709,7 +755,8 @@ let () =
           ~doc:
             "The numbers of entries of the generated ledgers, each 1 or more. \
              The run measures $(i,sinter ledger log) and $(i,sinter ledger \
-             verify) on each, as the trees l<N>.")
+             verify) on each, as the trees l<N>, and $(i,sinter check) on the \
+             first size of $(b,--sizes) with each, as the trees n<S>-l<N>.")
   in
   let seed =
     Arg.(

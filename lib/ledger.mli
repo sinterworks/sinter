@@ -16,11 +16,6 @@ val version : int
 val chunk_size : int
 (** The number of entries of a full chunk: [50]. *)
 
-val set_limit : int
-(** The longest canonical bytes, [1_048_576], that the hash of the set of a
-    [commitment-set] entry may cover: {!Commitment_set.bytes} of its plan scope
-    and its steps. *)
-
 (** {1 Entries} *)
 
 (** What an approval approves. *)
@@ -52,11 +47,8 @@ type body =
       csh_holds : bool;
           (** [csh] is the commitment-set hash of [scopes] and [promises], as
               {!Commitment_set.hash} computes it from the plan scope, the
-              effective scope of each step, and the promises, and the bytes that
-              the hash covers are no longer than {!set_limit}. The reader
-              computes their length first, with {!Commitment_set.size}, and
-              computes no hash past the limit. A set whose hash does not hold is
-              still an entry; the ledger is not broken. *)
+              effective scope of each step, and the promises. A set whose hash
+              does not hold is still an entry; the ledger is not broken. *)
     }
   | Decline of { subject : string; hash : string; reason : string }
   | Delivered of { subject : string; csh : string; merge : string }
@@ -84,6 +76,12 @@ type entry = private {
   line : string;  (** the line of the entry, without its line feed *)
 }
 (** One entry of a known kind, as its line gives it. *)
+
+val commitment_set : entry -> Commitment_set.set option
+(** [commitment_set entry] is the set that a [commitment-set] entry holds, read
+    from its [scopes] and [promises]: the plan scope is each glob with no step,
+    and a step that no object of [scopes] names takes the plan scope. It is
+    [None] for every other kind. *)
 
 val kind_name : body -> string
 (** [kind_name body] is the name of the kind of [body], as the field [kind]

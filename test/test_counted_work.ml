@@ -53,6 +53,12 @@ let growth_passes_a_quadratic_cost_under_a_quadratic_bound () =
     (Counted_work.growth ~exponent:2. ~margin:1.1 ~sizes:(100, 400)
        ~input:Fun.id square)
 
+let a_lazy_value_inside_the_input_counts_on_both_sides () =
+  let input size = lazy (Array.make size 0) in
+  Alcotest.(check (result unit string))
+    "the small side pays too" (Ok ())
+    (Counted_work.growth ~margin:1.1 ~sizes:(1000, 16_000) ~input Lazy.force)
+
 let growth_does_not_count_the_input () =
   Alcotest.(check (result unit string))
     "the growth" (Ok ())
@@ -139,6 +145,8 @@ let tests =
       growth_fails_a_quadratic_cost_under_a_linear_bound;
     case "growth passes a quadratic cost under a quadratic bound"
       growth_passes_a_quadratic_cost_under_a_quadratic_bound;
+    case "a lazy value inside the input counts on both sides"
+      a_lazy_value_inside_the_input_counts_on_both_sides;
     case "growth does not count the input" growth_does_not_count_the_input;
     case "growth does not count the first call"
       growth_does_not_count_the_first_call;

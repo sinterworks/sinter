@@ -23,8 +23,8 @@ let growth ?(exponent = 1.) ~margin ~sizes:(small, large) ~input f =
     invalid_arg
       "Counted_work.growth: the ratio of the sizes is not larger than the \
        margin";
+  ignore (Sys.opaque_identity (f (input small)));
   let small_input = input small in
-  ignore (Sys.opaque_identity (f small_input));
   let small_words = words (fun () -> f small_input) in
   let large_input = input large in
   let large_words = words (fun () -> f large_input) in

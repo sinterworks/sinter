@@ -71,3 +71,25 @@ val parts : error -> string * string option
     what to write instead when the message says it. [message error] is the first
     part when the second is [None], and the two parts joined with ["; "]
     otherwise. *)
+
+val contained : string -> string -> bool
+(** [contained inner outer] is [true] when the proof of containment of one glob
+    in another succeeds. A glob that ends with [/] counts as the glob with [**]
+    added. The two are the same glob; or both are valid and [outer] is [**]; or
+    both are valid, [inner] holds a [*], and [outer] is [<g>/**] with [inner]
+    under [<g>/]; or both are valid, [inner] holds no [*] and ends with [/], and
+    [outer] ends with [/**] and matches a path under [inner]; or both are valid,
+    [inner] holds no [*] and does not end with [/], and [outer] matches [inner].
+    In every other case it is [false], so [false] means that no proof exists,
+    not that a path lies outside [outer]. *)
+
+type container
+(** A list of globs, read once, for many questions of containment. *)
+
+val container : string list -> container
+(** [container globs] parses each of [globs] once. A string that is not a valid
+    glob stays in the set of verbatim globs only. *)
+
+val holds : container -> string -> bool
+(** [holds (container globs) inner] is [List.exists (contained inner) globs]. It
+    tests the verbatim globs with a set first, and it parses [inner] once. *)

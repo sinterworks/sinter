@@ -208,7 +208,7 @@ val ledger :
 (** [ledger tree depth] is the ledger of the repository of [tree], as
     {!Ledger.read} reads and checks it to [depth]; [None] when the repository
     has no ledger ref. The error is [Ledger] with the error of {!Ledger.read}.
-    With [phases], it counts the words of the read in the phase [repository].
+    With [phases], it counts the words of the read in the phase [ledger].
 
     @raise Sinter_bridge.Error if the bridge stops on an internal fault. *)
 
@@ -218,9 +218,10 @@ val ledger_warnings : Ledger.t option -> Facts.t -> string list
     and [facts] hold at least one plan,
     [no ledger found, so every plan counts as open]. *)
 
-val entries : Ledger.t option -> Ledger.entry list
-(** [entries ledger] is {!Ledger.entries} of [ledger], and the empty list for
-    [None]. *)
+val folds : ?phases:Allocation.t -> Ledger.t option -> Folds.t
+(** [folds ledger] is {!Folds.of_entries} of the entries of [ledger], and the
+    folds of no entry for [None]. With [phases], it counts the words in the
+    phase [folds]. *)
 
 val index :
   ?mode:Mode.t ->
@@ -259,6 +260,7 @@ val run :
 
     With [phases], it counts the phases of {!load}, and adds to [repository] the
     index record and the paths that the diff changes, and counts the phases
-    [facts] ({!Facts.make}) and [records] ({!Facts.records}).
+    [ledger] ({!ledger}), [folds] ({!folds}), [facts] ({!Facts.make}), and
+    [records] ({!Facts.records}).
 
     @raise Sinter_bridge.Error if the bridge stops on an internal fault. *)

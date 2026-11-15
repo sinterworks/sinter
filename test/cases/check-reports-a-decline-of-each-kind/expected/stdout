@@ -1,0 +1,43 @@
+block[declined]: a plan reason
+ --> .plans/lockout.md:3:1
+  |
+3 | @plan lockout@abc123
+  |       ^^^^^^^^^^^^^^ declined
+  |
+
+block[declined]: a line that another writer added
+ --> .plans/lockout.md:6:1
+  |
+6 | ## Lock the account
+  | ^^^^^^^^^^^^^^^^^^^
+  |
+
+block[declined]: a step reason
+  --> .plans/lockout.md:11:1
+   |
+11 | ## Tidy the cache
+   | ^^^^^^^^^^^^^^^^^
+   |
+
+block[declined]: the wording is    too�broad �[31m�evil
+ --> docs/items.md:3:1
+  |
+3 | @req lockout
+  |      ^^^^^^^ declined
+  |
+
+warn[untraced]: 2 findings in docs/items.md
+
+block[declined]: the later reason
+ --> docs/items.md:8:1
+  |
+8 | @design screen
+  |         ^^^^^^ declined
+  |
+
+block[declined]: decision:policy is declined, with no reason
+  --> docs/items.md:13:1
+   |
+13 | @decision policy
+   |           ^^^^^^ declined
+   |

@@ -200,9 +200,8 @@ let first_declared = "first declared here"
 let declared_earlier slug item =
   Printf.sprintf "the slug %s of %s is declared earlier" slug item
 
-let is_open (_ : Facts.plan) = true
-
 let plan_duplicates facts =
+  let is_open = Facts.is_open facts in
   let by_place (a : Facts.plan) (b : Facts.plan) =
     compare (a.path, a.span.start.line) (b.path, b.span.start.line)
   in
@@ -286,14 +285,13 @@ let duplicates facts =
              ~order:(fun (a : Facts.step) (b : Facts.step) ->
                Int.compare a.span.start.line b.span.start.line)
              plan.steps))
-      (Facts.plans facts)
+      (Facts.open_plans facts)
 
 let missing_plan_ids facts ~base =
   List.filter_map
     (fun (plan : Facts.plan) ->
       match plan.id with
       | Some _ -> None
-      | None when not (is_open plan) -> None
       | None ->
           Some
             (Finding.make Finding_class.Missing_plan_id
@@ -306,7 +304,7 @@ let missing_plan_ids facts ~base =
                     (Plan_target.derive ~base ~path:plan.path))
                ?mark:(Finding.part plan.tag Tag_line.Target "no plan id")
                ()))
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let pinned_words = [ "satisfies"; "verifies"; "refines"; "supersedes" ]
 
@@ -622,30 +620,6 @@ let untraced facts =
 let plain scope =
   List.filter (fun glob -> not (String.starts_with ~prefix:"!" glob)) scope
 
-let full glob = if String.ends_with ~suffix:"/" glob then glob ^ "**" else glob
-
-let contained inner outer =
-  let inner_full = full inner and outer_full = full outer in
-  let folder =
-    if String.ends_with ~suffix:"/**" outer_full then
-      Some (String.sub outer_full 0 (String.length outer_full - 3))
-    else None
-  in
-  String.equal inner_full outer_full
-  ||
-  match (Glob.of_string inner_full, Glob.of_string outer_full) with
-  | Ok _, Ok outer_glob ->
-      String.equal outer_full "**"
-      ||
-      if String.contains inner '*' then
-        Option.fold ~none:false
-          ~some:(fun prefix -> String.starts_with ~prefix:(prefix ^ "/") inner)
-          folder
-      else if String.ends_with ~suffix:"/" inner then
-        Option.is_some folder && Glob.matches outer_glob (inner ^ "x")
-      else Glob.matches outer_glob inner
-  | Error _, _ | _, Error _ -> false
-
 let scopes_outside_plans facts =
   List.concat_map
     (fun (plan : Facts.plan) ->
@@ -657,7 +631,7 @@ let scopes_outside_plans facts =
           | Some scope -> (
               match
                 List.filter
-                  (fun glob -> not (List.exists (contained glob) outer))
+                  (fun glob -> not (List.exists (Glob.contained glob) outer))
                   (plain scope)
               with
               | [] -> None
@@ -675,37 +649,36 @@ let scopes_outside_plans facts =
                             (String.concat ", " outside))
                        ())))
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let steps_without_promises facts =
   if Manifest.step (Facts.manifest facts) <> Manifest.Promises then []
   else
     List.concat_map
       (fun (plan : Facts.plan) ->
-        if not (is_open plan) then []
-        else
-          List.filter_map
-            (fun (step : Facts.step) ->
-              if step.promises <> [] then None
-              else
-                Some
-                  (Finding.make Finding_class.Step_without_promises
-                     (Finding.Fact
-                        { id = Facts.step_id plan step; ack_name = step.slug })
-                     ~place:(place plan.path step.span)
-                     ~detail:
-                       (Printf.sprintf
-                          "%s has no promise, and proof.step is \"promises\""
-                          (Facts.step_id plan step))
-                     ()))
-            plan.steps)
-      (Facts.plans facts)
+        List.filter_map
+          (fun (step : Facts.step) ->
+            if step.promises <> [] then None
+            else
+              Some
+                (Finding.make Finding_class.Step_without_promises
+                   (Finding.Fact
+                      { id = Facts.step_id plan step; ack_name = step.slug })
+                   ~place:(place plan.path step.span)
+                   ~detail:
+                     (Printf.sprintf
+                        "%s has no promise, and proof.step is \"promises\""
+                        (Facts.step_id plan step))
+                   ()))
+          plan.steps)
+      (Facts.open_plans facts)
 
 let intersect a b =
   List.exists
     (fun glob_a ->
       List.exists
-        (fun glob_b -> contained glob_a glob_b || contained glob_b glob_a)
+        (fun glob_b ->
+          Glob.contained glob_a glob_b || Glob.contained glob_b glob_a)
         (plain b))
     (plain a)
 
@@ -782,7 +755,7 @@ let scope_overlaps facts =
                 :: walk (index + 1) earlier rest)
       in
       walk 0 Promises.empty plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let promise_subject plan step promise =
   let id = Facts.promise_id plan step promise in
@@ -823,7 +796,7 @@ let unverified_promises facts =
               else None)
             step.promises)
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let promises_out_of_scope facts =
   List.concat_map
@@ -858,41 +831,39 @@ let promises_out_of_scope facts =
               | { by = Some _; _ } | { meeting_facts = []; _ } -> None)
             step.promises)
         plan.steps)
-    (Facts.plans facts)
+    (Facts.open_plans facts)
 
 let merged_incomplete facts =
   List.concat_map
     (fun (plan : Facts.plan) ->
-      if not (is_open plan) then []
-      else
-        List.filter_map
-          (fun (step : Facts.step) ->
-            let standing = Facts.standing facts plan step in
-            let met, unmet =
-              List.partition
-                (fun promise -> Option.is_some (standing promise).Facts.by)
-                step.promises
-            in
-            match (met, unmet) with
-            | _ :: _, _ :: _ ->
-                Some
-                  (Finding.make Finding_class.Merged_incomplete
-                     (Finding.Fact
-                        { id = Facts.step_id plan step; ack_name = step.slug })
-                     ~place:(place plan.path step.span)
-                     ~detail:
-                       (Printf.sprintf "%s has %d of its %d promises met"
-                          (Facts.step_id plan step) (List.length met)
-                          (List.length step.promises))
-                     ~related:
-                       (List.map
-                          (fun (promise : Facts.promise) ->
-                            related "not met" plan.path promise.span)
-                          unmet)
-                     ())
-            | [], _ | _, [] -> None)
-          plan.steps)
-    (Facts.plans facts)
+      List.filter_map
+        (fun (step : Facts.step) ->
+          let standing = Facts.standing facts plan step in
+          let met, unmet =
+            List.partition
+              (fun promise -> Option.is_some (standing promise).Facts.by)
+              step.promises
+          in
+          match (met, unmet) with
+          | _ :: _, _ :: _ ->
+              Some
+                (Finding.make Finding_class.Merged_incomplete
+                   (Finding.Fact
+                      { id = Facts.step_id plan step; ack_name = step.slug })
+                   ~place:(place plan.path step.span)
+                   ~detail:
+                     (Printf.sprintf "%s has %d of its %d promises met"
+                        (Facts.step_id plan step) (List.length met)
+                        (List.length step.promises))
+                   ~related:
+                     (List.map
+                        (fun (promise : Facts.promise) ->
+                          related "not met" plan.path promise.span)
+                        unmet)
+                   ())
+          | [], _ | _, [] -> None)
+        plan.steps)
+    (Facts.open_plans facts)
 
 let ack_target target =
   let blank = function ' ' | '\t' -> true | _ -> false in
@@ -1113,6 +1084,162 @@ let stale_acks facts retired =
       | Some _ | None -> None)
     voids
 
+let no_glob_in_scope facts =
+  List.concat_map
+    (fun (plan : Facts.plan) ->
+      List.map
+        (fun (tag : Markdown.tag) ->
+          Finding.make Finding_class.Invalid_target
+            (Finding.Tag { path = plan.path; position = start_of tag.span })
+            ~place:(place plan.path tag.span)
+            ~detail:"the @scope line holds no glob"
+            ?mark:(Finding.part tag Tag_line.Word "holds no glob")
+            ())
+        plan.empty_scopes)
+    (Facts.open_plans facts)
+
+let declined_detail id (entry : Ledger.entry) =
+  let cleaned =
+    match entry.body with
+    | Ledger.Decline { reason; _ } -> Display.clean reason
+    | _ -> ""
+  in
+  if String.equal cleaned "" then id ^ " is declined, with no reason"
+  else cleaned
+
+let declined_finding ?mark subject ~id ~place entry =
+  Finding.make Finding_class.Declined subject ~place
+    ~detail:(declined_detail id entry) ?mark ()
+
+let declined facts =
+  List.filter_map Fun.id
+    (List.mapi
+       (fun index (d : Facts.declaration) ->
+         match (d.kind, (Facts.declaration_judged facts index).latest_live) with
+         | ("req" | "design" | "decision"), Some entry ->
+             Some
+               (declined_finding (declaration_subject d)
+                  ~id:(Facts.declaration_id d) ~place:(place d.path d.span)
+                  ?mark:(Finding.part d.tag Tag_line.Target "declined")
+                  entry)
+         | _ -> None)
+       (Facts.declarations facts))
+  @ List.concat_map
+      (fun (plan : Facts.plan) ->
+        let id = Facts.plan_fact_id plan in
+        Option.fold ~none:[]
+          ~some:(fun entry ->
+            [
+              declined_finding
+                (Finding.Fact { id; ack_name = plan.slug })
+                ~id
+                ~place:(place plan.path plan.span)
+                ?mark:(Finding.part plan.tag Tag_line.Target "declined")
+                entry;
+            ])
+          (Facts.plan_judgment facts plan).judged.latest_live
+        @ List.filter_map
+            (fun (step : Facts.step) ->
+              let id = Facts.step_id plan step in
+              Option.map
+                (declined_finding
+                   (Finding.Fact { id; ack_name = step.slug })
+                   ~id
+                   ~place:(place plan.path step.span))
+                (Facts.step_judgment facts plan step).judged.latest_live)
+            plan.steps)
+      (Facts.open_plans facts)
+
+let unapproved_edges facts =
+  let declarations = Array.of_list (Facts.declarations facts) in
+  List.filter_map
+    (fun ((edge : Facts.edge), target) ->
+      match (edge.word, target) with
+      | ("satisfies" | "verifies"), Facts.Declaration index -> (
+          let declaration = declarations.(index) in
+          let finding finding_class =
+            let id = Facts.declaration_id declaration in
+            Some
+              (Finding.make finding_class (edge_subject edge)
+                 ~place:(place edge.path edge.span)
+                 ~detail:(id ^ " is not approved")
+                 ?mark:(Finding.part edge.tag Tag_line.Target "not approved")
+                 ~related:
+                   [
+                     related
+                       (Printf.sprintf "declared here at v%d" declaration.rev)
+                       declaration.path declaration.span;
+                   ]
+                 ())
+          in
+          match declaration.kind with
+          | _ when Facts.is_approved facts index -> None
+          | "req" -> finding Finding_class.Unapproved_req
+          | "design" -> finding Finding_class.Unapproved_design
+          | _ -> None)
+      | _ -> None)
+    (Facts.edges facts)
+
+let awaiting_approvals facts =
+  List.filter_map Fun.id
+    (List.mapi
+       (fun index (d : Facts.declaration) ->
+         if
+           List.mem d.kind [ "req"; "design"; "decision" ]
+           && Facts.is_in_force facts index
+           && not (Facts.is_approved facts index)
+         then
+           Some
+             (Finding.make Finding_class.Awaiting_approval
+                (declaration_subject d) ~place:(place d.path d.span)
+                ~detail:
+                  (Printf.sprintf "%s at v%d waits for an approval"
+                     (Facts.declaration_id d) d.rev)
+                ?mark:
+                  (Finding.part d.tag Tag_line.Target "waits for an approval")
+                ())
+         else None)
+       (Facts.declarations facts))
+
+let difference_detail (difference : Commitment_set.difference) =
+  let pairs list =
+    List.sort String.compare
+      (List.map (fun (word, target) -> word ^ ":" ^ target) list)
+  in
+  let part name = function
+    | [] -> []
+    | items -> [ name ^ ": " ^ String.concat ", " items ]
+  in
+  Display.clean
+    (String.concat "; "
+       (part "promises added" (pairs difference.added)
+       @ part "promises removed" (pairs difference.removed)
+       @ part "scope wider" difference.wider))
+
+let unapproved_plans facts =
+  List.filter_map
+    (fun (plan : Facts.plan) ->
+      let judgment = Facts.plan_judgment facts plan in
+      if judgment.approved then None
+      else
+        let detail =
+          match
+            (judgment.judged.approval, Facts.plan_difference facts plan)
+          with
+          | None, _ -> "no approval of the plan has its set"
+          | Some _, Some difference -> difference_detail difference
+          | Some _, None -> "a decline of the plan is live"
+        in
+        Some
+          (Finding.make Finding_class.Unapproved_plan
+             (Finding.Fact
+                { id = Facts.plan_fact_id plan; ack_name = plan.slug })
+             ~place:(place plan.path plan.span)
+             ~detail
+             ?mark:(Finding.part plan.tag Tag_line.Target "not approved")
+             ()))
+    (Facts.open_plans facts)
+
 let historical manifest (finding : Finding.t) =
   List.exists
     (fun (place : Finding.place) -> Manifest.is_historical manifest place.path)
@@ -1121,6 +1248,15 @@ let historical manifest (finding : Finding.t) =
 let of_facts facts ~base ~not_text =
   let manifest = Facts.manifest facts and documents = Facts.files facts in
   let retired = retired facts in
+  let closed =
+    List.fold_left
+      (fun closed path -> Keys.add path () closed)
+      Keys.empty
+      (Facts.closed_plan_files facts)
+  in
+  let not_closed =
+    List.filter (fun (path, _) -> not (Keys.mem path closed)) documents
+  in
   List.sort Finding.compare
     (List.filter
        (fun finding -> not (historical manifest finding))
@@ -1129,7 +1265,7 @@ let of_facts facts ~base ~not_text =
             parse_errors documents ~not_text;
             typo_tags documents;
             ignored_tags documents;
-            invalid_targets manifest documents;
+            invalid_targets manifest not_closed;
             misplaced_plans documents;
             duplicates facts;
             missing_plan_ids facts ~base;
@@ -1151,12 +1287,17 @@ let of_facts facts ~base ~not_text =
             unverified_promises facts;
             promises_out_of_scope facts;
             merged_incomplete facts;
+            no_glob_in_scope facts;
+            declined facts;
+            unapproved_edges facts;
+            awaiting_approvals facts;
+            unapproved_plans facts;
           ]))
 
 let tree ?phases manifest documents ~base ~not_text =
   let facts =
     Allocation.measure phases "facts" (fun () ->
-        Facts.make manifest ~ledger:[] documents)
+        Facts.make manifest ~ledger:Folds.empty documents)
   in
   Allocation.measure phases "findings" (fun () ->
       of_facts facts ~base ~not_text)

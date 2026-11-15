@@ -1,0 +1,1 @@
+.plans/lockout.md:3:1: block[renamed-step] step:lockout@abc123/tidy-the-cache is started in the base, and the plan has no step with the slug tidy-the-cache now

@@ -442,6 +442,33 @@ let check_judges_the_ledger_on_its_own_trees () =
                 [ ("ledger", 160.); ("output", 1.) ] );
             ]))
 
+let check_judges_a_tree_with_a_ledger_on_its_own_trees () =
+  Alcotest.(check (list string))
+    "outcomes of the target"
+    [ "check-ledger folds 120 pass 100"; "check-ledger ledger 120 fail 130" ]
+    (List.filter
+       (fun line -> String.starts_with ~prefix:"check-ledger" line)
+       (outcomes
+          (budgets (budgets_text ^ "[check-ledger]\nallocation-growth = 120\n"))
+          ~words:
+            [
+              ( ("n1000-l1000", "check-ledger"),
+                [ ("folds", 2.); ("ledger", 1.) ] );
+              ( ("n1000-l100000", "check-ledger"),
+                [ ("folds", 200.); ("ledger", 130.) ] );
+              (("n10000", "check-ledger"), [ ("folds", 9999.) ]);
+            ]))
+
+let the_budget_of_a_tree_with_a_ledger_is_optional () =
+  Alcotest.(check (list (option (float 0.))))
+    "with and without the table" [ Some 120.; None ]
+    [
+      Budgets.growth
+        (budgets (budgets_text ^ "[check-ledger]\nallocation-growth = 120\n"))
+        "check-ledger";
+      Budgets.growth (budgets budgets_text) "check-ledger";
+    ]
+
 let check_skips_what_the_run_did_not_measure () =
   Alcotest.(check (list string))
     "outcomes"
@@ -1022,6 +1049,57 @@ let run_measures_the_commands_of_a_ledger () =
                (to_list (member "phase_words" result)) ))
        (Yojson.Basic.Util.to_list (member "results" (json_of output))))
 
+let check_phases =
+  [
+    "repository";
+    "base-read";
+    "read";
+    "parse";
+    "ledger";
+    "folds";
+    "facts";
+    "findings";
+    "output";
+  ]
+
+let run_measures_a_tree_with_a_ledger () =
+  let code, output, errors =
+    measure
+      ~extra:[ "--sizes=4"; "--ledgers"; "3" ]
+      "[scan]\nallocation-growth = 1\n\n[check]\nallocation-growth = 1\n"
+  in
+  Alcotest.(check int) ("exit, with: " ^ errors) 0 code;
+  Alcotest.(check (list (pair string (list string))))
+    "the tree and the phases of the target"
+    [ ("n4-l3", check_phases) ]
+    (List.filter_map
+       (fun result ->
+         Yojson.Basic.Util.(
+           if String.equal (to_string (member "command" result)) "check-ledger"
+           then
+             Some
+               ( to_string (member "tree" result),
+                 List.map
+                   (fun phase -> to_string (member "phase" phase))
+                   (to_list (member "phase_words" result)) )
+           else None))
+       (Yojson.Basic.Util.to_list (member "results" (json_of output))))
+
+let generate_adds_a_ledger_to_a_tree () =
+  let dir = Filename.concat (Git_fixture.temp_dir ()) "tree" in
+  let code, _, errors =
+    run_program generator [ "--with-ledger"; "4"; "6"; dir ]
+  in
+  Alcotest.(check (pair int string)) "the exit" (0, "") (code, errors);
+  let repo = Filename.concat dir "repo" in
+  Alcotest.(check bool)
+    "the ref exists" true
+    (Sys.command
+       (Printf.sprintf
+          "git -C %s rev-parse --verify -q refs/sinter/ledger >/dev/null"
+          (Filename.quote repo))
+    = 0)
+
 let generate_makes_a_ledger () =
   let dir = Filename.concat (Git_fixture.temp_dir ()) "ledger" in
   let code, output, _ = run_program generator [ "--ledger"; "4"; dir ] in
@@ -1060,13 +1138,24 @@ let run_skips_every_budget_that_it_cannot_check () =
         Yojson.Basic.Util.(
           match to_string (member "command" result) with
           | "scan" ->
-              [ "repository"; "read"; "parse"; "facts"; "records"; "output" ]
+              [
+                "repository";
+                "read";
+                "parse";
+                "ledger";
+                "folds";
+                "facts";
+                "records";
+                "output";
+              ]
           | "check-diff" ->
               [
                 "repository";
                 "base-read";
                 "read";
                 "parse";
+                "ledger";
+                "folds";
                 "facts";
                 "findings";
                 "base-facts";
@@ -1079,6 +1168,8 @@ let run_skips_every_budget_that_it_cannot_check () =
                 "base-read";
                 "read";
                 "parse";
+                "ledger";
+                "folds";
                 "facts";
                 "findings";
                 "output";
@@ -1601,6 +1692,12 @@ let tests =
       check_refuses_a_phase_that_the_run_does_not_have;
     case "check judges the budgets of check-diff"
       check_judges_the_budgets_of_check_diff;
+    case "run measures a tree with a ledger" run_measures_a_tree_with_a_ledger;
+    case "generate adds a ledger to a tree" generate_adds_a_ledger_to_a_tree;
+    case "check judges a tree with a ledger on its own trees"
+      check_judges_a_tree_with_a_ledger_on_its_own_trees;
+    case "the budget of a tree with a ledger is optional"
+      the_budget_of_a_tree_with_a_ledger_is_optional;
     case "run measures the commands of a ledger"
       run_measures_the_commands_of_a_ledger;
     case "generate makes a ledger" generate_makes_a_ledger;

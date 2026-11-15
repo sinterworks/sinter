@@ -1,0 +1,6 @@
+.plans/lockout.md:3:1: warn[declined] a plan reason
+.plans/lockout.md:6:1: warn[declined] a line that another writer added
+.plans/lockout.md:11:1: warn[declined] a step reason
+docs/items.md:3:1: warn[declined] the wording is    too�broad �[31m�evil
+docs/items.md:8:1: warn[declined] the later reason
+docs/items.md:13:1: warn[declined] decision:policy is declined, with no reason

@@ -723,7 +723,8 @@ advice, not a constraint.
 A `@scope` line holds comma-separated globs in the glob language of
 [manifest.md](manifest.md) section 7.1. The globs of one line give a
 set of paths by the rule of a path set ([manifest.md](manifest.md)
-section 7.2): a glob that starts with `!` leaves paths out.
+section 7.2): a glob that starts with `!` leaves paths out. A `@scope`
+line that holds no glob counts as no `@scope` line.
 
 A step with no `@scope` inherits the plan's scope. A step's `@scope`
 must be contained in its plan's scope, by the rule that

@@ -26,7 +26,7 @@ let manifest =
   | Error _ -> failwith "the manifest has errors"
 
 let facts files =
-  Facts.make ~ledger:[] manifest
+  Facts.make ~ledger:Folds.empty manifest
     (List.map (fun (path, text) -> (path, document text)) files)
 
 type table = {
