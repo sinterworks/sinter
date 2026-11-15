@@ -30,8 +30,6 @@ let elements set =
 let last set =
   match Array.length set with 0 -> None | n -> Some (snd set.(n - 1))
 
-let cardinal set = Array.fold_left (fun n (a, b) -> n + b - a + 1) 0 set
-
 let union sets =
   of_sorted_runs
     (List.sort
@@ -79,7 +77,6 @@ module Index = struct
     values : 'a array;
     group : int array;
     sets : set array;
-    sizes : int array;
     members : int list array;
     firsts : int array;
     lasts : int array;
@@ -134,7 +131,6 @@ module Index = struct
       values = Array.map fst pairs;
       group;
       sets;
-      sizes = Array.map cardinal sets;
       members;
       firsts = Array.map (fun (a, _, _) -> a) runs;
       lasts;
@@ -182,13 +178,7 @@ module Index = struct
         let least =
           List.fold_left
             (fun least id ->
-              if
-                (index.sizes.(id) < index.sizes.(least))
-                [@mutaml.skip
-                  "two distinct groups of the least size are never subsets of \
-                   each other"]
-              then id
-              else least)
+              if subset index.sets.(id) index.sets.(least) then id else least)
             first ids
         in
         match index.members.(least) with
