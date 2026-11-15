@@ -104,7 +104,7 @@ design has one JSON text on each line of its text.
 | [algorithm](sinter:#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names, such as the spaced text of a text in section 2.9; a program can get that value in any way |
 | [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after it up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
 | [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
-| [give](sinter:#algorithm=v1) | an algorithm gives, for some values, the value V of the step `Give V.` at which its steps end for these values |
+| [give](sinter:#algorithm=v1) | for each choice of a value for each of its header value names, an algorithm gives the value V of the step `Give V.` at which its steps end for these values |
 
 ## 2. Numbers, texts, bytes, lines, and notation
 
@@ -513,9 +513,9 @@ the 3rd element of the text `abc` is its 3rd character, `c`.
 
 A definition can define a value by an algorithm: a header sentence, then
 numbered steps, each in one of the forms that the term `algorithm` of
-section 3.39 lists. The steps define only the value that they give. A
-program can get that value in any way. For example, a definition could
-define the spaced text of a text by this algorithm:
+section 3.39 lists. That term also says what the steps define. For
+example, a definition could define the spaced text of a text by this
+algorithm:
 
 The spaced text of a text *t* is the text that these steps give.
 
