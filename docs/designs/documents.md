@@ -468,10 +468,10 @@ each with a line feed after it. Its extent hash is
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
-prose of each [cluster](sinter:#written-line=v1) is read apart from the
-prose of the other clusters, so there this holds when each tag line
-stays a tag line at the start of its own line and the prose of each
-cluster gives the same blocks and inline elements.
+blocks of the prose of each [cluster](sinter:#written-line=v1) are read
+apart from those of the other clusters, so there this holds when each
+tag line stays a tag line at the start of its own line and the prose of
+each cluster gives the same blocks and inline elements.
 
 The tag lines of a cluster are written from what they name, not from
 their layout: by the [tree forms](sinter:#tree-form=v1) of their
@@ -1537,10 +1537,9 @@ names one item or nothing: the entry name of a citation entry of an
 accepted citation, and the text that `name` or `external-ref` matches in
 the match of the destination of an inline citation, when that match is a
 match of an input, whether or not that inline citation is an accepted
-input. The home
-design h only gives the set in which rule 4 looks; it is no fact about
-the item that the text names. For h, such a text names the item that the
-first of these rules that applies gives:
+input. The home design h only gives the set in which rule 4 looks; it is
+no fact about the item that the text names. For h, such a text names
+the item that the first of these rules that applies gives:
 
 1. When the match of the citation entry, or of the destination, uses
    `external-ref`: the text is an external id, with its `#` and part
@@ -2622,15 +2621,14 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
    2. Let *notes* be the empty sequence.
    3. Let *shared* be the empty text.
    4. If the file of *d* is a code file, set *shared* to the margin of
-      the sequence of the
-      prose texts of the lines of *c*, in their order.
+      the sequence of the texts of the lines of *c*, as lines of *t*, in
+      their order.
    5. For each *l* of *c*, in order:
       1. If *l* is a tag line, then:
          1. Append *l* to *tags*.
-         2. If *l* is accepted, *l* is a declaration, a citation, a
-            status tag, or an `@extern` line, and the inline description
-            of *l* is not empty, append the inline description of *l* to
-            *notes*.
+         2. If *l* is accepted and is a declaration, a citation, a status
+            tag, or an `@extern` line, and the inline description of *l* is
+            not empty, append the inline description of *l* to *notes*.
       2. Otherwise:
          1. Let *y* be the
             prose text of *l*.
@@ -2737,16 +2735,23 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
          2. Remove the first character of *rest* from *rest*.
          3. Remove the line feeds, spaces, and tabs at the start and at the
             end of *rest* from *rest*.
-         4. If *rest* is not empty, then:
-            1. Let *line* be the indent of *k*.
-            2. Append `paragraph: ` to *line*.
-            3. Let *inner* be the inline elements that CommonMark 0.31.2
-               gives when it parses *rest* as the raw content of a
-               paragraph, with the link reference definitions of the
-               markdown document of *t* before those of the markdown
-               document of *doc*.
+         4. Let *inner* be the inline elements that CommonMark 0.31.2
+            gives when it parses *rest* as inlines, as it parses the raw
+            content of a paragraph, with the link reference definitions of
+            the markdown document of *t* before those of the markdown
+            document of *doc*.
+         5. Let *line* be the indent of *k*.
+         6. If *b* is a setext heading, then:
+            1. Append `heading +` to *line*.
+            2. Append the decimal numeral of the level of *b* minus the
+               base level of *d* to *line*.
+            3. Append `: ` to *line*.
             4. Append the written text of *inner* for *d* to *line*.
             5. Append *line* to *lines*.
+         7. If *b* is a paragraph and *rest* is not empty, then:
+            1. Append `paragraph: ` to *line*.
+            2. Append the written text of *inner* for *d* to *line*.
+            3. Append *line* to *lines*.
       2. Otherwise:
          1. For each *w* of the written lines of *b* at depth *k* for *d*,
             in *e* and without the empty set of texts, in order:
