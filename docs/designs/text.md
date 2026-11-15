@@ -1422,7 +1422,9 @@ number of 1 or more, such as `"v1"`. The revision of the set line is the
 revision of the whole set, the revision of a group line is the revision
 of the group, and the revision of a vector line is the revision of the
 vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. A change of a note alone changes no revision. A program does not need the revisions to run the vectors.
+vectors that it covers change, join, or leave. A change of a note alone
+changes no revision. A program does not need the revisions to run the
+vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
