@@ -2157,17 +2157,17 @@ the same plain string content of its link text.
 The text of textual content is its characters, with each backslash
 escape, entity reference, and numeric character reference replaced by
 the characters that CommonMark 0.31.2 gives for it. The content of a
-code span is its content as CommonMark 0.31.2 gives it. The destination
-of an image is the destination that the term `destination` gives for an
-inline link with the same link destination. The written destination of
-an inline link, a reference link, or an image is its destination. The
-written destination of a URI autolink is its text between `<` and `>`,
-and that of an email autolink is `mailto:`, then its text between `<`
-and `>`. The title of a link or of an
-image that has a link title is that link title as CommonMark 0.31.2 gives
-it, without the characters that enclose it and with each backslash
-escape, entity reference, and numeric character reference replaced by
-the characters that CommonMark 0.31.2 gives for it, and then with each
+code span of CommonMark 0.31.2 is its content as CommonMark 0.31.2 gives
+it. The destination of an image is the destination that the term
+`destination` gives for an inline link with the same link destination.
+The written destination of an inline link, a reference link, or an image
+is its destination. The written destination of a URI autolink is its
+text between `<` and `>`, and that of an email autolink is `mailto:`,
+then its text between `<` and `>`. The title of a link or of an image
+that has a link title is that link title as CommonMark 0.31.2 gives it,
+without the characters that enclose it and with each backslash escape,
+entity reference, and numeric character reference replaced by the
+characters that CommonMark 0.31.2 gives for it, and then with each
 markdown line ending of that text replaced by a line feed. Another link
 or image, and each autolink, has no title. The raw text of raw HTML is
 its characters, with each markdown line ending of them replaced by a
@@ -2204,7 +2204,7 @@ The written text of a sequence *s* of inline elements is the text that these ste
       1. Append the escaped text of the single-spaced text of *run* to
          *w*.
       2. Set *run* to the empty text.
-   4. If *x* is a code span, then:
+   4. If *x* is a code span of CommonMark 0.31.2, then:
       1. Append `{code:` to *w*.
       2. Append the escaped text of the content of *x* to *w*.
       3. Append `}` to *w*.
@@ -2332,10 +2332,21 @@ gives that run, to the end of that run, or, when the citation entry is
 an every-part target, to the character right before the `#` after that
 `=`. A citation entry whose run has no `=` has no pin.
 
+The empty set of texts is the set that holds no text.
+
+The indent of a whole number *k* is the text that these steps give.
+
+1. If *k* is 0, give the empty text.
+2. Let *j* be *k* minus 1.
+3. Let *pad* be the indent of *j*.
+4. Append a space to *pad*.
+5. Append a space to *pad*.
+6. Give *pad*.
+
 The written lines of a block *b* at depth *k* for a declared item *d*, in a set *e* of file lines and without a set *v* of texts, is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
-2. Let *pad* be the text of two times *k* spaces.
+2. Let *pad* be the indent of *k*.
 3. If *b* is an ATX heading or a setext heading, and *b* starts in *e*,
    then:
    1. Let *inlines* be the inline elements of *b*.
@@ -2430,7 +2441,7 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
 *d* in a set *e* of file lines is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
-2. Let *pad* be the text of two times *k* spaces.
+2. Let *pad* be the indent of *k*.
 3. Let *run* be the empty sequence.
 4. For each *l* of the lines of *t* that are in *e*, in order:
    1. If *l* is a tag line, then:
@@ -2440,15 +2451,15 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
       2. Set *run* to the empty sequence.
       3. If *l* is the declaration of a declared item, then:
          1. If *l* is not the declaration of *d*, then:
-            1. Let *name* be the target of *l*.
+            1. Let *shown* be the target of *l*.
             2. If *l* is the declaration of a declared item that belongs
-               to *d* and *name* holds a `=`, set *name* to the text of
-               the characters of *name* before its first `=`.
+               to *d* and *shown* holds a `=`, set *shown* to the text of
+               the characters of *shown* before its first `=`.
             3. Let *line* be *pad*.
             4. Append `tag: ` to *line*.
             5. Append the tag word of *l* to *line*.
             6. Append a space to *line*.
-            7. Append *name* to *line*.
+            7. Append *shown* to *line*.
             8. Append *line* to *lines*.
          2. If the inline description of *l* is not empty, append the
             inline description of *l* to *run*.
@@ -2487,7 +2498,7 @@ The written prose of a sequence *r* of texts for a tag text *t* at depth *k*, a 
    1. Remove the spaces and tabs at the start and at the end of *raw*
       from *raw*.
    2. If *raw* is not empty, then:
-      1. Let *line* be the text of two times *k* spaces.
+      1. Let *line* be the indent of *k*.
       2. Append `paragraph: ` to *line*.
       3. Append the written text of the inline elements that CommonMark
          0.31.2 gives for a paragraph whose raw content is the markdown
