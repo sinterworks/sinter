@@ -12,11 +12,27 @@
     records. Not designed.
 - **`sinter check`**
   - The built-in finding classes, `spec/algebra.md` section 9.
-- **Rule files** — the rules and the finding classes that a
-  repository writes, `spec/manifest.md` section 14.
-  - Decide, when rule files are built, whether an edit of a rule file
-    needs a revision bump (`unbumped`), and whether `config-changed`
-    covers rule files.
+- **SinterScript** — a small language of its own in which a repository
+  writes its own checks, such as "every requirement cites an issue of
+  our tracker". Not designed.
+  - A check is code in a file of its own. Its declaration, its reason,
+    and its citations stand in a comment above the code, as Sinter
+    tags. So a check has a revision and a reason, as every other item
+    has.
+  - It is built around the query algebra (`spec/algebra.md`), which
+    comes first: a user runs a query from the command line. Until
+    SinterScript exists, a repository gets most of the power of its own
+    checks from a script that runs a query and fails when the result is
+    not empty. Sinter does not report such a result as a finding.
+  - Sinter stays a function of the snapshot and the ledger. So a check
+    always ends, it gives the same result for the same inputs, and it
+    reads and writes nothing else.
+  - It replaces rule files, the form of `spec/manifest.md` section 14
+    and of the record `rule-files`: a rule or a finding class as a
+    markdown file with its queries in the front matter. That form is
+    withdrawn.
+  - The work starts from a study of languages with the same aim, such
+    as CodeQL, Rego, CEL, and Datalog.
 - **A dictionary of terms** — one definition for each term of a
   repository, in any file that Sinter reads. Every text, and every
   agent, then uses a term with one meaning. Not designed.
@@ -184,9 +200,9 @@
     for example new releases and security advisories. It writes what
     it finds into a file in the repository, as evidence import does.
     `sinter check` never reads the network.
-  - A rule (design notes section 7) whose origin is the record
-    triggers on that file. A plan that cites the observation, or an
-    `@ack`, clears the obligation.
+  - A check that the repository writes (the item **SinterScript**),
+    whose origin is the record, reports on that file. A plan that cites
+    the observation, or an `@ack`, clears the report.
   - It shares its design with `@pin` (`spec/vocabulary.md` section
     7.4) and with evidence import. Not designed.
 - **Assumptions about dependencies** — a design can rest on the
