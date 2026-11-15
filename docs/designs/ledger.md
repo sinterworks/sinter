@@ -80,7 +80,7 @@ text.
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
-| [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; an address of the remote is such a value, after its rewrite, as the term `changes#remote-transfer` gives it |
+| [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; an address of the remote is such a value, after its rewrite, or, for a push, a value of `remote.<name>.pushurl` when it has one, as the term `changes#remote-transfer` gives it |
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
@@ -286,8 +286,8 @@ A pull is not an append, and a program whose input says that an agent
 runs the execution can pull and push ledger entries. A program changes
 the ledger ref of a git repository only in the four ways of the
 requirement `limit-ledger-ref-changes`. In a pull, and in each change
-of the ledger ref of a shared clone, it runs only the programs that the
-requirement `limit-programs-in-pulls-and-pushes` allows.
+of the ledger ref of a shared clone, it runs none of the programs that
+the requirement `limit-programs-in-pulls-and-pushes` forbids.
 
 For example, the shared clone S holds five ledger entries. The clone A
 pulled them, and then appended a sixth ledger entry, x. Before A
@@ -1003,8 +1003,10 @@ that leaves.
 
 When it pulls into a git repository the ledger entries of its shared
 clone, or changes the ledger ref of the shared clone of a git
-repository, a conforming program must run only the programs that the
-requirement `changes#run-no-configured-programs` allows to run.
+repository, a conforming program must run none of the programs and
+commands that the requirement `changes#run-no-configured-programs`
+forbids in a fetch from the shared clone or in a push to it, also when
+it changes that ledger ref in another way than by a push.
 
 ### 5.18 No repair of a newer ledger
 
