@@ -54,6 +54,31 @@ val compile : Engine.t -> string -> (t, error) result
 val import_count : t -> int
 (** [import_count m] is the number of imports of [m], 0 or more. *)
 
+(** What an import of a module is, with its type. *)
+type import_type =
+  | Function_import of {
+      params : Value_type.t list;
+      results : Value_type.t list;
+    }  (** a function, with its parameter types and its result types *)
+  | Memory_import of { minimum : int; maximum : int option }
+      (** a memory, with the limits of its type in pages of 65,536 bytes *)
+  | Table_import of {
+      element : Value_type.t;
+      minimum : int;
+      maximum : int option;
+    }
+      (** a table, with the type of its elements, [Funcref] or [Externref], and
+          the limits of its type in elements *)
+  | Global_import of { value_type : Value_type.t; mutable_ : bool }
+      (** a global, with its value type and whether it is mutable *)
+
+type import = { module_name : string; name : string; type_ : import_type }
+(** An import: its module name, its name, and its type. *)
+
+val imports : t -> import list
+(** [imports m] is each import of [m], in the order of the import section of
+    [m]. Its length is [import_count m]. *)
+
 val exports : t -> (string * extern) list
 (** [exports m] is each export of [m], its name and what it is, in the order of
     the export section of [m]. No two exports have the same name. *)

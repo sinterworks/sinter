@@ -32,6 +32,9 @@ typedef struct SinterWasmModule sinter_wasm_module;
 /* An instance of a module in a store of its own. */
 typedef struct SinterWasmInstance sinter_wasm_instance;
 
+/* A store of several instances, linked by their imports. */
+typedef struct SinterWasmStore sinter_wasm_store;
+
 /* A byte sequence that the engine owns. Free it with
    sinter_wasm_bytes_free. data is NULL when len is 0. */
 typedef struct sinter_wasm_bytes {
@@ -69,6 +72,19 @@ typedef struct sinter_wasm_limits {
   /* The most elements that the tables of the instance hold together. */
   uint64_t table;
 } sinter_wasm_limits;
+
+/* The value of one import of an instance in a store. kind 0: the
+   export name of the instance instance of the store; kind 1: a new
+   global of type i32, mutable when mutable_ is not 0, with value; kind
+   2: a new function of the type of the import that traps. */
+typedef struct sinter_wasm_import {
+  uint32_t kind;
+  uint64_t instance;
+  const uint8_t *name;
+  size_t name_len;
+  int32_t mutable_;
+  int32_t value;
+} sinter_wasm_import;
 
 /* The result codes of the functions that return int32_t. */
 #define SINTER_WASM_DONE 0   /* the call succeeded */
@@ -156,6 +172,84 @@ int32_t sinter_wasm_instance_write(sinter_wasm_instance *instance,
                                    const uint8_t *name, size_t name_len,
                                    uint64_t address, const uint8_t *data,
                                    size_t len, sinter_wasm_bytes *message);
+
+/* The facts of import index of a module, in the order of its import
+   section: its module name and its name; its kind (0 function, 1
+   memory, 2 table, 3 global); for a function, the codes of its
+   parameter and result types; for a memory or a table, its minimum,
+   and its maximum when *has_maximum is 1; for a table, the code of the
+   type of its elements in *global_type; for a global, the code of its
+   value type, and 1 in *mutable_ when it is mutable. The pointers stay
+   valid while the module lives. Returns SINTER_WASM_DONE, or
+   SINTER_WASM_MISUSE when index is not less than the number of
+   imports. */
+int32_t sinter_wasm_module_import(
+    const sinter_wasm_module *module, size_t index,
+    const uint8_t **module_name, size_t *module_name_len,
+    const uint8_t **name, size_t *name_len, uint32_t *kind,
+    const uint8_t **params, size_t *params_len, const uint8_t **results,
+    size_t *results_len, uint64_t *minimum, uint64_t *maximum,
+    int32_t *has_maximum, uint8_t *global_type, int32_t *mutable_);
+
+/* Make a new store of an engine under limits, with no instance.
+   Returns NULL on an internal fault, with the message in *message. */
+sinter_wasm_store *sinter_wasm_store_new(const sinter_wasm_engine *engine,
+                                         sinter_wasm_limits limits,
+                                         sinter_wasm_bytes *message);
+
+/* Free a store, with its instances. */
+void sinter_wasm_store_free(sinter_wasm_store *store);
+
+/* Make an instance of a module in a store, with the values of imports
+   for its imports, in their order. On SINTER_WASM_DONE, *instance
+   holds the index of the instance in the store. Otherwise *failure
+   holds the failure or the message. */
+int32_t sinter_wasm_store_instantiate(sinter_wasm_store *store,
+                                      const sinter_wasm_module *module,
+                                      const sinter_wasm_import *imports,
+                                      size_t imports_len, uint64_t *instance,
+                                      sinter_wasm_failure *failure);
+
+/* Invoke the function export name of the instance instance of a store,
+   as sinter_wasm_instance_invoke does. */
+int32_t sinter_wasm_store_invoke(sinter_wasm_store *store, uint64_t instance,
+                                 const uint8_t *name, size_t name_len,
+                                 const sinter_wasm_value *arguments,
+                                 size_t arguments_len, uint32_t result_kind,
+                                 sinter_wasm_value *result,
+                                 sinter_wasm_failure *failure);
+
+/* Grow the memory (part 0) or the table (part 1) export name of the
+   instance instance of a store by delta pages or elements. On
+   SINTER_WASM_DONE, *previous holds the size before. Otherwise
+   *failure holds the failure or the message. */
+int32_t sinter_wasm_store_grow(sinter_wasm_store *store, uint64_t instance,
+                               uint32_t part, const uint8_t *name,
+                               size_t name_len, uint64_t delta,
+                               uint64_t *previous,
+                               sinter_wasm_failure *failure);
+
+/* The number of bytes of the memory export name of the instance
+   instance of a store, in *size. */
+int32_t sinter_wasm_store_memory_size(sinter_wasm_store *store,
+                                      uint64_t instance, const uint8_t *name,
+                                      size_t name_len, uint64_t *size,
+                                      sinter_wasm_bytes *message);
+
+/* Copy length bytes from address of the memory export name of the
+   instance instance of a store to out, or, when out is NULL, only check
+   that they lie inside that memory. */
+int32_t sinter_wasm_store_read(sinter_wasm_store *store, uint64_t instance,
+                               const uint8_t *name, size_t name_len,
+                               uint64_t address, uint64_t length, uint8_t *out,
+                               sinter_wasm_bytes *message);
+
+/* Put len bytes into the memory export name of the instance instance of
+   a store from address on. */
+int32_t sinter_wasm_store_write(sinter_wasm_store *store, uint64_t instance,
+                                const uint8_t *name, size_t name_len,
+                                uint64_t address, const uint8_t *data,
+                                size_t len, sinter_wasm_bytes *message);
 
 #ifdef __cplusplus
 }

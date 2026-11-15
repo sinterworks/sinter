@@ -73,6 +73,7 @@ let () =
       ("packs adapters", Test_adapter_protocol.tests);
       ("wasm engine", Test_wasm_engine.tests);
       ("adapters", Test_adapters.tests);
+      ("wasm stores", Test_store.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);

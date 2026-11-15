@@ -20,6 +20,23 @@ external compile_stub : Engine.t -> string -> (t, string) result
 
 external import_count : t -> int = "sinter_wasm_module_import_count_stub"
 
+type import_type =
+  | Function_import of {
+      params : Value_type.t list;
+      results : Value_type.t list;
+    }
+  | Memory_import of { minimum : int; maximum : int option }
+  | Table_import of {
+      element : Value_type.t;
+      minimum : int;
+      maximum : int option;
+    }
+  | Global_import of { value_type : Value_type.t; mutable_ : bool }
+
+type import = { module_name : string; name : string; type_ : import_type }
+
+external imports : t -> import list = "sinter_wasm_module_imports_stub"
+
 external exports : t -> (string * extern) list
   = "sinter_wasm_module_exports_stub"
 

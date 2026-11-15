@@ -59,7 +59,8 @@ pub(crate) struct Limits {
     pub(crate) table: u64,
 }
 
-struct Usage {
+pub(crate) struct Usage {
+    refusal_stops: bool,
     memory_limit: usize,
     table_limit: usize,
     memory_total: usize,
@@ -67,6 +68,39 @@ struct Usage {
     table_total: usize,
     table_growth: usize,
     stopped: Option<u32>,
+}
+
+impl Usage {
+    /// The usage of a new store under `limits`. When `refusal_stops`
+    /// holds, a growth past the maximum of its type stops the code;
+    /// otherwise it gives -1 to the code.
+    pub(crate) fn new(limits: Limits, refusal_stops: bool) -> Usage {
+        Usage {
+            refusal_stops,
+            memory_limit: size(limits.memory),
+            table_limit: size(limits.table),
+            memory_total: 0,
+            memory_growth: 0,
+            table_total: 0,
+            table_growth: 0,
+            stopped: None,
+        }
+    }
+
+    fn refuse(&mut self, code: u32) -> wasmtime::Result<bool> {
+        if self.refusal_stops {
+            self.stopped = Some(code);
+            return Err(wasmtime::Error::msg(
+                "a growth past the maximum of its type",
+            ));
+        }
+        Ok(false)
+    }
+
+    /// Forget the limit at which the last use stopped.
+    pub(crate) fn start_use(&mut self) {
+        self.stopped = None;
+    }
 }
 
 impl ResourceLimiter for Usage {
@@ -77,7 +111,7 @@ impl ResourceLimiter for Usage {
         maximum: Option<usize>,
     ) -> wasmtime::Result<bool> {
         if desired > maximum.unwrap_or(MEMORY_MAXIMUM) {
-            return Ok(false);
+            return self.refuse(FAILURE_MEMORY);
         }
         let growth = desired.saturating_sub(current);
         let total = self.memory_total.saturating_add(growth);
@@ -103,7 +137,7 @@ impl ResourceLimiter for Usage {
         maximum: Option<usize>,
     ) -> wasmtime::Result<bool> {
         if desired > maximum.unwrap_or(TABLE_MAXIMUM) {
-            return Ok(false);
+            return self.refuse(FAILURE_TABLE);
         }
         let growth = desired.saturating_sub(current);
         let total = self.table_total.saturating_add(growth);
@@ -131,16 +165,35 @@ pub(crate) struct Running {
     native_stack: usize,
 }
 
-fn no_thread() -> Failure {
+/// The error of a function of the program that traps when code
+/// invokes it.
+#[derive(Debug)]
+pub(crate) struct HostTrap;
+
+impl std::fmt::Display for HostTrap {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("the code invoked a function that traps")
+    }
+}
+
+impl std::error::Error for HostTrap {}
+
+pub(crate) fn no_thread() -> Failure {
     Failure {
         code: FAILURE_FAULT,
         message: "the engine could not run the code on a thread of its own".to_owned(),
     }
 }
 
-fn failure(store: &Store<Usage>, error: wasmtime::Error) -> Failure {
+pub(crate) fn failure(store: &Store<Usage>, error: wasmtime::Error) -> Failure {
     if let Some(code) = store.data().stopped {
         return Failure::new(code);
+    }
+    if error.downcast_ref::<HostTrap>().is_some() {
+        return Failure {
+            code: FAILURE_TRAP,
+            message: HostTrap.to_string(),
+        };
     }
     match error.downcast_ref::<Trap>() {
         Some(Trap::OutOfFuel) => Failure::new(FAILURE_FUEL),
@@ -197,15 +250,7 @@ impl Running {
         if imports > 0 {
             return Err(Misuse("the module has imports".to_owned()));
         }
-        let usage = Usage {
-            memory_limit: size(limits.memory),
-            table_limit: size(limits.table),
-            memory_total: 0,
-            memory_growth: 0,
-            table_total: 0,
-            table_growth: 0,
-            stopped: None,
-        };
+        let usage = Usage::new(limits, false);
         let mut store = Store::new(module.engine(), usage);
         store.limiter(|usage| usage);
         if let Err(error) = store.set_fuel(limits.fuel) {
@@ -238,52 +283,19 @@ impl Running {
         arguments: &[Val],
         results: &[ValType],
     ) -> Result<Result<Option<Val>, Failure>, Misuse> {
-        self.store.data_mut().stopped = None;
+        self.store.data_mut().start_use();
         let function = self
             .instance
             .get_func(&mut self.store, name)
             .ok_or_else(|| Misuse(format!("the instance exports no function {name}")))?;
-        let function_type = function.ty(&self.store);
-        let params: Vec<ValType> = function_type.params().collect();
-        if params.len() != arguments.len()
-            || !arguments
-                .iter()
-                .zip(&params)
-                .all(|(value, value_type)| same_kind(value, value_type))
-        {
-            return Err(Misuse(format!(
-                "the arguments do not have the parameter types of {name}"
-            )));
-        }
-        let found: Vec<ValType> = function_type.results().collect();
-        if found.len() != results.len()
-            || !found
-                .iter()
-                .zip(results)
-                .all(|(found, wanted)| ValType::eq(found, wanted))
-        {
-            return Err(Misuse(format!(
-                "the result types of {name} are not those that the caller wants"
-            )));
-        }
-        let mut values: Vec<Val> = results
-            .iter()
-            .map(|value_type| match value_type {
-                ValType::I64 => Val::I64(0),
-                _ => Val::I32(0),
-            })
-            .collect();
-        let store = &mut self.store;
-        let called = on_thread(self.native_stack, || {
-            function
-                .call(&mut *store, arguments, &mut values)
-                .map(|()| values)
-        });
-        Ok(match called {
-            None => Err(no_thread()),
-            Some(Ok(mut values)) => Ok(values.pop()),
-            Some(Err(error)) => Err(failure(&self.store, error)),
-        })
+        call(
+            &mut self.store,
+            function,
+            name,
+            arguments,
+            results,
+            self.native_stack,
+        )
     }
 
     fn memory(&mut self, name: &str) -> Result<wasmtime::Memory, Misuse> {
@@ -298,40 +310,120 @@ impl Running {
         Ok(memory.data_size(&self.store) as u64)
     }
 
-    fn range(
-        &mut self,
-        name: &str,
-        address: u64,
-        length: u64,
-    ) -> Result<(wasmtime::Memory, usize, usize), Misuse> {
-        let memory = self.memory(name)?;
-        let size = memory.data_size(&self.store) as u64;
-        match address.checked_add(length) {
-            Some(end) if end <= size => Ok((memory, address as usize, end as usize)),
-            _ => Err(Misuse(format!(
-                "the bytes from {address} to {address} + {length} do not lie inside the memory {name}"
-            ))),
-        }
-    }
-
     /// Check that the `length` bytes from `address` lie inside the
     /// memory export `name`.
     pub(crate) fn check(&mut self, name: &str, address: u64, length: u64) -> Result<(), Misuse> {
-        self.range(name, address, length).map(|_| ())
+        let memory = self.memory(name)?;
+        range(&self.store, memory, name, address, length).map(|_| ())
     }
 
     /// Copy the `out.len()` bytes from `address` of the memory export
     /// `name` into `out`.
     pub(crate) fn read(&mut self, name: &str, address: u64, out: &mut [u8]) -> Result<(), Misuse> {
-        let (memory, start, end) = self.range(name, address, out.len() as u64)?;
-        out.copy_from_slice(&memory.data(&self.store)[start..end]);
-        Ok(())
+        let memory = self.memory(name)?;
+        read(&self.store, memory, name, address, out)
     }
 
     /// Put `bytes` into the memory export `name` from `address` on.
     pub(crate) fn write(&mut self, name: &str, address: u64, bytes: &[u8]) -> Result<(), Misuse> {
-        let (memory, start, end) = self.range(name, address, bytes.len() as u64)?;
-        memory.data_mut(&mut self.store)[start..end].copy_from_slice(bytes);
-        Ok(())
+        let memory = self.memory(name)?;
+        write(&mut self.store, memory, name, address, bytes)
     }
+}
+
+/// Invoke `function`, the export `name`, whose parameter types must be
+/// those of `arguments` and whose result types must be `results`: no
+/// type, or one `i32` or `i64`; on a thread with `native_stack` bytes.
+pub(crate) fn call(
+    store: &mut Store<Usage>,
+    function: wasmtime::Func,
+    name: &str,
+    arguments: &[Val],
+    results: &[ValType],
+    native_stack: usize,
+) -> Result<Result<Option<Val>, Failure>, Misuse> {
+    let function_type = function.ty(&*store);
+    let params: Vec<ValType> = function_type.params().collect();
+    if params.len() != arguments.len()
+        || !arguments
+            .iter()
+            .zip(&params)
+            .all(|(value, value_type)| same_kind(value, value_type))
+    {
+        return Err(Misuse(format!(
+            "the arguments do not have the parameter types of {name}"
+        )));
+    }
+    let found: Vec<ValType> = function_type.results().collect();
+    if found.len() != results.len()
+        || !found
+            .iter()
+            .zip(results)
+            .all(|(found, wanted)| ValType::eq(found, wanted))
+    {
+        return Err(Misuse(format!(
+            "the result types of {name} are not those that the caller wants"
+        )));
+    }
+    let mut values: Vec<Val> = results
+        .iter()
+        .map(|value_type| match value_type {
+            ValType::I64 => Val::I64(0),
+            _ => Val::I32(0),
+        })
+        .collect();
+    let called = on_thread(native_stack, || {
+        function
+            .call(&mut *store, arguments, &mut values)
+            .map(|()| values)
+    });
+    Ok(match called {
+        None => Err(no_thread()),
+        Some(Ok(mut values)) => Ok(values.pop()),
+        Some(Err(error)) => Err(failure(store, error)),
+    })
+}
+
+/// The start and the end of the `length` bytes from `address` of
+/// `memory`, the memory export `name`, when they lie inside it.
+pub(crate) fn range(
+    store: &Store<Usage>,
+    memory: wasmtime::Memory,
+    name: &str,
+    address: u64,
+    length: u64,
+) -> Result<(usize, usize), Misuse> {
+    let size = memory.data_size(store) as u64;
+    match address.checked_add(length) {
+        Some(end) if end <= size => Ok((address as usize, end as usize)),
+        _ => Err(Misuse(format!(
+            "the bytes from {address} to {address} + {length} do not lie inside the memory {name}"
+        ))),
+    }
+}
+
+/// Copy the `out.len()` bytes from `address` of `memory` into `out`.
+pub(crate) fn read(
+    store: &Store<Usage>,
+    memory: wasmtime::Memory,
+    name: &str,
+    address: u64,
+    out: &mut [u8],
+) -> Result<(), Misuse> {
+    let (start, end) = range(store, memory, name, address, out.len() as u64)?;
+    out.copy_from_slice(&memory.data(store)[start..end]);
+    Ok(())
+}
+
+/// Put `bytes` into `memory` from `address` on.
+pub(crate) fn write(
+    store: &mut Store<Usage>,
+    memory: wasmtime::Memory,
+    name: &str,
+    address: u64,
+    bytes: &[u8],
+) -> Result<(), Misuse> {
+    let (start, end) = range(store, memory, name, address, bytes.len() as u64)?;
+    memory.data_mut(store)[start..end].copy_from_slice(bytes);
+    Ok(())
 }

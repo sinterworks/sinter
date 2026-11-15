@@ -64,12 +64,30 @@ pub(crate) struct Export {
     pub(crate) results: Vec<u8>,
 }
 
-/// A compiled module, with the number of its imports and the facts of
-/// its exports, in the order of its export section.
+/// The facts of one import of a module: its module name, its name, its
+/// kind (as the kind of an export), the codes of the parameter and the
+/// result types of a function, the limits of a memory or a table, the
+/// code of the value type of a global or of the elements of a table,
+/// and the mutability of a global.
+pub(crate) struct Import {
+    pub(crate) module: String,
+    pub(crate) name: String,
+    pub(crate) kind: u32,
+    pub(crate) params: Vec<u8>,
+    pub(crate) results: Vec<u8>,
+    pub(crate) minimum: u64,
+    pub(crate) maximum: Option<u64>,
+    pub(crate) global_type: u8,
+    pub(crate) mutable: bool,
+}
+
+/// A compiled module, with the facts of its imports, in the order of
+/// its import section, and of its exports, in the order of its export
+/// section.
 pub(crate) struct Compiled {
     pub(crate) module: Module,
     pub(crate) native_stack: usize,
-    pub(crate) imports: usize,
+    pub(crate) imports: Vec<Import>,
     pub(crate) exports: Vec<Export>,
 }
 
@@ -144,6 +162,71 @@ fn export_facts(module: &Module) -> Result<Vec<Export>, String> {
     Ok(exports)
 }
 
+fn import_facts(module: &Module) -> Result<Vec<Import>, String> {
+    let mut imports = Vec::new();
+    for import in module.imports() {
+        let mut facts = Import {
+            module: import.module().to_owned(),
+            name: import.name().to_owned(),
+            kind: KIND_FUNCTION,
+            params: Vec::new(),
+            results: Vec::new(),
+            minimum: 0,
+            maximum: None,
+            global_type: 0,
+            mutable: false,
+        };
+        let name = import.name();
+        match import.ty() {
+            ExternType::Func(function) => {
+                match (
+                    type_codes(function.params()),
+                    type_codes(function.results()),
+                ) {
+                    (Some(params), Some(results)) => {
+                        facts.params = params;
+                        facts.results = results;
+                    }
+                    _ => {
+                        return Err(format!(
+                            "the import {name} has a type that WebAssembly Core 2.0 does not have"
+                        ));
+                    }
+                }
+            }
+            ExternType::Memory(memory) => {
+                facts.kind = KIND_MEMORY;
+                facts.minimum = memory.minimum();
+                facts.maximum = memory.maximum();
+            }
+            ExternType::Table(table) => {
+                facts.kind = KIND_TABLE;
+                facts.global_type = if table.element().heap_type().is_func() {
+                    5
+                } else {
+                    6
+                };
+                facts.minimum = table.minimum();
+                facts.maximum = table.maximum();
+            }
+            ExternType::Global(global) => {
+                facts.kind = KIND_GLOBAL;
+                facts.global_type = type_code(global.content()).ok_or_else(|| {
+                    format!("the import {name} has a type that WebAssembly Core 2.0 does not have")
+                })?;
+                facts.mutable = global.mutability() == wasmtime::Mutability::Var;
+            }
+            ExternType::Tag(_) => {
+                return Err(format!(
+                    "the import {name} is a tag, which WebAssembly Core 2.0 does not have"
+                ));
+            }
+        }
+        imports.push(facts);
+    }
+    Ok(imports)
+}
+
 /// Compile `bytes` as a module of WebAssembly Core 2.0, on a thread of
 /// its own. The error is the message of the engine.
 pub(crate) fn compile(
@@ -158,7 +241,7 @@ pub(crate) fn compile(
         Err("the engine could not start a thread to compile the module".to_owned())
     })?;
     let exports = export_facts(&module)?;
-    let imports = module.imports().len();
+    let imports = import_facts(&module)?;
     Ok(Compiled {
         module,
         native_stack,
