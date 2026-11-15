@@ -181,7 +181,7 @@ its letters only in the same case.
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
 | [forms of a group](sinter:#group-form-list=v1) | five things that the Conformance section of a design, or the Conformance part of a specification, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names, each with the need that it stands for |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
-| [Conformance part](sinter:#group-form-list=v1), [Conformance section](sinter:#group-form-list=v1) | lines of the text of a design, in their order, given together with a specification or with the design, or none; they give the forms of the groups of that specification or that design |
+| [Conformance part](sinter:#group-form-list=v1), [Conformance section](sinter:#group-form-list=v1) | runs of the text of a design, such as its lines, in their order, given together with a specification or with the design, or none; they give the forms of the groups of that specification or that design |
 | [text of the forms of a group](sinter:#group-form-list=v1) | a text that is given for a group together with the Conformance part of a specification, or the Conformance section of a design; a version gives one for each of its groups |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
@@ -3024,7 +3024,7 @@ the revision of a test-vector set is the revision of its set line.
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
-        byte-sequence=v1, line=v1, code-span=v1,
+        byte-sequence=v1, line=v1, run=v1, code-span=v1,
     },
     #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
@@ -3088,8 +3088,8 @@ need names of S, and with a conforming program of D in place of a
 conforming program of S.
 
 The Conformance part of S is given together with S, and the Conformance
-section of D together with D: each is lines of the design, in their
-order, or none. When none is given, S has no Conformance part,
+section of D together with D: each is runs of the text of the design,
+such as its lines, in their order, or none. When none is given, S has no Conformance part,
 or D has no Conformance section, and no group has forms of S, or of D.
 The text of the forms of g of S, or of D, is a text that is given for g
 together with the Conformance part of S, or the Conformance section of
