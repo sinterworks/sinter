@@ -717,11 +717,12 @@ no kind word, that it takes. The slug goes before an entry name that
 starts with `#`, so `#notation=v1` with the slug `docs` gives the name
 `docs#notation`. With no slug, such a name stays as it is, so the
 canonical form of `#notation=v1` with no slug and the kind word `req` is
-`req:#notation`, which is not a canonical identifier. The kind word of the canonical form is the kind word
-that the program takes, and not the kind word of the citation entry. The
-canonical form holds no revision. It keeps the vector selection of the
-citation entry, and the canonical form of an every-part target ends with
-`#*`. Under a binding with the external namespace `gh`:
+`req:#notation`, which is not a canonical identifier. The kind word of
+the canonical form is the kind word that the program takes, and not the
+kind word of the citation entry. The canonical form holds no revision.
+It keeps the vector selection of the citation entry, and the canonical
+form of an every-part target ends with `#*`. Under a binding with the
+external namespace `gh`:
 
 | citation entry | slug | kind word | canonical form |
 |---|---|---|---|
@@ -2556,7 +2557,8 @@ word for each of its citation entries or for its target. Its vectors
 follow from the requirement `give-canonical-entries`. Each vector gives
 a text and the canonical form of each citation entry of the citation of
 the text, or of the target of the inline citation of the text. Below,
-the citation entries of an inline citation are its target alone.
+the targets of a vector are, for a citation, its citation entries, in
+their order, and, for an inline citation, its target.
 
 - `input`: a JSON object with these members. `binding` and `text` are
   the binding and the text, as described above. Either the first line of
@@ -2565,20 +2567,19 @@ the citation entries of an inline citation are its target alone.
   no image; or no line of the text is a tag line, and the markdown
   document of the text holds one link and no image, and that link is an
   inline citation. `slug` is the slug, a text, only when there is a
-  slug. `entries` is a JSON array with one element for each citation
-  entry, in the order of the citation entries. Each element is a JSON
-  object with the member `kind-word`, the kind word for that citation
-  entry, as a text, when there is one, and with no member when there is
-  no kind word.
+  slug. `entries` is a JSON array with one element for each target of the
+  vector, in their order. Each element is a JSON object with the member
+  `kind-word`, the kind word for that target, as a text, when there is
+  one, and with no member when there is no kind word.
 - `result`: no vector of the group has this member. A conforming program
   gives the result "valid" for the citation or the inline citation, and
   the vectors do not state this result or its values.
 - `values`: a JSON object with one member, `forms`: a JSON array with one
-  element for each citation entry, in the order of the citation entries:
-  its canonical form, as a text.
+  element for each target of the vector, in their order: its canonical
+  form, as a text.
 
-When a conforming program gives the canonical form of the k-th citation
-entry, together with the slug of the input, or no slug
+When a conforming program gives the canonical form of the k-th target
+of the vector, together with the slug of the input, or no slug
 when the input has no member `slug`, and with the kind word of the k-th
 element of `entries`, or no kind word when that element has no member,
 it gives the k-th element of `forms`.
