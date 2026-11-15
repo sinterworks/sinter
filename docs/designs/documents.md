@@ -153,7 +153,7 @@ the conformance vectors of the design is a JSON text.
 | [Conformance part](sinter:#conformance-part=v1) | the markdown lines of the Conformance section of a design, or of the Conformance part of a specification: the last section inside its section whose level is one more than the level of its heading; a design has none when the first paragraph of that section declares a specification that belongs to it, and an item whose declaration is in a list item, in the section of level 0, or in a code file has none |
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
-| [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree |
+| [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree, for a home design |
 | [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
 | [selected item](sinter:#selected-item=v1) | the conformance vector, the group of conformance vectors, or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of the item |
@@ -1538,14 +1538,15 @@ conformance vectors, or a vector set.
     #{accepted-input=v1, name-set=v1, home-design=v1, slug-design=v1},
 }
 
-In a tree, for a home design h, which is an item of the kind design or
-the empty text, each of these texts names one item or nothing: the entry
-name of a citation entry of an accepted citation, and the text that
-`name` or `external-ref` matches in the match of an input that is the
-destination of an inline citation, whether or not that inline citation
-is an accepted input. The home design h only gives the set in which rule
-4 looks; it is no fact about the item that the text names. For h, such a
-text names the item that the first of these rules that applies gives:
+In a tree, for a home design h, which is an item of the kind design of
+the tree, or the empty text for no home design, each of these texts
+names one item or nothing: the entry name of a citation entry of an
+accepted citation, and the text that `name` or `external-ref` matches in
+the match of an input that is the destination of an inline citation,
+whether or not that inline citation is an accepted input. The home
+design h only gives the set in which rule 4 looks; it is no fact about
+the item that the text names. For h, such a text names the item that the
+first of these rules that applies gives:
 
 1. When the match of the citation entry, or of the destination, uses
    `external-ref`: the text is an external id, with its `#` and part
@@ -1565,9 +1566,9 @@ text names the item that the first of these rules that applies gives:
 The entry name of a citation entry of an accepted citation, and that
 text of an accepted inline citation, name what they name for the home
 design of that citation or inline citation, or for the empty text when
-it has none. A name that two or more items of the set in which a rule looks for it
-have names none of them, and a name that no item of that set has names
-nothing. Two names are the same name only when they are the same text.
+it has none. A name that two or more items of the set in which a rule
+looks for it have names none of them, and a name that no item of that
+set has names nothing. Two names are the same name only when they are the same text.
 
 ### 4.36 Vector files
 
