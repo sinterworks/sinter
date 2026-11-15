@@ -3088,8 +3088,8 @@ need names of S, and with a conforming program of D in place of a
 conforming program of S.
 
 The Conformance part of S is given together with S, and the Conformance
-section of D together with D: each is lines of the text of the design,
-in their order, or none. When none is given, S has no Conformance part,
+section of D together with D: each is lines of the design, in their
+order, or none. When none is given, S has no Conformance part,
 or D has no Conformance section, and no group has forms of S, or of D.
 The text of the forms of g of S, or of D, is a text that is given for g
 together with the Conformance part of S, or the Conformance section of
