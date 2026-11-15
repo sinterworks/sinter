@@ -2556,9 +2556,7 @@ citations, each with a slug or no slug, and with a kind word or no kind
 word for each of its citation entries or for its target. Its vectors
 follow from the requirement `give-canonical-entries`. Each vector gives
 a text and the canonical form of each citation entry of the citation of
-the text, or of the target of the inline citation of the text. Below,
-the targets of a vector are, for a citation, its citation entries, in
-their order, and, for an inline citation, its target.
+the text, or of the target of the inline citation of the text.
 
 - `input`: a JSON object with these members. `binding` and `text` are
   the binding and the text, as described above. Either the first line of
@@ -2567,22 +2565,26 @@ their order, and, for an inline citation, its target.
   no image; or no line of the text is a tag line, and the markdown
   document of the text holds one link and no image, and that link is an
   inline citation. `slug` is the slug, a text, only when there is a
-  slug. `entries` is a JSON array with one element for each target of the
-  vector, in their order. Each element is a JSON object with the member
-  `kind-word`, the kind word for that target, as a text, when there is
-  one, and with no member when there is no kind word.
+  slug. `entries` is a JSON array with one element for each citation
+  entry of the citation, in their order, or with one element for the
+  target of the inline citation. Each element is a JSON object with the
+  member `kind-word`, the kind word for that citation entry or target,
+  as a text, when there is one, and with no member when there is no
+  kind word.
 - `result`: no vector of the group has this member. A conforming program
   gives the result "valid" for the citation or the inline citation, and
   the vectors do not state this result or its values.
 - `values`: a JSON object with one member, `forms`: a JSON array with one
-  element for each target of the vector, in their order: its canonical
+  element for each citation entry of the citation, in their order, or
+  with one element for the target of the inline citation: its canonical
   form, as a text.
 
-When a conforming program gives the canonical form of the k-th target
-of the vector, together with the slug of the input, or no slug
-when the input has no member `slug`, and with the kind word of the k-th
-element of `entries`, or no kind word when that element has no member,
-it gives the k-th element of `forms`.
+When a conforming program gives the canonical form of the k-th
+citation entry of the citation, or of the target of the inline
+citation, together with the slug of the input, or no slug when the
+input has no member `slug`, and with the kind word of the k-th element
+of `entries`, or no kind word when that element has no member, it gives
+the k-th element of `forms`.
 
 ```
 {"group":"canonical-entries","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"entries":[{"kind-word":"req"},{"kind-word":"spec"}],"text":"@cites packs#{size=v1, descriptor=v2}"},"n":515,"note":"each part of a scoped list gives the canonical form of the single target for which it stands","rev":"v1","values":{"forms":["req:packs#size","spec:packs#descriptor"]}}
