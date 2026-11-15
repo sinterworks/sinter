@@ -468,10 +468,10 @@ each with a line feed after it. Its extent hash is
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
-prose of each [cluster](sinter:#written-line=v1) is read alone, so there
-this holds when each tag line stays a tag line at the start of its own
-line and the prose of each cluster, read alone, gives the same blocks
-and inline elements.
+prose of each [cluster](sinter:#written-line=v1) is read apart from the
+prose of the other clusters, so there this holds when each tag line
+stays a tag line at the start of its own line and the prose of each
+cluster gives the same blocks and inline elements.
 
 The tag lines of a cluster are written from what they name, not from
 their layout. Each citation entry gives one line with its
@@ -2483,11 +2483,10 @@ The task marker of the line is then the text of that longest run
 without the spaces and tabs at its end. The written task marker of the
 line is its task marker with each `X` replaced by `x`.
 
-The margin of a sequence r of texts is the empty text when
-the first text of r has no character other than a space or a tab, or
-when no text of r has one. Otherwise, it is the longest text of only
-spaces and tabs with which each text of r that has a character other
-than a space or a tab starts.
+The margin of a sequence r of texts is the empty text when no text of r
+has a character other than a space or a tab. Otherwise, it is the
+longest text of only spaces and tabs with which each text of r that has
+a character other than a space or a tab starts.
 
 The empty set of texts is the set that holds no text.
 
@@ -2600,13 +2599,16 @@ sequence that these steps give.
 The clusters of a tag text t in a set e of file lines are sequences of
 lines. Let L be the sequence of the lines of t that are in e and that
 are neither `@ack` lines nor continuation lines, in their order. L is
-cut right before each tag line of L that comes right after a line of L
-that is not a tag line, and right before each declaration of a declared
+cut right before each tag line of L whose element right before it in L
+is not a tag line, and right before each declaration of a declared
 item when the lines of L from the last cut before it, or from the first
 line of L when there is no such cut, hold another declaration of a
 declared item. The clusters of t in e are the sequences of the lines of
 L from the first line of L or a cut to the next cut or the last line of
 L, in their order.
+
+A tag line of a tag text is accepted when the input of the tree that is
+that line, together with its continuation lines, is an accepted input.
 
 The written tag lines of a tag text *t* at depth *k* for a declared item
 *d* in a set *e* of file lines is the sequence that these steps give.
@@ -2615,16 +2617,24 @@ The written tag lines of a tag text *t* at depth *k* for a declared item
 2. For each *c* of the clusters of *t* in *e*, in order:
    1. Let *tags* be the empty sequence.
    2. Let *notes* be the empty sequence.
-   3. For each *l* of *c*, in order:
+   3. Let *shared* be the empty text.
+   4. If the file of *d* is a code file, set *shared* to the margin of
+      the sequence of the
+      prose texts of the lines of *c*, in their order.
+   5. For each *l* of *c*, in order:
       1. If *l* is a tag line, then:
          1. Append *l* to *tags*.
-         2. If *l* is an accepted input that is a declaration, a
-            citation, a status tag, or an `@extern` line, and the inline
-            description of *l* is not empty, append the inline
-            description of *l* to *notes*.
-      2. Otherwise, append the
-         prose text of *l* to *notes*.
-   4. For each *w* of the written cluster of *tags* and *notes* for *t* at
+         2. If *l* is accepted, *l* is a declaration, a citation, a
+            status tag, or an `@extern` line, and the inline description
+            of *l* is not empty, append the inline description of *l* to
+            *notes*.
+      2. Otherwise:
+         1. Let *y* be the
+            prose text of *l*.
+         2. If *y* has a character other than a space or a tab, remove the
+            first characters of *y*, as many as *shared* has, from *y*.
+         3. Append *y* to *notes*.
+   6. For each *w* of the written cluster of *tags* and *notes* for *t* at
       depth *k*, *d*, and *e*, in order:
       1. Append *w* to *lines*.
 3. Give *lines*.
@@ -2646,7 +2656,7 @@ texts for a tag text *t* at depth *k*, a declared item *d*, and a set
    which the term `sinter-tag-word` lists them, in order:
    1. Let *forms* be the empty sequence.
    2. For each *l* of *p*, in order:
-      1. If *l* is an accepted input, the tag word of *l* is *w*, and *l*
+      1. If *l* is accepted, the tag word of *l* is *w*, and *l*
          is not the declaration of *d*, then:
          1. If *l* is a declaration, append the canonical identifier of
             the declared item whose declaration is *l* to *forms*.
@@ -2668,9 +2678,9 @@ texts for a tag text *t* at depth *k*, a declared item *d*, and a set
          2. Append *x* to *line*.
       5. Append *line* to *lines*.
 5. For each *l* of *p*, in order:
-   1. If *l* is not an accepted input, then:
+   1. If *l* is not accepted, then:
       1. Let *flat* be the empty text.
-      2. For each *c* of the text of *l*, in order:
+      2. For each *c* of the text of the tag line *l*, in order:
          1. If *c* is a line feed, append a space to *flat*.
          2. Otherwise, append *c* to *flat*.
       3. Set *flat* to the single-spaced text of *flat*.
@@ -2680,28 +2690,23 @@ texts for a tag text *t* at depth *k*, a declared item *d*, and a set
       6. Append `tag: ` to *line*.
       7. Append *flat* to *line*.
       8. Append *line* to *lines*.
-6. For each *w* of the written prose of *r* for *t* at depth *k*, *d*, and
-   *e*, in order:
+6. For each *w* of the written prose of *r* after *p* for *t* at depth
+   *k*, *d*, and *e*, in order:
    1. Append *w* to *lines*.
 7. Give *lines*.
 
-The written prose of a sequence *r* of texts for a tag text *t* at depth
-*k*, a declared item *d*, and a set *e* of file lines is the sequence
-that these steps give.
+The written prose of a sequence *r* of texts after a sequence *p* of tag
+lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
+*e* of file lines, is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
-2. Let *shared* be the empty text.
-3. If the file of *d* is a code file, set *shared* to the margin of *r*.
-4. Let *raw* be the empty text.
-5. Let *gap* be the empty text.
-6. For each *x* of *r*, in order:
+2. Let *raw* be the empty text.
+3. Let *gap* be the empty text.
+4. For each *note* of *r*, in order:
    1. Append *gap* to *raw*.
-   2. Let *y* be *x*.
-   3. If *y* has a character other than a space or a tab, remove the
-      first characters of *y*, as many as *shared* has, from *y*.
-   4. Append *y* to *raw*.
-   5. Set *gap* to a line feed.
-7. If the file of *d* is a markdown file, then:
+   2. Append *note* to *raw*.
+   3. Set *gap* to a line feed.
+5. If the file of *d* is a markdown file, then:
    1. Remove the spaces and tabs at the start and at the end of *raw*
       from *raw*.
    2. If *raw* is not empty, then:
@@ -2713,16 +2718,37 @@ that these steps give.
          definitions of the markdown document of the file of *d*.
       4. Append the written text of *inner* for *d* to *line*.
       5. Append *line* to *lines*.
-8. If the file of *d* is a code file, then:
-   1. For each *b* of the blocks of the markdown document of *raw* that
-      no other block contains, as CommonMark 0.31.2 parses that document,
-      where a link label that matches the link label of a link reference
-      definition of the markdown document of *t* takes the first such
-      definition of that document, in order:
-      1. For each *w* of the written lines of *b* at depth *k* for *d*,
-         in *e* and without the empty set of texts, in order:
-         1. Append *w* to *lines*.
-9. Give *lines*.
+6. If the file of *d* is a code file, then:
+   1. Let *doc* be the empty text.
+   2. If *p* is not empty, then:
+      1. Append `x` to *doc*.
+      2. Append a line feed to *doc*.
+   3. Append *raw* to *doc*.
+   4. For each *b* of the blocks of the markdown document of *doc* that
+      no other block contains, as CommonMark 0.31.2 parses that document
+      with the link reference definitions of the markdown document of *t*
+      before its own, so that a link label takes the first of these
+      definitions whose link label it matches, in order:
+      1. If *p* is not empty and *b* takes the first line of *doc*, then:
+         1. Let *rest* be the raw content of *b*.
+         2. Remove the first character of *rest* from *rest*.
+         3. Remove the line feeds, spaces, and tabs at the start and at the
+            end of *rest* from *rest*.
+         4. If *rest* is not empty, then:
+            1. Let *line* be the indent of *k*.
+            2. Append `paragraph: ` to *line*.
+            3. Let *inner* be the inline elements that CommonMark 0.31.2
+               gives when it parses *rest* as the raw content of a
+               paragraph, with the link reference definitions of the
+               markdown document of *t* before those of the markdown
+               document of *doc*.
+            4. Append the written text of *inner* for *d* to *line*.
+            5. Append *line* to *lines*.
+      2. Otherwise:
+         1. For each *w* of the written lines of *b* at depth *k* for *d*,
+            in *e* and without the empty set of texts, in order:
+            1. Append *w* to *lines*.
+7. Give *lines*.
 
 ### 4.65 Forms texts
 
