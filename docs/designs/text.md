@@ -1153,7 +1153,10 @@ The steps:
     *s* stands for a byte sequence and V is a byte sequence, *s* then
     stands for the sequence that appending each element of V to *s*, in
     their order, gives. Otherwise, *s* then stands for the sequence that
-    appending V to *s* gives.
+    appending V to *s* gives. When the last Let, Set, Append, or Remove
+    step for *s* is a Let step or a Set step whose V is the words
+    `the empty sequence`, *s* stands for no text and no byte sequence in
+    this rule.
   - `Remove V from *s*.`, where V names some elements of the sequence
     for which *s* stands: *s* then stands for the sequence that removing
     these elements gives.
