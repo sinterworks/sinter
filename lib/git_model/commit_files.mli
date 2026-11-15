@@ -51,5 +51,7 @@ val file : 'blob entry list -> Sinter_paths.Path.t -> 'blob option
 (** [file entries path] is the file with the valid path [path] of the tree of a
     commit whose git tree object lists [entries]: [Some blob], the blob of its
     content, when {!files} of [entries] holds a file with the valid path [path],
-    and [None] when that tree has no file with the valid path [path]. The stack
-    space does not grow with the depth of the entries. *)
+    and [None] when that tree has no file with the valid path [path]. The time
+    is linear in the number of the entries, the total length of their names, and
+    the length of [path], and the stack space does not grow with the depth of
+    the entries. *)

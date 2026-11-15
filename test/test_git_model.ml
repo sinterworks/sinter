@@ -670,6 +670,22 @@ let deep_entries () =
         (List.length (Path.file_names path))
   | _ -> Alcotest.fail "not one file"
 
+let a_chain_of_trees depth =
+  let rec build k acc =
+    if k = 0 then acc
+    else build (k - 1) [ Commit_files.Tree { name = "d"; entries = acc } ]
+  in
+  let entries =
+    build depth [ Commit_files.Regular_file { name = "f"; blob = () } ]
+  in
+  ( entries,
+    path_of (String.concat "/" (List.init depth (Fun.const "d") @ [ "f" ])) )
+
+let file_grows_in_proportion_to_the_depth_of_the_path () =
+  Counted_work.check_growth ~margin:1.5 ~sizes:(2_000, 8_000)
+    ~input:a_chain_of_trees (fun (entries, path) ->
+      Commit_files.file entries path)
+
 let a_deep_chain_of_names_that_are_not_utf_8 () =
   let depth = 200_000 in
   let rec build k acc =
@@ -805,6 +821,9 @@ let tests =
       file_agrees_with_files;
       Alcotest.test_case "entries nested 20,000 deep on a stack of 256 KiB"
         `Quick deep_entries;
+      Alcotest.test_case
+        "the lookup of a file grows in proportion to the depth of its path"
+        `Quick file_grows_in_proportion_to_the_depth_of_the_path;
       change_diffs_follow_the_term;
       Alcotest.test_case
         "a chain of 200,000 tree entries with names that are not UTF-8 gives \

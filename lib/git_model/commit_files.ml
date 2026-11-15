@@ -111,12 +111,12 @@ let files entries =
       else None)
     !regular
 
-let after ~prefix bytes =
-  if String.starts_with ~prefix bytes then
-    Some
-      (String.sub bytes (String.length prefix)
-         (String.length bytes - String.length prefix))
-  else None
+let rec same_bytes bytes at name k =
+  k >= String.length name
+  || (Char.equal bytes.[at + k] name.[k] && same_bytes bytes at name (k + 1))
+
+let name_at bytes at name =
+  at + String.length name <= String.length bytes && same_bytes bytes at name 0
 
 (* @satisfies changes#give-commit-file-at-path=v1
    The entries whose byte path is the UTF-8 encoding of the valid path are
@@ -125,21 +125,23 @@ let after ~prefix bytes =
    when exactly one entry has that byte path and it is a regular-file entry,
    and the file then has the blob of that entry. *)
 let file entries path =
+  let bytes = Text.encode (Path.to_text path) in
   let found = ref [] in
   let pending = Stack.create () in
-  Stack.push (entries, Text.encode (Path.to_text path)) pending;
+  Stack.push (entries, 0) pending;
   while not (Stack.is_empty pending) do
-    let listed, rest = Stack.pop pending in
+    let listed, at = Stack.pop pending in
     List.iter
       (fun entry ->
-        if String.equal (name_of entry) rest then found := entry :: !found
-        else
-          match entry with
-          | Tree { name; entries } ->
-              Option.iter
-                (fun rest -> Stack.push (entries, rest) pending)
-                (after ~prefix:(name ^ "/") rest)
-          | Regular_file _ | Other _ -> ())
+        let name = name_of entry in
+        if name_at bytes at name then
+          let after = at + String.length name in
+          if after = String.length bytes then found := entry :: !found
+          else
+            match entry with
+            | Tree { entries; _ } when Char.equal bytes.[after] '/' ->
+                Stack.push (entries, after + 1) pending
+            | Tree _ | Regular_file _ | Other _ -> ())
       listed
   done;
   match !found with [ Regular_file { blob; _ } ] -> Some blob | _ -> None
