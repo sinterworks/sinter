@@ -101,7 +101,7 @@ text.
 | [extend](sinter:#ledger-extension=v1) | a commit extends a commit c when it is c, or when the chain of its single parents leads to c and each commit of the chain before c holds each line of its parent |
 | [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the address of that remote from which a fetch from that remote takes git objects, such as the git repository on the host of a project, or, in a push of ledger entries, each git repository at an address of that remote for a push; the stored ledger of the shared clone from which a fetch takes git objects |
+| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the address of that remote from which a fetch from that remote takes git objects, such as the git repository on the host of a project; in a push of ledger entries, each git repository at an address of that remote for a push instead; the shared ledger is the stored ledger of the shared clone from which a fetch takes git objects |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
 | [pull of ledger entries](sinter:ontology#ledger=v1), [push of ledger entries](sinter:ontology#ledger=v1) | a pull of ledger entries is a write that a clone makes to its own ledger: it takes the ledger entries, voids included, of another clone and puts them first; a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
@@ -629,8 +629,9 @@ the page git-config gives it. In a push of ledger entries, the shared
 clone is instead each git repository at an address of the remote r for a
 push, as the term `changes#remote-transfer` gives these addresses. A git
 repository whose git configuration gives no such address has no shared
-clone. The shared ledger of a git repository is the stored ledger of its
-shared clone.
+clone. The shared ledger of a git repository is the stored ledger of the
+git repository at the address of its remote r from which a fetch from
+that remote takes git objects.
 
 ### 4.14 Accounted lines
 
