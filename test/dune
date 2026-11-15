@@ -12,6 +12,7 @@
   %{exe:../bench/run.exe}
   wait_probe/wait_probe.exe
   (glob_files_rec fixtures/*)
+  %{workspace_root}/lib/markdown/tree-sitter-markdown.wasm
   (glob_files ../spec/*.md)
   (glob_files ../docs/designs/*.test-vectors.jsonl)
   (glob_files ../lib/repository_files/*)
@@ -69,6 +70,7 @@
   sinter_wasm_engine
   sinter_adapters
   sinter_ecma_pattern
+  sinter_grammars
   digestif.c
   decompress.de
   decompress.zl

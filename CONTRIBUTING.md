@@ -148,9 +148,16 @@ compiler that `sinter.opam.locked` pins, 5.5.2, for example with
 compiler. The parser bridge in `bridge/` is a Rust crate, so also
 install the Rust toolchain with [rustup](https://rustup.rs) and
 install `cmake`, which a build script of wasmtime runs. The build
-reads the C sources of QuickJS from the git submodule under
-`third_party/`: run `git submodule update --init` once in each clone.
-Then, from the repository root:
+reads the C sources of tree-sitter and QuickJS from the git
+submodules under `third_party/`: run `git submodule update --init`
+once in each clone. The build compiles the core of the grammars (the
+WebAssembly module that holds tree-sitter's C library) from
+`lib/grammars/core/` with a `clang` that has the WebAssembly back end
+(the target `wasm32`). The build takes the compiler from the variable
+`SINTER_WASM_CC`, or `clang` when it is not set. The `clang` of Xcode
+can lack that back end; on macOS, install LLVM's clang with
+`brew install llvm`, and set `SINTER_WASM_CC` to
+`$(brew --prefix llvm)/bin/clang`. Then, from the repository root:
 
 ```
 git submodule update --init

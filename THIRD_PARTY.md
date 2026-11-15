@@ -27,7 +27,9 @@ and the project does not pin yet.
 | checkseum (a dependency of decompress) | MIT | https://github.com/mirage/checkseum |
 | optint (a dependency of decompress) | ISC | https://github.com/mirage/optint |
 | wasmtime | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
-| tree-sitter runtime | MIT | https://github.com/tree-sitter/tree-sitter |
+| tree-sitter runtime, the Rust crate of the parser bridge | MIT | https://github.com/tree-sitter/tree-sitter |
+| tree-sitter C library, release v0.27.2, compiled to WebAssembly into the binary from the submodule `third_party/tree-sitter` | MIT | https://github.com/tree-sitter/tree-sitter |
+| musl, the string and character functions that tree-sitter's `lib/src/wasm-stdlib/libc/` copies from wasi-libc, with their license in that directory, compiled with the tree-sitter C library | MIT | https://musl.libc.org/ |
 | QuickJS, its files `libregexp.c`, `libunicode.c`, and `cutils.c` with their headers, at commit e585640f, compiled into the binary from the submodule `third_party/quickjs` | MIT | https://github.com/bellard/quickjs |
 | Unicode Character Database 17.0.0, the version that QuickJS's `unicode_download.sh` names, as the tables that QuickJS generated from it into `libunicode-table.h` | Unicode-3.0 | https://www.unicode.org/license.txt |
 | tree-sitter-markdown block grammar, release v0.5.4, embedded in the binary; the file and its license are in `lib/markdown/` | MIT | https://github.com/tree-sitter-grammars/tree-sitter-markdown |

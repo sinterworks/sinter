@@ -75,6 +75,9 @@ let () =
       ("adapters", Test_adapters.tests);
       ("wasm stores", Test_store.tests);
       ("ecma patterns", Test_ecma_pattern.tests);
+      ("grammar dylink", Test_dylink.tests);
+      ("grammar parse trees", Test_parse_tree.tests);
+      ("grammar engine", Test_grammars.tests);
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);

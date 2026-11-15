@@ -22,14 +22,20 @@ directory specifies the formats that other tools can implement.
 ## Build
 
 We write Sinter in OCaml, and its parser bridge in Rust. The build
-reads the C sources of QuickJS from a git submodule, so clone the
-repository with `git clone --recurse-submodules`, or run
+reads the C sources of tree-sitter and QuickJS from git submodules,
+so clone the repository with `git clone --recurse-submodules`, or run
 `git submodule update --init` in a clone. To build it, install
 [opam](https://opam.ocaml.org/), the Rust toolchain from
-[rustup](https://rustup.rs), and `cmake`, which a build script of
-wasmtime runs. Create an opam switch with the compiler that
-`sinter.opam.locked` pins, 5.5.2; the install below fails on any other
-compiler. Then, from the repository root:
+[rustup](https://rustup.rs), `cmake`, which a build script of
+wasmtime runs, and a `clang` with the WebAssembly back end. The build
+uses that `clang` to compile the core of the grammars: the
+WebAssembly module that holds tree-sitter's C library, which Sinter
+builds from `lib/grammars/core/`. The `clang` of Xcode can lack that
+back end; on macOS, install LLVM's clang with `brew install llvm`,
+and set `SINTER_WASM_CC` to the path of that `clang`. Create an opam
+switch with the compiler that `sinter.opam.locked` pins, 5.5.2; the
+install below fails on any other compiler. Then, from the repository
+root:
 
 ```
 git submodule update --init

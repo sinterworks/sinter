@@ -102,6 +102,14 @@ jobs:
           echo "one: $one"
           echo "two: $two"
           test "$one" != "$two"
+      - name: Install clang, which builds the core of the grammars
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang
+      - name: Install LLVM's clang, which builds the core of the grammars
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+          echo "SINTER_WASM_CC=$(brew --prefix llvm)/bin/clang" >>"$GITHUB_ENV"
       - name: Build
         id: build
         run: dune build
@@ -334,6 +342,9 @@ jobs:
           echo "$prefix/bin" >>"$GITHUB_PATH"
           echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
           echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
+      - name: Install clang, which builds the core of the grammars
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang
       - name: Run the tests with the code instrumented
         env:
           QCHECK_SEED: "1"
@@ -471,6 +482,9 @@ jobs:
           echo "$prefix/bin" >>"$GITHUB_PATH"
           echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
           echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
+      - name: Install clang, which builds the core of the grammars
+        if: steps.scope.outputs.mode != 'none' && runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang
       - name: Make the mutants
         if: steps.scope.outputs.mode != 'none'
         env:
@@ -569,6 +583,9 @@ jobs:
           echo "$prefix/bin" >>"$GITHUB_PATH"
           echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
           echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
+      - name: Install clang, which builds the core of the grammars
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang
       - name: Build the tests with the code instrumented
         env:
           MUTAML_MUT_RATE: "100"
@@ -910,6 +927,9 @@ jobs:
           if [ "$paranoid" -gt 2 ]; then
             sudo sysctl -w kernel.perf_event_paranoid=2
           fi
+      - name: Install clang, which builds the core of the grammars
+        if: steps.scope.outputs.measure == 'true' && runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang
       - name: Build
         if: steps.scope.outputs.measure == 'true'
         run: dune build bin/main.exe bench/run.exe bench/generate.exe
