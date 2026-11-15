@@ -33,27 +33,28 @@ findings, finding classes, and parameters. From Documents (`documents`),
 it takes the declared items of a tree and their files, the origins of
 the runs of the text of a file, the origin positions of citation entries
 and inline citations, extent hashes as the measure of revised content,
-sets of names, the scopes of items, file lines, vector files, the edges
-of a tree, position subjects, the spots of runs, tree findings, and
-bindings of the parameter `file-readers` with their readers. From
-Changes (`changes`), it takes commits, the change of a commit, the base
-of the change of a commit under a binding of the parameter
-`default-branch-name`, and undisturbed repository reads. From Data forms
-(`data-forms`), it takes test-vector revisions and the order "higher" on
-them, vector lines, group lines, set lines, test-vector sets, the text
-of the forms of a group, versions, the rules of version sequences,
-canonical byte sequences, and hex texts. From Findings (`findings`), it
-takes the subjects, spots, messages, marks, related messages, and fixes
-of findings, and ackable findings. From Identifiers (`identifiers`), it
-takes declarations, their targets, the production `label`, the texts of
-tag lines, citation entries, inline citations, slugs, bindings of the
-parameter `external-namespaces` with their namespace names and id
-patterns, and the result "valid" of such a binding. From Files and paths
-(`files`), it takes valid paths and path sets. From Text and notation
-(`text`), it takes texts, line feeds, lines, spans, bytes, 0x numerals,
-code spans, UTF-8 encodings, decimal numerals, and what a conforming
-program and a result are. From RFC 8259, it takes JSON texts: each line
-of the file that holds the conformance vectors of the design is one.
+sets of names, the Conformance parts of items and their forms texts,
+vector files, the edges of a tree, position subjects, the spots of runs,
+tree findings, bindings of the parameter `file-readers` with their
+readers, and sets of stopped files. From Changes (`changes`), it takes
+commits, the change of a commit, the base of the change of a commit
+under a binding of the parameter `default-branch-name`, and undisturbed
+repository reads. From Data forms (`data-forms`), it takes test-vector
+revisions and the order "higher" on them, vector lines, group lines, set
+lines, test-vector sets, the text of the forms of a group, versions, the
+rules of version sequences, canonical byte sequences, and hex texts.
+From Findings (`findings`), it takes the subjects, spots, messages,
+marks, related messages, and fixes of findings, and ackable findings.
+From Identifiers (`identifiers`), it takes declarations, the production
+`label`, the texts of tag lines, citation entries, inline citations,
+slugs, bindings of the parameter `external-namespaces` with their
+namespace names and id patterns, and the result "valid" of such a
+binding. From Files and paths (`files`), it takes valid paths and path
+sets. From Text and notation (`text`), it takes texts, lines, spans,
+bytes, 0x numerals, code spans, UTF-8 encodings, decimal numerals, and
+what a conforming program and a result are. From RFC 8259, it takes JSON
+texts: each line of the file that holds the conformance vectors of the
+design is one.
 
 ## 1. Glossary
 
@@ -64,12 +65,13 @@ of the file that holds the conformance vectors of the design is one.
 | [label](sinter:ontology#revised-content=v1) | for a declared item, the text that `label` of Identifiers matches in its declaration, such as `v2` in `@req size=v2`; for a conformance vector, a group of conformance vectors, or a vector set, the revision of its vector line, of the group line of its name, or of the set line |
 | [current revision](sinter:ontology#item-revision=v1) | the label that an item has in a tree; a term with no label has no current revision |
 | [revised content](sinter:ontology#revised-content=v1) | the part of an item that its label covers, or would cover for a term with no label |
-| [extent hash](sinter:documents#extent-hash=v1) | the hash of the hash text that Documents gives for a declared item from its revised content; two revised contents of the same declared item are the same when, and only when, their extent hashes are equal |
+| [extent hash](sinter:documents#extent-hash=v1) | the hash of the hash text that Documents gives for a declared item from its revised content; two revised contents of the same declared item, in two trees under one binding of each parameter, are the same when, and only when, the extent hashes of that item in the two trees are equal |
 | [set of names](sinter:documents#name-set=v1) | one of the sets of declared items of a tree in which names are looked up: the shared set, the set of the declared finding classes, and the set of each item of the kind design |
 | [base item](sinter:#base-item=v1) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
-| [version of a vector set](sinter:#tree-version=v1) | a vector set of a tree, together with the text of the forms of each of its groups in that tree, or the empty text when its item has no Conformance section or part |
+| [version of a vector set](sinter:#tree-version=v1) | a vector set of a tree, together with the text of the forms of each of its groups in that tree: the [forms text](sinter:documents#forms-text=v1) of its item, or the empty text when its item has no [Conformance part](sinter:documents#conformance-part=v1) |
 | [higher](sinter:data-forms#test-vector-revision=v1) | a test-vector revision is higher than another when the number after its `v` is greater |
 | [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the revision of its citation entry or inline citation |
+| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the files whose reading it stops for limits of its own; a file in it cannot be read |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot, that is not ackable |
 | [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same, and of a conformance vector, group of conformance vectors, or vector set whose label did not become higher when it had to |
 | [`suspect`](sinter:#suspect-finding=v1) | the class of the findings of the suspect edges of a tree |
@@ -113,8 +115,9 @@ An item has no base item when, for example, another item of its set of
 names has its name, in the tree or in the base tree, or when the item is
 in no set of names. The valid path of the file of a declared item does
 not count when its base item is found. A declared item in a file that
-cannot be read is not a declared item of its tree, so it has no base
-item and it is no base item.
+cannot be read, such as a file in the set of stopped files of the tree,
+is not a declared item of its tree, so it has no base item and it is no
+base item.
 
 ### 2.3 Conformance vectors, groups, and vector sets
 
@@ -211,30 +214,24 @@ are the same name when, and only when, they are the same text.
 
 @term tree-version=v1
 @cites {
-    identifiers#{declaration=v1, target=v1},
-    ontology#{vector-set=v1, declared-item=v1, containment=v1, tree=v1},
+    ontology#{vector-set=v1, declared-item=v1, tree=v1},
     data-forms#{
         test-vector-version-sequence=v1, test-vector-set=v1,
         group-form-list=v1,
     },
-    documents#{item-scope=v1, file-line=v1, vector-file=v1},
-    text#{text=v1, line-feed=v1},
+    documents#{conformance-part=v1, forms-text=v1, vector-file=v1},
+    text#{text=v1},
 }
 
 Let V be the vector set of an item x of the kind design or of the kind
-specification in a tree. The scope text of x is the text that joins the
-texts of the file lines of the scope of x, in their order, each followed
-by one line feed. The version of V in that tree is the version, as the
-term `test-vector-version-sequence` gives versions, whose test-vector
-set is V and in which the text of the forms of each group g of V is:
+specification in a tree. The version of V in that tree is the version,
+as the term `test-vector-version-sequence` gives versions, whose
+test-vector set is V and in which the text of the forms of each group g
+of V is:
 
-- the text of the forms of g of x, as the term `group-form-list` gives
-  it, with the scope text of x as the text of the design, with the
-  items of the kind specification that belong to x as the
-  specifications of x, and with the name in the target of the
-  declaration of each item of the kind specification as the name of
-  that specification, when the term `group-form-list` gives x a
-  Conformance section or a Conformance part in this way;
+- the forms text of x in that tree, as the term `forms-text` gives it,
+  when x has a Conformance part in that tree, as the term
+  `conformance-part` gives it;
 - otherwise, the empty text.
 
 ### 3.3 Findings of the class `needs-revision`
@@ -255,7 +252,7 @@ set is V and in which the text of the forms of each group g of V is:
     },
     documents#{
         file-reader-binding=v1, extent-hash=v1, item-file=v1, origin=v1,
-        run-spot=v1, vector-file=v1, tree-finding=v1,
+        run-spot=v1, vector-file=v1, tree-finding=v1, unreadable-file=v1,
     },
     findings#{spot=v1},
     text#{
@@ -265,12 +262,13 @@ set is V and in which the text of the forms of each group g of V is:
     #{base-item=v1, tree-version=v1},
 }
 
-Under a binding of `file-readers` and a binding of
-`external-namespaces`, a tree T has these tree findings of the class
-`needs-revision` against a base tree B, where the declared items, their
-kinds, names, current revisions, extent hashes, and files, the base
-items, the vector sets and their versions, and the vector files of T and
-of B are those that each tree has under these two bindings:
+Under a binding of `file-readers`, a binding of `external-namespaces`,
+and a set of stopped files of each tree, a tree T has these tree
+findings of the class `needs-revision` against a base tree B, where the
+declared items, their kinds, names, current revisions, extent hashes,
+and files, the base items, the vector sets and their versions, and the
+vector files of T and of B are those that each tree has under these two
+bindings and its set of stopped files:
 
 - For each declared item d of T that has a current revision in T and a
   base item e in B, when e has a current revision in B that is the same
@@ -311,14 +309,14 @@ of B are those that each tree has under these two bindings:
     documents#{
         file-reader-binding=v1, tree-edge=v1, origin=v1,
         origin-position=v1, position-subject=v1, run-spot=v1,
-        tree-finding=v1,
+        tree-finding=v1, unreadable-file=v1,
     },
 }
 
-Under a binding of `file-readers` and a binding of
-`external-namespaces`, a tree has one tree finding of the class
-`suspect` for each edge that the tree has under these bindings and that
-is suspect in the tree. Its subject is the position subject of
+Under a binding of `file-readers`, a binding of `external-namespaces`,
+and a set of stopped files of a tree, the tree has one tree finding of
+the class `suspect` for each edge that the tree has under these bindings
+and this set and that is suspect in the tree. Its subject is the position subject of
 the origin position of the citation entry or of the inline citation of
 the edge. Its spot is the spot of the run of that citation entry or
 inline citation in the text of the file of the edge.
@@ -331,7 +329,9 @@ inline citation in the text of the file of the edge.
 @cites {
     identifiers#{binding=v1},
     ontology#{finding-class=v1, tree=v1},
-    documents#{file-reader-binding=v1, tree-finding=v1},
+    documents#{
+        file-reader-binding=v1, tree-finding=v1, unreadable-file=v1,
+    },
     text#{conforming-program=v1, result=v1},
     #{needs-revision-finding=v1},
 }
@@ -340,9 +340,10 @@ Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the findings of the class `needs-revision` of a tree against a base tree
-under these bindings, it must give each tree finding of that class that
-the tree has against the base tree under these bindings once, and no
-other finding of that class.
+under these bindings and a set of stopped files of each tree, it must
+give each tree finding of that class that the tree has against the base
+tree under these bindings and these sets once, and no other finding of
+that class.
 
 ### 4.2 The findings of the class `suspect`
 
@@ -350,7 +351,9 @@ other finding of that class.
 @cites {
     identifiers#{binding=v1},
     ontology#{finding-class=v1, tree=v1},
-    documents#{file-reader-binding=v1, tree-finding=v1},
+    documents#{
+        file-reader-binding=v1, tree-finding=v1, unreadable-file=v1,
+    },
     text#{conforming-program=v1, result=v1},
     #{suspect-finding=v1},
 }
@@ -358,9 +361,10 @@ other finding of that class.
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the findings of the class `suspect` of a tree under these bindings, it
-must give each tree finding of that class that the tree has under these
-bindings once, and no other finding of that class.
+the findings of the class `suspect` of a tree under these bindings and
+a set of stopped files, it must give each tree finding of that class
+that the tree has under these bindings and this set once, and no other
+finding of that class.
 
 ### 4.3 No finding under bindings that are not valid
 
@@ -388,7 +392,9 @@ tree, and no finding of the class `suspect` of any tree.
         commit=v1, change-of-a-commit=v1, change-base=v1,
         repository-read=v1, undisturbed-read=v1,
     },
-    documents#{file-reader-binding=v1, tree-finding=v1},
+    documents#{
+        file-reader-binding=v1, tree-finding=v1, unreadable-file=v1,
+    },
     text#{conforming-program=v1, result=v1},
     #{needs-revision-finding=v1},
 }
@@ -398,11 +404,12 @@ commit h has a base, a valid binding of `file-readers`, and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the findings of the class `needs-revision` of the change of h under
-these bindings, and each repository read from which it takes the base
-of the change of h and the files of the tree of h and of the tree of
-that base is undisturbed, it must give each tree finding of that class
-that the tree of h has against the tree of the base of the change of h
-under these bindings once, and no other finding of that class.
+these bindings and a set of stopped files of each of the two trees, and
+each repository read from which it takes the base of the change of h
+and the files of the tree of h and of the tree of that base is
+undisturbed, it must give each tree finding of that class that the tree
+of h has against the tree of the base of the change of h under these
+bindings and these sets once, and no other finding of that class.
 
 ### 4.5 The change of a commit with a base
 
@@ -454,6 +461,11 @@ same folder as this design. The file is a
 [test-vector set](sinter:data-forms#test-vector-set=v1). A vector is an
 input and what a conforming program gives for it. Each vector follows
 from the requirements and adds nothing to them.
+
+Each vector is for the empty set of
+[stopped files](sinter:documents#unreadable-file=v1) of each tree. So a
+vector checks a program only when the set of stopped files of the
+program for each tree of the vector is empty.
 
 The file is a sequence of the
 [canonical byte sequences](sinter:data-forms#canonical-byte-sequence=v1)
@@ -535,7 +547,8 @@ design Identifiers gives the result "invalid" for its binding of
 `findings`: a JSON array with one element for each tree finding of the
 class `needs-revision` that the tree has against the base tree, and for
 each tree finding of the class `suspect` that the tree has, under the
-two bindings of the input, in the code point order of the slugs of their
+two bindings of the input and the empty set of stopped files of each
+tree, in the code point order of the slugs of their
 classes and then in the code point order of their subjects. Each element
 is a JSON object with these members: `class`, the slug of its class;
 `subject`, its subject; and `spot`, its spot: a JSON object with the
@@ -547,10 +560,11 @@ JSON number written as a decimal numeral.
 For the input of a vector, when `values` is `{}`, a conforming program
 gives no finding of either class for the tree. Otherwise, when it gives
 the findings of the class `needs-revision` of the tree against the base
-tree under the two bindings of the input, it gives one for each element
-of `findings` of that class, with the subject that the element states,
-and no other; and when it gives the findings of the class `suspect` of
-the tree under these bindings, it gives one for each element of
+tree under the two bindings of the input and the empty set of stopped
+files of each tree, it gives one for each element of `findings` of that
+class, with the subject that the element states, and no other; and when
+it gives the findings of the class `suspect` of the tree under these
+bindings and the empty set of stopped files, it gives one for each element of
 `findings` of that class, with the subject that the element states, and
 no other. When it gives the spot of such a finding, it gives the spot
 that the element states.
