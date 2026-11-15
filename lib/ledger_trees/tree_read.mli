@@ -31,8 +31,13 @@ module Make (Id : Hashtbl.HashedType) : sig
       far. A session is owned by one call of a function of the ledger, and it
       ends with that call. *)
 
-  val session : (Id.t, 'e) Ledger_objects.objects -> 'e session
-  (** [session objects] is a session that has read no git object. *)
+  val session :
+    ?entry_id:(Sinter_json_lines.Json_line.t -> string) ->
+    (Id.t, 'e) Ledger_objects.objects ->
+    'e session
+  (** [session ~entry_id objects] is a session that has read no git object, and
+      that reads the content of each chunk with {!Chunk_content.read}
+      [~entry_id]. *)
 
   val commit : 'e session -> Id.t -> (Id.t Ledger_objects.commit, 'e) result
   (** [commit session id] is the commit [id], read once in [session]. *)

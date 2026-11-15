@@ -72,26 +72,34 @@ type validity =
       *)
 
 module Make (Id : Hashtbl.HashedType) : sig
-  val read : (Id.t, 'e) Ledger_objects.objects -> Id.t -> (t, 'e) result
-  (** [read objects tree] is the git tree object [tree] as a ledger reads it. It
-      reads each ledger object of [tree], once: [tree], each git tree object
-      that a tree entry names, at any depth, and the blob of each chunk. It
-      reads no other git object. It is the first [Error e] that a reader gives,
-      also when [tree] is already known to be newer or no valid ledger tree. The
-      time is linear in the number of these git tree objects, of their entries,
-      and of the bytes of these blobs, also when many byte paths lead to one git
-      tree object, and the stack space does not grow with the depth of the
-      entries. *)
+  val read :
+    ?entry_id:(Sinter_json_lines.Json_line.t -> string) ->
+    (Id.t, 'e) Ledger_objects.objects ->
+    Id.t ->
+    (t, 'e) result
+  (** [read ~entry_id objects tree] is the git tree object [tree] as a ledger
+      reads it, where the [id] that condition 6 of the term [ledger-validity]
+      asks of each line is [entry_id] of its object in place of its entry id;
+      [entry_id] is {!Sinter_ledger_lines.Entry_id.of_line_object} when it is
+      not given. It reads each ledger object of [tree], once: [tree], each git
+      tree object that a tree entry names, at any depth, and the blob of each
+      chunk. It reads no other git object. It is the first [Error e] that a
+      reader gives, also when [tree] is already known to be newer or no valid
+      ledger tree. The time is linear in the number of these git tree objects,
+      of their entries, and of the bytes of these blobs, also when many byte
+      paths lead to one git tree object, and the stack space does not grow with
+      the depth of the entries. *)
 
   val validity :
+    ?entry_id:(Sinter_json_lines.Json_line.t -> string) ->
     (Id.t, 'e) Ledger_objects.objects ->
     Id.t Ledger_objects.ledger_ref ->
     (validity, 'e) result
-  (** [validity objects ledger_ref] is the condition of the ledger whose ledger
-      ref is [ledger_ref]: [Valid] with the stored ledger, [Broken], or [Newer].
-      For [Commit c], it reads the commit [c] and then as {!read} reads the git
-      tree object of [c], and its time is that of {!read}; for [Absent] and
-      [No_commit], it reads nothing. It is the first [Error e] that a reader
-      gives: no result and no ledger entry when the git repository does not hold
-      its ledger objects. *)
+  (** [validity ~entry_id objects ledger_ref] is the condition of the ledger
+      whose ledger ref is [ledger_ref]: [Valid] with the stored ledger,
+      [Broken], or [Newer], with [entry_id] as in {!read}. For [Commit c], it
+      reads the commit [c] and then as {!read} reads the git tree object of [c],
+      and its time is that of {!read}; for [Absent] and [No_commit], it reads
+      nothing. It is the first [Error e] that a reader gives: no result and no
+      ledger entry when the git repository does not hold its ledger objects. *)
 end

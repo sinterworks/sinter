@@ -15,11 +15,14 @@ open Sinter_json_lines
 type t
 (** A ledger line. *)
 
-val of_line_object : Json_line.t -> t option
-(** [of_line_object line_object] is the ledger line whose object is
+val of_line_object :
+  ?entry_id:(Json_line.t -> string) -> Json_line.t -> t option
+(** [of_line_object ~entry_id line_object] is the ledger line whose object is
     [line_object], or [None] when [line_object] is not the object of a ledger
-    line. The time is linear in the length of the canonical line of
-    [line_object]. *)
+    line, where the [id] of a ledger line is [entry_id line_object] in place of
+    its entry id. [entry_id] is the entry id ({!Entry_id.of_line_object}) when
+    it is not given. The time is linear in the length of the canonical line of
+    [line_object], plus the time of [entry_id]. *)
 
 val bytes : t -> string
 (** [bytes line] is the canonical line of the object of [line]: its canonical

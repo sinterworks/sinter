@@ -92,10 +92,12 @@ module Make (Id : Hashtbl.HashedType) = struct
     trees : Id.t entry list Table.t;
     chunks : Chunk_content.t Table.t;
     walked : unit Places.t;
+    entry_id : (Sinter_json_lines.Json_line.t -> string) option;
   }
 
-  let session objects =
+  let session ?entry_id objects =
     {
+      entry_id;
       objects;
       commits = Table.create size_hint;
       trees = Table.create size_hint;
@@ -116,7 +118,10 @@ module Make (Id : Hashtbl.HashedType) = struct
 
   let chunk session id =
     cached session.chunks
-      (fun id -> Result.map Chunk_content.read (session.objects.blob id))
+      (fun id ->
+        Result.map
+          (Chunk_content.read ?entry_id:session.entry_id)
+          (session.objects.blob id))
       id
 
   (* @satisfies ledger#{

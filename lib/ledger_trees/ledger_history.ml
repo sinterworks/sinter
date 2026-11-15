@@ -288,12 +288,12 @@ module Make (Id : Hashtbl.HashedType) = struct
      each history object is read before the result, so a missing one gives no
      result; an absent ledger ref is intact, and a ledger ref with no commit is
      not. *)
-  let history objects (ledger_ref : Id.t ledger_ref) =
+  let history ?entry_id objects (ledger_ref : Id.t ledger_ref) =
     match ledger_ref with
     | Absent -> Ok (Some Intact)
     | No_commit -> Ok (Some Not_intact)
     | Commit c -> (
-        let session = Read.session objects in
+        let session = Read.session ?entry_id objects in
         let* commit = Read.commit session c in
         let* analysis = Read.analyse session commit.tree in
         if analysis.newer then Ok None

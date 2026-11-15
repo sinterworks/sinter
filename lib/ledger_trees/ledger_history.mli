@@ -32,17 +32,22 @@ module Make (Id : Hashtbl.HashedType) : sig
       of them. *)
 
   val history :
+    ?entry_id:(Sinter_json_lines.Json_line.t -> string) ->
     (Id.t, 'e) Ledger_objects.objects ->
     Id.t Ledger_objects.ledger_ref ->
     (t option, 'e) result
-  (** [history objects ledger_ref] is whether the history of the ledger whose
-      ledger ref is [ledger_ref] is intact: [Some Intact] or [Some Not_intact]
-      when the ledger is not newer, and [None], neither result, when the ledger
-      is newer. [Absent] gives [Some Intact], and [No_commit] gives
-      [Some Not_intact]. For [Commit c], it reads the history objects of the
-      ledger, each once, and it is the first [Error e] that a reader gives among
-      them: neither result when the git repository does not hold them. When the
-      ledger is newer, it reads only the ledger objects of [c].
+  (** [history ~entry_id objects ledger_ref] is whether the history of the
+      ledger whose ledger ref is [ledger_ref] is intact: [Some Intact] or
+      [Some Not_intact] when the ledger is not newer, and [None], neither
+      result, when the ledger is newer. The [id] that condition 6 of the term
+      [ledger-validity] asks of each line is [entry_id] of its object in place
+      of its entry id; [entry_id] is
+      {!Sinter_ledger_lines.Entry_id.of_line_object} when it is not given.
+      [Absent] gives [Some Intact], and [No_commit] gives [Some Not_intact]. For
+      [Commit c], it reads the history objects of the ledger, each once, and it
+      is the first [Error e] that a reader gives among them: neither result when
+      the git repository does not hold them. When the ledger is newer, it reads
+      only the ledger objects of [c].
 
       It ends on every graph of parents, also when a commit reaches itself
       through its parents. When the single parents of [c] lead back to a commit

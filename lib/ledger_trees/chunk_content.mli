@@ -20,6 +20,7 @@ type t = {
           order; [None] otherwise *)
 }
 
-val read : string -> t
-(** [read content] is the lines of [content]. The time is linear in the length
-    of [content]. *)
+val read : ?entry_id:(Sinter_json_lines.Json_line.t -> string) -> string -> t
+(** [read ~entry_id content] is the lines of [content], with each ledger line as
+    {!Ledger_line.of_line_object} [~entry_id] gives it. The time is linear in
+    the length of [content], plus the time of [entry_id]. *)

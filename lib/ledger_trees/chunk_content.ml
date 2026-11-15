@@ -33,16 +33,16 @@ let is_newer (value : Json.t option) =
   | Some (Integer version) -> version > 1
   | Some (String _ | Boolean _ | Array _ | Object _) | None -> false
 
-let read_line line =
+let read_line ?entry_id line =
   match Json_line.read line with
   | Some line_object ->
       ( is_newer (Some (line_object :> Json.t)),
-        Ledger_line.of_line_object line_object )
+        Ledger_line.of_line_object ?entry_id line_object )
   | None -> (is_newer (Json.read_json_text line), None)
 
-let read content =
+let read ?entry_id content =
   let lines = cut content in
-  let read_lines = List.map read_line lines in
+  let read_lines = List.map (read_line ?entry_id) lines in
   let ledger_lines = List.filter_map snd read_lines in
   {
     lines;

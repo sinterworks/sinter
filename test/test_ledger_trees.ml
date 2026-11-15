@@ -451,8 +451,66 @@ let growth_tests =
             T.validity (objects store) (Ledger_objects.Commit commit_id)));
   ]
 
+let id_without_seq (line_object : Sinter_json_lines.Json_line.t) =
+  let value = (line_object :> Sinter_json_lines.Json.t) in
+  let rest =
+    Option.value
+      (Sinter_json_lines.Json.object_ (Member.without value [ "id"; "seq" ]))
+      ~default:value
+  in
+  "e-"
+  ^ String.sub
+      Digestif.SHA256.(
+        to_hex
+          (digest_string (Sinter_json_lines.Json.canonical_byte_sequence rest)))
+      0 32
+
+let line_without_seq ~name seq =
+  let members =
+    [
+      (V.Text "by", V.String (V.Text "Ada Lovelace <ada@example.com>"));
+      (V.Text "kind", V.String (V.Text "task"));
+      (V.Text "name", V.String (V.Text name));
+      (V.Text "v", V.Number "1");
+    ]
+  in
+  Model.canonical_line
+    (V.Object
+       ((V.Text "id", V.String (V.Text (Model.entry_id (V.Object members))))
+       :: (V.Text "seq", V.Number (string_of_int seq))
+       :: members))
+
+(* @verifies ledger#validate-ledgers=v1
+   With an id function that leaves out `seq`, two lines that differ only in
+   `seq` have one `id` and meet each other condition of a valid ledger tree, so
+   a program that does not check condition 8 takes the ledger as valid and
+   fails; lines with two ids under the same function stay valid, so a program
+   that refuses them for another reason also fails. *)
+let condition_8_tests =
+  let condition lines =
+    fst
+      (answer
+         (T.validity ~entry_id:id_without_seq
+            (objects (store_of_tree (Model.tree_of_lines lines)))
+            (Ledger_objects.Commit commit_id)))
+  in
+  [
+    Alcotest.test_case "two lines with one id make the ledger broken" `Quick
+      (fun () ->
+        Alcotest.(check string)
+          "condition" "broken"
+          (condition
+             [ line_without_seq ~name:"t" 1; line_without_seq ~name:"t" 2 ]));
+    Alcotest.test_case "lines with two ids under the same id function are valid"
+      `Quick (fun () ->
+        Alcotest.(check string)
+          "condition" "valid"
+          (condition
+             [ line_without_seq ~name:"a" 1; line_without_seq ~name:"b" 2 ]));
+  ]
+
 let tests =
   Vectors.tests "ledger" [ ledger_vectors ]
   @ read_tests @ ref_tests
   @ [ newer_test; unknown_members_test ]
-  @ hostile_tests @ growth_tests
+  @ hostile_tests @ growth_tests @ condition_8_tests

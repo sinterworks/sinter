@@ -25,7 +25,9 @@ let integer (value : Json.t option) =
    Conditions 5 and 6 of a valid ledger tree: `id` and `kind` are strings, `v`
    is the integer 1, `seq` is an integer of 1 or more, and `id` is the entry id
    of the object. *)
-let of_line_object (line_object : Json_line.t) =
+let entry_id_of line_object = (Entry_id.of_line_object line_object :> string)
+
+let of_line_object ?(entry_id = entry_id_of) (line_object : Json_line.t) =
   let value = (line_object :> Json.t) in
   match
     ( text (Member.find value "id"),
@@ -34,8 +36,7 @@ let of_line_object (line_object : Json_line.t) =
       integer (Member.find value "seq") )
   with
   | Some id, Some kind, Some 1, Some seq
-    when seq >= 1
-         && String.equal id (Entry_id.of_line_object line_object :> string) ->
+    when seq >= 1 && String.equal id (entry_id line_object) ->
       Some
         {
           bytes = Json_line.canonical_line line_object;

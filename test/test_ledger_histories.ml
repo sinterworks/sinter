@@ -361,5 +361,69 @@ let growth_tests =
               Alcotest.fail "the history is intact"));
   ]
 
+let history_without_seq commits head =
+  answer
+    (H.history ~entry_id:Test_ledger_trees.id_without_seq
+       (Store.objects (Store.of_history commits))
+       (Ledger_objects.Commit head))
+
+let line_without_seq = Test_ledger_trees.line_without_seq
+
+(* @verifies ledger#validate-histories=v1
+   With an id function that leaves out `seq`, a line that differs from another
+   only in `seq` has its `id`. A history whose first commit holds two such
+   lines, or whose second commit adds a line with the `id` of a line of the
+   first, has a commit that is no valid ledger tree by condition 8, so a
+   program that takes it as intact fails; a history that adds a line with
+   another `id` stays intact, so a program that refuses it fails. *)
+let condition_8_tests =
+  let tree lines = Model.tree_of_lines lines in
+  let a = line_without_seq ~name:"a" 1 in
+  [
+    Alcotest.test_case "a first commit with two lines of one id is not intact"
+      `Quick (fun () ->
+        Alcotest.(check (option string))
+          "history" (Some "invalid")
+          (history_without_seq
+             [
+               ( "c1",
+                 {
+                   Model.parents = [];
+                   tree = tree [ a; line_without_seq ~name:"a" 2 ];
+                 } );
+             ]
+             "c1"));
+    Alcotest.test_case
+      "a commit that adds a line with the id of an earlier line is not intact"
+      `Quick (fun () ->
+        Alcotest.(check (option string))
+          "history" (Some "invalid")
+          (history_without_seq
+             [
+               ("c1", { Model.parents = []; tree = tree [ a ] });
+               ( "c2",
+                 {
+                   Model.parents = [ "c1" ];
+                   tree = tree [ a; line_without_seq ~name:"a" 2 ];
+                 } );
+             ]
+             "c2"));
+    Alcotest.test_case "a commit that adds a line with another id is intact"
+      `Quick (fun () ->
+        Alcotest.(check (option string))
+          "history" (Some "valid")
+          (history_without_seq
+             [
+               ("c1", { Model.parents = []; tree = tree [ a ] });
+               ( "c2",
+                 {
+                   Model.parents = [ "c1" ];
+                   tree = tree [ a; line_without_seq ~name:"b" 2 ];
+                 } );
+             ]
+             "c2"));
+  ]
+
 let tests =
-  Vectors.tests "ledger" [ history_vectors ] @ history_tests @ growth_tests
+  Vectors.tests "ledger" [ history_vectors ]
+  @ history_tests @ growth_tests @ condition_8_tests
