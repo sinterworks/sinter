@@ -8,7 +8,7 @@
 @cites rfc/7405
 @cites rfc/8259
 @cites commonmark/0.31.2
-Specifies the grammar of tags, identifiers, and links as used in Sinter and requirements for conforming programs.
+Specifies the grammar of tags, identifiers, and links as used in Sinter, the canonical forms of identifiers and citation entries, and requirements for conforming programs.
 
 A tag line starts, after any spaces and tabs, with a tag word such as
 `@req`. A declaration, such as `@req size-limit=v2`, is a tag line that
@@ -104,6 +104,8 @@ vectors of the design is a JSON text.
 | [single target](sinter:#citation-entry=v1) | a target, or an element of a target list, that is neither a target list nor a scoped list, such as `packs#size=v1` |
 | [citation entry](sinter:#citation-entry=v1) | a single target of a citation, or a single target for which a part of a scoped list stands |
 | [entry name](sinter:#citation-entry=v1) | the name in a citation entry: its slug, its full name, its `#` and part name, or its external id with its `#` and part name; for an every-part target, its slug |
+| [canonical identifier](sinter:#canonical-id=v1) | a kind word, `:`, and a slug, a full name, or an external id with an optional `#` and part name, such as `req:packs#size-limit`; or, with no kind word, the slug, the full name, or the external id alone, such as `gh/42` |
+| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that a citation entry gives with a slug or no slug and a kind word or no kind word: its entry name, with the slug before it when it starts with `#`, as a canonical identifier with that kind word; then its vector selection, and `#*` for an every-part target; it holds no revision, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term` |
 | parameter | a word, such as `external-namespaces`, for which a conforming program takes a binding |
 | [binding](sinter:#binding=v1) | a finite set of pairs of a namespace name and an id pattern, which a conforming program takes for the parameter `external-namespaces` |
 | [external namespace](sinter:#external-namespace=v1) | a pair of a binding, with its namespace name and its id pattern; the external namespaces of a line, a link, or an image are those of the binding under which a conforming program reads it |
@@ -699,6 +701,40 @@ the text of the tag line. Each value of the target of an inline citation
 is the text of a run of the destination, so `[x](sinter:&#65;uth=v1)`
 gives the slug `Auth`. The link text is the text that section 2.9
 describes.
+
+### 2.12 Canonical forms
+
+Several texts can name the same thing. A canonical form writes it in one
+way. The canonical identifier of a kind word and a name is the kind
+word, `:`, and the name, such as `req:packs#size-limit`. With no kind
+word, it is the name alone, such as `docs`. The name is a slug, a full
+name, or an external id with an optional `#` and part name, such as
+`gh/42` or `rfc/8259#section-6`.
+
+A conforming program can give the canonical form of a citation entry of
+a valid citation together with a slug, or no slug, and a kind word, or
+no kind word, that it takes. The slug goes before an entry name that
+starts with `#`, so `#notation=v1` with the slug `docs` gives the name
+`docs#notation`. The kind word of the canonical form is the kind word
+that the program takes, and not the kind word of the citation entry. The
+canonical form holds no revision. It keeps the vector selection of the
+citation entry, and the canonical form of an every-part target ends with
+`#*`. Under a binding with the external namespace `gh`:
+
+| citation entry | slug | kind word | canonical form |
+|---|---|---|---|
+| `#notation=v1` | `docs` | `term` | `term:docs#notation` |
+| `req:packs#size=v2` | none | `req` | `req:packs#size` |
+| `spec:packs#size=*` | `docs` | `req` | `req:packs#size` |
+| `req:#notation=v1` | none | none | `#notation` |
+| `docs#descriptor[12]=v1` | none | `spec` | `spec:docs#descriptor[12]` |
+| `docs=v3#*` | none | `design` | `design:docs#*` |
+| `gh/42` | `docs` | none | `gh/42` |
+
+So the two citation entries of `@cites packs#{size=v1, limit=v2}`, with
+no slug and the kind word `req`, give `req:packs#size` and
+`req:packs#limit`, as the citation entries of
+`@cites {packs#limit=v1, packs#size=v3}` do.
 
 ## 3. Parameters
 
@@ -1662,6 +1698,65 @@ or the type of tag line, when it gives something that stands for that
 fact and for no other fact. Where an input stands in its text, and an
 explanation of the result of an input, are not values.
 
+### 4.48 Canonical identifiers
+
+@term canonical-id=v1
+@cites {
+    #{kind-word=v1, slug=v1, full-name=v1, external-id=v1},
+    text#{
+        text=v1, code-span=v1, algorithm=v1, production=v1, rule-name=v1,
+    },
+}
+
+In this term, *k* is a kind word or the empty text, and *n* is a text
+that matches `slug`, `full-name`, or `external-ref`.
+
+The canonical identifier of a kind word *k* and a name *n* is the text
+that these steps give.
+
+1. Let *form* be the empty text.
+2. If *k* is not empty, then:
+   1. Append *k* to *form*.
+   2. Append `:` to *form*.
+3. Append *n* to *form*.
+4. Give *form*.
+
+### 4.49 Canonical forms of citation entries
+
+@term canonical-entry=v1
+@cites {
+    #{
+        canonical-id=v1, citation=v1, tag-line-text=v1, citation-entry=v1,
+        citation-line=v1, slug=v1, kind-word=v1, vector-selection=v1,
+        match=v1,
+    },
+    text#{text=v1, character=v1, code-span=v1, algorithm=v1, rule-name=v1},
+}
+
+In this term, *c* is a citation entry of a match of the text of a
+citation by `citation-line`, *s* is a slug or the empty text, and *k* is
+a kind word or the empty text.
+
+The canonical form of a citation entry *c* with a slug *s* and a kind
+word *k* is the text that these steps give.
+
+1. Let *n* be the entry name of *c*.
+2. If *s* is not empty and the first character of *n* is `#`, then:
+   1. Let *full* be *s*.
+   2. Append *n* to *full*.
+   3. Set *n* to *full*.
+3. Let *form* be the empty text.
+4. If the first character of *n* is `#`, then:
+   1. If *k* is not empty, then:
+      1. Append *k* to *form*.
+      2. Append `:` to *form*.
+   2. Append *n* to *form*.
+5. Otherwise, set *form* to the canonical identifier of *k* and *n*.
+6. If the match of *c* uses `vector-selection`, append the vector
+   selection of *c* to *form*.
+7. If the match of *c* uses `every-part`, append `#*` to *form*.
+8. Give *form*.
+
 ## 5. Requirements
 
 ### 5.1 One binding for each line, link, and image
@@ -2059,6 +2154,29 @@ declaration, a citation, a status tag, a directive, and an inline
 citation, this obligation holds under a binding of
 `external-namespaces` for which the program gives the result "valid".
 
+### 5.23 Canonical forms of citation entries
+
+@req give-canonical-entries=v1
+@cites {
+    #{
+        binding=v1, citation=v1, citation-entry=v1, canonical-entry=v1,
+        slug=v1, kind-word=v1,
+    },
+    text#{
+        conforming-program=v1, requirement=v1, result=v1, text=v1,
+        code-span=v1,
+    },
+}
+
+Under a binding of `external-namespaces` for which it gives the result
+"valid", when a conforming program gives the canonical form of a
+citation entry of a citation for which it gives the result "valid",
+together with a slug or no slug and a kind word or no kind word, it must
+give the canonical form of that citation entry with that slug, or with
+the empty text when there is no slug, and with that kind word, or with
+the empty text when there is no kind word, and nothing else as that
+canonical form.
+
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it
@@ -2087,7 +2205,7 @@ file has three kinds of line, in this order:
 1. The first line is the set line. Its JSON object has one member,
    `rev`: the revision of the whole set of vectors.
 2. Then each group has a group line, in this order: `bindings`,
-   `citations`, `continuation-lines`, `declarations`, `directives`,
+   `canonical-entries`, `citations`, `continuation-lines`, `declarations`, `directives`,
    `fit`, `id-patterns`, `inline-citations`, `other-lines`,
    `rejected-bindings`, `status-tags`. Its JSON object has two members:
    `group`, the name of the group, as a JSON string, and `rev`, the
@@ -2158,17 +2276,18 @@ values:
   array of its elements, in order.
 
 In the groups `other-lines`, `declarations`, `citations`,
-`status-tags`, `directives`, `continuation-lines`, and
-`inline-citations`, a program reads a text under a binding of
+`status-tags`, `directives`, `continuation-lines`, `inline-citations`,
+and `canonical-entries`, a program reads a text under a binding of
 `external-namespaces`. The input of each vector of these groups is a
-JSON object with two members:
-`binding`, the binding, and `text`, the text. The program takes the
+JSON object with the members `binding`, the binding, and `text`, the
+text, and, in the group `canonical-entries`, the members that section
+6.6 adds. The program takes the
 binding, and it reads the text under that binding. In the file, the
 binding of each vector of these groups holds two pairs: the namespace
 name `gh` with the id pattern `[1-9][0-9]*`, and the namespace name
 `rfc` with the id pattern `[1-9][0-9]*`. A conforming program gives the
 result "valid" for this binding, as a vector of the group `bindings`
-states. The vectors of these seven groups do not state this result.
+states. The vectors of these eight groups do not state this result.
 
 In a vector, the values that a conforming program gives for a line, a
 link, or an image stand in a JSON object. For each value that
@@ -2410,4 +2529,39 @@ binding of `external-namespaces` for which it gives the result
 {"group":"bindings","input":[],"n":300,"result":"valid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"n":303,"note":"`GH` does not match `namespace-name`","result":"invalid","rev":"v1","values":{}}
 {"group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"n":308,"result":"invalid","rev":"v1","values":{"inputs":[]}}
+```
+
+### 6.6 Canonical forms
+
+The group `canonical-entries` holds valid citations, each with a slug
+or no slug, and with a kind word or no kind word for each of its
+citation entries. Its vectors follow from the requirement
+`give-canonical-entries`. Each vector gives a text and the canonical
+form of each citation entry of the citation of the text.
+
+- `input`: a JSON object with these members. `binding` and `text` are
+  the binding and the text, as described above. The first line of the
+  text is a citation, and its other lines are the continuation lines of
+  that citation. The markdown document of the text holds no link and no
+  image. `slug` is the slug, a text, only when there is a slug.
+  `entries` is a JSON array with one element for each citation entry of
+  the citation, in the order of the citation entries. Each element is a
+  JSON object with the member `kind-word`, the kind word for that
+  citation entry, as a text, when there is one, and with no member when
+  there is no kind word.
+- `result`: no vector of the group has this member. A conforming program
+  gives the result "valid" for the citation, and the vectors do not state
+  this result or the values of the citation.
+- `values`: a JSON object with one member, `forms`: a JSON array with one
+  element for each citation entry, in the order of the citation entries:
+  its canonical form, as a text.
+
+When a conforming program gives the canonical form of the k-th citation
+entry of the citation, together with the slug of the input, or no slug
+when the input has no member `slug`, and with the kind word of the k-th
+element of `entries`, or no kind word when that element has no member,
+it gives the k-th element of `forms`.
+
+```
+{"group":"canonical-entries","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"entries":[{"kind-word":"req"},{"kind-word":"spec"}],"text":"@cites packs#{size=v1, descriptor=v2}"},"n":515,"note":"each part of a scoped list gives the canonical form of the single target for which it stands","rev":"v1","values":{"forms":["req:packs#size","spec:packs#descriptor"]}}
 ```
