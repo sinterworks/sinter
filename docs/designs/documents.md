@@ -121,7 +121,7 @@ the conformance vectors of the design is a JSON text.
 | [code character](sinter:#code-character=v1) | a character of a code file that is in no comment node and in no line ending, and that is not a space or a tab |
 | [lines of a run](sinter:#run-line=v1) | for each line that has a place of a run of a text, the places of the run on that line, and the empty lines inside the run |
 | [run of comments](sinter:#comment-run=v1) | a sequence of the comment nodes that no other comment node encloses, each of which starts on the last line of the one before it or on the next line, with only spaces, tabs, and line endings between them; a comment node that starts on a line with a code character is a run of comments by itself, and no other comment node joins that run of comments |
-| [comment line](sinter:#comment-line=v1) | a line of a tagged comment node without its comment sigils and the spaces and tabs before them, or, for a line after the first that has no sigil, without the margin that all such lines share |
+| [comment line](sinter:#comment-line=v1) | a line of a tagged comment node, without its comment sigils and without the indentation of the comment itself |
 | [tag text](sinter:#tag-text=v1) | the lines of a first paragraph in a markdown file, or the comment lines of the tagged comment nodes of one run of comments that has a tagged comment node in a code file, joined by line feeds |
 | [origin](sinter:#origin=v1), [origin position](sinter:#origin-position=v1) | the places of the text of a file that a part of a tag text or of a markdown text comes from; the position at which that part starts, which is the position of the `@` for the text of a tag line |
 | [file line](sinter:#file-line=v1) | a markdown line of a markdown file, or a line that a tag text of a code file joins |
@@ -2454,9 +2454,9 @@ binding of `external-namespaces`, as in the term `accepted-input`. A
 block in this term is a block of CommonMark 0.31.2 of a markdown
 document: of the markdown document of a markdown file that can be read,
 as the term `markdown-section` gives these blocks, or of a markdown
-document that the steps of this term parse. A blank line is no block, and a
-link reference definition is a block. A heading of a markdown document
-that the steps of this term parse opens no section.
+document that the steps of this term parse. A blank line is no block,
+and a link reference definition is a block. A heading of a markdown
+document that the steps of this term parse opens no section.
 
 The base level of a declared item d is the level of the last heading
 that opens a section and whose line comes before the file line of the
