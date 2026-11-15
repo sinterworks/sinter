@@ -38,7 +38,7 @@ val tree_of_chunks : (string * string list) list -> entry list
     that holds [lines], in that order, at the chunk path that the [id] of the
     object of its first line gives, in a folder [entries/<hh>] that it shares
     with the other chunks of the same [<hh>]. It raises [Invalid_argument] when
-    a chunk has no line or its first line has no [id] of the form [e-] and 12
+    a chunk has no line or its first line has no [id] of the form [e-] and 32
     hex digits. *)
 
 val tree_of_lines : string list -> entry list

@@ -25,11 +25,11 @@ let reference line =
 
 let task_line =
   "{\"by\":\"Ada Lovelace \
-   <ada@example.com>\",\"id\":\"e-0001d7a41cb7\",\"kind\":\"task\",\"seq\":1,\"v\":1}\n"
+   <ada@example.com>\",\"id\":\"e-0001d7a41cb7db6191dc42c69bda336b\",\"kind\":\"task\",\"seq\":1,\"v\":1}\n"
 
 let void_line =
   "{\"by\":\"Ada Lovelace \
-   <ada@example.com>\",\"dropped\":\"e-5b1c0a9d2e11\",\"id\":\"e-9f4ed52acf42\",\"kind\":\"void\",\"reason\":\"the \
+   <ada@example.com>\",\"dropped\":\"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c\",\"id\":\"e-0dc878fd2dc3c179e4b8fa1829666011\",\"kind\":\"void\",\"reason\":\"the \
    entry holds a secret\",\"seq\":7,\"v\":1}\n"
 
 let kind_tests =
@@ -82,7 +82,7 @@ let entry_id_tests =
     Alcotest.test_case "the entry id of the void of the design" `Quick
       (fun () ->
         Alcotest.(check string)
-          "the id" "e-9f4ed52acf42"
+          "the id" "e-0dc878fd2dc3c179e4b8fa1829666011"
           (Entry_id.of_line_object (line_object void_line) :> string));
     property ~name:"the entry id is the hash id of the object without its id"
       ~print:print_line Model.line_gen (fun line ->
@@ -91,7 +91,8 @@ let entry_id_tests =
           (Model.entry_id (reference line)));
     property ~name:"the entry id does not depend on the member id"
       ~print:(fun (line, id) -> Printf.sprintf "%S %S" line id)
-      Gen.(pair Model.line_gen (oneof_list [ "e-000000000000"; ""; "x" ]))
+      Gen.(
+        pair Model.line_gen (oneof_list [ "e-" ^ String.make 32 '0'; ""; "x" ]))
       (fun (line, id) ->
         let changed =
           Model.canonical_line
@@ -224,7 +225,7 @@ let entry_tests =
             Alcotest.(check bool)
               "dropped" true
               (Option.map Json.canonical_byte_sequence (Entry.dropped e)
-              = Some "\"e-5b1c0a9d2e11\"");
+              = Some "\"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c\"");
             Alcotest.(check bool)
               "reason" true
               (Option.map Json.canonical_byte_sequence (Entry.reason e)
@@ -238,7 +239,8 @@ let entry_tests =
                (V.Object
                   [
                     (V.Text "by", V.String (V.Text "b"));
-                    (V.Text "dropped", V.String (V.Text "e-5b1c0a9d2e11"));
+                    ( V.Text "dropped",
+                      V.String (V.Text "e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c") );
                     (V.Text "kind", V.String (V.Text "task"));
                     (V.Text "reason", V.String (V.Text "r"));
                     (V.Text "seq", V.Number "1");

@@ -4,7 +4,7 @@
 open Sinter_json_lines
 open Sinter_hash_ids
 
-let number_of_hex_digits = 12
+let number_of_hex_digits = 32
 
 let form =
   match Hash_id.form ~id_prefix:"e-" ~number_of_hex_digits with

@@ -100,7 +100,8 @@ let set_member key value obj =
   | J.Object members -> J.Object (members @ [ (J.Text key, value) ])
   | other -> other
 
-let id_digits = 12
+let id_digits = 32
+let zero_id = "e-" ^ String.make id_digits '0'
 
 let entry_id obj =
   match J.canonical (without "id" obj) with
@@ -571,7 +572,7 @@ let line_object_gen ~seq =
     if kind = "void" then
       map
         (fun d -> [ ("dropped", str d); ("reason", str "a secret") ])
-        (oneof_list [ "e-5b1c0a9d2e11"; "e-000000000000" ])
+        (oneof_list [ "e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c"; zero_id ])
     else return []
   in
   let members =
@@ -662,7 +663,8 @@ let rec entry_at tree = function
       Option.bind (List.nth_opt tree i) (fun e -> entry_at e.entries rest)
 
 let newer_line =
-  "{\"by\":\"b\",\"id\":\"e-000000000000\",\"kind\":\"task\",\"seq\":1,\"v\":2}\n"
+  "{\"by\":\"b\",\"id\":\"" ^ zero_id
+  ^ "\",\"kind\":\"task\",\"seq\":1,\"v\":2}\n"
 
 let change_object_gen o =
   let open Gen in
@@ -684,7 +686,7 @@ let change_object_gen o =
         set_member "kind" (num 1);
         set_member "kind" (str "pin");
         set_member "kind" (str "void");
-        set_member "id" (str "e-000000000000");
+        set_member "id" (str zero_id);
         set_member "id" (num 5);
         set_member "id" (J.Bool true);
         set_member "kind" (J.Array [ str "task" ]);
@@ -762,19 +764,24 @@ let damage_gen tree =
   let additions =
     [
       file "README.md" "x\n";
-      file "e-000000000000.jsonl" newer_line;
+      file (zero_id ^ ".jsonl") newer_line;
       { name = "00"; mode = "40000"; entries = []; content = None };
       { name = "entries"; mode = "40000"; entries = []; content = None };
       {
         name = "AB";
         mode = "40000";
-        entries = [ file "e-AB0000000000.jsonl" newer_line ];
+        entries =
+          [
+            file
+              ("e-AB" ^ String.make (id_digits - 2) '0' ^ ".jsonl")
+              newer_line;
+          ];
         content = None;
       };
       {
         name = "abcdefgh00";
         mode = "40000";
-        entries = [ file "e-000000000000.jsonl" newer_line ];
+        entries = [ file (zero_id ^ ".jsonl") newer_line ];
         content = None;
       };
       {

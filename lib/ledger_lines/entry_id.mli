@@ -3,7 +3,7 @@
 
 (** Entry ids, as the term [entry-id] of the design [ledger=v1] defines them.
 
-    The entry id of an object is the hash id, with the id prefix [e-] and 12 hex
+    The entry id of an object is the hash id, with the id prefix [e-] and 32 hex
     digits, of the canonical byte sequence of the object that has each member of
     that object other than the member [id], and no other member. *)
 
