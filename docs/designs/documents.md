@@ -121,7 +121,7 @@ the conformance vectors of the design is a JSON text.
 | [code character](sinter:#code-character=v1) | a character of a code file that is in no comment node and in no line ending, and that is not a space or a tab |
 | [lines of a run](sinter:#run-line=v1) | for each line that has a place of a run of a text, the places of the run on that line, and the empty lines inside the run |
 | [run of comments](sinter:#comment-run=v1) | a sequence of the comment nodes that no other comment node encloses, each of which starts on the last line of the one before it or on the next line, with only spaces, tabs, and line endings between them; a comment node that starts on a line with a code character is a run of comments by itself, and no other comment node joins that run of comments |
-| [comment line](sinter:#comment-line=v1) | a line of a tagged comment node without its comment sigils and the spaces and tabs before them; its other lines that have no sigil keep their indentation, without the spaces and tabs that they all start with |
+| [comment line](sinter:#comment-line=v1) | a line of a tagged comment node without its comment sigils and the spaces and tabs before them, or, for a line after the first that has no sigil, without the margin that all such lines share |
 | [tag text](sinter:#tag-text=v1) | the lines of a first paragraph in a markdown file, or the comment lines of the tagged comment nodes of one run of comments that has a tagged comment node in a code file, joined by line feeds |
 | [origin](sinter:#origin=v1), [origin position](sinter:#origin-position=v1) | the places of the text of a file that a part of a tag text or of a markdown text comes from; the position at which that part starts, which is the position of the `@` for the text of a tag line |
 | [file line](sinter:#file-line=v1) | a markdown line of a markdown file, or a line that a tag text of a code file joins |
@@ -469,11 +469,11 @@ So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
 prose of each [cluster](sinter:#written-line=v1) is read as markdown
-apart from the prose of the other clusters. So in a tag text, this
-holds when each tag line stays a tag line at the start of its own line,
-with the same indentation against the other lines of its cluster, and
-CommonMark 0.31.2 reads the prose of each cluster as the same blocks and
-inline elements.
+apart from the prose of the other clusters, so this holds there when
+each tag line stays a tag line at the start of its own line, with the
+same indentation against the other lines of its cluster, and CommonMark
+0.31.2 reads the prose of each cluster as the same blocks and inline
+elements.
 
 The tag lines of a cluster are written from what they name, not from
 their layout: by the [tree forms](sinter:#tree-form=v1) of their
@@ -492,11 +492,11 @@ hash text. `@cites o=v1 The rule.` and the same words over two lines
 give one hash text. The items `- [ ] @req r=v1` and `- [x] @req r=v1`
 give `r` one hash text. In the text of an item of `billing`,
 `- [ ] @cites billing=v1` gives, inside its lines `bullet list:` and
-`item:`, the lines `task: [ ]` and `tag: @cites design:billing`, and `- [x] @cites billing=v1` and
-`- [X] @cites billing=v1` both give `task: [x]` in place of
-`task: [ ]`, so a tick changes that hash text. A requirement
-moved among the items of a list of its design does not change the hash
-text of the design. The
+`item:`, the lines `task: [ ]` and `tag: @cites design:billing`, and
+`- [x] @cites billing=v1` and `- [X] @cites billing=v1` both give
+`task: [x]` in place of `task: [ ]`, so a tick changes that hash text. A
+requirement moved among the items of a list of its design does not
+change the hash text of the design. The
 [forms text](sinter:#forms-text=v1) of a design or of a specification is
 made from its Conformance part by the same written lines.
 
@@ -2458,11 +2458,12 @@ document that the steps of this term parse. A blank line is no block, and a
 link reference definition is a block. A heading of a markdown document
 that the steps of this term parse opens no section.
 
-The base level of a declared item d is the level of the last heading that opens a
-section and whose line comes before the file line of the declaration of
-d, when the file of d is a markdown file and such a heading exists, and
-otherwise 0. The own heading of a declared item d is the heading that opens a section
-whose first paragraph gives the tag text that has the declaration of d.
+The base level of a declared item d is the level of the last heading
+that opens a section and whose line comes before the file line of the
+declaration of d, when the file of d is a markdown file and such a
+heading exists, and otherwise 0. The own heading of a declared item d is
+the heading that opens a section whose first paragraph gives the tag
+text that has the declaration of d.
 
 The children of a block quote or of a list item are the blocks that it
 contains and that no other block inside it contains, in their order. The
