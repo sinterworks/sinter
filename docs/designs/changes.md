@@ -47,10 +47,10 @@ and the environment variables `GIT_DIR`, `GIT_WORK_TREE`,
 `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, and
 `GIT_ALTERNATE_OBJECT_DIRECTORIES`, with the git repository and the
 working tree that git takes from them or from the folder in which a
-program starts. From the page
-gitrepository-layout, it takes the versions of the repository format,
-the object database and its alternates, the file `shallow`, replacement
-refs, and refs in the files format. From the page git-worktree, it takes
+program starts. From the page gitrepository-layout, it takes the
+versions of the repository format, the object database and its
+alternates, the file `shallow`, replacement refs, and refs in the files
+format. From the page git-worktree, it takes
 the main working tree and the linked working trees of a repository, with
 the refs that a working tree does not share and the refs in the root of
 the hierarchy of refs. From the page gitdatamodel, it takes the parts of
@@ -152,6 +152,7 @@ JSON text.
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
 | [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it |
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
+| [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
 | partial clone | a git repository that leaves out some git objects, which it can take from the git repository at an address of a remote |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
@@ -259,13 +260,13 @@ The term `commit` defines the message of a commit, and the term
 A branch is a ref under `refs/heads/`, such as `refs/heads/main`. A
 remote-tracking branch is a ref under `refs/remotes/`, such as
 `refs/remotes/origin/main`, which records where a branch of the git
-repository at an address of a remote pointed when git last fetched it. A ref can also name another
-ref, as a symbolic ref does. The term `ref-commit` defines the commit of
-a ref, and the term `head-commit` defines the HEAD and the head commit
-of a working tree. For example, in a new repository the HEAD names a
-branch that does not exist yet, so the working tree has no head commit.
-In a colocated jj repository, the HEAD of the working tree is often
-detached.
+repository at an address of a remote pointed when git last fetched it. A
+ref can also name another ref, as a symbolic ref does. The term
+`ref-commit` defines the commit of a ref, and the term `head-commit`
+defines the HEAD and the head commit of a working tree. For example, in
+a new repository the HEAD names a branch that does not exist yet, so the
+working tree has no head commit. In a colocated jj repository, the HEAD
+of the working tree is often detached.
 
 The upstream of a branch is the ref that it tracks, often a
 remote-tracking branch. Item 1 of the term `default-branch-commit` takes
@@ -472,22 +473,22 @@ A working tree of a git repository is its main working tree or one of
 its linked working trees, as the page git-worktree defines them. It has
 a root folder, which is the root of the folder tree of the files that a
 person edits, and a folder of its own, which holds the HEAD of that
-working tree. The folder of the main
-working tree is the git folder. The folder of each linked working tree
-is its folder inside the folder `worktrees` of the git folder, as the
-pages git-worktree and gitrepository-layout give it. Git's index of a
-working tree is the file `index` in the folder of that working tree,
-other than for the working tree that git takes in the environment in
-which the program started, by the environment variables `GIT_DIR` and
-`GIT_WORK_TREE` or else from the folder in which the program started, as
-the page git gives it: when the environment variable `GIT_INDEX_FILE` is
-set there, git's index of that working tree is the file that it names.
-It is in one of the versions 2 to 4 of the format that the page
-gitformat-index gives, with the files that this format names, such as
-the shared index of a split index. The files of a working tree are the
-files of the folder tree whose root is its root folder, other than the
-file of the folder entry `.git` of the root folder and, when that file
-is a folder, the files of the folder tree whose root is that folder.
+working tree. The folder of the main working tree is the git folder. The
+folder of each linked working tree is its folder inside the folder
+`worktrees` of the git folder, as the pages git-worktree and
+gitrepository-layout give it. Git's index of a working tree is the file
+`index` in the folder of that working tree, other than for the working
+tree that git takes in the environment in which the program started, by
+the environment variables `GIT_DIR` and `GIT_WORK_TREE` or else from the
+folder in which the program started, as the page git gives it: when the
+environment variable `GIT_INDEX_FILE` is set there, git's index of that
+working tree is the file that it names. It is in one of the versions 2
+to 4 of the format that the page gitformat-index gives, with the files
+that this format names, such as the shared index of a split index. The
+files of a working tree are the files of the folder tree whose root is
+its root folder, other than the file of the folder entry `.git` of the
+root folder and, when that file is a folder, the files of the folder
+tree whose root is that folder.
 
 ### 4.3 Git configurations
 
@@ -1127,6 +1128,19 @@ fetches. A push to a remote is a transfer of git objects and refs from
 the git repository into the git repository at an address of the remote
 for a push, as the page git-push defines pushes.
 
+### 4.32 Program files
+
+@term program-file=v1
+@cites {files#{system=v1}, text#{conforming-program=v1}}
+
+The program files of a conforming program are the files that the system
+loads to start it, such as its executable file and its libraries, and
+the files that the act that installed the conforming program put on the
+system, with the files of the other programs and libraries that the same
+act put there, such as its modules, its data, and the modules of its
+libraries. A file that the program or its runtime creates as it runs,
+such as a cache of compiled code, is not a program file.
+
 ## 5. Requirements
 
 ### 5.1 The validation of branch names
@@ -1516,8 +1530,8 @@ when the change of h has no base under that binding.
 
 @req keep-repositories-unchanged=v1
 @cites {
-    #{repository-file=v1, repository-read=v1},
-    files#{system=v1, file-system=v1, attribute=v1},
+    #{repository-file=v1, repository-read=v1, program-file=v1},
+    files#{file-system=v1, attribute=v1},
     text#{conforming-program=v1},
 }
 
@@ -1525,9 +1539,7 @@ In each repository read, a conforming program, itself or through any
 program that it uses, must not create, delete, or change a repository
 file of the git repository, or change an attribute of one, other than a
 file that was open for the program when it started, such as its standard
-output; other than a file that the installation of the conforming
-program placed or that the system loads to start the conforming program,
-such as its executable file, its libraries, and its modules; and other
+output; other than a program file of the conforming program; and other
 than when the file system itself changes an attribute of a file that the
 program uses, such as its time of last access.
 
@@ -1547,7 +1559,7 @@ partial clone can take the git objects that it leaves out.
 @req read-only-repository-files=v1
 @cites {
     posix/2024,
-    #{repository-file=v1, repository-read=v1},
+    #{repository-file=v1, repository-read=v1, program-file=v1},
     files#{
         system=v1, symbolic-link=v1, file-of-another-kind=v1,
         taken-byte=v1,
@@ -1561,10 +1573,8 @@ the git repository; from the symbolic links on the pathnames by which it
 reaches them; from a pipe between it and a program that it uses; from a
 file or a pipe that was open for the program when it started, such as
 its standard input; from a file that it created in that execution; from
-a file that the installation of the conforming program placed or that
-the system loads to start the conforming program, such as its executable
-file, its libraries, and its modules; and from the files that the system
-or the libraries of any program read to run it.
+a program file of the conforming program; and from the files that the
+system or the libraries of a program read to run it.
 
 ### 5.26 No permission or privilege that the process did not have
 
@@ -1595,6 +1605,7 @@ acts for it.
     #{
         git-configuration=v1, git-folder=v1, working-tree=v1,
         repository-read=v1, repository-value=v1, remote-transfer=v1,
+        program-file=v1,
     },
     files#{system=v1, folder-tree=v1, symbolic-link=v1},
     text#{conforming-program=v1, code-span=v1},
@@ -1608,14 +1619,13 @@ to in that execution (these git repositories): a hook that the page
 githooks defines; a program that is a file of the folder tree of the git
 folder of the git repository or a file of a working tree of it, or that
 it reaches through a symbolic link that is such a file (a file of these
-git repositories), other than a file that the installation of the
-conforming program placed or that the system loads to start the
-conforming program, such as its executable file, its libraries, and its
-modules, while a program that another installation placed, such as `git`
-or `ssh`, has no such exemption; and a program or command that the git
-configuration of the git repository or of a working tree of it names,
-gives, or causes to run, such as a filter, the command of the setting
-`core.fsmonitor`, or the command of an address `ext::<command>`. In a
+git repositories), other than a program file of the conforming program,
+where a program that another act of installing put on the system, such
+as `git` or `ssh` installed on their own, is not one; and a program or
+command that the git configuration of the git repository or of a working
+tree of it names, gives, or causes to run, such as a filter, the command
+of the setting `core.fsmonitor`, or the command of an address
+`ext::<command>`. In a
 fetch into a git repository from a remote of it, or in a push from a git
 repository to a remote of it, it may still run the programs that make
 that fetch or push as they are set up outside these git repositories,
@@ -1648,9 +1658,9 @@ not a program that runs in this sense.
     gitdoc/gitattributes,
     #{
         git-folder=v1, working-tree=v1, git-configuration=v1,
-        ignored-path=v1, repository-read=v1,
+        ignored-path=v1, repository-read=v1, program-file=v1,
     },
-    files#{system=v1, symbolic-link=v1},
+    files#{symbolic-link=v1},
     text#{conforming-program=v1},
 }
 
@@ -1662,9 +1672,7 @@ working tree of it, to the file `info/exclude` of the git folder, to the
 excludes file of a working tree of it, to a file of git attributes that
 the page gitattributes gives for the git repository or for a working
 tree of it other than as a file `.gitattributes` in a folder of a
-working tree, or to a file that the installation of the conforming
-program placed or that the system loads to start the conforming program,
-such as its executable file, its libraries, and its modules: it must
+working tree, or to a program file of the conforming program: it must
 find no file by the reference of such a symbolic link.
 
 ### 5.29 No wait on a repository file
