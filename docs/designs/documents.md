@@ -474,34 +474,27 @@ stays a tag line at the start of its own line and the prose of each
 cluster gives the same blocks and inline elements.
 
 The tag lines of a cluster are written from what they name, not from
-their layout. Each citation entry gives one line with its
-[tree form](sinter:#tree-form=v1): the kind word of the item that it
-names, `:`, and the name of that item, then the vector selection of the
-entry, and `#*` for an every-part target. The tree form holds no
-revision. A name that starts with `#` gets the name of the home design
-of its citation before it, also when it names no item. The lines stand in the
-order of the Sinter tag words, and the lines of one tag word in code
-point order, each once. So in the design `billing`, when `amount` and
+their layout: by the [tree forms](sinter:#tree-form=v1) of their
+citation entries, and by the
+[canonical identifiers](sinter:#item-canonical-id=v1) of the items
+that they declare. So in the design `billing`, when `amount` and
 `limit` are requirements, `@cites #{amount=v1, limit=v2}`, the same two
 entries on two `@cites` lines in the other order, and
 `@cites {req:billing#limit=v1, billing#amount=v3}` give the same two
 lines, `tag: @cites req:billing#amount` and
-`tag: @cites req:billing#limit`. An entry that names no declared item,
-such as `gh/42`, keeps its own kind word, or none. The declaration of
-another item gives the [canonical identifier](sinter:#item-canonical-id=v1)
-of that item, such as `tag: @req req:billing#limit`. The inline
-descriptions of the tag lines of a cluster are read with the prose after
-them, so `@cites o=v1 The rule.` and the same words over two lines give
-one hash text. A task marker before the declaration of an item, such as
-`[x]` in `- [x] @req r=v1`, is not in the hash text of that item. A task
-marker before another tag line, other than an `@ack` line, gives a line
-such as `task: [x]`, with `[X]` written as `[x]`, in the hash text of
-each item whose hashed lines hold its line, so a tick changes that hash
-text. A task marker before prose is in the written text of that prose.
-The hash text of
-an item of the kind design holds no line of an item that belongs to it,
-so the place of such an item among the blocks of the file, such as among
-the items of a list, is not in the hash text of the design. The
+`tag: @cites req:billing#limit`. In the same design, `@cites gh/42`
+gives `tag: @cites gh/42`, and `@verifies billing[1]=v1` gives
+`tag: @verifies design:billing[1]`. A specification that holds the
+requirement `limit` has the line `tag: @req req:billing#limit` in its
+hash text. `@cites o=v1 The rule.` and the same words over two lines
+give one hash text. The items `- [ ] @req r=v1` and `- [x] @req r=v1`
+give `r` one hash text. In the text of an item of `billing`,
+`- [ ] @cites billing=v1` gives the lines `task: [ ]` and
+`tag: @cites design:billing`, and `- [x] @cites billing=v1` and
+`- [X] @cites billing=v1` both give `task: [x]` in place of
+`task: [ ]`, so a tick changes that hash text. A requirement
+moved among the items of a list of its design does not change the hash
+text of the design. The
 [forms text](sinter:#forms-text=v1) of a design or of a specification is
 made from its Conformance part by the same written lines.
 
@@ -1460,10 +1453,10 @@ give.
 3. Let *l* be the line of the text of the file of *a* that starts at or
    before the boundary where *r* starts and that ends at or after that
    boundary.
-4. If each character of the run of that text from the boundary where *l*
-   starts to the boundary where *r* starts is a space or a tab, set *r*
-   to the run of that text from the boundary where *l* starts to the
-   boundary where *r* ends.
+4. If each character of the run of the text of the file of *a* from the
+   boundary where *l* starts to the boundary where *r* starts is a space
+   or a tab, set *r* to the run of the text of the file of *a* from the
+   boundary where *l* starts to the boundary where *r* ends.
 5. Let *shared* be the shared indentation of *r*.
 6. Let *c* be the empty text.
 7. For each *x* of the lines of the run *r*, in order:
@@ -1542,8 +1535,9 @@ In a tree, for a home design h, which is an item of the kind design of
 the tree, or the empty text for no home design, each of these texts
 names one item or nothing: the entry name of a citation entry of an
 accepted citation, and the text that `name` or `external-ref` matches in
-the match of an input that is the destination of an inline citation,
-whether or not that inline citation is an accepted input. The home
+the match of the destination of an inline citation, when that match is a
+match of an input, whether or not that inline citation is an accepted
+input. The home
 design h only gives the set in which rule 4 looks; it is no fact about
 the item that the text names. For h, such a text names the item that the
 first of these rules that applies gives:
@@ -1568,7 +1562,8 @@ text of an accepted inline citation, name what they name for the home
 design of that citation or inline citation, or for the empty text when
 it has none. A name that two or more items of the set in which a rule
 looks for it have names none of them, and a name that no item of that
-set has names nothing. Two names are the same name only when they are the same text.
+set has names nothing. Two names are the same name only when they are
+the same text.
 
 ### 4.36 Vector files
 
