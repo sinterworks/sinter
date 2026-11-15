@@ -142,10 +142,10 @@ the conformance vectors of the design is a JSON text.
 | [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#written-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
-| [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of the lines of a tag text other than its `@ack` lines and continuation lines, from one cut to the next, where a cut comes before a tag line that comes right after prose, and before a declaration of a declared item when the cluster already holds one |
+| [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of lines of a tag text that the term cuts at declarations and after prose |
 | [kind word of a declared item](sinter:#item-kind-word=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement |
 | [canonical identifier of a declared item](sinter:#item-canonical-id=v1) | the kind word of a declared item, `:`, and its name, such as `req:billing#limit-amount` |
-| [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry, or of the target of an inline citation, with a home design: with the name of that home design as the slug, and with the kind word of the declared item that its entry name names with that home design, or, when it names no declared item, with its own kind word or none, such as `req:billing#limit-amount` for `#limit-amount=v2` with the home design `billing`; a citation entry of a tag line takes the home design of its citation, and a valid inline citation in a hash text takes that of the declaration of the item |
+| [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry, or of the target of an inline citation, for a home design, such as `req:billing#limit-amount` for `#limit-amount=v2` with the home design `billing` |
 | [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line for a declared item: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:req:packs#size-limit}}`, where the destination of a valid inline citation is `sinter:` and a tree form, with `\`, `{`, `}`, and line feeds escaped |
 | [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
 | [forms text](sinter:#forms-text=v1) | the text of the written lines that the Conformance part of a design or of a specification gives, without its headings, the lines of the items that belong to the design, and the vector lines that it shows, each followed by a line feed |
@@ -445,9 +445,8 @@ would stand in that site.
 The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
 of the UTF-8 encoding of its hash text. The term `extent-hash` gives the
 hash text from the [hashed lines](sinter:#written-line=v1) of the item:
-from what
-CommonMark 0.31.2 reads in them, and from its tag lines, as Sinter reads
-them. Each [written line](sinter:#written-line=v1) and each
+from what CommonMark 0.31.2 reads in them, and from its tag lines, as
+Sinter reads them. Each [written line](sinter:#written-line=v1) and each
 [written tag line](sinter:#written-line=v1) has a mark, such as
 `heading:`, `paragraph:`, or `tag:`, and the written lines of the blocks
 inside a block quote, a list, or a list item stand two spaces deeper.
@@ -456,11 +455,12 @@ Inline elements are written on one line as their
 `*steps*` and for `_steps_`. The destination of a valid inline citation
 is written as `sinter:` and its tree form, with the home design of the
 declaration of the item whose hash text it is. So in the design
-`billing`, when `limit` is a requirement, `[the limit](sinter:#limit=v2)`
-and `[the limit](sinter:spec:billing#limit=v1)` both give
-`{link{the limit}{sinter:req:billing#limit}}`. For example, for the requirement of
-section 2.2, the hash text is the line `heading: Amount limit` and the
-line
+`billing`, when `limit` is a requirement,
+`[the limit](sinter:#limit=v2)` and
+`[the limit](sinter:spec:billing#limit=v1)` both give
+`{link{the limit}{sinter:req:billing#limit}}`. For example, for the
+requirement of section 2.2, the hash text is the line
+`heading: Amount limit` and the line
 `paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
 each with a line feed after it. Its extent hash is
 `1e77c01469ff12271c9f8edf96f64665af7da043b375abb1a390cd9a300b9ad2`.
@@ -1538,15 +1538,14 @@ conformance vectors, or a vector set.
     #{accepted-input=v1, name-set=v1, home-design=v1, slug-design=v1},
 }
 
-In a tree, the entry name of a citation entry of an accepted citation,
-and the text that `name` or `external-ref` matches in the match of the
-destination of an accepted inline citation, or in the match of an input
-of the destination of another inline citation, each name one item or
-nothing with a home design, which is an item of the kind design or none.
-For an accepted citation or an accepted inline citation, that home
-design is the home design of the citation or of the inline citation,
-when it has one, and otherwise none. They name, by the first of these
-rules that applies:
+In a tree, for a home design h, which is an item of the kind design or
+the empty text, each of these texts names one item or nothing: the entry
+name of a citation entry of an accepted citation, and the text that
+`name` or `external-ref` matches in the match of an input that is the
+destination of an inline citation, whether or not that inline citation
+is an accepted input. The home design h only gives the set in which rule
+4 looks; it is no fact about the item that the text names. For h, such a
+text names the item that the first of these rules that applies gives:
 
 1. When the match of the citation entry, or of the destination, uses
    `external-ref`: the text is an external id, with its `#` and part
@@ -1559,11 +1558,14 @@ rules that applies:
 3. A full name names the item of the set of the design of its slug
    whose name is that full name. When its slug has no design, it names
    nothing.
-4. `#` and a part name p name the item, in the set of that home design,
-   whose name is the name of that home design, `#`, and p. With no home
-   design, they name nothing.
+4. `#` and a part name p name the item, in the set of h, whose name is
+   the name of h, `#`, and p. When h is the empty text, they name
+   nothing.
 
-A name that two or more items of the set in which a rule looks for it
+The entry name of a citation entry of an accepted citation, and that
+text of an accepted inline citation, name what they name for the home
+design of that citation or inline citation, or for the empty text when
+it has none. A name that two or more items of the set in which a rule looks for it
 have names none of them, and a name that no item of that set has names
 nothing. Two names are the same name only when they are the same text.
 
@@ -2391,8 +2393,8 @@ is the text that these steps give.
 1. Let *s* be the empty text.
 2. If *h* is an item of the kind design, set *s* to the name of *h*.
 3. Let *k* be the empty text.
-4. If the entry name of *c* names a declared item with *h* as its home
-   design, set *k* to the kind word of that declared item.
+4. If the entry name of *c* names a declared item for the home design
+   *h*, set *k* to the kind word of that declared item.
 5. Otherwise:
    1. If *c* starts with a kind word, set *k* to that kind word.
 6. Give the canonical form of *c* with *s* and *k*.
