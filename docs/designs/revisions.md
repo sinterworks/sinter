@@ -316,10 +316,10 @@ bindings and its set of stopped files:
 Under a binding of `file-readers`, a binding of `external-namespaces`,
 and a set of stopped files of a tree, the tree has one tree finding of
 the class `suspect` for each edge that the tree has under these bindings
-and this set and that is suspect in the tree. Its subject is the position subject of
-the origin position of the citation entry or of the inline citation of
-the edge. Its spot is the spot of the run of that citation entry or
-inline citation in the text of the file of the edge.
+and this set and that is suspect in the tree. Its subject is the
+position subject of the origin position of the citation entry or of the
+inline citation of the edge. Its spot is the spot of the run of that
+citation entry or inline citation in the text of the file of the edge.
 
 ## 4. Requirements
 
