@@ -182,10 +182,13 @@ A program reads the ledger of a git repository from its ledger objects
 (term `ledger-object`). A git repository can lack some of them, as a
 partial clone can lack blobs. A program may fetch the ledger objects and
 the history objects that the git repository lacks, as a partial clone
-can; nothing requires or forbids it. A program that does not fetch them
-gives no result for whether the ledger is valid, no ledger entry of it,
-and no state at a point of it (requirements `give-stored-ledgers`,
-`validate-ledgers`, and `give-states-only-from-valid-ledgers`).
+can; nothing requires or forbids it. A program that does not fetch the
+ledger objects that the git repository lacks gives no result for whether
+the ledger is valid, no ledger entry of it, and no state at a point of it
+(requirements `give-stored-ledgers`, `validate-ledgers`, and
+`give-states-only-from-valid-ledgers`). A program that does not fetch the
+history objects that it lacks gives no result for whether the history is
+intact (requirement `validate-histories`).
 
 The ledger of a git repository that holds its ledger objects is newer,
 valid, or broken (term `ledger-validity`). For example, a ledger ref
@@ -312,11 +315,12 @@ valid. A repair of a broken ledger can remove no line, when it only puts
 the lines in the form of a valid ledger tree. No program repairs a newer
 ledger (requirement `repair-no-newer-ledgers`). The requirement
 `repair-ledgers-with-voids` gives the commit that a repair makes: each
-line that the repair keeps keeps its bytes, and each removed line that
-has an `id` gets a void whose `dropped` is that `id`, which, in a valid
-ledger, takes the `seq` of that line. So no ledger entry that the repair keeps changes its
-`seq` or its `id`, and, because the new history is intact, no commit of
-it holds a ledger entry that the repair removed.
+line that the repair keeps keeps its bytes, and, for each text that is
+the `id` of a removed line, the new commit holds one void whose
+`dropped` is that text, which takes the `seq` of the removed line when
+the requirement gives that `seq`. So no ledger entry that the repair
+keeps changes its `seq` or its `id`, and, because the new history is
+intact, no commit of it holds a ledger entry that the repair removed.
 
 When the shared clone pulls from no shared clone of its own and has a
 ledger commit, a program changes the ledger ref of the shared clone to a
