@@ -93,8 +93,8 @@ numbers, whole numbers, code spans, code point order, and what a
 conforming program and a result are. From Files and
 paths (`files`), it takes the system, file systems, folder trees,
 folders and their folder entries, regular files and their contents,
-symbolic links, files of another kind, the attributes of a file, the
-bytes that a program takes from a file, valid paths and their file
+symbolic links, files of another kind, the bytes that a program takes
+from a file, valid paths and their file
 names, the files and the folders of the path of a valid path in a folder
 tree, and file objects, folder tree objects, and stored folder trees,
 the forms in which the vectors write folder trees. From the Ontology
@@ -190,8 +190,8 @@ JSON text.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, nor part of one |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, changes a repository file of the git repository, other than a file of a working tree from whose files the read takes no bytes |
+| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch of git objects that the git repository does not hold and that a repository read uses is part of one |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, changes a repository file of the git repository, other than a file of a working tree from whose files the read takes no bytes; a change by which the program only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -212,9 +212,10 @@ disk, git's index, and the ignore rules. The term `commit` defines which
 git objects a git repository holds and the parents of its commits, also
 in a shallow clone, which leaves out the parents of some commits. A
 partial clone leaves out some git objects, which git can take from the
-git repository at an address of a remote; in a repository read, the
-requirement `take-objects-only-from-repositories` keeps a program from
-taking them.
+git repository at an address of a remote. A program can take them by a
+fetch in a repository read, which the term `repository-read` makes part
+of that read; a program that does not take them gives no result that
+depends on them, as for a read that fails.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -411,11 +412,10 @@ at its old path and of a file added at its new path. The term
 
 ### 2.8 What a program guarantees
 
-The requirements `keep-repositories-unchanged`,
-`take-objects-only-from-repositories`, `read-only-repository-files`,
-`gain-no-repository-privileges`, `follow-no-working-tree-links`, and
-`avoid-working-tree-waits` state what a conforming program must not do
-in each repository read, and the requirement
+The requirements `read-only-repository-files`,
+`gain-no-repository-privileges`, and `follow-no-working-tree-links`
+state what a conforming program must not do in each repository read,
+and the requirement
 `run-no-configured-programs` states what it must not run. What a program
 gives in a repository read that is not undisturbed, as the term
 `undisturbed-read` defines it, is not specified, and these requirements
@@ -1041,9 +1041,13 @@ A repository read is an operation in which a program takes, from a git
 repository or from a working tree of it, one or more things that a term
 of this design defines, such as a commit, the files of a tree, or the
 hunks of a valid path, to give them or to use them. A fetch, a push, and
-a change of a ref that the program makes, with the git objects that it
-writes for that change, are not repository reads, and none of them is
-part of one.
+a change of a ref that the program makes are not repository reads. A
+fetch that the program makes, itself or through any program that it
+uses, to take git objects that the git repository does not hold and that
+a repository read uses, such as git objects that a partial clone leaves
+out, is part of that repository read; no other fetch, no push, and no
+change of a ref that the program makes, with the git objects that it
+writes for that change, is part of one.
 
 ### 4.28 Undisturbed repository reads
 
@@ -1051,13 +1055,20 @@ part of one.
 @cites {
     posix/2024,
     files#{taken-byte=v1},
-    #{repository-read=v1, working-tree=v1, repository-file=v1},
+    #{
+        repository-read=v1, working-tree=v1, repository-file=v1, commit=v1,
+        working-tree-file=v1,
+    },
 }
 
 A repository read is undisturbed when no process, the program that makes
 it included, changes a repository file of the git repository during the
 repository read, other than a file of a working tree from whose files
-the repository read takes no bytes.
+the repository read takes no bytes. A change by which the program,
+itself or through any program that it uses, only adds git objects to an
+object database of the git repository, or writes git's index of a
+working tree again so that it holds an entry for the same byte paths, as
+the term `working-tree-file` gives these words, does not count.
 
 ### 4.29 Repository files
 
@@ -1526,40 +1537,15 @@ conforming program must give a diff of the change of h under that
 binding when the change of h has a base, and give that it has no diff
 when the change of h has no base under that binding.
 
-### 5.23 No change to the repository
-
-@req keep-repositories-unchanged=v1
-@cites {
-    #{repository-file=v1, repository-read=v1, program-file=v1},
-    files#{file-system=v1, attribute=v1},
-    text#{conforming-program=v1},
-}
-
-In each repository read, a conforming program, itself or through any
-program that it uses, must not create, delete, or change a repository
-file of the git repository, or change an attribute of one, other than a
-file that was open for the program when it started, such as its standard
-output; other than a program file of the conforming program; and other
-than when the file system itself changes an attribute of a file that the
-program uses, such as its time of last access.
-
-### 5.24 Git objects only from the repository
-
-@req take-objects-only-from-repositories=v1
-@cites {#{commit=v1, repository-read=v1}, text#{conforming-program=v1}}
-
-In each repository read, a conforming program, itself or through any
-program that it uses, must take each git object that it uses from the
-git objects that the git repository holds, and none from any other
-place, such as the git repository at an address of a remote from which a
-partial clone can take the git objects that it leaves out.
-
-### 5.25 Bytes only from the files of the repository
+### 5.23 Bytes only from the files of the repository
 
 @req read-only-repository-files=v1
 @cites {
     posix/2024,
-    #{repository-file=v1, repository-read=v1, program-file=v1},
+    #{
+        repository-file=v1, repository-read=v1, program-file=v1,
+        remote-transfer=v1,
+    },
     files#{
         system=v1, symbolic-link=v1, file-of-another-kind=v1,
         taken-byte=v1,
@@ -1573,10 +1559,13 @@ the git repository; from the symbolic links on the pathnames by which it
 reaches them; from a pipe between it and a program that it uses; from a
 file or a pipe that was open for the program when it started, such as
 its standard input; from a file that it created in that execution; from
-a program file of the conforming program; and from the files that the
-system or the libraries of a program read to run it.
+a program file of the conforming program; from the files that the
+system or the libraries of a program read to run it; and, in a fetch
+from a remote that is part of the repository read, from the git
+repository at an address of that remote for a fetch, and from the
+programs and the connections through which that fetch reaches it.
 
-### 5.26 No permission or privilege that the process did not have
+### 5.24 No permission or privilege that the process did not have
 
 @req gain-no-repository-privileges=v1
 @cites {
@@ -1594,7 +1583,7 @@ not one that it gets by changing the user IDs, the group IDs, or the
 appropriate privileges of its process, or through another process that
 acts for it.
 
-### 5.27 No program or command that a git repository supplies
+### 5.25 No program or command that a git repository supplies
 
 @req run-no-configured-programs=v1
 @cites {
@@ -1650,7 +1639,7 @@ git repository is at a local path. Code that runs isolated from the rest
 of the process of the program, as WebAssembly code runs in a sandbox, is
 not a program that runs in this sense.
 
-### 5.28 No symbolic link followed in a working tree
+### 5.26 No symbolic link followed in a working tree
 
 @req follow-no-working-tree-links=v1
 @cites {
@@ -1674,21 +1663,6 @@ tree of it other than as a file `.gitattributes` in a folder of a
 working tree, or to a program file of the conforming program: it must
 find no file by the reference of such a symbolic link.
 
-### 5.29 No wait on a repository file
-
-@req avoid-working-tree-waits=v1
-@cites {
-    #{repository-file=v1, repository-read=v1},
-    files#{file-of-another-kind=v1},
-    text#{conforming-program=v1},
-}
-
-In each repository read, a conforming program, itself or through any
-program that it uses, must not wait for another process or for a device
-to act on a file of another kind that is a repository file of the git
-repository, such as for a process to open the other end of a pipe, other
-than a file that was open for the program when it started.
-
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
@@ -1704,10 +1678,9 @@ as `hunks`, and a subsection below. The subsection names the
 requirements that the vectors of the group follow from, and it describes
 their inputs, results, and values. Each vector of a group follows from
 one or more of these requirements. No vector follows from the
-requirements `use-one-line-map`, `keep-repositories-unchanged`,
-`take-objects-only-from-repositories`, `read-only-repository-files`,
-`gain-no-repository-privileges`, `run-no-configured-programs`,
-`follow-no-working-tree-links`, and `avoid-working-tree-waits`.
+requirements `use-one-line-map`, `read-only-repository-files`,
+`gain-no-repository-privileges`, `run-no-configured-programs`, and
+`follow-no-working-tree-links`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as the base of the change of a
