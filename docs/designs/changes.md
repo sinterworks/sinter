@@ -1619,12 +1619,16 @@ program when it started, such as its standard output.
 @req read-only-repository-files=v1
 @cites {
     posix/2024,
+    gitdoc/git-config,
     #{
         repository-file=v1, repository-read=v1, program-file=v1,
         remote-transfer=v1, repository-value=v1,
     },
-    files#{system=v1, symbolic-link=v1, taken-byte=v1},
-    text#{conforming-program=v1},
+    files#{
+        system=v1, symbolic-link=v1, taken-byte=v1, folder=v1,
+        folder-tree=v1,
+    },
+    text#{conforming-program=v1, code-span=v1},
 }
 
 In each repository read, a conforming program, itself or through any
@@ -1637,16 +1641,20 @@ program that it uses, must take bytes only from these:
    input;
 3. a file that it created in that execution;
 4. a program file of the conforming program;
-5. in a fetch from a remote that is part of the repository read, the git
-   repository at an address of that remote for a fetch, and the
-   connections through which that fetch reaches it;
+5. in a fetch from a remote, when that fetch is part of the repository
+   read, the git repository at an address of that remote for a fetch,
+   and the connections through which that fetch reaches it;
 6. a file that the system or the libraries of a program read to run that
    program, and, in a fetch that is part of the repository read, a file
    that a program that makes that fetch reads as it is set up, such as
    the configuration and the keys of an SSH client or the store of a
-   credential helper; in each case other than a file whose pathname a
-   value from the git repository gives, or a file in a folder whose
-   pathname such a value gives.
+   credential helper.
+
+A file is no file of item 6 when the program that reads it reaches that
+file, or a folder whose folder tree holds that file, by a pathname made
+from a value from the git repository, such as the file that the setting
+`http.cookieFile` names; such a file is still a file of item 1 when it
+is a repository file.
 
 ### 5.25 No permission or privilege that the process did not have
 
@@ -1737,7 +1745,7 @@ that runs in this sense.
         ignored-path=v1, repository-read=v1, program-file=v1,
         remote-transfer=v1, repository-value=v1,
     },
-    files#{symbolic-link=v1},
+    files#{symbolic-link=v1, folder=v1, folder-tree=v1},
     text#{conforming-program=v1},
 }
 
@@ -1751,10 +1759,10 @@ the page gitattributes gives for the git repository or for a working
 tree of it other than as a file `.gitattributes` in a folder of a
 working tree, to a program file of the conforming program, or, in a
 fetch that is part of the repository read, to a file that a program that
-makes that fetch reads as it is set up, other than a file whose pathname
-a value from the git repository gives or a file in a folder whose
-pathname such a value gives: it must find no file by the reference of
-such a symbolic link.
+makes that fetch reads as it is set up, when that program reaches
+neither that file nor a folder whose folder tree holds that file by a
+pathname made from a value from the git repository: it must find no
+file by the reference of such a symbolic link.
 
 ## 6. Conformance
 
