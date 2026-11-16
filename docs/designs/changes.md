@@ -192,7 +192,7 @@ of its Conformance section name.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read |
+| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read; no push, and no other change of a ref, is part of one; a read lasts from the first time that the program takes bytes or uses a pathname for it until the last such time |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read whose file is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a new loose object or a new pack, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; an own change keeps a read undisturbed only when its file is not a file of a working tree |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
@@ -1042,8 +1042,9 @@ has no diff.
 
 @term repository-read=v1
 @cites {
+    posix/2024,
     ontology#{tree=v1},
-    files#{path=v1},
+    files#{path=v1, taken-byte=v1},
     #{
         working-tree=v1, commit=v1, ref-commit=v1, hunk=v1,
         remote-transfer=v1,
@@ -1060,7 +1061,11 @@ git repository that the program makes, itself or through any program
 that it uses, during a repository read is part of that repository read,
 such as a fetch of git objects that a partial clone leaves out and that
 the repository read uses; no push, and no other change of a ref, is part
-of one.
+of one. A repository read lasts from the first time that the program,
+itself or through any program that it uses, takes bytes or uses a
+pathname for it until the last such time. What the program does after
+that time, such as giving its result, is not part of the repository
+read.
 
 ### 4.28 Undisturbed repository reads
 
