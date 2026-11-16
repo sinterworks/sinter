@@ -1066,8 +1066,7 @@ runs the vectors, and compares what a program gives with them, is the
 runner. The vectors are in groups. Each group has a name, such as
 `paths`, and a subsection below. The subsection names the requirements
 that the vectors of the group follow from, and it describes their
-inputs, results, and values. Each vector of a group follows from one or
-more of these requirements.
+inputs, results, and values.
 
 The vector file is valid UTF-8. Its text does not start with U+FEFF, it
 holds no carriage return, and it ends with a line feed. Each line of the
@@ -1091,10 +1090,7 @@ The JSON object of a vector line has these members:
 
 - `n`: the number of the vector, a JSON number written as the decimal
   numeral of a whole number from 1 to 9,007,199,254,740,991. No other
-  vector of the vector file has this number. A number is given to one
-  vector only: when a vector leaves the vector file, no later vector
-  gets its number, and a new vector gets a number greater than each
-  number before it.
+  vector of the vector file has this number.
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the inputs of the vector: what a conforming program takes or
@@ -1132,21 +1128,8 @@ The JSON object of a vector line has these members:
   only when it has an explanation.
 
 A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises to a greater number after its `v`. The revision
-of a vector rises when its group, its input, its result, or its values
-change. The revision of a group rises when a vector joins the group,
-leaves it, or changes in it. The revision of the set rises when a vector
-joins the set, leaves it, or changes. A group that comes back after it
-left gets a revision with a greater number than each revision that it
-had before. When the text of this section changes, the revisions of
-every vector, every group, and the set rise. A change of the member
-`note` or the member `needs` of a vector, and of no other member,
-changes no revision. The addition or the removal of one of these members
-is such a change. The runner does not need the revisions to run the
-vectors.
+number of 1 or more, such as `"v1"`. The runner does not need the
+revisions to run the vectors.
 
 A vector writes each input and each value in a fixed form. Inside the
 members `input` and `values`, a folder tree is a folder tree object
