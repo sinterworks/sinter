@@ -546,7 +546,8 @@ let tests =
   @ [
       Vectors.covers "identifiers" set
         (Test_identifier_patterns.vector_groups
-       @ Test_identifier_lines.vector_groups @ vector_groups);
+       @ Test_identifier_lines.vector_groups @ vector_groups
+       @ Test_canonical_entries.vector_groups);
       Alcotest.test_case "the texts of the line vectors hold no link" `Quick
         line_texts_hold_no_link;
       Alcotest.test_case "links in CommonMark blocks and inlines" `Quick

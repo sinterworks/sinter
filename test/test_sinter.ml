@@ -66,6 +66,7 @@ let () =
       ("id patterns", Test_identifier_patterns.tests);
       ("tag lines", Test_identifier_lines.tests);
       ("inline citations", Test_inline_citations.tests);
+      ("canonical entries", Test_canonical_entries.tests);
       ("plan target", Test_plan_target.tests);
       ("delivery line", Test_delivery_line.tests);
       ("section number", Test_section_number.tests);
