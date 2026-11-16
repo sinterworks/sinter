@@ -113,7 +113,6 @@ case-sensitive strings of RFC 7405.
 | [key order](sinter:#key-order=v1) | the order of texts by their UTF-16 code units, in which the members of an object stand in its canonical form |
 | [canonical form](sinter:#canonical-form=v1) | the one text that the rules of the canonical form give for a JSON value |
 | [string form](sinter:#canonical-form=v1) | the text that stands for one character of a string in the canonical form of the string, such as `\n` for the line feed and `a` for `a` |
-| escape sequence | a `\` and the characters that TOML 1.1.0 or RFC 8259 reads with it as one escape, such as `\n`, which stands for the line feed, or `\q`, which TOML 1.1.0 reserves |
 | [canonical byte sequence](sinter:#canonical-byte-sequence=v1) | the UTF-8 encoding of the canonical form of a JSON value |
 | [hash](sinter:#hash=v1) | the hex text of the digest that SHA-256 gives for a byte sequence: 64 hex digits |
 | [scalar](sinter:#line-object=v1) | a string, an integer, or a boolean |
@@ -122,11 +121,7 @@ case-sensitive strings of RFC 7405.
 | [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
 | [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when the byte sequence is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text has no value `null`, no number with a fraction or an exponent or outside the range of an integer, no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two that write the UTF-16 code units of one character, and no object with two names that stand for the same text |
 | [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, that has no value error, and whose keys, tables, and strings break no statement of TOML 1.1.0 |
-| key/value pair, inline table, table header, quoted key, basic string, multi-line basic string, literal string, multi-line literal string | the runs of the text of a document that TOML 1.1.0 calls by these names |
-| integer of TOML 1.1.0, float of TOML 1.1.0 | the runs of the text of a document that TOML 1.1.0 calls integers and floats, such as `-17` and `1e400`; the integer part and the exponent part of a float are not integers of TOML 1.1.0 |
-| string of TOML 1.1.0, array of TOML 1.1.0 | the runs of the text of a document that TOML 1.1.0 calls strings and arrays, such as `"a"` and `[1, 2]` |
-| value of TOML 1.1.0 | a run of the text of a document that the rule `val` of TOML 1.1.0 matches, such as the value of a key/value pair or an element of an array of TOML 1.1.0 |
-| array of tables | what TOML 1.1.0 calls an array of tables: a TOML array that table headers with double brackets, such as `[[a]]`, make; the table header of an array of tables is such a table header |
+| key/value pair, table header, inline table, array of tables, quoted key, basic string, multi-line basic string, literal string, multi-line literal string, escape sequence, newline; integer, float, string, array, and value of TOML 1.1.0 | the things that TOML 1.1.0 calls by these names; in a JSON text, an escape sequence is what RFC 8259 calls by that name |
 | [TOML key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"` |
 | [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; these are the TOML keys of the dotted key |
 | [key of a key/value pair](sinter:#toml-key=v1), [key of a table header](sinter:#toml-key=v1) | the key of TOML 1.1.0 in it: a TOML key or a dotted key |
@@ -135,7 +130,6 @@ case-sensitive strings of RFC 7405.
 | [local date](sinter:#toml-value=v1), [local time](sinter:#toml-value=v1), [local date-time](sinter:#toml-value=v1), [offset date-time](sinter:#toml-value=v1) | the TOML values of TOML 1.1.0 that have these names |
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
 | [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
-| newline | in a document, a line feed, or a carriage return and a line feed: the name of TOML 1.1.0 for a line ending |
 | [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the byte order mark and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
 | [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
 | [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
