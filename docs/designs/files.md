@@ -32,8 +32,8 @@ types, such as a directory, a regular file, and a symbolic link; the
 directory entries of a directory, and the names `.` and `..` in a
 directory; pathnames and pathname resolution; the search permission, the
 read permission, and the write permission of a process for a file, the
-owner of a file, and the time of last access of a file; and the user
-IDs, the group IDs, and the appropriate privileges of a process.
+owner of a file, and the time of last access of a file; and the user IDs
+and the appropriate privileges of a process.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`: each
@@ -139,28 +139,6 @@ symbolic link. In POSIX.1-2024, the names `.` and `..` in a directory
 lead to the directory itself and to the directory above it. So the name
 `..` does not make the folder above the root a file of the folder tree.
 
-A program takes a byte from a file when it copies into the program a
-byte that the file holds or gives: a byte of the content of a regular
-file, of the names of the directory entries of a folder, of the
-reference of a symbolic link, of the data of a file of another kind, or
-of the value of an extended attribute of the file. Copying another
-attribute of a file into the program, such as its size or its mode,
-takes no bytes from that file.
-
-The search permission of a program for a folder lets the program look up
-names in the folder. The read permission of a program for a regular file
-lets the program take the bytes of the content, and the read permission
-for a folder lets the program take the names of the directory entries of
-the folder. These are the permissions of the process of the program, as
-POSIX.1-2024 defines them.
-
-An attribute of a file is a property of the file other than the content
-of a regular file, the folder entries of a folder, the reference of a
-symbolic link, and the data of a file of another kind. Examples of
-attributes are the file type of a file, as POSIX.1-2024 defines the
-file types, its size, its mode, its owner, its times, and its extended
-attributes.
-
 ### 2.2 Valid paths
 
 A valid path is one or more file names, with `/` between each two of
@@ -227,23 +205,8 @@ folders k.
 
 When the text is a valid path, and no other process changes the folder
 tree during the file read, the file read gives the file-read result of
-the valid path. The folder tree and the permissions of the program give
-the file-read result. For each file name k of the valid path in turn,
-from file name 1, the first row of this table whose condition holds
-gives the file-read result. When no row holds, file name k is not the
-last file name, and the file that it names is folder k + 1. File name
-k + 1 is next.
-
-| condition | result |
-|---|---|
-| the program has no search permission or no read permission for folder k | "cannot read" |
-| folder k holds no folder entry for file name k | "no file" |
-| the file that file name k names is a symbolic link | "symbolic link" |
-| file name k is not the last file name, and that file is not a folder | "no file" |
-| file name k is the last file name, and that file is a folder or a file of another kind | "not a regular file" |
-| that file is a regular file, and the program has no read permission for it | "cannot read" |
-| that file is a regular file whose content is not valid UTF-8 | "not UTF-8" |
-| that file is a regular file whose content is valid UTF-8 | "found", with the text of that content |
+the valid path, which the term `file-read-result` of section 3.16
+defines.
 
 Example: the root holds the folder `docs`, which holds the regular file
 `a.md`, whose content is the text `hi`. The valid path `docs/a.md` gives
@@ -305,20 +268,15 @@ conforming program keeps these guarantees:
   the reference of such a symbolic link.
 - For a file read, it takes bytes only from the folders of the path and
   from the regular file that the last file name names; for a text that
-  is not a valid path, it takes none. So, for a file read, it takes no
-  byte from a file outside the folder tree.
+  is not a valid path, it takes none.
 - It does not wait for another process or for a device to act on a file
   of another kind of the folder tree, such as for a process to open the
   other end of a pipe.
-- It changes no file of the folder tree. A change that the file system
-  makes by itself, such as a change of the time of last access, is not a
-  change by the program.
+- It changes no file of the folder tree, other than by a change that the
+  file system makes by itself, such as of the time of last access.
 - It uses only the permissions and the appropriate privileges, as
   POSIX.1-2024 defines these, that its process has without a change by
-  the program: not one that it gets by a change of the user IDs, the
-  group IDs, or the appropriate privileges of its process, or through
-  another process that acts for it. A capability, on a system that gives
-  capabilities to processes, is an example of an appropriate privilege.
+  the program.
 
 A valid path cannot lead out of the folder tree through a symbolic link.
 In a folder tree whose root holds the symbolic link `d`, whose reference
@@ -373,9 +331,6 @@ These texts are not valid globs:
   such as `src/**.ts`; `src/**/*.ts` is a valid glob;
 - a text that holds `?`, `[`, `]`, `{`, `}`, or `\`.
 
-A valid glob can hold U+0000, but no file name holds U+0000. So no file
-name fits a glob segment that holds U+0000.
-
 | valid glob | valid paths that fit it | valid paths that do not fit it |
 |---|---|---|
 | `*.md` | `a.md`; `.md`; `.notes.md` | `a/b.md`; `a.txt` |
@@ -400,8 +355,7 @@ not change the set. No valid path is in the set of the empty path set.
 
 Example: with the path set members `docs/` and `!docs/old/`, the valid
 path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
-`a.md` are not. The glob text of the path set member `!!x` is `!x`, and
-the valid path `!x` fits that valid glob.
+`a.md` are not.
 
 A path set is valid when:
 
@@ -414,37 +368,6 @@ The empty path set is valid. A path set that is not valid can still give
 a set of valid paths: the path set with the path set members `a/` and
 `a/` is not valid, because two path set members are the same text, and
 the valid path `a/b` is in the set of that path set.
-
-### 2.6 Validations and results
-
-A program validates a text as a path, a text as a glob, or a path set
-when it makes an operation to give for it one of the results "valid" and
-"invalid", other than a file read. A program decides whether a valid
-path fits a valid glob when it makes an operation to give one of the
-results "fits" and "does not fit". A program decides whether a valid
-path is in the set of a path set when it makes an operation to give one
-of the results "in the set" and "not in the set". The program validates
-or decides in such an operation also when it gives another thing in it,
-or nothing. This table gives the input and the
-results of each of these five operations:
-
-| operation | input | results |
-|---|---|---|
-| validate a text as a path | a text | "valid" or "invalid" |
-| validate a text as a glob | a text | "valid" or "invalid" |
-| decide whether a valid path fits a valid glob | a valid path and a valid glob | "fits" or "does not fit" |
-| validate a path set | a path set | "valid" or "invalid" |
-| decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob | that valid path and that path set | "in the set" or "not in the set" |
-
-In each validation that it makes, a conforming program gives exactly one
-result. Each time it decides whether a valid path fits a valid glob, or
-whether a valid path is in the set of a path set, a conforming program
-also gives exactly one result. So a program that, in a validation of a
-long text, gives an error in place of a result does not conform. In each
-file read that it makes in a folder tree that no other process changes
-during the file read, a conforming program gives exactly one of seven
-results: "invalid", "found", "no file", "symbolic link", "not a regular
-file", "not UTF-8", and "cannot read".
 
 ## 3. Definitions
 
@@ -1043,38 +966,27 @@ the other end of a pipe.
 
 @req keep-folder-trees-unchanged=v1
 @cites {
-    #{
-        file-system=v1, folder-tree=v1, folder=v1, regular-file=v1,
-        symbolic-link=v1, file-of-another-kind=v1, attribute=v1,
-        file-read=v1,
-    },
+    #{file-system=v1, folder-tree=v1, file-read=v1},
     text#{conforming-program=v1, text=v1, requirement=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
-change no file of the folder tree: not the content of a regular file,
-the folder entries of a folder, the reference of a symbolic link, the
-data of a file of another kind, or an attribute of a file, such as its
-mode, its owner, its times, or its extended attributes, other than by a
-change that the file system makes by itself when the program uses that
-file, such as a change of the time of last access.
+change no file of the folder tree, other than by a change that the file
+system makes by itself when the program uses that file, such as a change
+of the time of last access.
 
 ### 4.10 No permission or privilege that the process did not have
 
 @req gain-no-privileges=v1
 @cites {
     posix/2024,
-    #{system=v1, folder-tree=v1, file-read=v1},
+    #{folder-tree=v1, file-read=v1},
     text#{conforming-program=v1, text=v1, requirement=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
 use only the permissions and the appropriate privileges, as POSIX.1-2024
-defines these, such as a capability on a system that gives capabilities
-to processes, that its process has without a change by the program: not
-one that it gets by a change of the user IDs, the group IDs, or the
-appropriate privileges of its process, or through another process that
-acts for it.
+defines these, that its process has without a change by the program.
 
 ### 4.11 The validation of texts as globs
 
@@ -1146,19 +1058,16 @@ A program, or a part of a program, conforms to this design when it
 meets every requirement of the section Requirements.
 
 The vectors of this design are in the file
-[`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector
-file, in the same directory as this design. A vector is an input and
-what a conforming program gives for it. Each vector follows from the
+[`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector file,
+in the same directory as this design. A vector is an input and what a
+conforming program gives for it. Each vector follows from the
 requirements and adds nothing to them. The person or the program that
 runs the vectors, and compares what a program gives with them, is the
 runner. The vectors are in groups. Each group has a name, such as
 `paths`, and a subsection below. The subsection names the requirements
 that the vectors of the group follow from, and it describes their
 inputs, results, and values. Each vector of a group follows from one or
-more of these requirements. Section 5.7 gives setups in which a
-conforming program reads a text as a path, and what it does not do in
-these file reads. The setups are not vectors, and the vector file does
-not hold them.
+more of these requirements.
 
 The vector file is valid UTF-8. Its text does not start with U+FEFF, it
 holds no carriage return, and it ends with a line feed. Each line of the
@@ -1488,56 +1397,3 @@ other result.
 {"group":"memberships","input":{"path":"docs/a.md","path-set":["docs/","!docs/old/"]},"n":170,"result":"in the set","rev":"v1"}
 {"group":"memberships","input":{"path":"a/b","path-set":["a/","a/"]},"n":193,"result":"in the set","rev":"v1"}
 ```
-
-### 5.7 Setups for the guarantees
-
-Each setup gives a folder tree, a text that a conforming program reads
-as a path in that folder tree, what a conforming program gives, and what
-it does not do. A setup gives its folder tree in words, and these
-conventions hold for each setup:
-
-- The files of the folder tree are only the root and the files that the
-  setup names. A file that a setup names with a text, such as the
-  regular file `a.md`, is the file of a folder entry whose entry name is
-  the UTF-8 encoding of that text. The root holds each such file, unless
-  the setup names the folder that holds it. A content that a setup
-  writes as a text, such as the text `hi`, is the UTF-8 encoding of that
-  text. A pipe is a FIFO special file.
-- Unless a setup says otherwise, the program has the search permission
-  for each folder of the folder tree, and the read permission for each
-  regular file and each folder of the folder tree, as in a file object
-  (section 3.22) without the members `read` and `search`.
-- The system does not fail during the file read. The folder tree does
-  not change during the file read, except in a setup that says that
-  another process changes it.
-- A writer of a pipe is a process that asks to open the pipe for
-  writing, and that waits until a process opens the pipe for reading.
-
-These are the setups:
-
-- The symbolic link `d`, whose reference leads to a folder outside the
-  folder tree, which holds the pipe `p`, with a writer of `p`; the text
-  `d/p`: "symbolic link". The program follows no symbolic link, so it
-  does not find `p` by the reference of `d`, and after the file read the
-  writer still waits.
-- The pipe `p`, and no process that opens `p`; the text `p`: "not a
-  regular file". The program does not wait for a process to open the
-  other end of `p`, so the file read ends.
-- The folder `docs`, which holds the regular file `a.md`, whose content
-  is the text `hi`, and the folder `s`, which holds the regular file
-  `a.md`, whose content is the text `secret`; the text `docs/a.md`;
-  during the file read, another process replaces the folder `docs` with
-  a symbolic link whose reference leads to the folder `s`. No
-  requirement fixes the result. The program follows no symbolic link, so
-  it takes no byte from the regular file `a.md` in `s`.
-- The folder `docs`, for which the program has neither the read
-  permission nor the search permission, and which holds the regular file
-  `a.md`, whose content is the text `hi`; the text `docs/a.md`: "cannot
-  read". In the file read, the program does not change the mode or the
-  owner of `docs`, and it gets no permission for `docs` by a change of
-  the user IDs or the group IDs of its process.
-- Any folder tree, and any text: in the file read, the program does not
-  change the content, the folder entries, the reference, or an attribute
-  of a file of the folder tree, such as its mode or its owner, other
-  than by a change that the file system makes by itself when the program
-  uses that file, such as a change of the time of last access.
