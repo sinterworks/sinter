@@ -151,7 +151,7 @@ of its Conformance section name.
 | [git's index](sinter:#working-tree=v1) | the file in which git records the paths of the files that it tracks in a working tree, usually the file `index` in the folder of that working tree |
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index that names a git tree object and summarizes the paths of that git tree object, as the page gitformat-index defines it |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
-| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it; the patterns of a source that is a regular file come from the lines of the text of its content, when that content is valid UTF-8 and that text does not end with a carriage return and holds no U+0000; otherwise they are not specified, nor is whether a path that they could decide is ignored |
+| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it; the patterns of a source that is a regular file come from the lines of the text of its content, when that content is valid UTF-8 and that text does not end with a carriage return and holds no U+0000; otherwise they are not specified, nor is whether a path is ignored when the answer depends on them |
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
 | [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, as that act put them, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
@@ -777,8 +777,8 @@ is valid UTF-8 and that text does not end with a carriage return and
 holds no U+0000. When a source is a regular file whose content does not
 meet these conditions, its patterns are not specified, and whether a
 valid path is ignored in the working tree is not specified when, by the
-rules of the page gitignore, some patterns of that source would make it
-ignored and others would not. When the setting `core.ignoreCase` of the git configuration of
+rules of the page gitignore, the answer depends on the patterns of that
+source. When the setting `core.ignoreCase` of the git configuration of
 the working tree is true, as the page git-config gives the value of a
 setting and the values of booleans, a pattern also matches each valid
 path that differs only in the case of the letters from `A` to `Z` from a
@@ -1195,8 +1195,9 @@ and `url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of
 git objects, refs, or both into the git repository from the git
 repository at an address of the remote for a fetch, as the page
 git-fetch defines fetches. A push to a remote is a transfer of git
-objects, refs, or both from the git repository into the git repository at an address of the remote
-for a push, as the page git-push defines pushes.
+objects, refs, or both from the git repository into the git repository
+at an address of the remote for a push, as the page git-push defines
+pushes.
 
 ### 4.32 Program files
 
