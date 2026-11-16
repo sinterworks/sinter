@@ -56,16 +56,16 @@ citation entries, id patterns, the fit of a text to an id pattern, and
 the bindings of `external-namespaces` with the results that a conforming
 program of Identifiers gives for them. From Files and paths, it takes
 valid paths and their file names. From Data forms, it takes hashes; TOML
-values; and vector lines. From the Ontology, it takes trees, tests, test
-results and test evidence, edges with their sources and cited items, the
-edges of the kind `verifies`, the names of items, items in force, the
-ledger, conformance vectors, groups of conformance vectors, vector sets,
-promises, and finding classes. From Language packs, it takes valid packs
-and valid descriptors, test runners with their adapter hashes, match
-tables, and runner settings; the bindings of `runner-settings`; the
-readings of texts, test nodes with their kinds test case and test
-suite, the runs of nodes, enclosed nodes, the
-order of the parse tree, and the names of test nodes; test entries, the
+values; hex texts; and vector lines. From the Ontology, it takes trees,
+tests, test results and test evidence, edges with their sources and
+cited items, the edges of the kind `verifies`, the names of items, items
+in force, the ledger, conformance vectors, groups of conformance
+vectors, vector sets, promises, and finding classes. From Language
+packs, it takes valid packs and valid descriptors, test runners with
+their adapter hashes, match tables, and runner settings; the bindings of
+`runner-settings`; the readings of texts, test nodes with their kinds
+test case and test suite, the runs of nodes, enclosed nodes, the order
+of the parse tree, and the names of test nodes; test entries, the
 requests of the function bind, calls, valid adapters, instances of
 adapters, and the results of calls with their test results and binding
 objects. From Findings, it takes spots. From Documents, it takes the
@@ -1430,54 +1430,11 @@ Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as the result of a reading. So a
 vector binds a program only to what the program gives for the input.
 
-The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
-Each line of the file is the [canonical byte
-sequence](sinter:data-forms#canonical-byte-sequence=v1) of one JSON
-object, then the byte 0x0A, so each line is a JSON text, as RFC 8259
-defines it. The file has three kinds of line, in this order:
+The file is a test-vector set, as the specification
+[`test-vectors`](sinter:data-forms#test-vectors=v1) of Data forms gives
+it. The vectors of the group `findings` have no member `result`.
 
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `findings`,
-   `outcomes`, `readings`, `recognitions`. Its JSON object has two
-   members: `group`, the name of the group, as a JSON string, and `rev`,
-   the revision of the group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
-
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
-- `rev`: the revision of the vector.
-- `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `result`: the result that a conforming program gives when it gives a
-  result for the input. A vector of the group `findings` has no
-  `result`.
-- `values`: a JSON object that gives what a conforming program gives for
-  the input, other than the result. The subsection of the group says
-  what it gives.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
-
-No vector has the member `needs`: the vectors of this design have no
-need names.
-
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. When the text of this
-section, other than its headings and the vector lines that it shows,
-changes, the revisions of every vector, every group, and the set rise.
-When only the note of a vector changes, no revision rises. A program
-does not need the revisions to run the vectors.
+A program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, the JSON values have
 these forms:
@@ -1486,10 +1443,9 @@ these forms:
   whose characters are the characters of the text, in order.
 - A byte sequence, such as a report content, is a JSON string when it is
   the UTF-8 encoding of a text: the JSON string of that text. Otherwise,
-  it is a JSON object with one member, `bytes`, whose value is a JSON
-  string of hex digits: for each byte, in order, the hex digit of the
-  whole-number quotient of the byte divided by 16, then the hex digit of
-  the remainder.
+  it is a JSON object with one member, `bytes`, whose value is the
+  [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
+  JSON string.
 - A TOML value is a JSON value of the same kind: a TOML string is a JSON
   string, a TOML boolean is a JSON boolean, a TOML integer is a JSON
   number of the same integer, a TOML array is a JSON array of the JSON
