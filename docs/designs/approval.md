@@ -64,8 +64,8 @@ of `@ack` lines with its production `subject`, the parameter
 `external-namespaces` with its bindings, and the results that a
 conforming program of Identifiers gives. From Files and paths (`files`),
 it takes valid paths. From Data forms (`data-forms`), it takes JSON
-values with their objects, members, and strings; canonical byte
-sequences; the index of an element of a finite sequence; the hash form;
+values with their objects, members, and strings; the index of an
+element of a finite sequence; the hash form;
 and test-vector sets: the file that holds the conformance vectors of the
 design is one. From Text and notation (`text`), it takes texts, code
 point order, the notation of productions, and what a conforming program,
@@ -73,10 +73,8 @@ an input, and a result are.
 
 The production `subject-text` is written in ABNF, the notation of RFC
 5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
-8259, the design takes JSON texts, with their objects, members, arrays,
-strings, numbers, and the literal names `true` and `false`: each line of
-the file that holds the conformance vectors of the design is a JSON
-text.
+8259, the design takes JSON values, with their objects, members, arrays,
+strings, numbers, and the literal names `true` and `false`.
 
 ## 1. Glossary
 
@@ -101,7 +99,7 @@ text.
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger; the point of the index k is the point of the first k − 1 ledger entries; the indexes before the point of the first n ledger entries are the indexes 1 to n |
 | [count at an index](sinter:#judgment-acceptance-rule=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
-| [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none |
+| [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none; none when E lacks `subject` or `hash` |
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
 | [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
