@@ -80,8 +80,8 @@ document type declarations, encoding declarations, elements with their
 names, content, parents, children, and descendants, root elements, start
 tags, empty-element tags, attribute specifications, and the normalized
 values of attributes of the type CDATA. From RFC 8259, it takes JSON
-texts: each line of the file of the conformance vectors of the design is
-a JSON text.
+values, with their objects, members, arrays, strings, numbers, and the
+literal names `true` and `false`.
 
 ## 1. Glossary
 
