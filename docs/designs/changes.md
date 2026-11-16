@@ -191,8 +191,8 @@ JSON text.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch of git objects that the git repository does not hold and that a repository read uses is part of one |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, creates, deletes, or changes a repository file of the git repository, other than a file of a working tree that is no other repository file, from which the read takes no bytes, and that no pathname that the read uses names; a change by which the program only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count |
+| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch that the program makes to take git objects that the git repository does not hold and that the read uses is part of the read |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, creates, deletes, or changes a repository file of the git repository, other than a file of a working tree that is no other repository file, from which the read takes no bytes, and that no pathname that the read uses names; a change by which the program, itself or through any program that it uses, only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count, nor does a file that it creates, deletes, or changes only for such a change |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -215,8 +215,7 @@ in a shallow clone, which leaves out the parents of some commits. A
 partial clone leaves out some git objects, which git can take from the
 git repository at an address of a remote. A program can take them by a
 fetch in a repository read, which the term `repository-read` makes part
-of that read; a program that does not take them gives no result that
-depends on them, as for a read that fails.
+of that read, or give no result that needs them.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -416,11 +415,10 @@ at its old path and of a file added at its new path. The term
 The requirements `read-only-repository-files`,
 `gain-no-repository-privileges`, and `follow-no-working-tree-links`
 state what a conforming program must not do in each repository read,
-and the requirement
-`run-no-configured-programs` states what it must not run. What a program
-gives in a repository read that is not undisturbed, as the term
-`undisturbed-read` defines it, is not specified, and these requirements
-still bind it.
+and the requirement `run-no-configured-programs` states what it must not
+run. What a program gives in a repository read that is not undisturbed,
+as the term `undisturbed-read` defines it, is not specified, and these
+requirements still bind it.
 
 ## 3. Parameters
 
@@ -1052,13 +1050,13 @@ A repository read is an operation in which a program takes, from a git
 repository or from a working tree of it, one or more things that a term
 of this design defines, such as a commit, the files of a tree, or the
 hunks of a valid path, to give them or to use them. A fetch, a push, and
-a change of a ref that the program makes are not repository reads. A
-fetch that the program makes, itself or through any program that it
-uses, to take git objects that the git repository does not hold and that
-a repository read uses, such as git objects that a partial clone leaves
-out, is part of that repository read; no other fetch, no push, and no
-change of a ref that the program makes, with the git objects that it
-writes for that change, is part of one.
+a change of a ref that the program makes, with the git objects that it
+writes for that change, are not repository reads. A fetch that the
+program makes, itself or through any program that it uses, to take git
+objects that the git repository does not hold and that a repository
+read uses, such as git objects that a partial clone leaves out, is part
+of that repository read; no other fetch, no push, and no such change of
+a ref is part of one.
 
 ### 4.28 Undisturbed repository reads
 
@@ -1077,11 +1075,13 @@ it included, creates, deletes, or changes a repository file of the git
 repository during the repository read, other than a file of a working
 tree that is no other repository file, from which the repository read
 takes no bytes, and that no pathname that the repository read uses
-names. A change by which the program,
-itself or through any program that it uses, only adds git objects to an
-object database of the git repository, or writes git's index of a
-working tree again so that it holds an entry for the same byte paths, as
-the term `working-tree-file` gives these words, does not count.
+names. A change by which the program, itself or through any program
+that it uses, only adds git objects to an object database of the git
+repository, or writes git's index of a working tree again so that it
+holds an entry for the same byte paths, as the term `working-tree-file`
+gives these words, does not count, and neither does a file that the
+program creates, deletes, or changes only for such a change, such as a
+lock file or a temporary file.
 
 ### 4.29 Repository files
 
@@ -1557,7 +1557,7 @@ when the change of h has no base under that binding.
     posix/2024,
     #{
         repository-file=v1, repository-read=v1, program-file=v1,
-        remote-transfer=v1,
+        remote-transfer=v1, repository-value=v1,
     },
     files#{
         system=v1, symbolic-link=v1, file-of-another-kind=v1,
@@ -1574,9 +1574,12 @@ file or a pipe that was open for the program when it started, such as
 its standard input; from a file that it created in that execution; from
 a program file of the conforming program; from the files that the
 system or the libraries of a program read to run it; and, in a fetch
-from a remote that is part of the repository read, from the git
-repository at an address of that remote for a fetch, and from the
-programs and the connections through which that fetch reaches it.
+from a remote, when that fetch is part of the repository read, from the
+git repository at an address of that remote for a fetch, from the
+connections through which that fetch reaches it, and from the files
+that the programs that make that fetch read, such as the configuration
+and the keys of `ssh` or the store of a credential helper, other than a
+file that a value from the git repository names or chooses.
 
 ### 5.24 No permission or privilege that the process did not have
 
