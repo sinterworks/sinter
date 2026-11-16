@@ -30,11 +30,10 @@ requirements, conforming programs, and results. From POSIX.1-2024, the
 design takes files, processes, and what a file system is; the file
 types, such as a directory, a regular file, and a symbolic link; the
 directory entries of a directory, and the names `.` and `..` in a
-directory; hard links; pathnames and pathname resolution; the search
-permission, the read permission, and the write permission of a process
-for a file, the owner of a file, and the time of last access of a file;
-the user IDs, the group IDs, and the appropriate privileges of a
-process; and the function `openat`.
+directory; pathnames and pathname resolution; the search permission, the
+read permission, and the write permission of a process for a file, the
+owner of a file, and the time of last access of a file; and the user
+IDs, the group IDs, and the appropriate privileges of a process.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`: each
@@ -101,8 +100,7 @@ together with the operating system of that computer. The program, and
 the libraries and the runtime that the program uses, are not part of the
 system. A file system is the part of the system that stores files, as
 POSIX.1-2024 defines a file system, and that acts on those files when a
-program asks it to. A file is on the file system that stores it. The
-folders of a folder tree can be on more than one file system.
+program asks it to. A file is on the file system that stores it.
 
 A folder tree is a folder, its root, together with the file of each
 folder entry of the root and the file of each folder entry of each
@@ -140,9 +138,6 @@ go on from a symbolic link. So the file of a folder entry can be a
 symbolic link. In POSIX.1-2024, the names `.` and `..` in a directory
 lead to the directory itself and to the directory above it. So the name
 `..` does not make the folder above the root a file of the folder tree.
-Some file systems also have a name that a program can look up and that
-the listing does not hold, such as the name of a hidden folder of
-snapshots. Such a name is not the entry name of a folder entry.
 
 A program takes a byte from a file when it copies into the program a
 byte that the file holds or gives: a byte of the content of a regular
@@ -206,9 +201,6 @@ when they are the same text. So case matters: `Docs/a.md` and
 `docs/a.md` are two different valid paths. No Unicode normalization
 applies, so a valid path with `é` as U+00E9 and a valid path with `e`
 and U+0301 are two different valid paths, though they look the same.
-Two different valid paths can still lead to the same file, because two
-folder entries can have the same file, such as two hard links to one
-regular file, as POSIX.1-2024 defines hard links.
 
 ### 2.3 The file read
 
@@ -265,15 +257,12 @@ with the regular file `a`, the valid path `a/a` gives "no file".
 A folder holds the folder entry for a file name only when the entry name
 of that folder entry is the UTF-8 encoding of the file name, byte for
 byte, on every file system. Some file systems ignore case or differences
-of Unicode normalization, so that a call of `openat` with the bytes of
-`A.md` can open the file of the folder entry `a.md`. Still, the valid
-path `A.md` gives "no file" in a folder tree whose root holds only the
-regular file `a.md`. So a file name that is longer than the file system
-allows in an entry name gives "no file", because the listing of the
-folder holds no such name. A name that the listing of a folder does not
-hold names no folder entry: the name of a hidden folder of snapshots,
-and `..` followed by a space on a file system that ignores a space at
-the end of a name, are examples.
+of Unicode normalization, so that a lookup of `A.md` can find the file
+of the folder entry `a.md`. Still, the valid path `A.md` gives "no file"
+in a folder tree whose root holds only the regular file `a.md`. A name
+that the listing of a folder does not hold names no folder entry, such
+as `..` followed by a space on a file system that ignores a space at the
+end of a name.
 
 Folder k is the folder that must hold the folder entry for file name k:
 the root for file name 1, and the folder that the file name before it
@@ -290,18 +279,10 @@ program has neither the search permission nor the read permission for
 
 When the system fails during the file read, for a cause other than the
 folder tree and the permissions of the program for the files of the
-folder tree, such as an input or output error of a device, a lack of
-memory, or too many open files, the program can give "cannot read"
-instead of the file-read result. Also, when the program cannot reach the
-root because it has no search permission for a folder above the root, it
-can give "cannot read". An error that the system gives because a name or
-a pathname that the program passes to the system is longer than the
-system or the file system allows, or because the file system does not
-accept a name as an entry name, is not a failure of the system. So, on a
-system that allows at most 1,024 bytes in a pathname, a file read of a
-valid path of 5,024 characters in a folder tree that no other process
-changes still gives the file-read result, unless the system fails for
-another cause.
+folder tree, the program can give "cannot read" instead of the file-read
+result. It can also give "cannot read" when it cannot reach the root, or
+when the file read goes beyond limits of the system or of the program,
+such as on the length of a pathname or on the size of a file.
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -309,11 +290,9 @@ content. The text holds one character for each character that the
 content encodes, in order. The program adds no character, removes no
 character, and changes no character. So the text keeps a byte order
 mark, keeps each carriage return, and keeps each character in the form
-that the content encodes, with no Unicode normalization. The text is the
-text of the whole content, whatever its size, so a conforming program
-sets no limit of its own on the size of a file. With each other result,
-the file read gives no text as the text of a content. A program can give
-other texts in a file read, such as a message.
+that the content encodes, with no Unicode normalization. With each other
+result, the file read gives no text as the text of a content. A program
+can give other texts in a file read, such as a message.
 
 When another process changes the folder tree during a file read of a
 valid path, no requirement fixes the result of the file read, or the
@@ -677,7 +656,7 @@ are the folders k that exist for that valid path in that folder tree.
 @term file-read-result=v1
 @cites {
     #{
-        file-system=v1, folder=v1, regular-file=v1, symbolic-link=v1,
+        folder=v1, regular-file=v1, symbolic-link=v1,
         file-of-another-kind=v1, folder-tree=v1, file-kind=v1,
         search-permission=v1, read-permission=v1, path=v1, path-file=v1,
     },
@@ -696,10 +675,7 @@ name 1, the cases apply in order from case 1 to case 6:
 1. The program has no search permission or no read permission for folder
    k: "cannot read".
 2. Folder k holds no folder entry whose entry name is the UTF-8 encoding
-   of file name k: "no file". So folder k holds no folder entry for a
-   file name that is longer than the file system that folder k is on
-   allows in an entry name, because the listing of folder k holds no
-   such name.
+   of file name k: "no file".
 3. The file that file name k names is a symbolic link: "symbolic link".
 4. File name k is not the last file name of that valid path, and that
    file is not a folder: "no file".
@@ -975,8 +951,7 @@ and must not give the result "invalid" when the text is a valid path.
 @cites {
     posix/2024,
     #{
-        system=v1, file-system=v1, folder=v1, folder-tree=v1,
-        search-permission=v1, path=v1, file-read=v1,
+        system=v1, folder-tree=v1, path=v1, file-read=v1,
         file-read-result=v1,
     },
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
@@ -987,14 +962,10 @@ changes during the file read, a conforming program must give exactly one
 result, which is the file-read result of that valid path in that folder
 tree for the program, or "cannot read" when the system fails during the
 file read for a cause other than the folder tree and the permissions of
-the program for the files of the folder tree, such as an input or output
-error of a device, a lack of memory, too many open files, or the lack of
-the search permission of the program for a folder outside the folder
-tree through which the program finds the root. An error that the system
-gives because a name, or a pathname of POSIX.1-2024, that the program
-passes to the system is longer than the system or the file system
-allows, or because the file system does not accept a name as an entry
-name, is not a failure of the system.
+the program for the files of the folder tree, when the program cannot
+reach the root, or when the file read goes beyond limits of the system
+or of the program, such as on the length of a pathname of POSIX.1-2024
+or on the size of a file.
 
 ### 4.4 The text of the content
 
@@ -1241,12 +1212,12 @@ The JSON object of a vector line has these members:
   names, each a JSON string. A need is a condition of the run of a
   vector that a runner can be unable to make true and that a need name
   of the vector file names. The need names of the vector file, the same
-  for each group, are `long-names`, `names-kept`, `no-privilege`,
-  `non-utf-8-names`, and `other-owner`, in this order. Section 5.2 says
-  what each need is and when a vector has it; only vectors of the group
-  `file-reads` have needs. The array holds each need of the vector once,
-  in the order of the need names, and no other name. A vector has this
-  member only when it has a need.
+  for each group, are `names-kept`, `no-privilege`, `non-utf-8-names`,
+  and `other-owner`, in this order. Section 5.2 says what each need is
+  and when a vector has it; only vectors of the group `file-reads` have
+  needs. The array holds each need of the vector once, in the order of
+  the need names, and no other name. A vector has this member only when
+  it has a need.
 - `note`: an explanation of the vector, as a JSON string, which is no
   part of the input, the result, or the values. A vector has this member
   only when it has an explanation.
@@ -1321,13 +1292,9 @@ reads the text as a path in the folder tree.
      runner has made the folder tree to the end of the file read. So the
      program has the permissions that `tree` gives.
   2. No other process changes the folder tree during the file read.
-  3. The system does not fail during the file read. This condition
-     excludes only failures of the system. An error that the system
-     gives because a name or a pathname that the program passes to the
-     system is longer than the system or the file system allows, or
-     because the file system does not accept a name as an entry name, is
-     not a failure of the system, so the condition does not exclude such
-     an error.
+  3. The system does not fail during the file read, the program can
+     reach the root, and the file read goes beyond no limit of the
+     system or of the program.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
@@ -1378,14 +1345,12 @@ lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 of
 vector 30 as 0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64, so it
 does not store the folder tree of vector 30. Some file systems do not
 allow the entry name 0xE9 of vector 41, so they do not store the folder
-tree of vector 41. Some file systems allow fewer than 250 bytes in an
-entry name, so they do not store the folder tree of vector 26. Whether a
-file system stores a folder tree also depends on the process of the
-program: a process that has an appropriate privilege, as POSIX.1-2024
-defines it, that gives it a permission that a file object takes away
-does not have the permissions that the file object gives. The result and
-the values of a vector are the same on every file system that stores its
-folder tree.
+tree of vector 41. Whether a file system stores a folder tree also
+depends on the process of the program: a process that has an appropriate
+privilege, as POSIX.1-2024 defines it, that gives it a permission that a
+file object takes away does not have the permissions that the file
+object gives. The result and the values of a vector are the same on
+every file system that stores its folder tree.
 
 A need of a vector is a condition of its run that a runner can be unable
 to make true and that a need name of the vector file names: a condition
@@ -1395,12 +1360,6 @@ need names of the vector file, what each need is, and when a vector has
 it. No other need name stands in the vector file, and a name in the
 member `needs` that is not one of these need names allows no skip.
 
-- `long-names`: the folder tree is on a file system that allows each
-  entry name of the folder tree, with all its bytes. A vector has this
-  need when an entry name of its folder tree has more than 14 bytes, the
-  least number of bytes in a filename that POSIX.1-2024 lets a system
-  allow (`{_POSIX_NAME_MAX}`), such as the entry names of 250 bytes of
-  vector 26.
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the runner makes it, byte for byte:
   for example, the file system does not change an entry name into a
