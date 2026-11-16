@@ -6,6 +6,7 @@
 {"group":"default-branch-commits","rev":"v1"}
 {"group":"head-commits","rev":"v1"}
 {"group":"hunks","rev":"v1"}
+{"group":"ignore-files","rev":"v1"}
 {"group":"landing-commits","rev":"v1"}
 {"group":"message-texts","rev":"v1"}
 {"group":"parents","rev":"v1"}
@@ -145,3 +146,5 @@
 {"group":"message-texts","input":{"message":"﻿Subject\n"},"n":180,"note":"the text keeps U+FEFF","rev":"v1","values":{"text":"﻿Subject\n"}}
 {"group":"working-tree-files","input":{"folder-tree":{"entries":[{"file":{"content":[],"type":"regular file"},"name":"636166c3a92e6d64"},{"file":{"content":[],"type":"regular file"},"name":"6f6b2e6d64"}],"type":"directory"},"ignored":[],"tracked":["ok.md"]},"n":181,"needs":["names-kept"],"note":"a name that is valid UTF-8 and holds a byte of 0x80 or more","rev":"v1","values":{"paths":["café.md","ok.md"]}}
 {"group":"upstreams","input":{"binding":"main","refs":{"refs/heads/main":"l"},"settings":{"branch.main.merge":["refs/heads/main"],"branch.main.remote":["up"],"remote.up.fetch":["refs/heads/*:refs/remotes/up/*"],"remote.up.url":["/nowhere"]}},"n":219,"note":"an upstream that does not exist is not the first ref that exists","rev":"v1","values":{"commit":"l"}}
+{"group":"ignore-files","input":{"gitignore":"b.md\r\n","names":["a.md","b.md"]},"n":220,"note":"a carriage return right before a line feed is in no pattern","rev":"v1","values":{"paths":[".gitignore","a.md"]}}
+{"group":"ignore-files","input":{"gitignore":"﻿b.md\n","names":["a.md","b.md"]},"n":221,"note":"a byte order mark is in no pattern","rev":"v1","values":{"paths":[".gitignore","a.md"]}}

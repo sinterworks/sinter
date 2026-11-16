@@ -150,7 +150,7 @@ JSON text.
 | [git's index](sinter:#working-tree=v1) | the file in which git records the paths of the files that it tracks in a working tree, usually the file `index` in the folder of that working tree |
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index that names a git tree object and summarizes the paths of that git tree object, as the page gitformat-index defines it |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
-| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it |
+| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it; the patterns of an ignore file come from the lines of its text, when its content is valid UTF-8 and does not end with a carriage return |
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
 | [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, as that act put them, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
@@ -750,7 +750,10 @@ path, the files of the tree of that commit are not specified.
     gitdoc/gitignore,
     posix/2024,
     files#{symbolic-link=v1, path=v1},
-    text#{code-span=v1},
+    text#{
+        code-span=v1, line=v1, text-of-a-byte-sequence=v1, valid-utf-8=v1,
+        carriage-return=v1, line-feed=v1, byte-order-mark=v1,
+    },
     #{git-folder=v1, working-tree=v1, git-configuration=v1},
 }
 
@@ -766,7 +769,13 @@ other than the command line, ignore it, by the rules of that page, as
 for a file that git's index does not hold. Among these sources, the file
 `info/exclude` of the git folder and the excludes file are the files
 that their pathnames name, with the symbolic links on these pathnames
-followed. When the setting `core.ignoreCase` of the git configuration of
+followed. The patterns of each of these sources that is a file come from
+the lines of the text of its content, as the term `text#line` gives the
+lines of a text, by the rules of the page gitignore, when that content
+is valid UTF-8; so a carriage return right before a line feed, and a
+byte order mark, are in no pattern. When the content of such a file is
+not valid UTF-8, or ends with a carriage return, its patterns are not
+specified. When the setting `core.ignoreCase` of the git configuration of
 the working tree is true, as the page git-config gives the value of a
 setting and the values of booleans, a pattern also matches each valid
 path that differs only in the case of the letters from `A` to `Z` from a
@@ -2219,4 +2228,39 @@ it gives that the default branch has no commit when `values` is
 
 ```
 {"group":"upstreams","input":{"binding":"main","refs":{"refs/heads/main":"l"},"settings":{"branch.main.merge":["refs/heads/main"],"branch.main.remote":["up"],"remote.up.fetch":["refs/heads/*:refs/remotes/up/*"],"remote.up.url":["/nowhere"]}},"n":219,"note":"an upstream that does not exist is not the first ref that exists","rev":"v1","values":{"commit":"l"}}
+```
+
+### 6.16 Ignore files
+
+The group `ignore-files` holds the vectors of the requirements
+`give-working-tree-files` and `give-working-tree-file-at-path`. Each
+vector gives the content of the file `.gitignore` of the root folder of
+a working tree, the file names of the other regular files of that root
+folder, and the valid paths of the files of the tree of the working
+tree.
+
+- `input`: a JSON object with two members. `gitignore` is the content of
+  the file `.gitignore`, as a byte sequence. `names` is the set of the
+  file names of the other regular files of the root folder, as a set of
+  texts; no element is `.git` or `.gitignore`. The input stands for a
+  repository read of a working tree whose root folder holds the folder
+  entry `.git` of its git folder, the regular file `.gitignore` with
+  that content, an empty regular file for each element of `names`, and
+  no other folder entry; whose git's index holds no entry; and for which
+  no other source of patterns that the term `ignored-path` names holds a
+  pattern.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `paths`: the set of the valid
+  paths of the files of the tree of the working tree.
+
+When a conforming program gives the valid paths of the files of the tree
+of the working tree, or those files, it gives one valid path, or one
+file with that valid path, for each element of `paths`, and no other.
+When it gives the file with a valid path, or gives that there is none,
+it gives the file when `paths` holds that valid path, and that there is
+none when `paths` does not. The content of each file is the content of
+its regular file.
+
+```
+{"group":"ignore-files","input":{"gitignore":"b.md\r\n","names":["a.md","b.md"]},"n":220,"note":"a carriage return right before a line feed is in no pattern","rev":"v1","values":{"paths":[".gitignore","a.md"]}}
 ```
