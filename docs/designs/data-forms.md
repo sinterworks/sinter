@@ -27,12 +27,12 @@ A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
 with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0,
 that has no value error, and whose keys, tables, and strings break no
 statement of TOML 1.1.0. At each point where TOML 1.1.0 lets an
-implementation choose, such as the range of a TOML integer, a conforming
-program makes one fixed choice. When a conforming program gives a result
-for whether a byte sequence is a TOML document, it gives the result
-"valid" for a TOML document and "invalid" for every other byte sequence.
-For a TOML document, it can also give the root table and the spans of
-its keys and values, with their locations.
+implementation choose, such as the number of digits of a fraction of a
+second, a conforming program makes one fixed choice. When a conforming
+program gives a result for whether a byte sequence is a TOML document,
+it gives the result "valid" for a TOML document and "invalid" for every
+other byte sequence. For a TOML document, it can also give the root
+table and the spans of its keys and values, with their locations.
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is its digest as 64 hex digits. A
@@ -136,13 +136,12 @@ case-sensitive strings of RFC 7405.
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
 | [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
 | newline | in a document, a line feed, or a carriage return and a line feed: the name of TOML 1.1.0 for a line ending |
-| line ending backslash | in a multi-line basic string, a `\` that is not part of an escape sequence and is the last character on its line apart from tabs and spaces |
-| [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the encoding, on the byte order mark, and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
+| [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the byte order mark and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
 | [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
 | [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
 | [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what it is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
-| [value error](sinter:#toml-value-error=v1) | a value of TOML 1.1.0 that breaks a rule on values, such as an integer of TOML 1.1.0 outside the range of a TOML integer |
+| [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
 | [id prefix](sinter:#id-prefix=v1) | one or more of the letters `a` to `z`, then `-`, such as `e-` |
@@ -174,6 +173,11 @@ When a conforming program gives a result for an input that it reads or
 validates, it gives one of two results: "valid" or "invalid". It can
 also give more, such as the line object of a canonical line or the root
 table of a TOML document.
+
+A conforming program may refuse an input beyond its own limits, such as
+a byte sequence too long for it to hash, a number that it cannot hold,
+or arrays, objects, or inline tables nested deeper than it reads; it
+then gives no result for that input.
 
 The term `index` gives the index of an element of a finite sequence,
 counted from 1. So the first element of an array has the index 1, and
@@ -375,11 +379,6 @@ encoding of `{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the
 JSON value whose canonical form is `{"a":"é","b":1}`, and the UTF-8
 encodings of `{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no
 JSON value.
-
-A conforming program that does not read a JSON text, for
-example past a nesting limit of its own, gives no result for it, which
-`read-json-text` allows, and it never gives "invalid" for a byte
-sequence that has a JSON value.
 
 ### 4.1 Definitions
 
@@ -657,9 +656,7 @@ it gives a result for whether the byte sequence is a TOML document, it
 gives the result "valid" when the byte sequence is a TOML document, and
 the result "invalid" when it is not. For a TOML document, it can also
 give the root table, and the spans of the keys of TOML 1.1.0 and of the
-values of TOML 1.1.0 in the document, with their locations. With the
-result "invalid", a conforming program can also give positions and
-spans.
+values of TOML 1.1.0 in the document, with their locations.
 
 In this specification, a text in a code block stands for the UTF-8
 encoding of its lines, each line then the byte 0x0A.
@@ -668,82 +665,28 @@ A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
 with the reading rules of TOML, matches the rule `toml` of the ABNF of
 TOML 1.1.0, that has no value error, and whose keys, tables, and strings
 break no statement of TOML 1.1.0, such as the statement that no key is
-defined twice. A value error is a value that breaks a rule on values,
-such as an integer outside the range of a TOML integer.
+defined twice. A value error is a date or a time that RFC 3339 does not
+allow, such as the local date `1979-02-30`.
 
-A TOML document has no limit on how deep its arrays of TOML 1.1.0 and
-its inline tables nest, and no limit on the number of the TOML keys of
-a key. A conforming program that does not read a byte sequence, for
-example past a nesting limit of its own, gives no result for it, which
-`read-toml` allows, and it never gives "invalid" for a TOML document.
+TOML 1.1.0 reads a text. By a reading rule of TOML, for a byte sequence
+that is valid UTF-8, TOML 1.1.0 reads the body of its text, so it does
+not read a byte order mark. So when a byte sequence starts with the
+bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the characters after the
+U+FEFF that these bytes encode.
 
-TOML 1.1.0 reads a text. By a reading rule of TOML, a byte sequence that
-is not valid UTF-8 is not a TOML document. By another reading rule of
-TOML, for a byte sequence that is valid UTF-8, TOML 1.1.0 reads the body
-of its text, so it does not read a byte order mark. So when a byte
-sequence starts with the bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the
-characters after the U+FEFF that these bytes encode. Elsewhere in a byte
-sequence, the bytes 0xEF, 0xBB, 0xBF encode a U+FEFF that TOML 1.1.0
-allows in a string of TOML 1.1.0, in a quoted key, and in a comment.
+The terms `toml-key` and `toml-key-text` give the TOML keys of a key of
+TOML 1.1.0 and their texts. So the TOML keys `a` and `"a"` have the same
+text, and the TOML keys `"\u00e9"` and `"e\u0301"` have two different
+texts.
 
-A TOML key is a key of TOML 1.1.0 that is not a dotted key, such as `a`,
-`"a"`, or `"\u00e9"`. A dotted key joins two or more TOML keys with `.`,
-such as `b.c.x`, and these are the TOML keys of the dotted key. The text
-of a TOML key is the text that TOML 1.1.0 gives for it after its escape
-sequences resolve, with no other change. The quoted keys `""` and `''`
-have the empty text, which has no characters. Two TOML keys are the same
-key of TOML 1.1.0 when, and only when, their texts are the same text. So
-the TOML keys `a` and `"a"` are the same key of TOML 1.1.0, and the TOML
-keys `"\u00e9"` and `"e\u0301"` are two different keys of TOML 1.1.0.
+The term `toml-value` gives the TOML values and their ten kinds, and the
+term `root-table` gives the root table of a TOML document. For example,
+the integer `0x1F` of TOML 1.1.0 gives the TOML integer 31.
 
-The root table of a TOML document is its top-level table. A value of
-TOML 1.1.0 is a run of the text of a document that the rule `val` of
-TOML 1.1.0 matches, such as the value of a key/value pair or an element
-of an array of TOML 1.1.0. A TOML value is a value of the data that
-TOML 1.1.0 reads from a document: the value that a value of TOML 1.1.0
-gives, the root table of a document, a table that a table header makes,
-a table that a dotted key makes, a TOML array that the table headers
-of an array of tables make, or a TOML value in one of these. A table
-holds a set of pairs. Each pair is the text of a TOML key and the TOML
-value of that TOML key. No two pairs that a table holds have the same
-text, and the pairs have no order. Each TOML value is of one of ten
-kinds:
-
-| kind | what a TOML value of the kind is |
-|---|---|
-| TOML string | a text |
-| TOML integer | a whole number from −2^63 to 2^63 − 1 |
-| TOML float | an IEEE 754-2019 binary64 value |
-| TOML boolean | true or false |
-| local date | a year, a month, and a day |
-| local time | an hour, a minute, a second, and a fraction of a second |
-| local date-time | a local date and a local time |
-| offset date-time | a local date-time and an offset |
-| TOML array | a sequence of TOML values; the index of each of them is its number in the order of the TOML array, counted from 1 |
-| table | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value |
-
-A document gives each TOML value in the syntax of TOML 1.1.0. For
-example, the integer `0x1F` of TOML 1.1.0 gives the TOML integer 31, and
-the float `1e3` of TOML 1.1.0 gives a TOML float. A basic string, a
-multi-line basic string, a literal string, or a multi-line literal
-string gives a TOML string.
-
-At some points, TOML 1.1.0 lets an implementation choose. A conforming
-program makes these choices:
-
-| point | choice |
-|---|---|
-| the range of a TOML integer | from −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807, which is from −2^63 to 2^63 − 1; an integer of TOML 1.1.0 that stands for a number outside the range makes the byte sequence not a TOML document |
-| the TOML float of a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` | the IEEE 754-2019 binary64 value whose sign bit is 1 when, and only when, the float of TOML 1.1.0 starts with `-`, and whose magnitude is the binary64 value that rounding to nearest, with ties to even, gives for the absolute value of the number that the float of TOML 1.1.0 stands for; so `-0.0` and `-1e-400` give negative zero |
-| a float of TOML 1.1.0 that rounds to an infinity, such as `1e400` | the byte sequence is not a TOML document |
-| the floats `inf`, `+inf`, `-inf`, `nan`, `+nan`, and `-nan` of TOML 1.1.0 | `inf` and `+inf` give positive infinity, and `-inf` gives negative infinity; `nan`, `+nan`, and `-nan` each give a TOML float that is NaN |
-| more than nine digits in the fraction of a second | a local time, a local date-time, and an offset date-time keep the first nine digits, and the further digits do not change the fraction |
-| a newline in a multi-line basic string or a multi-line literal string | each newline that TOML 1.1.0 does not trim stays in the TOML string as its characters: a line feed, or a carriage return and a line feed |
-
-The fraction of a second is the number that the first nine digits after
-the `.` stand for as a decimal fraction. So `12:30:00.5` and
-`12:30:00.50` give equal local times, and so do `00:00:00.123456789123`
-and `00:00:00.123456789`.
+At the points where TOML 1.1.0 lets an implementation choose, a
+conforming program makes the choices of the reading rules of TOML, as
+the term `toml-reading-rule-list` gives them. For example, `12:30:00.5`
+and `12:30:00.50` give equal local times.
 
 TOML 1.1.0 bases local times, local date-times, and offset date-times on
 RFC 3339. RFC 3339, section 5.7, allows the second 60 only at a leap
@@ -752,61 +695,19 @@ local date-time, and an offset date-time, on every date and at every
 hour and minute.
 
 RFC 3339, section 4.2, gives the meaning of a numeric offset, local time
-minus UTC, and section 4.3 gives the meaning of the offset `-00:00`. The
-offset of an offset date-time is the unknown local offset when the
-document gives the offset as `-00:00`. Otherwise, the offset is a signed
+minus UTC, and section 4.3 gives the meaning of the offset `-00:00`.
+Apart from `-00:00`, the offset of an offset date-time is a signed
 number of minutes: 0 for `Z` and `z`, and the number of minutes that the
 document gives for each other offset, such as 0 for `+00:00` and −420
-for `-07:00`. The unknown local offset is not a number of minutes, so it
-is not the offset 0. So the offset date-times `1979-05-27T07:32:00Z` and
-`1979-05-27T07:32:00+00:00` are equal, and `1979-05-27T07:32:00-00:00`
-is equal to neither of them. No offset date-time changes to UTC, so
-`1979-05-27T07:32:00-07:00` and `1979-05-27T14:32:00Z` are not equal.
+for `-07:00`. So the offset date-times `1979-05-27T07:32:00Z` and
+`1979-05-27T07:32:00+00:00` are equal. No offset date-time changes to
+UTC, so `1979-05-27T07:32:00-07:00` and `1979-05-27T14:32:00Z` are not
+equal.
 
-TOML 1.1.0 trims the newline right after the opening delimiter of a
-multi-line basic string or a multi-line literal string. In a multi-line
-basic string, it also trims each line ending backslash, with all the
-tabs, spaces, and newlines after it up to the next other character or
-the closing delimiter. So in this text, `s` holds the TOML string `ab`:
+The term `toml-value-equality` says when two TOML values are equal. So
+`-0.0` and `0.0` give two TOML floats that are not equal.
 
-```toml
-s = """a\
-  b"""
-```
-
-The rules on the encoding, on the byte order mark, and on the second 60,
-the choices listed above, and the rules on offsets and on newlines in
-strings are the reading rules of TOML.
-
-These values of TOML 1.1.0 are value errors:
-
-- an integer of TOML 1.1.0 outside the range of a TOML integer, such as
-  `9223372036854775808`;
-- a float of TOML 1.1.0 that rounds to an infinity, such as `1e400`;
-- a local date, a local time, a local date-time, or an offset date-time
-  of TOML 1.1.0 with a year, a month, a day, an hour, a minute, a
-  second, or an offset outside the range that RFC 3339 allows, with the
-  second 60 on every date, such as the local date `1979-02-30`.
-
-The text of a TOML string is the text that TOML 1.1.0 gives for its
-basic string, multi-line basic string, literal string, or multi-line
-literal string after the escape sequences resolve, with no change other
-than the trims of newlines and of line ending backslashes that
-TOML 1.1.0 makes. When the document gives no second for a local time, a
-local date-time, or an offset date-time, its second is 0. When the
-document gives no fraction of a second for it, its fraction of a second
-is 0. So `12:30`, `12:30:00`, and `12:30:00.000` give equal local times.
-
-Two TOML values are equal when, and only when, they are of the same kind
-and their parts match: texts are the same text, numbers are the same
-number, and TOML values in them are equal. Two TOML floats are equal
-when, and only when, their binary64 values have the same bits, or both
-are NaN. So `-0.0` and `0.0` give two TOML floats that are not equal.
-
-The root table depends only on the texts of the TOML keys and on the
-TOML values, and not on the syntax of TOML 1.1.0 that makes them. A
-table header, a dotted key, and an inline table each make a table. So
-these three texts give equal root tables, in which `a` holds a table in
+These three texts give equal root tables, in which `a` holds a table in
 which `b` holds the TOML integer 1:
 
 ```toml
@@ -822,10 +723,8 @@ a.b = 1
 a = { b = 1 }
 ```
 
-Both the table headers of an array of tables and the brackets `[` and
-`]` around TOML values make a TOML array. So these two texts give equal
-root tables, in which `a` holds a TOML array of one table, in which `b`
-holds the TOML integer 1:
+These two texts give equal root tables, in which `a` holds a TOML array
+of one table, in which `b` holds the TOML integer 1:
 
 ```toml
 a = [{ b = 1 }]
@@ -871,11 +770,11 @@ So in the text `a = [{ b = 1 }]`, the span of the key `b` is the span of
 the key of TOML 1.1.0 that leads to a location of three steps: the text
 `a`, the index 1, and the text `b`. The span of the key of a table
 header is the span of the key of TOML 1.1.0 that leads to the location
-of the table that the table header defines. The span of the TOML
-key with the index i of the key of a key/value pair or of a table header
-is the span of the TOML key with the index i of the key of TOML 1.1.0
-that leads to the location of that key. So in the text `[[a]]`, the span
-of the key `a` of the table header is the span of the key of TOML 1.1.0
+of the table that the table header defines. The span of the TOML key
+with the index i of the key of a key/value pair or of a table header is
+the span of the TOML key with the index i of the key of TOML 1.1.0 that
+leads to the location of that key. So in the text `[[a]]`, the span of
+the key `a` of the table header is the span of the key of TOML 1.1.0
 that leads to a location of two steps, the text `a` and the index 1. The
 span of its TOML key `a` is the span of the TOML key with the index 1 of
 that key of TOML 1.1.0.
@@ -921,7 +820,7 @@ TOML 1.1.0.
     toml-lang/1.1.0,
     ieee/754-2019,
     text#{text=v1, whole-number=v1},
-    #{toml-key=v1, toml-key-text=v1, toml-integer-range=v1},
+    #{toml-key=v1, toml-key-text=v1},
 }
 
 These definitions use the terms document, root table, value, table
@@ -938,14 +837,13 @@ table of TOML 1.1.0.
   TOML array are the TOML values of the types string, integer, float,
   boolean, and array of TOML 1.1.0.
 - Each TOML value is of one of these ten kinds: a TOML string, which is
-  a text; a TOML integer, which is a whole number in the range of a TOML
-  integer; a TOML float, which is an IEEE 754-2019 binary64 value; a
-  TOML boolean, which is true or false; a local date, which is a year, a
-  month, and a day; a local time, which is an hour, a minute, a second,
-  and a fraction of a second; a local date-time, which is a local date
-  and a local time; an offset date-time, which is a local date-time and
-  an offset; a TOML array, which is a sequence of TOML values; and a
-  table.
+  a text; a TOML integer, which is a whole number; a TOML float, which
+  is an IEEE 754-2019 binary64 value; a TOML boolean, which is true or
+  false; a local date, which is a year, a month, and a day; a local
+  time, which is an hour, a minute, a second, and a fraction of a
+  second; a local date-time, which is a local date and a local time; an
+  offset date-time, which is a local date-time and an offset; a TOML
+  array, which is a sequence of TOML values; and a table.
 - A table holds a set of pairs. Each pair is the text of a TOML key and
   a TOML value. No two pairs that a table holds have the same text. The
   pairs have no order.
@@ -980,15 +878,7 @@ of these is true:
 - They are tables that hold the same texts, and the TOML values of each
   of these texts in the two tables are equal.
 
-#### 5.1.5 The encoding of a TOML document
-
-@term toml-encoding=v1
-@cites {toml-lang/1.1.0, text#{byte-sequence=v1, valid-utf-8=v1}}
-
-With this rule, TOML 1.1.0 reads no text for a byte sequence that is not
-valid UTF-8.
-
-#### 5.1.6 The byte order mark in TOML
+#### 5.1.5 The byte order mark in TOML
 
 @term toml-byte-order-mark=v1
 @cites {
@@ -1004,21 +894,7 @@ UTF-8, the body of the text of the byte sequence. So when that text has
 a byte order mark, TOML 1.1.0 reads the text without its byte order
 mark.
 
-#### 5.1.7 The range of a TOML integer
-
-@term toml-integer-range=v1
-@cites {toml-lang/1.1.0, text#{code-span=v1}}
-
-This rule uses the terms integer, float, integer part, and exponent part
-of TOML 1.1.0. An integer of TOML 1.1.0 is a value of the type integer,
-such as `-17` or `0x1F`. The integer part and the exponent part of a
-float of TOML 1.1.0 are not integers of TOML 1.1.0. The range of a TOML
-integer is from −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807.
-An integer of TOML 1.1.0 is outside the range of a TOML integer when it
-stands for a number less than −9,223,372,036,854,775,808 or greater
-than 9,223,372,036,854,775,807.
-
-#### 5.1.8 The values of TOML floats
+#### 5.1.6 The values of TOML floats
 
 @term toml-float-value=v1
 @cites {
@@ -1035,35 +911,7 @@ TOML 1.1.0 starts with `-`, and whose magnitude is the binary64 value
 that rounding to nearest, with ties to even, gives for the absolute
 value of the number that the float of TOML 1.1.0 stands for.
 
-#### 5.1.9 Floats that round to an infinity
-
-@term toml-float-overflow=v1
-@cites {
-    toml-lang/1.1.0,
-    ieee/754-2019,
-    text#{code-span=v1},
-    #{toml-value=v1, toml-float-value=v1},
-}
-
-A float of TOML 1.1.0 rounds to an infinity when the TOML float that it
-gives, by the rule `toml-float-value`, is an infinity.
-
-#### 5.1.10 Infinities and NaN in TOML
-
-@term toml-special-float=v1
-@cites {
-    toml-lang/1.1.0,
-    ieee/754-2019,
-    text#{code-span=v1},
-    #{toml-value=v1},
-}
-
-The floats `inf` and `+inf` of TOML 1.1.0 give the TOML float positive
-infinity, and the float `-inf` of TOML 1.1.0 gives the TOML float
-negative infinity. The floats `nan`, `+nan`, and `-nan` of TOML 1.1.0
-each give a TOML float that is NaN.
-
-#### 5.1.11 Fractions of a second in TOML
+#### 5.1.7 Fractions of a second in TOML
 
 @term toml-second-fraction=v1
 @cites {toml-lang/1.1.0, text#{code-span=v1}, #{toml-value=v1}}
@@ -1074,7 +922,7 @@ When these digits are d1 to dk, the fraction of a second is the sum of
 the numbers di / 10^i for each i from 1 to m, where m is the smaller of
 k and 9.
 
-#### 5.1.12 Leap seconds in TOML
+#### 5.1.8 Leap seconds in TOML
 
 @term toml-leap-second=v1
 @cites {rfc/3339, toml-lang/1.1.0, #{toml-value=v1}}
@@ -1084,7 +932,7 @@ on leap seconds, TOML 1.1.0 reads each second from 0 to 60 as a valid
 second of a local time, a local date-time, and an offset date-time, on
 every date and at every hour and minute.
 
-#### 5.1.13 Offsets in TOML
+#### 5.1.9 Offsets in TOML
 
 @term toml-offset=v1
 @cites {
@@ -1094,14 +942,13 @@ every date and at every hour and minute.
     #{toml-value=v1},
 }
 
-The offset of an offset date-time is the unknown local offset of
-RFC 3339, section 4.3, when the document gives the offset as `-00:00`.
-Otherwise, the offset is a signed number of minutes: 0 when the document
-gives the offset as `Z` or `z`, and the number of minutes that the
-document gives for each other offset, such as 0 for `+00:00` and −420
-for `-07:00`. The unknown local offset is not a number of minutes.
+The offset of an offset date-time is a signed number of minutes: 0 when
+the document gives the offset as `Z` or `z`, and the number of minutes
+that the document gives for each other offset, such as 0 for `+00:00`
+and −420 for `-07:00`, except for `-00:00`, whose meaning
+RFC 3339, section 4.3, gives.
 
-#### 5.1.14 Newlines in TOML strings
+#### 5.1.10 Newlines in TOML strings
 
 @term toml-string-newline=v1
 @cites {
@@ -1110,38 +957,29 @@ for `-07:00`. The unknown local offset is not a number of minutes.
     #{toml-value=v1},
 }
 
-These rules use the terms multi-line basic string, multi-line literal
-string, newline, and line ending backslash of TOML 1.1.0.
+This rule uses the terms multi-line basic string, multi-line literal
+string, and newline of TOML 1.1.0. Each newline of a multi-line basic
+string or a multi-line literal string that TOML 1.1.0 does not trim
+stays in the TOML string as its characters: U+000A, or U+000D and then
+U+000A.
 
-- TOML 1.1.0 trims a newline right after the opening delimiter of a
-  multi-line basic string or a multi-line literal string.
-- In a multi-line basic string, TOML 1.1.0 trims each line ending
-  backslash with all the tabs, spaces, and newlines after it up to the
-  next other character or the closing delimiter.
-- Each other newline of a multi-line basic string or a multi-line
-  literal string stays in the TOML string as its characters: U+000A, or
-  U+000D and then U+000A.
-
-#### 5.1.15 The reading rules of TOML
+#### 5.1.11 The reading rules of TOML
 
 @term toml-reading-rule-list=v1
 @cites {
     text#{code-span=v1},
     #{
-        toml-encoding=v1, toml-byte-order-mark=v1,
-        toml-integer-range=v1, toml-float-value=v1,
-        toml-float-overflow=v1, toml-special-float=v1,
+        toml-byte-order-mark=v1, toml-float-value=v1,
         toml-second-fraction=v1, toml-leap-second=v1, toml-offset=v1,
         toml-string-newline=v1,
     },
 }
 
-The reading rules of TOML are the rules of `toml-encoding`,
-`toml-byte-order-mark`, `toml-integer-range`, `toml-float-value`,
-`toml-float-overflow`, `toml-special-float`, `toml-second-fraction`,
-`toml-leap-second`, `toml-offset`, and `toml-string-newline`.
+The reading rules of TOML are the rules of `toml-byte-order-mark`,
+`toml-float-value`, `toml-second-fraction`, `toml-leap-second`,
+`toml-offset`, and `toml-string-newline`.
 
-#### 5.1.16 The locations of TOML values
+#### 5.1.12 The locations of TOML values
 
 @term toml-location=v1
 @cites #{
@@ -1163,13 +1001,13 @@ The reading rules of TOML are the rules of `toml-encoding`,
   different locations are two different tables, also when they hold the
   same pairs.
 
-#### 5.1.17 The texts of TOML strings
+#### 5.1.13 The texts of TOML strings
 
 @term toml-string-text=v1
 @cites {
     toml-lang/1.1.0,
     text#{text=v1},
-    #{toml-value=v1, toml-string-newline=v1},
+    #{toml-value=v1},
 }
 
 This definition uses the terms basic string, multi-line basic string,
@@ -1177,9 +1015,9 @@ literal string, multi-line literal string, and escape sequence of
 TOML 1.1.0. The text of a TOML string is the text that TOML 1.1.0 gives
 for its basic string, multi-line basic string, literal string, or
 multi-line literal string after the escape sequences resolve, with no
-change other than the trims of `toml-string-newline`.
+change other than the trims that TOML 1.1.0 makes.
 
-#### 5.1.18 The local date-times of offset date-times
+#### 5.1.14 The local date-times of offset date-times
 
 @term toml-offset-date-time=v1
 @cites {toml-lang/1.1.0, #{toml-value=v1}}
@@ -1187,17 +1025,7 @@ change other than the trims of `toml-string-newline`.
 The local date-time of an offset date-time of a document is the local
 date-time that the document gives before the offset.
 
-#### 5.1.19 Omitted seconds in TOML
-
-@term toml-omitted-second=v1
-@cites {toml-lang/1.1.0, #{toml-value=v1, toml-second-fraction=v1}}
-
-When a document gives no second for a local time, a local date-time, or
-an offset date-time, its second is 0. When a document gives no fraction
-of a second for a local time, a local date-time, or an offset date-time,
-its fraction of a second is 0.
-
-#### 5.1.20 Spans in a TOML document
+#### 5.1.15 Spans in a TOML document
 
 @term toml-span=v1
 @cites {
@@ -1233,7 +1061,7 @@ text of the byte sequence that is the TOML document:
   makes, a TOML array that the table headers of an array of tables make,
   and the root table have no span.
 
-#### 5.1.21 Value errors
+#### 5.1.16 Value errors
 
 @term toml-value-error=v1
 @cites {
@@ -1243,49 +1071,41 @@ text of the byte sequence that is the TOML document:
         byte-sequence=v1, valid-utf-8=v1, text-of-a-byte-sequence=v1,
         body=v1, code-span=v1,
     },
-    #{
-        toml-integer-range=v1, toml-float-overflow=v1,
-        toml-leap-second=v1, toml-value=v1,
-    },
+    #{toml-leap-second=v1, toml-value=v1},
 }
 
-This definition uses the terms value, integer, float, local date, local
-time, local date-time, and offset date-time of TOML 1.1.0, and the rule
-`toml` of the ABNF of TOML 1.1.0. It applies to
-a byte sequence that is valid UTF-8 and for which the text of the body
-of its text matches the rule `toml`.
+This definition uses the terms local date, local time, local date-time,
+and offset date-time of TOML 1.1.0, and the rule `toml` of the ABNF of
+TOML 1.1.0. It applies to a byte sequence that is valid UTF-8 and for
+which the text of the body of its text matches the rule `toml`.
 
-A value error of such a byte sequence is each value of TOML 1.1.0 in the
-body of its text that is one of these:
+A value error of such a byte sequence is each local date, local time,
+local date-time, or offset date-time of TOML 1.1.0 in the body of its
+text that RFC 3339, sections 5.6 and 5.7, does not allow, with the rule
+`toml-leap-second` in place of the statement of RFC 3339 on leap
+seconds.
 
-- an integer of TOML 1.1.0 that is outside the range of a TOML integer;
-- a float of TOML 1.1.0 that rounds to an infinity;
-- a local date, a local time, a local date-time, or an offset date-time
-  of TOML 1.1.0 whose year, month, day, hour, minute, second, or offset
-  is outside the range that RFC 3339, sections 5.6 and 5.7, allows, with
-  the rule `toml-leap-second` in place of the statement of RFC 3339 on
-  leap seconds.
-
-#### 5.1.22 TOML documents
+#### 5.1.17 TOML documents
 
 @term toml-document=v1
 @cites {
     toml-lang/1.1.0,
-    text#{byte-sequence=v1, text=v1, code-span=v1},
+    text#{byte-sequence=v1, valid-utf-8=v1, text=v1, code-span=v1},
     #{toml-reading-rule-list=v1, toml-value-error=v1},
 }
 
 This definition uses the rule `toml` of the ABNF of TOML 1.1.0. A TOML
 document is a byte sequence that meets each of these conditions:
 
-- TOML 1.1.0, with the reading rules of TOML, reads a text for the byte
-  sequence, and that text matches the rule `toml`.
+- The byte sequence is valid UTF-8, as TOML 1.1.0 requires of a
+  document, and the text that TOML 1.1.0 reads for it, with the reading
+  rules of TOML, matches the rule `toml`.
 - The byte sequence has no value error.
 - The keys, the tables, and the strings of that text break no statement
   of TOML 1.1.0, such as the statements that no key or table is defined
   twice and that each escape code is a Unicode scalar value.
 
-#### 5.1.23 Root tables
+#### 5.1.18 Root tables
 
 @term root-table=v1
 @cites {
@@ -1293,23 +1113,22 @@ document is a byte sequence that meets each of these conditions:
     text#{code-span=v1},
     #{
         toml-document=v1, toml-reading-rule-list=v1,
-        toml-string-text=v1, toml-offset-date-time=v1,
-        toml-omitted-second=v1, toml-value=v1,
+        toml-string-text=v1, toml-offset-date-time=v1, toml-value=v1,
     },
 }
 
 This definition uses the terms root table, table header, dotted key,
 inline table, and array of tables of TOML 1.1.0. The root table of a
 TOML document is the root table that TOML 1.1.0 gives for the document,
-with the reading rules of TOML, and with the rules of
-`toml-string-text`, `toml-offset-date-time`, and `toml-omitted-second`.
-In this root table, each table that a table header makes, each table
-that a dotted key makes, and the table of each inline table is a TOML
-value of the kind table, and each TOML array that the table headers of
-an array of tables make, and each TOML array that the brackets `[` and
-`]` around TOML values make, is a TOML value of the kind TOML array.
+with the reading rules of TOML, and with the rules of `toml-string-text`
+and `toml-offset-date-time`. In this root table, each table that a table
+header makes, each table that a dotted key makes, and the table of each
+inline table is a TOML value of the kind table, and each TOML array that
+the table headers of an array of tables make, and each TOML array that
+the brackets `[` and `]` around TOML values make, is a TOML value of the
+kind TOML array.
 
-#### 5.1.24 Span pairs
+#### 5.1.19 Span pairs
 
 @term toml-span-pair=v1
 @cites {
@@ -1461,14 +1280,13 @@ second, each as two digits; then, when the fraction of the second is not
 local time of `12:30:00.50` is `"12:30:00.5"`. The string of a local
 date-time is the string of its local date, `T`, and the string of its
 local time. The string of an offset date-time is the string of its local
-date-time, then its offset: `+00:00` for the offset 0, and `-00:00` for
-the unknown local offset. For each other offset, the string of the
-offset is `+` when the offset is greater than 0, and `-` when it is less
-than 0; then the whole-number quotient of the absolute value of the
-offset divided by 60, and the remainder, each as two digits, with `:`
-between them. So the offset
-date-time of `1979-05-27T07:32:00Z` is `"1979-05-27T07:32:00+00:00"`,
-and the offset date-time of `1979-05-27T00:32:00-07:00` is
+date-time, then its offset: `+00:00` for the offset 0. For each other
+offset, the string of the offset is `+` when the offset is greater than
+0, and `-` when it is less than 0; then the whole-number quotient of the
+absolute value of the offset divided by 60, and the remainder, each as
+two digits, with `:` between them. So the offset date-time of
+`1979-05-27T07:32:00Z` is `"1979-05-27T07:32:00+00:00"`, and the offset
+date-time of `1979-05-27T00:32:00-07:00` is
 `"1979-05-27T00:32:00-07:00"`.
 
 So the form of the root table in which `a` holds a table in which `b`
@@ -1513,12 +1331,10 @@ of the group are `read-toml` and `give-only-root-tables`.
 - `values`: the empty object, `{}`.
 
 When `values` is `{}`, a conforming program gives no table as the root
-table of the byte sequence. The object of a vector line of the group
-states nothing about a position that a conforming program gives with the
-result "invalid".
+table of the byte sequence.
 
 ```
-{"group":"reject-byte-sequence","input":"61203d20393232333337323033363835343737353830380a","n":30,"note":"the integer of TOML 1.1.0 stands for a number greater than 9,223,372,036,854,775,807","result":"invalid","rev":"v1","values":{}}
+{"group":"reject-byte-sequence","input":"61203d2022620a","n":147,"note":"the text does not match `toml`, because a basic string holds no line feed","result":"invalid","rev":"v1","values":{}}
 ```
 
 #### 5.5.2 Spans
