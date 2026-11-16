@@ -8,6 +8,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
+@cites rfc/2781
 @cites toml-lang/1.1.0
 @cites ieee/754-2019
 @cites fips/180-4
@@ -53,28 +54,19 @@ inputs, and results.
 From RFC 8259, the design takes JSON texts and the rule `JSON-text` of
 its ABNF: canonical forms and vector lines write JSON values in JSON
 texts, and a conforming program reads the JSON value of a byte sequence
-from its JSON text. From TOML 1.1.0, it takes documents, their tables,
-their keys, and their values, and the rules `toml`, `key`, `simple-key`,
-and `val` of its ABNF. From RFC 3339, it takes the ranges of the months,
-days, hours, minutes, seconds, and offsets of dates and times, the
-meaning of the offset of an offset date-time, and its statement on leap
-seconds, which a reading rule of TOML replaces. From IEEE 754-2019, it
-takes the binary64 format of floating-point numbers, and rounding to
-nearest with ties to even. From FIPS 180-4, it takes the hash function
-SHA-256.
+from its JSON text. From RFC 2781, it takes the code units of the
+encoding UTF-16, by which key order compares keys. From TOML 1.1.0, it
+takes documents, their tables, their keys, and their values, and the
+rules `toml`, `key`, `simple-key`, and `val` of its ABNF. From RFC 3339,
+it takes the ranges of the months, days, hours, minutes, seconds, and
+offsets of dates and times, the meaning of the offset of an offset
+date-time, and its statement on leap seconds, which a reading rule of
+TOML replaces. From IEEE 754-2019, it takes the binary64 format of
+floating-point numbers, and rounding to nearest with ties to even. From
+FIPS 180-4, it takes the hash function SHA-256.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
-case-sensitive strings of RFC 7405. A production, such as
-`hash-form = 64hex-digit`, gives the texts that its name matches.
-`64hex-digit` repeats the element `hex-digit` exactly 64 times, `1*`
-repeats the element after it one or more times, and `*` repeats it any
-number of times, zero included. In a production, `/` separates two
-alternatives, and `( )` groups elements. `%x61` is the character U+0061,
-and `%x61-7A` is any one character from U+0061 to U+007A. `"-"` is the
-character `-`. `DIGIT` is the core rule of RFC 5234 for the characters
-`0` to `9`. In RFC 5234, a quoted string such as `"v"` matches its
-letters in either case. RFC 7405 adds the string `%s"…"`, which matches
-its letters only in the same case.
+case-sensitive strings of RFC 7405.
 
 ## 1. Glossary
 
@@ -124,7 +116,6 @@ its letters only in the same case.
 | [canonical form](sinter:#canonical-form=v1) | the one text that the rules of the canonical form give for a JSON value |
 | [string form](sinter:#canonical-form=v1) | the text that stands for one character of a string in the canonical form of the string, such as `\n` for the line feed and `a` for `a` |
 | escape sequence | a `\` and the characters that TOML 1.1.0 or RFC 8259 reads with it as one escape, such as `\n`, which stands for the line feed, or `\q`, which TOML 1.1.0 reserves |
-| noncharacter | a character from U+FDD0 to U+FDEF, or a character whose code point ends in FFFE or FFFF in base 16, such as U+FFFF |
 | [canonical byte sequence](sinter:#canonical-byte-sequence=v1) | the UTF-8 encoding of the canonical form of a JSON value |
 | [hash](sinter:#hash=v1) | the hex text of the digest that SHA-256 gives for a byte sequence: 64 hex digits |
 | [scalar](sinter:#line-object=v1) | a string, an integer, or a boolean |
@@ -199,94 +190,24 @@ validates, it gives one of two results: "valid" or "invalid". It can
 also give more, such as the line object of a canonical line or the root
 table of a TOML document.
 
-The index of an element of a finite sequence is its number in the order
-of the sequence, counted from 1. So the first element of an array has
-the index 1, and the second element has the index 2.
+The term `index` gives the index of an element of a finite sequence,
+counted from 1. So the first element of an array has the index 1, and
+the second element has the index 2.
 
-A JSON value is one of five things:
+The term `json-value` gives the JSON values: strings, integers,
+booleans, arrays, and objects. An object can hold the key U+00E9 and the
+key `e`, U+0301 as two members, although both keys show as the letter e
+with an acute accent. It can also hold the keys `a` and `A` as two
+members.
 
-| JSON value | what it is |
-|---|---|
-| string | a text |
-| integer | a whole number from −9,007,199,254,740,991 to 9,007,199,254,740,991, which is from −(2^53 − 1) to 2^53 − 1 |
-| boolean | true or false |
-| array | a finite sequence of JSON values, its elements; it can be empty |
-| object | a finite set of members; it can be empty |
-
-A member of an object is a key, which is a text, and a JSON value, the
-value of the member. No two members of one object have the same key. Two
-texts are the same text only when they have the same characters at the
-same places. So an object can hold the key U+00E9 and the key `e`,
-U+0301 as two members, although both keys show as the letter e with an
-acute accent. It can also hold the keys `a` and `A` as two members. A
-conforming program keeps each text as it is: it applies no Unicode
-normalization, and it changes the case of no letter.
-
-A JSON value is never null, and it is never a number that is not an
-integer, such as `1.5`.
-
-The canonical form of a JSON value is a text. These rules give it:
-
-| JSON value | canonical form |
-|---|---|
-| string | `"`, then the string form of each character of the string, in order, then `"` |
-| integer | the decimal numeral of the integer when it is 0 or more; `-`, then the decimal numeral of its absolute value, when it is less than 0 |
-| boolean | `true` or `false` |
-| array | `[`, then the canonical forms of the elements in their order, with `,` between each two of them, then `]` |
-| object | `{`, then the members in key order, with `,` between each two of them, then `}`; each member is the canonical form of its key as a string, `:`, and the canonical form of its value |
-
-The string form of a character of a string is one of these:
-
-| character | string form |
-|---|---|
-| `"` (U+0022) | `\"` |
-| `\` (U+005C) | `\\` |
-| U+0008 | `\b` |
-| U+0009, the tab | `\t` |
-| U+000A, the line feed | `\n` |
-| U+000C | `\f` |
-| U+000D, the carriage return | `\r` |
-| each other character from U+0000 to U+001F | `\u00`, then the hex text of its code point as a byte, such as `\u001f` for U+001F |
-| each other character | the character itself |
-
-So `/`, U+007F, U+2028, and every character from U+0080 stand as
-themselves, and the escape sequences `\/` and `\u0041` never stand in a
-canonical form.
-
-A canonical form holds no tab and no line feed, and it holds a space
-only inside a string. The members of an object stand in key order. Key
-order compares two keys by their UTF-16 code units, as the encoding
-UTF-16 gives them:
-
-- A character whose code point is less than 0x10000 has one code unit:
-  its code point.
-- A character whose code point c is 0x10000 or more has two code units:
-  first 0xD800 plus the whole-number quotient of c − 0x10000 divided
-  by 0x400, then 0xDC00 plus the remainder.
-
-One key comes before another when, at the first index at which their
-code units differ, its code unit is less. A key also comes before every
-longer key whose code units start with all of its code units, so `a`
-comes before `ab`.
-
-Key order agrees with code point order, applied to the characters of two
-keys one place after another, and with the order of the bytes of their
-UTF-8 encodings, except in one case: at the first place where two keys
-differ, one key has a character from U+E000 to U+FFFF, and the other key
-has a character from U+10000 to U+10FFFF. For example, the key U+1F600
-(the code units 0xD83D and 0xDE00) comes before the key U+E000 (the code
-unit 0xE000) in key order, but U+1F600 comes after U+E000 in code point
+The term `canonical-form` gives the canonical form of a JSON value, a
+text, and the term `canonical-byte-sequence` gives its UTF-8 encoding.
+In a canonical form, the members of an object stand in key order, which
+compares two keys by their UTF-16 code units, as the terms `key-order`
+and `utf-16-code-unit` give. For example, the key U+1F600 (the code
+units 0xD83D and 0xDE00) comes before the key U+E000 (the code unit
+0xE000) in key order, but U+1F600 comes after U+E000 in code point
 order.
-
-The canonical byte sequence of a JSON value is the UTF-8 encoding of its
-canonical form. Two different JSON values never have the same canonical
-form. Each canonical form is a JSON text, as RFC 8259 defines it.
-
-A noncharacter is a character from U+FDD0 to U+FDEF, or a character
-whose code point ends in FFFE or FFFF in base 16, such as U+FFFF or
-U+10FFFE. For a JSON value whose strings and keys hold no noncharacter,
-this canonical form is the same text as the output of the JSON
-Canonicalization Scheme of RFC 8785.
 
 In these examples, a JSON text gives each JSON value:
 
@@ -298,11 +219,9 @@ In these examples, a JSON text gives each JSON value:
 | `"x\u000by"` | `"x\u000by"` |
 | `-42` | `-42` |
 
-The hex text of a byte is two hex digits: the hex digit of the
-whole-number quotient of the byte divided by 16, then the hex digit of
-the remainder. So the hex text of the byte 0x3F is `3f`. The hex text of
-a byte sequence is the hex texts of its bytes, in their order, so the
-hex text of the byte sequence 0x00, 0xFF is `00ff`.
+The term `hex-text` gives the hex text of a byte and of a byte
+sequence. So the hex text of the byte 0x3F is `3f`, and the hex text of
+the byte sequence 0x00, 0xFF is `00ff`.
 
 ## 3. Definitions
 
@@ -345,17 +264,12 @@ and for no other JSON value.
 ### 3.4 UTF-16 code units
 
 @term utf-16-code-unit=v1
-@cites text#{
-    character=v1, code-point=v1, text=v1, 0x-numeral=v1,
-    whole-number=v1,
-}
+@cites {rfc/2781, text#{character=v1, text=v1, whole-number=v1}}
 
-The UTF-16 code units of a character whose code point c is less than
-0x10000 are the one number c. The UTF-16 code units of a character whose
-code point c is 0x10000 or more are two numbers: first 0xD800 plus the
-whole-number quotient of c − 0x10000 divided by 0x400, then 0xDC00 plus
-the remainder of that division. The UTF-16 code units of a text are the
-UTF-16 code units of its characters, in their order.
+The UTF-16 code units of a character are the code units, each a whole
+number, that UTF-16, as RFC 2781 defines it, gives for the character.
+The UTF-16 code units of a text are the UTF-16 code units of its
+characters, in their order.
 
 ### 3.5 Key order
 
@@ -432,25 +346,15 @@ When a conforming program gives a byte sequence as the canonical byte
 sequence of a JSON value, it gives the canonical byte sequence of that
 JSON value. When it gives a byte sequence as the canonical line of a
 line object, it gives the canonical line of that line object. It gives
-no canonical byte sequence for a thing that is not a JSON value, such as
-null, and no canonical line for a thing that is not a line object. When
-it gives a result for whether a byte sequence is the canonical line of a
-line object, it gives the result "valid" when the byte sequence is the
+no canonical line for a thing that is not a line object. When it gives a
+result for whether a byte sequence is the canonical line of a line
+object, it gives the result "valid" when the byte sequence is the
 canonical line of a line object, and the result "invalid" when it is
 not. It can also give the line object whose canonical line the byte
 sequence is.
 
-A scalar is a string, an integer, or a boolean. A flat object is an
-object in which the value of each member is a scalar. A line object is
-an object in which the value of each member is one of these:
-
-- a scalar;
-- an array whose elements are all scalars, such as `[1,"a",true]`;
-- an array whose elements are all flat objects, such as
-  `[{"a":1},{"b":"x"}]`.
-
-An empty array is an array of scalars and also an array of flat objects.
-A line object can be empty. These are not line objects:
+The term `line-object` gives the line objects.
+These are not line objects:
 
 | object | why it is not a line object |
 |---|---|
@@ -460,11 +364,7 @@ A line object can be empty. These are not line objects:
 | `{"a":[{"b":[1]}]}` | the object `{"b":[1]}` is not a flat object |
 
 A canonical line is the canonical byte sequence of a line object, then
-the byte 0x0A. The canonical byte sequence never holds the byte 0x0A: a
-line feed in a string has the string form `\n`, and the UTF-8 encoding
-of no other character holds the byte 0x0A. So the byte 0x0A ends each
-canonical line, and a byte sequence of canonical lines, one after
-another, divides into them at each byte 0x0A.
+the byte 0x0A, as the term `canonical-line` gives.
 
 These byte sequences are not canonical lines. Each row gives every byte
 of the byte sequence, the final 0x0A included:
@@ -484,31 +384,14 @@ A conforming program can also read a byte sequence as a JSON text, such
 as the output of another program. When it gives a result for whether the
 byte sequence has a JSON value, it gives the result "valid" when the
 byte sequence has one, and the result "invalid" when it has none. It can
-also give the JSON value of the byte sequence. A byte sequence has a
-JSON value when it is valid UTF-8, its text is a JSON text, as RFC 8259
-defines it, and the value of that JSON text gives a JSON value:
+also give the JSON value of the byte sequence, as the term
+`json-value-of-a-byte-sequence` gives it. For example, the UTF-8
+encoding of `{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the
+JSON value whose canonical form is `{"a":"é","b":1}`, and the UTF-8
+encodings of `{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no
+JSON value.
 
-- no value of the JSON text is `null`;
-- each number of the JSON text has no fraction and no exponent, and it
-  writes a whole number from −(2^53 − 1) to 2^53 − 1;
-- each string and each name of the JSON text stands for a text: each
-  escape sequence `\u` of a number from 0xD800 to 0xDFFF is one of two,
-  one right after the other, that write the two UTF-16 code units of one
-  character;
-- no object of the JSON text has two names that stand for the same
-  text.
-
-The JSON text can hold spaces, tabs, line feeds, and carriage returns
-around its values and around the characters `{`, `}`, `[`, `]`, `:`, and
-`,`, its strings can hold escape sequences, and its objects can write
-their members in any order. So the UTF-8 encoding of
-`{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the JSON value
-whose canonical form is `{"a":"é","b":1}`, and the UTF-8 encodings of
-`{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no JSON value.
-
-The JSON value of a byte sequence has no limit on the depth of its
-arrays and objects, and a string can hold every character, U+0000
-included. A conforming program that does not read a JSON text, for
+A conforming program that does not read a JSON text, for
 example past a nesting limit of its own, gives no result for it, which
 `read-json-text` allows, and it never gives "invalid" for a byte
 sequence that has a JSON value.
@@ -560,16 +443,11 @@ fractions, exponents, and the literal names `true`, `false`, and
 - The JSON text of a byte sequence is the text of the byte sequence,
   when the byte sequence is valid UTF-8 and its text matches the rule
   `JSON-text`. Every other byte sequence has no JSON text.
-- A string or a name of a JSON text stands for the text of the
-  characters between its quotation marks, with each escape sequence in
-  place of the character that it stands for, as RFC 8259 defines it. An
-  escape sequence `\u` writes the number that its four digits in base
-  16 write. Two escape sequences `\u`, one right after the other, that
-  write a number from 0xD800 to 0xDBFF and then a number from 0xDC00 to
-  0xDFFF stand together for the one character whose UTF-16 code units
-  are these two numbers. A string or a name with any other escape
-  sequence `\u` that writes a number from 0xD800 to 0xDFFF stands for no
-  text.
+- A string or a name of a JSON text stands for the text that RFC 8259
+  gives for it. A string or a name with an escape sequence `\u` of a
+  number from 0xD800 to 0xDFFF that is not one of two, one right after
+  the other, that write the UTF-16 code units of one character stands
+  for no text.
 - The value `true` of a JSON text gives the JSON value true, and the
   value `false` gives the JSON value false. The value `null` gives no
   JSON value.
@@ -693,58 +571,29 @@ encoding of `{}`, then the byte 0x0A.
 #### 4.8.1 Canonical byte sequences
 
 The group `write-json` holds the vector lines whose vectors each give a
-JSON value and its canonical byte sequence, or a thing that is not a
-JSON value. The requirement of the group is `write-canonical-json`.
+JSON value and its canonical byte sequence. The requirement of the group
+is `write-canonical-json`.
 
-- `input`: a string whose characters are a JSON text, as RFC 8259
-  defines it, in which no two names of one object stand for the same
-  text. The input is what the JSON text gives by RFC 8259 and by the
-  rules below. When that is a JSON value, the spaces, tabs, line feeds,
-  and carriage returns outside the strings of the JSON text, and the
-  order in which it writes the members of an object, are no part of the
-  input.
-- `result`: the forms of the group name no question for `result`.
-- `values`: when the input is a JSON value, an object with one member,
-  `canonical-byte-sequence`: the canonical byte sequence of the input.
-  When the input is not a JSON value, the empty object, `{}`.
-
-These rules give what a JSON number and a string of the JSON text give:
-
-- A JSON number of the JSON text, as RFC 8259 defines it, gives an
-  integer when, and only when, it writes a whole number from −(2^53 − 1)
-  to 2^53 − 1, and that integer is the whole number that it writes. So
-  `1.0` gives the integer 1, `1e2` gives the integer 100, and `-0` gives
-  the integer 0. Every other JSON number, such as `1.5` or
-  `9007199254740992`, gives no integer. In this group, a JSON number
-  with a fraction or an exponent can give an integer, but in the JSON
-  value of a byte sequence such a number gives no JSON value.
-- A string or a name of the JSON text gives the text that it stands for,
-  as the term
+- `input`: a string whose characters are a JSON text whose UTF-8
+  encoding has a JSON value, as the term
   [`json-value-of-a-byte-sequence`](sinter:#json-value-of-a-byte-sequence=v1)
-  defines it. A string or a name that stands for no text, such as
-  `"\ud800"`, gives no text.
-
-So the JSON text gives a thing that is not a JSON value when one of
-these stands in it: `null`, a JSON number that gives no integer, or a
-string or a name that gives no text.
+  gives it; the input is that JSON value.
+- `result`: the forms of the group name no question for `result`.
+- `values`: an object with one member, `canonical-byte-sequence`: the
+  canonical byte sequence of the input.
 
 When a conforming program gives a byte sequence as the canonical byte
 sequence of the input, it gives the byte sequence of
-`canonical-byte-sequence`, and no other byte sequence. When `values` is
-`{}`, it gives no byte sequence as the canonical byte sequence of the
-input.
+`canonical-byte-sequence`, and no other byte sequence.
 
 ```
 {"group":"write-json","input":"{ \"ab\": 1, \"a\": 2 }","n":2,"rev":"v1","values":{"canonical-byte-sequence":"7b2261223a322c226162223a317d"}}
-{"group":"write-json","input":"null","n":22,"note":"null is not a JSON value","rev":"v1","values":{}}
-{"group":"write-json","input":"1.0","n":79,"note":"the JSON number `1.0` writes the whole number 1, so it gives the integer 1","rev":"v1","values":{"canonical-byte-sequence":"31"}}
-{"group":"write-json","input":"\"\\ud800\"","n":80,"note":"the escape sequence `\\ud800` is not one of the two escape sequences of a character, so the string is not a text","rev":"v1","values":{}}
 ```
 
 #### 4.8.2 Canonical lines as output
 
 The group `write-line` holds the vector lines whose vectors each give a
-line object and its canonical line, or a thing that is not a line
+line object and its canonical line, or a JSON value that is not a line
 object. The requirement of the group is `write-canonical-line`.
 
 - `input`: a string whose characters are a JSON text, as in the group
