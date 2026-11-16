@@ -146,7 +146,7 @@ JSON text.
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of the git repository at an address of a remote pointed |
 | [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks, as the pages gitglossary, git-config, and git-fetch define the upstream branch of a branch |
 | [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives a value of the setting `remote.<name>.url` with that name for `<name>`; its addresses for a fetch and for a push are those that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give |
-| [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects and refs into a git repository from the git repository at an address of a remote for a fetch, or from the git repository into the git repository at an address of a remote for a push |
+| [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects, refs, or both into a git repository from the git repository at an address of a remote for a fetch, or from the git repository into the git repository at an address of a remote for a push |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
 | [head commit](sinter:#head-commit=v1) | the commit of the HEAD of a working tree |
 | [git's index](sinter:#working-tree=v1) | the file in which git records the paths of the files that it tracks in a working tree, usually the file `index` in the folder of that working tree |
@@ -193,7 +193,7 @@ JSON text.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch that the program makes to take git objects that the git repository does not hold and that the read uses is part of the read |
+| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names that the read uses to reach or look for a repository file; a change of an attribute alone is no change |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | a change by which the program that makes the read, itself or through any program that it uses, only adds new loose objects or new packs to an object database, writes commit-graph files in a fetch that is part of the read, or writes git's index again with an entry for the same byte paths, with the lock files and temporary files of these |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
@@ -217,8 +217,8 @@ git objects a git repository holds and the parents of its commits, also
 in a shallow clone, which leaves out the parents of some commits. A
 partial clone leaves out some git objects, which git can take from the
 git repository at an address of a remote. A program can take them by a
-fetch in a repository read, which the term `repository-read` makes part
-of that read, or give no result that needs them.
+fetch during a repository read, which the term `repository-read` makes
+part of that read.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -1055,12 +1055,12 @@ repository or from a working tree of it, one or more things that a term
 of this design defines, such as a commit, the files of a tree, or the
 hunks of a valid path, to give them or to use them. A fetch, a push, and
 a change of a ref that the program makes, with the git objects that it
-writes for that change, are not repository reads. A fetch that the
-program makes, itself or through any program that it uses, to take git
-objects that the git repository does not hold and that a repository
-read uses, such as git objects that a partial clone leaves out, is part
-of that repository read; no other fetch, no push, and no such change of
-a ref is part of one.
+writes for that change, are not repository reads. Each fetch into the
+git repository that the program makes, itself or through any program
+that it uses, during a repository read is part of that repository read,
+such as a fetch of git objects that a partial clone leaves out and that
+the repository read uses; no push, and no other change of a ref, is part
+of one.
 
 ### 4.28 Undisturbed repository reads
 
@@ -1189,10 +1189,10 @@ push are those that the page git-config gives for them by the settings
 `remote.<name>.url` and `remote.<name>.pushurl`, with r for `<name>`,
 after the rewrite that it gives by the settings `url.<base>.insteadOf`
 and `url.<base>.pushInsteadOf`. A fetch from a remote is a transfer of
-git objects and refs into the git repository from the git repository at
-an address of the remote for a fetch, as the page git-fetch defines
-fetches. A push to a remote is a transfer of git objects and refs from
-the git repository into the git repository at an address of the remote
+git objects, refs, or both into the git repository from the git
+repository at an address of the remote for a fetch, as the page
+git-fetch defines fetches. A push to a remote is a transfer of git
+objects, refs, or both from the git repository into the git repository at an address of the remote
 for a push, as the page git-push defines pushes.
 
 ### 4.32 Program files
