@@ -346,8 +346,9 @@ let commit_tests =
           [ Id.Sha1; Id.Sha256 ]);
   ]
 
-(* The vectors of the group message-texts hold whole commit objects; the parse
-   gives the same result when their messages change. *)
+(* The vectors of the group message-texts give the message of a commit and its
+   header encoding; the parse of the commit object gives the same result when
+   the message changes. *)
 let message_text_inputs_tests =
   let set = Vectors.read "changes" in
   [
@@ -355,7 +356,7 @@ let message_text_inputs_tests =
       (fun () ->
         List.iter
           (fun (vector : Vectors.vector) ->
-            let content = Model.bytes_of_json vector.input in
+            let content = Model.commit_object_of_message_input vector.input in
             let header =
               match find_blank content with
               | Some index -> String.sub content 0 index
