@@ -179,13 +179,13 @@ newer ledger, and it appends nothing to it (requirements
 ### 2.3 Valid, broken, and newer ledgers
 
 A program reads the ledger of a git repository from its ledger objects
-(term `ledger-object`), and it takes no git object from another git
-repository (requirement `take-ledger-objects-from-repositories`). A git
-repository can lack some of them, as a partial clone can lack blobs. For
-such a git repository, a program gives no result for whether its ledger
-is valid, no ledger entry of it, and no state at a point of it
-(requirements `give-stored-ledgers`, `validate-ledgers`, and
-`give-states-only-from-valid-ledgers`).
+(term `ledger-object`). A git repository can lack some of them, as a
+partial clone can lack blobs. A program may fetch the ledger objects and
+the history objects that the git repository lacks, as a partial clone
+can; nothing requires or forbids it. A program that does not fetch them
+gives no result for whether the ledger is valid, no ledger entry of it,
+and no state at a point of it (requirements `give-stored-ledgers`,
+`validate-ledgers`, and `give-states-only-from-valid-ledgers`).
 
 The ledger of a git repository that holds its ledger objects is newer,
 valid, or broken (term `ledger-validity`). For example, a ledger ref
@@ -779,25 +779,7 @@ git repository that no other process changes while the program reads it,
 when that ledger is broken or newer, or when the git repository does not
 hold its ledger objects.
 
-### 5.5 Git objects only from the git repository
-
-@req take-ledger-objects-from-repositories=v1
-@cites {
-    ontology#{ledger-entry=v1},
-    text#{conforming-program=v1, result=v1},
-    #{
-        stored-ledger=v1, ledger-validity=v1, intact-history=v1,
-        ledger-object=v1,
-    },
-}
-
-To give the ledger entries of the stored ledger of a git repository, a
-result for whether its ledger is valid, or a result for whether its
-history is intact, a conforming program must take each git object that
-it uses from the git objects that the git repository holds, and none
-from another git repository.
-
-### 5.6 Members that change no state
+### 5.5 Members that change no state
 
 @req ignore-unknown-members=v1
 @cites {
@@ -814,7 +796,7 @@ the kinds of these ledger entries, and in the values of `id` that these
 members change, and that no other process changes while the program
 runs.
 
-### 5.7 Appends only to valid ledgers
+### 5.6 Appends only to valid ledgers
 
 @req append-only-to-valid-ledgers=v1
 @cites {
@@ -826,7 +808,7 @@ runs.
 A conforming program must append ledger entries only to the ledger of a
 git repository that holds its ledger objects and whose ledger is valid.
 
-### 5.8 Appends at the end of the ledger
+### 5.7 Appends at the end of the ledger
 
 @req append-entries-at-end=v1
 @cites {
@@ -854,7 +836,7 @@ is true:
    `seq`, in the order in which the program appends these ledger
    entries.
 
-### 5.9 Only accepted ledger entries
+### 5.8 Only accepted ledger entries
 
 @req append-only-accepted-entries=v1
 @cites {
@@ -866,7 +848,7 @@ is true:
 A conforming program must append a ledger entry to a ledger only at a
 point of that ledger at which that ledger entry is accepted.
 
-### 5.10 The common fields of new ledger entries
+### 5.9 The common fields of new ledger entries
 
 @req write-entry-fields=v1
 @cites {
@@ -880,7 +862,7 @@ entries whose objects have the member `by` with a string, and whose
 members `agent`, `branch`, and `ts`, each when the object has it, hold a
 value of the form of that common field.
 
-### 5.11 The agents that write ledger entries
+### 5.10 The agents that write ledger entries
 
 @req record-agent-writers=v1
 @cites {
@@ -893,7 +875,7 @@ In an execution whose input says that an agent runs the execution, a
 conforming program must append only ledger entries whose objects have
 the member `agent`.
 
-### 5.12 The ways in which a ledger ref changes
+### 5.11 The ways in which a ledger ref changes
 
 @req limit-ledger-ref-changes=v1
 @cites {
@@ -908,7 +890,7 @@ repository the ledger entries of its shared clone, or to push to the git
 repository the ledger entries of another git repository whose shared
 clone it is.
 
-### 5.13 Pushes to the shared clone
+### 5.12 Pushes to the shared clone
 
 @req push-only-extensions=v1
 @cites {
@@ -937,7 +919,7 @@ each of these is true:
 3. When the ledger ref of S did not exist, the history of the ledger of
    S is intact after the change.
 
-### 5.14 Pulls from the shared clone
+### 5.13 Pulls from the shared clone
 
 @req pull-shared-entries=v1
 @cites {
@@ -953,7 +935,7 @@ with no commit as a, to a pull commit of s over a, for a commit s to
 which the ledger ref of S points, or pointed after the last change of
 the ledger ref of A.
 
-### 5.15 The pulls that a program refuses
+### 5.14 The pulls that a program refuses
 
 @req refuse-unsafe-pulls=v1
 @cites {
@@ -978,7 +960,7 @@ of these is true:
    account has, as its `kind`, one of the texts `task`, `plan`,
    `approval`, `decline`, `done`, `abandoned`, `delivered`, and `void`.
 
-### 5.16 The provisional ledger entries that leave in a pull
+### 5.15 The provisional ledger entries that leave in a pull
 
 @req report-leaving-entries=v1
 @cites {
@@ -994,7 +976,7 @@ or has no commit, it must give the value of `id` of the object of each
 line that leaves, each once, and no other text as the `id` of a line
 that leaves.
 
-### 5.17 Transport in pulls and in changes of a shared clone
+### 5.16 Transport in pulls and in changes of a shared clone
 
 @req limit-programs-in-pulls-and-pushes=v1
 @cites {
@@ -1011,7 +993,7 @@ commands that the requirement `changes#run-no-configured-programs`
 forbids in a fetch from the shared clone or in a push to it, also when
 it changes that ledger ref in another way than by a push.
 
-### 5.18 No repair of a newer ledger
+### 5.17 No repair of a newer ledger
 
 @req repair-no-newer-ledgers=v1
 @cites {
@@ -1022,7 +1004,7 @@ it changes that ledger ref in another way than by a push.
 
 A conforming program must make no repair of a ledger that is newer.
 
-### 5.19 Voids in place of removed lines
+### 5.18 Voids in place of removed lines
 
 @req repair-ledgers-with-voids=v1
 @cites {
@@ -1063,7 +1045,7 @@ others.
    line of c has the member `reason` with a string, and no member other
    than the common fields, `dropped`, and `reason`.
 
-### 5.20 The ledger entries that agents write
+### 5.19 The ledger entries that agents write
 
 @req limit-agents-to-definitions=v1
 @cites {
@@ -1076,7 +1058,7 @@ In an execution whose input says that an agent runs the execution, a
 conforming program must append to a ledger no ledger entry other than a
 definition entry.
 
-### 5.21 No repair by agents
+### 5.20 No repair by agents
 
 @req refuse-repairs-for-agents=v1
 @cites {
@@ -1088,7 +1070,7 @@ definition entry.
 In an execution whose input says that an agent runs the execution, a
 conforming program must make no repair.
 
-### 5.22 The writer of `delivered` ledger entries
+### 5.21 The writer of `delivered` ledger entries
 
 @req leave-delivered-entries-to-job=v1
 @cites {
@@ -1101,7 +1083,7 @@ A conforming program must append a ledger entry of the kind `delivered`
 to a ledger only in an execution whose input says that the execution is
 the job.
 
-### 5.23 No data from trackers
+### 5.22 No data from trackers
 
 @req keep-tracker-data-out=v1
 @cites {
@@ -1127,14 +1109,14 @@ folder as this design. The vectors are in three groups, `histories`,
 subsection names the requirements that the vectors of the group follow
 from, and it describes their inputs, results, and values. No vector
 follows from the requirements `give-states-only-from-valid-ledgers`,
-`take-ledger-objects-from-repositories`, `ignore-unknown-members`,
-`append-only-to-valid-ledgers`, `append-entries-at-end`,
-`append-only-accepted-entries`, `write-entry-fields`,
-`record-agent-writers`, `limit-ledger-ref-changes`,
-`push-only-extensions`, `limit-programs-in-pulls-and-pushes`,
-`repair-no-newer-ledgers`, `repair-ledgers-with-voids`,
-`limit-agents-to-definitions`, `refuse-repairs-for-agents`,
-`leave-delivered-entries-to-job`, and `keep-tracker-data-out`.
+`ignore-unknown-members`, `append-only-to-valid-ledgers`,
+`append-entries-at-end`, `append-only-accepted-entries`,
+`write-entry-fields`, `record-agent-writers`,
+`limit-ledger-ref-changes`, `push-only-extensions`,
+`limit-programs-in-pulls-and-pushes`, `repair-no-newer-ledgers`,
+`repair-ledgers-with-voids`, `limit-agents-to-definitions`,
+`refuse-repairs-for-agents`, `leave-delivered-entries-to-job`, and
+`keep-tracker-data-out`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as a result for whether a ledger is
