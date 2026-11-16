@@ -272,17 +272,11 @@ that it names (terms `edge`, `edge-source`, `cites-edge`,
 `satisfies-edge`, `verifies-edge`, `refines-edge`, and
 `supersedes-edge`).
 
-Only a `supersedes` edge says that one declared item is to replace
-another. A `supersedes` edge from an item of the kind design whose
-citation entry the production `every-part` of Identifiers matches, such
-as `@supersedes docs=v3#*` in the tag lines of the design `media`, says
-two things. The item of the kind design `media` is to replace the item
-of the kind design `docs`, which the label `v3` pins. And each item of
-the kind specification, each item of the kind requirement, and each
-term whose name is `docs`, `#`, and a part name p, such as `docs#x`, is
-to be replaced by the declared item of the same kind of item that
-`media` holds and whose name is `media`, `#`, and p, such as `media#x`,
-when `media` holds one.
+For example, the edge of `@supersedes docs=v3#*` in the tag lines of
+the design `media` says that `media` is to replace the design `docs`,
+which the label `v3` pins, and that `media#x` is to replace `docs#x`
+when `media` holds a declared item `media#x` of the same kind of item as
+`docs#x`.
 
 ### 2.9 Revisions and pins
 
@@ -311,9 +305,13 @@ record of one event, such as one approval that a person gave (terms
 
 A state, such as in force, approved, suspect, or done, is a named
 condition of an item, an edge, a wait, or a subject of approval, and it
-follows from the state inputs alone (terms `state`, `state-input`, and
-`subject-of-approval`, the terms of sections 3.48 and 3.50 to 3.61, and
-requirement `compute-states-from-artifacts`).
+follows from the state inputs alone (terms `state`, `state-input`,
+`subject-of-approval`, `work-item-state`, `deprecated-item`,
+`rejected-record`, `deferred-record`, `approval-state`, `draft-design`,
+`effective-supersedes-edge`, `retired-item`, `in-force-item`,
+`suspect-edge`, `met-wait`, `ready-task`, and
+`requirement-accounted-for`, and requirement
+`compute-states-from-artifacts`).
 
 What a program gives while another process changes a state input is a
 matter of the quality of an implementation.
