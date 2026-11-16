@@ -3160,10 +3160,11 @@ section 5.
 
 The vectors of this design are in the file
 [`documents.test-vectors.jsonl`](documents.test-vectors.jsonl), in the
-same folder as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v1). A vector is an
-input and what a conforming program gives for it. Each vector follows
-from the requirements and adds nothing to them.
+same folder as this design. The file is a test-vector set, as the
+specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
+Data forms gives it. A vector is an input and what a conforming program
+gives for it. Each vector follows from the requirements and adds nothing
+to them.
 
 Several requirements apply only when a program gives the thing that they
 name, such as the extent of a declared item. So a vector checks a
@@ -3176,50 +3177,10 @@ Each vector is for the empty set of
 program only when the set of stopped files of the program for the tree
 of the vector is empty.
 
-The file is a sequence of the
-[canonical byte sequences](sinter:data-forms#canonical-byte-sequence=v1)
-of JSON objects, each followed by the byte 0x0A. So each line of the
-text of the file is a JSON text, as RFC 8259 defines it. The file is
-valid UTF-8, its text has no byte order mark and no carriage return, and
-only a line feed ends a line of the file. U+0085, U+2028, and U+2029 can
-be in JSON strings of the file, and they do not end a line. No JSON
-value of the file is the literal name `null`. The file has three kinds
-of line, in this order:
+Each vector of the file has the member `values`, and no vector has the
+member `result`.
 
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `code`, `markdown`.
-   Its JSON object has two members: `group`, the name of the group, as a
-   JSON string, and `rev`, the revision of the group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
-
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
-- `rev`: the revision of the vector.
-- `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `values`: a JSON object that states what a conforming program gives
-  for the input. Each vector has this member.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
-
-No vector has the member `result` or the member `needs`.
-
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. The revisions of the vectors, of the groups, and of the set,
-and the numbers of new vectors, follow the rules of version sequences
-of Data forms. A change of a note alone changes no revision. A program
-does not need the revisions to run the vectors.
+A program does not need the revisions to run the vectors.
 
 Inside the members `input` and `values`, each JSON value that this
 section or its subsections name as a text, a whole number, a run, a
