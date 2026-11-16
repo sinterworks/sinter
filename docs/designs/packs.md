@@ -162,12 +162,10 @@ globals, instances, traps, and the execution of code. From ECMA-262
 | [name path](sinter:#test-name=v1) | the own names of the test suites that enclose a test node, outermost first, then its own name; by the query file, it is the name of the test of the test node, as the code writes it |
 | [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
-| import, export, instance, trap, page, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
+| import, export, instance, trap, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
 | [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
-| [choice of the program in an instance of an adapter](sinter:#adapter-instance=v1) | an outcome in an instance of an adapter that the program decides: a stop of the instantiation or of an invocation, such as for its limits on the resources of the instance and on the time that its code runs, or for the sizes of the memories and the tables that the instantiation makes; a refusal of a growth of a memory or of a table within its maximum; the depth of calls at which the call stack is exhausted; or the bits of a NaN |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack in which the file of a grammar is a WebAssembly module with an import that the program does not provide, or in which a query file holds a pattern that, without its predicates, matches no part of any parse tree that the language of its grammar can give |
-| [choice of the program in a decision whether a byte sequence is a valid adapter](sinter:#valid-adapter=v1) | a stop by the program, for limits of its own, of the decoding or the validation of a WebAssembly module in a decision whether a byte sequence is a valid adapter |
-| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module whose decoding and validation the program does not stop for limits of its own, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that the program does not refuse for limits of its own, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-setting-binding=v1) | a finite set of pairs, each a name, which is a text, and a TOML value, which gives values for some of the runner settings of one test runner |
 | [test entry](sinter:#test-entry=v1) | a test entry id, a path, a first and a last line, a kind, a name path, and test labels, which a call of the function bind gives an adapter for one test node |
@@ -176,7 +174,7 @@ globals, instances, traps, and the execution of code. From ECMA-262
 | [report content](sinter:#adapter-call=v1) | the byte sequence that a program gives an adapter, unchanged, in a call, such as the content of a report file |
 | [report name](sinter:#adapter-request=v1) | a text, such as the path of a report file as a person gave it, which the request of a call gives the adapter |
 | [test result](sinter:ontology#test-evidence=v1) | what a test runner gives for one test that it runs; by the adapter, each element of the value of `results` of the response of a call of bind is a test result that the report content holds, with its name, its status, and, when it has them, its file, its line, and its duration |
-| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, its test entry ids: it fails when the request or the report content has 4,294,967,296 bytes or more, or when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise it runs in a new instance of an adapter and gives a response or fails |
+| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, its test entry ids: it fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise it runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
 | [JSON value of a response](sinter:#call-result=v1) | the JSON value of the response as a byte sequence, as Data forms defines it |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
@@ -567,8 +565,7 @@ one test runner and binds their test results to test entries, which
 stand for test nodes. A pack has at most one adapter for each test
 runner: the file `adapters/<r>.wasm`. In a decision of a program, the
 module is a valid adapter when it is a WebAssembly module of the
-WebAssembly Core Specification 2.0 whose decoding and validation the
-program does not stop for limits of its own, when it imports nothing (no
+WebAssembly Core Specification 2.0, when it imports nothing (no
 function, no memory, no table, and no global), when it exports these
 five names, with these types, and when it gives the version of the
 interface, as the paragraph after the table says:
@@ -586,10 +583,7 @@ The module can export other names, such as the globals `__data_end` and
 interface. A module gives that version when the decision of the program
 runs, in a new instance of the module, the instantiation and then one
 invocation of `sinter_interface`, and nothing else in that instance, and
-these do not fail, and the invocation gives the value 1. Two decisions
-can differ when a choice of the program in an instance of an adapter,
-such as a stop for its limits, changes them, and so can a choice of the
-program in a decision whether a byte sequence is a valid adapter.
+these do not fail, and the invocation gives the value 1.
 
 A call runs one function of an adapter, with a request, a report
 content, and, for the function bind, its test entry ids. The report
@@ -623,22 +617,12 @@ inside `memory`. A call of an adapter that is not a valid adapter has
 the result "failed".
 
 The code of an instance of an adapter runs as the WebAssembly Core
-Specification 2.0 defines, under limits that the program has of its own
-on the resources of the instance, such as the size of its memory. The
-limits of a program bound the time that the code runs too. The program
-can stop a call whose code goes past these limits, and that call then
-fails. The program ends the code of each call. Which calls go past the
-limits of a program can differ between conforming programs. A growth of
-a memory past its maximum does not make the call fail: the instruction
-`memory.grow` gives −1 to the code, as the WebAssembly Core
-Specification 2.0 defines, and the call goes on.
+Specification 2.0 defines, with the program as its embedder. The program
+ends the code of each call.
 
 The code of an adapter imports nothing, so it can read no file, use no
 network, see no clock, and start no process. No file, network, clock, or
-process gets to the code of an adapter; only the choices of the program
-in an instance of an adapter, and a choice of the program in a decision
-whether a byte sequence is a valid adapter, can make two runs of one
-call give different results.
+process gets to the code of an adapter.
 
 ### 2.8 Requests and responses
 
@@ -1881,37 +1865,14 @@ is a valid adapter.
 #### 6.1.1 Instances of adapters
 
 @term adapter-instance=v1
-@cites {
-    wasm-core/2.0,
-    text#{whole-number=v1, code-span=v1},
-    #{webassembly-module=v1},
-}
+@cites {wasm-core/2.0, #{webassembly-module=v1}}
 
 An instance of an adapter of a WebAssembly module, for a program, is a
 new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
 execution, with the program as its embedder. The limits of a program are
 limits of its own on the resources of an instance of an adapter and on
-the time that its code runs. The choices of the program in an instance
-of an adapter are these:
-
-- a stop of the instantiation or of an invocation by the program, such
-  as for its limits on the resources of the instance and on the time
-  that its code runs, or for the sizes of the memories and the tables
-  that the instantiation makes;
-- a refusal of a growth of a memory or of a table within its maximum, at
-  which the code gets −1;
-- the depth of calls at which the call stack is exhausted;
-- the bits of a NaN.
-
-An instantiation or an invocation fails when it traps, when its code
-exhausts the call stack, or when the program stops it. The maximum of a
-memory is the maximum of its memory type, or 65,536 pages when its
-memory type has none. The maximum of a table is the maximum of its table
-type, or 4,294,967,295 elements when its table type has none. A growth
-of a memory or of a table past its maximum gives −1 to the code, as that
-specification defines, and it is not a choice of the program in an
-instance of an adapter.
+the time that its code runs.
 
 #### 6.1.2 Valid adapters
 
@@ -1925,10 +1886,8 @@ instance of an adapter.
 A byte sequence is a valid adapter, in one decision of a program whether
 it is one, when, and only when, it meets each of these conditions:
 
-1. It is a WebAssembly module, and the program does not stop the
-   decoding or the validation of the module in that decision for limits
-   of its own. Such a stop is a choice of the program in a decision
-   whether a byte sequence is a valid adapter.
+1. It is a WebAssembly module that the program does not refuse, in that
+   decision, for limits of its own.
 2. The module has no import.
 3. The module exports `memory` as a memory, `sinter_interface` as a
    function of the type `[] -> [i32]`, `sinter_alloc` as a function of
@@ -2063,10 +2022,9 @@ byte sequence as its report content, such as the content of a report
 file, and, for the function bind, its test entry ids, which are a finite
 set of texts. The export of the function recognise is
 `sinter_recognise`, and the export of the function bind is
-`sinter_bind`. A call fails when its request or its report content has
-4,294,967,296 bytes or more. A call uses one decision of the program
-whether its adapter is a valid adapter; an earlier decision of the
-program can serve. The instance of that decision, when the decision
+`sinter_bind`. A call uses one decision of the program whether its
+adapter is a valid adapter; an earlier decision of the program can
+serve. The instance of that decision, when the decision
 makes one, is not the instance of the steps of the call. The call fails
 when, in that decision, its adapter is not a valid adapter. Otherwise,
 the call runs these steps in a new instance of an adapter of the module
@@ -2343,13 +2301,7 @@ byte sequence is a valid adapter. The requirements of the group are
 - `result`: the result of the decision whether the byte sequence is a
   valid adapter, when a conforming program gives that result: "valid"
   when the byte sequence is a valid adapter in that decision, and
-  "invalid" when it is not. The requirements of the group oblige the
-  result "valid" only for a decision in which the program does not stop
-  the decoding or the validation of the module for limits of its own,
-  and in which no choice of the program in an instance of an adapter
-  changes the instantiation or the invocation. The group holds no
-  vector with the result "invalid" whose result a choice of the program
-  in an instance of an adapter can change.
+  "invalid" when it is not.
 - `values`: no vector of the group has this member.
 
 ```
@@ -2444,16 +2396,7 @@ group are `give-call-results`, `give-call-values`, `omit-call-values`,
   of the test entry ids of the call, as texts.
 - `result`: the result of the call, when a conforming program gives a
   result for it: "recognised", "not recognised", or "failed" for the
-  function recognise, and "bound" or "failed" for the function bind. The
-  requirements of the group oblige a result other than "failed" only for
-  a call in which no choice of the program in an instance of an adapter
-  changes the instantiation or an invocation, in the instance of the
-  call or in the instance of the decision whether its adapter is a valid
-  adapter that the call uses, and in which the program does not stop
-  the decoding or the validation of the module in that decision for
-  limits of its own. The group holds no vector with the result "failed"
-  whose result a choice of the program in an instance of an adapter can
-  change.
+  function recognise, and "bound" or "failed" for the function bind.
 - `values`: in the form of the member `values` of the group
   `responses`.
 
