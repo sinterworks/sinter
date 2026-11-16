@@ -273,8 +273,6 @@
 {"group":"id-patterns","input":"([0-9]{3}-){10}","n":269,"result":"valid","rev":"v1","values":{}}
 {"group":"fit","input":{"id":"123-123-123-123-123-123-123-123-123-123-","id-pattern":"([0-9]{3}-){10}"},"n":270,"result":"fits","rev":"v1","values":{}}
 {"group":"fit","input":{"id":"123-","id-pattern":"([0-9]{3}-){10}"},"n":271,"result":"does not fit","rev":"v1","values":{}}
-{"group":"id-patterns","input":"([0-9]{250}){4}","n":272,"result":"valid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"[0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][01]","n":273,"note":"the id pattern holds 1,000 characters","result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"^[0-9]+$","n":274,"note":"`^` and `$` are not literals","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":".+","n":275,"note":"`.` is not a literal","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"é+","n":276,"note":"`é` is not a literal","result":"invalid","rev":"v1","values":{}}
@@ -289,17 +287,10 @@
 {"group":"id-patterns","input":"[a-c-e]","n":285,"note":"the second `-` is not first or last in the character class, and it is not the `-` of a range","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"[z-a]","n":286,"note":"the first character of the range comes after its last character","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"x{3,2}","n":287,"note":"in the quantifier `{n,m}`, `n` is greater than `m`","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"[0-9]{256}","n":288,"note":"a `count` has a number greater than 255","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a{01}","n":289,"note":"a `count` other than `0` does not start with `0`","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a**","n":290,"note":"a second quantifier","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a|","n":291,"note":"an empty branch","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"[0-9]*","n":292,"note":"the empty id fits it","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"([0-9]{143}){7}","n":293,"note":"its size is 1,001","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a{0,255}){0,255})b","n":294,"note":"its size is 65,026","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"(a{250,}){4}","n":295,"note":"its size is 1,004","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a{0}){255}){4}b","n":296,"note":"its size is 1,021","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((((((((a{255}){255}){255}){255}){255}){255}){255}){255}){255}b","n":297,"note":"the id pattern has nine nested quantifiers `{255}`; its size is 4,558,916,353,692,287,109,376","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"[0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][0123456789][01]0","n":298,"note":"the id pattern holds 1,001 characters; it holds more than 1,000 characters","result":"invalid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"n":299,"result":"valid","rev":"v1","values":{}}
 {"group":"bindings","input":[],"n":300,"result":"valid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"n":301,"result":"valid","rev":"v1","values":{}}
@@ -447,7 +438,6 @@
 {"group":"id-patterns","input":"[*+?().$|]","n":447,"result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"%&'!\"-:;<>_`~","n":448,"result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"[a-a]","n":449,"result":"valid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"a{255}","n":450,"result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a{0,0}b","n":451,"result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a{2,3}","n":452,"result":"valid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"(ab)+","n":453,"result":"valid","rev":"v1","values":{}}
@@ -467,13 +457,6 @@
 {"group":"id-patterns","input":"(a","n":467,"note":"a subpattern ends with `)`","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a b","n":468,"note":"a space is not a literal","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"[9-0]","n":469,"note":"the first character of the range comes after its last character","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"a{1,256}","n":470,"note":"a `count` has a number greater than 255","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"a{256,}","n":471,"note":"a `count` has a number greater than 255","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a|b){250}){2}c","n":472,"note":"its size is 1,001: the size of an alternation is the sum of the sizes of its branches","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"(((a|b){250}){2}){1,}","n":473,"note":"its size is 2,000: `{1,}` counts as two copies","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a?){250}){4}b","n":474,"note":"its size is 1,001: `?` counts as one copy","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a+){250}){4}b","n":475,"note":"its size is 1,001: `+` counts as one copy","result":"invalid","rev":"v1","values":{}}
-{"group":"id-patterns","input":"((a{0,0}){250}){4}b","n":476,"note":"its size is 1,001: `{0,0}` counts as one copy","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a|b*","n":477,"note":"the empty id fits its second branch","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"(a*)+","n":478,"note":"the empty id fits it","result":"invalid","rev":"v1","values":{}}
 {"group":"id-patterns","input":"a{0}","n":479,"note":"only the empty id fits it","result":"invalid","rev":"v1","values":{}}
@@ -498,10 +481,7 @@
 {"group":"bindings","input":[{"id-pattern":"x","namespace-name":"é"}],"n":498,"note":"`é` does not match `namespace-name`","result":"invalid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"^","namespace-name":"a"}],"n":499,"note":"the id pattern does not match `pattern`","result":"invalid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"[z-a]","namespace-name":"a"}],"n":500,"note":"the id pattern uses a reversed range","result":"invalid","rev":"v1","values":{}}
-{"group":"bindings","input":[{"id-pattern":"x{256}","namespace-name":"a"}],"n":501,"note":"the id pattern uses a count greater than 255","result":"invalid","rev":"v1","values":{}}
 {"group":"bindings","input":[{"id-pattern":"x{2,1}","namespace-name":"a"}],"n":502,"note":"the id pattern uses `{n,m}` with `n` greater than `m`","result":"invalid","rev":"v1","values":{}}
-{"group":"bindings","input":[{"id-pattern":"((a|b){250}){2}c","namespace-name":"a"}],"n":503,"note":"the size of the id pattern is 1,001","result":"invalid","rev":"v1","values":{}}
-{"group":"bindings","input":[{"id-pattern":"[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]","namespace-name":"a"}],"n":504,"note":"the id pattern holds 1,001 characters","result":"invalid","rev":"v1","values":{}}
 {"group":"rejected-bindings","input":{"binding":[{"id-pattern":"x","namespace-name":"a"},{"id-pattern":"y","namespace-name":"a"}],"text":"@req a=v1\n[x](sinter:docs=v1)"},"n":505,"note":"two pairs have the namespace name `a`; no line and no link of the text gets a result","result":"invalid","rev":"v1","values":{"inputs":[]}}
 {"group":"rejected-bindings","input":{"binding":[{"id-pattern":"[0-9]*","namespace-name":"a"}],"text":"[x](sinter:docs=v1)"},"n":506,"note":"the empty id fits the id pattern; the link gets no result","result":"invalid","rev":"v1","values":{"inputs":[]}}
 {"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[x](<sinter:docs=v1 x>)"},"n":507,"note":"no percent-encoding applies to a destination, and a label holds no space","rev":"v1","values":{"links":[{"result":"invalid","values":{}}]}}

@@ -102,7 +102,6 @@ file that holds the conformance vectors of the design is a JSON text.
 | [id pattern](sinter:#id-pattern=v1) | a text that a conforming program takes as a pattern, on its own or with other texts, such as an id, or a namespace name in a pair of a binding; it is an id pattern whether or not it matches the production `pattern` |
 | [class member](sinter:#id-pattern=v1) | one element of a character class of an id pattern: a character, or a range such as `0-9` |
 | [fit](sinter:#fit=v1) | an id fits an id pattern when the id has the form that the id pattern gives, such as `42` for `[1-9][0-9]*` |
-| [size of an id pattern](sinter:#id-pattern-size=v1) | the number of the literals and character classes of an id pattern when each quantifier is written out as copies of its element: `?`, `*`, and `+` count as one copy; `{n}` counts as `n` copies and `{n,m}` as `m` copies, and each of them counts as one copy at least; `{n,}` counts as `n` copies and one more |
 | [head](sinter:#external-target=v1) | the text of a target or a citation entry without its kind word and the `:` after it, up to its first `#`, `=`, or `[` |
 | [external target](sinter:#external-target=v1) | the target of a declaration or of an inline citation, or a citation entry, whose head starts with the namespace name of an external namespace of its tag line or its inline citation, followed by `/` or by the end of the head |
 | [plain string content](sinter:#plain-string-content=v1) | the text that a link text shows without its markup, such as `the limit` for `*the* limit` |
@@ -592,23 +591,12 @@ Alternation has the lowest precedence, so the ids `ab` and `c` fit
 `ab|c`. A quantifier applies to the one literal, character class, or
 subpattern before it. An element allows one quantifier at most. In a
 quantifier, the counts are decimal numerals, so they have no leading
-zero. Their numbers `n` and `m` are from 0 to 255, and `n` is not
-greater than `m`. Case always matters. A character class can hold
-characters that a literal leaves out, such as `.` and `+`: `[.]`,
-`[+]`.
+zero. In `{n,m}`, `n` is not greater than `m`. Case always matters. A
+character class can hold characters that a literal leaves out, such as
+`.` and `+`: `[.]`, `[+]`.
 
-These conditions also apply to an id pattern:
-
-- The empty id does not fit it. So `[0-9]*` is invalid.
-- It holds 1,000 characters at most.
-- Its size is 1,000 at most. The size counts the literals and the
-  character classes of the pattern when each quantifier is written out
-  as copies of its element. `{n}` counts as `n` copies, `{n,m}` counts
-  as `m` copies, and each of them counts as one copy at least. `{n,}`
-  counts as `n` copies and one more. `?`, `*`, and `+` count as one
-  copy. Examples: `([0-9]{3}-){10}` has the size 40,
-  `([0-9]{250}){4}` has the size 1,000, and `([0-9]{143}){7}` has the
-  size 1,001, so it is invalid.
+This condition also applies to an id pattern: the empty id does not fit
+it. So `[0-9]*` is invalid.
 
 | id pattern | ids that fit it |
 |---|---|
@@ -1229,29 +1217,7 @@ be the whole id or an empty run, fits an element of the id pattern:
 - A run fits a `pattern` when, and only when, it fits one of the
   branches of the `pattern`.
 
-### 4.30 The size of an id pattern
-
-@term id-pattern-size=v1
-@cites {
-    #{id-pattern=v1, match=v1},
-    text#{text=v1, whole-number=v1, code-span=v1, production=v1},
-}
-
-The size of a text that matches `pattern` is a whole number that these
-rules give:
-
-- A `literal` and a `char-class` each have the size 1.
-- An `atom` of the form `"(" pattern ")"` has the size of its inner
-  `pattern`.
-- A `piece` with no `quantifier` has the size of its `atom`. A `piece`
-  with a `quantifier` has the size of its `atom`, times a number of
-  copies. The number of copies is 1 for `?`, `*`, and `+`. It is `n`
-  for `{n}` and `m` for `{n,m}`, or 1 when that number is 0. It is `n`
-  plus 1 for `{n,}`.
-- A `branch` has the sum of the sizes of its pieces.
-- A `pattern` has the sum of the sizes of its branches.
-
-### 4.31 Bindings
+### 4.30 Bindings
 
 @term binding=v1
 @cites {#{id-pattern=v1}, text#{text=v1, code-span=v1}}
@@ -1260,7 +1226,7 @@ A binding of the parameter `external-namespaces` is a finite set of
 pairs. Each pair of a binding holds a namespace name, which is a text,
 and an id pattern.
 
-### 4.32 External namespaces
+### 4.31 External namespaces
 
 @term external-namespace=v1
 @cites {
@@ -1273,7 +1239,7 @@ the namespace name and the id pattern of that pair of the binding. The
 external namespaces of a line, a link, or an image are the external
 namespaces of the binding under which a conforming program reads it.
 
-### 4.33 The form of namespace names
+### 4.32 The form of namespace names
 
 @term namespace-name=v1
 @cites text#{text=v1, code-span=v1, production=v1, rule-name=v1}
@@ -1285,7 +1251,7 @@ namespace-name  = %x61-7A *( %x61-7A / DIGIT )
                   *( "-" 1*( %x61-7A / DIGIT ) )
 ```
 
-### 4.34 External ids
+### 4.33 External ids
 
 @term external-id=v1
 @cites {
@@ -1302,7 +1268,7 @@ id-text       = 1*( %x21-22 / %x24-2B / %x2D-2E / %x30-3C / %x3E-3F
                     / %x41-5A / %x5C / %x5E-7A / %x7C / %x7E )
 ```
 
-### 4.35 External targets
+### 4.34 External targets
 
 @term external-target=v1
 @cites {
@@ -1325,7 +1291,7 @@ the first `/` of that head, or the whole head when that head holds no
 `/`, is the namespace name of an external namespace of the tag line or
 the inline citation that holds that target or that citation entry.
 
-### 4.36 The layout of tag lines
+### 4.35 The layout of tag lines
 
 @term tag-line-layout=v1
 @cites {
@@ -1346,7 +1312,7 @@ gap       = 1*WSP
 rest      = [ gap *any-char ]
 ```
 
-### 4.37 The form of declarations
+### 4.36 The form of declarations
 
 @term declaration-line=v1
 @cites {
@@ -1371,7 +1337,7 @@ declaration-line  = indent ( %s"@decision" / %s"@design"
                     [ "=" label ] rest
 ```
 
-### 4.38 The form of citations
+### 4.37 The form of citations
 
 @term citation-line=v1
 @cites {
@@ -1436,7 +1402,7 @@ comma              = list-space "," list-space
 list-space         = *( WSP / LF )
 ```
 
-### 4.39 Citation entries
+### 4.38 Citation entries
 
 @term citation-entry=v1
 @cites {
@@ -1469,7 +1435,7 @@ match of the citation entry, or the text that `slug` matches in it when
 entry uses `vector-selection`, the vector selection of the citation
 entry is the text that `vector-selection` matches in that match.
 
-### 4.40 The form of status tags
+### 4.39 The form of status tags
 
 @term status-line=v1
 @cites {
@@ -1484,7 +1450,7 @@ status-line  = indent ( %s"@deferred" / %s"@deprecated" / %s"@rejected" )
                rest
 ```
 
-### 4.41 The form of `@extern` lines
+### 4.40 The form of `@extern` lines
 
 @term extern-line=v1
 @cites {
@@ -1501,7 +1467,7 @@ This production gives the form of an `@extern` line:
 extern-line  = indent %s"@extern" gap kind-word ":" part-name rest
 ```
 
-### 4.42 The form of `@ack` lines
+### 4.41 The form of `@ack` lines
 
 @term ack-line=v1
 @cites {
@@ -1519,7 +1485,7 @@ non-wsp      = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
 hash-prefix  = 8*64hex-digit
 ```
 
-### 4.43 The form of inline citations
+### 4.42 The form of inline citations
 
 @term inline-destination=v1
 @cites {
@@ -1538,7 +1504,7 @@ inline-destination  = %s"sinter:" [ kind-word ":" ]
                       ( name "=" revision / external-ref )
 ```
 
-### 4.44 Inputs
+### 4.43 Inputs
 
 @term input=v1
 @cites {
@@ -1568,7 +1534,7 @@ The inputs of a conforming program are these:
   result "valid" for the id pattern of that pair of an id pattern and an
   id.
 
-### 4.45 Matches
+### 4.44 Matches
 
 @term match=v1
 @cites text#{
@@ -1598,7 +1564,7 @@ other rules.
 - A text uses a rule by a production when a match of the text by the
   production uses the rule.
 
-### 4.46 The matches of inputs
+### 4.45 The matches of inputs
 
 @term input-match=v1
 @cites {
@@ -1638,7 +1604,7 @@ in which each of these conditions holds:
   text that `id-text` matches in that run, as an id, fits the id
   pattern of that external namespace.
 
-### 4.47 Values
+### 4.46 Values
 
 @term value=v1
 @cites {#{tag-line=v1, input=v1}, text#{text=v1, conforming-program=v1, result=v1}}
@@ -1652,7 +1618,7 @@ or the type of tag line, when it gives something that stands for that
 fact and for no other fact. Where an input stands in its text, and an
 explanation of the result of an input, are not values.
 
-### 4.48 Canonical identifiers
+### 4.47 Canonical identifiers
 
 @term canonical-id=v1
 @cites {
@@ -1675,7 +1641,7 @@ that these steps give.
 3. Append *n* to *form*.
 4. Give *form*.
 
-### 4.49 Canonical forms of citation entries
+### 4.48 Canonical forms of citation entries
 
 @term canonical-entry=v1
 @cites {
@@ -1761,19 +1727,7 @@ A conforming program must give the result "invalid" for each id pattern
 that is an input and that uses, by `pattern`, a `range` whose first
 character comes after its last character in code point order.
 
-### 5.4 Large counts in id patterns
-
-@req reject-large-counts=v1
-@cites {
-    #{input=v1, id-pattern=v1, match=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
-}
-
-A conforming program must give the result "invalid" for each id pattern
-that is an input and that uses, by `pattern`, a `count` whose number
-is greater than 255.
-
-### 5.5 Reversed bounds in id patterns
+### 5.4 Reversed bounds in id patterns
 
 @req reject-reversed-bounds=v1
 @cites {
@@ -1785,7 +1739,7 @@ A conforming program must give the result "invalid" for each id pattern
 that is an input and that uses, by `pattern`, a quantifier `{n,m}` in
 which `n` is greater than `m`.
 
-### 5.6 The fit of ids
+### 5.5 The fit of ids
 
 @req decide-fit=v1
 @cites {
@@ -1797,7 +1751,7 @@ For each input that is a pair of an id pattern and an id, a conforming
 program must give the result "fits" when the id fits the id pattern, and
 the result "does not fit" when it does not.
 
-### 5.7 Id patterns that the empty id fits
+### 5.6 Id patterns that the empty id fits
 
 @req reject-empty-id-fit=v1
 @cites {
@@ -1808,29 +1762,7 @@ the result "does not fit" when it does not.
 A conforming program must give the result "invalid" for each id pattern
 that is an input and that the empty text, as an id, fits.
 
-### 5.8 The limit on the size of an id pattern
-
-@req reject-oversized-id-patterns=v1
-@cites {
-    #{input=v1, id-pattern=v1, id-pattern-size=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
-}
-
-A conforming program must give the result "invalid" for each id pattern
-that is an input and whose size is greater than 1,000.
-
-### 5.9 The length of an id pattern
-
-@req reject-long-id-patterns=v1
-@cites {
-    #{input=v1, id-pattern=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, character=v1},
-}
-
-A conforming program must give the result "invalid" for each id pattern
-that is an input and that holds more than 1,000 characters.
-
-### 5.10 Malformed namespace names
+### 5.7 Malformed namespace names
 
 @req reject-malformed-namespace-names=v1
 @cites {
@@ -1845,7 +1777,7 @@ A conforming program must give the result "invalid" for each binding of
 `external-namespaces` that is an input and that holds a namespace name
 that does not match the production `namespace-name`.
 
-### 5.11 Unique namespace names
+### 5.8 Unique namespace names
 
 @req reject-repeated-namespace-names=v1
 @cites {
@@ -1860,16 +1792,14 @@ A conforming program must give the result "invalid" for each binding of
 `external-namespaces` that is an input and in which two pairs of the
 binding have the same namespace name.
 
-### 5.12 Invalid id patterns in bindings
+### 5.9 Invalid id patterns in bindings
 
 @req reject-invalid-binding-patterns=v1
 @cites {
     #{
         binding=v1, id-pattern=v1, input=v1,
         reject-unmatched-id-patterns=v1, reject-reversed-ranges=v1,
-        reject-large-counts=v1, reject-reversed-bounds=v1,
-        reject-empty-id-fit=v1, reject-oversized-id-patterns=v1,
-        reject-long-id-patterns=v1,
+        reject-reversed-bounds=v1, reject-empty-id-fit=v1,
     },
     text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
 }
@@ -1879,10 +1809,9 @@ A conforming program must give the result "invalid" for each binding of
 which, as an input on its own, one of these requirements states that
 the program must give the result "invalid":
 `reject-unmatched-id-patterns`, `reject-reversed-ranges`,
-`reject-large-counts`, `reject-reversed-bounds`, `reject-empty-id-fit`,
-`reject-oversized-id-patterns`, and `reject-long-id-patterns`.
+`reject-reversed-bounds`, and `reject-empty-id-fit`.
 
-### 5.13 Rejected bindings
+### 5.10 Rejected bindings
 
 @req give-no-results-under-rejected-bindings=v1
 @cites {
@@ -1897,7 +1826,7 @@ Under a binding of `external-namespaces` for which it gives the result
 "invalid", a conforming program must give no result for a line, a link,
 or an image.
 
-### 5.14 Inputs with no match
+### 5.11 Inputs with no match
 
 @req reject-unmatched-inputs=v1
 @cites {
@@ -1914,7 +1843,7 @@ Under a binding of `external-namespaces` for which it gives the result
 declaration, citation, status tag, directive, and inline citation that
 is an input and that has no match of the input.
 
-### 5.15 Unique citation entries
+### 5.12 Unique citation entries
 
 @req reject-repeated-entries=v1
 @cites {
@@ -1934,7 +1863,7 @@ citation that is an input and that has a match of the input in which
 two citation entries have the same entry name, and neither of them has a
 vector selection, or both have the same vector selection.
 
-### 5.16 The link text of inline citations
+### 5.13 The link text of inline citations
 
 @req reject-blank-link-text=v1
 @cites {
@@ -1953,7 +1882,7 @@ Under a binding of `external-namespaces` for which it gives the result
 inline citation that is an input and whose link text has a plain string
 content that holds no character other than blank characters.
 
-### 5.17 The tag word
+### 5.14 The tag word
 
 @req give-tag-words=v1
 @cites {
@@ -1970,7 +1899,7 @@ of its row:
 |---|---|---|
 | the tag word | a tag line | its tag word |
 
-### 5.18 Values
+### 5.15 Values
 
 @req give-values=v1
 @cites {
@@ -2029,7 +1958,7 @@ the first cell of its row:
 | the id | a match that uses `external-id` | the text that `id-text` matches |
 | the revision | a match that uses `revision` or `label` | the text that `revision` matches, or the text that `label` matches when the match uses no `revision` |
 
-### 5.19 No other values
+### 5.16 No other values
 
 @req give-no-other-values=v1
 @cites {
@@ -2041,7 +1970,7 @@ A conforming program must give no value for an input other than the
 values that the requirements `give-values` and `give-tag-words` state
 for that input.
 
-### 5.20 The result of each input
+### 5.17 The result of each input
 
 @req give-results=v1
 @cites {
@@ -2072,7 +2001,7 @@ and an image, this obligation holds under a binding of
 | a binding of `external-namespaces` | "valid" or "invalid" |
 | a pair of an id pattern and an id | "fits" or "does not fit" |
 
-### 5.21 Things that are not inputs
+### 5.18 Things that are not inputs
 
 @req give-no-results-for-non-inputs=v1
 @cites {
@@ -2083,7 +2012,7 @@ and an image, this obligation holds under a binding of
 A conforming program must give no result for anything that is not an
 input.
 
-### 5.22 Acceptance
+### 5.19 Acceptance
 
 @req accept-inputs=v1
 @cites {
@@ -2091,9 +2020,8 @@ input.
         input=v1, declaration=v1, citation=v1, status-tag=v1, directive=v1,
         inline-citation=v1, id-pattern=v1, binding=v1,
         reject-unmatched-id-patterns=v1, reject-reversed-ranges=v1,
-        reject-large-counts=v1, reject-reversed-bounds=v1,
-        reject-empty-id-fit=v1, reject-oversized-id-patterns=v1,
-        reject-long-id-patterns=v1, reject-malformed-namespace-names=v1,
+        reject-reversed-bounds=v1, reject-empty-id-fit=v1,
+        reject-malformed-namespace-names=v1,
         reject-repeated-namespace-names=v1,
         reject-invalid-binding-patterns=v1, reject-unmatched-inputs=v1,
         reject-repeated-entries=v1, reject-blank-link-text=v1,
@@ -2101,22 +2029,23 @@ input.
     text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
 }
 
-A conforming program must give the result "valid" for each input that
-is a declaration, a citation, a status tag, a directive, an inline
+A conforming program must give the result "valid" for each input that is
+a declaration, a citation, a status tag, a directive, an inline
 citation, an id pattern, or a binding of `external-namespaces`, unless
 one of these requirements states that the program must give the result
 "invalid" for it: `reject-unmatched-id-patterns`,
-`reject-reversed-ranges`, `reject-large-counts`,
-`reject-reversed-bounds`, `reject-empty-id-fit`,
-`reject-oversized-id-patterns`, `reject-long-id-patterns`,
-`reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
-`reject-invalid-binding-patterns`, `reject-unmatched-inputs`,
-`reject-repeated-entries`, and `reject-blank-link-text`. For a
-declaration, a citation, a status tag, a directive, and an inline
-citation, this obligation holds under a binding of
-`external-namespaces` for which the program gives the result "valid".
+`reject-reversed-ranges`, `reject-reversed-bounds`,
+`reject-empty-id-fit`, `reject-malformed-namespace-names`,
+`reject-repeated-namespace-names`, `reject-invalid-binding-patterns`,
+`reject-unmatched-inputs`, `reject-repeated-entries`, and
+`reject-blank-link-text`. For a declaration, a citation, a status tag, a
+directive, and an inline citation, this obligation holds under a binding
+of `external-namespaces` for which the program gives the result "valid".
+The program may give the result "invalid" for an id pattern that goes
+beyond limits of its own, and for a binding of `external-namespaces`
+that holds such an id pattern.
 
-### 5.23 Canonical forms of citation entries
+### 5.20 Canonical forms of citation entries
 
 @req give-canonical-entries=v1
 @cites {
@@ -2424,9 +2353,8 @@ not state these results.
 The group `id-patterns` holds id patterns that a program takes on their
 own. Its vectors follow from the requirements
 `reject-unmatched-id-patterns`, `reject-reversed-ranges`,
-`reject-large-counts`, `reject-reversed-bounds`, `reject-empty-id-fit`,
-`reject-oversized-id-patterns`, `reject-long-id-patterns`,
-`give-no-other-values`, `give-results`, and `accept-inputs`.
+`reject-reversed-bounds`, `reject-empty-id-fit`, `give-no-other-values`,
+`give-results`, and `accept-inputs`.
 
 - `input`: the id pattern, as a text.
 - `result`: "valid" or "invalid".
