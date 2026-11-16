@@ -99,12 +99,11 @@ text.
 | an approval, a decline | with an article: a ledger entry of the kind `approval`; a ledger entry of the kind `decline`; without an article, "approval" is the act of a person who approves |
 | [field of a kind](sinter:ledger#entry-field=v1) | a member of the object of a ledger entry that a design names for its kind, other than the common fields, such as `subject` |
 | [fields of an `approval` or `decline` ledger entry](sinter:#judgment-field=v1) | `subject`, a string that is a subject text; `hash`, a string that fits the hash form; `saw`, one of the strings `none`, `approval`, and `decline`; and, for a decline only, the optional `reason`, a string |
-| [malformed](sinter:#judgment-acceptance-rule=v1) | of a ledger entry of the kind `approval` or `decline`: its object lacks one of the members `subject`, `hash`, and `saw`, or its `subject` is not a string that is a subject text, its `hash` is not a string that fits the hash form, or its `saw` is not one of the strings `none`, `approval`, and `decline` |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger; the point of the index k is the point of the first k − 1 ledger entries; the indexes before the point of the first n ledger entries are the indexes 1 to n |
 | [count at an index](sinter:#judgment-acceptance-rule=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none |
-| [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when E is not malformed, its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
+| [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
 | [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
 | [commit of the default branch](sinter:changes#default-branch-commit=v1) | under a binding of the parameter `default-branch-name`, the commit of the first of the three refs of the default branch that exists: the upstream of the branch, the branch itself, and the remote-tracking branch of `origin` with its name; none when none of them exists, when the first that exists has no commit, or when the binding is not a branch name |
@@ -162,18 +161,12 @@ approval can be the same ledger entry again, and it decides the state
 again.
 
 The value of `saw` at the point at which a program appends the ledger
-entry is limited by conditions 2 and 3 of the acceptance rule (term
+entry is limited by conditions 1 and 2 of the acceptance rule (term
 `judgment-acceptance-rule`), because a program appends only accepted
 ledger entries (requirement `ledger#append-only-accepted-entries`), and
 by the requirement `record-seen-judgments`. The field `reason` of a
 decline can hold a reason that the person gave. No state and no
 acceptance depends on the member `reason`, whatever its value.
-
-A malformed `approval` or `decline` ledger entry (term
-`judgment-acceptance-rule`) is accepted at no point, so it decides no
-state, and the ledger stays valid. For example, an approval whose
-`subject` is `billing#limit`, with no kind word of a kind of subject of
-approval, is malformed.
 
 ### 2.3 Acceptance
 
@@ -448,17 +441,10 @@ are the indexes 1 to n.
 @cites {
     ledger#{accepted-entry=v1},
     ontology#{ledger=v1, ledger-entry=v1},
-    data-forms#{json-value=v1, hash-form=v1},
+    data-forms#{json-value=v1},
     text#{code-span=v1},
-    #{subject-text=v1, judgment-field=v1, ledger-index=v1},
+    #{judgment-field=v1, ledger-index=v1},
 }
-
-A ledger entry of the kind `approval` or `decline` is malformed when,
-and only when, its object lacks one of the members `subject`, `hash`,
-and `saw`, or the value of `subject` is not a string that is a subject
-text, or the value of `hash` is not a string that fits the hash form,
-or the value of `saw` is not one of the strings `none`, `approval`, and
-`decline`.
 
 The ledger entry at the index k of a ledger counts at that index when,
 and only when, it is of the kind `approval` or `decline` and is accepted
@@ -468,16 +454,16 @@ For a ledger entry E of the kind `approval` or `decline` and a point P
 of a ledger, the judgment before E at P is the ledger entry at the
 greatest index before P at which the ledger entry counts and whose
 values of `subject` and `hash` are the values of `subject` and `hash`
-of E. E has no judgment before it at P when no index before P is such.
+of E. E has no judgment before it at P when it lacks the member
+`subject` or the member `hash`, or when no index before P is such.
 
 The acceptance rule of the kinds `approval` and `decline` holds for a
 ledger entry E of one of these kinds at a point P of a ledger when, and
 only when, each of these is true:
 
-1. E is not malformed.
-2. The value of `saw` of E is the kind of the judgment before E at P, or
+1. The value of `saw` of E is the kind of the judgment before E at P, or
    `none` when E has no judgment before it at P.
-3. When E is of the kind `approval`, the value of `saw` of E is not
+2. When E is of the kind `approval`, the value of `saw` of E is not
    `approval`.
 
 ### 4.6 Latest judgments
