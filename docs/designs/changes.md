@@ -415,13 +415,14 @@ at its old path and of a file added at its new path. The term
 
 ### 2.8 What a program guarantees
 
-The requirements `read-only-repository-files`,
-`gain-no-repository-privileges`, and `follow-no-working-tree-links`
-state what a conforming program must not do in each repository read,
-and the requirement `run-no-configured-programs` states what it must not
-run. What a program gives in a repository read that is not undisturbed,
-as the term `undisturbed-read` defines it, is not specified, and these
-requirements still bind it.
+The requirements `leave-repositories-unchanged`,
+`read-only-repository-files`, `gain-no-repository-privileges`, and
+`follow-no-working-tree-links` state what a conforming program must not
+do in each repository read, and the requirement
+`run-no-configured-programs` states what it must not run. What a program
+gives in a repository read that is not undisturbed, as the term
+`undisturbed-read` defines it, is not specified, and these requirements
+still bind it.
 
 ## 3. Parameters
 
@@ -1593,7 +1594,22 @@ conforming program must give a diff of the change of h under that
 binding when the change of h has a base, and give that it has no diff
 when the change of h has no base under that binding.
 
-### 5.23 Bytes only from the files of the repository
+### 5.23 No change to the repository by a read
+
+@req leave-repositories-unchanged=v1
+@cites {
+    #{repository-read=v1, repository-file=v1, undisturbed-read=v1},
+    text#{conforming-program=v1},
+}
+
+During each repository read, a conforming program, itself or through any
+program that it uses, must create, delete, or change no repository file
+of the git repository, as the term `undisturbed-read` gives these words,
+other than in an own change of that repository read, as that term gives
+these words, and other than a file that was open for the program when it
+started, such as its standard output.
+
+### 5.24 Bytes only from the files of the repository
 
 @req read-only-repository-files=v1
 @cites {
@@ -1624,7 +1640,7 @@ that the programs that make that fetch read, such as the configuration
 and the keys of `ssh` or the store of a credential helper, other than a
 file that a value from the git repository names or chooses.
 
-### 5.24 No permission or privilege that the process did not have
+### 5.25 No permission or privilege that the process did not have
 
 @req gain-no-repository-privileges=v1
 @cites {
@@ -1642,7 +1658,7 @@ not one that it gets by changing the user IDs, the group IDs, or the
 appropriate privileges of its process, or through another process that
 acts for it.
 
-### 5.25 No program or command that a git repository supplies
+### 5.26 No program or command that a git repository supplies
 
 @req run-no-configured-programs=v1
 @cites {
@@ -1698,7 +1714,7 @@ git repository is at a local path. Code that runs isolated from the rest
 of the process of the program, as WebAssembly code runs in a sandbox, is
 not a program that runs in this sense.
 
-### 5.26 No symbolic link followed in a working tree
+### 5.27 No symbolic link followed in a working tree
 
 @req follow-no-working-tree-links=v1
 @cites {
@@ -1741,8 +1757,8 @@ groups. Each group has a name, such as `hunks`, and a subsection below.
 The subsection names the requirements that the vectors of the group
 follow from, and it describes their inputs, results, and values. Each
 vector of a group follows from one or more of these requirements. No
-vector follows from the
-requirements `use-one-line-map`, `read-only-repository-files`,
+vector follows from the requirements `use-one-line-map`,
+`leave-repositories-unchanged`, `read-only-repository-files`,
 `gain-no-repository-privileges`, `run-no-configured-programs`, and
 `follow-no-working-tree-links`.
 
