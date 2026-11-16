@@ -46,9 +46,7 @@ the evidence for a tree are findings, such as a `verifies` edge whose
 test did not run.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
-case-sensitive strings of RFC 7405. In a production, `*` and `1*` repeat
-an element zero or more times and one or more times, and `[ ]` makes an
-element optional. `DIGIT` is an ASCII digit, a core rule of RFC 5234.
+case-sensitive strings of RFC 7405.
 
 From Text and notation, the design takes texts, characters, spaces,
 places, runs, positions, and spans; whole numbers and
@@ -130,10 +128,7 @@ A report file, such as `out/junit.xml`, is a file that a test runner
 writes about the tests that it ran. As an input of a conforming program,
 a report file is what the term `report-file` gives, such as the bytes
 of `out/junit.xml`, the name `out/junit.xml`, a TypeScript pack, and
-its test runner vitest. How a program comes to
-the test runner of a report file, such as by a call of the function
-recognise of each adapter, or by an option that a person gives, is its
-own choice.
+its test runner vitest.
 
 An import (term `import`) has the report files that one execution of
 test runners wrote, given together. It is given for one tree: the tree
@@ -218,11 +213,10 @@ The default reader gives one test result for each case element, in the
 order of the document (term `case-result`). The term gives the status of
 a test result from the children and the attributes of its case element.
 For example, a case element that has both a `failure` child and a
-`skipped` child has the status `fail`, a case element with a `skipped`
-child and no `error` or `failure` child has the status `skip` whatever
-the data of the runner is, and pytest writes a test that is expected to
-fail, and fails, as `<skipped type="pytest.xfail">`, which has the
-status `skip`.
+`skipped` child has the status `fail`, and a case element with a
+`skipped` child and no `error` or `failure` child, such as a case
+element whose only child is `<skipped type="pytest.xfail"/>`, has the
+status `skip` whatever the data of the runner is.
 
 The name parts of a test result are the texts that the default reader
 reads for it by the members of `path`. With `path = ["classname",
@@ -288,7 +282,7 @@ entry.
 A test result can also have a result link to a test suite. For example,
 a Go test `TestFoo` runs the subtest `x`; `x` passes, and then `TestFoo`
 fails. The test node of `TestFoo` encloses the test node of `x`, so it
-is a test suite. gotestsum writes one case element with the name
+is a test suite. The report has one case element with the name
 `TestFoo` and a `failure` child, and one with the name `TestFoo/x`. With
 `path` set to `name` and both separators set to `/`, the one name part
 `TestFoo` matches the pattern of the test suite, so its failure counts.
@@ -301,14 +295,12 @@ adapter of its test runner, as Language packs defines it, or the default
 reading, for a test runner with a match table. The term gives its
 result: "bound", with test results and result links; "unreadable", with
 no test result, such as for a report file that a job of continuous
-integration cut short when it ended early; or "stopped", such as when
-the program stops a reading of a very large report file for its limits.
-After a reading with the result "stopped", the program gives nothing
-from the evidence for that tree that the requirement
-`give-nothing-for-stopped-readings` names. Which readings a program
-stops can differ between conforming programs. So can the results of a
-call of an adapter whose code depends on the bits of a NaN, which the
-program chooses.
+integration cut short when it ended early; or "stopped". A program may
+stop a reading of a report file for limits of its own, such as a reading
+of a very large report file, and that reading then has the result
+"stopped". After a reading with the result "stopped", the program gives
+nothing from the evidence for that tree that the requirement
+`give-nothing-for-stopped-readings` names.
 
 The term `reading-entry` gives the test entries of a reading, with their
 test entry ids, such as `src/math.test.ts#3` for the third test node of
@@ -466,21 +458,17 @@ for it has at least one import.
 @term junit-report=v1
 @cites {
     w3c/rec-xml-20081126,
-    text#{byte-sequence=v1, byte=v1, 0x-numeral=v1, text=v1, code-span=v1},
+    text#{text=v1, code-span=v1},
     packs#{adapter-call=v1},
 }
 
 A report content is a JUnit XML report when, and only when, it is a
 well-formed XML document, as XML 1.0 (Fifth Edition) defines one, in the
-encoding UTF-8 or UTF-16, that has no document type declaration, and
-whose root element has the name `testsuites` or the name `testsuite`. A
-report content that starts with the bytes 0xFE 0xFF, or with the bytes
-0xFF 0xFE, is in UTF-16 when, and only when, its encoding declaration is
-absent or names `UTF-16`. A report content that does not start with
-these bytes is in UTF-8 when, and only when, its encoding declaration is
-absent or names `UTF-8`. The name in an encoding declaration is compared
-with no regard to the case of ASCII letters. These definitions apply to
-a JUnit XML report:
+encoding UTF-8 or UTF-16, as XML 1.0 (Fifth Edition) gives the encodings
+of entities, that has no document type declaration, and whose root
+element has the name `testsuites` or the name `testsuite`. The name in
+an encoding declaration is compared with no regard to the case of ASCII
+letters. These definitions apply to a JUnit XML report:
 
 - A suite element is an element with the name `testsuite` that is the
   root element, or whose parent is the root element and the root element
@@ -497,7 +485,7 @@ a JUnit XML report:
   the element has that name.
 - The name of an element or of an attribute is the text that its start
   tag, its empty-element tag, or its attribute specification writes for
-  it, with no namespace processing.
+  it.
 
 ### 3.5 The data of a runner
 
@@ -815,21 +803,19 @@ reading of that report file has one of the results "bound",
   root of the import, and the test entries of the reading, with the
   report content of the report file, and with the test entry ids of the
   test entries of the reading as its test entry ids. Its result is
-  "stopped" when, in that call or in the decision whether the adapter is
-  a valid adapter that the call uses, the program stops the
-  instantiation or an invocation, the program refuses a growth of a
-  memory or of a table within its maximum, or the call stack is
-  exhausted; otherwise, it is "bound" when the result of the call is
-  "bound", and "unreadable" when it is "failed". With "bound", its test
+  "stopped" when the program stops that call, or the decision whether
+  the adapter is a valid adapter that the call uses, for limits of its
+  own; otherwise, it is "bound" when the result of the call is "bound",
+  and "unreadable" when it is "failed". With "bound", its test
   results are the test results of the call, and its result links are,
   for each binding object of the call, the pair of the test result of
   the binding object and the test entry whose test entry id it gives.
 - When the test runner has a match table, the reading is the default
   reading of the report content with the test entries of the reading,
   for that test runner, under that binding. Its result is "stopped" when
-  the program stops that reading; otherwise, it is the result of the
-  default reading. With "bound", its test results and its result links
-  are those of the default reading.
+  the program stops that reading for limits of its own; otherwise, it is
+  the result of the default reading. With "bound", its test results and
+  its result links are those of the default reading.
 
 A result link of a reading is one of the pairs of a test result and a
 test entry that the reading gives with the result "bound".
