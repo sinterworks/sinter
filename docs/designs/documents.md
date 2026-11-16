@@ -55,8 +55,7 @@ the parameter `external-namespaces`; and the inputs of a conforming
 program of Identifiers and the results that it gives. From Files and
 paths, it takes valid paths, path sets, valid path sets, and the set of
 a path set. From Data forms, it takes hashes, indexes, hex texts,
-canonical byte sequences, test-vector file names, test-vector sets, and
-vector lines. From the Ontology, it takes trees and their files;
+test-vector file names, test-vector sets, and vector lines. From the Ontology, it takes trees and their files;
 parameters; items and their kinds, declared items, containment, and the
 names of declared items; tests and comments on tests; sites; external
 items; vector sets, conformance vectors, and groups of conformance
@@ -77,10 +76,9 @@ start numbers, list items, and link reference definitions; and its
 inline elements: textual content, backslash escapes, entity and numeric
 character references, code spans, emphasis, strong emphasis, links with
 their link destinations and link titles, autolinks, images, raw HTML,
-and hard and soft line breaks. From RFC 8259, it takes
-JSON texts, with their objects, members, arrays, strings, numbers, and
-the literal names `true`, `false`, and `null`: each line of the file of
-the conformance vectors of the design is a JSON text.
+and hard and soft line breaks. From RFC 8259, it takes JSON values,
+with their objects, members, arrays, strings, numbers, and the literal
+names `true` and `false`.
 
 ## 1. Glossary
 
