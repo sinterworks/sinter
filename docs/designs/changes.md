@@ -193,8 +193,8 @@ of its Conformance section name.
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names that the read uses to reach or look for a repository file; a change of an attribute alone is no change |
-| [own change of a repository read](sinter:#undisturbed-read=v1) | a change by which the program that makes the read, itself or through any program that it uses, only adds new loose objects or new packs to an object database, writes commit-graph files in a fetch that is part of the read, or writes git's index again with an entry for the same byte paths, with the lock files and temporary files of these |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file; a change of an attribute alone is no change |
+| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is a file of a new loose object or a new pack, a commit-graph file in a fetch that is part of the read, git's index written again with an entry for the same byte paths, a lock file or a temporary file of these, or a file that was open for the program when it started |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -1088,8 +1088,8 @@ it included, does one of these during the repository read, other than in
 an own change of the repository read:
 
 1. It creates, deletes, or changes a repository file of the git
-   repository from which the program, itself or through any program that
-   it uses, takes bytes in the repository read.
+   repository, when the program, itself or through any program that it
+   uses, takes bytes from that file in the repository read.
 2. It changes which file a pathname names, or whether it names one, when
    the program, itself or through any program that it uses, uses that
    pathname in the repository read to reach a repository file of the git
@@ -1100,31 +1100,34 @@ entries of a folder, the reference of a symbolic link, or the data of a
 file of another kind. A change of an attribute of a file alone, as the
 term `files#attribute` gives attributes, is no change of the file.
 
-An own change of a repository read is a change that the program that
-makes it, itself or through any program that it uses, makes during the
-repository read and that creates, deletes, or changes only these files:
+An own change of a repository read is the creation, the deletion, or
+the change of one file that the program that makes the repository read,
+itself or through any program that it uses, makes during the repository
+read, when that file is one of these:
 
-1. the files of new loose objects and of new packs in an object database
-   of the git repository, as the pages gitformat-loose and gitformat-pack
-   define loose objects and packs, each pack with the files that are for
-   that pack alone, such as its pack index, and the folders of that
+1. a file of a new loose object or of a new pack in an object database
+   of the git repository, as the pages gitformat-loose and
+   gitformat-pack define loose objects and packs; a file that is for
+   such a new pack alone, such as its pack index; or a folder of that
    object database;
-2. in a fetch that is part of the repository read, the commit-graph files
+2. in a fetch that is part of the repository read, a commit-graph file
    of an object database of the git repository, as the page
    gitformat-commit-graph gives them: the file `info/commit-graph` of
-   that object database, and the folder `info/commit-graphs` of it with
-   its files;
-3. git's index of a working tree, the files that the format of that
-   index names, as the page gitformat-index gives that format, and the
-   folder that holds that index, when git's index holds an entry for the
-   same byte paths after the change as before it, as the term
+   that object database, the folder `info/commit-graphs` of it, or a
+   file in that folder;
+3. git's index of a working tree, a file that the format of that index
+   names, as the page gitformat-index gives that format, or the folder
+   that holds that index, when git's index holds an entry for the same
+   byte paths after the change as before it, as the term
    `working-tree-file` gives these words;
-4. a lock file or a temporary file that the program creates for such a
-   change, in a folder of item 1, 2, or 3, and deletes, or renames to a
-   file of item 1, 2, or 3, in the same change.
+4. a lock file or a temporary file that the program creates in a folder
+   of item 1, 2, or 3 for the creation or the change of a file of item
+   1, 2, or 3, and that it deletes, or renames to that file;
+5. a file that was open for the program when it started, such as its
+   standard output.
 
-No other change is an own change: for example, not a change of a ref, of
-the file `FETCH_HEAD` or the file `shallow` of the git folder, or of
+No other file gives an own change: for example, a file that holds a
+ref, the file `FETCH_HEAD` or the file `shallow` of the git folder, or
 another file in the folder `info` of an object database.
 
 ### 4.29 Repository files
@@ -1606,8 +1609,7 @@ During each repository read, a conforming program, itself or through any
 program that it uses, must create, delete, or change no repository file
 of the git repository, as the term `undisturbed-read` gives these words,
 other than in an own change of that repository read, as that term gives
-these words, and other than a file that was open for the program when it
-started, such as its standard output.
+these words.
 
 ### 5.24 Bytes only from the repository and the fetches of the read
 
