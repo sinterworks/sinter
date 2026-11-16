@@ -194,7 +194,7 @@ of its Conformance section name.
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file; a change of an attribute alone is no change |
-| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is a file of a new loose object or a new pack, a commit-graph file in a fetch that is part of the read, git's index written again with an entry for the same byte paths, a lock file or a temporary file of these, or a file that was open for the program when it started |
+| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is a file of a new loose object or a new pack, a commit-graph file in a fetch that is part of the read, git's index written again with an entry for the same byte paths, or a lock file or a temporary file of these |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -1122,9 +1122,7 @@ read, when that file is one of these:
    `working-tree-file` gives these words;
 4. a lock file or a temporary file that the program creates in a folder
    of item 1, 2, or 3 for the creation or the change of a file of item
-   1, 2, or 3, and that it deletes, or renames to that file;
-5. a file that was open for the program when it started, such as its
-   standard output.
+   1, 2, or 3, and that it deletes, or renames to that file.
 
 No other file gives an own change: for example, a file that holds a
 ref, the file `FETCH_HEAD` or the file `shallow` of the git folder, or
@@ -1610,7 +1608,8 @@ During each repository read, a conforming program, itself or through any
 program that it uses, must create, delete, or change no repository file
 of the git repository, as the term `undisturbed-read` gives these words,
 other than in an own change of that repository read, as that term gives
-these words.
+these words, and other than in a change of a file that was open for the
+program when it started, such as its standard output.
 
 ### 5.24 Bytes only from the repository and the fetches of the read
 
