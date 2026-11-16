@@ -1092,7 +1092,7 @@ document is a byte sequence that meets each of these conditions:
 - The byte sequence has no value error.
 - The keys, the tables, and the strings of that text break no statement
   of TOML 1.1.0, such as the statements that no key or table is defined
-  twice and that each escape code is a Unicode scalar value.
+  twice and that each escape sequence writes a Unicode scalar value.
 
 #### 5.1.18 Root tables
 
