@@ -3181,8 +3181,9 @@ member `result`.
 
 A program does not need the revisions to run the vectors.
 
-Inside the members `input` and `values`, each JSON value that this
-section or its subsections name as a text, a whole number, a run, a
+The JSON values, objects, arrays, strings, and numbers of this section
+are as RFC 8259 defines them. Inside the members `input` and `values`,
+each JSON value that this section or its subsections name as a text, a whole number, a run, a
 position, a path set, a binding of `external-namespaces`, or a tree has
 this form:
 
