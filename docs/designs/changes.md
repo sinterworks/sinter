@@ -191,7 +191,7 @@ JSON text.
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch of git objects that the git repository does not hold and that a repository read uses is part of one |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, changes a repository file of the git repository, other than a file of a working tree from whose files the read takes no bytes; a change by which the program only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, creates, deletes, or changes a repository file of the git repository, other than a file of a working tree that is no other repository file, from which the read takes no bytes, and that no pathname that the read uses names; a change by which the program only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -1062,9 +1062,11 @@ writes for that change, is part of one.
 }
 
 A repository read is undisturbed when no process, the program that makes
-it included, changes a repository file of the git repository during the
-repository read, other than a file of a working tree from whose files
-the repository read takes no bytes. A change by which the program,
+it included, creates, deletes, or changes a repository file of the git
+repository during the repository read, other than a file of a working
+tree that is no other repository file, from which the repository read
+takes no bytes, and that no pathname that the repository read uses
+names. A change by which the program,
 itself or through any program that it uses, only adds git objects to an
 object database of the git repository, or writes git's index of a
 working tree again so that it holds an entry for the same byte paths, as
