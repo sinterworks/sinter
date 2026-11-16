@@ -105,10 +105,9 @@ their bindings.
 
 From Data forms (`data-forms`), the design takes test-vector sets, in the
 format that its specification `test-vectors` gives: the file that holds
-the conformance vectors of the design is one. From
-POSIX.1-2024, it takes processes and the shell, the open files of a
-process, pathnames, pipes,
-environment variables, the permissions and the appropriate
+the conformance vectors of the design is one. From POSIX.1-2024, it
+takes processes and the shell, the open files of a process, pathnames,
+pipes, environment variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
 From RFC 8259, the design takes JSON objects, members, arrays, strings,
 numbers, and the literal names `true` and `false`, which the subsections
@@ -193,9 +192,9 @@ of its Conformance section name.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read; no push, and no other change of a ref, is part of one; a read lasts from the first time that the program takes bytes or uses a pathname for it until the last such time |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read whose file is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
-| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a loose object or a pack that the program creates in the read, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; an own change keeps a read undisturbed only when its file is not a file of a working tree |
+| [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read; no push, and no other change of a ref, is part of one; a read lasts from the first time that the program takes bytes, or uses a pathname to reach or look for a repository file, for it until the last time that it does one of these; a program gives a thing in a read when it gives what that read took |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read when the file of that change is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
+| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a loose object or a pack that the program creates in the read, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; a file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give none, not even as such a temporary file; an own change keeps a read undisturbed only when its file is not a file of a working tree |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -1048,7 +1047,7 @@ has no diff.
     files#{path=v1, taken-byte=v1},
     #{
         working-tree=v1, commit=v1, ref-commit=v1, hunk=v1,
-        remote-transfer=v1,
+        remote-transfer=v1, repository-file=v1,
     },
 }
 
@@ -1063,16 +1062,20 @@ that it uses, during a repository read is part of that repository read,
 such as a fetch of git objects that a partial clone leaves out and that
 the repository read uses; no push, and no other change of a ref, is part
 of one. A repository read lasts from the first time that the program,
-itself or through any program that it uses, takes bytes or uses a
-pathname for it until the last such time. What the program does after
-that time, such as giving its result, is not part of the repository
-read.
+itself or through any program that it uses, takes bytes, or uses a
+pathname to reach a repository file or to look for one, for that
+repository read, until the last time that it does one of these. What the
+program does after that time, such as giving what it took, is not part
+of the repository read; a program still gives a thing in a repository
+read when it gives what that repository read took, whenever it gives it.
 
 ### 4.28 Undisturbed repository reads
 
 @term undisturbed-read=v1
 @cites {
     posix/2024,
+    gitdoc/gitrepository-layout,
+    gitdoc/git-fetch,
     gitdoc/gitformat-loose,
     gitdoc/gitformat-pack,
     gitdoc/gitformat-commit-graph,
@@ -1091,9 +1094,9 @@ read.
 
 A repository read is undisturbed when no process, the program that makes
 it included, does one of these during the repository read, other than in
-an own change of the repository read whose file is not a file of a
-working tree of the git repository, as the term `working-tree` gives
-these files:
+an own change of the repository read when the file of that own change
+is not a file of a working tree of the git repository, as the term
+`working-tree` gives these files:
 
 1. It creates, deletes, or changes a repository file of the git
    repository, when the program, itself or through any program that it
@@ -1134,11 +1137,11 @@ read, when that file is one of these:
 A change of a folder of item 1, 2, or 3 is an own change only when each
 folder entry that the change creates, deletes, or changes names, before
 or after the change, a file of item 1, 2, 3, or 4 that is not a folder,
-or a folder that the program created in the repository read. No other
-file gives an own change. None of these files gives one, even when the
-program creates it and then deletes it in the repository read: a file
+or a folder that the program created in the repository read. A file
 that holds a ref, the file `FETCH_HEAD` or the file `shallow` of the git
-folder, and the file `info/alternates` of an object database.
+folder, and the file `info/alternates` of an object database give no own
+change, not even as a file of item 4 that the program creates and then
+deletes in the repository read. No other file gives an own change.
 
 ### 4.29 Repository files
 
@@ -1747,7 +1750,7 @@ sense.
         remote-transfer=v1,
     },
     files#{symbolic-link=v1, folder=v1},
-    text#{conforming-program=v1},
+    text#{conforming-program=v1, code-span=v1},
 }
 
 In each repository read, a conforming program, itself or through any
