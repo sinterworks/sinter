@@ -141,7 +141,7 @@ globals, instances, traps, and the execution of code. From ECMA-262
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place, when each node starts at or before its end, each child lies inside its node, each child ends at or before the start of the next child, and each start byte and each end byte is the number of bytes of the UTF-8 encoding of the characters of the parse text before one of its boundaries; a tree that breaks one of these conditions is no parse tree |
+| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
@@ -874,11 +874,7 @@ language, and its ABI version is the ABI version of that language.
 @term query-language=v1
 @cites {
     tree-sitter/query-language,
-    text#{
-        text=v1, character=v1, line-feed=v1, u-numeral=v1, code-span=v1,
-        byte-sequence=v1, utf-8-encoding=v1, production=v1, rule-name=v1,
-        whole-number=v1,
-    },
+    text#{text=v1, code-span=v1, whole-number=v1},
     #{usable-grammar=v1, parse-tree=v1},
 }
 
@@ -898,88 +894,12 @@ each alternation of the pattern and each number of repetitions that each
 element of a pattern, before or after the `?`, `*`, or `+` of that
 element, captures the node of each repetition of that element.
 
-White space in a query is a text that matches the production
-`query-space`: one of the characters U+0009 to U+000D and U+0020, or a
-comment. A comment is the longest text at its place that matches
-`query-comment`, so it runs from a `;` up to the next line feed or
-U+0000, or up to the end of the text. Each name in a query is the
-longest text at its place that matches `query-name`: the name of a named
-node or of a field, a capture name after its `@`, the part of the name
-of a predicate or of a directive between its `#` and its last character,
-which is `?` or `!`, and a bare argument. Where a pattern starts with
-`_`, and that `_` is not the first name in parentheses, that `_` is the
-wildcard `_`, one character alone, and not the start of a longer name.
-So `_x: (y)` is the wildcard `_` and then the field `x` with `(y)`, and
-`(p _.)` holds the wildcard `_` and then the anchor `.`. As the first
-name in parentheses, `_` and `_x` are names, as in `(_)` and `(_x)`.
-
-```abnf
-query-space    = %x09-0D / %x20 / query-comment
-query-comment  = ";" *( %x01-09 / %x0B-D7FF / %xE000-10FFFF )
-query-name     = ( ALPHA / DIGIT / "_" / "-" )
-                 *( ALPHA / DIGIT / "_" / "-" / "." )
-```
-
-No white space stands between `@` and a capture name, between `#` and
-the `query-name` of a predicate or of a directive, between that
-`query-name` and the `?` or `!` after it, or on either side of the `/`
-after the name of a supertype. A text that holds U+0000 outside a string
-is no query.
-
-A string is written between two double quotes. In the characters after
-the opening double quote of a string, taken from the first to the last,
-each `\` that is not in an escape starts an escape: that `\` and the
-character after it. The string ends at the first double quote, after its
-opening double quote, that is not in an escape, and its characters are
-the characters between these two double quotes. The escapes `\n`, `\r`,
-`\t`, and `\0` stand for U+000A, U+000D, U+0009, and U+0000, and `\`
-followed by any other character, a line feed included, stands for that
-character. The text of a string is its characters, with each escape
-replaced by the character that it stands for. A line feed that a string
-holds outside an escape makes the text no query.
-
-A pattern can hold predicates and directives, each an element
-`(#name ...)` of the pattern, with a name such as `#eq?` or `#set!`,
-whose arguments are captures, strings, and bare arguments. A bare
-argument is an argument that is a `query-name`, written without `@` and
-without double quotes. In a predicate or a directive, a bare argument
-counts as a string whose text is its characters. An argument ends at the
-first character that cannot continue it, so `foo"bar"` is two
-arguments: the bare argument `foo` and a string. Each capture that a
-predicate or a directive gives as an argument has a capture name that a
-pattern of the text gives to a node before that argument, in the pattern
-of the predicate or in an earlier pattern. A text in which a predicate
-or a directive gives another capture name is no query.
-
-In a query for a language, each name that a pattern gives to a named
-node, such as `identifier` in `(identifier)` and in
-`(MISSING identifier)`, and `expression` and `identifier` in
-`(expression/identifier)`, is the name of a named symbol of the language
-that is visible or a supertype. `ERROR` needs no such symbol, and
-neither do `_`, alone or as the first name in parentheses, and `MISSING`
-as the first name in parentheses. The text of each string that a pattern
-gives as the name of an anonymous node, such as `";"`, is the name of an
-anonymous symbol of the language that is visible or a supertype. Each
-name of a field that a pattern gives, before `:` or after `!`, is the
-name of a field of the language. A text in which a pattern gives another
-name is no query for the language. A name in a query is the name of a
-symbol or of a field when its UTF-8 encoding and that name are the same
-byte sequence.
+A query for a language is a text that is a query for that language by
+tree-sitter's documentation of the query language.
 
 The matches of a query over a parse tree are the parts of the parse tree
 where a pattern of the query matches, each with that pattern and with
 the nodes that it captures under each capture name.
-
-Where a pattern gives the name s of a supertype for a named node, as in
-`(s)`, the pattern matches there each node, named or anonymous, that has
-the supertype s. Where it gives `s/x`, as in `(s/x)`, it matches there
-each node that has the supertype s and whose symbol is a named symbol
-with the name x; with `s/"x"`, it matches each such node whose symbol is
-an anonymous symbol with the name x. A text in which `/` follows a name
-that is not the name of a supertype is no query for the language. For a
-language of the ABI version 15, a text that gives `s/x` or `s/"x"` when
-no subtype of s in the list of the language has the name x is no query
-for that language either.
 
 ### 4.9 Text predicates
 
@@ -1017,8 +937,7 @@ For a pair:
   input and the search starting at index 0, as `RegExp.prototype.test`
   of ECMA-262 2025 does, and `#not-match?` and `#any-not-match?` hold
   when it finds none. The character classes of the pattern, such as
-  `\w`, match as ECMA-262 2025 defines them. The Unicode Standard of
-  these patterns is its latest version, as ECMA-262 2025 requires;
+  `\w`, match as ECMA-262 2025 defines them;
 - `#any-of?` holds when the text of the node is the text of one of the
   strings, and `#not-any-of?` holds when it is the text of none of them.
 
@@ -1147,7 +1066,7 @@ its file `adapters/<r>.wasm`.
     tree-sitter/language-format, wasm-core/2.0,
     text#{
         text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
-        whole-number=v1, code-span=v1, character=v1, boundary=v1,
+        whole-number=v1, code-span=v1,
     },
     #{usable-grammar=v1, grammar-name=v1},
 }
@@ -1156,38 +1075,23 @@ This definition uses the parsing that the format of languages of
 tree-sitter defines, which gives, for a language and a byte sequence, a
 parse tree or no parse tree. This parsing runs the code of the language
 in the instance of its module in which that module gave that language,
-and it gives no parse tree when the instantiation or an invocation in that
-instance fails. A parse tree has a root node, and the children of each
-node of a parse tree are its named and its anonymous child nodes, in
-their order. A node of a hidden symbol is no node of the parse tree, and
-its children stand in its place. A node that stands in the place of a
-node of a hidden symbol also stands in the place of each node in whose
-place that node stands. Each node has a symbol, and each symbol has a
-name. The supertypes of a node are the symbols that are supertypes among
-its own symbol and the symbols of the nodes in whose place it stands.
-Each node has a start byte and an end byte, which are whole numbers less
-than 4,294,967,296. In a parse tree, the start byte of each node is at
-most its end byte; the start byte of each child of a node is at least
-the start byte of that node, and its end byte is at most the end byte of
-that node; the end byte of each child of a node is at most the start
-byte of the next child of that node; and the start byte and the end byte
-of each node are each the number of bytes of the UTF-8 encoding of the
-characters of the parse text before a boundary of the parse text. These
-conditions hold for the nodes of the tree that this parsing gives, with
-the nodes of hidden symbols left out and their children in their place;
-when that tree does not meet them, this parsing gives no parse tree. A
-node has an error when it, or a node that the parsing gives inside it,
-nodes of hidden symbols included, is an `ERROR` node, a node of the
-symbol `ERROR`, or a `MISSING` node, a node that the parsing inserts for
-a token that the text lacks. For a text whose parse text has fewer than
-4,294,967,296 bytes in its UTF-8 encoding, and a usable grammar with a
-grammar name g, the parse tree is the parse tree that this parsing gives
-for the language of that usable grammar and the UTF-8 encoding of that
-parse text; such a text alone can have a parse tree. When this parsing
-gives no parse tree, the text has no parse tree with that usable
-grammar. The parse text of a text is that text, followed by a line feed
-when the text does not end with a line feed. So the parse text of the
-empty text is one line feed.
+and it gives no parse tree when the instantiation or an invocation in
+that instance fails. A parse tree has a root node, and the children of
+each node of a parse tree are its named and its anonymous child nodes,
+in their order. A node of a hidden symbol is no node of the parse tree,
+and its children stand in its place. Each node has a symbol, and each
+symbol has a name. Each node has a start byte and an end byte, which are
+whole numbers. A node has an error when it, or a node that the parsing
+gives inside it, nodes of hidden symbols included, is an `ERROR` node, a
+node of the symbol `ERROR`, or a `MISSING` node, a node that the parsing
+inserts for a token that the text lacks. For a text and a usable grammar
+with a grammar name g, the parse tree is the parse tree that this
+parsing gives for the language of that usable grammar and the UTF-8
+encoding of the parse text of that text. When this parsing gives no
+parse tree, the text has no parse tree with that usable grammar. The
+parse text of a text is that text, followed by a line feed when the text
+does not end with a line feed. So the parse text of the empty text is
+one line feed.
 
 ### 4.13 The order of the parse tree
 
