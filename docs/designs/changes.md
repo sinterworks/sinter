@@ -151,7 +151,7 @@ of its Conformance section name.
 | [git's index](sinter:#working-tree=v1) | the file in which git records the paths of the files that it tracks in a working tree, usually the file `index` in the folder of that working tree |
 | [sparse directory entry](sinter:#working-tree-file=v1) | an entry of git's index that names a git tree object and summarizes the paths of that git tree object, as the page gitformat-index defines it |
 | [excludes file](sinter:#ignored-path=v1) | the file of ignore patterns that the setting `core.excludesFile` gives, or its default when it has no value, as the page git-config defines it |
-| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it; the patterns of a source that is a regular file come from the lines of the text of its content, when that content is valid UTF-8 and that text does not end with a carriage return and holds no U+0000; otherwise they are not specified, nor is whether a path is ignored when the answer depends on them |
+| [ignored](sinter:#ignored-path=v1) | a valid path is ignored in a working tree when the ignore patterns of that working tree, as the page gitignore gives them, ignore it; the patterns of a source that is a regular file come from the lines of the text of its content, when that content is valid UTF-8 and that text does not end with a carriage return and holds no U+0000; when the content of such a file does not meet these conditions, its patterns are not specified, nor is whether a path is ignored when the answer depends on them |
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
 | [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, as that act put them, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
@@ -414,11 +414,12 @@ at its old path and of a file added at its new path. The term
 
 ### 2.8 What a program guarantees
 
-The requirements `leave-repositories-unchanged`,
+The requirement `leave-repositories-unchanged` states what a conforming
+program must not change during each repository read. The requirements
 `read-only-repository-files`, `gain-no-repository-privileges`, and
-`follow-no-working-tree-links` state what a conforming program must not
-do in each repository read, and the requirement
-`run-no-configured-programs` states what it must not run. What a program
+`follow-no-working-tree-links` state what it must not do in each
+repository read, and the requirement `run-no-configured-programs` states
+what it must not run. What a program
 gives in a repository read that is not undisturbed, as the term
 `undisturbed-read` defines it, is not specified, and these requirements
 still bind it.
@@ -1072,8 +1073,8 @@ of one.
     gitdoc/gitformat-commit-graph,
     gitdoc/gitformat-index,
     files#{
-        taken-byte=v1, attribute=v1, regular-file=v1, folder=v1,
-        folder-tree=v1, symbolic-link=v1, file-of-another-kind=v1,
+        taken-byte=v1, regular-file=v1, folder=v1, folder-tree=v1,
+        symbolic-link=v1, file-of-another-kind=v1,
     },
     text#{code-span=v1},
     #{
@@ -1097,8 +1098,7 @@ an own change of the repository read:
 
 To change a file is to change the content of a regular file, the folder
 entries of a folder, the reference of a symbolic link, or the data of a
-file of another kind. A change of an attribute of a file alone, as the
-term `files#attribute` gives attributes, is no change of the file.
+file of another kind.
 
 An own change of a repository read is the creation, the deletion, or
 the change of one file that the program that makes the repository read,
