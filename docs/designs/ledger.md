@@ -312,9 +312,9 @@ valid. A repair of a broken ledger can remove no line, when it only puts
 the lines in the form of a valid ledger tree. No program repairs a newer
 ledger (requirement `repair-no-newer-ledgers`). The requirement
 `repair-ledgers-with-voids` gives the commit that a repair makes: each
-line that the repair keeps keeps its bytes, and a void whose `dropped`
-is the `id` of each removed line that has one takes the `seq` that the
-requirement gives. So no ledger entry that the repair keeps changes its
+line that the repair keeps keeps its bytes, and each removed line that
+has an `id` gets a void whose `dropped` is that `id`, which, in a valid
+ledger, takes the `seq` of that line. So no ledger entry that the repair keeps changes its
 `seq` or its `id`, and, because the new history is intact, no commit of
 it holds a ledger entry that the repair removed.
 
