@@ -56,8 +56,7 @@ tree with their files and declarations, the bindings of the parameter
 positions, position subjects, the order of positions, the spots of runs,
 and tree findings. From Changes (`changes`), it takes commits and their
 parents, the parameter `default-branch-name` with its bindings, the
-commit of the default branch, first-parent lines, and the requirement
-`changes#take-objects-only-from-repositories`. From Findings
+commit of the default branch, and first-parent lines. From Findings
 (`findings`), it takes the subjects of findings. From Identifiers
 (`identifiers`), it takes slugs, full names, kind words, citation
 entries, inline citations, status tags, the texts of tag lines, the form
@@ -106,7 +105,7 @@ text.
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | it holds for a ledger entry E of one of these kinds at a point P when its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
 | [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
-| [commit of the default branch](sinter:changes#default-branch-commit=v1) | under a binding of the parameter `default-branch-name`, the commit of the first of the three refs of the default branch that exists: the upstream of the branch, the branch itself, and the remote-tracking branch of `origin` with its name; none when none of them exists, when the first that exists has no commit, or when the binding is not a branch name |
+| [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a binding of `default-branch-name` |
 | [has merged](sinter:#merged-content=v1) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, the revised content of a subject of approval in a tree has merged into the default branch of a git repository when the default branch of that git repository has a commit, and the tree of a commit of the first-parent line of that commit gives the same subject of approval the same extent hash |
 | [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree, at a point of the ledger of a git repository, under the bindings of the parameters |
 | [in force](sinter:ontology#in-force-item=v1) | a declared item is in force in a tree, at a point of a ledger, when it is not retired there: when it still applies |
@@ -273,10 +272,6 @@ default branch back, revised content that only the commits that left the
 line held has not merged.
 
 When the default branch has no commit, no revised content has merged.
-A commit that the file `shallow` of a git repository names has no
-parents (term `changes#commit`), so the first-parent line ends at that
-commit. So the rule does not see revised content that merged only
-before that commit.
 
 ### 2.6 Bindings and missing inputs
 
@@ -294,13 +289,12 @@ not valid. The requirement
 broken or newer and a git repository that does not hold its ledger
 objects, also for a kind that does not need approval, and the
 requirement `give-no-findings-from-invalid-ledgers` covers the findings
-there. A program takes no git object from another git repository
-(requirement `changes#take-objects-only-from-repositories`). So when a
-git repository lacks the git objects that a tree of the first-parent
-line needs, a program gives, by the requirement `give-subject-states`,
-the state that the term `subject-state` gives, or no state, and, by the
-requirement `give-approval-findings`, the findings of a class that its
-term gives, or does not give the findings of that class.
+there. When a git repository lacks the git objects that a tree of the
+first-parent line needs, a program gives, by the requirement
+`give-subject-states`, the state that the term `subject-state` gives, or
+no state, and, by the requirement `give-approval-findings`, the findings
+of a class that its term gives, or does not give the findings of that
+class.
 
 What a program gives while another process changes a file, a ref, or
 the ledger is a matter of the quality of an implementation.
