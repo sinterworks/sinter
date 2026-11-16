@@ -2056,10 +2056,8 @@ file has three kinds of line, in this order:
 The JSON object of a vector line has these members:
 
 - `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number from 1 to 9,007,199,254,740,991. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
+  numeral of a whole number from 1 to 9,007,199,254,740,991. No other
+  vector of the file has this number.
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input of the vector: what a conforming program takes or
@@ -2085,20 +2083,13 @@ The JSON object of a vector line has these members:
   it has an explanation.
 
 A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when a
-vector that it covers changes, joins, or leaves. A change of a note
-alone changes no revision. A program does not need the revisions to run
-the vectors.
+number of 1 or more, such as `"v1"`. A program does not need the
+revisions to run the vectors.
 
-A vector writes each input and each value in one fixed form. A text is
-a JSON value, a JSON string. A binding, a pair, a set of values, and a
-sequence are not JSON values. Inside the members `input` and `values`,
-each text, binding, and sequence has this fixed form, and the
-paragraphs after this list give the fixed form of the other inputs and
-values:
+A vector writes each input and each value in one fixed form. Inside the
+members `input` and `values`, each text, binding, and sequence has this
+fixed form, and the paragraphs after this list give the fixed form of
+the other inputs and values:
 
 - A text, such as a line, an id pattern, or a value, is a JSON string
   whose characters are the characters of the text, in order. So the
