@@ -50,8 +50,7 @@ meaning of a vector.
 | Sinter | the tool that traces the items of a repository and checks the agreements that the people who work on the repository made |
 | [item](sinter:#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [kind of item](sinter:#item=v1) | one of the fourteen kinds of item, such as design or task; each item has one |
-| repository | a git repository |
-| commit, message of a commit, parent, branch, working tree, clone, push, pull request | the thing of git, or of a host of git repositories, that has this name |
+| repository, commit, message of a commit, parent, branch, working tree, clone, push, pull request, merge | the thing of git, or of a host of git repositories, that has this name |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [tree](sinter:#tree=v1) | a set whose members are the files of the tree, in which no two files of the tree have the same valid path, such as the tree of a commit or the tree of a working tree |
 | [file of a tree](sinter:#tree=v1) | a member of a tree: a valid path with a content, which is a byte sequence |
@@ -140,9 +139,6 @@ meaning of a vector.
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that the work of the tasks that make up the plan, directly or through other plans, is for; it names them by their names |
 | [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, paths, promises, at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out; each alteration of a definition gives a new definition |
-| change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
-| merge (verb) | to bring the work of a change into the default branch, such as with a commit that has two or more parents, with a squash merge, which adds one commit that brings in all the work of the change, or with a fast-forward merge, which moves the default branch to a commit of the change and adds no commit |
-| merge (noun) | one act that brings the work of a change into the default branch, such as with a commit that has two or more parents, with a squash merge, or with a fast-forward merge |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task on which the commit does part of the work |
 | [ledger](sinter:#ledger=v1) | the sequence of the ledger entries of a repository; each ledger entry other than a void is appended at the end of the ledger of one clone; a pull of ledger entries is a write that a clone makes to its own ledger: it takes the ledger entries, voids included, of another clone and puts them first, and a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
@@ -332,27 +328,6 @@ definition entry, and makes no repair (section 4.4). A conforming
 program appends a judgment, or makes a repair, only to record a decision
 that a person gives it by a confirmation that the standard input, the
 arguments, and the environment of the program cannot give (section 4.5).
-A conforming program changes the ledger only by appending ledger
-entries, by making repairs, and by pulls of ledger entries and pushes
-of ledger entries between clones of the repository (section 4.3). So
-when an agent changes the ledger of each git repository only through a
-conforming program whose input says that an agent runs it, and changes
-neither the settings of git nor the environment that name the clone
-from which a clone pulls ledger entries and to which it pushes them, a
-statement of the agent changes a state only in one of these two ways
-(sections 4.1, 4.3, 4.4, and 4.5):
-
-1. through a state input, other than the ledger, that the statement
-   alters, such as the tree of a working tree or of a commit, the
-   delivery lines and the task lines of the messages of commits, which
-   commits the repository has, the commit to which a branch points, or
-   the bindings of the parameters that designs name;
-2. as a definition entry.
-
-Under that condition, a statement of an agent that alters no state input
-other than the ledger and is not a definition entry, such as a message
-to a person that says that the work of the agent is done, changes no
-state.
 
 A session is one execution of an agent on its work. The agent can
 declare a task as the work of its session: the declared task of the
