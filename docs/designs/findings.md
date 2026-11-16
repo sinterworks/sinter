@@ -33,9 +33,9 @@ programs, inputs, and results. From Identifiers, it takes slugs and the
 form of `@ack` lines. From Files and paths, it takes valid paths. From
 the Ontology, it takes findings and finding classes, items, trees,
 people, and the ledger. From Data forms, it takes JSON values, with the
-members of objects and their keys, hex texts, canonical byte sequences,
-and, from its specification `test-vectors`, test-vector sets: the file
-that holds the conformance vectors of the design is one.
+members of objects and their keys, hex texts, and, from its
+specification `test-vectors`, test-vector sets: the file that holds the
+conformance vectors of the design is one.
 
 ## 1. Glossary
 
@@ -61,7 +61,6 @@ that holds the conformance vectors of the design is one.
 | [position](sinter:text#position=v1) | a pair of whole numbers, the line number and the column, such as line 3, column 7; each boundary of the body has one |
 | [span](sinter:text#span=v1) | a run of a text that starts and ends at boundaries of the body |
 | [start of a span, end of a span](sinter:text#span=v1) | the position of the boundary where a span starts; and the position of the boundary right after the last place of the span that is a place of a line, or the start of the span when it has no such place |
-| [canonical byte sequence](sinter:data-forms#canonical-byte-sequence=v1) | the UTF-8 encoding of the canonical form of a JSON value: a JSON text with the members of each object in a fixed order, with no tab, line feed, or carriage return, and with a space only inside a string |
 | [valid UTF-8](sinter:text#valid-utf-8=v1) | a byte sequence is valid UTF-8 when it is the UTF-8 encoding of a text |
 | execution | the work of a program from its start to its end |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
@@ -301,11 +300,13 @@ finding, in any tree and in any execution, so a finding whose subject
 does not change stays the same finding when lines move in a file (term
 `same-finding`).
 
-In one execution, a conforming program that gives one finding more than
-once, such as once in a text for people and once in a JSON text, gives
-the same parts each time (requirement `give-consistent-findings`). What
-a program gives when its input changes while it runs is a matter of
-quality of implementation.
+In one execution, a conforming program never gives two different things
+as one part of two findings with the same slug and the same subject,
+when both are findings of one tree or both are findings of no tree, such
+as one finding that it gives once in a text for people and once in a
+JSON text (requirement `give-consistent-findings`). What a program gives
+when its input changes while it runs is a matter of quality of
+implementation.
 
 ## 3. Definitions
 
