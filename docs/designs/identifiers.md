@@ -66,7 +66,7 @@ file that holds the conformance vectors of the design is a JSON text.
 | [text of a tag line](sinter:#tag-line-text=v1) | the text of its line, and, for a citation, the texts of its continuation lines after it, each after a line feed and without the spaces and tabs at its start |
 | [link](sinter:#link=v1) | an inline link, a reference link, or an autolink of a markdown document, as CommonMark 0.31.2 defines them; an image is not a link; the markdown document of a text is the text of its body |
 | [image](sinter:#link=v1) | an inline image or a reference image of CommonMark 0.31.2; an image is not a link |
-| [destination](sinter:#destination=v1) | the address of a link as CommonMark 0.31.2 gives it, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)`, with no percent-encoding and no percent-decoding |
+| [destination](sinter:#destination=v1) | the link destination of an inline link or a reference link, or the URI of an autolink, as CommonMark 0.31.2 gives it, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)`, with no percent-encoding and no percent-decoding |
 | [link text](sinter:#link-text=v1) | the text between the `[` that starts an inline link or a reference link and the `]` that closes that `[`, in the raw content that holds the link, such as `the limit` in `[the limit](sinter:packs#size-limit=v2)`; an autolink has no brackets, and its link text is its text between `<` and `>`, with no backslash escape, entity reference, or numeric character reference replaced |
 | [line of CommonMark 0.31.2](sinter:#link-text=v1) | a line as CommonMark 0.31.2 gives it |
 | [raw content](sinter:#link-text=v1) | the text of the lines of a paragraph or a heading, joined by line feeds, without the marks of the blocks, such as `>`, `#`, and the underline of a setext heading, and without indentation |
@@ -555,7 +555,9 @@ character class can hold characters that a literal leaves out, such as
 `.` and `+`: `[.]`, `[+]`.
 
 This condition also applies to an id pattern: the empty id does not fit
-it. So `[0-9]*` is invalid.
+it. So `[0-9]*` is invalid. The requirement `accept-inputs` lets a
+program give the result "invalid" for an id pattern that goes beyond
+limits of its own.
 
 | id pattern | ids that fit it |
 |---|---|
