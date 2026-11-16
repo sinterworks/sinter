@@ -109,10 +109,9 @@ the conformance vectors of the design is one. From
 POSIX.1-2024, it takes processes and the shell, pathnames, pipes,
 environment variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
-From RFC 8259, the design takes JSON texts, with their objects, members,
-arrays, strings, numbers, and the literal names `true` and `false`: each
-line of the file that holds the conformance vectors of the design is a
-JSON text.
+From RFC 8259, the design takes JSON objects, members, arrays, strings,
+numbers, and the literal names `true` and `false`, which the subsections
+of its Conformance section name.
 
 ## 1. Glossary
 
@@ -2315,15 +2314,17 @@ tree.
 - `input`: a JSON object with two members. `gitignore` is the content of
   the file `.gitignore`, as a byte sequence. `names` is the set of the
   file names of the other regular files of the root folder, as a set of
-  texts; no element is `.git` or `.gitignore`, and each element holds
-  only characters whose code points are below 128. The input stands for
-  a repository read of a working tree whose root folder holds the folder
-  entry `.git` of its git folder, the regular file `.gitignore` with
-  that content, an empty regular file for each element of `names`, and
-  no other folder entry; whose git's index holds no entry; whose git
-  configuration does not give the setting `core.ignoreCase` the value
-  true; and for which no other source of patterns that the term
-  `ignored-path` names holds a pattern.
+  texts; no element is `.git` or `.gitignore`, each element holds only
+  characters whose code points are below 128, no two elements differ
+  only in the case of the letters from `A` to `Z`, and no element
+  differs only in that way from `.git` or `.gitignore`. The input stands
+  for a repository read of a working tree whose root folder holds the
+  folder entry `.git` of its git folder, the regular file `.gitignore`
+  with that content, an empty regular file for each element of `names`,
+  and no other folder entry; git's index of the working tree holds no
+  entry; the git configuration of the working tree does not give the
+  setting `core.ignoreCase` the value true; and no other source of
+  patterns that the term `ignored-path` gives holds a pattern.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `paths`: the set of the valid
   paths of the files of the tree of the working tree.
