@@ -264,8 +264,7 @@ U+000C, U+0085, U+2028, and U+2029 are at places of lines.
 
 The examples show the lines of a text as the texts of the lines, in
 order, with semicolons between them, or as "no line" when the text has
-no line. When the character at a place has no position, they show
-"none". They show a span as the boundary where it starts, "to", and the
+no line. They show a span as the boundary where it starts, "to", and the
 boundary where it ends, such as "1 to 4".
 
 | text | lines |
@@ -281,16 +280,14 @@ boundary where it ends, such as "1 to 4".
 
 A position is a pair of whole numbers: the line number of the position
 and the column of the position, both counted from 1. The character at
-each place of the body has a position. In a text that has a byte order
-mark, place 1 is not a place of the body, so the character at place 1
-has no position. The column of the character at a place of a line is 1
-more than the number of the places of the line before that place. The
-character at each place of a line ending has the line number of the line
-that ends at the boundary where that line ending starts. The column of
-that character is 1 more than the number of the places of that line. A
-column counts characters, not bytes: U+00E9 is one character, which
-UTF-8 encodes in two bytes. A tab is one character, so it counts as one
-column.
+each place of the body has a position. The column of the character at a
+place of a line is 1 more than the number of the places of the line
+before that place. The character at each place of a line ending has the
+line number of the line that ends at the boundary where that line ending
+starts. The column of that character is 1 more than the number of the
+places of that line. A column counts characters, not bytes: U+00E9 is
+one character, which UTF-8 encodes in two bytes. A tab is one character,
+so it counts as one column.
 
 | text | place | position |
 |---|---|---|
@@ -300,7 +297,6 @@ column.
 | U+00E9, `x` | 2 | line 1, column 2 |
 | `e`, U+0301, `x` | 3 | line 1, column 3 |
 | U+FEFF, `x` | 2 | line 1, column 1 |
-| U+FEFF, `x` | 1 | none |
 
 A boundary of the body also has a position. A boundary from the boundary
 where a line starts to the boundary where that line ends has the line
@@ -674,8 +670,7 @@ text are in the order of their line numbers.
 @term position=v1
 @cites #{
     line=v1, line-number=v1, line-ending=v1, body=v1, run=v1,
-    boundary=v1, place=v1, text=v1, character=v1, byte-order-mark=v1,
-    whole-number=v1,
+    boundary=v1, place=v1, text=v1, character=v1, whole-number=v1,
 }
 
 A position is a pair of whole numbers: the line number of the position
@@ -696,9 +691,7 @@ body of a text is this:
   column of the position is 1.
 
 The position of a place p of the body of a text is the position of the
-boundary p − 1, and the character at place p has that position. The
-character at place 1 of a text that has a byte order mark has no
-position.
+boundary p − 1, and the character at place p has that position.
 
 ### 3.21 Spans
 
@@ -1247,18 +1240,7 @@ a place of the body of a text, it must give the column of the position
 of the character at that place, and no other column, for the character
 at that place.
 
-### 4.9 No position for a byte order mark
-
-@req omit-byte-order-mark-positions=v1
-@cites #{
-    conforming-program=v1, text=v1, character=v1, place=v1,
-    byte-order-mark=v1, position=v1,
-}
-
-A conforming program must give no line number and no column for the
-character at place 1 of a text that has a byte order mark.
-
-### 4.10 The starts of spans
+### 4.9 The starts of spans
 
 @req give-span-starts=v1
 @cites #{conforming-program=v1, text=v1, span=v1, position=v1}
@@ -1269,7 +1251,7 @@ other line number, for the start of that span. When it gives a column
 for the start of a span of a text, it must give the column of the start
 of that span, and no other column, for the start of that span.
 
-### 4.11 The ends of spans
+### 4.10 The ends of spans
 
 @req give-span-ends=v1
 @cites #{conforming-program=v1, text=v1, span=v1, position=v1}
@@ -1279,15 +1261,6 @@ text, it must give the line number of the end of that span, and no other
 line number, for the end of that span. When it gives a column for the
 end of a span of a text, it must give the column of the end of that
 span, and no other column, for the end of that span.
-
-### 4.12 No start and no end for a run that is not a span
-
-@req give-positions-only-for-spans=v1
-@cites #{conforming-program=v1, text=v1, run=v1, span=v1, position=v1}
-
-A conforming program must give a line number or a column as the start
-or the end of a run of a text only when that run is a span of that
-text.
 
 ## 5. Conformance
 
@@ -1459,22 +1432,19 @@ line of the text, only an element of `runs` or an element of `texts`.
 
 ### 5.4 The positions of characters that a program gives
 
-The group `character-positions` holds the vectors of the requirements
-`give-character-positions` and `omit-byte-order-mark-positions`. Each
-vector gives a text, a place of the text, and the position of the
-character at that place, when that character has a position.
+The group `character-positions` holds the vectors of the requirement
+`give-character-positions`. Each vector gives a text, a place of the
+body of the text, and the position of the character at that place.
 
 - `input`: a JSON object with two members: `text`, the text, and
   `place`, the place.
 - `result`: no vector of the group has this member.
-- `values`: when the character at the place has a position, a JSON
-  object with one member, `position`: that position. When the character
-  has no position, the empty JSON object, `{}`.
+- `values`: a JSON object with one member, `position`: the position of
+  the character at the place.
 
 When a conforming program gives a line number for the character at the
 place, it gives the line number of `position`. When it gives a column for
-that character, it gives the column of `position`. When `values` is
-`{}`, it gives no line number and no column for that character.
+that character, it gives the column of `position`.
 
 ```
 {"group":"character-positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
@@ -1483,24 +1453,20 @@ that character, it gives the column of `position`. When `values` is
 ### 5.5 The starts and ends of spans that a program gives
 
 The group `spans` holds the vectors of the requirements
-`give-span-starts`, `give-span-ends`, and
-`give-positions-only-for-spans`. Each vector gives a text, a run of the
-text, and, when the run is a span, the start and the end of the span.
+`give-span-starts` and `give-span-ends`. Each vector gives a text, a
+span of the text, and the start and the end of the span.
 
 - `input`: a JSON object with two members: `text`, the text, and `run`,
-  the run.
+  the span.
 - `result`: no vector of the group has this member.
-- `values`: when the run is a span, a JSON object with two members:
-  `start`, the start of the span, and `end`, the end of the span. When
-  the run is not a span, the empty JSON object, `{}`.
+- `values`: a JSON object with two members: `start`, the start of the
+  span, and `end`, the end of the span.
 
-When a conforming program gives a line number for the start of the
-span, it gives the line number of `start`. When it gives a column for
-the start of the span, it gives the column of `start`. When it gives a
-line number for the end of the span, it gives the line number of `end`.
-When it gives a column for the end of the span, it gives the column of
-`end`. When `values` is `{}`, it gives no line number and no column as
-the start or the end of the run.
+When a conforming program gives a line number for the start of the span,
+it gives the line number of `start`. When it gives a column for the
+start of the span, it gives the column of `start`. When it gives a line
+number for the end of the span, it gives the line number of `end`. When
+it gives a column for the end of the span, it gives the column of `end`.
 
 ```
 {"group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"n":100,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
