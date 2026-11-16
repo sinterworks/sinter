@@ -106,7 +106,8 @@ their bindings.
 From Data forms (`data-forms`), the design takes test-vector sets, in the
 format that its specification `test-vectors` gives: the file that holds
 the conformance vectors of the design is one. From
-POSIX.1-2024, it takes processes and the shell, pathnames, pipes,
+POSIX.1-2024, it takes processes and the shell, the open files of a
+process, pathnames, pipes,
 environment variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
 From RFC 8259, the design takes JSON objects, members, arrays, strings,
@@ -1611,6 +1612,7 @@ when the change of h has no base under that binding.
 
 @req leave-repositories-unchanged=v1
 @cites {
+    posix/2024,
     #{repository-read=v1, repository-file=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
@@ -1619,8 +1621,9 @@ During each repository read, a conforming program, itself or through any
 program that it uses, must create, delete, or change no repository file
 of the git repository, as the term `undisturbed-read` gives these words,
 other than in an own change of that repository read, as that term gives
-these words, and other than in a change of a file that was open for the
-program when it started, such as its standard output.
+these words, and other than in a change of a file that was open in the
+process of the program when that process started, such as its standard
+output.
 
 ### 5.24 Bytes only from the repository and the fetches of the read
 
@@ -1641,8 +1644,8 @@ program that it uses, must take bytes only from these:
 1. the repository files of the git repository, and the symbolic links on
    the pathnames by which it reaches them;
 2. a pipe between it and a program that it uses, and a file or a pipe
-   that was open for the program when it started, such as its standard
-   input;
+   that was open in the process of the program when that process
+   started, such as its standard input;
 3. a file that it created in that execution;
 4. a program file of the conforming program;
 5. in a fetch from a remote, when that fetch is part of the repository
