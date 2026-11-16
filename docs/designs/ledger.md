@@ -39,8 +39,8 @@ definition entries, judgments, records of the job, voids, repairs, and
 pulls and pushes of ledger entries; persons, agents, and the job;
 states, state inputs, states at a point of a ledger, and external items;
 and parameters with their bindings. From Changes
-(`changes`), it takes git repositories, commits and their parents, the
-file `shallow`, refs and the commits of refs, git tree objects with
+(`changes`), it takes git repositories, commits and their parents, refs
+and the commits of refs, git tree objects with
 their entries, the names, byte paths, and modes of these entries, tree
 entries, regular-file entries, blobs and their contents, reach and
 ancestry, branch names, the git configuration, remotes, their
@@ -208,7 +208,10 @@ stored ledger then holds two ledger entries: the ledger entry of the
 
 When another process changes the ledger ref or a git object of the
 ledger while a program reads or changes it, what the program gives is
-not specified, and each guarantee of section 5 still holds.
+not specified, and each guarantee of section 5 still holds. A conforming
+program may refuse a ledger or a history that goes beyond limits of its
+own; it then gives no result for it and no state from it, and it changes
+no ledger ref.
 
 ### 2.4 Extensions and intact histories
 
@@ -218,8 +221,7 @@ each line of it, so it holds each of its ledger entries, with the same
 `intact-history`. A program that checks the history gives the result
 that the requirement `validate-histories` gives; for a history, "valid"
 means intact. The check reads the history objects (term
-`ledger-object`). A commit that the file `shallow` names has no parents,
-so in a shallow clone the history ends at such a commit.
+`ledger-object`).
 
 The stored ledger depends only on the lines of the ledger commit. So
 two clones whose ledgers are valid and whose ledger commits hold the
@@ -511,10 +513,7 @@ commit reaches, the ledger objects of that commit.
 @cites {
     changes#{commit=v1, ref-commit=v1, commit-file=v1},
     data-forms#{canonical-line=v1, line-object=v1, json-value=v1},
-    text#{
-        whole-number=v1, character=v1, byte=v1, utf-8-encoding=v1,
-        code-span=v1,
-    },
+    text#{whole-number=v1, character=v1, utf-8-encoding=v1, code-span=v1},
     #{
         ledger-ref=v1, chunk-path=v1, chunk=v1, entry-id=v1,
         newer-line=v1, ledger-object=v1,
@@ -525,26 +524,23 @@ A git tree object is newer when one of its lines is a newer line. A git
 tree object that is not newer is a valid ledger tree when, and only
 when, each of these is true:
 
-1. No two of its entries, at any depth, have the same byte path.
-2. The name of none of its entries, at any depth, holds the byte 0x2F,
-   the byte of `/`.
-3. Its entries, at any depth, are exactly these: its chunks, each with
+1. Its entries, at any depth, are exactly these: its chunks, each with
    the mode 100644; for each of its chunks, the tree entry whose byte
    path is the UTF-8 encoding of the first 10 characters of the chunk
    path of that chunk; and, when it has at least one chunk, the tree
    entry whose byte path is the UTF-8 encoding of `entries`.
-4. The content of each of its chunks has at least one line, and each
+2. The content of each of its chunks has at least one line, and each
    line of each of its chunks is the canonical line of a line object.
-5. The object of each of its lines has the member `id` with a string,
+3. The object of each of its lines has the member `id` with a string,
    the member `kind` with a string, the member `v` with the integer 1,
    and the member `seq` with an integer of 1 or more.
-6. The value of `id` of the object of each of its lines is the entry id
+4. The value of `id` of the object of each of its lines is the entry id
    of that object.
-7. After its first 11 characters, the chunk path of each of its chunks
+5. After its first 11 characters, the chunk path of each of its chunks
    is the value of `id` of the object of the first line of that chunk,
    then `.jsonl`.
-8. No two of its lines have objects with the same value of `id`.
-9. For the number n of its lines, the values of `seq` of the objects of
+6. No two of its lines have objects with the same value of `id`.
+7. For the number n of its lines, the values of `seq` of the objects of
    its lines are the whole numbers from 1 to n, each once.
 
 The ledger of a git repository that holds its ledger objects is newer,
@@ -1032,7 +1028,7 @@ A conforming program must make no repair of a ledger that is newer.
 @cites {
     ontology#{repair=v1},
     data-forms#{json-value-of-a-byte-sequence=v1},
-    text#{conforming-program=v1, code-span=v1, code-point-order=v1},
+    text#{conforming-program=v1, code-span=v1},
     #{
         ledger-ref=v1, chunk=v1, entry-field=v1, ledger-validity=v1,
         intact-history=v1,
@@ -1060,14 +1056,9 @@ others.
    the number of the lines of c, and the JSON value of no other line of
    c has p as its `seq`, the object of the void of that text has the
    `seq` p.
-   The other voids of item 2 take, in the code point order of their
-   `dropped`, the smallest values of `seq` that no line that the repair
-   keeps, no void that the first sentence of this item places, and no
-   void earlier in that order takes.
 4. The object of each other line of the git tree object of d that is not
    a line of c has the member `kind` with the value `void` and no member
-   `dropped`, and its `seq` is less than the `seq` of the object of a
-   line that the repair keeps or of a void of item 2.
+   `dropped`.
 5. The object of each line of the git tree object of d that is not a
    line of c has the member `reason` with a string, and no member other
    than the common fields, `dropped`, and `reason`.
@@ -1238,7 +1229,7 @@ object, a list of lines, or a sequence has this form:
   for a line object: the lines of the git tree object of a ledger commit
   that lays out its chunks in the form of a valid ledger tree, which are
   the canonical lines of these line objects. Its ledger is valid when
-  these lines meet conditions 5, 6, 8, and 9 of a valid ledger tree, and
+  these lines meet conditions 3, 4, 6, and 7 of a valid ledger tree, and
   no line is a newer line, and it is newer when a line is a newer line.
 - A sequence, such as the ledger entries of a stored ledger, is a JSON
   array of its elements, in order.
