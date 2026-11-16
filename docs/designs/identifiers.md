@@ -143,23 +143,12 @@ Sinter tag words. For a tag line whose tag word is not a Sinter tag
 word, a conforming program gives the result "other tag word" and the
 tag word, and nothing more.
 
-A Sinter tag word makes its tag line a declaration, a citation, a
-status tag, or a directive. The tag word also sets the form of the line
-and of its target:
-
-| tag word | tag line | target | revision |
-|---|---|---|---|
-| `@decision`, `@design`, `@finding-class` | declaration | a slug | a label |
-| `@req` | declaration | a slug or a full name | a label |
-| `@spec` | declaration | a slug of one segment, or a full name | a label |
-| `@term` | declaration | a slug or a full name | a label, or none |
-| `@cites` | citation | an optional kind word and `:`, then a name with an optional vector selection, or an external id with an optional `#` and part name | a label or `*`; none after an external id |
-| `@verifies` | citation | an optional kind word and `:`, then a name with an optional vector selection, or an external id with an optional `#` and part name | a label; none after an external id |
-| `@refines`, `@satisfies` | citation | an optional kind word and `:`, then a name, or an external id with an optional `#` and part name | a label; none after an external id |
-| `@supersedes` | citation | an optional kind word and `:`, then a name, or an external id with an optional `#` and part name; or an every-part target | a label; none after an external id |
-| `@deferred`, `@deprecated`, `@rejected` | status tag | none | none |
-| `@extern` | directive | a kind word, `:`, and a part name | none |
-| `@ack` | directive | none; a form of its own (section 2.8) | none |
+A Sinter tag word makes its tag line a declaration, a citation, a status
+tag, or a directive. The tag word also sets the form of the line and of
+its target, which the productions `declaration-line`, `citation-line`,
+`status-line`, `extern-line`, and `ack-line` give. For example, the
+target of `@req` is a slug or a full name with a label as its revision,
+and a status tag, such as `@deprecated`, has no target.
 
 In a declaration, a citation, and an `@extern` line, one or more spaces
 or tabs follow the tag word, and then the target. The target ends at the
@@ -293,22 +282,10 @@ external id `gh/42`. When it is not, the target `gh/42` is the slug
 `@cites gh/42=v1` is valid. Under a binding with the external namespace
 `gh`:
 
-- `@cites gh/0` is invalid when `0` does not fit the id pattern of
-  `gh`.
 - `@cites gh/42=v1` is invalid, because the target is external, and an
   id holds no `=`.
-- `@cites gh/42/x` is invalid, because the target is external, and an
-  id holds no `/`.
-- `@cites gh` is invalid, because no `/` and id follow `gh`.
 - `@cites gh=v1` is invalid: its head is `gh`, so the target is
   external, and no `/` and id follow `gh`.
-- `@cites gh[3]=v1` is invalid: its head is `gh`, so the target is
-  external, and no `/` and id follow `gh`.
-- `@design gh=v1`, `@term gh`, and `@term gh/42` are invalid, because
-  the target is external, and the target of a declaration is never an
-  external target.
-- `@supersedes gh/42#*` is invalid, because the target is external and
-  `*` is not a part name.
 
 ### 2.6 Vector selections
 
@@ -398,14 +375,12 @@ rest of the last line of the citation can hold an inline description.
 Example: the lines `@cites #{`; a space written 4 times, then
 `segment=v1, slug=v1,`; a space written 4 times, then `name=v1,`; and
 `}` are one citation with the citation entries `#segment=v1`,
-`#slug=v1`, and `#name=v1`. A
-tag line and a blank line, a line that holds nothing or only spaces and
-tabs, are never continuation lines. When the program comes to the end
-of a line, and the brace count has more `{` than `}`, and there is no
-next line, or the next line is a tag line or a blank line, the citation
-is invalid, and the next line is an input of its own. A blank line is
-not a line of blank characters (section 2.9): a line that holds U+00A0
-is not a blank line.
+`#slug=v1`, and `#name=v1`. A tag line and a blank line, a line that
+holds nothing or only spaces and tabs, are never continuation lines.
+When the program comes to the end of a line, and the brace count has
+more `{` than `}`, and there is no next line, or the next line is a tag
+line or a blank line, the citation is invalid, and the next line is an
+input of its own.
 
 The citation entries of a citation are its single targets and the
 single targets for which the parts of its scoped lists stand, in their
@@ -435,29 +410,13 @@ words and their revisions have no effect on this rule. So
 `@cites {docs=v1, docs#size=v2}`,
 `@cites {identifiers#{segments=v1, notation=v1}, gh/42}`, and
 `@cites {packs#descriptor[12]=v1, packs#descriptor[13]=v1}` are valid,
-and these citations are invalid when there is no next line:
+and these citations are invalid:
 
-- `@cites {}`, because a target list holds one single target or scoped
-  list at least;
-- `@cites {docs=v1,,}`, because a single target or a scoped list stands
-  between each two `,`;
-- `@cites {docs=v1 docs#size=v2}`, because a `,` separates two single
-  targets;
 - `@cites {#a=v1, req:#a=v2}`, because its two citation entries have
   the entry name `#a` and no vector selection;
-- `@cites {packs#size=v1, packs#{size=v2}}`, because its two citation
-  entries have the entry name `packs#size` and no vector selection;
-- `@supersedes {docs=v3#*, docs=v1}`, because its two citation entries
-  have the entry name `docs` and no vector selection;
 - `@cites {packs#descriptor[12]=v1, packs#descriptor[12]=v2}`, because
   its two citation entries have the entry name `packs#descriptor` and
-  the vector selection `[12]`;
-- `@refines packs#{size=*}`, because only a citation entry of `@cites`
-  carries `*`;
-- `@cites {{docs=v1}}`, because a target list holds no target list;
-- `@cites {docs=v1,`, because there is no next line to close the target
-  list;
-- `@design {docs=v1}`, because only a citation has a target list.
+  the vector selection `[12]`.
 
 An inline citation cites one target, so `[x](sinter:{docs=v1})` and
 `[x](sinter:packs#{size=v1})` are invalid.
@@ -617,20 +576,13 @@ own or in a pair of an id pattern and an id. The id patterns of a
 binding belong to the binding, and they are not inputs of their own. A
 pair of an id pattern and an id is an input only when the program
 accepts its id pattern. A conforming program gives one result for each
-input, and no result for anything that is not an input. So the id
-patterns of a binding get no results of their own: the binding gets one
-result. The program also gives no result when it decides whether the
-id of an external target fits an id pattern of the binding.
+input, and no result for anything that is not an input.
 
-A line gets one of four results: "not a tag line", "other tag word",
-"valid", or "invalid". A link or an image gets one of three results:
-"not an inline citation", "valid", or "invalid". An id pattern and a
-binding of `external-namespaces` each get "valid" or "invalid". A pair
-of an id pattern and an id gets "fits" or "does not fit". To accept an
-input is to give it the result "valid", and to reject an input is to
-give it the result "invalid". Under a binding that the program rejects,
-the program gives no result and no value for a line, a link, or an
-image.
+The requirement `give-results` lists the results that each kind of input
+can get. For example, a line that is not a tag line gets the result "not
+a tag line", and a pair of an id pattern and an id gets "fits" or "does
+not fit". Under a binding that the program rejects, the program gives no
+result and no value for a line, a link, or an image.
 
 For a tag line, the program gives the tag word. For a valid declaration,
 citation, status tag, directive, or inline citation, it also gives the
@@ -640,16 +592,12 @@ namespace name and the id, the revision, the inline description, the
 subject and the hash prefix, and the link text. For a citation, it gives
 a separate list of values for each citation entry, in the order of the
 citation entries, and no list holds a value of another citation entry.
-It gives each value together with its value name, such as "the slug". A
-program can also give where an input stands in its text, such as the
-line numbers of a tag line or the run of a link, and why a result is
-what it is, such as which condition an id pattern does not meet, for
-example to report a finding. These are not values, and no requirement
-covers them. For each other input, it gives no value other than the tag
-word of a tag line. Each value of a tag line that is a text is the text
-of a run of the text of the tag line. Each value of the target of an
-inline citation is the text of a run of the destination. The link text
-is the text that section 2.9 describes.
+It gives each value together with its value name, such as "the slug".
+For each other input, it gives no value other than the tag word of a tag
+line. Each value of a tag line that is a text is the text of a run of
+the text of the tag line. Each value of the target of an inline citation
+is the text of a run of the destination. The link text is the text that
+section 2.9 describes.
 
 ### 2.12 Canonical forms
 
@@ -2268,11 +2216,6 @@ conforming program gives for that line.
     itself. The values of the citation entries of a citation are in its
     member `entries`.
 
-For the line `@cites gh/42`, a conforming program gives no result for
-the id pattern `[1-9][0-9]*` of `gh`, and none for the pair of that id
-pattern and the id `42`, because neither is an input. The vectors do
-not state this.
-
 ```
 {"group":"declarations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@req size-limit=v2 A descriptor has at most 1 MiB."},"n":1,"result":"valid","rev":"v1","values":{"inline-description":"A descriptor has at most 1 MiB.","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}
 {"group":"citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {gh/42, rfc/8259#section-6}"},"n":124,"result":"valid","rev":"v1","values":{"entries":[{"id":"42","namespace-name":"gh"},{"id":"8259","namespace-name":"rfc","part-name":"section-6"}],"inline-description":"","tag-word":"@cites","type-of-tag-line":"citation"}}
@@ -2386,9 +2329,7 @@ The group `bindings` holds bindings of `external-namespaces` that a
 program takes. Its vectors follow from the requirements
 `reject-malformed-namespace-names`, `reject-repeated-namespace-names`,
 `reject-invalid-binding-patterns`, `give-no-other-values`,
-`give-results`, and `accept-inputs`. The id patterns of a binding are
-not inputs, so a conforming program gives them no result of their own.
-The vectors do not state this.
+`give-results`, and `accept-inputs`.
 
 - `input`: the binding.
 - `result`: "valid" or "invalid".
