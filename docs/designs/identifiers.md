@@ -23,31 +23,18 @@ things in a target list or a scoped list, such as
 single target of `@cites` or `@verifies`. An inline citation is a link
 in the markdown document of a text, and it cites in the same way.
 
-The productions in section 4 are written in ABNF, the notation of
-RFC 5234. A production, such as `slug = segment *( "/" segment )`, gives
-the texts that its rule name, here `slug`, matches. In a production, `/`
-separates two alternatives. The quoted string `"/"` is the character
-`/`. `( )` makes the elements between them one element, and `[ ]` makes
-an element optional. `*` repeats the element after it any number of
-times, zero included, `1*` repeats it one or more times, and `8*64`
-repeats it from 8 to 64 times. `%x41` is the character U+0041, and
-`%x30-39` is any one character from U+0030 to U+0039. In RFC 5234, a
-quoted string such as `"a"` matches its letters in either case. RFC 7405
-adds the form `%s"…"`, which matches its letters only in the same case,
-as in `%s"@req"`. The productions also use four core rules of RFC 5234:
-`ALPHA` is an ASCII letter, `DIGIT` is an ASCII digit, `WSP` is a space
-or a tab, and `LF` is a line feed.
+The productions use ABNF (RFC 5234), with the case-sensitive strings of
+RFC 7405.
 
 From Text and notation (`text`), the design takes the basics of
 characters, texts, runs, lines, numerals, and productions; sequences and
 algorithms; and what a conforming program and a result are, and it
 narrows what an input is.
 From CommonMark 0.31.2, the design takes its links and images, their
-link destinations, the block and inline elements that hold them, and the
-replacement of U+0000 by U+FFFD. From RFC 8259, the design takes JSON
-texts, with their objects, members, arrays, strings, numbers, and the
-literal name `true`: each line of the file that holds the conformance
-vectors of the design is a JSON text.
+link destinations, and the block and inline elements that hold them.
+From RFC 8259, the design takes JSON texts, with their objects, members,
+arrays, strings, numbers, and the literal name `true`: each line of the
+file that holds the conformance vectors of the design is a JSON text.
 
 ## 1. Glossary
 
@@ -77,11 +64,11 @@ vectors of the design is a JSON text.
 | [continuation line](sinter:#continuation-line=v1) | a line that continues the target of a citation on a line before it, while the brace count, which is the number of `{` and the number of `}` from the start of the target, has more `{` than `}`; only a citation in which the character right after the tag word is a space or a tab has continuation lines; a continuation line is never a tag line or a blank line |
 | [blank line](sinter:#continuation-line=v1) | a line that is empty or holds only spaces and tabs |
 | [text of a tag line](sinter:#tag-line-text=v1) | the text of its line, and, for a citation, the texts of its continuation lines after it, each after a line feed and without the spaces and tabs at its start |
-| [link](sinter:#link=v1) | an inline link, a reference link, or an autolink of a markdown document, as CommonMark 0.31.2 defines them; an image is not a link; the markdown document of a text is the text of its body with each U+0000 replaced by U+FFFD |
+| [link](sinter:#link=v1) | an inline link, a reference link, or an autolink of a markdown document, as CommonMark 0.31.2 defines them; an image is not a link; the markdown document of a text is the text of its body |
 | [image](sinter:#link=v1) | an inline image or a reference image of CommonMark 0.31.2; an image is not a link |
-| [destination](sinter:#destination=v1) | the address of a link, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)`, with each backslash escape, entity reference, and numeric character reference replaced by its characters, and with no percent-decoding; for an autolink, its text between `<` and `>`, with no backslash escape, entity reference, or numeric character reference replaced |
+| [destination](sinter:#destination=v1) | the address of a link as CommonMark 0.31.2 gives it, such as `sinter:packs#size-limit=v2` in `[the limit](sinter:packs#size-limit=v2)`, with no percent-encoding and no percent-decoding |
 | [link text](sinter:#link-text=v1) | the text between the `[` that starts an inline link or a reference link and the `]` that closes that `[`, in the raw content that holds the link, such as `the limit` in `[the limit](sinter:packs#size-limit=v2)`; an autolink has no brackets, and its link text is its text between `<` and `>`, with no backslash escape, entity reference, or numeric character reference replaced |
-| [line of CommonMark 0.31.2](sinter:#link-text=v1) | a line as CommonMark 0.31.2 gives it, which a carriage return that no line feed follows also ends |
+| [line of CommonMark 0.31.2](sinter:#link-text=v1) | a line as CommonMark 0.31.2 gives it |
 | [raw content](sinter:#link-text=v1) | the text of the lines of a paragraph or a heading, joined by line feeds, without the marks of the blocks, such as `>`, `#`, and the underline of a setext heading, and without indentation |
 | [inline citation](sinter:#inline-citation=v1) | a link whose destination starts with `sinter:` |
 | [target](sinter:#target=v1) | the text after the tag word of a declaration, a citation, or an `@extern` line and the spaces and tabs after the tag word, up to the first space or tab before which the text from the start of the target holds no more `{` than `}`, or up to the end of the text of the tag line; also the destination of an inline citation after `sinter:` |
@@ -507,28 +494,17 @@ Example: in `@ack retired docs#size=v2 3f2a9c1d`, the slug is
 An inline citation is a link whose destination starts with the seven
 characters `sinter:`. A link is an inline link, a reference link, or an
 autolink of the markdown document of a text, as CommonMark 0.31.2
-defines them. The markdown document of a text is the text of its body,
-with each U+0000 replaced by U+FFFD, as CommonMark 0.31.2 requires. A
+defines them. The markdown document of a text is the text of its body. A
 U+FEFF at the start of the text is not in the body, so it is not in the
 markdown document. An image is not a link, so
 `![x](sinter:packs#size-limit=v2)` is not an inline citation.
 
 The destination of an inline link or a reference link is its link
-destination as CommonMark gives it. The destination holds no angle
-brackets that enclose it, and each backslash escape, entity reference,
-and numeric character reference in it is replaced by the characters
-that CommonMark 0.31.2 gives for it. No percent-encoding and no
-percent-decoding applies to a destination, so `%23` is three characters
-and not `#`. So
-`[x](sinter:packs\#size-limit=v2)` and
-`[x](sinter:packs&#35;size-limit=v2)` both have the destination
-`sinter:packs#size-limit=v2`, and `[x](sinter:packs%23size-limit=v2)`
-is invalid. The destination of an autolink is its text between `<` and
-`>`, and no backslash escape, entity reference, or numeric character
-reference in that text is replaced. So `<sinter:&#65;uth=v1>` and
-`<sinter:packs\#size-limit=v2>` are invalid: in an autolink, `&#65;` is
-five characters and `\#` is two characters, and a slug holds no `&` and
-no `\`.
+destination as CommonMark 0.31.2 gives it. The destination of an
+autolink is its URI as CommonMark 0.31.2 gives it. No percent-encoding
+and no percent-decoding applies to a destination, so `%23` is three
+characters and not `#`, and `[x](sinter:packs%23size-limit=v2)` is
+invalid.
 
 The target of an inline citation is its destination after `sinter:`.
 The target is an optional kind word and `:`, and then either a name,
@@ -556,13 +532,10 @@ joined lines are not in the raw content. So in a block quote, the lines
 `> [the` and `> limit](sinter:packs#size-limit=v2)` give the link text
 `the`, a line feed, and `limit`. The line `[the`, followed by a line
 that holds three spaces and then `limit](sinter:packs#size-limit=v2)`,
-gives the same link text. A carriage return that no line feed follows
-also ends a line of CommonMark 0.31.2, so the text `[the`, a carriage
-return, and `limit](sinter:packs#size-limit=v2)` gives the same link
-text too. The link text keeps its markup, such as `*the* limit` in
-`[*the* limit](sinter:packs#size-limit=v2)`. The link text of an
-autolink, such as `<sinter:req:packs#size-limit=v2>`, is its text
-between `<` and `>`, and no backslash escape, entity reference, or
+gives the same link text. The link text keeps its markup, such as
+`*the* limit` in `[*the* limit](sinter:packs#size-limit=v2)`. The link
+text of an autolink, such as `<sinter:req:packs#size-limit=v2>`, is its
+text between `<` and `>`, and no backslash escape, entity reference, or
 numeric character reference in that text is replaced.
 
 An inline citation is invalid when the plain string content of its
@@ -597,16 +570,6 @@ So `[](sinter:packs#size-limit=v2)`, `[ ](sinter:packs#size-limit=v2)`,
 `[<!-- -->](sinter:packs#size-limit=v2)` are invalid. But
 `[**](sinter:packs#size-limit=v2)` is valid, because `**` that opens no
 emphasis is text.
-
-The link text of an inline link or a reference link can hold an
-autolink. Section 6.3 of CommonMark 0.31.2 says that a link holds no
-other link. But for an autolink in the link text of a link, the parsing
-strategy in the appendix of CommonMark 0.31.2 builds both links, and for
-such an autolink, a conforming program follows the parsing strategy. So
-the text `[<https://example.com>](sinter:packs#size-limit=v2)` is a
-link, and the autolink inside it is a link too. This inline citation is
-valid: the autolink gives `https://example.com` to the plain string
-content of its link text.
 
 ### 2.10 Id patterns
 
@@ -689,18 +652,16 @@ namespace name and the id, the revision, the inline description, the
 subject and the hash prefix, and the link text. For a citation, it gives
 a separate list of values for each citation entry, in the order of the
 citation entries, and no list holds a value of another citation entry.
-It gives each value together with its value name, such as "the slug".
-A program can also give where an input stands in its text, such as the
+It gives each value together with its value name, such as "the slug". A
+program can also give where an input stands in its text, such as the
 line numbers of a tag line or the run of a link, and why a result is
 what it is, such as which condition an id pattern does not meet, for
 example to report a finding. These are not values, and no requirement
-covers them.
-For each other input, it gives no value other than the tag word of a tag
-line. Each value of a tag line that is a text is the text of a run of
-the text of the tag line. Each value of the target of an inline citation
-is the text of a run of the destination, so `[x](sinter:&#65;uth=v1)`
-gives the slug `Auth`. The link text is the text that section 2.9
-describes.
+covers them. For each other input, it gives no value other than the tag
+word of a tag line. Each value of a tag line that is a text is the text
+of a run of the text of the tag line. Each value of the target of an
+inline citation is the text of a run of the destination. The link text
+is the text that section 2.9 describes.
 
 ### 2.12 Canonical forms
 
@@ -1015,19 +976,12 @@ every-vector      = "[*]"
 ### 4.19 Links
 
 @term link=v1
-@cites {commonmark/0.31.2, text#{text=v1, run=v1, body=v1, u-numeral=v1}}
+@cites {commonmark/0.31.2, text#{text=v1, run=v1, body=v1}}
 
-The markdown document of a text is the text of its body with each
-U+0000 replaced by U+FFFD, as CommonMark 0.31.2 requires. A link is an
+The markdown document of a text is the text of its body. A link is an
 inline link, a full, collapsed, or shortcut reference link, or an
 autolink of the markdown document of a text, each as CommonMark 0.31.2
-defines it. An image is not a link. An inline link or a reference link
-can hold an autolink among the inline elements that its square brackets
-enclose. Then the inline link or the reference link is a link, and the
-autolink is a link too, as the parsing strategy in the appendix of
-CommonMark 0.31.2 builds them. For such an autolink, this rule takes
-precedence over the rule in section 6.3 of CommonMark 0.31.2 that a link
-holds no other link.
+defines it. An image is not a link.
 
 ### 4.20 Destinations
 
@@ -1039,14 +993,10 @@ holds no other link.
 }
 
 The destination of an inline link or a reference link is its link
-destination as CommonMark 0.31.2 gives it: without the angle brackets
-that enclose it, and with each backslash escape, entity reference, and
-numeric character reference replaced by the characters that CommonMark
-0.31.2 gives for it. No percent-encoding and no percent-decoding
-applies to a destination, so a `%` is a character of the destination.
-The destination of an autolink is its text between `<` and `>`, and no
-backslash escape, entity reference, or numeric character reference in
-that text is replaced.
+destination as CommonMark 0.31.2 gives it. The destination of an
+autolink is its URI as CommonMark 0.31.2 gives it. No percent-encoding
+and no percent-decoding applies to a destination, so a `%` is a
+character of the destination.
 
 ### 4.21 Inline citations
 
@@ -1064,14 +1014,11 @@ characters `sinter:`.
     #{link=v1},
     text#{
         text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
-        carriage-return=v1, code-span=v1, algorithm=v1, sequence=v1,
+        code-span=v1, algorithm=v1, sequence=v1,
     },
 }
 
-A line of CommonMark 0.31.2 is a line as CommonMark 0.31.2 gives it. It
-holds no line feed and no carriage return: a line feed, a carriage
-return that no line feed follows, and a carriage return with the line
-feed right after it each end a line.
+A line of CommonMark 0.31.2 is a line as CommonMark 0.31.2 gives it.
 
 The raw content of a paragraph or a heading *b* is the text that these
 steps give.
@@ -1112,9 +1059,7 @@ numeric character reference in that text is replaced.
 
 A blank character is one of these characters:
 
-- each Unicode whitespace character of CommonMark 0.31.2: U+0009,
-  U+000A, U+000C, U+000D, U+0020, U+00A0, U+1680, each character from
-  U+2000 to U+200A, U+202F, U+205F, and U+3000;
+- each Unicode whitespace character of CommonMark 0.31.2;
 - U+200B, U+200C, U+200D, U+2060, and U+FEFF.
 
 ### 4.24 Plain string content
@@ -2450,10 +2395,8 @@ images of the markdown document of the text.
 - `values`: a JSON object with one member, `links`: a JSON array with
   one element for each link and each image of the markdown document of
   the text, in the order in which they start in the markdown document.
-  So a link in the link text of another link comes after that other
-  link. When the markdown document holds no link and no image, `links`
-  is the empty JSON array. Each element is a JSON object with two
-  members:
+  When the markdown document holds no link and no image, `links` is the
+  empty JSON array. Each element is a JSON object with two members:
   - `result`: the result of the link or the image: "valid", "invalid",
     or "not an inline citation".
   - `values`: for an inline citation with the result "valid", a JSON
@@ -2474,7 +2417,6 @@ not state these results.
 
 ```
 {"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[the size limit](sinter:req:packs#size-limit=v2)"},"n":191,"rev":"v1","values":{"links":[{"result":"valid","values":{"kind-word":"req","link-text":"the size limit","part-name":"size-limit","revision":"v2","slug":"packs"}}]}}
-{"group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[<https://example.com>](sinter:packs#size-limit=v2)"},"n":202,"note":"the autolink `<https://example.com>` in the link text is a link of its own, and it is not an inline citation","rev":"v1","values":{"links":[{"result":"valid","values":{"link-text":"<https://example.com>","part-name":"size-limit","revision":"v2","slug":"packs"}},{"result":"not an inline citation","values":{}}]}}
 ```
 
 ### 6.4 Id patterns
