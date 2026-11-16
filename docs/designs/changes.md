@@ -101,8 +101,9 @@ the forms in which the vectors write folder trees. From the Ontology
 (`ontology`), it takes trees, the default branch, and parameters with
 their bindings.
 
-From Data forms (`data-forms`), the design takes test-vector sets: the
-file that holds the conformance vectors of the design is one. From
+From Data forms (`data-forms`), the design takes test-vector sets, in the
+format that its specification `test-vectors` gives: the file that holds
+the conformance vectors of the design is one. From
 POSIX.1-2024, it takes processes and the shell, pathnames, environment
 variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
@@ -1673,13 +1674,18 @@ section 5.
 
 The vectors of this design are in the file
 [`changes.test-vectors.jsonl`](changes.test-vectors.jsonl), in the same
-folder as this design. A vector is an input and what a conforming
-program gives for it. Each vector follows from the requirements and adds
-nothing to them. The vectors are in groups. Each group has a name, such
-as `hunks`, and a subsection below. The subsection names the
-requirements that the vectors of the group follow from, and it describes
-their inputs, results, and values. Each vector of a group follows from
-one or more of these requirements. No vector follows from the
+folder as this design. The file is a
+[test-vector set](sinter:data-forms#test-vector-set=v1), in the format
+that the specification
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives. A
+program does not need the revisions to run the vectors. A vector is an
+input and what a conforming program gives for it. Each vector follows
+from the requirements and adds nothing to them. The vectors are in
+groups. Each group has a name, such as `hunks`, and a subsection below.
+The subsection names the requirements that the vectors of the group
+follow from, and it describes their inputs, results, and values. Each
+vector of a group follows from one or more of these requirements. No
+vector follows from the
 requirements `use-one-line-map`, `read-only-repository-files`,
 `gain-no-repository-privileges`, `run-no-configured-programs`, and
 `follow-no-working-tree-links`.
@@ -1703,68 +1709,8 @@ its input names, and, for a vector of the groups `commit-files`,
 and no other commit. Each vector whose input stands for a git repository or a working
 tree stands for an undisturbed repository read.
 
-The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
-Each line of the file is the
-[canonical byte sequence](sinter:data-forms#canonical-byte-sequence=v1)
-of one JSON object,
-then the byte 0x0A, so each line is a JSON text, as RFC 8259 defines
-it. The file has three
-kinds of line, in this order:
-
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `branch-names`,
-   `change-diffs`, `changes`, `commit-files`, `default-branch-commits`,
-   `head-commits`, `hunks`, `landing-commits`, `message-texts`,
-   `parents`, `ranges`, `reach`, `ref-commits`, `upstreams`,
-   `working-tree-files`.
-   Its JSON object has two members: `group`, the name of the group, as a
-   JSON string, and `rev`, the revision of the group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
-
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
-- `rev`: the revision of the vector.
-- `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `result`: the result that a conforming program gives when it gives a
-  result for the input. Only a vector of the groups `branch-names` and
-  `reach` has this member.
-- `values`: a JSON object that holds what a conforming program gives for
-  the input, other than the result. Each vector of a group other than
-  `branch-names` and `reach` has this member. The subsection of the
-  group says which of these things a conforming program gives in each
-  case. An empty JSON object, `{}`, says that a conforming program gives
-  none of the things that the subsection names for `values`.
-- `needs`: the needs of the vector, as a JSON array of one or more need
-  names, each a JSON string, in code point order. A need is a condition
-  under which the program operates and which a check of the vectors can
-  be unable to make hold. The need names of the file are `names-kept`
-  and `non-utf-8-names`, and the subsection of the group
-  `working-tree-files` says what each need is and when a vector has it.
-  Only vectors of that group have needs. A vector has this member only
-  when it has a need.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
-
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. When the text of this
-section, other than its headings and the vector lines that it shows,
-changes, the revisions of every vector, every group, and the set rise.
-When only the note or the needs of a vector change, no revision rises. A
-program does not need the revisions to run the vectors.
-
+The subsections name JSON objects, members, arrays, strings, numbers,
+and the literal names `true` and `false` as RFC 8259 defines them.
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
 number, a commit, a commit graph, a tree, a folder tree, a sequence, a
@@ -1963,11 +1909,8 @@ it gives the file when `paths` holds that valid path, and that there is
 none when `paths` does not. The content of each file is the content of
 its regular file.
 
-These are the need names of the file, what each need is, and when a
-vector has it. A check of the vectors can skip a vector, and decide
-nothing about it, only when it cannot make hold a need that the member
-`needs` of the vector names, and when it reports the number of the
-vector and that need.
+These are the need names of this design, what each need is, and when a
+vector has it.
 
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the check of the vectors makes it,
