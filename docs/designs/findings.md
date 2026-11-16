@@ -8,7 +8,6 @@
 @cites files=v1
 @cites data-forms=v1
 @cites ontology=v1
-@cites rfc/8259
 Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
 
 A finding reports one condition at one part of a repository, such as an
@@ -37,10 +36,6 @@ people, and the ledger. From Data forms, it takes JSON values, with the
 members of objects and their keys, hex texts, canonical byte sequences,
 and, from its specification `test-vectors`, test-vector sets: the file
 that holds the conformance vectors of the design is one.
-
-From RFC 8259, the design takes JSON texts, with their objects, members,
-arrays, strings, and numbers: each line of the file that holds the
-conformance vectors of the design is a JSON text.
 
 ## 1. Glossary
 
@@ -799,70 +794,21 @@ section 4.
 
 The vectors of this design are in the file
 [`findings.test-vectors.jsonl`](findings.test-vectors.jsonl), in the
-same folder as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v1). A vector is an
-input and what a conforming program gives for it. Each vector follows
-from the requirements and adds nothing to them. The vectors are in
-groups. Each group has a name, such as `edit-sets`, and a subsection
-below. The subsection names the requirements that the vectors of the
-group follow from, and it describes their inputs, results, and values.
-These requirements have no vectors: `give-finding-parts`,
-`omit-absent-finding-parts`, `give-consistent-findings`, and
-`limit-fix-edit-sets`.
+same folder as this design. The file is a test-vector set, as the
+specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
+Data forms gives it. A vector is an input and what a conforming program
+gives for it. Each vector follows from the requirements and adds nothing
+to them. The vectors are in groups. Each group has a name, such as
+`edit-sets`, and a subsection below. The subsection names the
+requirements that the vectors of the group follow from, and it describes
+their inputs, results, and values. These requirements have no vectors:
+`give-finding-parts`, `omit-absent-finding-parts`,
+`give-consistent-findings`, and `limit-fix-edit-sets`.
 
-Several requirements apply only when a program gives the thing that they
-name, such as a line number. So a vector holds a program only to what
-the program gives for the input: a program that gives a line number for
-a start position, and no column, is held only to the line number.
+Only the vectors of the group `edit-sets` have the member `result`, and
+each vector has the member `values`.
 
-The file is a sequence of canonical byte sequences of JSON objects, each
-followed by the byte 0x0A. So each line of the text of the file is a
-JSON text, as RFC 8259 defines it. The file is valid UTF-8, its text has
-no byte order mark and no carriage return, and only a line feed ends a
-line of the file. U+0085, U+2028, and U+2029 can be in JSON strings of
-the file, and they do not end a line. The file has three kinds of line,
-in this order:
-
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `edit-sets`,
-   `finding-ids`, `spot-positions`. Its JSON object has two members:
-   `group`, the name of the group, as a JSON string, and `rev`, the
-   revision of the group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
-
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
-- `rev`: the revision of the vector.
-- `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `result`: the result that a conforming program gives when it gives a
-  result for the input. Only a vector of the group `edit-sets` has this
-  member.
-- `values`: a JSON object that holds what a conforming program gives
-  for the input, other than the result. Each vector has this member. An
-  empty JSON object, `{}`, says that a conforming program gives none of
-  the things that the subsection of the group names for `values`.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
-
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. When the text of this
-section changes, other than its headings and the vector lines that it
-shows, the revisions of every vector, every group, and the set rise. A
-change of a note alone changes no revision. A program does not need the
-revisions to run the vectors.
+A program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a slug, a whole number, a
@@ -887,9 +833,7 @@ run, a position, a sequence, or a tree has this form:
   valid UTF-8, the value is the text of that content, as a JSON string.
   When it is not, the value is a JSON object with one member, `bytes`:
   the [hex text](sinter:data-forms#hex-text=v1) of the content, as a
-  JSON string: for each byte of the content, in order, the hex digit of
-  the whole-number quotient of the byte divided by 16, then the hex
-  digit of the remainder. So the content 0xFF is `{"bytes":"ff"}`.
+  JSON string, such as `{"bytes":"ff"}` for the content 0xFF.
 
 ### 5.1 The edits of edit sets
 
