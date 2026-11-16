@@ -139,7 +139,7 @@ the conformance vectors of the design is a JSON text.
 | [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 ` in `## 2.1 Amount limit` |
-| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `heading: Amount limit` and `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
+| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#hashed-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
 | [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
 | [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of lines of a tag text that the term cuts at declarations and after prose |
@@ -448,8 +448,9 @@ hash text from the [hashed lines](sinter:#hashed-line=v1) of the item:
 from what CommonMark 0.31.2 reads in them, and from its tag lines, as
 Sinter reads them. Each [written line](sinter:#written-line=v1) and each
 [written tag line](sinter:#written-line=v1) has a mark, such as
-`heading:`, `paragraph:`, or `tag:`, and the written lines of the blocks
-inside a block quote, a list, or a list item stand two spaces deeper.
+`heading +1:`, `paragraph:`, or `tag:`, and the written lines of the
+blocks inside a block quote, a list, or a list item stand two spaces
+deeper.
 Inline elements are written on one line as their
 [written text](sinter:#written-inline=v1), such as `{em:steps}` for
 `*steps*` and for `_steps_`. The destination of a valid inline citation
@@ -458,12 +459,13 @@ declaration of the item whose hash text it is. So in the design
 `billing`, when `limit` is a requirement,
 `[the limit](sinter:#limit=v2)` and
 `[the limit](sinter:spec:billing#limit=v1)` both give
-`{link{the limit}{sinter:req:billing#limit}}`. For example, for the
-requirement of section 2.2, the hash text is the line
-`heading: Amount limit` and the line
+`{link{the limit}{sinter:req:billing#limit}}`. For example, in
+section 2.2, the heading `### 1.1 Amount limit` gives no line in the
+hash text of the requirement `limit-amount` or in that of the
+specification `invoice`. The hash text of that requirement is the line
 `paragraph: A conforming program must reject an invoice whose amount is more than 10,000 euros.`,
-each with a line feed after it. Its extent hash is
-`1e77c01469ff12271c9f8edf96f64665af7da043b375abb1a390cd9a300b9ad2`.
+with a line feed after it. Its extent hash is
+`601bc147496a4a0914ebeb51819ebe9a9f9b8adae3d6c5d70824fc2af86acf72`.
 
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
@@ -2520,8 +2522,8 @@ sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the indent of *k*.
-3. If *b* is an ATX heading or a setext heading, and *b* starts in *e*,
-   then:
+3. If *b* is an ATX heading or a setext heading, *b* starts in *e*, and
+   no declared item of the tree has *b* as its own heading, then:
    1. Let *inlines* be the inline elements of *b*.
    2. If *b* is a heading that opens a section, then:
       1. Let *content* be the raw content of *b*.
@@ -2533,23 +2535,20 @@ sequence that these steps give.
          link reference definitions of the markdown document that holds
          *b*.
    3. Let *line* be *pad*.
-   4. If *b* is the own heading of *d*, append `heading` to *line*.
-   5. Otherwise:
-      1. Append `heading ` to *line*.
-      2. If the level of *b* is greater than the base level of *d*,
-         then:
-         1. Append `+` to *line*.
-         2. Append the decimal numeral of the level of *b* minus the base
-            level of *d* to *line*.
-      3. If the level of *b* is the base level of *d*, append `0` to
-         *line*.
-      4. If the level of *b* is less than the base level of *d*, then:
-         1. Append `-` to *line*.
-         2. Append the decimal numeral of the base level of *d* minus the
-            level of *b* to *line*.
-   6. Append `: ` to *line*.
-   7. Append the written text of *inlines* for *d* to *line*.
-   8. Append *line* to *lines*.
+   4. Append `heading ` to *line*.
+   5. If the level of *b* is greater than the base level of *d*, then:
+      1. Append `+` to *line*.
+      2. Append the decimal numeral of the level of *b* minus the base
+         level of *d* to *line*.
+   6. If the level of *b* is the base level of *d*, append `0` to
+      *line*.
+   7. If the level of *b* is less than the base level of *d*, then:
+      1. Append `-` to *line*.
+      2. Append the decimal numeral of the base level of *d* minus the
+         level of *b* to *line*.
+   8. Append `: ` to *line*.
+   9. Append the written text of *inlines* for *d* to *line*.
+   10. Append *line* to *lines*.
 4. If *b* is a paragraph that gives a tag text that holds a tag line,
    then:
    1. For each *w* of the written tag lines of the tag text that *b*
