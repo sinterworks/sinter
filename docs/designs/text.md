@@ -18,20 +18,8 @@ body divide it into lines. The character at each place of the body has a
 position, such as line 3, column 7. A span, such as a word of the text,
 has a start and an end, which are positions.
 
-The productions in section 3 use ABNF, the notation of RFC 5234, with
-the case-sensitive strings of RFC 7405. A production, such as
-`hex-digit = DIGIT / %x61-66`, matches some texts: `hex-digit` matches
-the text `c`, and it does not match the text `C`. In a production, `/`
-separates two alternatives, and `( )` groups elements. The quoted
-string `"0"` matches the character `0`. `*` repeats the element after
-it any number of times, zero included. `1*` repeats the element after
-it one or more times, and `4*6` repeats the element after it four,
-five, or six times. `%x61` matches the character U+0061, and `%x31-39`
-matches any one character from U+0031 to U+0039. `DIGIT` is a core
-rule of RFC 5234, which matches any one of the characters `0` to `9`.
-In RFC 5234, a quoted string such as `"a"` matches its letters in
-either case. RFC 7405 adds the string `%s"…"`, which matches its
-letters only in the same case.
+The productions use ABNF (RFC 5234), with the case-sensitive strings of
+RFC 7405.
 
 Some definitions define a value, such as a text, by an algorithm: a
 header sentence, then numbered steps, such as
@@ -83,7 +71,6 @@ design has one JSON text on each line of its text.
 | [UTF-8 encoding](sinter:#utf-8-encoding=v1) | the byte sequence that holds, for each character of a text in order, the bytes that encode that character in UTF-8, and no other bytes |
 | [valid UTF-8](sinter:#valid-utf-8=v1) | a byte sequence is valid UTF-8 when the rule `UTF8-octets` of RFC 3629 matches the whole byte sequence |
 | [text of a byte sequence](sinter:#text-of-a-byte-sequence=v1) | for a byte sequence that is valid UTF-8, the text that holds, in order, the character that each `UTF8-char` of RFC 3629 in the byte sequence encodes, and no other character |
-| overlong encoding | a byte sequence that has the form of RFC 3629 for two, three, or four bytes for the code point of a character whose UTF-8 encoding has fewer bytes, such as 0xC0, 0xAF, the two-byte form for 47, the code point of `/` |
 | [byte order mark](sinter:#byte-order-mark=v1) | the character U+FEFF at place 1 of a text |
 | [body](sinter:#body=v1) | the run of a text that starts at boundary 1 when the text has a byte order mark, and at boundary 0 when it has none, and that ends at the last boundary of the text |
 | [line ending](sinter:#line-ending=v1) | a run of a text that holds a line feed of the body and, when a carriage return of the body is right before that line feed, that carriage return, and that holds no other character |
@@ -225,19 +212,6 @@ The examples show a byte sequence as its bytes, in order, with commas
 between them, and each byte as a 0x numeral, such as 0x68, 0x69. They
 show the byte sequence of no bytes as "the empty byte sequence".
 
-UTF-8, as RFC 3629 defines it, encodes each character in one to four
-bytes. The UTF-8 encoding of a text holds the bytes that encode each of
-its characters, in order, and no other bytes:
-
-| text | UTF-8 encoding |
-|---|---|
-| `A` | 0x41 |
-| U+00E9 | 0xC3, 0xA9 |
-| `e`, U+0301 | 0x65, 0xCC, 0x81 |
-| U+FEFF | 0xEF, 0xBB, 0xBF |
-| U+1F600 | 0xF0, 0x9F, 0x98, 0x80 |
-| the empty text | the empty byte sequence |
-
 In RFC 3629, the rule `UTF8-char` matches the bytes that encode one
 character, and the rule `UTF8-octets` matches any number of `UTF8-char`
 in a row. A byte sequence is valid UTF-8 when `UTF8-octets` matches the
@@ -247,21 +221,8 @@ each `UTF8-char` encodes, in order, and no other character. So the text
 keeps a U+FEFF at place 1, keeps each carriage return, and keeps each
 character as the bytes encode it, with no Unicode normalization.
 
-RFC 3629 gives a form of UTF-8 for each number of bytes from one to
-four. Each form is a pattern of bits, and the bits of a number fill the
-bits that the pattern marks with x. An overlong encoding is a byte
-sequence that has the form for two, three, or four bytes for the code
-point of a character whose UTF-8 encoding has fewer bytes. So 0xC0,
-0xAF is an overlong encoding: it is the two-byte form for 47, the code
-point of `/`, and the UTF-8 encoding of `/` is 0x2F. These byte
-sequences are not valid UTF-8:
-
-| byte sequence | why |
-|---|---|
-| 0xFF | the UTF-8 encoding of no character holds the byte 0xFF |
-| 0xC0, 0xAF | an overlong encoding |
-| 0xED, 0xA0, 0x80 | the three-byte form of RFC 3629 for the number 55,296, which is not the code point of a character |
-| 0xC3 | the first byte of the UTF-8 encoding of a character, with no byte after it |
+For example, the byte sequence 0xFF is not valid UTF-8, because the
+UTF-8 encoding of no character holds the byte 0xFF.
 
 ### 2.4 Lines and positions
 
@@ -455,18 +416,17 @@ reaches, other than a core rule, meets the same two conditions.
 A text matches a production when, for some choice of one alternative at
 each `/` and of one number of repetitions at each repetition, the
 production gives terminal values that match the characters of the text,
-one each, in their order. A range of terminal values, such as
-`%x31-39`, gives a choice of one of its terminal values, and a letter of
-a quoted string that matches either case gives a choice of one of its
-two cases. When a production uses a rule more than once, each use has
-its own choices. The order of the alternatives has no effect, so a
-production `p = "a" / "ab"` matches the text `ab`, although its first
-alternative matches the first character of `ab`. A text matches a
-production only as a whole. The text `42` matches the production
-`decimal-numeral` of section 3.25, and the text `42a` does not, although
-the first two characters of `42a` are `42`. A character matches a
-production when the text of that one character matches it, so the
-character `a` matches `hex-digit`.
+one each, in their order. A range of terminal values, such as `%x31-39`,
+gives a choice of one of its terminal values, and a letter of a quoted
+string that matches either case gives a choice of one of its two cases.
+The order of the alternatives has no effect, so a production
+`p = "a" / "ab"` matches the text `ab`, although its first alternative
+matches the first character of `ab`. A text matches a production only as
+a whole. The text `42` matches the production `decimal-numeral` of
+section 3.25, and the text `42a` does not, although the first two
+characters of `42a` are `42`. A character matches a production when the
+text of that one character matches it, so the character `a` matches
+`hex-digit`.
 
 ### 2.8 Inputs and results
 
@@ -481,28 +441,6 @@ part of the result. A conforming program gives a result when it gives
 something that stands for that result and for no other result. So a
 program that gives the number 1 for "valid" and the number 0 for
 "invalid" gives these two results.
-
-For each of these inputs, the requirements state what a conforming
-program gives:
-
-| input | what a conforming program gives |
-|---|---|
-| a byte sequence, when it gives a result for whether the byte sequence is valid UTF-8 | exactly one result: "valid" when the byte sequence is valid UTF-8, and "invalid" when it is not |
-| a byte sequence for which it gives a text as the text of the byte sequence | the text of the byte sequence, and no other text |
-| a text for which it gives the UTF-8 encoding | the UTF-8 encoding of the text |
-| a text for which it gives the lines | as many runs or texts as the text has lines: as the k-th of them, the line with the line number k, or the text of that line |
-| a text for which it gives a run or a text, together with a line number, as a line of the text | as that run or text, the line of the text that has that line number, or the text of that line |
-| the character at a place of the body of a text, for which it gives a line number or a column | the line number of the position of that character, the column of that position, or both |
-| a span of a text, for whose start or end it gives a line number or a column | the line number of that start or that end, its column, or both |
-
-A conforming program gives no text as the text of a byte sequence that
-is not valid UTF-8. It gives, as a line of a text, only a line of that
-text or the text of a line of that text. It gives no line number and no
-column for the character at place 1 of a text that has a byte order
-mark: that character has no position. It gives a line number or a
-column as the start or the end of a run only when the run is a span. So
-it gives no line number and no column as the start or the end of a run
-that starts at boundary 0 of a text that has a byte order mark.
 
 ### 2.9 Sequences and algorithms
 
@@ -843,11 +781,10 @@ choice of one alternative at each `/`, of one terminal value at each
 range of terminal values, such as `%x30-39`, of one case at each letter
 of a quoted string that matches either case, and of one number of
 repetitions at each repetition, the production gives terminal values
-that match the characters of the text, one each, in their order. An
-optional sequence in `[ ]` is a repetition of zero times or one time.
-Each use of a rule through a rule name has its own choices. The order of
-the alternatives has no effect. A character matches a production when,
-and only when, the text of that one character matches the production.
+that match the characters of the text, one each, in their order. The
+order of the alternatives has no effect. A character matches a
+production when, and only when, the text of that one character matches
+the production.
 
 ### 3.25 Decimal numerals
 
