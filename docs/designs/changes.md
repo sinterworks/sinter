@@ -14,6 +14,7 @@
 @cites gitdoc/gitdatamodel
 @cites gitdoc/gitformat-loose
 @cites gitdoc/gitformat-pack
+@cites gitdoc/gitformat-commit-graph
 @cites gitdoc/git-commit-tree
 @cites gitdoc/git-pack-refs
 @cites gitdoc/reftable
@@ -56,7 +57,8 @@ tree does not share and the refs in the root of the hierarchy of refs.
 From the page gitdatamodel, it takes the parts of a commit object, its
 tree, its parents, and its message, and the file types of the entries of
 a git tree object. From the pages gitformat-loose and gitformat-pack, it
-takes loose objects and packs; from the page git-commit-tree, the header
+takes loose objects and packs; from the page gitformat-commit-graph,
+commit-graph files; from the page git-commit-tree, the header
 `encoding` of a commit object; from the page git-pack-refs, loose refs
 and the file `packed-refs`; and from the page reftable, refs in the
 reftable format. From the page gitglossary, it takes git objects: commit
@@ -192,7 +194,8 @@ JSON text.
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and of these only a fetch that the program makes to take git objects that the git repository does not hold and that the read uses is part of the read |
-| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, creates, deletes, or changes a repository file of the git repository, other than a file of a working tree that is no other repository file, from which the read takes no bytes, and that no pathname that the read uses names; a change by which the program, itself or through any program that it uses, only adds git objects to an object database of the git repository, or writes git's index again with an entry for the same byte paths, does not count, nor does a file that it creates, deletes, or changes only for such a change |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names that the read uses to reach or look for a repository file; a change of an attribute alone is no change |
+| [own change of a repository read](sinter:#undisturbed-read=v1) | a change by which the program that makes the read, itself or through any program that it uses, only adds new loose objects or new packs to an object database, writes commit-graph files in a fetch that is part of the read, or writes git's index again with an entry for the same byte paths, with the lock files and temporary files of these |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 
 ## 2. Git repositories, changes, and hunks
@@ -1063,25 +1066,65 @@ a ref is part of one.
 @term undisturbed-read=v1
 @cites {
     posix/2024,
-    files#{taken-byte=v1},
+    gitdoc/gitformat-loose,
+    gitdoc/gitformat-pack,
+    gitdoc/gitformat-commit-graph,
+    gitdoc/gitformat-index,
+    files#{
+        taken-byte=v1, attribute=v1, regular-file=v1, folder=v1,
+        symbolic-link=v1, file-of-another-kind=v1,
+    },
+    text#{code-span=v1},
     #{
         repository-read=v1, working-tree=v1, repository-file=v1, commit=v1,
-        working-tree-file=v1,
+        working-tree-file=v1, git-folder=v1, ref-commit=v1,
+        remote-transfer=v1,
     },
 }
 
 A repository read is undisturbed when no process, the program that makes
-it included, creates, deletes, or changes a repository file of the git
-repository during the repository read, other than a file of a working
-tree that is no other repository file, from which the repository read
-takes no bytes, and that no pathname that the repository read uses
-names. A change by which the program, itself or through any program
-that it uses, only adds git objects to an object database of the git
-repository, or writes git's index of a working tree again so that it
-holds an entry for the same byte paths, as the term `working-tree-file`
-gives these words, does not count, and neither does a file that the
-program creates, deletes, or changes only for such a change, such as a
-lock file or a temporary file.
+it included, does one of these during the repository read, other than in
+an own change of the repository read:
+
+1. It creates, deletes, or changes a repository file of the git
+   repository from which the program, itself or through any program that
+   it uses, takes bytes in the repository read.
+2. It changes which file a pathname names, or whether it names one, when
+   the program, itself or through any program that it uses, uses that
+   pathname in the repository read to reach a repository file of the git
+   repository or to look for one.
+
+To change a file is to change the content of a regular file, the folder
+entries of a folder, the reference of a symbolic link, or the data of a
+file of another kind. A change of an attribute of a file alone, as the
+term `files#attribute` gives attributes, is no change of the file.
+
+An own change of a repository read is a change that the program that
+makes it, itself or through any program that it uses, makes during the
+repository read and that creates, deletes, or changes only these files:
+
+1. the files of new loose objects and of new packs in an object database
+   of the git repository, as the pages gitformat-loose and gitformat-pack
+   define loose objects and packs, each pack with the files that are for
+   that pack alone, such as its pack index, and the folders of that
+   object database;
+2. in a fetch that is part of the repository read, the commit-graph files
+   of an object database of the git repository, as the page
+   gitformat-commit-graph gives them: the file `info/commit-graph` of
+   that object database, and the folder `info/commit-graphs` of it with
+   its files;
+3. git's index of a working tree, the files that the format of that
+   index names, as the page gitformat-index gives that format, and the
+   folder that holds that index, when git's index holds an entry for the
+   same byte paths after the change as before it, as the term
+   `working-tree-file` gives these words;
+4. a lock file or a temporary file that the program creates for such a
+   change, in a folder of item 1, 2, or 3, and deletes, or renames to a
+   file of item 1, 2, or 3, in the same change.
+
+No other change is an own change: for example, not a change of a ref, of
+the file `FETCH_HEAD` or the file `shallow` of the git folder, or of
+another file in the folder `info` of an object database.
 
 ### 4.29 Repository files
 
