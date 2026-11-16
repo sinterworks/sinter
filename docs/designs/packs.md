@@ -77,17 +77,17 @@ response as a JSON text, and the files that hold the conformance vectors
 of the design hold one JSON text on each line. From POSIX.1-2024, it
 takes the permissions and the appropriate privileges of a process, and
 the portable filename character set. From tree-sitter, the design takes
-the format of languages, in its ABI versions 13 to 15, with the parse
-trees that the parsing of a language gives; and the query language, as
-tree-sitter's documentation of it defines it, with patterns, captures,
-predicates, quantifiers, and the matches of a query. From the page on
-ABI versions of tree-sitter's documentation
-(`docs/src/using-parsers/7-abi-versions.md`), it takes the ABI versions
-13 to 15 of the format of languages. From the WebAssembly Core
-Specification 2.0, it takes modules, their validation, and their binary
-format; imports, exports, functions and their types, memories, tables,
-globals, instances, traps, and the execution of code. From ECMA-262
-2025, it takes RegExp patterns, with the flag `u`, and their matching.
+the format of languages, with the parse trees that the parsing of a
+language gives; and the query language, as tree-sitter's documentation
+of it defines it, with patterns, captures, predicates, quantifiers, and
+the matches of a query. From the page on ABI versions of tree-sitter's
+documentation (`docs/src/using-parsers/7-abi-versions.md`), it takes the
+ABI versions 13 to 15 of the format of languages. From the WebAssembly
+Core Specification 2.0, it takes modules, their validation, and their
+binary format; imports, exports, functions and their types, memories,
+tables, globals, instances, traps, and the execution of code. From
+ECMA-262 2025, it takes RegExp patterns, with the flag `u`, and their
+matching.
 
 ## 1. Glossary
 
@@ -285,8 +285,8 @@ a name and a default value. The parameter `runner-settings` (section
 3.1) gives values for the runner settings of a test runner. The type of
 a runner setting is the kind of its default value.
 
-In a table whose keys this section names, another key makes the
-descriptor not valid. A TOML value of the wrong kind, and a value that
+In a table whose keys the definition of a valid descriptor names,
+another key makes the descriptor not valid. A TOML value of the wrong kind, and a value that
 breaks the rule of its key, also make the descriptor not valid. The
 value of `match` is any table: no rule of a valid descriptor applies to
 its keys and values. This is the descriptor of a TypeScript
@@ -752,23 +752,22 @@ language, and its ABI version is the ABI version of that language.
 }
 
 The query language is the language of queries that tree-sitter's
-documentation of it defines. A query for a language is a sequence of
-zero or more patterns. A pattern captures nodes under capture names,
-each written `@` followed by the capture name, and each capture name of
-a pattern has a quantifier in it: zero, zero or one, zero or more, one,
-or one or more. Each of these five stands for a set of whole numbers:
-zero for 0 alone, zero or one for 0 and 1, zero or more for every whole
-number, one for 1 alone, and one or more for every whole number from 1.
-The quantifier of a capture name in a pattern is the one of the five
-whose set is the smallest that holds each number of nodes that the
-pattern captures under that name, over each choice of one alternative of
-each alternation of the pattern and each number of repetitions that each
-`?`, `*`, and `+` of the pattern allows. A capture name written after an
-element of a pattern, before or after the `?`, `*`, or `+` of that
-element, captures the node of each repetition of that element.
-
-A query for a language is a text that is a query for that language by
-tree-sitter's documentation of the query language.
+documentation of it defines. A query for a language is a text that is a
+query for that language by tree-sitter's documentation of the query
+language, and it is a sequence of zero or more patterns. A pattern
+captures nodes under capture names, each written `@` followed by the
+capture name, and each capture name of a pattern has a quantifier in it:
+zero, zero or one, zero or more, one, or one or more. Each of these five
+stands for a set of whole numbers: zero for 0 alone, zero or one for 0
+and 1, zero or more for every whole number, one for 1 alone, and one or
+more for every whole number from 1. The quantifier of a capture name in
+a pattern is the one of the five whose set is the smallest that holds
+each number of nodes that the pattern captures under that name, over
+each choice of one alternative of each alternation of the pattern and
+each number of repetitions that each `?`, `*`, and `+` of the pattern
+allows. A capture name written after an element of a pattern, before or
+after the `?`, `*`, or `+` of that element, captures the node of each
+repetition of that element.
 
 The matches of a query over a parse tree are the parts of the parse tree
 where a pattern of the query matches, each with that pattern and with
@@ -947,19 +946,19 @@ its file `adapters/<r>.wasm`.
 This definition uses the parsing that the format of languages of
 tree-sitter defines, which gives, for a language and a byte sequence, a
 parse tree or no parse tree. This parsing runs the code of the language
-in the instance of its module in which that module gave that language,
-and it gives no parse tree when the instantiation or an invocation in
-that instance fails. A parse tree has a root node, and the children of
-each node of a parse tree are its named and its anonymous child nodes,
-in their order. A node of a hidden symbol is no node of the parse tree,
-and its children stand in its place. Each node has a symbol, and each
-symbol has a name. Each node has a start byte and an end byte, which are
-whole numbers. A node has an error when it, or a node that the parsing
-gives inside it, nodes of hidden symbols included, is an `ERROR` node, a
-node of the symbol `ERROR`, or a `MISSING` node, a node that the parsing
-inserts for a token that the text lacks. For a text and a usable grammar
-with a grammar name g, the parse tree is the parse tree that this
-parsing gives for the language of that usable grammar and the UTF-8
+in the instance of the WebAssembly module in which that module gave that
+language, and it gives no parse tree when the instantiation or an
+invocation in that instance fails. A parse tree has a root node, and the
+children of each node of a parse tree are its named and its anonymous
+child nodes, in their order. A node of a hidden symbol is no node of the
+parse tree, and its children stand in its place. Each node has a symbol,
+and each symbol has a name. Each node has a start byte and an end byte,
+which are whole numbers. A node has an error when it, or a node that the
+parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
+node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
+parsing inserts for a token that the text lacks. For a text and a usable
+grammar with a grammar name g, the parse tree is the parse tree that
+this parsing gives for the language of that usable grammar and the UTF-8
 encoding of the parse text of that text. When this parsing gives no
 parse tree, the text has no parse tree with that usable grammar. The
 parse text of a text is that text, followed by a line feed when the text
@@ -1734,7 +1733,9 @@ new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
 execution, with the program as its embedder. The limits of a program are
 limits of its own on the resources of an instance of an adapter and on
-the time that its code runs.
+the time that its code runs. An instantiation or an invocation fails when
+it traps, when its code exhausts the call stack, or when the program
+stops it.
 
 #### 6.1.2 Valid adapters
 
