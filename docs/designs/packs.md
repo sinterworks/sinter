@@ -1623,40 +1623,13 @@ requirement that the specification declares.
 
 The vectors of this specification are in the file
 [`packs.descriptor.test-vectors.jsonl`](packs.descriptor.test-vectors.jsonl),
-in the same folder as this design. The file is a [test-vector
-set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
-canonical byte sequence of one JSON object, then the byte 0x0A, so each
-line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
-line of the file. A string of the file can hold U+0085, U+2028, or
-U+2029, and these characters do not end a line.
+in the same folder as this design. The file is a test-vector set, in the
+form that the specification
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives.
 
-The first line of the file is the set line. Its object has one member,
-`rev`: the revision of the test-vector set. Then each group has one
-group line, in the key order of the group names. The object of a group
-line has two members: `group`, the group name, and `rev`, the revision
-of the group. Then each vector has one vector line, in increasing order
-of the numbers of the vectors. The object of a vector line has these
-members:
-
-- `n`: the number of the vector, an integer of 1 or more.
-- `rev`: the revision of the vector.
-- `group`: the group name of the vector.
-- `input`: the input of the vector.
-- `result`: a result, as a string of the characters of the result
-  without its double quotes.
-- `values`: what a conforming program gives, or does not give, for the
-  input, other than the result that `result` stands for.
-- `note`: an explanation of the vector, which a conforming program does
-  not give. Only some vectors have this member.
-
-A revision is a string of `v` and the decimal numeral of a whole number
-of 1 or more, such as `"v1"`. The vectors follow from the requirements
-of this specification and add nothing to them. Each subsection below
-gives the forms of one group: the requirements of the group, and what
-the members `input`, `result`, and `values` of its vectors stand for,
-each in a fixed form. A vector without the member `result` states no
-result. A vector without the member `values` states nothing that a
-conforming program gives for the input, other than its result.
+Each subsection below gives the forms of one group: the requirements of
+the group, and what the members `input`, `result`, and `values` of its
+vectors stand for, each in a fixed form.
 
 In `input` and `values`, a byte sequence is its hex text, as a string,
 such as `"6e616d65"` for the four bytes of `name`, and a text is a
@@ -2142,42 +2115,15 @@ requirement that the specification declares. The requirement
 
 The vectors of this specification are in the file
 [`packs.adapters.test-vectors.jsonl`](packs.adapters.test-vectors.jsonl),
-in the same folder as this design. The file is a [test-vector
-set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
-canonical byte sequence of one JSON object, then the byte 0x0A, so each
-line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
-line of the file. A string of the file can hold U+0085, U+2028, or
-U+2029, and these characters do not end a line.
+in the same folder as this design. The file is a test-vector set, in the
+form that the specification
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives.
 
-The first line of the file is the set line. Its object has one member,
-`rev`: the revision of the test-vector set. Then each group has one
-group line, in the key order of the group names. The object of a group
-line has two members: `group`, the group name, and `rev`, the revision
-of the group. Then each vector has one vector line, in increasing order
-of the numbers of the vectors. The object of a vector line has these
-members:
-
-- `n`: the number of the vector, an integer of 1 or more.
-- `rev`: the revision of the vector.
-- `group`: the group name of the vector.
-- `input`: the input of the vector.
-- `result`: a result, as a string of the characters of the result
-  without its double quotes.
-- `values`: what a conforming program gives, or does not give, for the
-  input, other than the result that `result` stands for.
-- `note`: an explanation of the vector, which a conforming program does
-  not give. Only some vectors have this member.
-
-A revision is a string of `v` and the decimal numeral of a whole number
-of 1 or more, such as `"v1"`. The vectors follow from the requirements
-of this specification and add nothing to them. Each subsection below
-gives the forms of one group: the requirements of the group, and what
-the members `input`, `result`, and `values` of its vectors stand for,
-each in a fixed form. A vector without the member `result` states no
-result. A vector without the member `values` states nothing that a
-conforming program gives for the input, other than its result. In
-`input` and `values`, a byte sequence is its hex text, as a string, and
-a text is a string of the characters of the text.
+Each subsection below gives the forms of one group: the requirements of
+the group, and what the members `input`, `result`, and `values` of its
+vectors stand for, each in a fixed form. In `input` and `values`, a byte
+sequence is its hex text, as a string, and a text is a string of the
+characters of the text.
 
 #### 6.10.1 Adapters
 
@@ -2630,12 +2576,9 @@ when it meets every requirement of this design, those of its
 specifications included. The vectors of the requirements that the design
 holds directly, outside its specifications, are in the file
 [`packs.test-vectors.jsonl`](packs.test-vectors.jsonl), in the same
-folder as this design. The file is a [test-vector
-set](sinter:data-forms#test-vector-set=v1). Each line of the file is the
-canonical byte sequence of one JSON object, then the byte 0x0A, so each
-line is a JSON text, as RFC 8259 defines it. Only a line feed ends a
-line of the file. A string of the file can hold U+0085, U+2028, or
-U+2029, and these characters do not end a line.
+folder as this design. The file is a test-vector set, in the form that
+the specification
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives.
 
 These requirements that the design holds directly have no vectors:
 `give-pack-file-contents`, `give-pack-descriptor-values`,
@@ -2647,36 +2590,9 @@ These requirements that the design holds directly have no vectors:
 `keep-packs-unchanged`, and `gain-no-pack-privileges`. No vector of this
 file holds a valid pack or a reading.
 
-The first line of the file is the set line. Its object has one member,
-`rev`: the revision of the test-vector set. Then each group has one
-group line, in the key order of the group names. The object of a group
-line has two members: `group`, the group name, and `rev`, the revision
-of the group. Then each vector has one vector line, in increasing order
-of the numbers of the vectors. The object of a vector line has these
-members:
-
-- `n`: the number of the vector, an integer of 1 or more.
-- `rev`: the revision of the vector.
-- `group`: the group name of the vector.
-- `input`: the input of the vector.
-- `result`: a result, as a string of the characters of the result
-  without its double quotes.
-- `values`: what a conforming program gives, or does not give, for the
-  input, other than the result that `result` stands for.
-- `note`: an explanation of the vector, which a conforming program does
-  not give. Only some vectors have this member.
-- `needs`: the need names of the needs of the vector, in key order, with
-  no name twice. Only a vector with a need has this member.
-
-A revision is a string of `v` and the decimal numeral of a whole number
-of 1 or more, such as `"v1"`. The vectors follow from the requirements
-of this design that it holds directly and add nothing to them. Each
-subsection below gives the forms of one group: the requirements of the
-group, and what the members `input`, `result`, and `values` of its
-vectors stand for, each in a fixed form. A vector without the member
-`result` states no result. A vector without the member `values` states
-nothing that a conforming program gives for the input, other than its
-result.
+Each subsection below gives the forms of one group: the requirements of
+the group, and what the members `input`, `result`, and `values` of its
+vectors stand for, each in a fixed form.
 
 In `input` and `values`, a byte sequence is its hex text, as a string,
 and a text is a string of the characters of the text. A pack is its
@@ -2741,9 +2657,7 @@ for and when a vector has it:
 
 A vector has the member `needs` when, and only when, it has one or more
 of these needs, and the member names each need of the vector and no
-other. A check that cannot make a need of a vector hold can skip that
-vector, and it reports that need. A name in the member `needs` that
-this list does not hold allows no skip.
+other.
 
 ### 8.1 Invalid packs
 
