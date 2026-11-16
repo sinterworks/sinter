@@ -459,7 +459,7 @@ declaration of the item whose hash text it is. So in the design
 `billing`, when `limit` is a requirement,
 `[the limit](sinter:#limit=v2)` and
 `[the limit](sinter:spec:billing#limit=v1)` both give
-`{link{the limit}{sinter:req:billing#limit}}`. For example, in
+`{link{the limit}{sinter:req:billing#limit}}`. In the example of
 section 2.2, the heading `### 1.1 Amount limit` gives no line in the
 hash text of the requirement `limit-amount` or in that of the
 specification `invoice`. The hash text of that requirement is the line
