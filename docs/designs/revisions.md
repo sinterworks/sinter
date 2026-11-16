@@ -42,7 +42,7 @@ under a binding of the parameter `default-branch-name`, and undisturbed
 repository reads. From Data forms (`data-forms`), it takes test-vector
 revisions and the order "higher" on them, vector lines, group lines, set
 lines, test-vector sets, the text of the forms of a group, versions, the
-rules of version sequences, canonical byte sequences, and hex texts.
+rules of version sequences, and hex texts.
 From Findings (`findings`), it takes the subjects, spots, messages,
 marks, related messages, and fixes of findings, and ackable findings.
 From Identifiers (`identifiers`), it takes declarations, the production
@@ -53,8 +53,7 @@ binding. From Files and paths (`files`), it takes valid paths and path
 sets. From Text and notation (`text`), it takes texts, lines, spans,
 bytes, 0x numerals, code spans, UTF-8 encodings, decimal numerals, and
 what a conforming program and a result are. From RFC 8259, it takes JSON
-texts: each line of the file that holds the conformance vectors of the
-design is one.
+values, with their objects, members, arrays, strings, and numbers.
 
 ## 1. Glossary
 
