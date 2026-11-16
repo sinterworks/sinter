@@ -473,8 +473,9 @@ member `result`. The forms of the group `trees` name no question for
 
 A program does not need the revisions to run the vectors.
 
-In the members `input` and `values`, a text, such as a valid path, a
-name, a subject, a namespace name, or an id pattern, is a JSON string
+The JSON values, objects, arrays, strings, and numbers of this section
+are as RFC 8259 defines them. In the members `input` and `values`, a
+text, such as a valid path, a name, a subject, a namespace name, or an id pattern, is a JSON string
 whose characters are the characters of the text, in order.
 
 The group `trees` holds the vectors whose inputs are a base tree, a
