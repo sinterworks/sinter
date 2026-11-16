@@ -314,13 +314,8 @@ canonical form.
 @term hash=v1
 @cites {fips/180-4, text#{byte=v1, byte-sequence=v1}, #{hex-text=v1}}
 
-A byte sequence of fewer than 2^61 bytes makes a message of
-FIPS 180-4: 8 bits for each byte, in the order of the bytes, the most
-significant bit of each byte first. The digest of the byte sequence is
-the message digest of 256 bits that SHA-256, as FIPS 180-4 defines it,
-gives for that message, as 32 bytes: 8 bits for each byte, in their
-order, the most significant bit of each byte first. The hash of the byte
-sequence is the hex text of its digest.
+The hash of a byte sequence is the hex text of the digest, as 32 bytes,
+that SHA-256 of FIPS 180-4 gives for it.
 
 ## 4. JSON lines
 @spec json-lines=v1
@@ -1388,21 +1383,14 @@ location of `no-span-at`.
 ## 6. Hashes
 @spec hashes=v1
 
-A conforming program can give the hash of each byte sequence of fewer
-than 2^61 bytes. When it gives a result for whether a text fits the hash
+A conforming program can give the hash of a byte sequence, as the term
+`hash` gives it. When it gives a result for whether a text fits the hash
 form, it gives "valid" when the text fits the hash form, and "invalid"
 when it does not.
 
-FIPS 180-4 defines SHA-256 for each message of fewer than 2^64 bits, so
-it gives a digest for each byte sequence of fewer than 2^61 bytes. The
-digest of such a byte sequence is the 32 bytes of the message digest
-that SHA-256 gives for it. The hash of the byte sequence is the hex text
-of its digest: 64 hex digits. For example, the hash of the three bytes
-of `abc` is
+For example, the hash of the three bytes of `abc` is
 `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`.
-
-A text fits the hash form when it holds exactly 64 hex digits and
-nothing else. Upper-case letters are not hex digits, so
+Upper-case letters are not hex digits, so
 `BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD` does
 not fit the hash form.
 
@@ -1503,24 +1491,18 @@ validates the text as a hash. The requirement of the group is
 ## 7. Hash ids
 @spec hash-ids=v1
 
-A conforming program can give the hash id of each byte sequence of fewer
-than 2^61 bytes with an id prefix and a number of hex digits from 1 to
-64. When it gives a result for whether a text fits the hash-id form
-with an id prefix and a number of hex digits, it gives "valid" when the
-text fits the hash-id form, and "invalid" when it does not.
+A conforming program can give the hash id of a byte sequence with an id
+prefix and a number of hex digits from 1 to 64. When it gives a result
+for whether a text fits the hash-id form with an id prefix and a number
+of hex digits, it gives "valid" when the text fits the hash-id form, and
+"invalid" when it does not.
 
-An id prefix is one or more of the letters `a` to `z`, and then `-`,
-such as `e-` or `t-`. For an id prefix, a number n of hex digits from 1
-to 64, and a byte sequence of fewer than 2^61 bytes, the hash id is the
-id prefix, then the first n hex digits of the hash of the byte sequence.
-For example, with the id prefix `e-` and 12 hex digits, the hash id of
-the three bytes of `abc` is `e-ba7816bf8f01`.
-
-A text fits the hash-id form with an id prefix and a number n of hex
-digits when it is the id prefix and then exactly n hex digits. So with
-the id prefix `e-` and 12 hex digits, `e-5b1c0a9d2e11` fits the hash-id
-form, and `e-5b1c0a9d2e1`, `e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do
-not.
+The term `id-prefix` gives the id prefixes, such as `e-` or `t-`, and
+the terms `hash-id` and `hash-id-form` give the hash ids and the hash-id
+form. For example, with the id prefix `e-` and 12 hex digits, the hash
+id of the three bytes of `abc` is `e-ba7816bf8f01`, the text
+`e-5b1c0a9d2e11` fits the hash-id form, and `e-5b1c0a9d2e1`,
+`e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do not.
 
 ### 7.1 Definitions
 
@@ -1543,9 +1525,9 @@ id-prefix  = 1*%x61-7A "-"
     #{id-prefix=v1, hash=v1},
 }
 
-For an id prefix p, a whole number n from 1 to 64, and a byte sequence b
-of fewer than 2^61 bytes, the hash id of b with p and n is the text p,
-then the first n characters of the hash of b.
+For an id prefix p, a whole number n from 1 to 64, and a byte sequence
+b, the hash id of b with p and n is the text p, then the first n
+characters of the hash of b.
 
 #### 7.1.3 The hash-id form
 
@@ -1673,8 +1655,6 @@ such as
 `{"group":"offsets","input":"x","n":12,"result":"valid","rev":"v1"}`, in
 the order that the term `test-vector-set` gives, and each line holds the
 canonical byte sequence of its object, as the term `vector-line` gives.
-The objects of the vector lines can hold any JSON value in `input` and
-in `values`, so a vector object is not always a line object.
 
 The forms of a group, and the text of the forms of a group, are as the
 term `group-form-list` gives them.
@@ -1687,9 +1667,7 @@ and `vector-meaning` give.
 Each vector line, each group, and the whole test-vector set have a
 revision, such as `v2`. The term `test-vector-version-sequence` gives
 the rules by which these revisions, and the numbers of new vector lines,
-change from one version to the next. By these rules, a change of the
-note of a vector line alone changes no revision, and neither does a
-change of its needs alone.
+change from one version to the next.
 
 ### 8.1 Definitions
 
@@ -2071,11 +2049,10 @@ The file
 in the same directory as this design, is a test-vector set: its lines
 are as the terms `test-vector-set` and `vector-line` give, so the text
 of each line of the file is a JSON text, as RFC 8259 defines it, and the
-members of their objects are as the term `vector-object` gives. Only a
-line feed ends a line of the file. A string of the file can hold U+0085,
-U+2028, or U+2029, and these characters do not end a line. By the term
-`vector-meaning`, the object of each vector line of the file states one
-vector of this specification. This specification gives no need names.
+members of their objects are as the term `vector-object` gives. By the
+term `vector-meaning`, the object of each vector line of the file states
+one vector of this specification. This specification gives no need
+names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each subsection below gives the forms of one group, as
