@@ -154,7 +154,7 @@ matching.
 | [test label](sinter:#test-label=v1) | a word, such as `each`, that a kept match of a test node gives it by the capture name `label.<word>`, such as for a test case that the test runner runs once for each row of a table |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
-| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as its embedder, under limits that the program has of its own on its resources and on the time that its code runs; an instantiation or an invocation in it fails when it traps, when its code exhausts the call stack, or when the program stops it |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack in which the file of a grammar is a WebAssembly module with an import that the program does not provide, or in which a query file holds a pattern that, without its predicates, matches no part of any parse tree that the language of its grammar can give |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, a WebAssembly module that the program does not refuse for limits of its own, that imports nothing, that exports the five names of the interface with their types, and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
@@ -287,11 +287,11 @@ a name and a default value. The parameter `runner-settings` (section
 a runner setting is the kind of its default value.
 
 In a table whose keys the definition of a valid descriptor names,
-another key makes the descriptor not valid. A TOML value of the wrong kind, and a value that
-breaks the rule of its key, also make the descriptor not valid. The
-value of `match` is any table: no rule of a valid descriptor applies to
-its keys and values. This is the descriptor of a TypeScript
-pack with two grammars and one test runner:
+another key makes the descriptor not valid. A TOML value of the wrong
+kind, and a value that breaks the rule of its key, also make the
+descriptor not valid. The value of `match` is any table: no rule of a
+valid descriptor applies to its keys and values. This is the descriptor
+of a TypeScript pack with two grammars and one test runner:
 
 ```toml
 sinter-spec = "1.0"
@@ -941,7 +941,7 @@ its file `adapters/<r>.wasm`.
         text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
         whole-number=v1, code-span=v1,
     },
-    #{usable-grammar=v1, grammar-name=v1},
+    #{webassembly-module=v1, usable-grammar=v1, grammar-name=v1},
 }
 
 This definition uses the parsing that the format of languages of
