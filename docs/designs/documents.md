@@ -55,8 +55,9 @@ the parameter `external-namespaces`; and the inputs of a conforming
 program of Identifiers and the results that it gives. From Files and
 paths, it takes valid paths, path sets, valid path sets, and the set of
 a path set. From Data forms, it takes hashes, indexes, hex texts,
-test-vector file names, test-vector sets, and vector lines. From the Ontology, it takes trees and their files;
-parameters; items and their kinds, declared items, containment, and the
+test-vector file names, test-vector sets, and vector lines. From the
+Ontology, it takes trees and their files; parameters; items and their
+kinds, declared items, containment, and the
 names of declared items; tests and comments on tests; sites; external
 items; vector sets, conformance vectors, and groups of conformance
 vectors; revised content; edges, their kinds, sources, and cited items,
