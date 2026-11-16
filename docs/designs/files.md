@@ -1185,8 +1185,8 @@ reads the text as a path in the folder tree.
      program has the permissions that `tree` gives.
   2. No other process changes the folder tree during the file read.
   3. The system does not fail during the file read, the program can
-     reach the root, and the file read goes beyond no limit of the
-     system or of the program.
+     reach the root, and the file read stays within the limits of the
+     system and of the program.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
