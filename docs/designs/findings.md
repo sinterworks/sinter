@@ -9,7 +9,7 @@
 @cites data-forms=v1
 @cites ontology=v1
 @cites rfc/8259
-Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, acknowledgments, and mechanical fixes; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
+Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
 
 A finding reports one condition at one part of a repository, such as an
 item of the kind requirement that no test cites. Each finding has a
@@ -98,7 +98,6 @@ conformance vectors of the design is a JSON text.
 | [parts of a finding](sinter:#finding-part=v1) | its tree, its finding class, its subject, its message, its spot, its mark, its related messages, its fix, and whether it is ackable, with the parts of these parts |
 | [tree of a finding](sinter:#finding-part=v1) | the tree in which a finding reports its condition, or no tree |
 | [correct](sinter:#correction=v1) | an edit set in a tree corrects a finding of that tree when, in its edited tree, the condition that the finding reports no longer holds for what the finding is about, wherever the edits move that thing |
-| [mechanical fix](sinter:#mechanical-fix=v1) | the fix of a finding when it has exactly one edit set, which corrects the finding and adds no acknowledgment of a finding |
 
 ## 2. Findings, spots, edits, and fixes
 
@@ -106,27 +105,8 @@ conformance vectors of the design is a JSON text.
 
 A finding is a report of one condition at one part of a repository. Its
 finding class is the kind of finding, which a slug names. Each finding
-has these parts:
-
-| part | what it is | how many |
-|---|---|---|
-| tree | the tree in which the finding reports its condition | one tree, or none for a condition outside every tree, such as a condition of the ledger alone |
-| finding class | the kind of the finding, by the slug that names it | exactly one |
-| subject | a text that names what the finding is about | exactly one |
-| message | a text for people that says what is wrong | exactly one |
-| spot | where the finding is in its tree: the valid path of a file, alone or with a span of the text of its content | one or none; always none for a finding of no tree |
-| mark | a spot whose span is the run of the span of the spot of the finding that is at fault, and a message | one or none; always none when the finding has no spot with a span, or when the boundary where the span of its spot starts is a boundary of no line |
-| related messages | other messages that help to explain the finding, each alone or with a spot in the tree of the finding or in another tree; the set of them is also a part | zero or more |
-| fix | a message and one or more edit sets in the tree of the finding | one or none; always none for a finding of no tree |
-| ackable | whether an acknowledgment of the finding by a person can have effect | exactly one: ackable or not ackable |
-
-Each part can have parts of its own. The parts of a spot are its valid
-path and its span, when it has one. The parts of a mark are a spot and a
-message. The parts of a related message are a message and, when it has a
-spot, that spot and the tree of that spot. The parts of a fix are its
-message and its edit sets, each with its number. The parts of an edit
-set are its edits, and the parts of an edit are its spot and its new
-text.
+has the parts that the term `finding-part` gives, such as its subject,
+its message, and its spot, and these parts can have parts of their own.
 
 For example, a repository declares the finding class `no-test`, which
 reports an item of the kind requirement that no test cites. In a tree,
@@ -173,10 +153,7 @@ with spans.
 The span of a spot starts and ends at boundaries of the body, and at no
 boundary inside a line ending. A boundary is inside a line ending when
 a line ending starts before it and ends after it: that is the boundary
-between the carriage return and the line feed of a line ending. Of the
-other boundaries of the body, no two have the same position. So the
-position of each boundary where the span of a spot can start or end
-names that boundary alone.
+between the carriage return and the line feed of a line ending.
 
 The start position of a spot is the position of the boundary where its
 span starts, and the position after a spot is the position of the
@@ -227,9 +204,7 @@ boundaries of the line on which the span of the spot of the finding
 starts. The message of the mark says what is wrong there. A finding has
 a mark only when its spot has a span. When the boundary where the span
 of the spot of the finding starts is a boundary of no line, that spot
-has no mark. The span of a spot can start at such a boundary only where
-a body ends when its last character is a line feed, and at the one
-boundary of an empty body.
+has no mark.
 
 A related message of a finding is a message, alone or with a spot, that
 helps to explain the finding. Its spot is in the tree of the finding or
@@ -246,42 +221,20 @@ spot.
 
 ### 2.4 Edits and edit sets
 
-An edit is a spot with a span, together with a text, its new text. In
-the edited text, the new text replaces the text of the span. An edit
-with an empty span inserts its new text at the boundary of the span. An
-edit with an empty new text removes the text of its span.
+An edit is a spot with a span, together with a text, its new text,
+which replaces the text of the span (term `edit`).
 
-An edit set is one or more edits in one tree. For each two edits of an
-edit set at the same valid path, exactly one of the two spans ends at or
-before the boundary where the other starts. So two edits at the same
-valid path have no character in common, no two of them insert at the
-same boundary, and no one of them inserts at a boundary inside the span
-of another. Two edits at the same valid path can be next to each other:
-one can end at the boundary where the other starts. An insertion at the
-boundary where a non-empty span starts comes before the new text of that
-span, and an insertion at the boundary where a non-empty span ends comes
-after it.
+An edit set is one or more edits in one tree, such as two edits at one
+valid path, one after the other (term `edit-set`).
 
-The edited text of a valid path for an edit set is the text of the
-content of the file at that valid path, in which the text of the span of
-each edit at that valid path is replaced by the new text of that edit.
-The text before the first span, between each two spans, and after the
-last span stays as it was, a byte order mark included. The edited tree
-of an edit set in a tree is the tree with the same valid paths as that
-tree, in which the content of the file at each valid path of an edit of
-the set is the UTF-8 encoding of its edited text. The other files keep
-the contents that they have in that tree. To make the edits of an edit
-set is to change the files of the tree into the files of the edited
-tree: the file at each valid path gets the content of the file at that
-valid path in the edited tree, and no file is added or removed.
+The edited text of a valid path, and the edited tree of an edit set, are
+the text and the tree that the edits of the set give (terms
+`edited-text` and `edited-tree`).
 
-An edit description is a text, its path, a first position, a second
-position, and a text, its new text. It describes an edit when the tree
-has the spot from the first position to the second position at the
-path: the edit is that spot, with the new text of the edit description.
-A sequence of edit descriptions describes an edit set when it has one
-or more edit descriptions, each of them describes an edit, no two
-describe the same edit, and these edits are an edit set.
+An edit description is a path, two positions, and a new text, which
+describe the edit of the spot from the first position to the second
+position at the path, when the tree has that spot (term
+`edit-description`).
 
 In the examples, each edit description has the valid path of the one
 file, and it shows its first position and its second position as
@@ -330,12 +283,6 @@ can have effect. An acknowledgment of a finding that is not ackable has
 no effect. Each edit set of the fix of a finding corrects the finding,
 or adds an acknowledgment of it when the finding is ackable.
 
-The fix of a finding is mechanical when, and only when, it has exactly
-one edit set, and that edit set corrects the finding and adds no
-acknowledgment of a finding. So the edits of a mechanical fix can be
-made with no choice between edit sets, and they add no acknowledgment of
-a finding.
-
 For example, a repository declares the finding class `old-word`, which
 reports a word that its word list replaces. Line 3 of `docs/guide.md` is
 `The stamp comes last.`, and the word list replaces `stamp` with
@@ -344,34 +291,26 @@ column 22, and the mark from line 3, column 5 to line 3, column 10. Its
 fix has one edit set, with one edit at `docs/guide.md`, from line 3,
 column 5 to line 3, column 10, with the new text `approval`. After the
 edit, line 3 is `The approval comes last.`, and the condition no longer
-holds. So the fix is mechanical. If the word list gave two words for
-`stamp`, the fix would have two edit sets, one for each word.
+holds. If the word list gave two words for `stamp`, the fix would have
+two edit sets, one for each word.
 
 ### 2.6 The identity of a finding
 
-The finding id of a finding is the text `finding:`, then the slug that
-names its finding class, then `:`, then its subject. So the finding of
-the class `no-test` with the subject `billing#due-date` has the finding
-id `finding:no-test:billing#due-date`. A slug holds no `:`, so the first
-`:` after `finding:` ends the slug, and the subject can hold `:`.
+The finding id of a finding is made from the slug that names its
+finding class and from its subject, such as
+`finding:no-test:billing#due-date` for the finding of the class
+`no-test` with the subject `billing#due-date` (term `finding-id`).
 
-Two findings are the same finding when the slugs that name their
-finding classes are the same text and their subjects are the same text.
-This holds for two findings of two trees, and for two findings that a
-program gives in two executions. The spot, the mark, the related
-messages, the message, the fix, and whether a finding is ackable do not
-change which finding it is. So when lines move in a file, a finding
-whose subject does not change stays the same finding.
+Two findings with the same slug and the same subject are the same
+finding, in any tree and in any execution, so a finding whose subject
+does not change stays the same finding when lines move in a file (term
+`same-finding`).
 
-In one execution, a conforming program can give one finding more than
-once, such as once in a text for people and once in a JSON text. Each
-part that it gives is then the same each time, also when the part is
-none. So, in one execution in which its input does not change, a
-conforming program never gives two different things as one part of two
-findings with the same slug and the same subject, when both are findings
-of one tree or both are findings of no tree. What a program gives when
-its input changes while it runs is a matter of quality of
-implementation.
+In one execution, a conforming program that gives one finding more than
+once, such as once in a text for people and once in a JSON text, gives
+the same parts each time (requirement `give-consistent-findings`). What
+a program gives when its input changes while it runs is a matter of
+quality of implementation.
 
 ## 3. Definitions
 
@@ -693,21 +632,6 @@ An edit set in a tree corrects a finding of that tree when, and only
 when, in the edited tree of the edit set, the condition that the finding
 reports no longer holds for what the finding is about, wherever the
 edits of the edit set move that thing.
-
-### 3.22 Mechanical fixes
-
-@term mechanical-fix=v1
-@cites {
-    ontology#{finding-class=v1},
-    #{
-        fix=v1, edit-set=v1, correction=v1, added-acknowledgment=v1,
-        finding-part=v1,
-    },
-}
-
-The fix of a finding is mechanical when, and only when, it has exactly
-one edit set, and that edit set corrects the finding and adds no
-acknowledgment of a finding.
 
 ## 4. Requirements
 
