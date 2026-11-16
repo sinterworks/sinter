@@ -1274,9 +1274,8 @@ directory as this design. A vector is an input and what a conforming
 program gives for it. Each vector follows from the requirements and adds
 nothing to them. The vectors are in groups. Each group has a name, such
 as `decode`, and a subsection below. The subsection names the
-requirements that the vectors of the group follow from, and it
-describes their inputs, results, and values. Each vector of a group
-follows from one or more of these requirements.
+requirements that the vectors of the group follow from, and it describes
+their inputs, results, and values.
 
 Several requirements apply only when a program gives the thing that they
 name, such as a line number. So a vector holds a program only to what
@@ -1308,9 +1307,7 @@ The JSON object of a vector line has these members:
 
 - `n`: the number of the vector, a JSON number written as the decimal
   numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
+  has this number.
 - `rev`: the revision of the vector.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
@@ -1328,13 +1325,8 @@ The JSON object of a vector line has these members:
   it has an explanation.
 
 A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. A change of a note alone
-changes no revision. A program does not need the revisions to run the
-vectors.
+number of 1 or more, such as `"v1"`. A program does not need the
+revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
 the subsection of a group names as a text, a byte sequence, a whole
@@ -1391,7 +1383,6 @@ The group `encode` holds the vectors of the requirement
 `give-utf-8-encodings`. Each vector gives a text and its UTF-8 encoding.
 
 - `input`: the text.
-- `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `encoding`: the UTF-8
   encoding of the text.
 
@@ -1409,7 +1400,6 @@ The group `lines` holds the vectors of the requirements `give-lines`,
 and the lines of the text.
 
 - `input`: the text.
-- `result`: no vector of the group has this member.
 - `values`: a JSON object with two members. `runs` is a JSON array of
   the lines of the text, as runs, in the order of their line numbers.
   `texts` is a JSON array of the texts of these lines, in the same
@@ -1438,7 +1428,6 @@ body of the text, and the position of the character at that place.
 
 - `input`: a JSON object with two members: `text`, the text, and
   `place`, the place.
-- `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `position`: the position of
   the character at the place.
 
@@ -1458,7 +1447,6 @@ span of the text, and the start and the end of the span.
 
 - `input`: a JSON object with two members: `text`, the text, and `run`,
   the span.
-- `result`: no vector of the group has this member.
 - `values`: a JSON object with two members: `start`, the start of the
   span, and `end`, the end of the span.
 
