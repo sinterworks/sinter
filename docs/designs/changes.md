@@ -1626,16 +1626,12 @@ program when it started, such as its standard output.
 @req read-only-repository-files=v1
 @cites {
     posix/2024,
-    gitdoc/git-config,
     #{
         repository-file=v1, repository-read=v1, program-file=v1,
-        remote-transfer=v1, repository-value=v1,
+        remote-transfer=v1,
     },
-    files#{
-        system=v1, symbolic-link=v1, taken-byte=v1, folder=v1,
-        folder-tree=v1,
-    },
-    text#{conforming-program=v1, code-span=v1},
+    files#{system=v1, symbolic-link=v1, taken-byte=v1},
+    text#{conforming-program=v1},
 }
 
 In each repository read, a conforming program, itself or through any
@@ -1656,12 +1652,6 @@ program that it uses, must take bytes only from these:
    that a program that makes that fetch reads as it is set up, such as
    the configuration and the keys of an SSH client or the store of a
    credential helper.
-
-Item 6 holds no file that a program reaches by a pathname made from a
-value from the git repository, and no file of the folder tree of a
-folder that a program reaches by such a pathname, such as the file that
-the setting `http.cookieFile` names. Such a file is still a file of
-item 1 when it is a repository file of the git repository.
 
 ### 5.25 No permission or privilege that the process did not have
 
@@ -1750,9 +1740,9 @@ sense.
     #{
         git-folder=v1, working-tree=v1, git-configuration=v1,
         ignored-path=v1, repository-read=v1, program-file=v1,
-        remote-transfer=v1, repository-value=v1,
+        remote-transfer=v1,
     },
-    files#{symbolic-link=v1, folder=v1, folder-tree=v1},
+    files#{symbolic-link=v1, folder=v1},
     text#{conforming-program=v1},
 }
 
@@ -1766,10 +1756,8 @@ the page gitattributes gives for the git repository or for a working
 tree of it other than as a file `.gitattributes` in a folder of a
 working tree, to a program file of the conforming program, or, in a
 fetch that is part of the repository read, to a file that a program that
-makes that fetch reads as it is set up, when that program reaches
-neither that file nor a folder whose folder tree holds that file by a
-pathname made from a value from the git repository: it must find no
-file by the reference of such a symbolic link.
+makes that fetch reads as it is set up: it must find no file by the
+reference of such a symbolic link.
 
 ## 6. Conformance
 
