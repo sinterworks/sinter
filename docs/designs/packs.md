@@ -107,7 +107,7 @@ globals, instances, traps, and the execution of code. From ECMA-262
 | [file of a pack](sinter:#pack=v1) | a valid path, such as `queries/rust/tags.scm`, whose last file name names a regular file in the folder tree of the pack, and a content, which is the content of that regular file |
 | [have a file](sinter:#pack=v1) | a pack has the file p when it has a file whose valid path is p |
 | [code point order](sinter:text#code-point-order=v1) | the order of texts by the code points of their characters, place by place, in which a text comes before each longer text that starts with it |
-| [pack path](sinter:#pack-path=v1) | a valid path of at most 255 characters, each a printable ASCII character other than `\`, such as `grammars/rust.wasm` |
+| [pack path](sinter:#pack-path=v1) | a valid path whose characters are each a printable ASCII character other than `\`, such as `grammars/rust.wasm` |
 | [paths of a pack](sinter:#well-named-pack=v1) | the valid paths of the files of the pack, and each part of one of them from its start to right before a `/`, such as `queries` and `queries/rust` for the file `queries/rust/tags.scm` |
 | [ASCII case folding](sinter:#well-named-pack=v1) | the change of each letter from `A` to `Z` of a text to the same letter from `a` to `z`, with no change to any other character |
 | [well named](sinter:#well-named-pack=v1) | a pack is well named when the entry name of each folder entry on the way to a regular file of its folder tree is the UTF-8 encoding of a file name, each path of the pack is a pack path, and no two paths of the pack are the same text after ASCII case folding |
@@ -214,8 +214,8 @@ A pack is well named when it meets three rules. First, the entry name of
 each folder entry on the way to a regular file of the folder tree is the
 UTF-8 encoding of a file name. So a valid path names each regular file,
 and two folder entries of one regular file, such as two hard links, give
-two files of the pack. Second, each path of the pack is a pack path: at
-most 255 characters, each a printable ASCII character from U+0020 to
+two files of the pack. Second, each path of the pack is a pack path:
+each of its characters is a printable ASCII character from U+0020 to
 U+007E other than `\`, with no file name `.` or `..`. So a pack path can
 hold a space, and it holds no line feed. Third, no two paths of the pack
 are the same text after ASCII case folding, which changes each letter
@@ -729,10 +729,9 @@ when, and only when, it has a file whose valid path is p.
 ### 4.2 Pack paths
 
 @term pack-path=v1
-@cites text#{production=v1, rule-name=v1, code-span=v1, text=v1, character=v1}
+@cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
 
-A pack path is a text of at most 255 characters that matches the
-production `pack-path`:
+A pack path is a text that matches the production `pack-path`:
 
 ```abnf
 pack-path       = pack-path-name *( "/" pack-path-name )
@@ -1822,7 +1821,7 @@ that runs the vectors compares them as sets. With `{}`, it gives none of
 these values.
 
 ```
-{"group":"descriptors","input":"ff","n":52,"note":"not valid UTF-8","result":"invalid","rev":"v1","values":{}}
+{"group":"descriptors","input":"73696e7465722d73706563203d2022312e30220a6e616d65203d202278220a76657273696f6e203d2022302e312e30220a6c6963656e7365203d20224d4954220a6e616d652d736570617261746f72203d20223a3a220a0a6772616d6d6172203d205b5d0a0a5b636f6d6d656e74735d0a0a","n":28,"note":"the array grammar of the root table holds one or more tables","result":"invalid","rev":"v1","values":{}}
 ```
 
 #### 5.9.2 File grammars
@@ -2835,9 +2834,6 @@ for and when a vector has it:
   different files. A vector has this need when two entry names of one
   folder of its folder tree differ only in the case of ASCII letters,
   such as `README.md` and `readme.md`.
-- `long-names`: the folder tree is on a file system that allows each
-  entry name of the folder tree, with all its bytes. A vector has this
-  need when an entry name of its folder tree has more than 14 bytes.
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the check makes it, byte for byte. A
   vector has this need when an entry name of its folder tree is valid
