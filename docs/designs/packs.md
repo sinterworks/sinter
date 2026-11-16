@@ -53,16 +53,7 @@ output of the process, use no network, read no clock, and start no
 process.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
-case-sensitive strings of RFC 7405. A production, such as
-`grammar-name = %x61-7A *( %x61-7A / DIGIT / "_" )`, gives the texts
-that its rule name matches. In a production, `/` separates two
-alternatives, and `( )` groups elements. `*` repeats the element after
-it any number of times, zero included, `1*` repeats it one or more
-times, and `3*` repeats it three or more times. `%x61` is the character
-U+0061, and `%x61-7A` is any one character from U+0061 to U+007A. A
-quoted string such as `"-"` is its characters, and `%s"label."` matches
-its letters only in the same case. `ALPHA` and `DIGIT` are core rules of
-RFC 5234: an ASCII letter and an ASCII digit.
+case-sensitive strings of RFC 7405.
 
 From Text and notation, the design takes characters, code points, texts,
 places, boundaries, runs, and code point order; bytes, byte sequences,
@@ -210,20 +201,12 @@ A pack can have other files, such as `README.md`. The pack hash covers
 them too. A valid pack holds only folders and regular files: no
 symbolic link, and no file of another kind.
 
-A pack is well named when it meets three rules. First, the entry name of
-each folder entry on the way to a regular file of the folder tree is the
-UTF-8 encoding of a file name. So a valid path names each regular file,
-and two folder entries of one regular file, such as two hard links, give
-two files of the pack. Second, each path of the pack is a pack path:
-each of its characters is a printable ASCII character from U+0020 to
-U+007E other than `\`, with no file name `.` or `..`. So a pack path can
-hold a space, and it holds no line feed. Third, no two paths of the pack
-are the same text after ASCII case folding, which changes each letter
-from `A` to `Z` to the same letter from `a` to `z`. So a pack cannot
-have both `queries/rust/tags.scm` and `queries/Rust/tests.scm`, because
-the paths `queries/rust` and `queries/Rust` are the same text after
-ASCII case folding. An empty folder is no path of the pack, so its name
-breaks no rule.
+A pack is well named when it meets the conditions of a
+[well-named pack](sinter:#well-named-pack=v1). For example, a pack
+cannot have both `queries/rust/tags.scm` and `queries/Rust/tests.scm`,
+because the paths `queries/rust` and `queries/Rust` are the same text
+after ASCII case folding. An empty folder is no path of the pack, so its
+name breaks no rule.
 
 A use of a pack is an operation that a program makes to give, for the
 pack, whether it is well named, the valid paths of its files, its pack
@@ -236,10 +219,7 @@ the files of that folder tree, it takes bytes only from its folders and
 its regular files. It does not wait for another process or for a device
 to act on a file of another kind, such as a pipe, of that folder tree.
 It changes no file of that folder tree. It uses no permission and no
-privilege that its process did not have. A program that cannot take the
-bytes of a file of the folder tree, such as for lack of a permission,
-gives a result of that use only when that result is the one that the
-requirements give; it can give no result. What a program gives from a
+privilege that its process did not have. What a program gives from a
 pack that another process changes during a use, or with a grammar whose
 results depend on what the WebAssembly Core Specification 2.0 leaves to
 its embedder, is not specified; the rules of this paragraph still hold.
@@ -270,20 +250,9 @@ Only a well-named pack has a pack listing and a pack hash.
 ### 2.3 The descriptor
 
 The descriptor of a pack is the content of its file `pack.toml`. A
-valid descriptor is a TOML document, and its root table holds these
-keys. A key with the default "none" can be absent.
-
-| key | TOML value | default | value |
-|---|---|---|---|
-| `sinter-spec` | string | required | a spec version: the oldest version of the specifications of Sinter that the pack needs, such as `1.0` |
-| `name` | string | required | the name of the pack: a pack name |
-| `version` | string | required | the release number of the pack, such as `1.0.3` |
-| `license` | string | required | the license of the descriptor and the query files: a TOML string, such as an SPDX license expression |
-| `name-separator` | string, not empty | required | the name separator |
-| `foreign-tags` | array of strings | none | the foreign tag words, each without its `@` |
-| `comments` | table | required | the comment sigils |
-| `grammar` | array of one or more tables | required | the grammars |
-| `runner` | table | none | the test runners |
+valid descriptor is a TOML document whose root table holds the keys,
+each with a TOML value of the right form, that the definition of a
+[valid descriptor](sinter:#valid-descriptor=v1) gives.
 
 The table `comments` can hold three keys: `line`, an array of line
 sigils; `block`, an array of block pairs, each an array of an opening
@@ -292,16 +261,8 @@ comment sigil opens a comment, closes a comment, or starts a line of a
 block comment after its first line. A comment sigil can be any text,
 the empty text included.
 
-Each table of the array `grammar` describes one grammar, with four
-keys, all required:
-
-| key | TOML value | value |
-|---|---|---|
-| `name` | string | the grammar name `<g>`. The file of the grammar is `grammars/<g>.wasm`, and it exports the function `tree_sitter_<g>` |
-| `sha256` | string | the hash that the descriptor gives for the file of the grammar, as 64 lower-case hex digits |
-| `license` | string | the license of the grammar: a TOML string, such as an SPDX license expression |
-| `names` | array of strings | the file-name globs: valid globs, such as `*.ts` |
-
+Each table of the array `grammar` describes one
+[grammar of the descriptor](sinter:#descriptor-grammar=v1).
 No two grammars of a descriptor have one name. A file-name glob is
 fitted against the last file name of a valid path, and not against the
 whole path. The file grammar of a valid path is the first grammar, in
@@ -313,14 +274,10 @@ The table `runner` holds one table for each test runner, under the name
 of the test runner, which is a pack name. A test runner is a program
 that runs tests and gives a test result for each test that it runs, and
 that writes report files. The table of a test runner holds exactly one
-of `adapter` and `match`, and it can hold `settings`:
-
-| key | TOML value | value |
-|---|---|---|
-| `adapter.sha256` | string | the adapter hash: the hash that the descriptor gives for the file `adapters/<r>.wasm` |
-| `adapter.license` | string | the adapter license: the license of the adapter, a TOML string, such as an SPDX license expression |
-| `match` | table | the match table: data that describes how the test results of the report files of the test runner bind to test entries, for a test runner that has no adapter of its own |
-| `settings` | table | the runner settings, each with its default value: a string, a boolean, or an array of strings |
+of `adapter` and `match`, and it can hold `settings`. The definitions of
+a [test runner](sinter:#test-runner=v1) and of a
+[runner setting](sinter:#runner-setting=v1) give the values that these
+keys hold.
 
 The descriptor gives each license as a TOML string, and a valid
 descriptor puts no rule on the form of that string. A runner setting is
@@ -388,20 +345,9 @@ that the pattern captures, each under a capture name. A capture name
 that starts with `_` is for the predicates of a pattern alone: no
 other rule takes its nodes. There are three kinds of query file, and
 each kind has its own capture names. The role names are the capture
-names that give the kind of thing that a match finds.
-
-| kind | file | role names | other capture names |
-|---|---|---|---|
-| comment | `tags.scm` | `comment`: a comment; `untagged`: a comment that carries no tags | none |
-| definition | `definitions.scm` | `definition`: a definition; `decoration`: a decoration | `name`: the node whose text is the name of the definition; `body`: the body of the definition |
-| test | `tests.scm` | `case`: a test case; `suite`: a test suite | `name`: a text piece of the name; `placeholder`: a placeholder of the name; `label.<word>`: the test label `<word>` |
-
-Each pattern captures exactly one role name, once. A pattern of the kind
-definition with the role name `definition` captures `name` once or not
-at all, and `body` once or not at all. A pattern with the role name
-`decoration` captures no `definition`, `name`, or `body`. A word of a
-test label starts with a lower-case ASCII letter, and it holds
-lower-case ASCII letters, ASCII digits, and `-`.
+names that give the kind of thing that a match finds. The definition of
+a [query file](sinter:#query-file=v1) gives the capture names of each
+kind, and how many times a pattern captures each of them.
 
 A pattern can use only these ten predicates, the text predicates, which
 a conforming program applies to the matches of the query language:
@@ -564,19 +510,13 @@ A runner adapter is a WebAssembly module that reads the report files of
 one test runner and binds their test results to test entries, which
 stand for test nodes. A pack has at most one adapter for each test
 runner: the file `adapters/<r>.wasm`. In a decision of a program, the
-module is a valid adapter when it is a WebAssembly module of the
-WebAssembly Core Specification 2.0, when it imports nothing (no
-function, no memory, no table, and no global), when it exports these
-five names, with these types, and when it gives the version of the
-interface, as the paragraph after the table says:
-
-| export | type | what it does |
-|---|---|---|
-| `memory` | memory | the linear memory of the module |
-| `sinter_interface` | `[] -> [i32]` | gives the version of the interface: `1` |
-| `sinter_alloc` | `[i32] -> [i32]` | reserves the given number of bytes in `memory`, and gives the address of the first byte, an address other than `0`, also for 0 bytes; gives `0` only when it cannot reserve the bytes |
-| `sinter_recognise` | `[i32 i32 i32 i32] -> [i64]` | the function recognise: says whether the report content is the content of a report file of the test runner |
-| `sinter_bind` | `[i32 i32 i32 i32] -> [i64]` | the function bind: reads the test results of the report content and binds them to test entries |
+module is a [valid adapter](sinter:#valid-adapter=v1) when it is a
+WebAssembly module of the WebAssembly Core Specification 2.0, when it
+imports nothing (no function, no memory, no table, and no global), when
+it exports the five names `memory`, `sinter_interface`, `sinter_alloc`,
+`sinter_recognise`, and `sinter_bind`, with the types that the
+definition of a valid adapter gives, and when it gives the version of
+the interface, as the next paragraph says.
 
 The module can export other names, such as the globals `__data_end` and
 `__heap_base` that some compilers add. This is version 1 of the
@@ -627,72 +567,22 @@ process gets to the code of an adapter.
 ### 2.8 Requests and responses
 
 The request is the canonical byte sequence of a JSON object, so the
-members of each object of the request stand in key order. For the
-function recognise, it has the members `interface`, the integer `1`;
-`runner`, the name of the test runner; `settings`, the value of each
-runner setting under the binding of `runner-settings`; and `report`, the
-report name: a text, such as the path of a report file as a person gave
-it. For the function bind, it also has `root`, a text such as the
-absolute path of the root of the repository, and `tests`: one object for
-each test entry, in the code point order of their test entry ids.
-
-A test entry gives an adapter one test node: a test entry id, which
-names the test node in the call; a path, the valid path at which the
-reading read the text of the test node; the line numbers of the start
-and the end of its run, `line` and `eline`; `suite`, true for a test
-suite and false for a test case; `names`, its name path, one array for
-each name, with one object for each piece, `{"text": ...}` for a text
-piece and `{"placeholder": ...}` for a placeholder; and `labels`, its
-test labels, in code point order. For example, the request of a call of
-recognise for the test runner `vitest`, with the runner setting
-`recognise` at its default value, and the report name `out/junit.xml`,
-is the UTF-8 encoding of this text:
+members of each object of the request stand in key order. The
+definition of a [request](sinter:#adapter-request=v1) gives the members
+of the request objects of the functions recognise and bind. For example,
+the request of a call of recognise for the test runner `vitest`, with
+the runner setting `recognise` at its default value, and the report
+name `out/junit.xml`, is the UTF-8 encoding of this text:
 
 ```
 {"interface":1,"report":"out/junit.xml","runner":"vitest","settings":{"recognise":["testsuites@name=vitest tests"]}}
 ```
 
-The response is a JSON text in UTF-8. The response of recognise is
-`{"recognised":true}` or `{"recognised":false}`. The response of bind
-is an object with three members, all required:
-
-| member | value |
-|---|---|
-| `results` | an array of result objects: each test result that the adapter read, in the order of the report content |
-| `bindings` | an array of binding objects, each of which binds a test result to a test entry |
-| `warnings` | an array of strings: texts for the person who runs the program, such as about a kind of test result that the adapter cannot bind; it can be empty |
-
-A result object has these members:
-
-| member | value |
-|---|---|
-| `name` | a string: the name of the test result, as the report content writes it |
-| `status` | the string `pass`, `fail`, `error`, or `skip` |
-| `file` | a string: the file of the test result, as the report content writes it; absent when the report content gives none |
-| `line` | an integer of 1 or more: the line of the test result; absent when the report content gives none |
-| `ms` | an integer of 0 or more: the duration of the test result in whole milliseconds; absent when the report content gives none |
-
-A binding object has these members, all required:
-
-| member | value |
-|---|---|
-| `result` | an integer: 1 less than the index of the test result in `results`, so 0 for the first test result |
-| `test` | a string: the test entry id of a test entry of the request |
-| `reason` | a string with no line feed: why the test result binds to the test entry |
-
-When the adapter cannot read the report content, the response is
-`{"error": <text>}`, and the result of the call is "failed", with that
-error text. The result of a call is also "failed" when its response
-breaks these rules, such as: when the response has no JSON value, as
-Data forms defines the JSON value of a byte sequence, for example when
-it is not valid UTF-8, when it is not a JSON text, or when it holds
-`null` or a number with a fraction; when a member is missing, of the
-wrong type, or not one of the members above; when the value of `result`
-of a binding object is not less than the number of test results; when
-the value of `test` of a binding object is not the test entry id of a
-test entry of the request; or when one pair of a test result and a test
-entry occurs twice. This response of bind binds one test result to one
-test entry:
+The response is a JSON text in UTF-8. The definition of the
+[result of a call](sinter:#call-result=v1) gives the result of a call
+from its response, and the test results, the binding objects, the
+warnings, and the error text of the adapter that the call gives. This
+response of bind binds one test result to one test entry:
 
 ```
 {"bindings":[{"reason":"name and file match","result":0,"test":"t1"}],"results":[{"file":"src/math.test.ts","ms":3,"name":"math > adds","status":"pass"}],"warnings":[]}
