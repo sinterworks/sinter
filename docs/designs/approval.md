@@ -882,54 +882,13 @@ gives, or no commit when that input has no member `line`; the inputs of
 the groups `acceptance` and `findings` do not depend on that binding. No
 other process changes these inputs while the program reads them.
 
-The file is a [test-vector set](sinter:data-forms#test-vector-set=v1).
-Each line of the file is the
-[canonical byte sequence](sinter:data-forms#canonical-byte-sequence=v1)
-of one JSON object, then the byte 0x0A, so each line is a JSON text, as
-RFC 8259 defines it. The file has three kinds of line, in this order:
+The file is a test-vector set, as the specification
+[`test-vectors`](sinter:data-forms#test-vectors=v1) of Data forms gives
+it. Only the vectors of the group `states` have the member `result`, and
+only those of the groups `acceptance` and `findings` have the member
+`values`.
 
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `acceptance`,
-   `findings`, `states`. Its JSON object has two members: `group`, the
-   name of the group, as a JSON string, and `rev`, the revision of the
-   group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
-
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number. A number is given to one vector only: when a vector
-  leaves the file, no later vector gets its number, and a new vector
-  gets a number greater than each number before it.
-- `rev`: the revision of the vector.
-- `group`: the name of the group of the vector, as a JSON string.
-- `input`: the input.
-- `result`: the result that a conforming program gives when it gives a
-  result for the input. Only the vectors of the group `states` have this
-  member.
-- `values`: a JSON object that holds what a conforming program gives
-  for the input, other than the result. Only the vectors of the groups
-  `acceptance` and `findings` have this member.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
-
-No vector has the member `needs`: the vectors of this design have no
-need names.
-
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. The revision of the set line is the
-revision of the whole set, the revision of a group line is the revision
-of the group, and the revision of a vector line is the revision of the
-vector. A revision rises, to a greater number after its `v`, when the
-vectors that it covers change, join, or leave. When the text of this
-section, other than its headings and the vector lines that it shows,
-changes, the revisions of every vector, every group, and the set rise.
-When only the note of a vector changes, no revision rises. A program
-does not need the revisions to run the vectors.
+A program does not need the revisions to run the vectors.
 
 Inside the members `input`, `result`, and `values`, a text, such as a
 subject text, a hash, or a position subject, is a JSON string whose
