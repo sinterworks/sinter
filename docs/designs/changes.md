@@ -106,8 +106,8 @@ their bindings.
 From Data forms (`data-forms`), the design takes test-vector sets, in the
 format that its specification `test-vectors` gives: the file that holds
 the conformance vectors of the design is one. From
-POSIX.1-2024, it takes processes and the shell, pathnames, environment
-variables, the permissions and the appropriate
+POSIX.1-2024, it takes processes and the shell, pathnames, pipes,
+environment variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`: each
@@ -1609,7 +1609,7 @@ other than in an own change of that repository read, as that term gives
 these words, and other than a file that was open for the program when it
 started, such as its standard output.
 
-### 5.24 Bytes only from the files of the repository
+### 5.24 Bytes only from the repository and the fetches of the read
 
 @req read-only-repository-files=v1
 @cites {
@@ -1618,27 +1618,30 @@ started, such as its standard output.
         repository-file=v1, repository-read=v1, program-file=v1,
         remote-transfer=v1, repository-value=v1,
     },
-    files#{
-        system=v1, symbolic-link=v1, file-of-another-kind=v1,
-        taken-byte=v1,
-    },
+    files#{system=v1, symbolic-link=v1, taken-byte=v1},
     text#{conforming-program=v1},
 }
 
 In each repository read, a conforming program, itself or through any
-program that it uses, must take bytes only from the repository files of
-the git repository; from the symbolic links on the pathnames by which it
-reaches them; from a pipe between it and a program that it uses; from a
-file or a pipe that was open for the program when it started, such as
-its standard input; from a file that it created in that execution; from
-a program file of the conforming program; from the files that the
-system or the libraries of a program read to run it; and, in a fetch
-from a remote, when that fetch is part of the repository read, from the
-git repository at an address of that remote for a fetch, from the
-connections through which that fetch reaches it, and from the files
-that the programs that make that fetch read, such as the configuration
-and the keys of `ssh` or the store of a credential helper, other than a
-file that a value from the git repository names or chooses.
+program that it uses, must take bytes only from these:
+
+1. the repository files of the git repository, and the symbolic links on
+   the pathnames by which it reaches them;
+2. a pipe between it and a program that it uses, and a file or a pipe
+   that was open for the program when it started, such as its standard
+   input;
+3. a file that it created in that execution;
+4. a program file of the conforming program;
+5. in a fetch from a remote that is part of the repository read, the git
+   repository at an address of that remote for a fetch, and the
+   connections through which that fetch reaches it;
+6. a file that the system or the libraries of a program read to run that
+   program, and, in a fetch that is part of the repository read, a file
+   that a program that makes that fetch reads as it is set up, such as
+   the configuration and the keys of an SSH client or the store of a
+   credential helper; in each case other than a file whose pathname a
+   value from the git repository gives, or a file in a folder whose
+   pathname such a value gives.
 
 ### 5.25 No permission or privilege that the process did not have
 
@@ -1723,6 +1726,7 @@ a sandbox, is not a program that runs in this sense.
     #{
         git-folder=v1, working-tree=v1, git-configuration=v1,
         ignored-path=v1, repository-read=v1, program-file=v1,
+        remote-transfer=v1, repository-value=v1,
     },
     files#{symbolic-link=v1},
     text#{conforming-program=v1},
@@ -1736,8 +1740,12 @@ working tree of it, to the file `info/exclude` of the git folder, to the
 excludes file of a working tree of it, to a file of git attributes that
 the page gitattributes gives for the git repository or for a working
 tree of it other than as a file `.gitattributes` in a folder of a
-working tree, or to a program file of the conforming program: it must
-find no file by the reference of such a symbolic link.
+working tree, to a program file of the conforming program, or, in a
+fetch that is part of the repository read, to a file that a program that
+makes that fetch reads as it is set up, other than a file whose pathname
+a value from the git repository gives or a file in a folder whose
+pathname such a value gives: it must find no file by the reference of
+such a symbolic link.
 
 ## 6. Conformance
 
