@@ -26,13 +26,14 @@ give the same bytes.
 A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
 with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0,
 that has no value error, and whose keys, tables, and strings break no
-statement of TOML 1.1.0. At each point where TOML 1.1.0 lets an
+statement of TOML 1.1.0. At the points where TOML 1.1.0 lets an
 implementation choose, such as the number of digits of a fraction of a
-second, a conforming program makes one fixed choice. When a conforming
-program gives a result for whether a byte sequence is a TOML document,
-it gives the result "valid" for a TOML document and "invalid" for every
-other byte sequence. For a TOML document, it can also give the root
-table and the spans of its keys and values, with their locations.
+second, a conforming program makes the choices of the reading rules of
+TOML. When a conforming program gives a result for whether a byte
+sequence is a TOML document, it gives the result "valid" for a TOML
+document and "invalid" for every other byte sequence. For a TOML
+document, it can also give the root table and the spans of its keys and
+values, with their locations.
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is its digest as 64 hex digits. A
@@ -109,7 +110,7 @@ case-sensitive strings of RFC 7405.
 | [array](sinter:#json-value=v1) | a finite sequence of JSON values, its elements |
 | [object](sinter:#json-value=v1) | a finite set of members in which no two members have the same key |
 | [member](sinter:#json-value=v1) | a key, which is a text, and a JSON value, which is the value of the member |
-| [UTF-16 code unit](sinter:#utf-16-code-unit=v1) | a number from 0 to 65,535; a character has one or two of them, as UTF-16 encodes it |
+| [UTF-16 code unit](sinter:#utf-16-code-unit=v1) | a code unit, as a whole number, that UTF-16, as RFC 2781 defines it, gives for a character |
 | [key order](sinter:#key-order=v1) | the order of texts by their UTF-16 code units, in which the members of an object stand in its canonical form |
 | [canonical form](sinter:#canonical-form=v1) | the one text that the rules of the canonical form give for a JSON value |
 | [string form](sinter:#canonical-form=v1) | the text that stands for one character of a string in the canonical form of the string, such as `\n` for the line feed and `a` for `a` |
@@ -1030,10 +1031,10 @@ date-time that the document gives before the offset.
 }
 
 These definitions use the terms key, key/value pair, table header,
-value, string, quoted key, array, inline table, and array of tables of
-TOML 1.1.0, and the rules `key`, `simple-key`, and `val` of the ABNF of
-TOML 1.1.0. They apply to a TOML document. Its spans are spans of the
-text of the byte sequence that is the TOML document:
+dotted key, value, string, quoted key, array, inline table, and array of
+tables of TOML 1.1.0, and the rules `key`, `simple-key`, and `val` of
+the ABNF of TOML 1.1.0. They apply to a TOML document. Its spans are
+spans of the text of the byte sequence that is the TOML document:
 
 - The span of the key of a key/value pair or of a table header is the
   run that the rule `key` matches for that key.
