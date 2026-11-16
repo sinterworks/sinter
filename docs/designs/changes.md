@@ -1707,12 +1707,13 @@ file on the system of the program, or to load a file as code that runs
 in the process of the program; to run a command is to have a shell or
 another program carry it out; and to give a program or a command to run
 to another computer, or to a server that an address reaches, as through
-`ssh` or at an address that is a local path, counts as running it, but
-what such a server then runs by its own setup, such as a hook of the git
-repository there, does not, on whatever computer it runs, also when that
-git repository is at a local path. Code that runs isolated from the rest
-of the process of the program, as WebAssembly code runs in a sandbox, is
-not a program that runs in this sense.
+`ssh` or at an address that is a local path, counts as running it.
+What such a server then runs by its own setup, such as a hook of the git
+repository there, does not count as running it, on whatever computer it
+runs, other than what a server at an address that is a local path runs
+in a fetch that is part of a repository read. Code that runs isolated
+from the rest of the process of the program, as WebAssembly code runs in
+a sandbox, is not a program that runs in this sense.
 
 ### 5.27 No symbolic link followed in a working tree
 
