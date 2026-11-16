@@ -222,7 +222,8 @@ It changes no file of that folder tree. It uses no permission and no
 privilege that its process did not have. What a program gives from a
 pack that another process changes during a use, or with a grammar whose
 results depend on what the WebAssembly Core Specification 2.0 leaves to
-its embedder, is not specified; the rules of this paragraph still hold.
+its embedder, is a matter of the quality of an implementation; the rules
+of this paragraph still hold.
 
 A conforming program may refuse a pack, a text, or a byte sequence that
 goes beyond limits of its own, such as on size, memory, or the time that
