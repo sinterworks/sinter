@@ -34,13 +34,7 @@ these texts are findings, such as a citation that names no item.
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405. A production, such as
 `front-matter-line = ( "+++" / "---" ) *WSP`, gives the texts that its
-rule name matches. In a production, `/` separates two alternatives, and
-`( )` groups elements. `*` repeats the element after it any number of
-times, zero included, and `1*` repeats it one or more times. `[ ]` makes
-an element optional. A quoted string such as `"+++"` is its characters,
-and `%s"x"` matches its letter only in the same case. `WSP` is a space
-or a tab, `SP` is a space, and `DIGIT` is an ASCII digit: these are core
-rules of RFC 5234.
+rule name matches.
 
 From Text and notation, the design takes characters, texts, places,
 boundaries, runs, bodies, line endings, lines, line numbers, positions,
@@ -112,7 +106,7 @@ the conformance vectors of the design is a JSON text.
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
 | [set of stopped files](sinter:#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files for whose reading it gives "parse failure" by the exception for limits of Language packs; any set of read files can be one |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
-| [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it: a line feed, a carriage return with a line feed right after it, and a carriage return that no line feed follows each end one |
+| [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
 | [section](sinter:#markdown-section=v1), [heading that opens a section](sinter:#markdown-section=v1) | the markdown lines from the first line of an ATX heading or a setext heading that no block quote and no list item contains, up to the line before the next such heading of the same or a smaller level, or to the end of the markdown text; the lines before the first such heading are the section of level 0 |
 | [first paragraph](sinter:#markdown-section=v1) | the first block after the heading of a section that no block quote, no list, and no list item contains, or the first such block of the markdown document for the section of level 0; or the first block of a list item that no block quote, no list, and no list item inside that list item contains; each only when that block is a paragraph |
@@ -209,9 +203,7 @@ program, and the program reads the rest of the tree.
 ### 2.2 Markdown files
 
 A markdown file is read by CommonMark 0.31.2, which divides its text
-into [markdown lines](sinter:#markdown-line=v1). A markdown line can
-differ from a line of the text: for example, a lone carriage return ends
-a markdown line, but not a line of the text. The positions of the
+into [markdown lines](sinter:#markdown-line=v1). The positions of the
 subjects of findings are always the positions of the text.
 
 A markdown file can start with [front matter](sinter:#front-matter=v1),
@@ -607,25 +599,15 @@ failure". Each other read file can be read.
 @term markdown-line=v1
 @cites {
     commonmark/0.31.2,
-    text#{
-        text=v1, run=v1, boundary=v1, body=v1, character=v1, place=v1,
-        line-feed=v1, carriage-return=v1,
-    },
+    text#{text=v1, run=v1, boundary=v1, body=v1},
 }
 
-A markdown line ending of a text is a run of its body that has only
-one of these: a line feed that no carriage return comes right before; a
-carriage return and the line feed right after it; or a carriage return
-that no line feed comes right after. A markdown line of a text is a run
-of its body that starts at the boundary where the body starts or at the
-boundary where a markdown line ending ends, and that ends at the first
-boundary, at or after the boundary where it starts, where a markdown
-line ending starts, or at the boundary where the body ends when no
-markdown line ending starts at or after the boundary where it starts. A
-run that ends at the boundary where the body ends is a markdown line
-only when it is not empty. The markdown lines of a text are in the order
-of the boundaries where they start. So they are the lines of CommonMark
-0.31.2 of the body of the text.
+A markdown line ending of a text is a run of its body that is a line
+ending of CommonMark 0.31.2. A markdown line of a text is a run of its
+body that is a line of CommonMark 0.31.2, without the line ending that
+follows it. A run that ends at the boundary where the body ends is a
+markdown line only when it is not empty. The markdown lines of a text
+are in the order of the boundaries where they start.
 
 ### 4.5 Front matter and markdown texts
 
@@ -678,15 +660,11 @@ its markdown text.
     },
 }
 
-The level of an ATX heading is the number of `#` of its opening
-sequence. The level of a setext heading is 1 when its underline is of
-`=`, and 2 when its underline is of `-`.
-
-The rest of this term is for a markdown file that can be read, and for
-the blocks of its markdown document as CommonMark 0.31.2 parses that
-document. A blank line is no block, and a link reference definition is a
-block. A block of the document itself is a block that no block quote, no
-list, and no list item contains. The k-th line of CommonMark 0.31.2 of
+This term is for a markdown file that can be read, and for the blocks
+of its markdown document as CommonMark 0.31.2 parses that document. A
+blank line is no block, and a link reference definition is a block. A
+block of the document itself is a block that no block quote, no list,
+and no list item contains. The k-th line of CommonMark 0.31.2 of
 the markdown document comes from the k-th markdown line of the markdown
 text. The markdown lines that a block takes are the markdown lines that
 the lines of CommonMark 0.31.2 that the block takes come from.
@@ -1840,9 +1818,7 @@ from it, replaces one of its characters with another character, or
 swaps two of its characters that are next to each other. The edit
 distance of two texts a and b is the least whole number n such that a
 sequence of n edits changes a into b, where each edit of the sequence
-changes the text that the edits before it give. So an edit can change a
-character that an earlier edit inserted or moved. The edit distance of
-`ca` and `abc` is 2.
+changes the text that the edits before it give.
 
 ### 4.48 Findings of the class `parse-error`
 
