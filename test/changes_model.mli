@@ -28,6 +28,13 @@ val bytes_of_json : Yojson.Basic.t -> string
     encoding of a JSON string, or the bytes of the member [bytes] of an object,
     in hex digits. It fails the test for any other JSON value. *)
 
+val commit_object_of_message_input : Yojson.Basic.t -> string
+(** [commit_object_of_message_input input] is the commit object of an input of a
+    vector of the group [message-texts]: the lines [tree], [author], and
+    [committer], the line [encoding] when the member [encoding] of [input] is
+    there, an empty line, and the bytes of the member [message]. It fails the
+    test when [input] is not an object of these two members. *)
+
 (** {1 Lines, line maps, and hunks} *)
 
 val line_texts : string option -> string list option

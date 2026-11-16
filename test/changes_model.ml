@@ -97,6 +97,27 @@ let bytes_of_json = function
   | other ->
       Alcotest.failf "not a byte sequence: %s" (Yojson.Basic.to_string other)
 
+let commit_object_of_message_input = function
+  | `Assoc members ->
+      let message =
+        match List.assoc_opt "message" members with
+        | Some json -> bytes_of_json json
+        | None -> Alcotest.fail "an input of message-texts has no message"
+      in
+      let encoding =
+        match List.assoc_opt "encoding" members with
+        | Some (`String value) -> "encoding " ^ value ^ "\n"
+        | Some _ -> Alcotest.fail "the member encoding is not a string"
+        | None -> ""
+      in
+      "tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\n"
+      ^ "author A U Thor <author@example.com> 1700000000 +0000\n"
+      ^ "committer C O Mitter <committer@example.com> 1700000000 +0000\n"
+      ^ encoding ^ "\n" ^ message
+  | other ->
+      Alcotest.failf "not an input of message-texts: %s"
+        (Yojson.Basic.to_string other)
+
 let line_texts = function
   | None -> None
   | Some content -> (

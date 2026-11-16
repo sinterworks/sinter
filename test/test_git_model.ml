@@ -156,15 +156,14 @@ let default_branch_vectors =
   Vectors.group set ~name:"default-branch-commits" ~rev:"v1" give_default_branch
 
 let give_message (vector : Vectors.vector) =
-  match Message.text (Model.bytes_of_json vector.input) with
+  match Message.text (Model.commit_object_of_message_input vector.input) with
   | Some text -> values [ ("text", `String (Text.encode text)) ]
   | None -> values []
 
 (* @verifies changes[message-texts][*]=v1
-   Each vector gives the content of a commit object and the text of its
-   message, or none; a program that ends the header at a line of one space,
-   drops a carriage return or U+FEFF, or follows the header `encoding`, gives
-   another text. *)
+   Each vector gives the message of a commit and its header `encoding`, if
+   any, and the text of the message, or none; a program that drops a carriage
+   return or U+FEFF, or follows the header `encoding`, gives another text. *)
 let message_vectors =
   Vectors.group set ~name:"message-texts" ~rev:"v1" give_message
 
