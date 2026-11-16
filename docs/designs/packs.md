@@ -20,7 +20,7 @@
 Specifies language packs, with their files, pack paths, and pack hashes;
 descriptors, with pack names, release numbers, comment sigils, foreign
 tag words, name separators, grammars, test runners, and runner settings;
-instances of grammars, usable grammars, query files, and valid packs;
+usable grammars, query files, and valid packs;
 the readings of texts with packs, with parse trees, parse failures,
 comment nodes, definition nodes, decoration nodes, and test nodes, and
 the names and test labels of test nodes; runner adapters, with the
