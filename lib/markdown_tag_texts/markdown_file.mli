@@ -43,11 +43,15 @@ type paragraph = {
     the longest such run. Each other line is the whole markdown line. *)
 
 type heading = {
-  line : int;  (** the number of the markdown line that the heading takes *)
-  level : int;  (** the number of [#] of its opening sequence, from 1 to 6 *)
+  line : int;
+      (** the number of the first markdown line that the heading takes *)
+  level : int;
+      (** for an ATX heading, the number of [#] of its opening sequence, from 1
+          to 6; for a setext heading, 1 when its underline is of [=] and 2 when
+          it is of [-] *)
 }
-(** An ATX heading that is a block of the document itself: a heading that opens
-    a section. *)
+(** An ATX heading or a setext heading of CommonMark 0.31.2 that is a block of
+    the document itself: a heading that opens a section. *)
 
 type section = {
   heading : heading option;
@@ -89,7 +93,8 @@ val read : Lines.t -> t
     time doubles with each level of square brackets nested in one another: this
     is the nesting defect of [cmarkit] 0.4.0, in the decision record
     [commonmark-reader]. A text with more than about 20 such levels can take a
-    very long time and much memory. *)
+    very long time and much memory. Apart from the parse of CommonMark 0.31.2,
+    the time is linear in the length of the text. *)
 
 val lines : t -> Text.run list
 (** [lines file] is the markdown lines of the text of [file], in the order of

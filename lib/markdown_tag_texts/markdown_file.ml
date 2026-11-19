@@ -193,11 +193,14 @@ let rec walk ctx (items, last) (block : B.t) =
 let list_items ctx blocks =
   fst (List.fold_left (walk ctx) ([], ctx.first_text_line) (List.rev blocks))
 
+(* @satisfies documents#give-extents=v1
+   Each heading of the document itself, ATX or setext, opens a section that
+   ends before the next such heading of the same level or less, and so ends the
+   claims of the declarations of the sections before it. *)
 let sections ctx blocks =
   let rec openers acc = function
     | [] -> List.rev acc
-    | B.Heading (h, meta) :: rest
-      when match B.Heading.layout h with `Atx _ -> true | `Setext _ -> false ->
+    | B.Heading (h, meta) :: rest ->
         let heading =
           { line = meta_first_line ctx meta; level = B.Heading.level h }
         in

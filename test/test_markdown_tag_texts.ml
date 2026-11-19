@@ -194,6 +194,36 @@ let opens_atx line level =
   let j = hashes i in
   j - i = level && (j = n || is_wsp line.[j])
 
+let setext_underline line char =
+  let n = String.length line in
+  let rec spaces i =
+    if i < n && i < 3 && line.[i] = ' ' then spaces (i + 1) else i
+  in
+  let i = spaces 0 in
+  let rec marks j = if j < n && line.[j] = char then marks (j + 1) else j in
+  let j = marks i in
+  let rec rest k = k = n || (is_wsp line.[k] && rest (k + 1)) in
+  j > i && rest j
+
+let is_blank_text line = String.for_all is_wsp line
+
+let opens_setext markdown (h : Markdown_file.heading) =
+  let count = List.length (Markdown_file.lines markdown) in
+  let char =
+    if h.level = 1 then Some '=' else if h.level = 2 then Some '-' else None
+  in
+  let rec underline k =
+    k <= count
+    &&
+    let line = line_text markdown k in
+    match char with
+    | Some c when setext_underline line c -> true
+    | _ -> (not (is_blank_text line)) && underline (k + 1)
+  in
+  char <> None
+  && (not (is_blank_text (line_text markdown h.line)))
+  && underline (h.line + 1)
+
 let range_ok markdown { Markdown_file.first; last } =
   1 <= first && first <= last
   && last <= List.length (Markdown_file.lines markdown)
@@ -250,7 +280,8 @@ let sections_follow_their_headings markdown =
              | None -> false
              | Some h ->
                  h.line >= start && 1 <= h.level && h.level <= 6
-                 && opens_atx (line_text markdown h.line) h.level)
+                 && (opens_atx (line_text markdown h.line) h.level
+                    || opens_setext markdown h))
            headed
       && increasing
            (List.filter_map
@@ -562,6 +593,12 @@ let cases =
       [ [ "A" ] ] );
     ("front matter can be the whole file", "---\nx\n---", []);
     ("a heading in a block quote opens no section", "> # B\n@req a=v1\n", []);
+    ( "the first paragraph after a setext heading is a tag text",
+      "Title\n=====\n@req a=v1\nText.\n",
+      [ [ "@req a=v1"; "Text." ] ] );
+    ( "a setext heading is no first paragraph of the section of level 0",
+      "@design s=v1\n---\nText.\n",
+      [ [ "Text." ] ] );
     ("a heading ends a paragraph", "# A\n@req a=v1\n# B\n", [ [ "@req a=v1" ] ]);
     ( "a heading can be indented and closed",
       "   ## B ##\nText.\n",
@@ -628,6 +665,88 @@ let sections_of_nested_headings () =
         Some { first = 3; last = 3 };
         Some { first = 4; last = 4 };
       ])
+
+let section_lines file =
+  List.map
+    (fun (s : Markdown_file.section) ->
+      Option.map (fun { Markdown_file.first; last } -> (first, last)) s.lines)
+    (Markdown_file.sections (read file))
+
+let setext_cases =
+  [
+    ( "an underline of = gives level 1",
+      "Title\n=====\nText.\n",
+      [ (1, 1) ],
+      [ None; Some (1, 3) ] );
+    ( "an underline of - gives level 2",
+      "Intro.\n\nTitle\n---\nText.\n",
+      [ (3, 2) ],
+      [ Some (1, 2); Some (3, 5) ] );
+    ( "a heading of two lines opens its section at its first line",
+      "# A\nB\nC\n---\nD\n",
+      [ (1, 1); (2, 2) ],
+      [ None; Some (1, 5); Some (2, 5) ] );
+    ( "a setext heading of level 2 ends a section of level 3",
+      "### A\nx\n\nB\n---\n#### C\n",
+      [ (1, 3); (4, 2); (6, 4) ],
+      [ None; Some (1, 3); Some (4, 6); Some (6, 6) ] );
+    ( "a setext heading of level 1 ends a section of level 2",
+      "## A\nB\n=\nC\n",
+      [ (1, 2); (2, 1) ],
+      [ None; Some (1, 1); Some (2, 4) ] );
+    ( "setext and ATX headings of one level end each other",
+      "A\n===\n# B\nC\n===\n",
+      [ (1, 1); (3, 1); (4, 1) ],
+      [ None; Some (1, 2); Some (3, 3); Some (4, 5) ] );
+    ( "an underline can be indented by three spaces and end with spaces",
+      "A\n   === \t\n",
+      [ (1, 1) ],
+      [ None; Some (1, 2) ] );
+    ( "an underline indented by four spaces is text",
+      "A\n    ===\n",
+      [],
+      [ Some (1, 2) ] );
+    ("an underline with a space inside is text", "A\n= =\n", [], [ Some (1, 2) ]);
+    ( "--- after a blank line is a thematic break",
+      "A\n\n---\n",
+      [],
+      [ Some (1, 3) ] );
+    ( "a setext heading in a list item opens no section",
+      "- a\n  ---\n",
+      [],
+      [ Some (1, 2) ] );
+    ( "--- under a block quote is a thematic break",
+      "> a\n---\n",
+      [],
+      [ Some (1, 2) ] );
+    ( "--- under a list item is a thematic break",
+      "- a\n---\n",
+      [],
+      [ Some (1, 2) ] );
+    ( "a setext heading after front matter",
+      "---\nx: 1\n---\nA\n=\n",
+      [ (4, 1) ],
+      [ None; Some (4, 5) ] );
+  ]
+
+let setext_case (name, file, expected_headings, expected_lines) =
+  Alcotest.test_case name `Quick (fun () ->
+      Alcotest.(check (list (pair int int)))
+        "the lines and levels of the headings" expected_headings (headings file);
+      Alcotest.(check (list (option (pair int int))))
+        "the lines of the sections" expected_lines (section_lines file))
+
+let setext_headings n =
+  "# A\n"
+  ^ String.concat ""
+      (List.init n (fun k ->
+           if k mod 2 = 0 then "T\n---\n@req a=v1\n" else "U\nV\n=\nText.\n"))
+
+let sections_of_setext_headings_grow_linearly () =
+  let sections file = Markdown_file.sections (read file) in
+  Counted_work.check_growth ~margin:1.5 ~sizes:(500, 2000)
+    ~input:setext_headings sections;
+  Time_growth.check ~bound:10. ~size:500 ~input:setext_headings sections
 
 let headings_in_containers_open_no_section () =
   Alcotest.(check (list (pair int int)))
@@ -818,6 +937,8 @@ let tests =
     Alcotest.test_case
       "a heading in a list item or a block quote opens no section" `Quick
       headings_in_containers_open_no_section;
+    Alcotest.test_case "the sections of setext headings grow linearly" `Quick
+      sections_of_setext_headings_grow_linearly;
     Alcotest.test_case "the lines of front matter" `Quick front_matter_lines;
     Alcotest.test_case "front matter that is the whole file" `Quick
       a_whole_front_matter_leaves_an_empty_markdown_text;
@@ -834,6 +955,7 @@ let tests =
     corrupted_files_read;
   ]
   @ case_tests
+  @ List.map setext_case setext_cases
   @ List.map
       (fun (name, file) ->
         Alcotest.test_case

@@ -188,9 +188,9 @@ let tests_member given =
            ])
        given.tests)
 
-(* The given items take the member extent-hash from the stated items of the
-   vector. *)
-let with_stated_hashes stated given =
+let not_given_members = [ "extent-hash"; "hash-text"; "forms-text" ]
+
+let with_stated_members stated given =
   let stated =
     match List.assoc_opt "items" stated with
     | Some (`List items) -> items
@@ -200,16 +200,18 @@ let with_stated_hashes stated given =
     (List.mapi
        (fun k element ->
          match (element, List.nth_opt stated k) with
-         | `Assoc members, Some (`Assoc s) -> (
-             match List.assoc_opt "extent-hash" s with
-             | Some hash -> `Assoc (members @ [ ("extent-hash", hash) ])
-             | None -> element)
+         | `Assoc members, Some (`Assoc s) ->
+             `Assoc
+               (members
+               @ List.filter
+                   (fun (name, _) -> List.mem name not_given_members)
+                   s)
          | _ -> element)
        (list given))
 
 let members stated =
   let items given =
-    with_stated_hashes stated (Items_json.of_declared given.declared)
+    with_stated_members stated (Items_json.of_declared given.declared)
   in
   function
   | "code" ->
@@ -278,7 +280,8 @@ let set = Vectors.read "documents"
    specification, and vector file, in the order of the member, with the
    members read-files and items of each vector of the group, and checks that
    the program gives none of them under bindings that are not valid, by the
-   values {}. *)
+   values {}. The program gives no extent hash, hash text, or forms text, so
+   the test checks it on no member of these. *)
 let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
 
 (* @verifies documents[code][*]=v1
@@ -287,7 +290,8 @@ let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
    code, and comments, and the declared items, each with its kind, name, file,
    origin position, extent, design, specification, and vector file, in the
    order of each member, with the members read-files, tests, and items of each
-   vector of the group. *)
+   vector of the group. The program gives no extent hash, hash text, forms
+   text, or code hash, so the test checks it on no member of these. *)
 let code_vectors = Vectors.group set ~name:"code" ~rev:"v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
 
