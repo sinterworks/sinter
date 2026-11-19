@@ -65,10 +65,6 @@ let digest format parts =
   | Sha1 -> Digestif.SHA1.(to_raw_string (digestv_string parts))
   | Sha256 -> Digestif.SHA256.(to_raw_string (digestv_string parts))
 
-(* @satisfies changes#take-objects-only-from-repositories=v1
-   A place holds the git object X only when the hashed bytes that it gives have
-   the object id X: each object that a lookup gives, and each base that an
-   object id names, passes this check of its digest. *)
 let is_object id obj =
   let prefix =
     Printf.sprintf "%s %d\000" (kind_name obj.kind) (String.length obj.content)
@@ -86,10 +82,6 @@ let uint32 text position =
   lor (Char.code text.[position + 2] lsl 8)
   lor Char.code text.[position + 3]
 
-(* @satisfies changes#take-objects-only-from-repositories=v1
-   The size in a loose header is the decimal numeral of the size, so a size
-   with a leading digit 0 other than the size 0 makes the file no loose object,
-   also when its bytes hash to the object id. *)
 let parse_size digits =
   let length = String.length digits in
   if
@@ -476,10 +468,10 @@ module Make (R : Files.READER) = struct
     join folder
       (String.sub hex 0 2 ^ "/" ^ String.sub hex 2 (String.length hex - 2))
 
-  (* @satisfies changes#take-objects-only-from-repositories=v1
-     The places of an object id are only the loose objects and the packs of
-     the object databases of the git repository; when none gives the object,
-     the lookup ends with "not held" and tries no other source. *)
+  (* @satisfies changes#read-only-repository-files=v1
+     The places of an object id are only the files of loose objects and of
+     packs in the object databases of the git repository, which are
+     repository files: the lookup tries no place outside them. *)
   let rec next_place store cursor record =
     match database store cursor.database with
     | Error failure -> Error failure
@@ -603,10 +595,6 @@ module Make (R : Files.READER) = struct
       | Inflate.Stopped Too_long, _ -> damaged Size_differs
       | Inflate.Not_zlib, _ -> damaged Not_zlib
       | Inflate.Ended _, None -> damaged Malformed_loose_header
-      (* @satisfies changes#take-objects-only-from-repositories=v1
-         A loose object is one zlib stream with no byte after it, so a file
-         with bytes after its stream holds no object, also when the stream
-         gives the hashed bytes of the object id. *)
       | Inflate.Ended stream_end, Some kind ->
           if !written <> Bytes.length !buffer then damaged Size_differs
           else if stream_end <> size then damaged Bytes_after_stream
@@ -721,11 +709,6 @@ module Make (R : Files.READER) = struct
 
   type counter = { mutable deltas : int }
 
-  (* @satisfies changes#take-objects-only-from-repositories=v1
-     The base of each delta of a place is an entry of the same pack: by its
-     offset, or by its object id through the index of that pack, with the
-     hash check. No base comes from another pack, another object database, or
-     another source. *)
   let descend store counter pack index place handle =
     let stop = index.pack_size - hash_length store in
     let limit = store.limits.max_content_size in

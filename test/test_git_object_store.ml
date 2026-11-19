@@ -207,12 +207,6 @@ let loose_damage_tests =
       (String.sub compressed 0 (String.length compressed - 3))
       Store.Not_zlib;
     damaged "a stream with a preset dictionary" with_dictionary Store.Not_zlib;
-    (* @verifies changes#take-objects-only-from-repositories=v1
-       By the term commit, a loose object is one zlib stream of RFC 1950, which
-       has no preset dictionary and a window of at most 32768 bytes. The
-       inflater gives the bytes of X from these two streams (Grounds G-Z3,
-       G-T8), so the tests fail when the store gives X from a file that is no
-       loose object. *)
     damaged
       "a stream with a preset dictionary and deflate data after the header"
       ("\x78\x20" ^ String.sub compressed 2 (String.length compressed - 2))
@@ -1237,14 +1231,18 @@ let only_listed calls allowed =
            allowed))
     calls
 
-(* @verifies changes#{read-only-repository-files=v1, take-objects-only-from-repositories=v1}
+(* @verifies changes#read-only-repository-files=v1
    The system in memory records every call of the reader of repository files.
-   Beside the object databases it holds a remote of a partial clone that holds
-   the object, replacement refs, grafts, http-alternates, a file shallow, and the
-   files of packs that the design does not name. The tests fail when a lookup
-   gives the object of the remote, or when a call names a pathname that is not
-   a file of a place, a file info/alternates, or a folder of an object
-   database. *)
+   Beside the object databases it holds the object database of a remote of a
+   partial clone, at /remote, which holds the object. The store makes no fetch,
+   so a file of that remote is no source that the list of the requirement
+   allows, and a call on a pathname under /remote fails the test. The system
+   also holds replacement refs, grafts, http-alternates, a file shallow, and
+   the files of packs that the design does not name; by the promise of the
+   interface of the store that it reads only the files of the places, the
+   files info/alternates, and the folders of the object databases, a call on
+   one of them, and a lookup that gives the object of the remote, also fail
+   the test. *)
 let reads_tests =
   let content = "content\n" in
   let x = O.id Id.Sha1 O.Blob content in
@@ -1741,12 +1739,6 @@ let generated_properties =
           plan.objects);
   ]
 
-(* @verifies changes#take-objects-only-from-repositories=v1
-   By the term commit, a repository holds a git object only at a place whose
-   bytes are that object: a loose file that is one zlib stream with no byte
-   after it, whose size has no leading zero, and a delta whose base an object
-   id names only in its own pack. The tests fail when the store gives an
-   object at such a place, which the repository does not hold. *)
 let held_tests =
   let base = String.make 200 'b' and target = String.make 200 'b' ^ "t" in
   let base_id = O.id Id.Sha1 O.Blob base

@@ -9,11 +9,6 @@ let first_chunk = 4096
 let blit_string text input =
   String.iteri (fun index byte -> Bigarray.Array1.set input index byte) text
 
-(* @satisfies changes#take-objects-only-from-repositories=v1
-   A loose object is one zlib stream as RFC 1950 defines it: a stream whose
-   window is above 32768 bytes, or that needs a preset dictionary, is refused
-   before it is inflated, also when the inflater could give bytes that hash to
-   the object id. *)
 let refused_header first =
   (String.length first < 2)
   [@mutaml.skip

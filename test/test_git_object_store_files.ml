@@ -281,12 +281,15 @@ end
 
 module Recorded = Store.Make (Recording)
 
-(* @verifies changes#take-objects-only-from-repositories=v1
+(* @verifies changes#read-only-repository-files=v1
    A partial clone whose remote is a local folder lacks the blobs of its
-   remote. The test fails when the store gives one of them, or when it reads
-   any pathname outside the object database of the clone, such as a file of the
-   remote. It cannot see a remote that the store reaches by other means than
-   the reader of repository files. *)
+   remote. The store makes no fetch, so a file of the remote is no source that
+   the list of the requirement allows, and a read of any pathname outside the
+   object database of the clone, such as a file of the remote, fails the test.
+   By the promise of the interface of the store that it takes no object from a
+   remote, a lookup that gives one of the blobs of the remote also fails it.
+   The test cannot see a remote that the store reaches by other means than the
+   reader of repository files. *)
 let partial_clone_tests =
   [
     slow "a partial clone holds no blob that only its remote holds" (fun () ->
@@ -378,16 +381,11 @@ let look ?env ?(deltas = 100) ?(databases = 100) git raw =
       string_of_int databases;
     ]
 
-(* @verifies changes#avoid-working-tree-waits=v1
-   A FIFO with no writer, and links to the devices /dev/zero and /dev/null,
-   stand in place of a loose object, an index, a pack, the file
-   info/alternates, the folder pack, and an object database; in a child
-   process, each lookup must give its result within the time limit, or the test
-   fails. It cannot see devices that need privileges to make, or network file
-   systems. *)
 let no_wait_tests =
   [
-    case "no lookup waits on a FIFO or a device" (fun () ->
+    case
+      "no lookup waits on a FIFO or a device, as the interface of the reads \
+       promises" (fun () ->
         let z = O.id Id.Sha1 O.Blob "z" in
         let cases =
           [
@@ -621,13 +619,19 @@ let rec set_writable root writable =
   | Unix.S_REG -> Unix.chmod root (if writable then 0o644 else 0o444)
   | _ -> ()
 
-(* @verifies changes#keep-repositories-unchanged=v1
+(* @verifies changes#leave-repositories-unchanged=v1
    The test takes the state of each file of the git folder of a repository and
-   of the git folder of its alternate (kind, permissions, inode, size, times of
-   change, and content) before and after the store reads every object, also
-   when no file is writable; any change other than the time of last access
-   fails it. It cannot see a change that is made and undone during the read, or
-   a change outside these two folders. *)
+   of the git folder of its alternate (name, kind, inode, size, content, and
+   the reference of each symbolic link) before and after the store reads every
+   object, first when every file is writable, so that a creation, a deletion,
+   or a change by a lookup would take place; any difference fails it. The store
+   reads through the reads of repository files, which open no file for
+   writing, so it makes no own change, such as a new loose object or pack. The
+   test also compares the permissions and the times of change, by the promise
+   of the interface of those reads that nothing changes an attribute of a
+   file, and it runs once more when no file is writable. It cannot see a change
+   that is made and undone during the read, or a change outside these two
+   folders. *)
 let unchanged_tests =
   [
     slow "a lookup changes no file, also when the files are read-only"

@@ -1004,6 +1004,7 @@ let read_everything root =
       ignore (Files.read ~max_size:big (root / name));
       ignore (Files.with_file (root / name) Files.size);
       ignore (Files.list (root / name));
+      ignore (Files.folder_identity (root / name));
       ignore (Files.link_kind (root / name));
       ignore (Files.link_text (root / name)))
     [
