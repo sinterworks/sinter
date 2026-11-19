@@ -260,9 +260,9 @@ names the new commit.
 
 `docs/contributing/mutation-testing.md` says how to run a pass on the
 whole tree or on a branch, what each command and option does, how the
-`mutation` job selects test groups and splits a pass into parts, how to
-test a survivor again under the seeds of a run, and the rules for
-running a pass.
+`mutation` job selects test groups, splits a pass into parts, and checks
+the selection with a canary, how to test a survivor again under the
+seeds of a run, and the rules for running a pass.
 
 Two rules keep the suite and the measured code fit for a pass:
 

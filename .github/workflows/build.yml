@@ -329,6 +329,7 @@ jobs:
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
       base: ${{ steps.scope.outputs.base }}
+      canary: ${{ steps.scope.outputs.canary }}
       mutants: ${{ steps.count.outputs.mutants }}
       parts: ${{ steps.count.outputs.parts }}
       part-list: ${{ steps.count.outputs.part-list }}
@@ -343,11 +344,23 @@ jobs:
           set -eu
           if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
             echo "mode=full" >>"$GITHUB_OUTPUT"
-            echo "Every mutant: this is the daily run on main."
+            echo "canary=true" >>"$GITHUB_OUTPUT"
+            echo "Every mutant, and the canary: this is the daily run on main."
             exit 0
           fi
           base=$(git merge-base "origin/$GITHUB_BASE_REF" HEAD)
           echo "base=$base" >>"$GITHUB_OUTPUT"
+          scripts=$(git diff --name-only "$base" -- \
+            test/run-mutants.sh test/mutant-shares.sh \
+            test/run-mutant-share.sh test/join-mutant-reports.sh \
+            test/mutant-groups.sh test/mutant-count.sh \
+            test/mutant-canary.sh | wc -l)
+          if [ "$scripts" -ne 0 ]; then
+            echo "canary=true" >>"$GITHUB_OUTPUT"
+            echo "The canary runs: the pull request changed $scripts scripts of the mutation run."
+          else
+            echo "canary=false" >>"$GITHUB_OUTPUT"
+          fi
           dependencies=$(git diff --name-only "$base" -- \
             sinter.opam.locked sinter.opam dune-project \
             .github/workflows/build.yml \
@@ -355,7 +368,8 @@ jobs:
             lib/markdown/tree-sitter-markdown.wasm \
             test/run-mutants.sh test/mutant-shares.sh \
             test/run-mutant-share.sh test/join-mutant-reports.sh \
-            test/mutant-groups.sh test/mutant-count.sh | wc -l)
+            test/mutant-groups.sh test/mutant-count.sh \
+            test/mutant-canary.sh | wc -l)
           if [ "$dependencies" -ne 0 ]; then
             echo "mode=full" >>"$GITHUB_OUTPUT"
             echo "Every mutant: the pull request changed $dependencies files of the dependencies."
@@ -546,6 +560,22 @@ jobs:
           name: mutation-part-${{ matrix.part }}
           path: _mutations/part-${{ matrix.part }}.json
           if-no-files-found: error
+      # @cites mutation-job-scope
+      - name: Run the canary of the selection of tests
+        if: needs.mutation-plan.outputs.canary == 'true'
+        run: |
+          set -eu
+          cores=$(nproc)
+          workers=$cores
+          if [ "$workers" -gt 1 ]; then
+            workers=$((workers - 1))
+          fi
+          mapfile -t files <_mutations/share.txt
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "This part holds no mutation file, so the canary has nothing to test."
+            exit 0
+          fi
+          sh test/mutant-canary.sh -j "$workers" "${files[@]}"
 
   mutation-report:
     name: Report the mutation score

@@ -17,6 +17,9 @@
   `("<name>", <Module>.tests)` counts as reaching every file: today
   `mode` and `cases`. `cases` starts `main.exe` through an argument
   that the walk cannot follow.
+- The canary fails when the two tests disagree in either direction,
+  including when the selection kills a mutant that the whole suite does
+  not kill, because such a kill raises the score falsely.
 - The tests of the scripts are a test executable of their own,
   `test/scripts/`, so that the runs of the mutants do not run them and
   the map does not read the names of their fake programs.

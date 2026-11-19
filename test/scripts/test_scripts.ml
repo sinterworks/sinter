@@ -10,6 +10,7 @@ let names =
     "run-mutant-share.sh";
     "join-mutant-reports.sh";
     "mutant-count.sh";
+    "mutant-canary.sh";
   ]
 
 let ( / ) = Filename.concat
@@ -91,6 +92,24 @@ fi
 if [ "${FAKE_NO_REPORT:-}" != 1 ]; then
   if [ -n "${FAKE_REPORT:-}" ]; then
     cp "$FAKE_REPORT" mutaml-report.json
+  elif [ -n "${FAKE_OUTCOMES:-}" ]; then
+    kind=selected
+    if [ "$command" = test/run-mutants.sh ]; then
+      kind=every
+    fi
+    jq -c --arg kind "$kind" --arg drop "${FAKE_DROP:-}" \
+      --arg extra "${FAKE_EXTRA:-}" --rawfile outcomes "$FAKE_OUTCOMES" '
+      ($outcomes | split("\n") | map(select(length > 0) | split(" "))
+       | map({key: "\(.[0]) \(.[1]) \(.[2])", value: (.[3] | tonumber)})
+       | from_entries) as $status
+      | {results: ([.mutants[]
+          | select($kind == "every" or "\(.loc.loc_start.pos_fname) \(.number)" != $drop)
+          | {status: ($status["\($kind) \(.loc.loc_start.pos_fname) \(.number)"] // 0),
+             mutant: .}]
+          + (if $extra == "1" and $kind == "every"
+             then [{status: 0, mutant: (.mutants[0] | .number = 99)}]
+             else [] end)),
+         skipped: []}' "$muts" >mutaml-report.json
   else
     echo '{"results": [], "skipped": []}' >mutaml-report.json
   fi
@@ -821,6 +840,205 @@ let count_tests =
             status 2 (run root "mutant-count.sh" []).status));
   ]
 
+let outcomes root text =
+  let path = root / "outcomes" in
+  write path text;
+  ("FAKE_OUTCOMES", path) :: calls_env root
+
+let canary ?(env = []) root args =
+  run ~env root "mutant-canary.sh" ([ "-s"; "2026" ] @ args)
+
+let drawn ran =
+  let rec named = function
+    | line :: rest when String.starts_with ~prefix:"  " line ->
+        String.trim line :: named rest
+    | _ -> []
+  in
+  let rec after = function
+    | "The canary tests these mutants with every test:" :: rest -> named rest
+    | _ :: rest -> after rest
+    | [] -> Alcotest.fail "the canary named no mutant"
+  in
+  after (lines ran.out)
+
+let canary_tests =
+  [
+    Alcotest.test_case "the canary passes when the two tests agree" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:
+                  (outcomes root
+                     "every lib/a.ml 0 1\n\
+                      selected lib/a.ml 0 1\n\
+                      every lib/a.ml 1 124\n\
+                      selected lib/a.ml 1 124\n")
+                root
+                [ "-n"; "3"; "lib/a.muts" ]
+            in
+            status 0 ran.status;
+            mentions "The canary passed" ran.out));
+    Alcotest.test_case
+      "the canary fails when every test kills a mutant and its groups do not"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(outcomes root "every lib/a.ml 0 1\n")
+                root
+                [ "-n"; "3"; "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "lib/a.ml mutant 0\tkilled\tsurvived" ran.out));
+    Alcotest.test_case
+      "the canary fails when the groups kill a mutant and every test does not"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(outcomes root "selected lib/a.ml 2 124\n")
+                root
+                [ "-n"; "3"; "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "lib/a.ml mutant 2\tsurvived\tkilled" ran.out));
+    Alcotest.test_case "the canary fails when a report lacks a mutant" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(("FAKE_DROP", "lib/a.ml 1") :: outcomes root "")
+                root
+                [ "-n"; "3"; "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "lib/a.ml mutant 1\tsurvived\tmissing" ran.out));
+    Alcotest.test_case "the canary fails when a report holds an extra mutant"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(("FAKE_EXTRA", "1") :: outcomes root "")
+                root
+                [ "-n"; "3"; "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "lib/a.ml mutant 99\tsurvived\tmissing" ran.out));
+    Alcotest.test_case "the canary fails when the runner skips a file" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:
+                  (("FAKE_PRINT", "Skipping lib/x.muts: gone")
+                  :: outcomes root "")
+                root
+                [ "-n"; "1"; "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "skipped the mutants" ran.out));
+    Alcotest.test_case "the canary fails when the runner fails" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(("FAKE_STATUS", "1") :: outcomes root "")
+                root [ "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "could not test its mutants" ran.out));
+    Alcotest.test_case "the canary fails when the runner writes no report"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary
+                ~env:(("FAKE_NO_REPORT", "1") :: outcomes root "")
+                root [ "lib/a.muts" ]
+            in
+            status 1 ran.status;
+            mentions "could not test its mutants" ran.out));
+    Alcotest.test_case
+      "a file that the map does not name stops the canary before running" `Quick
+      (fun () ->
+        in_project (fun root ->
+            write
+              (root / "_build/.mutaml/default/lib/z.muts")
+              (Printf.sprintf {|{"mutants":[%s]}|} (mutant "lib/z.ml" 0));
+            let ran =
+              canary ~env:(calls_env root) root [ "-n"; "1"; "lib/z.muts" ]
+            in
+            status 1 ran.status;
+            mentions "names no test group for lib/z.muts" ran.out;
+            Alcotest.(check bool)
+              "the runner ran" false
+              (Sys.file_exists (root / ".calls"))));
+    Alcotest.test_case "the groups of a file give its test command" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary ~env:(outcomes root "") root [ "-n"; "1"; "lib/a.muts" ]
+            in
+            status 0 ran.status;
+            mentions "\ntest/run-mutants.sh test '^(alpha|mode)$'\n--\n"
+              (calls root);
+            mentions "\ntest/run-mutants.sh\n--\n" (calls root)));
+    Alcotest.test_case "the canary draws as many different mutants as asked"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary ~env:(outcomes root "") root
+                [ "-n"; "4"; "lib/a.muts"; "lib/g.muts" ]
+            in
+            status 0 ran.status;
+            Alcotest.(check int)
+              "the mutants" 4
+              (List.length (List.sort_uniq compare (drawn ran)))));
+    Alcotest.test_case "the same number makes the same draw" `Quick (fun () ->
+        in_project (fun root ->
+            let draw () =
+              drawn
+                (canary ~env:(outcomes root "") root
+                   [ "-n"; "2"; "lib/a.muts"; "lib/g.muts" ])
+            in
+            let first = draw () in
+            Alcotest.(check (list string)) "the draw" first (draw ())));
+    Alcotest.test_case "a draw larger than the mutants takes every mutant"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              canary ~env:(outcomes root "") root [ "-n"; "9"; "lib/a.muts" ]
+            in
+            status 0 ran.status;
+            Alcotest.(check (list string))
+              "the mutants"
+              [ "lib/a.muts\t0"; "lib/a.muts\t1"; "lib/a.muts\t2" ]
+              (List.sort compare (drawn ran))));
+    Alcotest.test_case "files without a mutant leave the canary nothing to test"
+      `Quick (fun () ->
+        in_project
+          ~change:(fun project ->
+            {
+              project with
+              mutants =
+                List.map
+                  (fun (file, count) ->
+                    if file = "lib/a" then (file, 0) else (file, count))
+                  project.mutants;
+            })
+          (fun root ->
+            let ran = canary ~env:(outcomes root "") root [ "lib/a.muts" ] in
+            status 0 ran.status;
+            mentions "nothing to test" ran.out));
+    Alcotest.test_case "a draw of no mutant is refused" `Quick (fun () ->
+        in_project (fun root ->
+            status 2 (canary root [ "-n"; "0"; "lib/a.muts" ]).status));
+    Alcotest.test_case "a file that is not a mutation file is refused" `Quick
+      (fun () ->
+        in_project (fun root ->
+            status 2 (canary root [ "lib/none.muts" ]).status));
+  ]
+
 let () =
   Alcotest.run "scripts"
     [
@@ -828,4 +1046,5 @@ let () =
       ("run mutants", run_mutants_tests);
       ("mutant share", share_tests);
       ("mutant count", count_tests);
+      ("mutant canary", canary_tests);
     ]

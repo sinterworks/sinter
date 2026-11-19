@@ -202,6 +202,28 @@ These rules make each such error stop the run:
    line that the suite refuses therefore stops the pass at the first
    run without a mutant.
 
+**The canary.** The selection misses a way to reach code that goes
+through no import: for example, a table that one module fills when the
+program starts and that another module reads. The canary looks for such
+a gap. It runs on the daily run, and on a pull request that changes a
+script of the mutation job: `test/run-mutants.sh`,
+`test/mutant-shares.sh`, `test/run-mutant-share.sh`,
+`test/join-mutant-reports.sh`, `test/mutant-groups.sh`,
+`test/mutant-count.sh`, or `test/mutant-canary.sh`. Each part then runs
+`test/mutant-canary.sh` on the files of its share, after the share. The
+script draws 5 mutants, and it tests each one twice with the options of
+a pass: once with every test, and once with the test groups of its
+file. It fails when the two tests disagree on a mutant:
+
+- When every test kills a mutant and its test groups do not, the
+  selection misses a way to reach the code of the mutant.
+- When its test groups kill a mutant and every test does not, the
+  selection kills the mutant falsely, for example through a time limit
+  that is too short.
+
+The log of the canary names the mutants that it drew and the number of
+the draw. Give that number with `-s` to make the same draw again.
+
 **The seeds of the CI job.** Each part draws its own random number and
 prints the seeds at the start of the log of its step "Run the tests
 for each mutant of this part under two seeds". For the number 2807,
