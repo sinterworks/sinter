@@ -19,4 +19,4 @@ cd -- "$root/_build/default/test"
 if [ "$(uname -s)" = Linux ]; then
   ulimit -d 2097152
 fi
-exec "$suite" --bail "$@"
+exec "$suite" "$@" --bail

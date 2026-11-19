@@ -53,13 +53,17 @@ no file under `lib/` or `bin/`
 - `test/run-mutants.sh` is the test command. The suite reads its
   fixtures from paths relative to its own folder under `_build`, so
   the script starts at the root, where the runner starts it, and runs
-  the suite in that folder. The script gives the suite `--bail`, which
-  stops the suite at its first failing test: one failure kills the
-  mutant. On Linux, the script also limits the data of the suite to
-  2 GiB (`ulimit -d`). A mutant that makes a loop allocate without end
-  then stops with an error of memory, and the machine keeps its
-  memory. The suite needs less than 200 MiB. macOS does not enforce
-  this limit, so the script sets it only on Linux.
+  the suite in that folder. The script gives the suite its own
+  arguments, and then `--bail`, which stops the suite at its first
+  failing test: one failure kills the mutant. So
+  `test/run-mutants.sh test '^(json|toml)$'` runs only the test groups
+  `json` and `toml`. The arguments come first because the suite refuses
+  `--bail` in front of the word `test`. On Linux, the script also
+  limits the data of the suite to 2 GiB (`ulimit -d`). A mutant that
+  makes a loop allocate without end then stops with an error of memory,
+  and the machine keeps its memory. The suite needs less than 200 MiB.
+  macOS does not enforce this limit, so the script sets it only on
+  Linux.
 - `-j` is the number of mutants that the runner tests at one time: the
   number of cores less one, and never below 1.
   `getconf _NPROCESSORS_ONLN` gives the number of cores on macOS and on
