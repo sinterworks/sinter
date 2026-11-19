@@ -68,11 +68,6 @@ module Make (S : SYSTEM) = struct
       ~finally:(fun () -> try S.close descr with Unix.Unix_error _ -> ())
       f
 
-  (* @satisfies changes#{avoid-working-tree-waits=v1, read-only-repository-files=v1}
-     Only a file that is a regular file after the links of its pathname is
-     opened, and the open file gives bytes only when it is still a regular
-     file: a pipe, a socket, or a device at the pathname gives "not a regular
-     file" with no read and no wait. *)
   let open_regular pathname =
     if not (usable pathname) then Error No_file
     else
@@ -162,9 +157,6 @@ module Make (S : SYSTEM) = struct
       | Error failure | Ok (Error failure) -> Error failure
       | Ok (Ok content) -> Ok content
 
-  (* @satisfies changes#avoid-working-tree-waits=v1
-     A listing opens only a file that is a folder after the links of its
-     pathname, with an open that fails on any other kind and does not wait. *)
   let list pathname =
     if not (usable pathname) then Error No_file
     else
@@ -217,9 +209,9 @@ module System = struct
   let stat pathname = kind_of (Unix.stat pathname).st_kind
   let lstat pathname = kind_of (Unix.lstat pathname).st_kind
 
-  (* @satisfies changes#{keep-repositories-unchanged=v1, avoid-working-tree-waits=v1}
-     A file opens for reading only, with no wait for the other end of a pipe
-     and no controlling terminal. *)
+  (* @satisfies changes#leave-repositories-unchanged=v1
+     A file opens for reading only, with no flag that creates or truncates a
+     file, so the open creates and changes no file. *)
   let open_file pathname =
     Unix.openfile pathname
       [ Unix.O_RDONLY; Unix.O_NONBLOCK; Unix.O_NOCTTY; Unix.O_CLOEXEC ]
@@ -228,6 +220,9 @@ module System = struct
         "openfile reads the permissions only when it creates a file, and the \
          flags hold no O_CREAT"])
 
+  (* @satisfies changes#leave-repositories-unchanged=v1
+     A folder opens for reading only, with no flag that creates a file, so the
+     open creates and changes no file. *)
   let open_folder = open_folder
 
   let fstat descr =

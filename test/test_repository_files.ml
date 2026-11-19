@@ -823,17 +823,10 @@ let probe name args =
   | Ok lines -> lines
   | Error reason -> Alcotest.failf "%s: %s" name reason
 
-(* @verifies changes#avoid-working-tree-waits=v1
-   A FIFO with no writer, a link to it, a socket, and links to the devices
-   /dev/zero and /dev/null stand in place of a repository file; in a child
-   process, each read, open, listing, and link read of the reader of
-   repository files must give a failure within the time limit, or the test
-   fails. The test sees only this reader and only these kinds of file: not the
-   readers of 2b and 2c, not devices that need privileges to make, and not
-   network file systems. *)
 let no_wait_tests =
   [
-    case "no read waits on a FIFO or a device" (fun () ->
+    case "no read waits on a FIFO or a device, as the interface promises"
+      (fun () ->
         let root = real_tree () in
         List.iter
           (fun (name, link) ->
@@ -857,7 +850,7 @@ let no_wait_tests =
             ("zero", Some "/dev/zero");
             ("null", Some "/dev/null");
           ]);
-    case "no read waits on a socket" (fun () ->
+    case "no read waits on a socket, as the interface promises" (fun () ->
         let root = real_tree () in
         Alcotest.(check (list string))
           "the results"
@@ -870,7 +863,6 @@ type state = {
   inode : int;
   kind : Unix.file_kind;
   perm : int;
-  size : int;
   mtime : float;
   ctime : float;
   content : string;
@@ -891,7 +883,6 @@ let rec states root name =
       inode = stat.st_ino;
       kind = stat.st_kind;
       perm = stat.st_perm;
-      size = stat.st_size;
       mtime = stat.st_mtime;
       ctime = stat.st_ctime;
       content;
@@ -906,16 +897,71 @@ let rec states root name =
            (List.sort String.compare (Array.to_list (Sys.readdir path)))
   | _ -> [ here ]
 
-(* @verifies changes#keep-repositories-unchanged=v1
-   Every read, ranged read, listing, and link read of the reader of repository
-   files runs on a tree of read-only files and folders, and the tree must
-   still hold the same names, inodes, kinds, permissions, sizes, contents, and
-   times of change before and after, or the test fails. The test sees only
-   this tree: not a change that is made and undone during the read, and not a
-   write to a file outside the tree. *)
+let read_everything root =
+  check_result "read" quoted (Ok "content\n")
+    (Files.read ~max_size:big (root / "f"));
+  check_result "read d/a" quoted (Ok "a")
+    (Files.read ~max_size:big (root / "dlink" / "a"));
+  check_result "range" quoted (Ok "ont")
+    (match
+       Files.with_file (root / "link") (fun handle ->
+           Files.read_range handle ~offset:1 ~length:3)
+     with
+    | Ok range -> range
+    | Error failure -> Error failure);
+  check_result "list" names (Ok [ "a"; "b"; "sub" ]) (Files.list (root / "d"));
+  List.iter
+    (fun name ->
+      ignore (Files.read ~max_size:big (root / name));
+      ignore (Files.with_file (root / name) Files.size);
+      ignore (Files.list (root / name));
+      ignore (Files.link_kind (root / name));
+      ignore (Files.link_text (root / name)))
+    [
+      "f";
+      "d";
+      "link";
+      "link2";
+      "dlink";
+      "dangling";
+      "loop";
+      "pipe";
+      "pipelink";
+      "zero";
+      "null";
+      "gone";
+    ]
+
+let unchanged root before =
+  let after = states root "" in
+  Alcotest.(check (list string))
+    "the files"
+    (List.map (fun s -> s.name) before)
+    (List.map (fun s -> s.name) after);
+  List.iter2
+    (fun a b -> Alcotest.(check bool) ("unchanged: " ^ a.name) true (a = b))
+    before after
+
+(* @verifies changes#leave-repositories-unchanged=v1
+   The reads run on a tree whose files and folders are writable, so that a
+   creation, a deletion, or a change by a read would take place. The test
+   compares the names of the files, the kind and the inode of each file, the
+   content of each regular file, and the reference of each symbolic link before
+   and after the reads, so a file that a read creates, deletes, or changes, as
+   the term undisturbed-read gives these words, fails it. No read makes an own
+   change: none of these files is a loose object, a pack, git's index, or a
+   lock file. The test also compares the permissions and the times of change of
+   each file, by the promise of the interface of the reads that nothing changes
+   an attribute of a file. It cannot see a change that is made and undone
+   during the reads, nor a read that takes the data of a FIFO. *)
 let unchanged_tests =
   [
-    case "the reads change no file, also when the files are read-only"
+    case "the reads create, delete, or change no file" (fun () ->
+        let root = real_tree () in
+        let before = states root "" in
+        read_everything root;
+        unchanged root before);
+    case "no read opens a file for writing, as the interface promises"
       (fun () ->
         let root = real_tree () in
         List.iter
@@ -930,40 +976,52 @@ let unchanged_tests =
             Unix.chmod (root / "d" / "sub") 0o755)
           (fun () ->
             let before = states root "" in
-            check_result "read" quoted (Ok "content\n")
-              (Files.read ~max_size:big (root / "f"));
-            check_result "read d/a" quoted (Ok "a")
-              (Files.read ~max_size:big (root / "dlink" / "a"));
-            check_result "range" quoted (Ok "ont")
-              (match
-                 Files.with_file (root / "link") (fun handle ->
-                     Files.read_range handle ~offset:1 ~length:3)
-               with
-              | Ok range -> range
-              | Error failure -> Error failure);
-            check_result "list" names
-              (Ok [ "a"; "b"; "sub" ])
-              (Files.list (root / "d"));
-            ignore (Files.link_kind (root / "link"));
-            ignore (Files.link_text (root / "link"));
-            ignore (Files.read ~max_size:big (root / "pipe"));
-            ignore (Files.list (root / "pipe"));
-            let after = states root "" in
-            Alcotest.(check int)
-              "the number of files" (List.length before) (List.length after);
-            List.iter2
-              (fun a b ->
-                Alcotest.(check bool) ("unchanged: " ^ a.name) true (a = b))
-              before after));
+            read_everything root;
+            unchanged root before));
+    case "no read takes the data of a FIFO, as the interface promises"
+      (fun () ->
+        let root = real_tree () in
+        let fifo = root / "pipe" and data = "the data of the FIFO" in
+        let reader =
+          Unix.openfile fifo
+            [ Unix.O_RDONLY; Unix.O_NONBLOCK; Unix.O_CLOEXEC ]
+            0
+        in
+        Fun.protect
+          ~finally:(fun () -> Unix.close reader)
+          (fun () ->
+            let writer =
+              Unix.openfile fifo
+                [ Unix.O_WRONLY; Unix.O_NONBLOCK; Unix.O_CLOEXEC ]
+                0
+            in
+            Fun.protect
+              ~finally:(fun () -> Unix.close writer)
+              (fun () ->
+                ignore (Unix.write_substring writer data 0 (String.length data));
+                List.iter
+                  (fun name -> ignore (probe name [ "files"; root / name ]))
+                  [ "pipe"; "pipelink" ];
+                let buffer = Bytes.create 256 in
+                let count =
+                  try Unix.read reader buffer 0 (Bytes.length buffer)
+                  with
+                  | Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
+                    0
+                in
+                Alcotest.(check string)
+                  "the data" data
+                  (Bytes.sub_string buffer 0 count))));
   ]
 
 (* @verifies changes#read-only-repository-files=v1
    On a system in memory that records each call, a read, a ranged read, a
    listing, and a link read through a chain of links make calls only on the
-   pathname that the caller gives, so the reader takes bytes from no other
-   file; a call on another pathname fails the test. The test does not see which
-   pathnames the callers of 2b and 2c give, nor the files that the system or a
-   C library reads by itself. *)
+   pathname that the caller gives, so the reads take bytes only from the file
+   at that pathname and the symbolic links on it, item 1 of the list of the
+   requirement; a call on another pathname fails the test. The test does not
+   see which pathnames the callers of the reads give, nor the files that the
+   system or a C library reads by itself. *)
 let only_given_pathnames_tests =
   [
     case "each read makes calls only on the pathname that its caller gives"

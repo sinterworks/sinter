@@ -561,8 +561,10 @@ let fake_refs nodes =
    On a system in memory that records each call, the lookups of the refs, HEAD
    among them, make calls only on pathnames inside the git folder and the
    folder of the working tree, and none for a text that is not a ref name,
-   such as `refs/heads/../../x`; another call fails the test. The test sees
-   only the refs: not the pathnames that 2c gives as the two folders. *)
+   such as `refs/heads/../../x`, so the lookups take bytes only from
+   repository files, item 1 of the list of the requirement; another call fails
+   the test. The test sees only the refs: not the pathnames that their caller
+   gives as the two folders. *)
 let fake_tests =
   [
     case "the refs make calls only inside the two folders" (fun () ->
@@ -650,14 +652,11 @@ let fake_tests =
           (Test_repository_files.calls ()));
   ]
 
-(* @verifies changes#avoid-working-tree-waits=v1
-   A FIFO with no writer stands in place of a loose ref, of HEAD, and of
-   packed-refs; in a child process, each lookup must give a result or a
-   failure within the time limit, or the test fails. The test does not see the
-   readers of 2b and 2c. *)
 let no_wait_tests =
   [
-    case "no lookup waits on a FIFO" (fun () ->
+    case
+      "no lookup waits on a FIFO, as the interfaces of the refs and of the \
+       reads promise" (fun () ->
         let probe root name =
           match Bounded_run.probe ~seconds:5. [ "refs"; root; name ] with
           | Ok lines -> lines

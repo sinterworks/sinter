@@ -463,7 +463,9 @@ let reads world = snd (run_with world)
    files, the file `config`, and the files that they include; a read of
    `/etc/gitconfig` under `GIT_CONFIG_NOSYSTEM`, of the file that `GIT_CONFIG`
    names, or of a global file that `GIT_CONFIG_GLOBAL` replaces, fails the
-   test. The test sees the pathnames only: not what the caller's read takes. *)
+   test. The files of the git configuration are repository files, item 1 of
+   the list of the requirement. The test sees the pathnames only: not what the
+   caller's read takes. *)
 let read_tests =
   [
     case "the reads are exactly the files of the git configuration" (fun () ->
