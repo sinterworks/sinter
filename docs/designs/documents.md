@@ -151,10 +151,10 @@ names `true` and `false`.
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
 | [extern mark](sinter:#extern-mark=v2), [valid extern mark](sinter:#valid-extern-mark=v2) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement, a schema, an atom, or a term |
-| [edges of a tree](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, and the accepted inline citations, of a tree give |
-| [position subject](sinter:#position-subject=v1) | the subject of a finding at a position, such as `docs/guide.md@L3C5` |
+| [edges of a tree](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give |
+| [position subject](sinter:#position-subject=v2) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
-| [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file |
+| [spot of a run](sinter:#run-spot=v2) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
 | [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
 | [edit distance](sinter:#edit-distance=v1) | the least number of insertions, removals, replacements, and swaps of characters next to each other that change one text into another |
 | [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding, which a slug names |
@@ -404,7 +404,8 @@ with the name `basic` of the vector set of that specification.
 
 ### 2.8 Edges, sites, and status tags
 
-The accepted citations and inline citations of a tree give its
+The accepted citations, the accepted inline citations, and the vector
+lines of the vector sets of a tree give its
 [edges](sinter:#tree-edge=v2). For example, in a file `README.md` with
 this text, the `@cites` line is outside every extent, so it stands in
 the [site](sinter:#tree-site=v1) of the file, which is its three lines,
@@ -1587,25 +1588,56 @@ Otherwise, the citation entry names nothing.
 
 @term tree-edge=v2
 @cites {
+    rfc/8259,
     identifiers#{
         citation=v1, citation-entry=v2, inline-citation=v1,
-        inline-destination=v2, vector-selection=v2, match=v1,
+        inline-destination=v2, vector-selection=v2, full-name=v1,
+        match=v1,
     },
-    ontology#{edge=v2, edge-source=v1, tree=v1},
-    #{accepted-input=v2, named-item=v2, selected-item=v2},
+    data-forms#{vector-line=v2, vector-object=v2, form-pin=v1},
+    ontology#{
+        edge=v2, edge-source=v1, tree=v1, declared-item=v2,
+        containment=v2, item-name=v2, vector-set=v2,
+    },
+    text#{
+        text=v1, line=v1, run=v1, boundary=v1, position=v1,
+        code-span=v1,
+    },
+    #{
+        accepted-input=v2, named-item=v2, selected-item=v2,
+        vector-file=v2, tree-containment=v2,
+    },
 }
 
 The edges of a tree are the edges that the accepted inputs of the tree
-that are citations or inline citations give. The file of such an edge
-is the file of the accepted input that gives it. The cited item of such
-an edge is the item that these rules give, or none when they give
-nothing:
+that are citations or inline citations give, and the edges that the
+vector lines of the vector sets of the items of the kind design and of
+the kind specification of the tree give. The file of an edge that an
+accepted input gives is the file of that accepted input, and the file of
+an edge that a vector line of the vector set of an item gives is the
+vector file of that item. The cited item of an edge is the item that
+these rules give, or none when they give nothing:
 
 - for a citation entry whose match uses `vector-selection`, the item
   that the citation entry names as a selected item;
 - for each other citation entry, the item that its entry name names;
 - for an inline citation, the item that the text that `name` or
-  `external-ref` matches in the match of its destination names.
+  `external-ref` matches in the match of its destination names;
+- for a vector line of the vector set of an item of the kind
+  specification S that belongs to an item of the kind design D, or of an
+  item of the kind design D: the item x that the full name made of the
+  name of D, `#`, and the schema part name of the form of that vector
+  line names by rule 3 of the term `named-item`, when S holds x (for a
+  vector set of S) or when D holds x directly (for a vector set of D),
+  and nothing otherwise.
+
+For an edge that a vector line of the vector set of an item gives, the
+form run of that edge is the run of the text of the vector file of that
+item, on the line of that vector line, that starts at the boundary right
+after the opening `"` of the JSON string of the value of `form` and ends
+at the boundary right before the closing `"` of that JSON string. Its
+form position is the position of the boundary where its form run starts
+in the text of that vector file.
 
 ### 4.39 Parts of declared items
 
@@ -1728,17 +1760,18 @@ name of D, `#`, and the part name of the extern mark:
 
 ### 4.43 Position subjects
 
-@term position-subject=v1
+@term position-subject=v2
 @cites {
     files#{path=v1},
+    ontology#{declared-item=v2},
     text#{text=v1, position=v1, decimal-numeral=v1, code-span=v1},
-    #{read-file=v2},
+    #{read-file=v2, vector-file=v2},
 }
 
 The position subject of a position, with the line number l and the
-column c, in a read file is the text of the valid path of the file,
-then `@L`, then the decimal numeral of l, then `C`, then the decimal
-numeral of c.
+column c, in a read file or in the vector file of a declared item is the
+text of the valid path of the file, then `@L`, then the decimal numeral
+of l, then `C`, then the decimal numeral of c.
 
 ### 4.44 The order of positions
 
@@ -1752,17 +1785,19 @@ other.
 
 ### 4.45 The spots of runs
 
-@term run-spot=v1
+@term run-spot=v2
 @cites {
     findings#{spot=v1},
     files#{path=v1},
+    ontology#{declared-item=v2},
     text#{run=v1, boundary=v1, span=v1, body=v1},
-    #{read-file=v2},
+    #{read-file=v2, vector-file=v2},
 }
 
-For a run r of the text of a read file that starts and ends at
-boundaries of the body, the spot of r is the spot with the valid path of
-the file and the span r.
+For a run r of the text of a read file, or of the text of the vector
+file of a declared item, that starts and ends at boundaries of the body,
+the spot of r is the spot with the valid path of the file and the span
+r.
 
 ### 4.46 Tree findings
 
@@ -1818,7 +1853,7 @@ span.
     packs#{foreign-tag-word=v1, valid-pack=v1},
     #{
         read-file=v2, tag-text=v2, origin=v2, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
         edit-distance=v1,
     },
 }
@@ -1849,7 +1884,7 @@ of the text of that tag line in the text of the file.
     #{
         read-file=v2, unreadable-file=v2, markdown-section=v1,
         markdown-list-item=v1, paragraph-line=v1, origin=v2,
-        origin-position=v1, position-subject=v1, run-spot=v1,
+        origin-position=v1, position-subject=v2, run-spot=v2,
         tree-finding=v1, edit-distance=v1, markdown-line=v1,
         tag-text=v2, front-matter=v1,
     },
@@ -1911,7 +1946,7 @@ position of C. Its spot is the spot of C.
     text#{result=v1, code-span=v1},
     #{
         accepted-input=v2, origin=v2, origin-position=v1,
-        home-design=v2, position-subject=v1, run-spot=v1,
+        home-design=v2, position-subject=v2, run-spot=v2,
         tree-finding=v1,
     },
 }
@@ -1943,7 +1978,7 @@ the spot of the run of Y in the text of the file.
     text#{code-point-order=v1, position=v1, character=v1},
     #{
         item-file=v1, name-set=v2, origin=v2, origin-position=v1,
-        vector-file=v2, position-subject=v1, run-spot=v1,
+        vector-file=v2, position-subject=v2, run-spot=v2,
         tree-finding=v1, position-order=v1,
     },
 }
@@ -1971,10 +2006,11 @@ class `duplicate`:
 @atom dangling-finding=v2
 @cites {
     identifiers#{citation-entry=v2, inline-citation=v1, part-name=v1},
+    data-forms#{vector-line=v2},
     ontology#{edge=v2},
     #{
         tree-edge=v2, home-design=v2, origin=v2, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
 }
 
@@ -1983,32 +2019,39 @@ tree that has no cited item, other than an edge whose citation entry has
 an entry name that is `#` and a part name, when its citation has no home
 design, and other than an edge whose inline citation has a destination
 in whose match `name` matches `#` and a part name, when that inline
-citation has no home design. Its subject is the position subject of the
-origin position of the citation entry or of the inline citation of the
-edge. Its spot is the spot of the run of that citation entry or inline
-citation in the text of the file.
+citation has no home design. For an edge that a citation entry or an
+inline citation gives, its subject is the position subject of the origin
+position of the citation entry or of the inline citation of the edge,
+and its spot is the spot of the run of that citation entry or inline
+citation in the text of the file. For an edge that a vector line gives,
+its subject is the position subject of its form position in its file,
+and its spot is the spot of its form run in the text of its file.
 
 ### 4.54 Findings of the class `wrong-source`
 
 @atom wrong-source-finding=v2
 @cites {
     identifiers#{citation-entry=v2},
+    data-forms#{vector-line=v2},
     ontology#{
         edge=v2, edge-source=v1, cites-edge=v2, satisfies-edge=v2,
         verifies-edge=v2, refines-edge=v2, supersedes-edge=v2,
     },
     #{
         tree-edge=v2, origin=v2, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
 }
 
 A tree has one tree finding of the class `wrong-source` for each edge of
 the tree that has no source, or whose source is not of a kind of item
-that its kind of edge is for as its source. Its subject is the position
-subject of the origin position of the citation entry or of the inline
-citation of the edge. Its spot is the spot of the run of that citation
-entry or inline citation in the text of the file.
+that its kind of edge is for as its source. For an edge that a citation
+entry or an inline citation gives, its subject is the position subject of
+the origin position of the citation entry or of the inline citation of
+the edge, and its spot is the spot of the run of that citation entry or
+inline citation in the text of the file. For an edge that a vector line
+gives, its subject is the position subject of its form position in its
+file, and its spot is the spot of its form run in the text of its file.
 
 ### 4.55 Findings of the class `wrong-kind`
 
@@ -2018,6 +2061,7 @@ entry or inline citation in the text of the file.
         citation-line=v2, citation-entry=v2, inline-citation=v1,
         external-target=v2, kind-word=v2,
     },
+    data-forms#{vector-line=v2},
     ontology#{
         edge=v2, edge-source=v1, declared-item=v2, cites-edge=v2,
         satisfies-edge=v2, verifies-edge=v2, refines-edge=v2,
@@ -2025,7 +2069,7 @@ entry or inline citation in the text of the file.
     },
     #{
         tree-edge=v2, stated-kind=v2, origin=v2, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
 }
 
@@ -2041,10 +2085,13 @@ its citation entry, and is not a declared item otherwise. For an edge of
 the kind `refines` that has no source, or whose source is not a declared
 item, the first condition is instead: its cited item is not a declared
 item.
-Its subject is the position subject of the origin position of the
-citation entry or of the inline citation of the edge. Its spot is the
-spot of the run of that citation entry or inline citation in the text
-of the file.
+For an edge that a citation entry or an inline citation gives, its
+subject is the position subject of the origin position of the citation
+entry or of the inline citation of the edge, and its spot is the spot of
+the run of that citation entry or inline citation in the text of the
+file. For an edge that a vector line gives, its subject is the position
+subject of its form position in its file, and its spot is the spot of
+its form run in the text of its file.
 
 ### 4.56 Findings of the class `misplaced-declaration`
 
@@ -2061,7 +2108,7 @@ of the file.
     #{
         read-file=v2, accepted-input=v2, item-file=v1, tag-text=v2,
         item-scope=v1, tree-containment=v2, item-part=v1, tree-site=v1,
-        origin=v2, origin-position=v1, position-subject=v1, run-spot=v1,
+        origin=v2, origin-position=v1, position-subject=v2, run-spot=v2,
         tree-finding=v1, innermost-item=v1,
     },
 }
@@ -2107,7 +2154,7 @@ run of that text in the text of the file.
     ontology#{declared-item=v2, containment=v2},
     #{
         item-file=v1, tree-containment=v2, origin=v2,
-        origin-position=v1, position-subject=v1, run-spot=v1,
+        origin-position=v1, position-subject=v2, run-spot=v2,
         tree-finding=v1,
     },
 }
@@ -2130,7 +2177,7 @@ text in the text of its file.
     #{
         item-file=v1, tree-containment=v2, extern-mark=v2,
         valid-extern-mark=v2, origin=v2, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
 }
 
@@ -2899,12 +2946,14 @@ and its file lines, and no other site.
         external-namespaces=v1, validate-bindings=v1, citation-entry=v2,
         inline-citation=v1,
     },
+    data-forms#{vector-line=v2},
     ontology#{edge=v2, edge-source=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, accepted-input=v2, tree-edge=v2,
-        named-item=v2, selected-item=v2, item-part=v1, tree-site=v1,
-        file-test=v1, origin-position=v1, unreadable-file=v2,
+        named-item=v2, selected-item=v2, vector-file=v2, item-part=v1,
+        tree-site=v1, file-test=v1, origin-position=v1,
+        unreadable-file=v2,
     },
 }
 
@@ -2913,9 +2962,9 @@ Under a valid binding of `file-readers` and a binding of
 Identifiers gives the result "valid", when a conforming program gives
 the edges of a tree under these bindings and a set of stopped files, it
 must give each edge of the tree once, with its file, the origin position
-of its citation entry or inline citation, its kind of edge, its source
-or that it has none, and its cited item or that it has none, and no
-other edge.
+of its citation entry or inline citation or the form position of its
+vector line, its kind of edge, its source or that it has none, and its
+cited item or that it has none, and no other edge.
 
 ### 5.11 The items in which status tags stand
 
@@ -3090,7 +3139,10 @@ of the vector is empty.
         code-point-order=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
-    data-forms#{index=v1, hex-text=v1, group-form-list=v2, vector-meaning=v2},
+    data-forms#{
+        index=v1, hex-text=v1, vector-line=v2, group-form-list=v2,
+        vector-meaning=v2,
+    },
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, status-tag=v1,
         citation-entry=v2, inline-citation=v1, tag-line-text=v1,
@@ -3210,12 +3262,13 @@ element of a thing that has no such item has no such member.
 - `edges`: a JSON array with one element for each edge of the tree, in
   the code point order of the valid paths of their files and then in the
   order of the origin positions of their citation entries or inline
-  citations. Each element is a JSON object with these members: `kind`,
-  the kind of edge, as a text; `file`, the file of its citation entry or
-  inline citation; `at`, the origin position of that citation entry or
-  inline citation; `source`, its source, as a reference, only when it has
-  a source; and `cited`, its cited item, as a reference, only when it has
-  a cited item.
+  citations or the form positions of their vector lines. Each element is
+  a JSON object with these members: `kind`, the kind of edge, as a text;
+  `file`, the file of the edge; `at`, the origin position of its
+  citation entry or inline citation, or the form position of its vector
+  line; `source`, its source, as a reference, only when it has a source;
+  and `cited`, its cited item, as a reference, only when it has a cited
+  item.
 - `status-tags`: a JSON array with one element for each accepted input
   of the tree that is a status tag, in the code point order of the valid
   paths of their files and then in the order of their origin positions.
