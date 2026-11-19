@@ -26,9 +26,9 @@ mutaml-report --fail-under 95 \
 
 One runner tests every mutant under the whole suite, and the pass takes
 some hours. A machine has no time limit for one command, so this pass
-needs no split. The `mutation` job splits the same pass into four parts,
-and it tests each mutant only under the test groups that can reach it,
-as "The CI job" and "The selection of tests" below say.
+needs no split. The `mutation` job splits the same pass into parts, and
+it tests each mutant only under the test groups that can reach it, as
+"The CI job" and "The selection of tests" below say.
 
 **A pass on a branch.** Run `git fetch origin`, and put
 `--changed-since origin/main` in front of the script name in the
@@ -103,25 +103,33 @@ no file under `lib/` or `bin/`
   and the report does not.
 
 **The CI job.** A job on GitHub stops after six hours, and a full
-pass takes longer than that on one runner of GitHub. So the
-`mutation` job runs as four jobs at the same time, "Measure the
-mutation score (part 1 of 4)" to "(part 4 of 4)", and a fifth job,
-"Report the mutation score", gives one score from the four. Each of
-the four jobs is a **part**:
+pass takes longer than that on one runner of GitHub. So the `mutation`
+job runs as a plan, a number of parts that run at the same time, and a
+report:
 
-1. Each part decides what the run measures: every mutant, the mutants
-   on the lines that the pull request changed, or no mutant, as "A
-   pass on a branch" above says.
-2. Each part builds the tests with the code instrumented and runs
-   `test/mutant-shares.sh 4 <part>`. The script reads the list of
-   mutation files that the build wrote, counts the mutants in each file,
-   and gives the files to four **shares**. A share is a set of mutation
-   files, and each part tests one share. The script takes the files from
-   the most mutants to the fewest, and gives each file to the share with
-   the fewest mutants so far. Files with the same number of mutants go
-   in the order of their paths. Every part computes the same four
-   shares, so each file is in exactly one share. A file with no mutant
-   and no marked place is in no share, because it has nothing to report.
+1. "Plan the mutation run" decides what the run measures: every
+   mutant, the mutants on the lines that the pull request changed, or
+   no mutant, as "A pass on a branch" above says. It makes the mutants
+   with `dune build @check --instrument-with mutaml`, which writes the
+   mutation files without a build of the programs, and
+   `test/mutant-count.sh` counts the mutants that the run tests. For
+   the changed lines, the script runs `mutaml-runner --changed-since`
+   with a test command that always passes, so that the count follows
+   the rule of the runner. The number of parts is that count divided
+   by `MUTANTS_PER_PART` in `build.yml`, rounded up, and at least 1.
+   One run on GitHub holds at most 256 parts.
+2. Each **part**, "Measure the mutation score (part 1 of 3)" and so on,
+   builds the tests with the code instrumented and runs
+   `test/mutant-shares.sh <parts> <part>`. The script reads the list of
+   mutation files that the build wrote, counts the mutants in each
+   file, and gives the files to as many **shares** as there are parts.
+   A share is a set of mutation files, and each part tests one share.
+   The script takes the files from the most mutants to the fewest, and
+   gives each file to the share with the fewest mutants so far. Files
+   with the same number of mutants go in the order of their paths.
+   Every part computes the same shares, so each file is in exactly one
+   share. A file with no mutant and no marked place is in no share,
+   because it has nothing to report.
 3. Each part runs `test/run-mutant-share.sh` on the files of its
    share. The script runs `mutaml-runner --muts <file>` once for each
    file, with the options of the full pass, and with
@@ -131,12 +139,13 @@ the four jobs is a **part**:
    `mutaml-report.json`, so the script moves that file away after each
    run. At the end, `test/join-mutant-reports.sh` joins the reports
    into one report of the part, and the part keeps it as an artifact.
-4. "Report the mutation score" runs after the four parts, also when a
-   part fails. It joins the four reports, and runs `mutaml-report` on
-   the joined report with `--fail-under`. It fails when a part failed
-   or a report is missing, and it passes at once when the run measures
-   no mutant. It keeps the joined report and the JSON report as the
-   artifact `mutation-report`.
+4. "Report the mutation score" runs after the parts, also when a part
+   fails. It joins the reports of the parts, checks that the parts
+   tested as many mutants as the plan counted, and runs `mutaml-report`
+   on the joined report with `--fail-under`. It fails when the plan
+   failed, a part failed, a report is missing, or the two counts differ,
+   and it passes at once when the run measures no mutant. It keeps the
+   joined report and the JSON report as the artifact `mutation-report`.
 
 The joined report holds the same results as the report of one runner
 over all the files, so the score is the score of the full pass. The

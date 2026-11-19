@@ -313,18 +313,25 @@ jobs:
           below=$(awk "BEGIN { print ($total < $COVERAGE_MINIMUM) ? 1 : 0 }")
           test "$below" = 0
 
-  mutation:
-    name: Measure the mutation score (part ${{ matrix.part }} of ${{ strategy.job-total }})
+  mutation-plan:
+    name: Plan the mutation run
     if: github.event_name != 'push'
     runs-on: ubuntu-26.04
-    # @cites mutation-job-scope
-    strategy:
-      fail-fast: false
-      matrix:
-        part: [1, 2, 3, 4]
+    env:
+      # @cites mutation-job-scope
+      # A part tests at most this many mutants. On a tree of 6,179 mutants
+      # in three parts, the parts took 2 h 30 min, 1 h 52 min, and
+      # 1 h 16 min (about 3.3 seconds per mutant on average, and 4.4
+      # seconds per mutant in the slowest part). At 2,500 mutants per
+      # part, a typical part takes about 2 h 15 min, and a part with
+      # slower files stays near 3 hours, well under GitHub's 6-hour limit.
+      MUTANTS_PER_PART: "2500"
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
-      parts: ${{ strategy.job-total }}
+      base: ${{ steps.scope.outputs.base }}
+      mutants: ${{ steps.count.outputs.mutants }}
+      parts: ${{ steps.count.outputs.parts }}
+      part-list: ${{ steps.count.outputs.part-list }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -348,7 +355,7 @@ jobs:
             lib/markdown/tree-sitter-markdown.wasm \
             test/run-mutants.sh test/mutant-shares.sh \
             test/run-mutant-share.sh test/join-mutant-reports.sh \
-            test/mutant-groups.sh | wc -l)
+            test/mutant-groups.sh test/mutant-count.sh | wc -l)
           if [ "$dependencies" -ne 0 ]; then
             echo "mode=full" >>"$GITHUB_OUTPUT"
             echo "Every mutant: the pull request changed $dependencies files of the dependencies."
@@ -377,21 +384,6 @@ jobs:
           key: opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
           restore-keys: |
             opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-
-      - uses: actions-rust-lang/setup-rust-toolchain@v2
-        if: steps.scope.outputs.mode != 'none'
-        with:
-          cache: false
-          toolchain: 1.99.1
-      - name: Cache the cargo state
-        if: steps.scope.outputs.mode != 'none'
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cache/sinter-bridge-build
-          key: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-
       - name: Turn off git background maintenance
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -417,8 +409,104 @@ jobs:
           echo "$prefix/bin" >>"$GITHUB_PATH"
           echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
           echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
-      - name: Build the tests with the code instrumented
+      - name: Make the mutants
         if: steps.scope.outputs.mode != 'none'
+        env:
+          MUTAML_MUT_RATE: "100"
+          MUTAML_SEED: "42"
+        run: dune build @check --instrument-with mutaml
+      - name: Count the mutants and the parts
+        if: steps.scope.outputs.mode != 'none'
+        id: count
+        env:
+          MODE: ${{ steps.scope.outputs.mode }}
+          BASE: ${{ steps.scope.outputs.base }}
+        run: |
+          set -eu
+          if [ "$MODE" = changed ]; then
+            mutants=$(sh test/mutant-count.sh -c "$BASE")
+          else
+            mutants=$(sh test/mutant-count.sh)
+          fi
+          parts=$(( (mutants + MUTANTS_PER_PART - 1) / MUTANTS_PER_PART ))
+          if [ "$parts" -lt 1 ]; then
+            parts=1
+          fi
+          if [ "$parts" -gt 256 ]; then
+            echo "The run tests $mutants mutants, which needs $parts parts." \
+              "A run on GitHub holds at most 256 parts."
+            exit 1
+          fi
+          echo "mutants=$mutants" >>"$GITHUB_OUTPUT"
+          echo "parts=$parts" >>"$GITHUB_OUTPUT"
+          echo "part-list=$(seq 1 "$parts" | jq -s -c .)" >>"$GITHUB_OUTPUT"
+          echo "The run tests $mutants mutants in $parts parts of at most $MUTANTS_PER_PART mutants."
+
+  mutation:
+    name: Measure the mutation score (part ${{ matrix.part }} of ${{ strategy.job-total }})
+    needs: mutation-plan
+    if: needs.mutation-plan.outputs.mode == 'full' || needs.mutation-plan.outputs.mode == 'changed'
+    runs-on: ubuntu-26.04
+    # @cites mutation-job-scope
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ${{ fromJSON(needs.mutation-plan.outputs.part-list || '[1]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Name the runner image
+        id: image
+        run: |
+          test -n "$ImageOS"
+          echo "os=$ImageOS" >>"$GITHUB_OUTPUT"
+      - name: Restore the opam switch
+        id: opam
+        uses: actions/cache@v6
+        with:
+          path: _opam
+          key: opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
+          restore-keys: |
+            opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          cache: false
+          toolchain: 1.99.1
+      - name: Cache the cargo state
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/sinter-bridge-build
+          key: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
+          restore-keys: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+      - name: Turn off git background maintenance
+        if: steps.opam.outputs.cache-hit != 'true'
+        run: git config --global maintenance.auto false
+      - uses: ocaml/setup-ocaml@v3
+        if: steps.opam.outputs.cache-hit != 'true'
+        with:
+          ocaml-compiler: ${{ env.OCAML_VERSION }}
+          cache: false
+      - name: Install the dependencies
+        if: steps.opam.outputs.cache-hit != 'true'
+        run: opam install . --deps-only --with-test --locked
+      - name: Install the pinned mutaml
+        if: steps.opam.outputs.cache-hit != 'true'
+        run: |
+          set -eu
+          opam pin add -y -n mutaml \
+            "git+https://github.com/sinterworks/mutaml.git#$MUTAML_COMMIT"
+          opam install -y mutaml
+      - name: Put the switch on the path
+        run: |
+          prefix="$GITHUB_WORKSPACE/_opam"
+          echo "$prefix/bin" >>"$GITHUB_PATH"
+          echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
+          echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
+      - name: Build the tests with the code instrumented
         env:
           MUTAML_MUT_RATE: "100"
           MUTAML_SEED: "42"
@@ -426,10 +514,9 @@ jobs:
           dune build @runtest --force
           --instrument-with mutaml
       - name: Run the tests for each mutant of this part under two seeds
-        if: steps.scope.outputs.mode != 'none'
         env:
-          MODE: ${{ steps.scope.outputs.mode }}
-          BASE: ${{ steps.scope.outputs.base }}
+          MODE: ${{ needs.mutation-plan.outputs.mode }}
+          BASE: ${{ needs.mutation-plan.outputs.base }}
           PART: ${{ matrix.part }}
           PARTS: ${{ strategy.job-total }}
         run: |
@@ -443,13 +530,17 @@ jobs:
           mkdir -p _mutations
           sh test/mutant-shares.sh "$PARTS" "$PART" >_mutations/share.txt
           mapfile -t files <_mutations/share.txt
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "This part holds no mutation file."
+            echo '{"results": [], "skipped": []}' >"_mutations/part-$PART.json"
+            exit 0
+          fi
           set -- -j "$workers"
           if [ "$MODE" = changed ]; then
             set -- "$@" -c "$BASE"
           fi
           sh test/run-mutant-share.sh "$@" "_mutations/part-$PART.json" "${files[@]}"
       - name: Upload the report of this part
-        if: steps.scope.outputs.mode != 'none'
         uses: actions/upload-artifact@v7
         with:
           name: mutation-part-${{ matrix.part }}
@@ -458,7 +549,7 @@ jobs:
 
   mutation-report:
     name: Report the mutation score
-    needs: mutation
+    needs: [mutation-plan, mutation]
     if: ${{ !cancelled() && github.event_name != 'push' }}
     runs-on: ubuntu-26.04
     env:
@@ -469,11 +560,19 @@ jobs:
       - name: Check the parts
         id: scope
         env:
-          MODE: ${{ needs.mutation.outputs.mode }}
-          PARTS: ${{ needs.mutation.outputs.parts }}
+          MODE: ${{ needs.mutation-plan.outputs.mode }}
+          PARTS: ${{ needs.mutation-plan.outputs.parts }}
+          MUTANTS: ${{ needs.mutation-plan.outputs.mutants }}
+          PLAN: ${{ needs.mutation-plan.result }}
           RESULT: ${{ needs.mutation.result }}
         run: |
           set -eu
+          if [ "$PLAN" != success ]; then
+            echo "The plan of the mutation run did not succeed: its" \
+              "result is $PLAN. No part tested a mutant. Read the log" \
+              "of the plan."
+            exit 1
+          fi
           case $MODE in
             none)
               echo "mode=none" >>"$GITHUB_OUTPUT"
@@ -482,8 +581,8 @@ jobs:
               ;;
             full | changed) ;;
             *)
-              echo "The parts of the mutation run gave no mode, so none of" \
-                "them decided what to measure. Read the logs of the parts."
+              echo "The plan of the mutation run gave no mode, so it did" \
+                "not decide what to measure. Read the log of the plan."
               exit 1
               ;;
           esac
@@ -496,6 +595,7 @@ jobs:
           fi
           echo "mode=$MODE" >>"$GITHUB_OUTPUT"
           echo "parts=$PARTS" >>"$GITHUB_OUTPUT"
+          echo "mutants=$MUTANTS" >>"$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         if: steps.scope.outputs.mode != 'none'
       - name: Name the runner image
@@ -548,6 +648,7 @@ jobs:
         if: steps.scope.outputs.mode != 'none'
         env:
           PARTS: ${{ steps.scope.outputs.parts }}
+          MUTANTS: ${{ steps.scope.outputs.mutants }}
         run: |
           set -eu
           set --
@@ -569,6 +670,14 @@ jobs:
             exit 1
           fi
           sh test/join-mutant-reports.sh _mutations/mutaml-report.json "$@"
+          tested=$(jq '[.results[] | select(.not_run != true)] | length' \
+            _mutations/mutaml-report.json)
+          if [ "$tested" != "$MUTANTS" ]; then
+            echo "The parts tested $tested mutants, and the plan of the run" \
+              "counted $MUTANTS. A part left out mutants, or tested" \
+              "mutants of another build. Run the parts again."
+            exit 1
+          fi
           jq -r '.results[].mutant.loc.loc_start.pos_fname' \
             _mutations/mutaml-report.json |
             sed -n 's|/[^/]*$||p' | LC_ALL=C sort -u |

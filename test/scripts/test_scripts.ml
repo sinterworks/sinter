@@ -9,6 +9,7 @@ let names =
     "mutant-groups.sh";
     "run-mutant-share.sh";
     "join-mutant-reports.sh";
+    "mutant-count.sh";
   ]
 
 let ( / ) = Filename.concat
@@ -761,10 +762,70 @@ let share_tests =
             mentions "\n--changed-since\nbase\n" (calls root)));
   ]
 
+let count_tests =
+  [
+    Alcotest.test_case "the count of a full pass is every mutant" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran = run root "mutant-count.sh" [] in
+            status 0 ran.status;
+            Alcotest.(check string) "the count" "11\n" ran.out));
+    Alcotest.test_case
+      "the count of the changed lines is the mutants that the runner tests"
+      `Quick (fun () ->
+        in_project (fun root ->
+            let report = root / "report.json" in
+            write report
+              (Printf.sprintf
+                 {|{"results":[{"status":0,"mutant":%s},{"status":0,"mutant":%s,"not_run":true},{"status":0,"mutant":%s,"not_run":false}],"skipped":[]}|}
+                 (mutant "lib/a.ml" 0) (mutant "lib/a.ml" 1)
+                 (mutant "lib/a.ml" 2));
+            let ran =
+              run
+                ~env:(("FAKE_REPORT", report) :: calls_env root)
+                root "mutant-count.sh" [ "-c"; "base" ]
+            in
+            status 0 ran.status;
+            Alcotest.(check string) "the count" "2\n" ran.out;
+            mentions "\n--changed-since\nbase\ntrue\n--\n" ("\n" ^ calls root)));
+    Alcotest.test_case "a runner that fails stops the count" `Quick (fun () ->
+        in_project (fun root ->
+            let ran =
+              run
+                ~env:[ ("FAKE_STATUS", "1") ]
+                root "mutant-count.sh" [ "-c"; "base" ]
+            in
+            status 1 ran.status));
+    Alcotest.test_case "a runner that writes no report stops the count" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              run
+                ~env:[ ("FAKE_NO_REPORT", "1") ]
+                root "mutant-count.sh" [ "-c"; "base" ]
+            in
+            status 1 ran.status));
+    Alcotest.test_case "a runner that skips a file stops the count" `Quick
+      (fun () ->
+        in_project (fun root ->
+            let ran =
+              run
+                ~env:[ ("FAKE_PRINT", "Skipping lib/x.muts: gone") ]
+                root "mutant-count.sh" [ "-c"; "base" ]
+            in
+            status 1 ran.status;
+            mentions "Skipping lib/x.muts" ran.err));
+    Alcotest.test_case "the count needs a build" `Quick (fun () ->
+        in_project (fun root ->
+            remove (root / "_build");
+            status 2 (run root "mutant-count.sh" []).status));
+  ]
+
 let () =
   Alcotest.run "scripts"
     [
       ("mutant groups", groups_tests);
       ("run mutants", run_mutants_tests);
       ("mutant share", share_tests);
+      ("mutant count", count_tests);
     ]
