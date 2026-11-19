@@ -2,19 +2,19 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Documents
-@design documents=v1
+@design documents=v2
 @cites text=v1
-@cites identifiers=v1
+@cites identifiers=v2
 @cites files=v1
-@cites data-forms=v1
-@cites ontology=v1
+@cites data-forms=v2
+@cites ontology=v2
 @cites packs=v1
 @cites findings=v1
 @cites commonmark/0.31.2
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the files of a tree that a conforming program reads, with their readers; the sets of stopped files and the files that cannot be read; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the kind words and the canonical identifiers of declared items and the tree forms of citation entries; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; the Conformance parts and the forms texts of designs and specifications; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
+Specifies the files of a tree that a conforming program reads, with their readers; the sets of stopped files and the files that cannot be read; the front matter, sections, list items, and paragraph lines of markdown files; the runs of comments, comment lines, attachment, and tests of code files; tag texts, the places that their characters come from, and the inputs that they give; the claims, extents, hashed lines, hash texts, extent hashes, containment, and names of declared items; the kind words and the canonical identifiers of declared items and the tree forms of citation entries; the written lines of blocks, the written tag lines of tag texts, and the written text of inline elements; what citation entries and inline citations name; extern marks, vector files, code texts, code hashes, sites, and edges; the finding classes `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`, `dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`; and requirements for conforming programs that give these.
 
 A conforming program reads the files of a tree to find the items that
 Sinter traces and the edges between them. A binding of the parameter
@@ -59,7 +59,7 @@ test-vector file names, test-vector sets, and vector lines. From the
 Ontology, it takes trees and their files; parameters; items and their
 kinds, declared items, containment, and the
 names of declared items; tests and comments on tests; sites; external
-items; vector sets, conformance vectors, and groups of conformance
+items; vector sets, and groups of conformance
 vectors; revised content; edges, their kinds, sources, and cited items,
 and the item in which a line, a citation, or an inline citation stands;
 and findings and finding classes. From Language packs, it takes packs
@@ -100,11 +100,11 @@ names `true` and `false`.
 | [descriptor](sinter:packs#valid-pack=v1) | the valid descriptor of a valid pack, which gives the comment sigils, the foreign tag words, and the grammars of the pack |
 | [comment sigil](sinter:packs#comment-sigil=v1) | a line sigil, such as `//`; the opening sigil and the closing sigil of a block pair, such as `/*` and `*/`; or an inner sigil, such as `*` |
 | [foreign tag word](sinter:packs#foreign-tag-word=v1) | a tag word, such as `@param`, that the language of a pack, or a tool of that language, uses in comments with a meaning of its own |
-| [binding of `file-readers`](sinter:#file-reader-binding=v1), [reader](sinter:#file-reader-binding=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
-| [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
-| [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
-| [set of stopped files](sinter:#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files for whose reading it gives "parse failure" by the exception for limits of Language packs; any set of read files can be one |
-| [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
+| [binding of `file-readers`](sinter:#file-readers=v1), [reader](sinter:#file-reader=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
+| [read file](sinter:#read-file=v2) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
+| [markdown file](sinter:#read-file=v2), [code file](sinter:#read-file=v2) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
+| [set of stopped files](sinter:#unreadable-file=v2) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files for whose reading it gives "parse failure" by the exception for limits of Language packs; any set of read files can be one |
+| [cannot be read](sinter:#unreadable-file=v2) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
 | [section](sinter:#markdown-section=v1), [heading that opens a section](sinter:#markdown-section=v1) | the markdown lines from the first line of an ATX heading or a setext heading that no block quote and no list item contains, up to the line before the next such heading of the same or a smaller level, or to the end of the markdown text; the lines before the first such heading are the section of level 0 |
@@ -115,45 +115,43 @@ names `true` and `false`.
 | [lines of a run](sinter:#run-line=v1) | for each line that has a place of a run of a text, the places of the run on that line, and the empty lines inside the run |
 | [run of comments](sinter:#comment-run=v1) | a sequence of the comment nodes that no other comment node encloses, each of which starts on the last line of the one before it or on the next line, with only spaces, tabs, and line endings between them; a comment node that starts on a line with a code character is a run of comments by itself, and no other comment node joins that run of comments |
 | [comment line](sinter:#comment-line=v1) | a line of a tagged comment node, without its comment sigils and without the indentation of the comment itself |
-| [tag text](sinter:#tag-text=v1) | the lines of a first paragraph in a markdown file, or the comment lines of the tagged comment nodes of one run of comments that has a tagged comment node in a code file, joined by line feeds |
-| [origin](sinter:#origin=v1), [origin position](sinter:#origin-position=v1) | the places of the text of a file that a part of a tag text or of a markdown text comes from; the position at which that part starts, which is the position of the `@` for the text of a tag line |
+| [tag text](sinter:#tag-text=v2) | the lines of a first paragraph in a markdown file, or the comment lines of the tagged comment nodes of one run of comments that has a tagged comment node in a code file, joined by line feeds |
+| [origin](sinter:#origin=v2), [origin position](sinter:#origin-position=v1) | the places of the text of a file that a part of a tag text or of a markdown text comes from; the position at which that part starts, which is the position of the `@` for the text of a tag line |
 | [file line](sinter:#file-line=v1) | a markdown line of a markdown file, or a line that a tag text of a code file joins |
-| [input of a tree](sinter:#accepted-input=v1), [accepted input](sinter:#accepted-input=v1), [file of an input](sinter:#accepted-input=v1) | a line of a tag text, with its continuation lines, or a link of a markdown text or of a tag text of a code file, to which a conforming program of Identifiers gives a result; an accepted input gets the result "valid"; the file of an input is the read file of the tag text or the markdown text in which it is |
+| [input of a tree](sinter:#accepted-input=v2), [accepted input](sinter:#accepted-input=v2), [file of an input](sinter:#accepted-input=v2) | a line of a tag text, with its continuation lines, or a link of a markdown text or of a tag text of a code file, to which a conforming program of Identifiers gives a result; an accepted input gets the result "valid"; the file of an input is the read file of the tag text or the markdown text in which it is |
 | [blank line](sinter:#blank-line=v1) | a line of any kind whose text has no character other than spaces and tabs |
 | [block of a tag text](sinter:#tag-text-block=v1), trailing prose | a tag line, the tag lines and continuation lines right after it, and its trailing prose: the lines after them up to the next tag line or the end of the tag text |
 | [attachment target](sinter:#attachment=v1), [attach](sinter:#attachment=v1), unattached | a definition node or a test node; a run of comments attaches to the first attachment target after it, when no code character stands before it on its first line, each code character between the two is in a decoration node, and each line between them has a code character in a decoration node, or has in it a line of the run of a comment node; a run of comments that attaches to no attachment target is unattached |
 | [tests of a read file](sinter:#file-test=v1) | the tests whose code is a test node of a code file that can be read; a markdown file and a read file that cannot be read have none |
 | [declaration of a declared item](sinter:#item-file=v1), [file of a declared item](sinter:#item-file=v1) | the accepted input that declares a declared item, and the read file whose tag text has it |
-| [claim](sinter:#claim=v1) | the lines that a declaration claims: in markdown, its section or its list item, from its own tag line when another declaration of its paragraph comes before it, up to the next declaration of its paragraph; in code, its part of its block of a tag text; in both, without the blank lines at its end; in markdown, for a declared finding class that is the only declaration of the first paragraph of the section of level 0, every line of its file |
+| [claim](sinter:#claim=v2) | the lines that a declaration claims: in markdown, its section or its list item, from its own tag line when another declaration of its paragraph comes before it, up to the next declaration of its paragraph; in code, its part of its block of a tag text; in both, without the blank lines at its end |
 | [scope](sinter:#item-scope=v1) | the file lines in which a design or a specification gathers its items: in markdown, the markdown lines of the section or the list item whose first paragraph has its declaration; in code, for a design, its claim, and for a specification, the lines of its tag text, with the file lines in the run of the attachment target of its run of comments, or every file line of the file when its run of comments is unattached and no code character comes before it |
 | [innermost](sinter:#innermost-item=v1) | of some declared items whose claims, or whose scopes, have a thing in them, the one whose claim, or scope, is a subset of that of each of the others, when exactly one is |
 | [design of a slug](sinter:#slug-design=v1) | the item of the kind design whose name is the slug, when no other item of the kind design and no decision record has that name |
-| [home design](sinter:#home-design=v1) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement or term in whose claim it is names that requirement or term by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
-| [belong to](sinter:#tree-containment=v1), [hold](sinter:ontology#containment=v1) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
+| [home design](sinter:#home-design=v2) | the innermost item of the kind design in whose scope a tag line or an inline citation is; otherwise, in a code file, when the declaration of the innermost requirement, schema, atom, or term in whose claim it is names that requirement, schema, atom, or term by a full name whose slug has a design, that design; otherwise, when the declaration of the innermost specification in whose scope it is names it by a full name whose slug has a design, that design; otherwise none |
+| [belong to](sinter:#tree-containment=v2), [hold](sinter:ontology#containment=v2) | the relation of containment of the Ontology, in which an item of the kind design or specification holds the declared items that belong to it |
 | [extent](sinter:#extent=v1) | the file lines that a declared item takes up: its claim, without the claims of the other declared items inside it that it does not hold, and with the extents of the declared items in the same file that it holds |
 | [section number](sinter:#section-number=v1) | the text that the production `section-number` matches, such as `2.1 ` in `## 2.1 Amount limit` |
-| [hash text](sinter:#extent-hash=v1), [extent hash](sinter:#extent-hash=v1) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
+| [hash text](sinter:#extent-hash=v2), [extent hash](sinter:#extent-hash=v2) | the text of the lines that the hashed lines of a declared item give, each followed by a line feed, such as `paragraph: An invoice must not exceed {code:limit}.`; and the hash of the UTF-8 encoding of that text, which is the measure of revised content |
 | [hashed lines](sinter:#hashed-line=v1) | the lines of the extent of a declared item, without the lines of the extents of the items that belong to it when it is a design |
-| [written lines](sinter:#written-line=v1) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
-| [written tag lines](sinter:#written-line=v1), [cluster](sinter:#written-line=v1) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of lines of a tag text that the term cuts at declarations and after prose |
+| [written lines](sinter:#written-line=v2) | the lines that a block of a markdown document gives for a declared item, each an indent, a mark, such as `heading +1:`, `paragraph:`, `break`, or `|` for a line of code, and, after most marks, a text |
+| [written tag lines](sinter:#written-line=v2), [cluster](sinter:#written-line=v2) | the lines that a tag text gives for a declared item: for each of its clusters, the tag lines of the cluster, written from what they name, and the written lines of the prose of the cluster; a cluster is a sequence of lines of a tag text that the term cuts at declarations and after prose |
 | [kind word of a declared item](sinter:#item-kind-word=v1) | the one kind word that states the kind of item of a declared item, such as `req` for a requirement |
 | [canonical identifier of a declared item](sinter:#item-canonical-id=v1) | the kind word of a declared item, `:`, and its name, such as `req:billing#limit-amount` |
 | [tree form](sinter:#tree-form=v1) | the canonical form of a citation entry, or of the target of an inline citation, for a home design, such as `req:billing#limit-amount` for `#limit-amount=v2` with the home design `billing` |
-| [written text](sinter:#written-inline=v1) | the text that a sequence of inline elements gives on one line for a declared item: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:req:packs#size-limit}}`, where the destination of a valid inline citation is `sinter:` and a tree form, with `\`, `{`, `}`, and line feeds escaped |
-| [valid inline citation](sinter:#written-inline=v1) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
-| [forms text](sinter:#forms-text=v1) | the text of the written lines that the Conformance part of a design or of a specification gives, without its headings, the lines of the items that belong to the design, and the vector lines that it shows, each followed by a line feed |
+| [written text](sinter:#written-inline=v2) | the text that a sequence of inline elements gives on one line for a declared item: textual content with each run of spaces, tabs, and soft line breaks as one space, and the other inline elements in marks between `{` and `}`, such as `{em:steps}` and `{link{the limit}{sinter:req:packs#size-limit}}`, where the destination of a valid inline citation is `sinter:` and a tree form, with `\`, `{`, `}`, and line feeds escaped |
+| [valid inline citation](sinter:#written-inline=v2) | an inline citation to which a conforming program of Identifiers gives the result "valid" for its destination and the plain string content of its link text |
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, or of the body nodes of a definition node, line by line, without the spaces and tabs at the end of each line and without the indentation that its lines share; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
-| [Conformance part](sinter:#conformance-part=v1) | the markdown lines of the Conformance section of a design, or of the Conformance part of a specification: the last section inside its section whose level is one more than the level of its heading; a design has none when the first paragraph of that section declares a specification that belongs to it, and an item whose declaration is in a list item, in the section of level 0, or in a code file has none |
-| [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, and terms that belong to no design and whose names are slugs; the set of the declared finding classes; or the set of the specifications, requirements, and terms that belong to one item of the kind design |
-| [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
-| [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree, for a home design |
-| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
-| [selected item](sinter:#selected-item=v1) | the conformance vector, the group of conformance vectors, or the vector set that a citation entry with a vector selection names |
+| [set of names](sinter:#name-set=v2) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, schemas, atoms, and terms that belong to no design and whose names are slugs; or the set of the specifications, requirements, schemas, atoms, and terms that belong to one item of the kind design |
+| [kind word states](sinter:#stated-kind=v2) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
+| [name names](sinter:#named-item=v2) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree, for a home design |
+| [vector path](sinter:#vector-file=v2), [vector file](sinter:#vector-file=v2) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
+| [selected item](sinter:#selected-item=v2) | the group of conformance vectors or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of the item |
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
-| [extern mark](sinter:#extern-mark=v1), [valid extern mark](sinter:#valid-extern-mark=v1) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement or a term |
-| [edges of a tree](sinter:#tree-edge=v1) | the edges that the citation entries of the accepted citations, and the accepted inline citations, of a tree give |
+| [extern mark](sinter:#extern-mark=v2), [valid extern mark](sinter:#valid-extern-mark=v2) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement, a schema, an atom, or a term |
+| [edges of a tree](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, and the accepted inline citations, of a tree give |
 | [position subject](sinter:#position-subject=v1) | the subject of a finding at a position, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file |
@@ -164,16 +162,16 @@ names `true` and `false`.
 | [spot](sinter:findings#spot=v1) | a valid path of a file of a tree, alone or with a span of the text of that file |
 | [mark of a finding](sinter:findings#mark=v1) | a spot whose span is the part of the spot of a finding that is at fault, with a message |
 | [tag line](sinter:identifiers#tag-line=v1), [tag word](sinter:identifiers#tag-word=v1) | a line whose first character after the spaces and tabs at its start is `@`; its tag word is that `@` with the longest run of ASCII letters, ASCII digits, and `-` right after it, such as `@req` |
-| [Sinter tag word](sinter:identifiers#sinter-tag-word=v1) | one of the sixteen tag words of Sinter, such as `@req`, `@cites`, `@deprecated`, and `@extern` |
+| [Sinter tag word](sinter:identifiers#sinter-tag-word=v2) | one of the fifteen tag words of Sinter, such as `@req`, `@cites`, `@deprecated`, and `@extern` |
 | [declaration](sinter:identifiers#declaration=v1), [citation](sinter:identifiers#citation=v1), [status tag](sinter:identifiers#status-tag=v1), [directive](sinter:identifiers#directive=v1) | a tag line whose tag word is a declaration word, such as `@req`; a citation word, such as `@cites`; a status word, such as `@deprecated`; or `@ack` or `@extern` |
 | [continuation line](sinter:identifiers#continuation-line=v1) | a line that continues the target list or the scoped list of a citation on a line before it |
 | [link](sinter:identifiers#link=v1), [inline citation](sinter:identifiers#inline-citation=v1) | an inline link, a reference link, or an autolink of the markdown document of a text; an inline citation is a link whose destination starts with `sinter:` |
-| [citation entry](sinter:identifiers#citation-entry=v1), [entry name](sinter:identifiers#citation-entry=v1) | one entry of the target of a citation, such as `billing#limit-amount=v2`; its entry name is its name or its external id, such as `billing#limit-amount` |
-| [declared item](sinter:ontology#declared-item=v1) | what a declaration declares: an item of the kind design, specification, or requirement, a term, a decision record, or a declared finding class |
-| [name of a declared item](sinter:ontology#item-name=v1) | the name in the target of its declaration, such as `billing` or `billing#limit-amount`; or, for an item of the kind specification, requirement, or term whose declaration names it by one segment and that belongs to an item of the kind design, the name of that design, `#`, and that segment |
+| [citation entry](sinter:identifiers#citation-entry=v2), [entry name](sinter:identifiers#citation-entry=v2) | one entry of the target of a citation, such as `billing#limit-amount=v2`; its entry name is its name or its external id, such as `billing#limit-amount` |
+| [declared item](sinter:ontology#declared-item=v2) | what a declaration declares: an item of the kind design, specification, or requirement, a schema, an atom, a term, or a decision record |
+| [name of a declared item](sinter:ontology#item-name=v2) | the name in the target of its declaration, such as `billing` or `billing#limit-amount`; or, for an item of the kind specification, requirement, schema, atom, or term whose declaration names it by one segment and that belongs to an item of the kind design, the name of that design, `#`, and that segment |
 | [test](sinter:ontology#test=v1), [comment on a test](sinter:ontology#test=v1) | a unit of code that a test runner runs, or a set of such units that the code groups under one name; a comment that is attached to the code of a test |
-| [edge](sinter:ontology#edge=v1), [stand in](sinter:ontology#edge-source=v1) | a relation of one kind of edge from its source to its cited item; a line, a citation, or an inline citation stands in the innermost declared item of which it is a part, otherwise in the innermost test such that a comment on that test has it, otherwise in the site that has it, otherwise in no item |
-| [every-part target](sinter:identifiers#citation-line=v1) | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
+| [edge](sinter:ontology#edge=v2), [stand in](sinter:ontology#edge-source=v1) | a relation of one kind of edge from its source to its cited item; a line, a citation, or an inline citation stands in the innermost declared item of which it is a part, otherwise in the innermost test such that a comment on that test has it, otherwise in the site that has it, otherwise in no item |
+| [every-part target](sinter:identifiers#citation-line=v2) | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
 | [line](sinter:text#line=v1), [line ending](sinter:text#line-ending=v1) | one of the runs into which the line endings of a text divide its body; a line ending is a line feed, with the carriage return right before it when there is one |
 | [position](sinter:text#position=v1) | a pair of a line number and a column, such as line 3, column 7 |
 | [hash](sinter:data-forms#hash=v1) | the SHA-256 digest of a byte sequence, as 64 hex digits |
@@ -182,8 +180,8 @@ names `true` and `false`.
 
 ### 2.1 Read files and their readers
 
-A [binding of `file-readers`](sinter:#file-reader-binding=v1) gives the
-[read files](sinter:#read-file=v1) of a tree, the files that a
+A [binding of `file-readers`](sinter:#file-readers=v1) gives the
+[read files](sinter:#read-file=v2) of a tree, the files that a
 conforming program reads, and the reader of each, which makes it a
 markdown file or a code file. For example, under the binding with the
 pair of the text `markdown` and the path set `docs/`, and then the pair
@@ -191,12 +189,12 @@ of a pack for OCaml and the path set `lib/**/*.ml`, the file `docs/a.md`
 is a markdown file, the file `lib/x.ml` is a code file whose pack is the
 pack for OCaml, and the file `README.md` is not read.
 
-A read file that [cannot be read](sinter:#unreadable-file=v1), such as
+A read file that [cannot be read](sinter:#unreadable-file=v2), such as
 one whose content is not valid UTF-8, gives a finding of the class
-[`parse-error`](sinter:#parse-error-finding=v1). A program can stop the
+[`parse-error`](sinter:#parse-error-finding=v2). A program can stop the
 reading of a file for limits of its own, such as a limit on the depth of
 nested square brackets. The files whose reading it stops are in its
-[set of stopped files](sinter:#unreadable-file=v1), an input of the
+[set of stopped files](sinter:#unreadable-file=v2), an input of the
 program, and the program reads the rest of the tree.
 
 ### 2.2 Markdown files
@@ -210,9 +208,9 @@ such as lines of metadata between two lines of `---`. The rest of its
 text is its markdown text, which CommonMark 0.31.2 parses into blocks.
 
 The tag lines of a markdown file are inputs of the tree only in its
-[tag texts](sinter:#tag-text=v1). Its inline citations are inputs in all
+[tag texts](sinter:#tag-text=v2). Its inline citations are inputs in all
 of its markdown text: an inline citation in a heading is an
-[input of the tree](sinter:#accepted-input=v1).
+[input of the tree](sinter:#accepted-input=v2).
 
 This file has three tag texts:
 
@@ -237,7 +235,7 @@ the third are the two lines after `## 1. Invoices` and the two lines
 after `### 1.1 Amount limit`. The section of level 0 is empty.
 
 Another paragraph gives no tag text, and each of its tag lines can be a
-finding of the class [`ignored-tag`](sinter:#ignored-tag-finding=v1),
+finding of the class [`ignored-tag`](sinter:#ignored-tag-finding=v2),
 such as a line `@req r=v1` in the second paragraph of a section. For
 example, the lines `@req r=v1`, `Text.`, and `---` make a setext heading
 of level 2. Its line `@req r=v1` is such a finding too, and, as a block
@@ -265,7 +263,7 @@ Each tagged comment node gives its
 [comment sigils](sinter:packs#comment-sigil=v1) of the descriptor of the
 pack. For example, with the block pair `/*` and `*/` and the inner sigil
 `*`, this comment node gives the comment lines ` @req a=v1`, ` A text.`,
-and the empty line:
+and a line of one space:
 
 ```c
 /* @req a=v1
@@ -273,7 +271,7 @@ and the empty line:
  */
 ```
 
-The tags of a code file count in the [tag texts](sinter:#tag-text=v1)
+The tags of a code file count in the [tag texts](sinter:#tag-text=v2)
 that its runs of comments give. A tag text has
 [blocks](sinter:#tag-text-block=v1), which give the claims of
 declarations in code. For example, `@param x` is a tag line of a block
@@ -303,17 +301,17 @@ of comments unattached. The test nodes of a code file give its
 A conforming program of the design Identifiers reads the tag texts and
 the markdown texts of a tree under a binding of `external-namespaces`,
 and it gives a result for each of their
-[inputs](sinter:#accepted-input=v1). The inputs with the result "valid",
+[inputs](sinter:#accepted-input=v2). The inputs with the result "valid",
 the accepted inputs, give the [declared items](sinter:#item-file=v1),
-the [edges](sinter:#tree-edge=v1), the
-[extern marks](sinter:#extern-mark=v1), and the
+the [edges](sinter:#tree-edge=v2), the
+[extern marks](sinter:#extern-mark=v2), and the
 [status tags](sinter:identifiers#status-tag=v1) of the tree. Under
 bindings that are not valid, a conforming program gives none of the
 things that
-[`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)
+[`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v2)
 names.
 
-The [origin](sinter:#origin=v1) of a part of a tag text or of a markdown
+The [origin](sinter:#origin=v2) of a part of a tag text or of a markdown
 text is the places of the text of its file that it comes from, and its
 [origin position](sinter:#origin-position=v1) is where it starts. For
 example, the origin position of the text of the tag line in
@@ -326,7 +324,7 @@ which claims, extents, scopes, and sites are built.
 ### 2.5 Claims and extents
 
 Each accepted declaration declares one declared item. Its
-[claim](sinter:#claim=v1) is the lines that the declaration claims, such
+[claim](sinter:#claim=v2) is the lines that the declaration claims, such
 as the section of the heading before it in markdown. The
 [extent](sinter:#extent=v1) of a declared item is the part of its file
 that it takes up, which its claim and the items that it holds decide. In
@@ -336,11 +334,11 @@ claim their sections. The specification holds the requirement, so the
 extent of the specification is its whole section.
 
 In this OCaml text, with the block pair `(*` and `*)`, the specification
-`ledger#entry-ids` holds the requirement `id-form`:
+`journal#entry-ids` holds the requirement `id-form`:
 
 ```ocaml
-(* @spec ledger#entry-ids=v2
-   Each entry of the ledger has an id that its own bytes fix. *)
+(* @spec journal#entry-ids=v2
+   Each entry of the journal has an id that its own bytes fix. *)
 module Entry_id = struct
   (* @req id-form=v1
      An id is "e-" and the first hex digits of a SHA-256. *)
@@ -353,26 +351,26 @@ The [scope](sinter:#item-scope=v1) of the specification is its
 tag text, with the file lines in the run of that module. The requirement
 `id-form` is declared by one segment. Its declaration is in no scope of
 an item of the kind design, and it is in the scope of the specification,
-whose declaration has the full name `ledger#entry-ids`. So, when the
-slug `ledger` has a [design](sinter:#slug-design=v1), that design is its
-[home design](sinter:#home-design=v1), and the requirement belongs to
-that design and to the specification. Its name is `ledger#id-form`. The
+whose declaration has the full name `journal#entry-ids`. So, when the
+slug `journal` has a [design](sinter:#slug-design=v1), that design is its
+[home design](sinter:#home-design=v2), and the requirement belongs to
+that design and to the specification. Its name is `journal#id-form`. The
 extent of the specification is its two comment lines and the two comment
 lines of the requirement.
 
 ### 2.6 Containment and names
 
 Containment says to which design, and to which specification, a declared
-item belongs, as [containment in a tree](sinter:#tree-containment=v1)
+item belongs, as [containment in a tree](sinter:#tree-containment=v2)
 gives it. For example, `@req billing#limit-amount=v2` belongs to the
 design `billing`, when the slug `billing` has a
 [design](sinter:#slug-design=v1).
 
-Names come in [sets of names](sinter:#name-set=v1). A citation entry or
+Names come in [sets of names](sinter:#name-set=v2). A citation entry or
 an inline citation names an item as
-[what names name](sinter:#named-item=v1) says. Its kind word
-[states](sinter:#stated-kind=v1) kinds of item, which the class
-[`wrong-kind`](sinter:#wrong-kind-finding=v1) checks. For example,
+[what names name](sinter:#named-item=v2) says. Its kind word
+[states](sinter:#stated-kind=v2) kinds of item, which the class
+[`wrong-kind`](sinter:#wrong-kind-finding=v2) checks. For example,
 `billing#limit-amount` names the item with that name in the set of the
 design of the slug `billing`, and `#limit-amount` names the item with
 the name `billing#limit-amount` when `billing` is the home design of the
@@ -382,12 +380,12 @@ citation.
 
 A design can hold items whose declarations are in other files. An
 `@extern` line in the design, such as `@extern spec:descriptor`, states
-an [extern mark](sinter:#extern-mark=v1) of the design for such an item,
-and the class [`extern-mismatch`](sinter:#extern-mismatch-finding=v1)
+an [extern mark](sinter:#extern-mark=v2) of the design for such an item,
+and the class [`extern-mismatch`](sinter:#extern-mismatch-finding=v2)
 reports where the extern marks of a design and these items do not agree.
 For example, `@req billing#limit=v1` in a markdown file `notes.md` that
 has no other declaration is a finding of the class
-[`misplaced-declaration`](sinter:#misplaced-declaration-finding=v1),
+[`misplaced-declaration`](sinter:#misplaced-declaration-finding=v2),
 also when the design `billing`, in another file, has the extern mark
 `@extern req:limit`. In a code file, in the comment lines
 `@req billing#limit=v1` and, on the next line, `@cites #{amount=v1}`,
@@ -395,28 +393,19 @@ the entry `#amount` names the item `billing#amount`, because `billing`
 is the home design of that citation.
 
 Each design, and each specification of a design, has a
-[vector path](sinter:#vector-file=v1) beside the file of the design. For
+[vector path](sinter:#vector-file=v2) beside the file of the design. For
 example, for the design `billing` declared in `docs/billing.md`, the
 vector path of the design is `docs/billing.test-vectors.jsonl`, and that
 of its specification `billing#invoice` is
 `docs/billing.invoice.test-vectors.jsonl`. A citation entry with a
-vector selection names a [selected item](sinter:#selected-item=v1): for
-example, `billing#invoice[12]=v1` names the conformance vector whose
-vector line is the vector line with the number 12 of the vector set of
-that specification.
-
-The [Conformance part](sinter:#conformance-part=v1) of a design or of a
-specification in a markdown file is a section inside its own section. In
-the example of section 2.2, the design `billing` has none, because the
-first paragraph of `## 1. Invoices` declares a specification that
-belongs to it. When a heading `### 1.2 Conformance` comes after the
-lines of `### 1.1 Amount limit`, its section is the Conformance part of
-that specification.
+vector selection names a [selected item](sinter:#selected-item=v2): for
+example, `billing#invoice[basic]` names the group of conformance vectors
+with the name `basic` of the vector set of that specification.
 
 ### 2.8 Edges, sites, and status tags
 
 The accepted citations and inline citations of a tree give its
-[edges](sinter:#tree-edge=v1). For example, in a file `README.md` with
+[edges](sinter:#tree-edge=v2). For example, in a file `README.md` with
 this text, the `@cites` line is outside every extent, so it stands in
 the [site](sinter:#tree-site=v1) of the file, which is its three lines,
 and that site is the source of its edge:
@@ -433,17 +422,17 @@ would stand in that site.
 
 ### 2.9 Extent hashes and code hashes
 
-The [extent hash](sinter:#extent-hash=v1) of a declared item is the hash
+The [extent hash](sinter:#extent-hash=v2) of a declared item is the hash
 of the UTF-8 encoding of its hash text. The term `extent-hash` gives the
 hash text from the [hashed lines](sinter:#hashed-line=v1) of the item:
 from what CommonMark 0.31.2 reads in them, and from its tag lines, as
-Sinter reads them. Each [written line](sinter:#written-line=v1) and each
-[written tag line](sinter:#written-line=v1) has a mark, such as
+Sinter reads them. Each [written line](sinter:#written-line=v2) and each
+[written tag line](sinter:#written-line=v2) has a mark, such as
 `heading +1:`, `paragraph:`, or `tag:`, and the written lines of the
 blocks inside a block quote, a list, or a list item stand two spaces
 deeper.
 Inline elements are written on one line as their
-[written text](sinter:#written-inline=v1), such as `{em:steps}` for
+[written text](sinter:#written-inline=v2), such as `{em:steps}` for
 `*steps*` and for `_steps_`. The destination of a valid inline citation
 is written as `sinter:` and its tree form, with the home design of the
 declaration of the item whose hash text it is. So in the design
@@ -461,7 +450,7 @@ with a line feed after it. Its extent hash is
 So an edit that CommonMark 0.31.2 reads as the same blocks and inline
 elements, such as a paragraph wrapped again or `*` in place of `-` in
 each item of a list, does not change an extent hash. In a tag text, the
-prose of each [cluster](sinter:#written-line=v1) is read as markdown
+prose of each [cluster](sinter:#written-line=v2) is read as markdown
 apart from the prose of the other clusters, so this holds there when
 each tag line stays a tag line at the start of its own line, with the
 same indentation against the other lines of its cluster, and CommonMark
@@ -478,8 +467,8 @@ entries on two `@cites` lines in the other order, and
 `@cites {req:billing#limit=v1, billing#amount=v3}` give the same two
 lines, `tag: @cites req:billing#amount` and
 `tag: @cites req:billing#limit`. In the same design, `@cites gh/42`
-gives `tag: @cites gh/42`, and `@verifies billing[1]=v1` gives
-`tag: @verifies design:billing[1]`. A specification that holds the
+gives `tag: @cites gh/42`, and `@verifies billing[basic]` gives
+`tag: @verifies design:billing[basic]`. A specification that holds the
 requirement `limit` has the line `tag: @req req:billing#limit` in its
 hash text. `@cites o=v1 The rule.` and the same words over two lines
 give one hash text. The items `- [ ] @req r=v1` and `- [x] @req r=v1`
@@ -489,9 +478,7 @@ give `r` one hash text. In the text of an item of `billing`,
 `- [x] @cites billing=v1` and `- [X] @cites billing=v1` both give
 `task: [x]` in place of `task: [ ]`, so a tick changes that hash text. A
 requirement moved among the items of a list of its design does not
-change the hash text of the design. The
-[forms text](sinter:#forms-text=v1) of a design or of a specification is
-made from its Conformance part by the same written lines.
+change the hash text of the design.
 
 The [code hash](sinter:#code-hash=v1) of a run of comments is the hash
 of the UTF-8 encoding of the code text of the attachment target to which
@@ -501,62 +488,66 @@ module, keeps its code hash.
 
 ### 2.10 Findings
 
-Each of these classes has a term that gives its findings, each a
+Each of these classes has an atom that gives its findings, each a
 [tree finding](sinter:#tree-finding=v1):
 
-| class | term |
+| class | atom |
 |---|---|
-| `parse-error` | [`parse-error-finding`](sinter:#parse-error-finding=v1) |
-| `typo-tag` | [`typo-tag-finding`](sinter:#typo-tag-finding=v1) |
-| `ignored-tag` | [`ignored-tag-finding`](sinter:#ignored-tag-finding=v1) |
-| `invalid-target` | [`invalid-target-finding`](sinter:#invalid-target-finding=v1) |
-| `duplicate` | [`duplicate-finding`](sinter:#duplicate-finding=v1) |
-| `dangling` | [`dangling-finding`](sinter:#dangling-finding=v1) |
-| `wrong-source` | [`wrong-source-finding`](sinter:#wrong-source-finding=v1) |
-| `wrong-kind` | [`wrong-kind-finding`](sinter:#wrong-kind-finding=v1) |
-| `misplaced-declaration` | [`misplaced-declaration-finding`](sinter:#misplaced-declaration-finding=v1) |
-| `req-outside-design` | [`req-outside-design-finding`](sinter:#req-outside-design-finding=v1) |
-| `extern-mismatch` | [`extern-mismatch-finding`](sinter:#extern-mismatch-finding=v1) |
+| `parse-error` | [`parse-error-finding`](sinter:#parse-error-finding=v2) |
+| `typo-tag` | [`typo-tag-finding`](sinter:#typo-tag-finding=v2) |
+| `ignored-tag` | [`ignored-tag-finding`](sinter:#ignored-tag-finding=v2) |
+| `invalid-target` | [`invalid-target-finding`](sinter:#invalid-target-finding=v2) |
+| `duplicate` | [`duplicate-finding`](sinter:#duplicate-finding=v2) |
+| `dangling` | [`dangling-finding`](sinter:#dangling-finding=v2) |
+| `wrong-source` | [`wrong-source-finding`](sinter:#wrong-source-finding=v2) |
+| `wrong-kind` | [`wrong-kind-finding`](sinter:#wrong-kind-finding=v2) |
+| `misplaced-declaration` | [`misplaced-declaration-finding`](sinter:#misplaced-declaration-finding=v2) |
+| `req-outside-design` | [`req-outside-design-finding`](sinter:#req-outside-design-finding=v2) |
+| `extern-mismatch` | [`extern-mismatch-finding`](sinter:#extern-mismatch-finding=v2) |
 
 ## 3. Parameters
 
 ### 3.1 `file-readers`
 
-The parameter `file-readers` gives the files of a tree that a conforming
-program reads, and the reader of each of them, by its
-[bindings](sinter:#file-reader-binding=v1).
-
-## 4. Definitions
-
-### 4.1 Bindings of `file-readers`
-
-@term file-reader-binding=v1
+@schema file-readers=v1
 @cites {
-    files#{
-        path=v1, path-set=v1, valid-path-set=v1, path-set-membership=v1,
-    },
+    files#{path-set=v1, valid-path-set=v1},
     packs#{pack=v1, valid-pack=v1},
-    ontology#{parameter=v1},
+    ontology#{parameter=v2},
     text#{text=v1, code-span=v1},
 }
 
-A binding of the parameter `file-readers` is a finite sequence of
-pairs. Each pair has a reader and a path set. A reader is the text
-`markdown` or a pack. A binding of `file-readers` is valid when, and
-only when, each of its path sets is a valid path set and each of its
-packs is a valid pack. Under a valid binding of `file-readers`, the
-reader of a valid path is the reader of the first pair of the binding
-whose path set has that valid path in its set. A valid path that is in
-the set of no path set of the binding has no reader.
+The parameter `file-readers` gives the files of a tree that a conforming
+program reads, and the reader of each of them. A binding of
+`file-readers` is a finite sequence of pairs. Each pair has a reader and
+a path set. A reader is the text `markdown` or a pack. A binding of
+`file-readers` meets the schema `file-readers` when, and only when, each
+of its path sets is a valid path set and each of its packs is a valid
+pack.
+
+## 4. Definitions
+
+### 4.1 Readers of valid paths
+
+@term file-reader=v1
+@cites {
+    files#{path=v1, path-set=v1, path-set-membership=v1},
+    #{file-readers=v1},
+}
+
+Under a valid binding of `file-readers`, the reader of a valid path is
+the reader of the first pair of the binding whose path set has that
+valid path in its set. A valid path that is in the set of no path set
+of the binding has no reader.
 
 ### 4.2 Read files
 
-@term read-file=v1
+@term read-file=v2
 @cites {
     files#{path=v1},
     ontology#{tree=v1},
     text#{text=v1, character=v1, line-feed=v1, space=v1, tab=v1},
-    #{file-reader-binding=v1},
+    #{file-readers=v1, file-reader=v1},
 }
 
 Under a valid binding of `file-readers`, a read file of a tree is a
@@ -569,13 +560,13 @@ the code file.
 
 ### 4.3 Files that cannot be read
 
-@term unreadable-file=v1
+@term unreadable-file=v2
 @cites {
     files#{path=v1},
     packs#{reading-of-a-text=v1, give-reading-results=v1},
     text#{valid-utf-8=v1, text=v1, result=v1, input=v1},
     ontology#{tree=v1},
-    #{read-file=v1, file-reader-binding=v1},
+    #{read-file=v2, file-readers=v1},
 }
 
 This term is for a tree, a valid binding of `file-readers`, and a set of
@@ -618,7 +609,7 @@ are in the order of the boundaries where they start.
         text=v1, run=v1, boundary=v1, character=v1, code-span=v1,
         production=v1, rule-name=v1,
     },
-    #{read-file=v1, unreadable-file=v1, markdown-line=v1},
+    #{read-file=v2, unreadable-file=v2, markdown-line=v1},
 }
 
 A front-matter line is a markdown line whose text matches the production
@@ -654,8 +645,8 @@ its markdown text.
     commonmark/0.31.2,
     text#{text=v1, line=v1},
     #{
-        markdown-line=v1, front-matter=v1, read-file=v1,
-        unreadable-file=v1,
+        markdown-line=v1, front-matter=v1, read-file=v2,
+        unreadable-file=v2,
     },
 }
 
@@ -692,8 +683,8 @@ Each other section has no first paragraph.
 @cites {
     commonmark/0.31.2,
     #{
-        markdown-section=v1, front-matter=v1, read-file=v1,
-        unreadable-file=v1, markdown-line=v1,
+        markdown-section=v1, front-matter=v1, read-file=v2,
+        unreadable-file=v2, markdown-line=v1,
     },
 }
 
@@ -749,7 +740,7 @@ markdown lines that the paragraph takes:
         text=v1, character=v1, place=v1, body=v1, line-ending=v1,
         space=v1, tab=v1,
     },
-    #{read-file=v1, unreadable-file=v1},
+    #{read-file=v2, unreadable-file=v2},
 }
 
 A code character of a code file that can be read is a character at a
@@ -783,7 +774,7 @@ of the boundaries where they start:
         text=v1, run=v1, boundary=v1, span=v1, position=v1, line=v1,
         line-number=v1, character=v1, space=v1, tab=v1, line-ending=v1,
     },
-    #{read-file=v1, unreadable-file=v1, code-character=v1},
+    #{read-file=v2, unreadable-file=v2, code-character=v1},
 }
 
 This term is for a code file that can be read, and for the comment nodes
@@ -832,7 +823,7 @@ last line number of its last comment node.
         text=v1, run=v1, boundary=v1, space=v1, tab=v1, character=v1,
         sequence=v1,
     },
-    #{read-file=v1, unreadable-file=v1, run-line=v1},
+    #{read-file=v2, unreadable-file=v2, run-line=v1},
 }
 
 This term is for a tagged comment node of a code file that can be read,
@@ -875,13 +866,13 @@ from each other bare line, remove the spaces and tabs at its start.
 
 ### 4.13 Tag texts
 
-@term tag-text=v1
+@term tag-text=v2
 @cites {
     text#{text=v1, line=v1, line-feed=v1, run=v1},
     #{
-        read-file=v1, unreadable-file=v1, markdown-section=v1,
+        read-file=v2, unreadable-file=v2, markdown-section=v1,
         markdown-list-item=v1, paragraph-line=v1, comment-run=v1,
-        comment-line=v1, file-reader-binding=v1,
+        comment-line=v1, file-readers=v1,
     },
 }
 
@@ -904,18 +895,18 @@ joins. A read file that cannot be read has no tag text.
 
 ### 4.14 Origins
 
-@term origin=v1
+@term origin=v2
 @cites {
     commonmark/0.31.2,
     identifiers#{
         link=v1, tag-line=v1, tag-word=v1, tag-line-text=v1,
-        continuation-line=v1, citation-entry=v1, citation-line=v1,
+        continuation-line=v1, citation-entry=v2, citation-line=v2,
     },
     text#{
         text=v1, character=v1, place=v1, boundary=v1, run=v1, body=v1,
         position=v1, line-feed=v1,
     },
-    #{read-file=v1, tag-text=v1, front-matter=v1},
+    #{read-file=v2, tag-text=v2, front-matter=v1},
 }
 
 For a read file, these characters each come from one place of its text,
@@ -962,7 +953,7 @@ instead at the boundary right before the place that its `@` comes from.
 @cites {
     identifiers#{tag-line=v1, tag-word=v1, tag-line-text=v1},
     text#{position=v1, place=v1, text=v1},
-    #{origin=v1, read-file=v1, tag-text=v1},
+    #{origin=v2, read-file=v2, tag-text=v2},
 }
 
 The origin position of a run of the text of a read file, of a tag text,
@@ -978,8 +969,8 @@ of the text of a tag line is instead the position of the place that its
 @cites {
     text#{text=v1, run=v1, boundary=v1, place=v1, line=v1},
     #{
-        read-file=v1, unreadable-file=v1, markdown-line=v1, tag-text=v1,
-        origin=v1,
+        read-file=v2, unreadable-file=v2, markdown-line=v1, tag-text=v2,
+        origin=v2,
     },
 }
 
@@ -1008,17 +999,18 @@ lines is a line of that set.
 
 ### 4.17 Inputs and accepted inputs
 
-@term accepted-input=v1
+@term accepted-input=v2
 @cites {
     identifiers#{
-        input=v1, binding=v1, link=v1, continuation-line=v1,
-        citation=v1, accept-inputs=v1,
+        input=v2, external-namespaces=v1, link=v1, continuation-line=v1,
+        citation=v1, validate-bindings=v1, give-line-results=v1,
+        give-link-results=v1, line-result=v1, link-result=v1,
     },
     text#{conforming-program=v1, result=v1, line=v1},
     ontology#{tree=v1},
     #{
-        read-file=v1, unreadable-file=v1, tag-text=v1, front-matter=v1,
-        file-reader-binding=v1,
+        read-file=v2, unreadable-file=v2, tag-text=v2, front-matter=v1,
+        file-readers=v1,
     },
 }
 
@@ -1047,7 +1039,7 @@ file of the tag text or of the markdown text in which it is.
 @term blank-line=v1
 @cites {
     text#{text=v1, line=v1, character=v1, space=v1, tab=v1},
-    #{markdown-line=v1, tag-text=v1, file-line=v1},
+    #{markdown-line=v1, tag-text=v2, file-line=v1},
 }
 
 A line of each kind, such as a line of a text, a markdown line, a line
@@ -1060,7 +1052,7 @@ only when, its text has no character other than spaces and tabs.
 @cites {
     identifiers#{tag-line=v1, continuation-line=v1},
     text#{text=v1, line=v1},
-    #{tag-text=v1},
+    #{tag-text=v2},
 }
 
 A block of a tag text starts at each line of the tag text that is a tag
@@ -1086,7 +1078,7 @@ in that order.
         place=v1,
     },
     #{
-        read-file=v1, unreadable-file=v1, code-character=v1,
+        read-file=v2, unreadable-file=v2, code-character=v1,
         comment-run=v1, run-line=v1,
     },
 }
@@ -1131,7 +1123,7 @@ fn t() {}
 @cites {
     packs#{reading-of-a-text=v1, test-node=v1, test-name=v1, node-run=v1},
     ontology#{test=v1},
-    #{read-file=v1, unreadable-file=v1, attachment=v1, comment-run=v1},
+    #{read-file=v2, unreadable-file=v2, attachment=v1, comment-run=v1},
 }
 
 A markdown file has no test, and a read file that cannot be read has no
@@ -1147,8 +1139,8 @@ attachment target whose run is the run of its test node.
 @term item-file=v1
 @cites {
     identifiers#{declaration=v1},
-    ontology#{declared-item=v1, tree=v1},
-    #{read-file=v1, tag-text=v1, accepted-input=v1},
+    ontology#{declared-item=v2, tree=v1},
+    #{read-file=v2, tag-text=v2, accepted-input=v2},
 }
 
 Each accepted input of a tree that is a declaration declares one
@@ -1158,13 +1150,13 @@ declared item is the read file whose tag text has its declaration.
 
 ### 4.23 Claims
 
-@term claim=v1
+@term claim=v2
 @cites {
-    ontology#{declared-finding-class=v1, declared-item=v1},
+    ontology#{declared-item=v2},
     text#{line=v1},
     #{
-        item-file=v1, tag-text=v1, file-line=v1, markdown-line=v1,
-        front-matter=v1, markdown-section=v1, markdown-list-item=v1,
+        item-file=v1, tag-text=v2, file-line=v1, markdown-line=v1,
+        markdown-section=v1, markdown-list-item=v1,
         tag-text-block=v1, blank-line=v1,
     },
 }
@@ -1175,11 +1167,7 @@ lines that are the declarations of declared items, in their order, and
 the line of a declaration is its file line. These rules give the claim
 of d:
 
-1. When d is a declared finding class, its file is a markdown file, and
-   its declaration is the only declaration of the tag text of the first
-   paragraph of the section of level 0: every markdown line of the file,
-   the lines of its front matter included.
-2. When the file of d is a markdown file and rule 1 does not apply: the
+1. When the file of d is a markdown file: the
    declaration of d is in the tag text of the first paragraph of a
    section or of a list item S. The claim starts at the first line of S
    when the declaration of d is the first declaration of that tag text,
@@ -1188,7 +1176,7 @@ of d:
    tag text, when there is one, and otherwise at the last line of S. The
    claim is the markdown lines from the line at which it starts to
    the line at which it ends.
-3. When the file of d is a code file: the declaration of d is a line of
+2. When the file of d is a code file: the declaration of d is a line of
    a block B of a tag text. The claim starts at the first line of B when
    the declaration of d is the first declaration in B, and otherwise at
    the line that is the declaration of d. It ends at the line of B right
@@ -1203,10 +1191,10 @@ blank, in the order of the file lines.
 
 @term item-scope=v1
 @cites {
-    ontology#{declared-item=v1},
+    ontology#{declared-item=v2},
     text#{boundary=v1, run=v1, place=v1},
     #{
-        read-file=v1, item-file=v1, claim=v1, file-line=v1, tag-text=v1,
+        read-file=v2, item-file=v1, claim=v2, file-line=v1, tag-text=v2,
         comment-run=v1, attachment=v1, code-character=v1,
         markdown-line=v1, markdown-section=v1, markdown-list-item=v1,
     },
@@ -1235,7 +1223,7 @@ A thing is in the scope of d when it is in this set of file lines.
 
 @term innermost-item=v1
 @cites {
-    ontology#{declared-item=v1},
+    ontology#{declared-item=v2},
     #{file-line=v1, item-scope=v1},
 }
 
@@ -1252,7 +1240,7 @@ of that kind in whose scopes the thing is.
 @term slug-design=v1
 @cites {
     identifiers#{slug=v1},
-    ontology#{item-name=v1, declared-item=v1, decision-record=v1},
+    ontology#{item-name=v2, declared-item=v2, decision-record=v1},
     #{item-file=v1},
 }
 
@@ -1263,17 +1251,17 @@ Otherwise, the slug has no design.
 
 ### 4.27 Home designs
 
-@term home-design=v1
+@term home-design=v2
 @cites {
     identifiers#{
         tag-line=v1, inline-citation=v1, full-name=v1, slug=v1,
         target=v1,
     },
-    ontology#{item-name=v1, declared-item=v1, term=v1},
+    ontology#{item-name=v2, declared-item=v2, schema=v1, atom=v1, term=v2},
     #{
-        accepted-input=v1, item-file=v1, claim=v1,
+        accepted-input=v2, item-file=v1, claim=v2,
         item-scope=v1, file-line=v1, innermost-item=v1,
-        slug-design=v1, read-file=v1, tag-text=v1,
+        slug-design=v1, read-file=v2, tag-text=v2,
     },
 }
 
@@ -1282,11 +1270,11 @@ of a tree is the first of these that applies:
 
 1. When the items of the kind design in whose scopes it is have an
    innermost item: that innermost item.
-2. When it is in a code file, and the items of the kind requirement and
-   the terms in whose claims it is have an innermost item by their
-   claims, the name in the target of the declaration of that innermost
-   item is a full name, and the slug of that full name has a design:
-   that design.
+2. When it is in a code file, and the items of the kind requirement,
+   the schemas, the atoms, and the terms in whose claims it is have an
+   innermost item by their claims, the name in the target of the
+   declaration of that innermost item is a full name, and the slug of
+   that full name has a design: that design.
 3. When the items of the kind specification in whose scopes it is have
    an innermost item, the name in the target of the declaration of that
    innermost item is a full name, and the slug of that full name has a
@@ -1295,12 +1283,15 @@ of a tree is the first of these that applies:
 
 ### 4.28 Containment in a tree
 
-@term tree-containment=v1
+@term tree-containment=v2
 @cites {
     identifiers#{target=v1, full-name=v1, slug=v1, segment=v1},
-    ontology#{containment=v1, item-name=v1, declared-item=v1, term=v1},
+    ontology#{
+        containment=v2, item-name=v2, declared-item=v2, schema=v1,
+        atom=v1, term=v2,
+    },
     #{
-        item-file=v1, home-design=v1, item-scope=v1,
+        item-file=v1, home-design=v2, item-scope=v1,
         innermost-item=v1, slug-design=v1,
     },
 }
@@ -1309,23 +1300,23 @@ In a tree, a declared item belongs to a declared item only in these
 ways:
 
 - An item of the kind specification, an item of the kind requirement,
-  or a term belongs to an item of the kind design in this way. When the
-  name in the target of its declaration is a full name, it belongs to
-  the design of the slug of that full name, when that slug has a
-  design. When that name is a segment, it belongs to the home design of
-  its declaration, when its declaration has one. Otherwise, it belongs
-  to no item of the kind design.
-- An item of the kind requirement or a term also belongs to the
-  innermost item of the kind specification in whose scope its
-  declaration is, when there is one, and when the two belong to the same
-  item of the kind design or both belong to none.
+  a schema, an atom, or a term belongs to an item of the kind design in
+  this way. When the name in the target of its declaration is a full
+  name, it belongs to the design of the slug of that full name, when
+  that slug has a design. When that name is a segment, it belongs to the
+  home design of its declaration, when its declaration has one.
+  Otherwise, it belongs to no item of the kind design.
+- An item of the kind requirement, a schema, an atom, or a term also
+  belongs to the innermost item of the kind specification in whose scope
+  its declaration is, when there is one, and when the two belong to the
+  same item of the kind design or both belong to none.
 
 ### 4.29 Extents
 
 @term extent=v1
 @cites {
-    ontology#{containment=v1, declared-item=v1},
-    #{item-file=v1, claim=v1, file-line=v1, tree-containment=v1},
+    ontology#{containment=v2, declared-item=v2},
+    #{item-file=v1, claim=v2, file-line=v1, tree-containment=v2},
 }
 
 The extent of a declared item d of a tree is the set of these file lines
@@ -1356,18 +1347,18 @@ section-number  = 1*DIGIT "." [ 1*DIGIT *( "." 1*DIGIT ) [ "." ] ] 1*WSP
 
 ### 4.31 Extent hashes
 
-@term extent-hash=v1
+@term extent-hash=v2
 @cites {
     data-forms#{hash=v1},
-    ontology#{revised-content=v1, declared-item=v1, parameter=v1, tree=v1},
+    ontology#{revised-content=v2, declared-item=v2, parameter=v2, tree=v1},
     text#{
         text=v1, line-feed=v1, utf-8-encoding=v1, code-span=v1,
         boundary=v1, algorithm=v1, sequence=v1, line=v1,
     },
     #{
-        hashed-line=v1, written-line=v1, item-file=v1, read-file=v1,
-        front-matter=v1, markdown-section=v1, markdown-list-item=v1,
-        tag-text=v1, file-line=v1,
+        hashed-line=v1, written-line=v2, item-file=v1, read-file=v2,
+        markdown-section=v1, markdown-list-item=v1,
+        tag-text=v2, file-line=v1,
     },
 }
 
@@ -1377,21 +1368,13 @@ steps give.
 1. Let *e* be the hashed lines of *d*.
 2. Let *lines* be the empty sequence.
 3. If the file of *d* is a markdown file, then:
-   1. If the file of *d* starts with front matter and the first line of
-      its front matter is in *e*, then:
-      1. Append `front matter:` to *lines*.
-      2. For each *f* of the lines of the front matter of the file of *d*,
-         in order:
-         1. Let *line* be `| `.
-         2. Append the text of *f* to *line*.
-         3. Append *line* to *lines*.
-   2. Let *blocks* be the sequence of the blocks of the document itself of
+   1. Let *blocks* be the sequence of the blocks of the document itself of
       the markdown document of the file of *d*, in their order.
-   3. If the declaration of *d* is in the tag text of the first paragraph
+   2. If the declaration of *d* is in the tag text of the first paragraph
       of a list item, set *blocks* to the children of that list item.
-   4. For each *b* of *blocks*, in order:
-      1. For each *w* of the written lines of *b* at depth 0 for *d*, in *e*
-         and without the empty set of texts, in order:
+   3. For each *b* of *blocks*, in order:
+      1. For each *w* of the written lines of *b* at depth 0 for *d* in
+         *e*, in order:
          1. Append *w* to *lines*.
 4. If the file of *d* is a code file, then:
    1. Let *texts* be the sequence of the tag texts of the file of *d*, in
@@ -1426,7 +1409,7 @@ item in the two trees are equal.
         character=v1,
     },
     #{
-        read-file=v1, run-line=v1, attachment=v1, comment-run=v1,
+        read-file=v2, run-line=v1, attachment=v1, comment-run=v1,
         comment-line=v1,
     },
 }
@@ -1469,61 +1452,58 @@ no code hash.
 
 ### 4.33 Sets of names
 
-@term name-set=v1
+@term name-set=v2
 @cites {
     identifiers#{slug=v1},
     ontology#{
-        item-name=v1, declared-item=v1, term=v1, decision-record=v1,
-        declared-finding-class=v1,
+        item-name=v2, declared-item=v2, schema=v1, atom=v1, term=v2,
+        decision-record=v1,
     },
-    #{item-file=v1, tree-containment=v1},
+    #{item-file=v1, tree-containment=v2},
 }
 
 The sets of names of a tree are these:
 
 - the shared set, which has each item of the kind design of the
   tree, each decision record of the tree, and each item of the kind
-  specification, each item of the kind requirement, and each term of the
-  tree that belongs to no item of the kind design and whose name is a
-  slug;
-- the set of its declared finding classes;
+  specification, each item of the kind requirement, each schema, each
+  atom, and each term of the tree that belongs to no item of the kind
+  design and whose name is a slug;
 - for each of its items of the kind design, the set of that item: the
   items of the kind specification, the items of the kind requirement,
-  and the terms that belong to it.
+  the schemas, the atoms, and the terms that belong to it.
 
 ### 4.34 What kind words state
 
-@term stated-kind=v1
+@term stated-kind=v2
 @cites {
-    identifiers#{kind-word=v1},
+    identifiers#{kind-word=v2},
     ontology#{
-        declared-item=v1, term=v1, decision-record=v1,
-        declared-finding-class=v1, external-item=v1,
-        conformance-vector=v1, conformance-vector-group=v1,
-        vector-set=v1,
+        declared-item=v2, schema=v1, atom=v1, term=v2,
+        decision-record=v1, external-item=v1,
+        conformance-vector-group=v1, vector-set=v2,
     },
 }
 
 A kind word states these kinds of item: `design`, an item of the kind
 design; `spec`, an item of the kind specification or an external item;
-`req`, an item of the kind requirement; `term`, a term or an external
-item; `decision`, a decision record; and `finding-class`, a declared
-finding class. No kind word states a conformance vector, a group of
-conformance vectors, or a vector set.
+`req`, an item of the kind requirement; `schema`, a schema; `atom`, an
+atom; `term`, a term or an external item; and `decision`, a decision
+record. No kind word states a group of conformance vectors or a vector
+set.
 
 ### 4.35 What names name
 
-@term named-item=v1
+@term named-item=v2
 @cites {
     identifiers#{
-        citation-entry=v1, inline-citation=v1, inline-destination=v1,
+        citation-entry=v2, inline-citation=v1, inline-destination=v2,
         destination=v1, name=v1, slug=v1, full-name=v1, part-name=v1,
-        kind-word=v1, external-id=v1, external-target=v1, match=v1,
-        input-match=v1,
+        external-id=v1, external-target=v2, match=v1, input-match=v2,
     },
-    ontology#{external-item=v1, item-name=v1, declared-finding-class=v1},
+    ontology#{external-item=v1, item-name=v2},
     text#{text=v1},
-    #{accepted-input=v1, name-set=v1, home-design=v1, slug-design=v1},
+    #{accepted-input=v2, name-set=v2, home-design=v2, slug-design=v1},
 }
 
 In a tree, for a home design h, which is an item of the kind design of
@@ -1540,10 +1520,7 @@ the item that the first of these rules that applies gives:
    `external-ref`: the text is an external id, with its `#` and part
    name when it has them, and it names the external item that this
    external id names.
-2. A slug, when the citation entry, or the target of the inline
-   citation, starts with the kind word `finding-class`, names the
-   declared finding class whose name is that slug. Each other slug names
-   the item of the shared set whose name is that slug.
+2. A slug names the item of the shared set whose name is that slug.
 3. A full name names the item of the set of the design of its slug
    whose name is that full name. When its slug has no design, it names
    nothing.
@@ -1561,13 +1538,13 @@ the same text.
 
 ### 4.36 Vector files
 
-@term vector-file=v1
+@term vector-file=v2
 @cites {
     files#{path=v1},
-    data-forms#{test-vector-file-name=v1, test-vector-set=v1},
-    ontology#{item-name=v1, vector-set=v1, declared-item=v1},
+    data-forms#{test-vector-file-name=v1, test-vector-set=v2},
+    ontology#{item-name=v2, vector-set=v2, declared-item=v2},
     text#{text=v1},
-    #{item-file=v1, tree-containment=v1},
+    #{item-file=v1, tree-containment=v2},
 }
 
 The vector path of an item of the kind design D of a tree is the text of
@@ -1586,16 +1563,12 @@ vector file and that content is a test-vector set.
 
 ### 4.37 Selected items
 
-@term selected-item=v1
+@term selected-item=v2
 @cites {
-    identifiers#{citation-entry=v1, vector-selection=v1, match=v1},
-    data-forms#{vector-line=v1},
-    ontology#{
-        conformance-vector=v1, conformance-vector-group=v1,
-        vector-set=v1,
-    },
-    text#{decimal-numeral=v1, whole-number=v1, code-span=v1},
-    #{accepted-input=v1, named-item=v1, vector-file=v1},
+    identifiers#{citation-entry=v2, vector-selection=v2, match=v1},
+    ontology#{conformance-vector-group=v1, vector-set=v2},
+    text#{code-span=v1},
+    #{accepted-input=v2, named-item=v2, vector-file=v2},
 }
 
 In a tree, a citation entry of an accepted citation whose match uses
@@ -1604,10 +1577,6 @@ an item of the kind specification or of the kind design that has a
 vector set, the citation entry names this item of that vector set, or
 nothing when the vector set has none:
 
-- when the match uses `vector-number`: the conformance vector whose
-  vector line is the vector line of that vector set with the number n,
-  where n is the whole number that the text that `vector-number` matches
-  writes as a decimal numeral;
 - when the match uses `group-name`: the group of conformance vectors
   whose name is the text that `group-name` matches;
 - otherwise: the vector set.
@@ -1616,14 +1585,14 @@ Otherwise, the citation entry names nothing.
 
 ### 4.38 The edges of a tree
 
-@term tree-edge=v1
+@term tree-edge=v2
 @cites {
     identifiers#{
-        citation=v1, citation-entry=v1, inline-citation=v1,
-        inline-destination=v1, vector-selection=v1, match=v1,
+        citation=v1, citation-entry=v2, inline-citation=v1,
+        inline-destination=v2, vector-selection=v2, match=v1,
     },
-    ontology#{edge=v1, edge-source=v1, tree=v1},
-    #{accepted-input=v1, named-item=v1, selected-item=v1},
+    ontology#{edge=v2, edge-source=v1, tree=v1},
+    #{accepted-input=v2, named-item=v2, selected-item=v2},
 }
 
 The edges of a tree are the edges that the accepted inputs of the tree
@@ -1642,10 +1611,10 @@ nothing:
 
 @term item-part=v1
 @cites {
-    ontology#{edge-source=v1, declared-item=v1, test=v1, tree=v1},
+    ontology#{edge-source=v1, declared-item=v2, test=v1, tree=v1},
     #{
         extent=v1, file-line=v1, file-test=v1, comment-run=v1,
-        tag-text=v1, markdown-line=v1,
+        tag-text=v2, markdown-line=v1,
     },
 }
 
@@ -1666,9 +1635,9 @@ of a tree.
     ontology#{site=v1, test=v1},
     text#{text=v1, line=v1, place=v1, run=v1},
     #{
-        read-file=v1, tag-text=v1, front-matter=v1, markdown-section=v1,
+        read-file=v2, tag-text=v2, front-matter=v1, markdown-section=v1,
         comment-run=v1, file-test=v1, file-line=v1, extent=v1,
-        origin=v1, markdown-line=v1,
+        origin=v2, markdown-line=v1,
     },
 }
 
@@ -1708,15 +1677,15 @@ line, or an inline citation when, and only when, it is in that site.
 
 ### 4.41 Extern marks
 
-@term extern-mark=v1
+@term extern-mark=v2
 @cites {
     identifiers#{
-        extern-line=v1, directive=v1, kind-word=v1, part-name=v1,
+        extern-line=v2, directive=v1, kind-word=v2, part-name=v1,
     },
-    ontology#{edge-source=v1, declared-item=v1},
+    ontology#{edge-source=v1, declared-item=v2},
     #{
-        accepted-input=v1, item-part=v1, tree-site=v1, file-test=v1,
-        tag-text=v1,
+        accepted-input=v2, item-part=v1, tree-site=v1, file-test=v1,
+        tag-text=v2,
     },
 }
 
@@ -1729,12 +1698,15 @@ the kind design states no extern mark.
 
 ### 4.42 Valid extern marks
 
-@term valid-extern-mark=v1
+@term valid-extern-mark=v2
 @cites {
-    identifiers#{kind-word=v1, part-name=v1},
-    ontology#{containment=v1, item-name=v1, term=v1, declared-item=v1},
+    identifiers#{kind-word=v2, part-name=v1},
+    ontology#{
+        containment=v2, item-name=v2, schema=v1, atom=v1, term=v2,
+        declared-item=v2,
+    },
     text#{code-span=v1},
-    #{extern-mark=v1, item-file=v1, tree-containment=v1},
+    #{extern-mark=v2, item-file=v1, tree-containment=v2},
 }
 
 An extern mark of an item of the kind design D is valid when, and only
@@ -1747,6 +1719,10 @@ name of D, `#`, and the part name of the extern mark:
 - its kind word is `req`, and D holds directly an item of the kind
   requirement whose name is the name of the extern mark and whose file
   is not the file of D;
+- its kind word is `schema`, and D holds directly a schema whose name is
+  the name of the extern mark and whose file is not the file of D;
+- its kind word is `atom`, and D holds directly an atom whose name is
+  the name of the extern mark and whose file is not the file of D;
 - its kind word is `term`, and D holds directly a term whose name is the
   name of the extern mark and whose file is not the file of D.
 
@@ -1756,7 +1732,7 @@ name of D, `#`, and the part name of the extern mark:
 @cites {
     files#{path=v1},
     text#{text=v1, position=v1, decimal-numeral=v1, code-span=v1},
-    #{read-file=v1},
+    #{read-file=v2},
 }
 
 The position subject of a position, with the line number l and the
@@ -1781,7 +1757,7 @@ other.
     findings#{spot=v1},
     files#{path=v1},
     text#{run=v1, boundary=v1, span=v1, body=v1},
-    #{read-file=v1},
+    #{read-file=v2},
 }
 
 For a run r of the text of a read file that starts and ends at
@@ -1821,10 +1797,10 @@ changes the text that the edits before it give.
 
 ### 4.48 Findings of the class `parse-error`
 
-@term parse-error-finding=v1
+@atom parse-error-finding=v2
 @cites {
     files#{path=v1},
-    #{read-file=v1, unreadable-file=v1, tree-finding=v1},
+    #{read-file=v2, unreadable-file=v2, tree-finding=v1},
 }
 
 A tree has one tree finding of the class `parse-error` for each read
@@ -1834,14 +1810,14 @@ span.
 
 ### 4.49 Findings of the class `typo-tag`
 
-@term typo-tag-finding=v1
+@atom typo-tag-finding=v2
 @cites {
     identifiers#{
-        tag-line=v1, tag-word=v1, sinter-tag-word=v1, tag-line-text=v1,
+        tag-line=v1, tag-word=v1, sinter-tag-word=v2, tag-line-text=v1,
     },
     packs#{foreign-tag-word=v1, valid-pack=v1},
     #{
-        read-file=v1, tag-text=v1, origin=v1, origin-position=v1,
+        read-file=v2, tag-text=v2, origin=v2, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
         edit-distance=v1,
     },
@@ -1858,11 +1834,11 @@ of the text of that tag line in the text of the file.
 
 ### 4.50 Findings of the class `ignored-tag`
 
-@term ignored-tag-finding=v1
+@atom ignored-tag-finding=v2
 @cites {
     commonmark/0.31.2,
     identifiers#{
-        tag-line=v1, tag-word=v1, sinter-tag-word=v1, declaration=v1,
+        tag-line=v1, tag-word=v1, sinter-tag-word=v2, declaration=v1,
         citation=v1, status-tag=v1, directive=v1, tag-line-text=v1,
         inline-description=v1, link=v1,
     },
@@ -1871,11 +1847,11 @@ of the text of that tag line in the text of the file.
         place=v1, code-span=v1,
     },
     #{
-        read-file=v1, unreadable-file=v1, markdown-section=v1,
-        markdown-list-item=v1, paragraph-line=v1, origin=v1,
+        read-file=v2, unreadable-file=v2, markdown-section=v1,
+        markdown-list-item=v1, paragraph-line=v1, origin=v2,
         origin-position=v1, position-subject=v1, run-spot=v1,
         tree-finding=v1, edit-distance=v1, markdown-line=v1,
-        tag-text=v1, front-matter=v1,
+        tag-text=v2, front-matter=v1,
     },
 }
 
@@ -1925,17 +1901,17 @@ position of C. Its spot is the spot of C.
 
 ### 4.51 Findings of the class `invalid-target`
 
-@term invalid-target-finding=v1
+@atom invalid-target-finding=v2
 @cites {
     identifiers#{
-        tag-line=v1, link=v1, citation=v1, citation-entry=v1,
-        inline-citation=v1, inline-destination=v1, part-name=v1,
+        tag-line=v1, link=v1, citation=v1, citation-entry=v2,
+        inline-citation=v1, inline-destination=v2, part-name=v1,
         match=v1, tag-line-text=v1,
     },
     text#{result=v1, code-span=v1},
     #{
-        accepted-input=v1, origin=v1, origin-position=v1,
-        home-design=v1, position-subject=v1, run-spot=v1,
+        accepted-input=v2, origin=v2, origin-position=v1,
+        home-design=v2, position-subject=v1, run-spot=v1,
         tree-finding=v1,
     },
 }
@@ -1960,14 +1936,14 @@ the spot of the run of Y in the text of the file.
 
 ### 4.52 Findings of the class `duplicate`
 
-@term duplicate-finding=v1
+@atom duplicate-finding=v2
 @cites {
     files#{path=v1},
     identifiers#{tag-line-text=v1},
     text#{code-point-order=v1, position=v1, character=v1},
     #{
-        item-file=v1, name-set=v1, origin=v1, origin-position=v1,
-        vector-file=v1, position-subject=v1, run-spot=v1,
+        item-file=v1, name-set=v2, origin=v2, origin-position=v1,
+        vector-file=v2, position-subject=v1, run-spot=v1,
         tree-finding=v1, position-order=v1,
     },
 }
@@ -1992,12 +1968,12 @@ class `duplicate`:
 
 ### 4.53 Findings of the class `dangling`
 
-@term dangling-finding=v1
+@atom dangling-finding=v2
 @cites {
-    identifiers#{citation-entry=v1, inline-citation=v1, part-name=v1},
-    ontology#{edge=v1},
+    identifiers#{citation-entry=v2, inline-citation=v1, part-name=v1},
+    ontology#{edge=v2},
     #{
-        tree-edge=v1, home-design=v1, origin=v1, origin-position=v1,
+        tree-edge=v2, home-design=v2, origin=v2, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
     },
 }
@@ -2014,15 +1990,15 @@ citation in the text of the file.
 
 ### 4.54 Findings of the class `wrong-source`
 
-@term wrong-source-finding=v1
+@atom wrong-source-finding=v2
 @cites {
-    identifiers#{citation-entry=v1},
+    identifiers#{citation-entry=v2},
     ontology#{
-        edge=v1, edge-source=v1, cites-edge=v1, satisfies-edge=v1,
-        verifies-edge=v1, refines-edge=v1, supersedes-edge=v1,
+        edge=v2, edge-source=v1, cites-edge=v2, satisfies-edge=v2,
+        verifies-edge=v2, refines-edge=v2, supersedes-edge=v2,
     },
     #{
-        tree-edge=v1, origin=v1, origin-position=v1,
+        tree-edge=v2, origin=v2, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
     },
 }
@@ -2036,19 +2012,19 @@ entry or inline citation in the text of the file.
 
 ### 4.55 Findings of the class `wrong-kind`
 
-@term wrong-kind-finding=v1
+@atom wrong-kind-finding=v2
 @cites {
     identifiers#{
-        citation-line=v1, citation-entry=v1, inline-citation=v1,
-        external-target=v1, kind-word=v1,
+        citation-line=v2, citation-entry=v2, inline-citation=v1,
+        external-target=v2, kind-word=v2,
     },
     ontology#{
-        edge=v1, edge-source=v1, declared-item=v1, cites-edge=v1,
-        satisfies-edge=v1, verifies-edge=v1, refines-edge=v1,
-        supersedes-edge=v1,
+        edge=v2, edge-source=v1, declared-item=v2, cites-edge=v2,
+        satisfies-edge=v2, verifies-edge=v2, refines-edge=v2,
+        supersedes-edge=v2,
     },
     #{
-        tree-edge=v1, stated-kind=v1, origin=v1, origin-position=v1,
+        tree-edge=v2, stated-kind=v2, origin=v2, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
     },
 }
@@ -2061,7 +2037,10 @@ with a kind word that does not state the kind of item of that cited
 item. For an edge of the kind `supersedes` that has no source, or whose
 source is not a declared item, the first condition is instead: its cited
 item is not of the kind design when the production `every-part` matches
-its citation entry, and is not a declared item otherwise.
+its citation entry, and is not a declared item otherwise. For an edge of
+the kind `refines` that has no source, or whose source is not a declared
+item, the first condition is instead: its cited item is not a declared
+item.
 Its subject is the position subject of the origin position of the
 citation entry or of the inline citation of the edge. Its spot is the
 spot of the run of that citation entry or inline citation in the text
@@ -2069,21 +2048,20 @@ of the file.
 
 ### 4.56 Findings of the class `misplaced-declaration`
 
-@term misplaced-declaration-finding=v1
+@atom misplaced-declaration-finding=v2
 @cites {
     identifiers#{
-        declaration=v1, extern-line=v1, target=v1, full-name=v1,
+        declaration=v1, extern-line=v2, target=v1, full-name=v1,
         tag-line-text=v1,
     },
     ontology#{
-        declared-item=v1, term=v1, declared-finding-class=v1,
-        containment=v1, edge-source=v1,
+        declared-item=v2, schema=v1, atom=v1, term=v2,
+        containment=v2, edge-source=v1,
     },
     #{
-        read-file=v1, accepted-input=v1, item-file=v1, tag-text=v1,
-        markdown-section=v1, item-scope=v1,
-        tree-containment=v1, item-part=v1, tree-site=v1, origin=v1,
-        origin-position=v1, position-subject=v1, run-spot=v1,
+        read-file=v2, accepted-input=v2, item-file=v1, tag-text=v2,
+        item-scope=v1, tree-containment=v2, item-part=v1, tree-site=v1,
+        origin=v2, origin-position=v1, position-subject=v1, run-spot=v1,
         tree-finding=v1, innermost-item=v1,
     },
 }
@@ -2096,25 +2074,24 @@ them:
 - d is of the kind design, and its file is a code file;
 - d is of the kind design, and its declaration is in the scope of
   another item of the kind design;
-- d is of the kind specification, requirement, or term; the innermost
-  item of the kind design in whose scope its declaration is, is an item
-  D; and d belongs to an item of the kind design other than D;
-- d is of the kind requirement or term; its declaration is in the scope
-  of an item of the kind specification S that is the innermost item of
-  the kind specification in whose scope that declaration is; and d
-  belongs to an item of the kind design to which S does not belong;
+- d is of the kind specification, requirement, schema, atom, or term;
+  the innermost item of the kind design in whose scope its declaration
+  is, is an item D; and d belongs to an item of the kind design other
+  than D;
+- d is of the kind requirement, schema, atom, or term; its declaration is
+  in the scope of an item of the kind specification S that is the
+  innermost item of the kind specification in whose scope that
+  declaration is; and d belongs to an item of the kind design to which S
+  does not belong;
 - d is of the kind specification, and its declaration is in the scope of
   another item of the kind specification;
-- d is of the kind specification or term, and it belongs to no item of
-  the kind design;
-- d is of the kind requirement or term, it belongs to an item of the
-  kind design D, the name in the target of its declaration is a full
-  name, its file is a markdown file, and its file is not the file of D
-  and not the file of the item of the kind specification to which d
-  belongs, when d belongs to one;
-- d is a declared finding class, and its file is a code file, or its
-  declaration is not the only declaration of a declared item in the tag
-  text of the first paragraph of the section of level 0 of its file;
+- d is of the kind specification, schema, atom, or term, and it belongs
+  to no item of the kind design;
+- d is of the kind requirement, schema, atom, or term, it belongs to an
+  item of the kind design D, the name in the target of its declaration
+  is a full name, its file is a markdown file, and its file is not the
+  file of D and not the file of the item of the kind specification to
+  which d belongs, when d belongs to one;
 - the line is an `@extern` line that is a line of a tag text, that is an
   accepted input, and that stands in no item of the kind design.
 
@@ -2124,12 +2101,12 @@ run of that text in the text of the file.
 
 ### 4.57 Findings of the class `req-outside-design`
 
-@term req-outside-design-finding=v1
+@atom req-outside-design-finding=v2
 @cites {
     identifiers#{tag-line-text=v1},
-    ontology#{declared-item=v1, containment=v1},
+    ontology#{declared-item=v2, containment=v2},
     #{
-        item-file=v1, tree-containment=v1, origin=v1,
+        item-file=v1, tree-containment=v2, origin=v2,
         origin-position=v1, position-subject=v1, run-spot=v1,
         tree-finding=v1,
     },
@@ -2143,13 +2120,16 @@ text in the text of its file.
 
 ### 4.58 Findings of the class `extern-mismatch`
 
-@term extern-mismatch-finding=v1
+@atom extern-mismatch-finding=v2
 @cites {
-    identifiers#{tag-line-text=v1, kind-word=v1, part-name=v1},
-    ontology#{containment=v1, item-name=v1, term=v1, declared-item=v1},
+    identifiers#{tag-line-text=v1, kind-word=v2, part-name=v1},
+    ontology#{
+        containment=v2, item-name=v2, schema=v1, atom=v1, term=v2,
+        declared-item=v2,
+    },
     #{
-        item-file=v1, tree-containment=v1, extern-mark=v1,
-        valid-extern-mark=v1, origin=v1, origin-position=v1,
+        item-file=v1, tree-containment=v2, extern-mark=v2,
+        valid-extern-mark=v2, origin=v2, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
     },
 }
@@ -2161,62 +2141,35 @@ A tree has these tree findings of the class `extern-mismatch`:
   `@extern` line, and whose spot is the spot of the run of that text in
   the text of its file;
 - one for each item of the kind specification that an item of the kind
-  design D holds, and for each item of the kind requirement and each
-  term that D holds directly, whose file is not the file of D and for
-  which D has no extern mark whose part name is the part name of its
-  name and
-  whose kind word is `spec` for an item of the kind specification, `req`
-  for an item of the kind requirement, and `term` for a term.
+  design D holds, and for each item of the kind requirement, each
+  schema, each atom, and each term that D holds directly, whose file is
+  not the file of D and for which D has no extern mark whose part name
+  is the part name of its name and whose kind word is `spec` for an item
+  of the kind specification, `req` for an item of the kind requirement,
+  `schema` for a schema, `atom` for an atom, and `term` for a term.
   Its subject is the position subject of the origin position of the
   text of its declaration, and its spot is the spot of the run of that
   text in the text of its file.
 
-### 4.59 Conformance parts
+### 4.59 The written text of inline elements
 
-@term conformance-part=v1
-@cites {
-    data-forms#{group-form-list=v1},
-    ontology#{declared-item=v1, containment=v1},
-    #{
-        read-file=v1, item-file=v1, tag-text=v1, markdown-line=v1,
-        markdown-section=v1, markdown-list-item=v1, tree-containment=v1,
-    },
-}
-
-The Conformance part of an item x of the kind design or of the kind
-specification of a tree is a set of markdown lines of its file, or none.
-When the file of x is a markdown file, let S be the section or the list
-item whose first paragraph gives the tag text that has the declaration
-of x. When S is the section of a heading H that opens a section, and the
-lines of S have the line of at least one heading that opens a section
-and whose level is the level of H plus 1, let C be the last of these
-headings. Then the Conformance part of x is the markdown lines of the
-section of C, unless x is of the kind design and the tag text of the
-first paragraph of the section of C has the declaration of an item of
-the kind specification that belongs to x; then x has none. In each other
-case, x has none. These markdown lines, in their order, are the
-Conformance part of a specification, or the Conformance section of a
-design, that the term `group-form-list` of Data forms takes as given
-together with x.
-
-### 4.60 The written text of inline elements
-
-@term written-inline=v1
+@term written-inline=v2
 @cites {
     commonmark/0.31.2,
     identifiers#{
         link=v1, destination=v1, inline-citation=v1, link-text=v1,
-        plain-string-content=v1, input=v1, binding=v1, target=v1,
+        plain-string-content=v1, input=v2, external-namespaces=v1,
+        give-link-results=v1, link-result=v1, target=v1,
     },
     text#{
         text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
         code-span=v1, conforming-program=v1, result=v1, algorithm=v1,
         sequence=v1,
     },
-    ontology#{declared-item=v1},
+    ontology#{declared-item=v2},
     #{
-        markdown-line=v1, accepted-input=v1, item-file=v1, home-design=v1,
-        tree-form=v1,
+        file-readers=v1, markdown-line=v1, accepted-input=v2, item-file=v1,
+        home-design=v2, tree-form=v1,
     },
 }
 
@@ -2332,42 +2285,42 @@ item *d* is the text that these steps give.
 5. Give *w*.
 
 
-### 4.61 Kind words of declared items
+### 4.60 Kind words of declared items
 
 @term item-kind-word=v1
 @cites {
-    identifiers#{kind-word=v1},
-    ontology#{declared-item=v1},
-    #{stated-kind=v1},
+    identifiers#{kind-word=v2},
+    ontology#{declared-item=v2},
+    #{stated-kind=v2},
 }
 
 The kind word of a declared item is the one kind word that states its
 kind of item.
 
-### 4.62 Canonical identifiers of declared items
+### 4.61 Canonical identifiers of declared items
 
 @term item-canonical-id=v1
 @cites {
     identifiers#{canonical-id=v1},
-    ontology#{declared-item=v1, item-name=v1},
+    ontology#{declared-item=v2, item-name=v2},
     #{item-kind-word=v1},
 }
 
 The canonical identifier of a declared item is the canonical identifier
 of its kind word and its name.
 
-### 4.63 Tree forms of citation entries
+### 4.62 Tree forms of citation entries
 
 @term tree-form=v1
 @cites {
     identifiers#{
-        citation=v1, citation-entry=v1, canonical-entry=v1, kind-word=v1,
-        external-target=v1, inline-citation=v1, target=v1, destination=v1,
-        input-match=v1,
+        citation=v1, citation-entry=v2, canonical-entry=v2, kind-word=v2,
+        external-target=v2, inline-citation=v1, target=v1, destination=v1,
+        input-match=v2,
     },
-    ontology#{declared-item=v1, item-name=v1, tree=v1},
+    ontology#{declared-item=v2, item-name=v2, tree=v1},
     text#{text=v1, algorithm=v1},
-    #{accepted-input=v1, home-design=v1, named-item=v1, item-kind-word=v1},
+    #{accepted-input=v2, home-design=v2, named-item=v2, item-kind-word=v1},
 }
 
 In this term, *c* is a citation entry of an accepted citation of a tree,
@@ -2387,42 +2340,42 @@ is the text that these steps give.
    1. If *c* starts with a kind word, set *k* to that kind word.
 6. Give the canonical form of *c* with *s* and *k*.
 
-### 4.64 Hashed lines
+### 4.63 Hashed lines
 
 @term hashed-line=v1
 @cites {
-    ontology#{declared-item=v1, containment=v1, tree=v1},
-    #{extent=v1, tree-containment=v1, file-line=v1},
+    ontology#{declared-item=v2, containment=v2, tree=v1},
+    #{extent=v1, tree-containment=v2, file-line=v1},
 }
 
 The hashed lines of a declared item d of a tree are the lines of its
 extent, without, when d is of the kind design, the lines of the extent
 of each declared item that belongs to d.
 
-### 4.65 Written lines
+### 4.64 Written lines
 
-@term written-line=v1
+@term written-line=v2
 @cites {
     commonmark/0.31.2,
     identifiers#{
-        tag-line=v1, tag-word=v1, sinter-tag-word=v1, declaration=v1,
+        tag-line=v1, tag-word=v1, sinter-tag-word=v2, declaration=v1,
         citation=v1, continuation-line=v1, tag-line-text=v1,
-        inline-description=v1, target=v1, citation-entry=v1, directive=v1,
+        inline-description=v1, target=v1, citation-entry=v2, directive=v1,
         status-tag=v1, link=v1, link-text=v1,
     },
-    ontology#{declared-item=v1},
+    ontology#{declared-item=v2},
     text#{
         text=v1, character=v1, run=v1, space=v1, tab=v1, line-feed=v1,
         code-span=v1, decimal-numeral=v1, whole-number=v1, algorithm=v1,
         sequence=v1, code-point-order=v1,
     },
     #{
-        written-inline=v1, read-file=v1, unreadable-file=v1,
-        markdown-line=v1, front-matter=v1, markdown-section=v1,
-        markdown-list-item=v1, tag-text=v1, file-line=v1,
-        accepted-input=v1, item-file=v1, section-number=v1,
+        file-readers=v1, written-inline=v2, read-file=v2,
+        unreadable-file=v2, markdown-line=v1, front-matter=v1,
+        markdown-section=v1, markdown-list-item=v1, tag-text=v2,
+        file-line=v1, accepted-input=v2, item-file=v1, section-number=v1,
         paragraph-line=v1, item-canonical-id=v1, tree-form=v1,
-        home-design=v1, comment-line=v1,
+        home-design=v2, comment-line=v1,
     },
 }
 
@@ -2480,8 +2433,6 @@ The task marker of the line is then the text of that longest run
 without the spaces and tabs at its end. The written task marker of the
 line is its task marker with each `X` replaced by `x`.
 
-The empty set of texts is the set that holds no text.
-
 The indent of a whole number *k* is the text that these steps give.
 
 1. If *k* is less than 1, give the empty text.
@@ -2491,9 +2442,8 @@ The indent of a whole number *k* is the text that these steps give.
 5. Append a space to *pad*.
 6. Give *pad*.
 
-The written lines of a block *b* at depth *k* for a declared item *d*,
-in a set *e* of file lines and without a set *v* of texts, is the
-sequence that these steps give.
+The written lines of a block *b* at depth *k* for a declared item *d* in
+a set *e* of file lines is the sequence that these steps give.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the indent of *k*.
@@ -2545,7 +2495,7 @@ sequence that these steps give.
    4. Append `:` to *line*.
    5. Append *line* to *lines*.
    6. For each *c* of the content lines of *b*, in order:
-      1. If *c* comes from *e* and the text of *c* is not in *v*, then:
+      1. If *c* comes from *e*, then:
          1. Let *row* be *pad*.
          2. Append `| ` to *row*.
          3. Append the text of *c* to *row*.
@@ -2568,7 +2518,7 @@ sequence that these steps give.
    1. Let *inner* be the empty sequence.
    2. For each *child* of the children of *b*, in order:
       1. For each *w* of the written lines of *child* at depth *k* plus 1
-         for *d*, in *e* and without *v*, in order:
+         for *d* in *e*, in order:
          1. Append *w* to *inner*.
    3. If *inner* is not empty, then:
       1. Let *line* be *pad*.
@@ -2741,72 +2691,34 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
             2. Append the written text of *inner* for *d* to *line*.
             3. Append *line* to *lines*.
       2. Otherwise:
-         1. For each *w* of the written lines of *b* at depth *k* for *d*,
-            in *e* and without the empty set of texts, in order:
+         1. For each *w* of the written lines of *b* at depth *k* for *d*
+            in *e*, in order:
             1. Append *w* to *lines*.
 7. Give *lines*.
-
-### 4.66 Forms texts
-
-@term forms-text=v1
-@cites {
-    data-forms#{vector-line=v1},
-    ontology#{declared-item=v1},
-    text#{
-        text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, 0x-numeral=v1,
-        code-span=v1, algorithm=v1, sequence=v1,
-    },
-    #{
-        conformance-part=v1, hashed-line=v1, written-line=v1,
-        read-file=v1, markdown-line=v1, markdown-section=v1,
-        item-file=v1, front-matter=v1,
-    },
-}
-
-An item of the kind design or of the kind specification of a tree that
-has no Conformance part has no forms text.
-
-The forms text of an item *x* of the kind design or of the kind
-specification that has a Conformance part is the text that these steps
-give.
-
-1. Let *part* be the set of the lines of the Conformance part of *x* that
-   are hashed lines of *x* and that no ATX heading and no setext heading
-   takes.
-2. Let *vectors* be the set of the texts whose UTF-8 encoding, followed
-   by the byte 0x0A, is a vector line.
-3. Let *text* be the empty text.
-4. For each *b* of the sequence of the blocks of the document itself of
-   the markdown document of the file of *x*, in order:
-   1. For each *w* of the written lines of *b* at depth 0 for *x*, in
-      *part* and without *vectors*, in order:
-      1. Append *w* to *text*.
-      2. Append a line feed to *text*.
-5. Give *text*.
 
 ## 5. Requirements
 
 ### 5.1 Nothing under bindings that are not valid
 
-@req give-nothing-under-invalid-bindings=v1
+@req give-nothing-under-invalid-bindings=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1, status-tag=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
     ontology#{
-        tree=v1, declared-item=v1, containment=v1, test=v1, site=v1,
-        edge=v1, finding-class=v1,
+        tree=v1, declared-item=v2, containment=v2, test=v1, site=v1,
+        edge=v2, finding-class=v1,
     },
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, read-file=v1, item-file=v1, extent=v1,
-        extent-hash=v1, forms-text=v1, code-hash=v1, tree-containment=v1,
-        file-test=v1, tree-site=v1, tree-edge=v1, accepted-input=v1,
-        extern-mark=v1,
-        vector-file=v1, parse-error-finding=v1, typo-tag-finding=v1,
-        ignored-tag-finding=v1, invalid-target-finding=v1,
-        duplicate-finding=v1, dangling-finding=v1,
-        wrong-source-finding=v1, wrong-kind-finding=v1,
-        misplaced-declaration-finding=v1, req-outside-design-finding=v1,
-        extern-mismatch-finding=v1,
+        file-readers=v1, read-file=v2, item-file=v1, extent=v1,
+        extent-hash=v2, code-hash=v1, tree-containment=v2,
+        file-test=v1, tree-site=v1, tree-edge=v2, accepted-input=v2,
+        extern-mark=v2,
+        vector-file=v2, parse-error-finding=v2, typo-tag-finding=v2,
+        ignored-tag-finding=v2, invalid-target-finding=v2,
+        duplicate-finding=v2, dangling-finding=v2,
+        wrong-source-finding=v2, wrong-kind-finding=v2,
+        misplaced-declaration-finding=v2, req-outside-design-finding=v2,
+        extern-mismatch-finding=v2,
     },
 }
 
@@ -2814,7 +2726,7 @@ Under a binding of `file-readers` that is not valid, or under a binding
 of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "invalid", a conforming program must give,
 for any tree, no read file, no declared item, no extent, no hash text,
-no extent hash, no forms text, no code text, no code hash, no item to
+no extent hash, no code text, no code hash, no item to
 which a declared item belongs, no test, no site, no edge, no status tag,
 no extern mark, no vector file, and no finding of the classes
 `parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`,
@@ -2823,12 +2735,12 @@ no extern mark, no vector file, and no finding of the classes
 
 ### 5.2 Read files
 
-@req give-read-files=v1
+@req give-read-files=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{read-file=v1, file-reader-binding=v1},
+    #{read-file=v2, file-readers=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -2839,14 +2751,16 @@ file of the tree once, with its reader, and no other read file.
 
 ### 5.3 Declared items
 
-@req give-declared-items=v1
+@req give-declared-items=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1, tag-line-text=v1},
-    ontology#{declared-item=v1, item-name=v1, tree=v1},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
+    },
+    ontology#{declared-item=v2, item-name=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, item-file=v1, tree-containment=v1,
-        origin-position=v1, unreadable-file=v1,
+        file-readers=v1, item-file=v1, tree-containment=v2,
+        origin-position=v1, unreadable-file=v2,
     },
 }
 
@@ -2860,14 +2774,14 @@ declaration, and no other declared item.
 
 ### 5.4 Extents
 
-@req give-extents=v1
+@req give-extents=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{declared-item=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, extent=v1, file-line=v1,
-        unreadable-file=v1,
+        file-readers=v1, extent=v1, file-line=v1,
+        unreadable-file=v2,
     },
 }
 
@@ -2880,12 +2794,12 @@ as that extent.
 
 ### 5.5 Extent hashes
 
-@req give-extent-hashes=v1
+@req give-extent-hashes=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{declared-item=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, extent-hash=v1, unreadable-file=v1},
+    #{file-readers=v1, extent-hash=v2, unreadable-file=v2},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -2897,14 +2811,14 @@ nothing else as that extent hash.
 
 ### 5.6 Code hashes
 
-@req give-code-hashes=v1
+@req give-code-hashes=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{tree=v1},
     text#{conforming-program=v1, result=v1, boundary=v1},
     #{
-        file-reader-binding=v1, code-hash=v1, comment-run=v1,
-        read-file=v1, unreadable-file=v1,
+        file-readers=v1, code-hash=v1, comment-run=v1,
+        read-file=v2, unreadable-file=v2,
     },
 }
 
@@ -2919,12 +2833,12 @@ comments with a code hash.
 
 ### 5.7 Containment
 
-@req give-containment=v1
+@req give-containment=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, containment=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{declared-item=v2, containment=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, tree-containment=v1, unreadable-file=v1},
+    #{file-readers=v1, tree-containment=v2, unreadable-file=v2},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -2938,14 +2852,14 @@ it belongs to none, and nothing else as that item.
 
 ### 5.8 Tests
 
-@req give-tests=v1
+@req give-tests=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{test=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, file-test=v1, read-file=v1,
-        unreadable-file=v1,
+        file-readers=v1, file-test=v1, read-file=v2,
+        unreadable-file=v2,
     },
 }
 
@@ -2959,14 +2873,14 @@ other comment on a test.
 
 ### 5.9 Sites
 
-@req give-sites=v1
+@req give-sites=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{site=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, tree-site=v1, read-file=v1,
-        file-line=v1, unreadable-file=v1,
+        file-readers=v1, tree-site=v1, read-file=v2,
+        file-line=v1, unreadable-file=v2,
     },
 }
 
@@ -2979,18 +2893,18 @@ and its file lines, and no other site.
 
 ### 5.10 Edges
 
-@req give-edges=v1
+@req give-edges=v2
 @cites {
     identifiers#{
-        binding=v1, accept-inputs=v1, citation-entry=v1,
+        external-namespaces=v1, validate-bindings=v1, citation-entry=v2,
         inline-citation=v1,
     },
-    ontology#{edge=v1, edge-source=v1, tree=v1},
+    ontology#{edge=v2, edge-source=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, accepted-input=v1, tree-edge=v1,
-        named-item=v1, selected-item=v1, item-part=v1, tree-site=v1,
-        file-test=v1, origin-position=v1, unreadable-file=v1,
+        file-readers=v1, accepted-input=v2, tree-edge=v2,
+        named-item=v2, selected-item=v2, item-part=v1, tree-site=v1,
+        file-test=v1, origin-position=v1, unreadable-file=v2,
     },
 }
 
@@ -3005,17 +2919,18 @@ other edge.
 
 ### 5.11 The items in which status tags stand
 
-@req give-status-tag-items=v1
+@req give-status-tag-items=v2
 @cites {
     identifiers#{
-        binding=v1, accept-inputs=v1, status-tag=v1, tag-line-text=v1,
+        external-namespaces=v1, validate-bindings=v1, status-tag=v1,
+        tag-line-text=v1,
     },
     ontology#{edge-source=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, accepted-input=v1, item-part=v1,
+        file-readers=v1, accepted-input=v2, item-part=v1,
         tree-site=v1, file-test=v1, origin-position=v1,
-        unreadable-file=v1,
+        unreadable-file=v2,
     },
 }
 
@@ -3030,14 +2945,16 @@ and no other status tag.
 
 ### 5.12 Extern marks
 
-@req give-extern-marks=v1
+@req give-extern-marks=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1, tag-line-text=v1},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
+    },
     ontology#{tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, accepted-input=v1, extern-mark=v1,
-        valid-extern-mark=v1, origin-position=v1, unreadable-file=v1,
+        file-readers=v1, accepted-input=v2, extern-mark=v2,
+        valid-extern-mark=v2, origin-position=v1, unreadable-file=v2,
     },
 }
 
@@ -3051,12 +2968,12 @@ kind design, and whether it is valid, and no other extern mark.
 
 ### 5.13 Vector files
 
-@req give-vector-files=v1
+@req give-vector-files=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{declared-item=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, vector-file=v1, unreadable-file=v1},
+    #{file-readers=v1, vector-file=v2, unreadable-file=v2},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -3069,19 +2986,19 @@ has none, and nothing else as that vector file.
 
 ### 5.14 The findings of a tree
 
-@req give-tree-findings=v1
+@req give-tree-findings=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, tree-finding=v1, parse-error-finding=v1,
-        typo-tag-finding=v1, ignored-tag-finding=v1,
-        invalid-target-finding=v1, duplicate-finding=v1,
-        dangling-finding=v1, wrong-source-finding=v1,
-        wrong-kind-finding=v1, misplaced-declaration-finding=v1,
-        req-outside-design-finding=v1, extern-mismatch-finding=v1,
-        unreadable-file=v1,
+        file-readers=v1, tree-finding=v1, parse-error-finding=v2,
+        typo-tag-finding=v2, ignored-tag-finding=v2,
+        invalid-target-finding=v2, duplicate-finding=v2,
+        dangling-finding=v2, wrong-source-finding=v2,
+        wrong-kind-finding=v2, misplaced-declaration-finding=v2,
+        req-outside-design-finding=v2, extern-mismatch-finding=v2,
+        unreadable-file=v2,
     },
 }
 
@@ -3097,12 +3014,12 @@ the tree has once, and no other finding of that class.
 
 ### 5.15 Hash texts
 
-@req give-hash-texts=v1
+@req give-hash-texts=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{declared-item=v2, tree=v1},
     text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, extent-hash=v1, unreadable-file=v1},
+    #{file-readers=v1, extent-hash=v2, unreadable-file=v2},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -3114,14 +3031,14 @@ nothing else as that hash text.
 
 ### 5.16 Code texts
 
-@req give-code-texts=v1
+@req give-code-texts=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{tree=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-reader-binding=v1, code-hash=v1, comment-run=v1,
-        attachment=v1, read-file=v1, unreadable-file=v1,
+        file-readers=v1, code-hash=v1, comment-run=v1,
+        attachment=v1, read-file=v2, unreadable-file=v2,
     },
 }
 
@@ -3133,24 +3050,6 @@ code file of the tree that has a code hash attaches, under these
 bindings and a set of stopped files, it must give the code text of that
 attachment target, and nothing else as that code text.
 
-### 5.17 Forms texts
-
-@req give-forms-texts=v1
-@cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    ontology#{declared-item=v1, tree=v1},
-    text#{conforming-program=v1, result=v1},
-    #{file-reader-binding=v1, forms-text=v1, unreadable-file=v1},
-}
-
-Under a valid binding of `file-readers` and a binding of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the forms text of an item of the kind design or of the kind
-specification of a tree under these bindings and a set of stopped files,
-it must give the forms text of that item, or that it has none when it
-has none, and nothing else as that forms text.
-
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
@@ -3160,10 +3059,13 @@ section 5.
 The vectors of this design are in the file
 [`documents.test-vectors.jsonl`](documents.test-vectors.jsonl), in the
 same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
+specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them.
+to them. No group of this design uses a need, so the forms of each group
+give no need names. Each subsection below gives the forms of one group,
+as the term [`group-form-list`](sinter:data-forms#group-form-list=v2)
+gives them.
 
 Several requirements apply only when a program gives the thing that they
 name, such as the extent of a declared item. So a vector checks a
@@ -3172,20 +3074,63 @@ gives the declared items of a tree, and not their extents, is checked
 only on the declared items.
 
 Each vector is for the empty set of
-[stopped files](sinter:#unreadable-file=v1). So a vector checks a
+[stopped files](sinter:#unreadable-file=v2). So a vector checks a
 program only when the set of stopped files of the program for the tree
 of the vector is empty.
 
-Each vector of the file has the member `values`, and no vector has the
-member `result`.
+### 6.1 Markdown files
 
-A program does not need the revisions to run the vectors.
+@schema markdown-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, whole-number=v1,
+        decimal-numeral=v1, boundary=v1, run=v1, line-number=v1,
+        position=v1, byte-order-mark=v1, valid-utf-8=v1, result=v1,
+        code-point-order=v1, code-span=v1,
+    },
+    files#{path=v1, path-set=v1, path-set-membership=v1},
+    data-forms#{index=v1, hex-text=v1, group-form-list=v2, vector-meaning=v2},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, status-tag=v1,
+        citation-entry=v2, inline-citation=v1, tag-line-text=v1,
+    },
+    ontology#{
+        tree=v1, declared-item=v2, containment=v2, site=v1, edge=v2,
+        edge-source=v1, external-item=v1, conformance-vector-group=v1,
+        vector-set=v2, finding-class=v1,
+    },
+    findings#{spot=v1},
+    #{
+        file-readers=v1, read-file=v2, unreadable-file=v2,
+        accepted-input=v2, origin-position=v1, position-order=v1,
+        item-file=v1, extent=v1, extent-hash=v2, tree-containment=v2,
+        tree-site=v1, tree-edge=v2, extern-mark=v2,
+        valid-extern-mark=v2, vector-file=v2, tree-finding=v1,
+        give-nothing-under-invalid-bindings=v2, give-read-files=v2,
+        give-declared-items=v2, give-extents=v2, give-extent-hashes=v2,
+        give-hash-texts=v2, give-containment=v2, give-sites=v2,
+        give-edges=v2, give-status-tag-items=v2, give-extern-marks=v2,
+        give-vector-files=v2, give-tree-findings=v2,
+    },
+}
 
-The JSON values, objects, arrays, strings, and numbers of this section
+The group `markdown` has the vectors of trees that have no code file.
+Its vectors follow from the requirements
+`give-nothing-under-invalid-bindings`, `give-read-files`,
+`give-declared-items`, `give-extents`, `give-extent-hashes`,
+`give-hash-texts`, `give-containment`, `give-sites`, `give-edges`,
+`give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
+`give-tree-findings`. Each vector is for the empty set of stopped files.
+Each vector of the group has the member `values`, and no vector has the
+member `result`; these forms name no question for `result`. The group
+uses no need, so these forms give no need names.
+
+The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
-each JSON value that this section or its subsections name as a text, a whole number, a run, a
-position, a path set, a binding of `external-namespaces`, or a tree has
-this form:
+each JSON value that this schema names as a text, a
+whole number, a run, a position, a path set, a binding of
+`external-namespaces`, or a tree has this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
   string whose characters are the characters of the text, in order. So
@@ -3213,17 +3158,24 @@ this form:
   string, which has two lower-case hex digits for each byte, in the
   order of the bytes.
 
+The member `input` is a JSON object with three members. `files` is the
+tree. `file-readers` is a JSON array with one element for each pair of a
+binding of `file-readers`, in their order: the path set of that pair,
+whose reader is `markdown`. `external-namespaces` is a binding of
+`external-namespaces`. The program reads the tree under these two
+bindings.
+
 The member `values` of a vector is the empty JSON object, `{}`, when the
 binding of `file-readers` of the input is not valid, or a conforming
 program of the design Identifiers gives the result "invalid" for its
-binding of `external-namespaces`. Otherwise, it
-is a JSON object with the members of the list below, and an empty JSON
-array in one of them says that the tree has none of these things. In
-each JSON array, the elements stand in the order that the list gives,
-and the index of an element, as Data forms defines the
+binding of `external-namespaces`. Otherwise, it is a JSON object with
+these members, and an empty JSON array in one of them
+says that the tree has none of these things. In each JSON array, the
+elements stand in the order that the list gives, and the index of an
+element, as Data forms defines the
 [index](sinter:data-forms#index=v1), refers to it from other members. So
 the first element of an array has the index 1. A file is given by its
-valid path. Where this section orders elements by positions, it uses
+valid path. Where this schema orders elements by positions, it uses
 the [order of positions](sinter:#position-order=v1).
 A member that the list gives only for some elements, such as `design` or
 `source`, is not in an element for which the list does not give it: the
@@ -3239,12 +3191,11 @@ element of a thing that has no such item has no such member.
   then in the order of the origin positions of their declarations. Each
   element is a JSON object with these members: `kind`, the kind of item,
   one of the texts `design`, `specification`, `requirement`, `term`,
-  `decision record`, and `declared finding class`; `name`, its name;
+  `schema`, `atom`, and `decision record`; `name`, its name;
   `file`, its file; `at`, the origin position of the text of its
   declaration; `extent`, a JSON array of the file lines of its extent,
-  each a run, in their order; `hash-text`, its hash text; `forms-text`,
-  its forms text, only for an item of the kind design or specification
-  that has a forms text; `extent-hash`, its extent hash; `design`,
+  each a run, in their order; `hash-text`, its hash text;
+  `extent-hash`, its extent hash; `design`,
   the index of the item of the kind design to which it belongs, only
   when it belongs to one; `specification`, the index of the item of the
   kind specification to which it belongs, only when it belongs to one;
@@ -3288,113 +3239,90 @@ element of a thing that has no such item has no such member.
   with the member `path`, its valid path, and, when the spot has a span,
   the member `span`, that span, as a run.
 
-In the group `code`, the JSON object also has these members:
-
-- `tests`: a JSON array with one element for each test of each read file
-  of the tree, in the code point order of the valid paths of their files,
-  then in the order of the boundaries where their codes start, and, of
-  two whose codes start at one boundary, in the order of the parse tree
-  of their test nodes. Each element is a JSON object with these members:
-  `file`, its file; `name`, its name, as a name path; `code`, its code,
-  as a run; and `comments`, a JSON array with one element for each
-  comment on it, in the order of the boundaries where these runs of
-  comments start: the run of the text from the boundary where that run
-  of comments starts to the boundary where that run of comments ends.
-- `code-hashes`: a JSON array with one element for each run of comments
-  of the tree that has a code hash, in the code point order of the valid
-  paths of their files and then in the order of the boundaries where
-  these runs of comments start. Each element is a JSON object with these
-  members: `file`, its file; `comments`, the run of the text from the
-  boundary where that run of comments starts to the boundary where that
-  run of comments ends; `code-text`, the code text of the attachment
-  target to which it attaches; and `code-hash`, its code hash.
-
 A reference to an item is a JSON object of one of these forms:
 `{"item":k}`, the declared item with the index k in `items`;
-`{"test":k}`, the test with the index k in `tests`; `{"site":k}`, the
-site with the index k in `sites`; `{"external":t}`, the external item
-whose external id, with its `#` and part name when it has them, is the
-text t; `{"of":k,"vector":v}`, the conformance vector whose vector line
-is the vector line with the number v of the vector set of the declared
-item with the index k;
-`{"group":g,"of":k}`, the group of conformance vectors with the name g
-of that vector set; and `{"vector-set":k}`, the vector set of the
-declared item with the index k.
-
-A name path is a JSON array of its own names, in their order. An own
-name is a JSON array of its pieces, in their order. A text piece is the
-JSON object `{"text":t}` and a placeholder is the JSON object
-`{"placeholder":t}`, where t is the text of the piece.
+`{"site":k}`, the site with the index k in `sites`; `{"external":t}`,
+the external item whose external id, with its `#` and part name when it
+has them, is the text t; `{"group":g,"of":k}`, the group of conformance
+vectors with the name g of the vector set of the declared item with the
+index k; and `{"vector-set":k}`, the vector set of the declared item
+with the index k.
 
 For the input of a vector, a conforming program that reads the tree
 under the two bindings of the input and the empty set of stopped files
-gives what `values` states. When
-`values` is `{}`, it gives, for the tree, none of the things that the
-members above name. Otherwise, when it gives one of the things that a
-member names, it gives what that member states for it:
+gives what `values` states. When `values` is `{}`, it gives, for the
+tree, none of the things that the members of `values` name. Otherwise, when it
+gives one of the things that a member names, it gives what that member
+states for it:
 
 - When it gives the read files, it gives the keys of `read-files`, each
   with the reader of the pair at its index, and no other read file.
 - When it gives the declared items, it gives one for each element of
   `items`, with its kind of item, its name, its file, and the origin
   position of the text of its declaration, and no other declared item.
-- When it gives the extent, the hash text, the forms text, the extent
-  hash, the item of the kind design or of the kind specification to which
-  a declared item belongs, or the vector file of a declared item, it
-  gives what the element of that item states, and for a member that the
-  element does not have, that the item has no forms text, belongs to no
-  such item, or has no vector file.
+- When it gives the extent, the hash text, the extent hash, the item of
+  the kind design or of the kind specification to which a declared item
+  belongs, or the vector file of a declared item, it gives what the
+  element of that item states, and for a member that the element does not
+  have, that the item belongs to no such item, or has no vector file.
 - When it gives the sites, the edges, the items in which status tags
-  stand, the extern marks, the tests, or the code hashes, it gives one
-  for each element of the member, with what that element states, and no
-  other.
+  stand, or the extern marks, it gives one for each element of the
+  member, with what that element states, and no other.
   For an element of `edges` without `source` or without `cited`, it
   gives that the edge has no source or no cited item. For an element of
   `status-tags` without `item`, it gives that the status tag stands in no
   item.
-- When it gives the code text of the attachment target to which a run
-  of comments that has a code hash attaches, it gives the `code-text` of
-  the element of `code-hashes` for that run of comments.
 - When it gives the tree findings of one of the classes that the
   requirement `give-tree-findings` names, it gives one for each element
   of `findings` of that class, with the class and the subject that the
   element states, and no other tree finding of that class. When it gives
   the spot of such a finding, it gives the spot that the element states.
 
-### 6.1 Markdown files
-
-The group `markdown` has the vectors of trees that have no code file.
-Its vectors follow from the requirements
-`give-nothing-under-invalid-bindings`, `give-read-files`,
-`give-declared-items`, `give-extents`, `give-extent-hashes`,
-`give-hash-texts`, `give-forms-texts`, `give-containment`,
-`give-sites`, `give-edges`,
-`give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
-`give-tree-findings`.
-
-- `input`: a JSON object with three members. `files` is the tree.
-  `file-readers` is a JSON array with one element for each pair of a
-  binding of `file-readers`, in their order: the path set of that pair,
-  whose reader is `markdown`. `external-namespaces` is a binding of
-  `external-namespaces`. The program reads the tree under these two
-  bindings.
-- `values`: as the section above describes, without the members `tests`
-  and `code-hashes`.
-
 These lines of the file are vectors of the group:
 
 ```
-{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/a.md":"# A\n@design a=v1\n"}},"n":2,"note":"a namespace name with an upper-case letter makes the binding of external-namespaces invalid","rev":"v1","values":{}}
-{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"README.md":"@cites b=v1\n","docs/bad.md":{"bytes":"4064657369676e20623d76310aff"}}},"n":8,"note":"a file that is not valid UTF-8 cannot be read: one parse-error finding, and no declared item","rev":"v1","values":{"edges":[{"at":{"column":8,"line":1},"file":"README.md","kind":"cites","source":{"site":1}}],"extern-marks":[],"findings":[{"class":"dangling","spot":{"path":"README.md","span":{"from":7,"to":11}},"subject":"README.md@L1C8"},{"class":"parse-error","spot":{"path":"docs/bad.md"},"subject":"docs/bad.md"}],"items":[],"read-files":{"README.md":1,"docs/bad.md":1},"sites":[{"file":"README.md","lines":[{"from":0,"to":11}]}],"status-tags":[]}}
-{"group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/top.md":"@design top=v1\nIntro.\n\n# Part\nMore.\n"}},"n":17,"note":"a declaration in the first paragraph of the section of level 0 claims that section","rev":"v1","values":{"edges":[],"extern-marks":[],"findings":[],"items":[{"at":{"column":1,"line":1},"extent":[{"from":0,"to":14},{"from":15,"to":21}],"extent-hash":"bcdff15e7a16a1ea22a1866e34152410fa12d71126730cbfb114ae3f364f9275","file":"docs/top.md","hash-text":"paragraph: Intro.\n","kind":"design","name":"top"}],"read-files":{"docs/top.md":1},"sites":[],"status-tags":[]}}
+{"form":"#markdown-vector=v1","group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/a.md":"# A\n@design a=v1\n"}},"note":"a namespace name with an upper-case letter makes the binding of external-namespaces invalid","values":{}}
+{"form":"#markdown-vector=v1","group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"README.md":"@cites b=v1\n","docs/bad.md":{"bytes":"4064657369676e20623d76310aff"}}},"note":"a file that is not valid UTF-8 cannot be read: one parse-error finding, and no declared item","values":{"edges":[{"at":{"column":8,"line":1},"file":"README.md","kind":"cites","source":{"site":1}}],"extern-marks":[],"findings":[{"class":"dangling","spot":{"path":"README.md","span":{"from":7,"to":11}},"subject":"README.md@L1C8"},{"class":"parse-error","spot":{"path":"docs/bad.md"},"subject":"docs/bad.md"}],"items":[],"read-files":{"README.md":1,"docs/bad.md":1},"sites":[{"file":"README.md","lines":[{"from":0,"to":11}]}],"status-tags":[]}}
+{"form":"#markdown-vector=v1","group":"markdown","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[["docs/**/*.md","*.md"]],"files":{"docs/top.md":"@design top=v1\nIntro.\n\n# Part\nMore.\n"}},"note":"a declaration in the first paragraph of the section of level 0 claims that section","values":{"edges":[],"extern-marks":[],"findings":[],"items":[{"at":{"column":1,"line":1},"extent":[{"from":0,"to":14},{"from":15,"to":21}],"extent-hash":"bcdff15e7a16a1ea22a1866e34152410fa12d71126730cbfb114ae3f364f9275","file":"docs/top.md","hash-text":"paragraph: Intro.\n","kind":"design","name":"top"}],"read-files":{"docs/top.md":1},"sites":[],"status-tags":[]}}
 ```
 
 ### 6.2 Code files
 
+@schema code-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, run=v1, boundary=v1,
+        valid-utf-8=v1, code-point-order=v1, code-span=v1,
+    },
+    files#{path=v1, path-set=v1, path-set-membership=v1},
+    data-forms#{index=v1, group-form-list=v2, vector-meaning=v2},
+    identifiers#{external-namespaces=v1},
+    ontology#{tree=v1, test=v1},
+    packs#{
+        valid-pack=v1, reading-of-a-text=v1, comment-node=v1,
+        definition-node=v1, decoration-node=v1, test-node=v1,
+        test-name=v1, node-run=v1, parse-tree-order=v1,
+        comment-sigil=v1, foreign-tag-word=v1,
+    },
+    #{
+        markdown-vector=v1, file-readers=v1, read-file=v2,
+        unreadable-file=v2, file-test=v1, code-hash=v1, comment-run=v1,
+        attachment=v1, give-tests=v2, give-code-hashes=v2,
+        give-code-texts=v2,
+    },
+}
+
 The group `code` has the vectors of trees that can have code files.
 Its vectors follow from the requirements of the group `markdown`, and
 from the requirements `give-tests`, `give-code-hashes`, and
-`give-code-texts`.
+`give-code-texts`. Each vector is for the empty set of stopped files.
+Each vector of the group has the member `values`, and no vector has the
+member `result`; these forms name no question for `result`. The group
+uses no need, so these forms give no need names.
+
+Inside `input` and `values`, this schema uses the JSON forms that
+`markdown-vector` defines.
 
 - `input`: a JSON object with three members. `files` is the tree.
   `external-namespaces` is a binding of `external-namespaces`.
@@ -3425,13 +3353,42 @@ from the requirements `give-tests`, `give-code-hashes`, and
   `decoration`, the JSON value `true`, for a decoration node; and `test`,
   its name path, for a test node. A node that is a definition node and a
   test node has the members `body` and `test`. For each element of the
-  array and each element after it, the run of the later element starts
-  at or after the boundary where the run of the earlier element starts
-  and ends at or before the boundary where the run of the earlier
-  element ends, or the run of the earlier element ends at or before the
-  boundary where the run of the later element starts.
-- `values`: as the section above describes, with the members `tests` and
-  `code-hashes`.
+  array and each element after it, as the term
+  [`node-run`](sinter:packs#node-run=v1) of Language packs gives for two
+  nodes in the [order of the parse tree](sinter:packs#parse-tree-order=v1),
+  the run of the later element starts at or after the boundary where the
+  run of the earlier element starts and ends at or before the boundary
+  where the run of the earlier element ends, or the run of the earlier
+  element ends at or before the boundary where the run of the later
+  element starts.
+- `values`: as `markdown-vector` defines it, with the reference form
+  `{"test":k}` for the test with the index k in `tests`, and, when
+  `values` is not `{}`, with these two additional members:
+  - `tests`: a JSON array with one element for each test of each read
+    file of the tree, in the code point order of the valid paths of
+    their files, then in the order of the boundaries where their codes
+    start, and, of two whose codes start at one boundary, in the order
+    of the parse tree of their test nodes. Each element is a JSON object
+    with these members: `file`, its file; `name`, its name, as a name
+    path; `code`, its code, as a run; and `comments`, a JSON array with
+    one element for each comment on it, in the order of the boundaries
+    where these runs of comments start: the run of the text from the
+    boundary where that run of comments starts to the boundary where
+    that run of comments ends.
+  - `code-hashes`: a JSON array with one element for each run of
+    comments of the tree that has a code hash, in the code point order
+    of the valid paths of their files and then in the order of the
+    boundaries where these runs of comments start. Each element is a
+    JSON object with these members: `file`, its file; `comments`, the
+    run of the text from the boundary where that run of comments starts
+    to the boundary where that run of comments ends; `code-text`, the
+    code text of the attachment target to which it attaches; and
+    `code-hash`, its code hash.
+
+A name path is a JSON array of its own names, in their order. An own
+name is a JSON array of its pieces, in their order. A text piece is the
+JSON object `{"text":t}` and a placeholder is the JSON object
+`{"placeholder":t}`, where t is the text of the piece.
 
 The input stands for each binding of `file-readers` whose pairs have
 these path sets, whose reader is `markdown` where the input gives
@@ -3439,8 +3396,20 @@ these path sets, whose reader is `markdown` where the input gives
 and foreign tag words and give these readings of these texts at these
 valid paths.
 
+For the input of a vector, a conforming program gives what
+`markdown-vector` states for each member of `values` that
+`markdown-vector` defines. When `values` is `{}`, it also gives no test,
+no code text, and no code hash for the tree. Otherwise:
+
+- When it gives the tests or the code hashes, it gives one for each
+  element of `tests` or `code-hashes`, with what that element states,
+  and no other.
+- When it gives the code text of the attachment target to which a run
+  of comments that has a code hash attaches, it gives the `code-text` of
+  the element of `code-hashes` for that run of comments.
+
 This line of the file is a vector of the group:
 
 ```
-{"group":"code","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[{"paths":["lib/"],"reader":{"block":[],"foreign-tags":[],"inner":[],"line":["//"],"readings":{"lib/a.rs":{"result":"parse failure"},"lib/b.rs":{"result":"no grammar"}}}}],"files":{"lib/a.rs":"// @req a=v1\n","lib/b.rs":"// @req b=v1\n","lib/c.rs":{"bytes":"2f2f20ff0a"}}},"n":66,"note":"a code file cannot be read when its reading has the result no grammar or parse failure, or when its content is not valid UTF-8","rev":"v1","values":{"code-hashes":[],"edges":[],"extern-marks":[],"findings":[{"class":"parse-error","spot":{"path":"lib/a.rs"},"subject":"lib/a.rs"},{"class":"parse-error","spot":{"path":"lib/b.rs"},"subject":"lib/b.rs"},{"class":"parse-error","spot":{"path":"lib/c.rs"},"subject":"lib/c.rs"}],"items":[],"read-files":{"lib/a.rs":1,"lib/b.rs":1,"lib/c.rs":1},"sites":[],"status-tags":[],"tests":[]}}
+{"form":"#code-vector=v1","group":"code","input":{"external-namespaces":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}],"file-readers":[{"paths":["lib/"],"reader":{"block":[],"foreign-tags":[],"inner":[],"line":["//"],"readings":{"lib/a.rs":{"result":"parse failure"},"lib/b.rs":{"result":"no grammar"}}}}],"files":{"lib/a.rs":"// @req a=v1\n","lib/b.rs":"// @req b=v1\n","lib/c.rs":{"bytes":"2f2f20ff0a"}}},"note":"a code file cannot be read when its reading has the result no grammar or parse failure, or when its content is not valid UTF-8","values":{"code-hashes":[],"edges":[],"extern-marks":[],"findings":[{"class":"parse-error","spot":{"path":"lib/a.rs"},"subject":"lib/a.rs"},{"class":"parse-error","spot":{"path":"lib/b.rs"},"subject":"lib/b.rs"},{"class":"parse-error","spot":{"path":"lib/c.rs"},"subject":"lib/c.rs"}],"items":[],"read-files":{"lib/a.rs":1,"lib/b.rs":1,"lib/c.rs":1},"sites":[],"status-tags":[],"tests":[]}}
 ```
