@@ -1990,12 +1990,32 @@ the same directory as this design. A vector gives an input of the
 vector, which holds one or more inputs of a conforming program, and what
 a conforming program gives for them. Each vector follows from the
 requirements and adds nothing to them. The vectors are in groups. Each
-group has a name, such as `citations`. The schemas in the subsections
-below name the requirements that the vectors of each group follow from,
-and they define the JSON forms of the vector objects of these groups.
-Where a definition of section 4 cites a term of Text and notation, such
-as the lines or the body of a text, the vectors follow the definition of
-that term in Text and notation.
+group has a name, such as `citations`. The schema `vector-line` in
+subsection 6.1 defines the shared layout of the file and its vector
+lines. The other schemas in the subsections below name the requirements
+that the vectors of each group follow from, and they define the JSON
+forms of the vector objects of these groups. Where a definition of
+section 4 cites a term of Text and notation, such as the lines or the
+body of a text, the vectors follow the definition of that term in Text
+and notation.
+
+### 6.1 Vector lines
+
+@schema vector-line=v1
+@cites {
+    rfc/8259,
+    #{
+        part-name=v1, label=v1, vector-selection=v2, input=v2,
+        external-namespaces=v1, id-pattern=v2, citation=v1,
+        citation-entry=v2, value=v1,
+    },
+    text#{
+        valid-utf-8=v1, text=v1, character=v1, carriage-return=v1,
+        line=v1, line-feed=v1, tab=v1, whole-number=v1,
+        code-point-order=v1, hex-digit=v1, u-numeral=v1, code-span=v1,
+        production=v1, conforming-program=v1, result=v1, sequence=v1,
+    },
+}
 
 The file is valid UTF-8. Its text does not start with U+FEFF, it holds
 no carriage return, it has no empty line, and when it is not empty it
@@ -2022,7 +2042,8 @@ one JSON object in canonical form:
 
 The JSON object of each vector line holds the required members `"form"`,
 `"group"`, and `"input"`, at least one of `"result"` and `"values"`, and
-the optional member `"note"`, in code point order of their keys:
+the optional member `"note"`, and no other member, in code point order
+of their keys:
 
 - `"form"`: a JSON string of `#`, a part name, `=`, and a label, such as
   `"#tag-line-vector=v1"`, pinning the schema of this section that
@@ -2039,7 +2060,9 @@ the optional member `"note"`, in code point order of their keys:
   gives for one input, without its double quotes.
 - `"values"`: a JSON object holding what a conforming program gives
   other than `"result"`, or all results and values for a vector without
-  `"result"`.
+  `"result"`. In `"values"`, or in the `"values"` member of an element
+  of `"inputs"` or `"links"`, an empty JSON object, `{}`, says that a
+  conforming program gives no value for that input.
 
 A vector writes each text, binding of `external-namespaces`, and
 sequence in one fixed JSON form:
@@ -2059,13 +2082,13 @@ sequence in one fixed JSON form:
 - A sequence, such as the citation entries of a citation, is a JSON
   array of its elements, in order.
 
-### 6.1 Tag lines
+### 6.2 Tag lines
 
 @schema tag-line-vector=v1
 @cites {
     #{
-        give-line-results=v1, give-tag-words=v2, give-values=v2,
-        give-no-other-values=v1, validate-bindings=v1,
+        vector-line=v1, give-line-results=v1, give-tag-words=v2,
+        give-values=v2, give-no-other-values=v1, validate-bindings=v1,
         external-namespaces=v1, input=v2, value=v1, line-result=v1,
         tag-line=v1, tag-word=v1, sinter-tag-word=v2, declaration=v1,
         citation=v1, status-tag=v1, directive=v1, inline-description=v1,
@@ -2093,7 +2116,8 @@ The vectors of these groups follow from the requirements
 `give-line-results`, `give-tag-words`, `give-values`, and
 `give-no-other-values`. Each vector gives a text of one line under a
 binding of `external-namespaces`, and what a conforming program gives
-for that line.
+for that line. Each vector line of these groups meets the schema
+`vector-line`.
 
 - `"input"`: a JSON object with two members: `"binding"`, a binding of
   `external-namespaces` as a JSON array of
@@ -2162,13 +2186,13 @@ gives no value for the line.
 {"form":"#tag-line-vector=v1","group":"citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {docs=v1}x"},"note":"no space or tab after the `}`","result":"invalid","values":{"tag-word":"@cites"}}
 ```
 
-### 6.2 Citations over several lines
+### 6.3 Citations over several lines
 
 @schema continuation-line-vector=v1
 @cites {
     #{
-        tag-line-vector=v1, give-line-results=v1, give-tag-words=v2,
-        give-values=v2, give-no-other-values=v1,
+        vector-line=v1, tag-line-vector=v1, give-line-results=v1,
+        give-tag-words=v2, give-values=v2, give-no-other-values=v1,
         give-no-results-for-non-inputs=v1, validate-bindings=v1,
         external-namespaces=v1, input=v2, value=v1, continuation-line=v1,
         citation=v1, tag-line=v1, link=v1,
@@ -2186,7 +2210,8 @@ follow from `give-line-results`, `give-tag-words`, `give-values`,
 `give-no-other-values`, and `give-no-results-for-non-inputs`. Each
 vector gives a text and what a conforming program gives for the inputs
 that the lines of the text make. A citation and its continuation lines
-are one input, and each other line is an input of its own.
+are one input, and each other line is an input of its own. Each vector
+line of the group meets the schema `vector-line`.
 
 - `"input"`: a JSON object with `"binding"` and `"text"`, the binding
   and the text as `tag-line-vector` describes them, except that `"text"`
@@ -2213,16 +2238,16 @@ continuation line on its own.
 {"form":"#continuation-line-vector=v1","group":"continuation-lines","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {docs=v1,\n@req size-limit=v2"},"note":"the target list is not closed, and the next line is a tag line; the line `@req size-limit=v2` is an input of its own","values":{"inputs":[{"result":"invalid","values":{"tag-word":"@cites"}},{"result":"valid","values":{"inline-description":"","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}]}}
 ```
 
-### 6.3 Inline citations
+### 6.4 Inline citations
 
 @schema inline-citation-vector=v1
 @cites {
     #{
-        tag-line-vector=v1, give-link-results=v1, give-values=v2,
-        give-no-other-values=v1, give-no-results-for-non-inputs=v1,
-        validate-bindings=v1, external-namespaces=v1, input=v2, value=v1,
-        link=v1, inline-citation=v1, link-result=v1, tag-line=v1,
-        match=v1,
+        vector-line=v1, tag-line-vector=v1, give-link-results=v1,
+        give-values=v2, give-no-other-values=v1,
+        give-no-results-for-non-inputs=v1, validate-bindings=v1,
+        external-namespaces=v1, input=v2, value=v1, link=v1,
+        inline-citation=v1, link-result=v1, tag-line=v1, match=v1,
     },
     text#{
         conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
@@ -2234,7 +2259,8 @@ hold links and images. Its vectors follow from `give-link-results`,
 `give-values`, `give-no-other-values`, and
 `give-no-results-for-non-inputs`. Each vector gives a text and what a
 conforming program gives for the links and the images of the markdown
-document of the text.
+document of the text. Each vector line of the group meets the schema
+`vector-line`.
 
 - `"input"`: a JSON object with `"binding"` and `"text"`, the binding
   and the text as `tag-line-vector` describes them, except that `"text"`
@@ -2272,20 +2298,23 @@ not state these results.
 {"form":"#inline-citation-vector=v1","group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[the size limit](sinter:req:catalog#size-limit=v2)"},"values":{"links":[{"result":"valid","values":{"kind-word":"req","link-text":"the size limit","part-name":"size-limit","revision":"v2","slug":"catalog"}}]}}
 ```
 
-### 6.4 Id patterns
+### 6.5 Id patterns
 
 @schema id-pattern-vector=v1
 @cites {
     #{
-        validate-id-patterns=v1, give-no-other-values=v1, input=v2,
-        value=v1, id-pattern=v2,
+        vector-line=v1, validate-id-patterns=v1,
+        give-no-other-values=v1, input=v2, value=v1, id-pattern=v2,
     },
-    text#{conforming-program=v1, text=v1, result=v1, code-span=v1},
+    text#{
+        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
+    },
 }
 
 The group `id-patterns` holds id patterns that a program takes on their
 own. Its vectors follow from `validate-id-patterns` and
-`give-no-other-values`.
+`give-no-other-values`. Each vector line of the group meets the schema
+`vector-line`.
 
 - `"input"`: the id pattern, as a JSON string.
 - `"result"`: `"valid"` or `"invalid"`.
@@ -2296,15 +2325,18 @@ own. Its vectors follow from `validate-id-patterns` and
 {"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[1-9][0-9]*","result":"valid","values":{}}
 ```
 
-### 6.5 Fit
+### 6.6 Fit
 
 @schema fit-vector=v1
 @cites {
     #{
-        decide-fit=v2, validate-id-patterns=v1, give-no-other-values=v1,
-        input=v2, value=v1, id-pattern=v2, id=v1, fit=v2,
+        vector-line=v1, decide-fit=v2, validate-id-patterns=v1,
+        give-no-other-values=v1, input=v2, value=v1, id-pattern=v2,
+        id=v1, fit=v2,
     },
-    text#{conforming-program=v1, text=v1, result=v1, code-span=v1},
+    text#{
+        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
+    },
 }
 
 The group `fit` holds pairs of an id pattern and an id that a program
@@ -2312,7 +2344,8 @@ takes. Its vectors follow from `decide-fit`, `validate-id-patterns`, and
 `give-no-other-values`. The id pattern of each pair is valid, and the
 group `id-patterns` holds a vector of it, with the result "valid". The
 id pattern of a pair is an input too, and the vectors of the group `fit`
-do not state its result.
+do not state its result. Each vector line of the group meets the schema
+`vector-line`.
 
 - `"input"`: a JSON object with two members: `"id-pattern"`, the id
   pattern, and `"id"`, the id. Each is a JSON string.
@@ -2325,20 +2358,21 @@ do not state its result.
 {"form":"#fit-vector=v1","group":"fit","input":{"id":"042","id-pattern":"[1-9][0-9]*"},"result":"does not fit","values":{}}
 ```
 
-### 6.6 Bindings of `external-namespaces`
+### 6.7 Bindings of `external-namespaces`
 
 @schema binding-vector=v1
 @cites {
     #{
-        validate-bindings=v1, give-no-other-values=v1, input=v2, value=v1,
-        external-namespaces=v1,
+        vector-line=v1, validate-bindings=v1, give-no-other-values=v1,
+        input=v2, value=v1, external-namespaces=v1,
     },
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    text#{conforming-program=v1, line=v1, result=v1, code-span=v1},
 }
 
 The group `bindings` holds bindings of `external-namespaces` that a
 program takes. Its vectors follow from `validate-bindings` and
-`give-no-other-values`.
+`give-no-other-values`. Each vector line of the group meets the schema
+`vector-line`.
 
 - `"input"`: the binding of `external-namespaces`, as a JSON array of
   `{"id-pattern":...,"namespace-name":...}` objects.
@@ -2351,14 +2385,14 @@ program takes. Its vectors follow from `validate-bindings` and
 {"form":"#binding-vector=v1","group":"bindings","input":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"note":"`GH` does not match `namespace-name`","result":"invalid","values":{}}
 ```
 
-### 6.7 Rejected bindings
+### 6.8 Rejected bindings
 
 @schema rejected-binding-vector=v1
 @cites {
     #{
-        give-no-results-under-rejected-bindings=v2, validate-bindings=v1,
-        give-no-other-values=v1, input=v2, value=v1,
-        external-namespaces=v1, link=v1,
+        vector-line=v1, give-no-results-under-rejected-bindings=v2,
+        validate-bindings=v1, give-no-other-values=v1, input=v2,
+        value=v1, external-namespaces=v1, link=v1,
     },
     text#{
         conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
@@ -2369,7 +2403,8 @@ The group `rejected-bindings` holds texts that a program reads under a
 binding of `external-namespaces` for which it gives the result
 "invalid". Its vectors follow from
 `give-no-results-under-rejected-bindings`, `validate-bindings`, and
-`give-no-other-values`.
+`give-no-other-values`. Each vector line of the group meets the schema
+`vector-line`.
 
 - `"input"`: a JSON object with two members: `"binding"`, a binding of
   `external-namespaces` as a JSON array of
@@ -2387,12 +2422,12 @@ binding of `external-namespaces` for which it gives the result
 {"form":"#rejected-binding-vector=v1","group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"result":"invalid","values":{"inputs":[]}}
 ```
 
-### 6.8 Canonical forms
+### 6.9 Canonical forms
 
 @schema canonical-entry-vector=v1
 @cites {
     #{
-        tag-line-vector=v1, give-canonical-entries=v2,
+        vector-line=v1, tag-line-vector=v1, give-canonical-entries=v2,
         validate-bindings=v1, external-namespaces=v1, input=v2, value=v1,
         citation=v1, citation-entry=v2, continuation-line=v1,
         inline-citation=v1, canonical-entry=v2, slug=v1, kind-word=v2,
@@ -2408,7 +2443,8 @@ citations, each with a slug or no slug, and with a kind word or no kind
 word for each of its citation entries or for its target. Its vectors
 follow from `give-canonical-entries`. Each vector gives a text and the
 canonical form of each citation entry of the citation of the text, or of
-the target of the inline citation of the text.
+the target of the inline citation of the text. Each vector line of the
+group meets the schema `vector-line`.
 
 - `"input"`: a JSON object with these members. `"binding"` and `"text"`
   are the binding and the text as `tag-line-vector` describes them,
