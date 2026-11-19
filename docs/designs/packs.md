@@ -520,8 +520,8 @@ WebAssembly module of the WebAssembly Core Specification 2.0, when it
 imports nothing (no function, no memory, no table, and no global), when
 it exports the five names `memory`, `sinter_interface`, `sinter_alloc`,
 `sinter_recognise`, and `sinter_bind`, with the types that the
-definition of a valid adapter gives, and when it gives the version of
-the interface, as the next paragraph says.
+definition of an [adapter module](sinter:#adapter-module=v1) gives, and
+when it gives the version of the interface, as the next paragraph says.
 
 The module can export other names, such as the globals `__data_end` and
 `__heap_base` that some compilers add. This is version 1 of the
@@ -1275,11 +1275,11 @@ descriptor of the pack, g is that file grammar. The results are:
 }
 
 A reading of a text, as the text of a file at a valid path p, with a
-valid pack, has the result that `reading-result` gives it. When the
-reading has the result "parsed", and g is the file grammar of p for the
-descriptor of the pack, the reading gives the comment nodes, the
-definition nodes, the decoration nodes, and the test nodes of the text
-for g, each with its run and its node type. It gives, with each comment
+valid pack, has the result that `reading-result` gives it. When p has a
+file grammar for the descriptor of the pack, g is that file grammar. A
+reading with the result "parsed" gives the comment nodes, the definition
+nodes, the decoration nodes, and the test nodes of the text for g, each
+with its run and its node type. It gives, with each comment
 node, whether it is tagged; with each definition node, its name nodes
 and its body nodes, each with its run and its node type; and with each
 test node, whether it is a test case or a test suite, its name path, and
@@ -2266,7 +2266,7 @@ byte sequence is a valid adapter. The requirements of the group are
 @schema request-vector=v1
 @cites {
     data-forms#{
-        json-value=v1, toml-value=v1, group-form-list=v2,
+        hex-text=v1, json-value=v1, toml-value=v1, group-form-list=v2,
         vector-meaning=v2,
     },
     text#{
@@ -2787,8 +2787,9 @@ group uses, each with the need that it stands for.
 @schema invalid-pack-vector=v1
 @cites {
     files#{
-        file-system=v1, folder-tree=v1, folder=v1, regular-file=v1,
-        symbolic-link=v1, file-of-another-kind=v1, file-object=v1,
+        system=v1, file-system=v1, folder-tree=v1, folder=v1,
+        regular-file=v1, symbolic-link=v1, file-of-another-kind=v1,
+        read-permission=v1, search-permission=v1, file-object=v1,
         folder-tree-object=v1, stored-folder-tree=v1,
     },
     data-forms#{
@@ -2880,26 +2881,30 @@ this need, and the member names this need and no other.
 @cites {
     posix/2024,
     files#{
-        file-system=v1, folder-tree=v1, folder=v1, path=v1,
-        folder-tree-object=v1, stored-folder-tree=v1,
+        system=v1, file-system=v1, folder-tree=v1, folder=v1, path=v1,
+        file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
     },
     data-forms#{
         json-value=v1, key-order=v1, group-form-list=v2, vector-meaning=v2,
     },
     text#{
-        conforming-program=v1, byte=v1, text=v1, character=v1,
-        0x-numeral=v1, code-span=v1, code-point-order=v1,
+        conforming-program=v1, byte-sequence=v1, byte=v1, text=v1,
+        character=v1, 0x-numeral=v1, result=v1, code-span=v1,
+        code-point-order=v1,
     },
     #{
-        invalid-pack-vector=v1, pack=v1, pack-hash=v1,
+        invalid-pack-vector=v1, pack=v1, pack-use=v2, pack-hash=v1,
         give-pack-files=v1, give-pack-listings=v1, omit-pack-listings=v1,
         give-pack-hashes=v1, omit-pack-hashes=v1,
     },
 }
 
-In `input` and `values`, byte sequences, texts, folder tree objects,
-file objects, and stored folder trees follow the rules that
-`invalid-pack-vector` gives.
+The rules that `invalid-pack-vector` gives for a vector whose input is a
+pack hold for each vector of this group: the forms of byte sequences,
+texts, folder tree objects, and file objects in `input` and `values`;
+the uses of the pack in which the requirements of the group oblige the
+result and the values of the vector; and the stored folder tree that a
+check of the vectors makes for the vector.
 
 The group `pack-hashes` holds the vectors that each give a pack and,
 when it has a pack hash, the valid paths of its files, its pack listing,
@@ -2951,25 +2956,29 @@ and no other.
 @cites {
     posix/2024,
     files#{
-        file-system=v1, folder-tree=v1, folder=v1,
-        folder-tree-object=v1, stored-folder-tree=v1,
+        system=v1, file-system=v1, folder-tree=v1, folder=v1,
+        file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
     },
     data-forms#{
         json-value=v1, key-order=v1, group-form-list=v2, vector-meaning=v2,
     },
     text#{
-        conforming-program=v1, byte=v1, valid-utf-8=v1, text=v1,
-        character=v1, 0x-numeral=v1, result=v1, code-span=v1,
+        conforming-program=v1, byte-sequence=v1, byte=v1,
+        valid-utf-8=v1, text=v1, character=v1, 0x-numeral=v1, result=v1,
+        code-span=v1,
     },
     #{
-        invalid-pack-vector=v1, pack=v1, well-named-pack=v1,
-        decide-well-named-packs=v1,
+        invalid-pack-vector=v1, pack=v1, pack-use=v2,
+        well-named-pack=v1, decide-well-named-packs=v1,
     },
 }
 
-In `input` and `values`, byte sequences, texts, folder tree objects,
-file objects, and stored folder trees follow the rules that
-`invalid-pack-vector` gives.
+The rules that `invalid-pack-vector` gives for a vector whose input is a
+pack hold for each vector of this group: the forms of byte sequences,
+texts, folder tree objects, and file objects in `input` and `values`;
+the uses of the pack in which the requirements of the group oblige the
+result and the values of the vector; and the stored folder tree that a
+check of the vectors makes for the vector.
 
 The group `well-named-packs` holds the vectors that each give a pack
 and whether it is well named. The requirement of the group is
