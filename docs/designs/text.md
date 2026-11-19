@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Text and notation
-@design text=v1
+@design text=v2
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
@@ -38,7 +38,9 @@ design has one JSON text on each line of its text.
 
 | word or phrase | meaning |
 |---|---|
-| term | a definition that a design declares under a name, such as `whole-number`; every definition of a design is a term |
+| term | a definition that a design declares under a name, such as `whole-number`, that says what a word or fixed phrase means, gives a form, or defines a computed value; a definition of a design is a term, a schema, or an atom |
+| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| atom | a definition that a design declares under a name that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
 | [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions; a definition of a design is a definition that the design declares under a name |
 | [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
@@ -1273,64 +1275,68 @@ The vectors of this design are in the file
 directory as this design. A vector is an input and what a conforming
 program gives for it. Each vector follows from the requirements and adds
 nothing to them. The vectors are in groups. Each group has a name, such
-as `decode`, and a subsection below. The subsection names the
+as `decode`, and a schema in a subsection below. The schema names the
 requirements that the vectors of the group follow from, and it describes
 their inputs, results, and values.
 
 Several requirements apply only when a program gives the thing that they
 name, such as a line number. So a vector holds a program only to what
 the program gives for the input: a program that gives a line number for
-a character, and no column, is held only to the line number. The
-subsection of each group says what a conforming program gives in each
-case. When a subsection says that a conforming program gives a thing,
-such as the line number of `position`, it gives that thing and no other
-thing of the same kind, such as no other line number for that
-character.
+a character, and no column, is held only to the line number. The schema
+of each group says what a conforming program gives in each case.
 
 The file is valid UTF-8. Its text has no byte order mark and no carriage
-return, and it ends with a line feed. Each line of the text of the file
-is a JSON text, as RFC 8259 defines it, that holds one JSON object. So
-only a line feed ends a line of the file. U+0085, U+2028, and U+2029 are
-in some JSON strings of the file, and they do not end a line. The file
-has three kinds of line, in this order:
+return, it has no empty line, and when it is not empty it ends with a
+line feed. The file holds zero or more vector lines. Each line of the
+text of the file is a vector line: a JSON text, as RFC 8259 defines it,
+that holds one JSON object. So only a line feed ends a line of the file.
+U+0085, U+2028, and U+2029 are in some JSON strings of the file, and
+they do not end a line.
 
-1. The first line is the set line. Its JSON object has one member,
-   `rev`: the revision of the whole set of vectors.
-2. Then each group has a group line, in this order: `character-positions`,
-   `decode`, `encode`, `lines`, `spans`. Its JSON object has two
-   members: `group`, the name of the group, as a JSON string, and `rev`,
-   the revision of the group.
-3. Then each vector has a vector line, in increasing order of the
-   numbers of the vectors.
+The JSON object of a vector line has the members `form`, `group`,
+`input`, `note`, `result`, and `values`, in that order, with `note` and
+`result` only where stated below:
 
-The JSON object of a vector line has these members:
-
-- `n`: the number of the vector, a JSON number written as the decimal
-  numeral of a whole number of 1 or more. No other vector of the file
-  has this number.
-- `rev`: the revision of the vector.
+- `form`: a JSON string of `#`, the name of the schema in this section
+  for the group of the vector, `=`, and a version label of that schema,
+  such as `"#decode-vector=v1"`. Every vector line of one group in the
+  file names the same schema in `form`.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
+- `note`: an explanation of the vector, as a JSON string, which a
+  conforming program does not give. A vector has this member only when
+  it has an explanation.
 - `result`: the result that a conforming program gives when it gives a
   result for the input. Only a vector of the group `decode` has this
   member.
 - `values`: a JSON object that holds what a conforming program gives
   for the input, other than the result. Each vector has this member. The
-  subsection of the group says which of these things a conforming
-  program gives in each case. An empty JSON object, `{}`, says that a
-  conforming program gives none of the things that the subsection
-  names for `values`.
-- `note`: an explanation of the vector, as a JSON string, which a
-  conforming program does not give. A vector has this member only when
-  it has an explanation.
+  schema of the group says which of these things a conforming program
+  gives in each case. An empty JSON object, `{}`, says that a conforming
+  program gives none of the things that the schema names for `values`.
 
-A revision is a JSON string of `v`, then the decimal numeral of a whole
-number of 1 or more, such as `"v1"`. A program does not need the
-revisions to run the vectors.
+### 5.1 Byte sequences that a program decodes
 
-Inside the members `input`, `result`, and `values`, each JSON value that
-the subsection of a group names as a text, a byte sequence, a whole
-number, a run, a position, or a sequence has this form:
+@schema decode-vector=v1
+@cites {
+    rfc/8259,
+    #{
+        validate-utf-8=v1, give-texts-of-byte-sequences=v1,
+        omit-texts-of-invalid-byte-sequences=v1, conforming-program=v1,
+        input=v1, result=v1, byte-sequence=v1, byte=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, text=v1, character=v1, hex-digit=v1,
+        whole-number=v1, 0x-numeral=v1, line-feed=v1, code-span=v1,
+    },
+}
+
+The group `decode` holds the vectors of the requirements
+`validate-utf-8`, `give-texts-of-byte-sequences`, and
+`omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
+sequence and what a conforming program gives when it decodes the byte
+sequence as UTF-8.
+
+Inside `input`, `result`, and `values`, a text and a byte sequence have
+these forms:
 
 - A text, such as a result, is a JSON string whose characters are the
   characters of the text, in order. So the text `a`, a line feed, `b` is
@@ -1339,25 +1345,8 @@ number, a run, a position, or a sequence has this form:
   order, the hex digit of the whole-number quotient of the byte divided
   by 16, then the hex digit of the remainder. So the byte sequence
   0xC3, 0xA9 is `"c3a9"`, and the empty byte sequence is `""`.
-- A whole number, such as a place, a boundary, a line number, or a
-  column, is a JSON number written as its decimal numeral, such as `12`.
-- A run is a JSON object with two members: `from`, the boundary where
-  the run starts, and `to`, the boundary where the run ends. So the run
-  that starts at boundary 1 and ends at boundary 4 is
-  `{"from":1,"to":4}`.
-- A position is a JSON object with two members: `line`, the line number
-  of the position, and `column`, the column of the position. So the
-  position line 3, column 7 is `{"column":7,"line":3}`.
-- A sequence, such as the lines of a text, is a JSON array of its
-  elements, in order.
 
-### 5.1 Byte sequences that a program decodes
-
-The group `decode` holds the vectors of the requirements
-`validate-utf-8`, `give-texts-of-byte-sequences`, and
-`omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
-sequence and what a conforming program gives when it decodes the byte
-sequence as UTF-8.
+The vector object holds these members:
 
 - `input`: the byte sequence.
 - `result`: "valid" when the byte sequence is valid UTF-8, and "invalid"
@@ -1369,35 +1358,75 @@ sequence as UTF-8.
 When a conforming program gives a result for whether the byte sequence
 is valid UTF-8, it gives the result that `result` holds, and no other
 result. When it gives a text as the text of the byte sequence, it gives
-the text that `text` holds, and no other text. When `values` is `{}`, it gives no text as the text of the byte
-sequence.
+the text that `text` holds, and no other text. When `values` is `{}`, it
+gives no text as the text of the byte sequence.
 
 ```
-{"group":"decode","input":"6869","n":1,"result":"valid","rev":"v1","values":{"text":"hi"}}
-{"group":"decode","input":"ff","n":17,"note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","rev":"v1","values":{}}
+{"form":"#decode-vector=v1","group":"decode","input":"6869","result":"valid","values":{"text":"hi"}}
+{"form":"#decode-vector=v1","group":"decode","input":"ff","note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","values":{}}
 ```
 
 ### 5.2 The UTF-8 encodings that a program gives
 
+@schema encode-vector=v1
+@cites {
+    rfc/8259,
+    #{
+        decode-vector=v1, give-utf-8-encodings=v1, conforming-program=v1,
+        input=v1, text=v1, byte-sequence=v1, utf-8-encoding=v1,
+        code-span=v1,
+    },
+}
+
 The group `encode` holds the vectors of the requirement
 `give-utf-8-encodings`. Each vector gives a text and its UTF-8 encoding.
+Inside `input` and `values`, a text and a byte sequence have the JSON
+forms that `decode-vector` gives.
 
 - `input`: the text.
 - `values`: a JSON object with one member, `encoding`: the UTF-8
   encoding of the text.
 
 When a conforming program gives a byte sequence as the UTF-8 encoding of
-the text, it gives the byte sequence that `encoding` holds.
+the text, it gives the byte sequence that `encoding` holds, and no other
+byte sequence.
 
 ```
-{"group":"encode","input":"hi","n":30,"rev":"v1","values":{"encoding":"6869"}}
+{"form":"#encode-vector=v1","group":"encode","input":"hi","values":{"encoding":"6869"}}
 ```
 
 ### 5.3 The lines that a program gives
 
+@schema line-vector=v1
+@cites {
+    rfc/8259,
+    #{
+        decode-vector=v1, give-lines=v1, give-numbered-lines=v1,
+        give-only-lines=v1, conforming-program=v1, input=v1, text=v1,
+        line=v1, line-number=v1, run=v1, boundary=v1, place=v1,
+        position=v1, whole-number=v1, decimal-numeral=v1, sequence=v1,
+        code-span=v1,
+    },
+}
+
 The group `lines` holds the vectors of the requirements `give-lines`,
 `give-numbered-lines`, and `give-only-lines`. Each vector gives a text
 and the lines of the text.
+
+Inside `input` and `values`, a text has the JSON form that
+`decode-vector` gives, and a whole number, a run, and a sequence have
+these forms:
+
+- A whole number, such as a place, a boundary, a line number, or a
+  column, is a JSON number written as its decimal numeral, such as `12`.
+- A run is a JSON object with two members: `from`, the boundary where
+  the run starts, and `to`, the boundary where the run ends. So the run
+  that starts at boundary 1 and ends at boundary 4 is
+  `{"from":1,"to":4}`.
+- A sequence, such as the lines of a text, is a JSON array of its
+  elements, in order.
+
+The vector object holds these members:
 
 - `input`: the text.
 - `values`: a JSON object with two members. `runs` is a JSON array of
@@ -1417,14 +1446,34 @@ than 1, or greater than the number of elements of `runs`. It gives, as a
 line of the text, only an element of `runs` or an element of `texts`.
 
 ```
-{"group":"lines","input":"a\nb","n":48,"rev":"v1","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\nb","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
 ```
 
 ### 5.4 The positions of characters that a program gives
 
+@schema character-position-vector=v1
+@cites {
+    rfc/8259,
+    #{
+        decode-vector=v1, line-vector=v1, give-character-positions=v1,
+        conforming-program=v1, input=v1, text=v1, character=v1, place=v1,
+        body=v1, line=v1, position=v1, whole-number=v1, code-span=v1,
+    },
+}
+
 The group `character-positions` holds the vectors of the requirement
 `give-character-positions`. Each vector gives a text, a place of the
 body of the text, and the position of the character at that place.
+
+Inside `input` and `values`, a text has the JSON form that
+`decode-vector` gives, a whole number has the JSON form that
+`line-vector` gives, and a position has this form:
+
+- A position is a JSON object with two members: `line`, the line number
+  of the position, and `column`, the column of the position. So the
+  position line 3, column 7 is `{"column":7,"line":3}`.
+
+The vector object holds these members:
 
 - `input`: a JSON object with two members: `text`, the text, and
   `place`, the place.
@@ -1432,18 +1481,33 @@ body of the text, and the position of the character at that place.
   the character at the place.
 
 When a conforming program gives a line number for the character at the
-place, it gives the line number of `position`. When it gives a column for
-that character, it gives the column of `position`.
+place, it gives the line number of `position`, and no other line number.
+When it gives a column for that character, it gives the column of
+`position`, and no other column.
 
 ```
-{"group":"character-positions","input":{"place":3,"text":"a\nb"},"n":75,"rev":"v1","values":{"position":{"column":1,"line":2}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"a\nb"},"values":{"position":{"column":1,"line":2}}}
 ```
 
 ### 5.5 The starts and ends of spans that a program gives
 
+@schema span-vector=v1
+@cites {
+    rfc/8259,
+    #{
+        decode-vector=v1, line-vector=v1, character-position-vector=v1,
+        give-span-starts=v1, give-span-ends=v1, conforming-program=v1,
+        input=v1, text=v1, span=v1, run=v1, position=v1, whole-number=v1,
+        code-span=v1,
+    },
+}
+
 The group `spans` holds the vectors of the requirements
 `give-span-starts` and `give-span-ends`. Each vector gives a text, a
-span of the text, and the start and the end of the span.
+span of the text, and the start and the end of the span. Inside `input`
+and `values`, a text has the JSON form that `decode-vector` gives, a
+whole number and a run have the JSON forms that `line-vector` gives, and
+a position has the JSON form that `character-position-vector` gives.
 
 - `input`: a JSON object with two members: `text`, the text, and `run`,
   the span.
@@ -1451,11 +1515,13 @@ span of the text, and the start and the end of the span.
   span, and `end`, the end of the span.
 
 When a conforming program gives a line number for the start of the span,
-it gives the line number of `start`. When it gives a column for the
-start of the span, it gives the column of `start`. When it gives a line
-number for the end of the span, it gives the line number of `end`. When
-it gives a column for the end of the span, it gives the column of `end`.
+it gives the line number of `start`, and no other line number. When it
+gives a column for the start of the span, it gives the column of
+`start`, and no other column. When it gives a line number for the end of
+the span, it gives the line number of `end`, and no other line number.
+When it gives a column for the end of the span, it gives the column of
+`end`, and no other column.
 
 ```
-{"group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"n":100,"rev":"v1","values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
 ```
