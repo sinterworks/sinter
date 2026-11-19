@@ -132,6 +132,7 @@ let id_pattern_errors () =
       ("(((a|b){250}){2})*c", Id_pattern.Oversized);
       ("(((a|b){250}){2})+c", Id_pattern.Oversized);
       ("((a|b){250}){2}c{0,0}", Id_pattern.Oversized);
+      ("b((a{0}|a{0}){255}){4}", Id_pattern.Oversized);
       ( String.concat "" (List.init 600 (fun _ -> "\xc3\xa9")),
         Id_pattern.Unmatched );
       ("a{0}", Id_pattern.Empty_id_fits);
@@ -226,6 +227,20 @@ let fit_takes_no_exponential_time () =
       ("((a+)+)+b", String.make 5000 'a');
       ("(a{0,255}){0,3}b", String.make 5000 'a');
     ]
+
+(* @verifies identifiers#accept-inputs=v1
+   The interface promises that of_string takes time linear in the length of
+   the text. In this shape, a quantifier repeats an alternation of elements
+   that each repeat 0 times, and the size counts each of those elements as one
+   copy. The work of of_string must grow with the number of branches and no
+   faster. *)
+let of_string_grows_linearly_with_empty_copies () =
+  Counted_work.check_growth ~margin:1.5 ~sizes:(8, 32)
+    ~input:(fun branches ->
+      "b(("
+      ^ String.concat "|" (List.init branches (fun _ -> "a{0}"))
+      ^ "){255}){4}")
+    Id_pattern.of_string
 
 let binding_cases () =
   List.iter
@@ -622,6 +637,8 @@ let tests =
       Alcotest.test_case "id patterns that the grammar allows are valid" `Quick
         id_patterns_that_are_valid;
       Alcotest.test_case "ids fit id patterns" `Quick fit_cases;
+      Alcotest.test_case "of_string grows linearly with empty copies" `Quick
+        of_string_grows_linearly_with_empty_copies;
       Alcotest.test_case "fit takes no exponential time" `Quick
         fit_takes_no_exponential_time;
       Alcotest.test_case "bindings give the error of their bad pair" `Quick

@@ -24,7 +24,17 @@ type error =
   | Large_count  (** the id pattern uses a [count] whose number exceeds 255 *)
   | Reversed_bounds
       (** the id pattern uses a quantifier [{n,m}] in which [n] exceeds [m] *)
-  | Oversized  (** the size of the id pattern exceeds 1,000 *)
+  | Oversized
+      (** the size of the id pattern exceeds 1,000. The size counts the literals
+          and the character classes of the id pattern when each quantifier is
+          written out as copies of its element: [{n}] counts as [n] copies,
+          [{n,m}] as [m] copies, [{n,}] as [n] copies and one more, and [?],
+          [*], and [+] as one copy; every quantifier counts as one copy at
+          least, also [{0}] and [{0,0}]. A subpattern counts as the sum of the
+          sizes of its branches. With the floor of one copy, the program builds
+          for each id pattern that it accepts an automaton whose number of
+          states is at most a constant times the size. So {!of_string} stays
+          linear in the length of the text, and {!fits} keeps its bound. *)
   | Empty_id_fits  (** the empty id fits the id pattern *)
 
 val of_string : string -> (t, error) result
