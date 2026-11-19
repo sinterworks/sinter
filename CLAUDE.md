@@ -46,6 +46,7 @@ method applies to Sinter.
 | `test/` | the test suite and its fixtures | Apache-2.0 |
 | `spec/` | the seven normative specifications | CC-BY-4.0 |
 | `docs/` | the design notes, the roadmap, the decision records | CC-BY-4.0 |
+| `contributing/` | the procedures for coverage, mutation testing, and performance | Apache-2.0 |
 | `.plans/` | plan files and their journals | Apache-2.0 |
 | `plugins/` | the Claude Code plugin with the project's skills | Apache-2.0 |
 | `.github/workflows/` | CI | Apache-2.0 |
