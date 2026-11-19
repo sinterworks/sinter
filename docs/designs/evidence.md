@@ -386,14 +386,14 @@ promise takes, that outcome and its sources (requirement
 
 ### 2.10 Verified groups of conformance vectors
 
-A test with a `verifies` edge to a group of conformance vectors or to a
-vector set can make the groups of conformance vectors that it cites
-verified (term `verified-vector`). Skips of vectors inside such a test
-are not visible in a report file: the pass counts for the group. For
-example, the test `test_offsets` with `@verifies
-data-forms#toml[offsets]` has the outcome "passed", so the group
-`offsets` is verified when it has at least one conformance vector that
-says a vector.
+A test with a `verifies` edge to a group of conformance vectors can make
+that group verified, and a test with such an edge to a vector set can
+make each group of that vector set verified (term `verified-vector`).
+Skips of vectors inside such a test are not visible in a report file:
+the pass counts for each of these groups. For example, the test
+`test_offsets` with `@verifies data-forms#toml[offsets]` has the outcome
+"passed", so the group `offsets` is verified when it has at least one
+conformance vector that says a vector.
 
 ### 2.11 Findings
 
@@ -534,10 +534,10 @@ The data of the test runner meets the schema `runner-data`, and is
 valid, when, and only when, no text is both a key of its match table and
 the name of one of its runner settings, each key of its match table and
 each name of its runner settings is one of these keys, the value of each
-of its runner settings under the binding has the kind of that key, the
-TOML value of each key of its match table has the kind of that key, and
-`path` is a key of its match table or the name of one of its runner
-settings.
+of its runner settings under the binding has the kind of the key that is
+the name of that runner setting, the TOML value of each key of its match
+table has the kind of that key, and `path` is a key of its match table
+or the name of one of its runner settings.
 
 ### 3.6 The values of the data of a runner
 
@@ -1487,7 +1487,7 @@ vector binds a program only to what the program gives for the input.
         adapter-call=v1,
     },
     #{
-        runner-data=v2, default-recognition=v2,
+        report-file=v1, runner-data=v2, default-recognition=v2,
         recognise-junit-reports=v2,
     },
 }
@@ -1558,9 +1558,10 @@ content of the input for its test runner, it gives the result that
     },
     #{
         recognition-vector=v1, report-file=v1, runner-data=v2,
-        default-reader-result=v2, reading-of-a-report-file=v2,
-        give-reading-results=v2, give-reading-test-results=v2,
-        give-reading-result-links=v2, omit-reading-values=v2,
+        case-result=v2, default-reader-result=v2,
+        reading-of-a-report-file=v2, give-reading-results=v2,
+        give-reading-test-results=v2, give-reading-result-links=v2,
+        omit-reading-values=v2,
     },
 }
 
@@ -1640,16 +1641,19 @@ is `{}`, it gives no test result and no result link.
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
-    ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v2},
+    ontology#{
+        test=v1, test-evidence=v1, tree=v1, finding-class=v1,
+        parameter=v2,
+    },
     packs#{
-        runner-setting-binding=v1, test-runner=v1, test-node=v1,
-        test-entry=v1,
+        runner-setting-binding=v1, test-runner=v1, test-name=v1,
+        test-node=v1, test-entry=v1,
     },
     #{
         recognition-vector=v1, report-file=v1, import=v1,
-        tree-evidence=v1, reading-of-a-report-file=v2, held-test=v1,
-        named-test=v1, import-outcome=v2, tree-outcome=v2,
-        outcome-source=v2, ambiguous-result-finding=v2,
+        tree-evidence=v1, case-result=v2, reading-of-a-report-file=v2,
+        linked-test=v2, held-test=v1, named-test=v1, import-outcome=v2,
+        tree-outcome=v2, outcome-source=v2, ambiguous-result-finding=v2,
         give-test-outcomes=v2, give-outcome-sources=v2,
         give-evidence-findings=v2,
     },
@@ -1675,6 +1679,8 @@ The JSON values, objects, members, arrays, strings, numbers, and
 booleans of this schema are as RFC 8259 defines them. Inside the members
 `input`, `result`, and `values`, a text has the form that
 `recognition-vector` gives.
+
+The members of a vector line have these forms:
 
 - `input`: a JSON object with the members `tests`, `imports`, and
   `test`.
@@ -1746,11 +1752,12 @@ class `ambiguous-result` of the tree, it gives one for that test when
         external-namespaces=v1, validate-bindings=v1, citation-entry=v2,
     },
     documents#{
-        file-readers=v1, origin-position=v1, position-subject=v2,
+        file-readers=v1, tree-edge=v2, origin-position=v1,
+        position-subject=v2,
     },
     ontology#{
-        tree=v1, test=v1, verifies-edge=v2, edge-source=v1, schema=v1,
-        declared-item=v2, conformance-vector=v2,
+        tree=v1, test=v1, edge=v2, verifies-edge=v2, edge-source=v1,
+        schema=v1, declared-item=v2, conformance-vector=v2,
         conformance-vector-group=v1, vector-set=v2, item-name=v2,
         in-force-item=v2, ledger=v1, finding-class=v1, parameter=v2,
     },
@@ -1783,6 +1790,8 @@ The JSON values, objects, members, arrays, strings, numbers, and
 booleans of this schema are as RFC 8259 defines them. Inside the members
 `input` and `values`, a text has the form that `recognition-vector`
 gives.
+
+The members of a vector line have these forms:
 
 - `input`: a JSON object with the members `evidence`, `tests`, `edges`,
   and `sets`.
@@ -1820,5 +1829,5 @@ the tree, it gives one finding of that class for each element of
 that class.
 
 ```
-{"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; another group with a vector that says a vector gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
+{"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; the group keys has a vector that says a vector, and no passing test cites it, so it gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
 ```
