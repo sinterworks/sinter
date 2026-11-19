@@ -236,34 +236,70 @@ let comment_lines sigils text r =
         | _ -> until
       in
       let head = { Text.from; until } in
-      let rest =
+      let shaped =
         List.mapi
           (fun i line ->
             let last = i = count - 2 in
-            let from = skip_wsp text line.Text.from line.Text.until in
             let until = line.Text.until in
             match kind with
-            | No_sigil -> { Text.from; until }
+            | No_sigil -> (true, { Text.from = line.Text.from; until })
             | Line_comment ->
+                let from = skip_wsp text line.Text.from until in
                 let from =
                   match longest text from until sigils.line with
                   | Some s -> from + length s
                   | None -> from
                 in
-                { Text.from; until }
-            | Block_comment closing ->
+                (false, { Text.from; until })
+            | Block_comment closing -> (
                 let until =
-                  if last && ends_with text from until closing then
+                  if last && ends_with text line.Text.from until closing then
                     until - length closing
                   else until
                 in
-                let from =
-                  match longest text from until sigils.inner with
-                  | Some s -> from + length s
-                  | None -> from
-                in
-                { Text.from; until })
+                let after = skip_wsp text line.Text.from until in
+                match longest text after until sigils.inner with
+                | Some s -> (false, { Text.from = after + length s; until })
+                | None -> (true, { Text.from = line.Text.from; until })))
           others
+      in
+      let indentation r =
+        let stop = skip_wsp text r.Text.from r.Text.until in
+        if stop = r.Text.until then None
+        else
+          Some
+            (List.init (stop - r.Text.from) (fun i ->
+                 code text (r.Text.from + i + 1)))
+      in
+      let rec common a b =
+        match (a, b) with
+        | x :: a, y :: b when x = y -> x :: common a b
+        | _ -> []
+      in
+      let margin =
+        match
+          List.filter_map
+            (fun (bare, r) -> if bare then indentation r else None)
+            shaped
+        with
+        | [] -> []
+        | first :: rest -> List.fold_left common first rest
+      in
+      let m = List.length margin in
+      let starts_with_margin r =
+        m <= r.Text.until - r.Text.from
+        && List.for_all2
+             (fun i c -> code text (r.Text.from + i + 1) = c)
+             (List.init m Fun.id) margin
+      in
+      let rest =
+        List.map
+          (fun (bare, r) ->
+            if not bare then r
+            else if starts_with_margin r then
+              { r with Text.from = r.Text.from + m }
+            else { r with Text.from = skip_wsp text r.Text.from r.Text.until })
+          shaped
       in
       head :: rest
 

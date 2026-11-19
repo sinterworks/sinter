@@ -35,16 +35,25 @@ val of_node : Comment_sigils.t -> Lines.t -> Text.run -> Text.run list option
       When the first line is also the last line and the node is a block comment,
       then remove the closing sigil of its block pair from the end of what
       remains, when what remains ends with it.
-    - On each other line of a block comment, remove the spaces and tabs at its
-      start; on the last line, then remove the closing sigil of its block pair
-      from its end, when what remains ends with it; then remove the longest
-      inner sigil that what remains starts with, when it starts with one.
+    - On each other line of a block comment, when it is the last line, remove
+      the closing sigil of its block pair from its end, when it ends with it.
+      Then, when what remains starts, after the spaces and tabs at its start,
+      with an inner sigil, remove these spaces and tabs, and then the longest
+      inner sigil that the rest starts with.
     - On each other line of a line comment, remove the spaces and tabs at its
       start, and then the longest line sigil that what remains starts with, when
       it starts with one.
-    - On each other line of a comment with no sigil, remove the spaces and tabs
-      at its start.
+    - The bare lines are each other line of a block comment from which these
+      rules remove no inner sigil, and each other line of a comment with no
+      sigil, each as the rules above make it. The margin of the bare lines is
+      the empty text when no bare line has a character other than a space or a
+      tab; otherwise, it is the longest text of only spaces and tabs with which
+      each bare line that has such a character starts. Last, from each bare line
+      that starts with the margin, remove the margin; from each other bare line,
+      remove the spaces and tabs at its start.
 
     So each comment line is a run inside a line of [r], and the comment lines
     are in the order of the lines of [r], one for each. It is [None] when [r] is
-    not a run of the text. *)
+    not a run of the text. The time is logarithmic in the number of the lines of
+    the text, and linear in the length of [r] and in the number of its lines,
+    for given [sigils]. *)

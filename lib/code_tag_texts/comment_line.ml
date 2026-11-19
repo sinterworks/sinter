@@ -93,19 +93,73 @@ let first_line (sigils : Comment_sigils.t) text run =
   | None -> (No_sigil, run)
   | Some (sigil, kind) -> (kind, drop_start run sigil)
 
+type other = Done of Text.run | Bare of Text.run
+
+let drop_longest text run sigils =
+  Option.map
+    (fun (sigil, ()) -> drop_start run sigil)
+    (longest text run (List.map (fun sigil -> (sigil, ())) sigils))
+
 let other_line (sigils : Comment_sigils.t) text ~last kind run =
-  let run = skip_spaces text run in
-  let drop_longest run candidates =
-    match longest text run (List.map (fun sigil -> (sigil, ())) candidates) with
-    | Some (sigil, ()) -> drop_start run sigil
-    | None -> run
-  in
   match kind with
-  | Block_comment closing ->
+  | Block_comment closing -> (
       let run = if last then drop_end text run closing else run in
-      drop_longest run sigils.inner
-  | Line_comment -> drop_longest run sigils.line
-  | No_sigil -> run
+      match drop_longest text (skip_spaces text run) sigils.inner with
+      | Some rest -> Done rest
+      | None -> Bare run)
+  | Line_comment ->
+      let run = skip_spaces text run in
+      Done (Option.value ~default:run (drop_longest text run sigils.line))
+  | No_sigil -> Bare run
+
+let length (run : Text.run) = run.until - run.from
+
+let common_start text (a : Text.run) (b : Text.run) limit =
+  let rec common k =
+    if
+      k < limit
+      && Text.get text (a.from + k + 1) = Text.get text (b.from + k + 1)
+    then common (k + 1)
+    else k
+  in
+  common 0
+
+let margin text bare =
+  List.fold_left
+    (fun margin (run : Text.run) ->
+      let indent = { run with until = (skip_spaces text run).from } in
+      if indent.until = run.until then margin
+      else
+        match margin with
+        | None -> Some indent
+        | Some (m : Text.run) ->
+            let common =
+              common_start text m indent (min (length m) (length indent))
+            in
+            Some { m with until = m.from + common })
+    None bare
+
+(* @satisfies documents#give-extents=v1
+   A bare line loses only the margin that the bare lines of its comment node
+   share, or its spaces and tabs when it does not start with that margin, so
+   its file line starts at its own indentation past the margin. *)
+let unbare text others =
+  let bare =
+    List.filter_map (function Bare r -> Some r | Done _ -> None) others
+  in
+  let margin = margin text bare in
+  List.map
+    (function
+      | Done run -> run
+      | Bare run -> (
+          match margin with
+          | None -> run
+          | Some m ->
+              if
+                common_start text m run (min (length m) (length run)) = length m
+              then { run with from = run.from + length m }
+              else skip_spaces text run))
+    others
 
 let of_node sigils lines r =
   let text = Lines.text lines in
@@ -125,5 +179,5 @@ let of_node sigils lines r =
             | line :: more ->
                 other_line sigils text ~last:false kind line :: others more
           in
-          first :: others rest)
+          first :: unbare text (others rest))
     (run_lines lines r)

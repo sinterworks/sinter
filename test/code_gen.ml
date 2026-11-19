@@ -16,8 +16,7 @@ type item =
     }
   | Block_comment of {
       pair : string * string;
-      lines : string list;
-      inner : string option;
+      lines : (string * string option * string) list;
       tagged : bool;
     }
   | Code of string
@@ -58,8 +57,12 @@ let contents =
     "\t@ack";
     " a */ b";
     " *";
+    "- a";
+    "  - a1";
+    "   ";
   ]
 
+let indents = [ ""; " "; "  "; "   "; "\t"; "\t\t"; " \t"; "     " ]
 let codes = [ "x();"; "let y = 1"; "}"; "a"; "\xc3\xa9;" ]
 let decorations = [ "#[test]"; "@Test"; "#[cfg(x)]" ]
 let headers = [ "fn f() "; "module M "; "it(\"adds\", () => "; "def g"; "" ]
@@ -93,11 +96,12 @@ let leaf_gen sigils =
     | block ->
         [
           Gen.map
-            (fun (pair, lines, inner, tagged) ->
-              Block_comment { pair; lines; inner; tagged })
-            (Gen.quad (Gen.oneof_list block)
-               (Gen.list_size (Gen.int_range 1 4) (Gen.oneof_list contents))
-               (Gen.option (Gen.oneof_list (sigils.R.inner @ [ " " ])))
+            (fun (pair, lines, tagged) -> Block_comment { pair; lines; tagged })
+            (Gen.triple (Gen.oneof_list block)
+               (Gen.list_size (Gen.int_range 1 5)
+                  (Gen.triple (Gen.oneof_list indents)
+                     (Gen.option (Gen.oneof_list (sigils.R.inner @ [ " " ])))
+                     (Gen.oneof_list contents)))
                Gen.bool);
         ]
   in
@@ -176,13 +180,14 @@ let render items separators_list bom =
             decoration = false;
             test = None;
           }
-    | Block_comment { pair = opening, closing; lines; inner; tagged } ->
+    | Block_comment { pair = opening, closing; lines; tagged } ->
         let from = !at in
         add opening;
         List.iteri
-          (fun k line ->
+          (fun k (indent, inner, line) ->
             if k > 0 then (
-              add "\n ";
+              add "\n";
+              add indent;
               match inner with Some s -> add s | None -> ());
             add line)
           lines;

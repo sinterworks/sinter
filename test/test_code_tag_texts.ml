@@ -243,12 +243,12 @@ let comment_line_cases () =
       what expected
       (comment_line_texts sigils source sub)
   in
-  check "a block comment with an inner sigil, as in section 2.3" c_sigils
-    "/* @req a=v1\n * A text.\n */\n" "/* @req a=v1\n * A text.\n */"
-    [ " @req a=v1"; " A text."; "" ];
+  check "a last line of only a closing sigil keeps the spaces before it"
+    c_sigils "/* @req a=v1\n * A text.\n */\n" "/* @req a=v1\n * A text.\n */"
+    [ " @req a=v1"; " A text."; " " ];
   check "the longest opening sigil" c_sigils "/**\n * @spec d#s=v1\n */\n"
     "/**\n * @spec d#s=v1\n */"
-    [ ""; " @spec d#s=v1"; "" ];
+    [ ""; " @spec d#s=v1"; " " ];
   check "the longest line sigil" c_sigils "/// @req a=v1\n" "/// @req a=v1"
     [ " @req a=v1" ];
   check "a block comment on one line" c_sigils "x(); /* @req b=v1 */\n"
@@ -257,10 +257,38 @@ let comment_line_cases () =
     "// a\n  // b\n\t//c\n" "// a\n  // b\n\t//c" [ " a"; " b"; "c" ];
   check "a later line of a line comment with no sigil keeps its text"
     line_sigils "// a\n  b\n" "// a\n  b" [ " a"; "b" ];
-  check "a comment with no sigil loses only spaces and tabs" c_sigils
+  check "a comment with no sigil keeps lines that share no margin" c_sigils
     "\"\"\"\n  @req a=v1\n\tText.\n\"\"\""
     "\"\"\"\n  @req a=v1\n\tText.\n\"\"\""
-    [ "\"\"\""; "@req a=v1"; "Text."; "\"\"\"" ];
+    [ "\"\"\""; "  @req a=v1"; "\tText."; "\"\"\"" ];
+  check "a comment with no sigil loses the margin of its other lines" c_sigils
+    "\"\"\"\n  @req a=v1\n    Text.\n  \"\"\""
+    "\"\"\"\n  @req a=v1\n    Text.\n  \"\"\""
+    [ "\"\"\""; "@req a=v1"; "  Text."; "\"\"\"" ];
+  check "a nested list in a block comment stays nested" ml_sigils
+    "  (* @req a=v1\n     - a\n       - a1\n     - b\n  *)\n"
+    "(* @req a=v1\n     - a\n       - a1\n     - b\n  *)"
+    [ " @req a=v1"; "- a"; "  - a1"; "- b"; "" ];
+  check "a margin of tabs" ml_sigils "(* x\n\t\ta\n\tb\n*)"
+    "(* x\n\t\ta\n\tb\n*)" [ " x"; "\ta"; "b"; "" ];
+  check "a tab and a space make no margin" ml_sigils "(* x\n\ta\n b\n*)"
+    "(* x\n\ta\n b\n*)" [ " x"; "\ta"; " b"; "" ];
+  check "a blank line that starts with the margin loses only the margin"
+    ml_sigils "(* x\n  a\n     \n  b *)" "(* x\n  a\n     \n  b *)"
+    [ " x"; "a"; "   "; "b " ];
+  check "a blank line shorter than the margin loses its spaces" ml_sigils
+    "(* x\n    a\n  \n    b *)" "(* x\n    a\n  \n    b *)"
+    [ " x"; "a"; ""; "b " ];
+  check
+    "a line with an inner sigil is no bare line and has no part in the margin"
+    c_sigils "/* x\n   * a\n     b\n */" "/* x\n   * a\n     b\n */"
+    [ " x"; " a"; "b"; "" ];
+  check "only blank bare lines make an empty margin" c_sigils "/* a\n   */"
+    "/* a\n   */" [ " a"; "   " ];
+  check "the closing sigil leaves the last line before the margin" ml_sigils
+    "(* x\n  a\n  b*)" "(* x\n  a\n  b*)" [ " x"; "a"; "b" ];
+  check "spaces before an inner sigil go with it, and the spaces after it stay"
+    c_sigils "/* x\n \t *  a\n */" "/* x\n \t *  a\n */" [ " x"; "  a"; " " ];
   check "an OCaml comment keeps the indentation after its first line" ml_sigils
     "(* @spec x=v1\n   Text. *)\n" "(* @spec x=v1\n   Text. *)"
     [ " @spec x=v1"; "Text. " ];
@@ -301,6 +329,32 @@ let comment_line_cases () =
        (Comment_line.of_node (comment_sigils c_sigils)
           (Lines.of_text (text_of "/* a */"))
           (run 3 3)))
+
+let block_comment_of_lines lines =
+  let source = "(* x\n" ^ String.concat "\n" lines ^ " *)" in
+  let text = text_of source in
+  (Lines.of_text text, run 0 (Text.length text))
+
+let bare_lines n =
+  block_comment_of_lines
+    (List.init n (fun k -> if k mod 2 = 0 then "        - a" else "    "))
+
+let deep_margin n =
+  block_comment_of_lines
+    [
+      String.make n ' ' ^ "a"; String.make (n + 2) ' ' ^ "b"; String.make n ' ';
+    ]
+
+let comment_lines_grow_linearly () =
+  let of_node (lines, r) =
+    Comment_line.of_node (comment_sigils ml_sigils) lines r
+  in
+  Counted_work.check_growth ~margin:1.5 ~sizes:(500, 2000) ~input:bare_lines
+    of_node;
+  Time_growth.check ~bound:10. ~size:500 ~input:bare_lines of_node;
+  Counted_work.check_growth ~margin:1.5 ~sizes:(2000, 8000) ~input:deep_margin
+    of_node;
+  Time_growth.check ~bound:10. ~size:2000 ~input:deep_margin of_node
 
 let reference_runs (case : Code_gen.case) =
   let text, nodes = reference_case case in
@@ -1484,6 +1538,8 @@ let tests =
     Alcotest.test_case "the lines of runs" `Quick run_line_cases;
     comment_lines_follow_the_term;
     comment_lines_lie_in_the_lines_of_the_run;
+    Alcotest.test_case "the comment lines of a comment node grow linearly"
+      `Quick comment_lines_grow_linearly;
     Alcotest.test_case "comment lines of each shape of comment" `Quick
       comment_line_cases;
     runs_of_comments_follow_the_terms;
