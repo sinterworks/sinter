@@ -24,10 +24,11 @@ mutaml-report --fail-under 95 \
   --json-report _mutations/report.json
 ```
 
-One runner tests every mutant, and the pass takes some hours. A
-machine has no time limit for one command, so this pass needs no
-split. The `mutation` job splits the same pass into four parts, as
-"The CI job" below says.
+One runner tests every mutant under the whole suite, and the pass takes
+some hours. A machine has no time limit for one command, so this pass
+needs no split. The `mutation` job splits the same pass into four parts,
+and it tests each mutant only under the test groups that can reach it,
+as "The CI job" and "The selection of tests" below say.
 
 **A pass on a branch.** Run `git fetch origin`, and put
 `--changed-since origin/main` in front of the script name in the
@@ -124,11 +125,12 @@ the four jobs is a **part**:
 3. Each part runs `test/run-mutant-share.sh` on the files of its
    share. The script runs `mutaml-runner --muts <file>` once for each
    file, with the options of the full pass, and with
-   `--changed-since` when the run measures the changed lines. Each run
-   writes `mutaml-report.json`, so the script moves that file away
-   after each run. At the end, `test/join-mutant-reports.sh` joins the
-   reports into one report of the part, and the part keeps it as an
-   artifact.
+   `--changed-since` when the run measures the changed lines. The test
+   command of each file runs only the test groups that can reach its
+   code, as "The selection of tests" below says. Each run writes
+   `mutaml-report.json`, so the script moves that file away after each
+   run. At the end, `test/join-mutant-reports.sh` joins the reports
+   into one report of the part, and the part keeps it as an artifact.
 4. "Report the mutation score" runs after the four parts, also when a
    part fails. It joins the four reports, and runs `mutaml-report` on
    the joined report with `--fail-under`. It fails when a part failed
@@ -139,9 +141,57 @@ the four jobs is a **part**:
 The joined report holds the same results as the report of one runner
 over all the files, so the score is the score of the full pass. The
 join refuses two reports that hold the same mutant. Each run of the
-runner on one file runs the suite twice without a mutant before it
-tests a mutant of that file. A run with `--changed-since` that finds no
-mutant on a changed line in its file runs no test at all.
+runner on one file runs its test command twice without a mutant before
+it tests a mutant of that file. A run with `--changed-since` that finds
+no mutant on a changed line in its file runs no test at all.
+
+**The selection of tests.** A **test group** is one entry of the list
+in `test/test_sinter.ml`, such as `("json", Test_json.tests)`. A mutant
+can change the result of a test only when the test runs the code of the
+mutant. `test/mutant-groups.sh` finds, for each mutation file, the test
+groups whose code can call into that file:
+
+1. It reads, with `ocamlobjinfo`, the interfaces that each compiled
+   module of the build imports.
+2. From the module of each test group, it follows the imports to each
+   module that the group can call, directly or through other modules.
+   It does not follow the alias module of a library, such as
+   `Sinter_core`, which names every module of the library. A module
+   that uses a module of a library imports that module itself.
+3. A group that reaches a source that names `main.exe`,
+   `generate.exe`, or `run.exe` starts that program, and it reaches
+   every module of the three programs.
+4. A group whose entry in the list does not have the form
+   `("<name>", <Module>.tests)` reaches every file. Today these groups
+   are `mode` and `cases`.
+
+The script prints one line for each mutation file: the file, a tab, and
+a filter of test groups, such as `^(json|toml)$`, or the word `all`.
+`test/run-mutant-share.sh` then gives the runner the test command
+`test/run-mutants.sh test '<filter>'`, or `test/run-mutants.sh` for
+`all`. It prints that command in the log before the mutants of the
+file. The two runs without a mutant use the same command, so the time
+limit of a mutant comes from the selected groups.
+
+A wrong selection could make a mutant survive falsely or die falsely.
+These rules make each such error stop the run:
+
+1. The script stops when the test groups that `test_sinter.exe list`
+   prints differ from the groups that it reads in
+   `test/test_sinter.ml`.
+2. The script stops when a source that the suite links names a program
+   other than the three above. A program that a test starts goes into
+   the list of programs in the script, with the folder of its compiled
+   modules.
+3. A mutation file that no group reaches, or that no compiled module
+   comes from, gets `all`: the whole suite, never an empty filter.
+   alcotest exits with status 1 when a filter selects no test, and the
+   runner reads that status as a kill.
+4. The runner stops when a run without a mutant fails. alcotest exits
+   with status 124 when it refuses its command line, and the runner
+   reads that status as a timeout, which counts as a kill. A command
+   line that the suite refuses therefore stops the pass at the first
+   run without a mutant.
 
 **The seeds of the CI job.** Each part draws its own random number and
 prints the seeds at the start of the log of its step "Run the tests
@@ -153,13 +203,18 @@ the same seeds:
 1. Find the part whose log names the mutation file of the survivor,
    and read its seeds.
 2. Build the tests with the code instrumented, as in "A full pass".
-3. Run at the root, with the name of the survivor from the summary and
-   each of the two seeds:
+3. Find, in the same log, the test command of the mutation file of
+   the survivor. The log prints it in the line
+   `Testing the mutants of <file> (... of ...) with the test command:`.
+4. Run that command at the root, with the name of the survivor from the
+   summary and each of the two seeds, for example:
 
    ```
-   MUTAML_MUTANT='<name of the survivor>' QCHECK_SEED=28071 test/run-mutants.sh
-   MUTAML_MUTANT='<name of the survivor>' QCHECK_SEED=28072 test/run-mutants.sh
+   MUTAML_MUTANT='<name of the survivor>' QCHECK_SEED=28071 test/run-mutants.sh test '^(json|toml)$'
+   MUTAML_MUTANT='<name of the survivor>' QCHECK_SEED=28072 test/run-mutants.sh test '^(json|toml)$'
    ```
+
+   `test/run-mutants.sh` without arguments runs every test.
 
 The joined report in the artifact, `mutaml-report.json`, also holds a
 seed for each mutant that ran, in its field `test_env`: the seed of the

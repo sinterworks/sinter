@@ -347,7 +347,8 @@ jobs:
             bridge/Cargo.lock bridge/Cargo.toml bridge/rust-toolchain.toml \
             lib/markdown/tree-sitter-markdown.wasm \
             test/run-mutants.sh test/mutant-shares.sh \
-            test/run-mutant-share.sh test/join-mutant-reports.sh | wc -l)
+            test/run-mutant-share.sh test/join-mutant-reports.sh \
+            test/mutant-groups.sh | wc -l)
           if [ "$dependencies" -ne 0 ]; then
             echo "mode=full" >>"$GITHUB_OUTPUT"
             echo "Every mutant: the pull request changed $dependencies files of the dependencies."
