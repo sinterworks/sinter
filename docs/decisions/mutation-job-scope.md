@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Measure a pull request on the lines it changed, a dependency move whole, and main whole
-@decision mutation-job-scope v4
+@decision mutation-job-scope v5
 @cites gh/158
 @cites ci-main-runs
 @cites mutation-testing
@@ -52,8 +52,8 @@ the whole suite once for each seed.
   summary, for the author and the reviewer to read.
 - Before opening a pull request that touches `lib/` or `bin/`, the
   author runs the pass on the branch with `--changed-since` and reads
-  every survivor. `CONTRIBUTING.md` gives the command. A brief to an
-  implementer pair says the same.
+  every survivor. `contributing/mutation-testing.md` gives the
+  command. A brief to an implementer pair says the same.
 - The sentence in `mutation-testing` that every pull request runs the
   full set no longer applies. The rest of that record stands, and the
   gate of `mutation-gate` applies to whichever set ran.
