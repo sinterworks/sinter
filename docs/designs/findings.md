@@ -83,7 +83,8 @@ conformance vectors of the design is one.
 | [edited text](sinter:#edited-text=v1) | for an edit set and the valid path of one of its edits, the text of the content of the file at that valid path, with the text of the span of each edit at that valid path replaced by its new text |
 | [edited tree](sinter:#edited-tree=v1) | the tree with the same valid paths as the tree of an edit set, in which the content of the file at each valid path of an edit of the set is the UTF-8 encoding of its edited text, and each other file has the content that it has in the tree of the edit set |
 | [make the edits of an edit set](sinter:#fix=v1) | change the files of the tree of the edit set into the files of the edited tree, with no file added or removed |
-| [edit description](sinter:#edit-description=v1) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
+| [edit description](sinter:#edit-description=v2) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
+| [describe an edit set](sinter:#edit-set-description=v1) | a finite sequence of edit descriptions describes an edit set in a tree when it has one or more edit descriptions, each edit description of the sequence describes an edit in that tree, no two edit descriptions of the sequence describe the same edit, and these edits are the edits of an edit set in that tree |
 | [fix](sinter:#fix=v1) | a message and one or more edit sets in one tree, no two the same, which have numbers from 1; to make a fix is to make the edits of exactly one of its edit sets |
 | [acknowledge](sinter:#acknowledgment=v1) | a person acknowledges a finding when the person says that they know of the finding and that it may stay |
 | [acknowledgment](sinter:#acknowledgment=v1) | what a person says when the person acknowledges a finding |
@@ -505,26 +506,35 @@ content of each other file is its content in that tree.
 
 ### 3.15 Edit descriptions
 
-@term edit-description=v1
+@term edit-description=v2
 @cites {
     text#{text=v1, position=v1},
     ontology#{tree=v1},
-    #{positioned-spot=v1, edit=v1, edit-set=v1},
+    #{positioned-spot=v1, edit=v1},
 }
 
 An edit description is a text, its path; a first position; a second
 position; and a text, its new text. An edit description describes an
 edit in a tree when, and only when, that tree has the spot from its
 first position to its second position at its path: the edit is that
-spot, with the new text of the edit description as its new text. A
-finite sequence of edit descriptions describes an edit set in a tree
+spot, with the new text of the edit description as its new text.
+
+### 3.16 Descriptions of edit sets
+
+@atom edit-set-description=v1
+@cites {
+    ontology#{tree=v1},
+    #{edit-description=v2, edit=v1, edit-set=v1},
+}
+
+A finite sequence of edit descriptions describes an edit set in a tree
 when, and only when, it has one or more edit descriptions, each edit
 description of the sequence describes an edit in that tree, no two edit
 descriptions of the sequence describe the same edit, and these edits are
 the edits of an edit set in that tree, which is the edit set that the
 sequence describes.
 
-### 3.16 Fixes
+### 3.17 Fixes
 
 @term fix=v1
 @cites {
@@ -543,7 +553,7 @@ The edit sets of a fix have numbers from 1, in their order. To make a
 fix in a tree is to make the edits of exactly one of its edit sets in
 that tree.
 
-### 3.17 Acknowledgments
+### 3.18 Acknowledgments
 
 @term acknowledgment=v1
 @cites ontology#{finding-class=v1, person=v1}
@@ -552,7 +562,7 @@ A person acknowledges a finding when, and only when, the person says
 that they know of the finding and that it may stay. What the person then
 says is an acknowledgment of the finding by that person.
 
-### 3.18 Added acknowledgments
+### 3.19 Added acknowledgments
 
 @term added-acknowledgment=v1
 @cites {
@@ -564,7 +574,7 @@ An edit set in a tree adds an acknowledgment of a finding when, and only
 when, its edited tree records an acknowledgment of the finding by a
 person that the tree does not record.
 
-### 3.19 Ackable findings
+### 3.20 Ackable findings
 
 @term ackable-finding=v1
 @cites {ontology#{finding-class=v1, person=v1}, #{acknowledgment=v1}}
@@ -572,7 +582,7 @@ person that the tree does not record.
 A finding is ackable when, and only when, an acknowledgment of the
 finding by a person can have effect.
 
-### 3.20 The parts of a finding
+### 3.21 The parts of a finding
 
 @term finding-part=v1
 @cites {
@@ -616,7 +626,7 @@ of its edit sets, each with its number. The parts of an edit set are the
 set of its edits and each of its edits. The parts of an edit are its
 spot and its new text.
 
-### 3.21 Corrections
+### 3.22 Corrections
 
 @term correction=v1
 @cites {
@@ -726,11 +736,11 @@ spot.
 
 ### 4.8 The validation of edit sets
 
-@req validate-edit-sets=v1
+@req validate-edit-sets=v2
 @cites {
     text#{conforming-program=v1, result=v1},
     ontology#{tree=v1},
-    #{edit-description=v1, edit-set=v1},
+    #{edit-description=v2, edit-set-description=v1, edit-set=v1},
 }
 
 For each tree and each finite sequence of edit descriptions, a
@@ -741,12 +751,15 @@ it does not.
 
 ### 4.9 The edited texts of edit sets
 
-@req give-edited-texts=v1
+@req give-edited-texts=v2
 @cites {
     files#{path=v1},
     text#{conforming-program=v1, text=v1},
     ontology#{tree=v1},
-    #{edit-description=v1, edit-set=v1, edited-text=v1},
+    #{
+        edit-description=v2, edit-set-description=v1, edit-set=v1,
+        edited-text=v1,
+    },
 }
 
 When a conforming program gives a text as the edited text of a valid
@@ -756,12 +769,15 @@ edited text of that valid path for that edit set, and no other text.
 
 ### 4.10 No other edited text
 
-@req omit-edited-texts=v1
+@req omit-edited-texts=v2
 @cites {
     files#{path=v1},
     text#{conforming-program=v1, text=v1},
     ontology#{tree=v1},
-    #{edit-description=v1, edit=v1, edit-set=v1, edited-text=v1},
+    #{
+        edit-description=v2, edit-set-description=v1, edit=v1,
+        edit-set=v1, edited-text=v1,
+    },
 }
 
 For each tree and each text p, a conforming program must give a text as
@@ -828,9 +844,9 @@ each vector has the member `values`.
         group-form-list=v2, vector-meaning=v2,
     },
     #{
-        edit-description=v1, edit-set=v1, edited-text=v1,
-        validate-edit-sets=v1, give-edited-texts=v1,
-        omit-edited-texts=v1,
+        edit-description=v2, edit-set-description=v1, edit-set=v1,
+        edited-text=v1, validate-edit-sets=v2, give-edited-texts=v2,
+        omit-edited-texts=v2,
     },
 }
 
