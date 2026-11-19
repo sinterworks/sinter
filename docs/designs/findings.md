@@ -2,12 +2,12 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Findings
-@design findings=v1
+@design findings=v2
 @cites text=v1
-@cites identifiers=v1
+@cites identifiers=v2
 @cites files=v1
-@cites data-forms=v1
-@cites ontology=v1
+@cites data-forms=v2
+@cites ontology=v2
 Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
 
 A finding reports one condition at one part of a repository, such as an
@@ -43,7 +43,7 @@ conformance vectors of the design is one.
 |---|---|
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
-| [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
+| [item](sinter:ontology#item=v2) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, which is a byte sequence, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
 | [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
@@ -67,8 +67,8 @@ conformance vectors of the design is one.
 | [input](sinter:text#input=v1) | a thing that a conforming program takes |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input |
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
-| [`@ack` line](sinter:identifiers#ack-line=v1) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
-| [subject of a finding](sinter:#finding-subject=v1) | the text that names what a finding is about; it matches the production `subject` of the form of `@ack` lines and holds no line feed |
+| [`@ack` line](sinter:identifiers#ack-line=v2) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
+| [subject of a finding](sinter:#finding-subject=v2) | the text that names what a finding is about; it matches the production `subject` of the form of `@ack` lines and holds no line feed |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
 | [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of the text of that content that starts and ends at no boundary inside a line ending |
@@ -102,8 +102,8 @@ finding class is the kind of finding, which a slug names. Each finding
 has the parts that the term `finding-part` gives, such as its subject,
 its message, and its spot, and these parts can have parts of their own.
 
-For example, a repository declares the finding class `no-test`, which
-reports an item of the kind requirement that no test cites. In a tree,
+For example, the finding class `no-test` reports an item of the kind
+requirement that no test cites. In a tree,
 the item of the kind requirement `billing#due-date` is declared on line
 41 of `docs/designs/billing.md`, by the tag line `@req due-date=v2`, and
 no test cites it. The finding has these parts:
@@ -277,8 +277,8 @@ can have effect. An acknowledgment of a finding that is not ackable has
 no effect. Each edit set of the fix of a finding corrects the finding,
 or adds an acknowledgment of it when the finding is ackable.
 
-For example, a repository declares the finding class `old-word`, which
-reports a word that its word list replaces. Line 3 of `docs/guide.md` is
+For example, the finding class `old-word` reports a word that a word
+list replaces. Line 3 of `docs/guide.md` is
 `The stamp comes last.`, and the word list replaces `stamp` with
 `approval`. The finding has the spot from line 3, column 1 to line 3,
 column 22, and the mark from line 3, column 5 to line 3, column 10. Its
@@ -321,15 +321,15 @@ its words.
 
 ### 3.2 Subjects of findings
 
-@term finding-subject=v1
+@term finding-subject=v2
 @cites {
-    identifiers#{ack-line=v1},
+    identifiers#{ack-line=v2},
     text#{text=v1, line-feed=v1, production=v1, code-span=v1},
     ontology#{finding-class=v1},
 }
 
 Each finding has exactly one subject: a text that names what the
-finding is about, that matches the production `subject` of the term
+finding is about, that matches the production `subject` of the schema
 `ack-line` of Identifiers, and that holds no line feed.
 
 ### 3.3 Finding ids
@@ -339,7 +339,7 @@ finding is about, that matches the production `subject` of the term
     identifiers#{slug=v1},
     text#{text=v1, code-span=v1},
     ontology#{finding-class=v1},
-    #{finding-subject=v1},
+    #{finding-subject=v2},
 }
 
 The finding id of a finding is the text `finding:`, then the slug that
@@ -353,7 +353,7 @@ the finding.
     identifiers#{slug=v1},
     text#{text=v1},
     ontology#{finding-class=v1, tree=v1},
-    #{finding-subject=v1},
+    #{finding-subject=v2},
 }
 
 Two findings are the same finding when, and only when, the slugs that
@@ -581,7 +581,7 @@ finding by a person can have effect.
     text#{span=v1, run=v1},
     ontology#{finding-class=v1, tree=v1, ledger=v1},
     #{
-        finding-subject=v1, message=v1, spot=v1, mark=v1,
+        finding-subject=v2, message=v1, spot=v1, mark=v1,
         related-message=v1, fix=v1, edit-set=v1, edit=v1,
         ackable-finding=v1,
     },
@@ -796,35 +796,54 @@ section 4.
 The vectors of this design are in the file
 [`findings.test-vectors.jsonl`](findings.test-vectors.jsonl), in the
 same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
+specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
 to them. The vectors are in groups. Each group has a name, such as
-`edit-sets`, and a subsection below. The subsection names the
-requirements that the vectors of the group follow from, and it describes
-their inputs, results, and values. These requirements have no vectors:
-`give-finding-parts`, `omit-absent-finding-parts`,
+`edit-sets`, and a schema below that gives the forms of the group: the
+requirements that the vectors of the group follow from, and their
+inputs, results, and values. No group of this design uses a need, so
+the forms of each group give no need names. These requirements have no
+vectors: `give-finding-parts`, `omit-absent-finding-parts`,
 `give-consistent-findings`, and `limit-fix-edit-sets`.
 
 Only the vectors of the group `edit-sets` have the member `result`, and
 each vector has the member `values`.
 
-A program does not need the revisions to run the vectors.
+### 5.1 The edits of edit sets
+
+@schema edit-set-vector=v1
+@cites {
+    text#{
+        conforming-program=v1, text=v1, character=v1, line-feed=v1,
+        whole-number=v1, decimal-numeral=v1, 0x-numeral=v1,
+        boundary=v1, position=v1, line-number=v1, sequence=v1,
+        valid-utf-8=v1, text-of-a-byte-sequence=v1, result=v1,
+        code-span=v1,
+    },
+    files#{path=v1},
+    ontology#{tree=v1},
+    data-forms#{
+        json-value=v1, hex-text=v1, vector-line=v2,
+        group-form-list=v2, vector-meaning=v2,
+    },
+    #{
+        edit-description=v1, edit-set=v1, edited-text=v1,
+        validate-edit-sets=v1, give-edited-texts=v1,
+        omit-edited-texts=v1,
+    },
+}
 
 Inside the members `input`, `result`, and `values`, each JSON value that
-the subsection of a group names as a text, a slug, a whole number, a
-run, a position, a sequence, or a tree has this form:
+the forms of a group name as a text, a whole number, a position, a
+sequence, or a tree has this form:
 
-- A text, such as a result, a valid path, a slug, a subject, a finding
-  id, a new text, or an edited text, is a JSON string
-  whose characters are the characters of the text, in order. So the
-  text `a`, a line feed, `b` is `"a\nb"`, and the empty text is `""`.
+- A text, such as a result, a valid path, a new text, or an edited text,
+  is a JSON string whose characters are the characters of the text, in
+  order. So the text `a`, a line feed, `b` is `"a\nb"`, and the empty
+  text is `""`.
 - A whole number, such as a boundary, a line number, or a column, is a
   JSON number written as its decimal numeral, such as `12`.
-- A run is a JSON object with two members: `from`, the boundary where
-  the run starts, and `to`, the boundary where the run ends. So the run
-  that starts at boundary 1 and ends at boundary 4 is
-  `{"from":1,"to":4}`.
 - A position is a JSON object with two members: `line`, the line number
   of the position, and `column`, the column of the position. So the
   position line 3, column 7 is `{"column":7,"line":3}`.
@@ -835,8 +854,6 @@ run, a position, a sequence, or a tree has this form:
   When it is not, the value is a JSON object with one member, `bytes`:
   the [hex text](sinter:data-forms#hex-text=v1) of the content, as a
   JSON string, such as `{"bytes":"ff"}` for the content 0xFF.
-
-### 5.1 The edits of edit sets
 
 The group `edit-sets` holds the vectors of the requirements
 `validate-edit-sets`, `give-edited-texts`, and `omit-edited-texts`. Each
@@ -866,18 +883,37 @@ text is then the value of that key. When `values` is `{}`, it gives no
 text as an edited text for the sequence.
 
 ```
-{"group":"edit-sets","input":{"edits":[{"after":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":2,"line":1}}],"files":{"a.md":"abc"}},"n":1,"result":"valid","rev":"v1","values":{"edited-texts":{"a.md":"aXc"}}}
+{"form":"#edit-set-vector=v1","group":"edit-sets","input":{"edits":[{"after":{"column":3,"line":1},"new-text":"X","path":"a.md","start":{"column":2,"line":1}}],"files":{"a.md":"abc"}},"result":"valid","values":{"edited-texts":{"a.md":"aXc"}}}
 ```
 
 ### 5.2 Finding ids
 
+@schema finding-id-vector=v1
+@cites {
+    text#{conforming-program=v1, text=v1, code-span=v1},
+    identifiers#{slug=v1},
+    ontology#{finding-class=v1},
+    data-forms#{
+        json-value=v1, vector-line=v2, group-form-list=v2,
+        vector-meaning=v2,
+    },
+    #{
+        edit-set-vector=v1, finding-subject=v2, finding-id=v1,
+        give-finding-ids=v1,
+    },
+}
+
 The group `finding-ids` holds the vectors of the requirement
 `give-finding-ids`. Each vector gives the slug that names the finding
 class of a finding, the subject of the finding, and its finding id.
+Inside the members `input` and `values`, each JSON value that the forms
+of this group name as a text, a slug, a subject, or a finding id has the
+form of a text that `edit-set-vector` gives.
 
 - `input`: a JSON object with two members: `class`, the slug that names
   the finding class, and `subject`, the subject.
-- `result`: no vector of the group has this member.
+- `result`: the forms of the group name no question for `result`; no
+  vector of the group has this member.
 - `values`: a JSON object with one member, `finding-id`: the finding id
   of the finding.
 
@@ -885,22 +921,45 @@ When a conforming program gives a text as the finding id of the finding,
 it gives the text that `finding-id` holds, and no other text.
 
 ```
-{"group":"finding-ids","input":{"class":"no-test","subject":"billing#due-date"},"n":39,"rev":"v1","values":{"finding-id":"finding:no-test:billing#due-date"}}
+{"form":"#finding-id-vector=v1","group":"finding-ids","input":{"class":"no-test","subject":"billing#due-date"},"values":{"finding-id":"finding:no-test:billing#due-date"}}
 ```
 
 ### 5.3 The positions of spots
+
+@schema spot-position-vector=v1
+@cites {
+    text#{
+        conforming-program=v1, text=v1, whole-number=v1, run=v1,
+        boundary=v1, span=v1, position=v1, line-number=v1, code-span=v1,
+    },
+    data-forms#{
+        json-value=v1, vector-line=v2, group-form-list=v2,
+        vector-meaning=v2,
+    },
+    #{
+        edit-set-vector=v1, spot=v1, start-position=v1,
+        position-after-spot=v1, give-start-positions=v1,
+        give-positions-after-spots=v1, omit-positions-without-spans=v1,
+    },
+}
 
 The group `spot-positions` holds the vectors of the requirements
 `give-start-positions`, `give-positions-after-spots`, and
 `omit-positions-without-spans`. Each vector gives the text of the
 content of the file of a spot and the span of the spot, when it has one,
 and the start position of the spot and the position after that spot,
-when it has a span.
+when it has a span. Inside the members `input` and `values`, each JSON
+value that the forms of this group name as a text, a whole number, or a
+position has the form that `edit-set-vector` gives, and a run is a JSON
+object with two members: `from`, the boundary where the run starts, and
+`to`, the boundary where the run ends. So the run that starts at
+boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
 
 - `input`: a JSON object with the member `text`, the text, and, for a
   spot with a span, the member `span`, the span of the spot, as a run.
   For a spot without a span, the object has no other member.
-- `result`: no vector of the group has this member.
+- `result`: the forms of the group name no question for `result`; no
+  vector of the group has this member.
 - `values`: for a spot with a span, a JSON object with two members:
   `start`, the start position of the spot, and `after`, the position
   after the spot. For a spot without a span, the empty JSON object,
@@ -916,5 +975,5 @@ number and no column as the start position of the spot or as the
 position after that spot.
 
 ```
-{"group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"n":47,"note":"the span ends right after a line ending, so the position after the spot is in column 1 of line 2","rev":"v1","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
+{"form":"#spot-position-vector=v1","group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"note":"the span ends right after a line ending, so the position after the spot is in column 1 of line 2","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
 ```
