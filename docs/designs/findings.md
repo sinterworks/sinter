@@ -35,7 +35,9 @@ the Ontology, it takes findings and finding classes, items, trees,
 people, and the ledger. From Data forms, it takes JSON values, with the
 members of objects and their keys, hex texts, and, from its
 specification `test-vectors`, test-vector sets: the file that holds the
-conformance vectors of the design is one.
+conformance vectors of the design is one. From that specification, it
+also takes vector lines, the forms of a group, and what a vector line
+states.
 
 ## 1. Glossary
 
@@ -44,6 +46,7 @@ conformance vectors of the design is one.
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
 | [item](sinter:ontology#item=v2) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
+| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, which is a byte sequence, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
 | [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
@@ -66,6 +69,9 @@ conformance vectors of the design is one.
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [input](sinter:text#input=v1) | a thing that a conforming program takes |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input |
+| [forms of a group](sinter:data-forms#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
 | [`@ack` line](sinter:identifiers#ack-line=v2) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
 | [subject of a finding](sinter:#finding-subject=v2) | the text that names what a finding is about; it matches the production `subject` of the form of `@ack` lines and holds no line feed |
@@ -103,8 +109,8 @@ finding class is the kind of finding, which a slug names. Each finding
 has the parts that the term `finding-part` gives, such as its subject,
 its message, and its spot, and these parts can have parts of their own.
 
-For example, the finding class `no-test` reports an item of the kind
-requirement that no test cites. In a tree,
+For example, a finding class, such as `no-test`, reports an item of the
+kind requirement that no test cites. In a tree,
 the item of the kind requirement `billing#due-date` is declared on line
 41 of `docs/designs/billing.md`, by the tag line `@req due-date=v2`, and
 no test cites it. The finding has these parts:
@@ -278,8 +284,8 @@ can have effect. An acknowledgment of a finding that is not ackable has
 no effect. Each edit set of the fix of a finding corrects the finding,
 or adds an acknowledgment of it when the finding is ackable.
 
-For example, the finding class `old-word` reports a word that a word
-list replaces. Line 3 of `docs/guide.md` is
+For example, a finding class, such as `old-word`, reports a word that a
+word list replaces. Line 3 of `docs/guide.md` is
 `The stamp comes last.`, and the word list replaces `stamp` with
 `approval`. The finding has the spot from line 3, column 1 to line 3,
 column 22, and the mark from line 3, column 5 to line 3, column 10. Its
@@ -823,9 +829,6 @@ the forms of each group give no need names. These requirements have no
 vectors: `give-finding-parts`, `omit-absent-finding-parts`,
 `give-consistent-findings`, and `limit-fix-edit-sets`.
 
-Only the vectors of the group `edit-sets` have the member `result`, and
-each vector has the member `values`.
-
 ### 5.1 The edits of edit sets
 
 @schema edit-set-vector=v1
@@ -851,7 +854,7 @@ each vector has the member `values`.
 }
 
 Inside the members `input`, `result`, and `values`, each JSON value that
-the forms of a group name as a text, a whole number, a position, a
+the forms of this group name as a text, a whole number, a position, a
 sequence, or a tree has this form:
 
 - A text, such as a result, a valid path, a new text, or an edited text,
@@ -890,6 +893,7 @@ conforming program gives for them.
   description of the sequence, whose key is that path and whose value is
   the edited text of that valid path for the edit set that the sequence
   describes. With the result "invalid", the empty JSON object, `{}`.
+  Each vector of the group has this member.
 
 When a conforming program gives a result for whether the sequence
 describes an edit set in the tree, it gives the result that `result`
@@ -931,7 +935,7 @@ form of a text that `edit-set-vector` gives.
 - `result`: the forms of the group name no question for `result`; no
   vector of the group has this member.
 - `values`: a JSON object with one member, `finding-id`: the finding id
-  of the finding.
+  of the finding. Each vector of the group has this member.
 
 When a conforming program gives a text as the finding id of the finding,
 it gives the text that `finding-id` holds, and no other text.
@@ -966,7 +970,7 @@ content of the file of a spot and the span of the spot, when it has one,
 and the start position of the spot and the position after that spot,
 when it has a span. Inside the members `input` and `values`, each JSON
 value that the forms of this group name as a text, a whole number, or a
-position has the form that `edit-set-vector` gives, and a run is a JSON
+position has the form that `edit-set-vector` gives. A run is a JSON
 object with two members: `from`, the boundary where the run starts, and
 `to`, the boundary where the run ends. So the run that starts at
 boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
@@ -979,7 +983,7 @@ boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
 - `values`: for a spot with a span, a JSON object with two members:
   `start`, the start position of the spot, and `after`, the position
   after the spot. For a spot without a span, the empty JSON object,
-  `{}`.
+  `{}`. Each vector of the group has this member.
 
 When a conforming program gives a line number for the start position of
 the spot, it gives the line number of `start`. When it gives a column
