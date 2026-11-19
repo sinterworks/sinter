@@ -25,11 +25,12 @@ of each section and of each list item. In a code file, it reads tags in
 the comments that the pack finds. Each of these paragraphs, and each
 run of comments that has a tagged comment node, gives one tag text. A
 conforming program of Identifiers gives a result for each input of the
-tree. Each declaration with the result "valid"
-declares an item, which takes up a part of its file: its extent. Each
-citation entry of a citation with the result "valid", and each inline
-citation with the result "valid", gives an edge. Some conditions of
-these texts are findings, such as a citation that names no item.
+tree. Each declaration with the result "valid" declares an item, which takes
+up a part of its file: its extent. Each citation entry of a citation
+with the result "valid", and each inline citation with the result
+"valid", gives an edge. Each vector line of a vector set also gives an
+edge. Some conditions of these texts are findings, such as a citation
+that names no item.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405. A production, such as
@@ -55,20 +56,20 @@ the parameter `external-namespaces`; and the inputs of a conforming
 program of Identifiers and the results that it gives. From Files and
 paths, it takes valid paths, path sets, valid path sets, and the set of
 a path set. From Data forms, it takes hashes, indexes, hex texts,
-test-vector file names, test-vector sets, and vector lines. From the
+test-vector file names, test-vector sets, vector lines, vector objects,
+form pins, the forms of a group, and the meaning of a vector. From the
 Ontology, it takes trees and their files; parameters; items and their
-kinds, declared items, containment, and the
-names of declared items; tests and comments on tests; sites; external
-items; vector sets, and groups of conformance
-vectors; revised content; edges, their kinds, sources, and cited items,
-and the item in which a line, a citation, or an inline citation stands;
-and findings and finding classes. From Language packs, it takes packs
-and valid packs; the reading of a text with a pack; comment nodes,
-definition nodes with their body nodes, decoration nodes, and test nodes
-with their name paths; the runs of nodes, enclosed nodes, and the order
-of the parse tree; and descriptors, with their comment sigils and
-foreign tag words. From Findings, it takes the subjects, the spots, and
-the other parts of a finding.
+kinds, declared items, containment, and the names of declared items;
+tests and comments on tests; sites; external items; vector sets and
+groups of conformance vectors; revised content; edges, their kinds,
+sources, and cited items, and the item in which a line, a citation, or
+an inline citation stands; and findings and finding classes. From
+Language packs, it takes packs and valid packs; the reading of a text
+with a pack; comment nodes, definition nodes with their body nodes,
+decoration nodes, and test nodes with their name paths; the runs of
+nodes, enclosed nodes, and the order of the parse tree; and descriptors,
+with their comment sigils and foreign tag words. From Findings, it takes
+the subjects, the spots, and the other parts of a finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
 ATX headings, setext headings, thematic breaks, code blocks with their
@@ -151,7 +152,7 @@ names `true` and `false`.
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
 | [extern mark](sinter:#extern-mark=v2), [valid extern mark](sinter:#valid-extern-mark=v2) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement, a schema, an atom, or a term |
-| [edges of a tree](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give |
+| [edges of a tree](sinter:#tree-edge=v2), [form run](sinter:#tree-edge=v2), [form position](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the value of its `form` without the quotes, and its form position is where that run starts |
 | [position subject](sinter:#position-subject=v2) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v2) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
@@ -303,8 +304,8 @@ the markdown texts of a tree under a binding of `external-namespaces`,
 and it gives a result for each of their
 [inputs](sinter:#accepted-input=v2). The inputs with the result "valid",
 the accepted inputs, give the [declared items](sinter:#item-file=v1),
-the [edges](sinter:#tree-edge=v2), the
-[extern marks](sinter:#extern-mark=v2), and the
+the [edges](sinter:#tree-edge=v2) of their citations and inline
+citations, the [extern marks](sinter:#extern-mark=v2), and the
 [status tags](sinter:identifiers#status-tag=v1) of the tree. Under
 bindings that are not valid, a conforming program gives none of the
 things that
@@ -533,6 +534,7 @@ pack.
 @term file-reader=v1
 @cites {
     files#{path=v1, path-set=v1, path-set-membership=v1},
+    ontology#{parameter=v2},
     #{file-readers=v1},
 }
 
@@ -546,7 +548,7 @@ of the binding has no reader.
 @term read-file=v2
 @cites {
     files#{path=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     text#{text=v1, character=v1, line-feed=v1, space=v1, tab=v1},
     #{file-readers=v1, file-reader=v1},
 }
@@ -566,7 +568,7 @@ the code file.
     files#{path=v1},
     packs#{reading-of-a-text=v1, give-reading-results=v1},
     text#{valid-utf-8=v1, text=v1, result=v1, input=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     #{read-file=v2, file-readers=v1},
 }
 
@@ -869,6 +871,7 @@ from each other bare line, remove the spaces and tabs at its start.
 
 @term tag-text=v2
 @cites {
+    ontology#{parameter=v2},
     text#{text=v1, line=v1, line-feed=v1, run=v1},
     #{
         read-file=v2, unreadable-file=v2, markdown-section=v1,
@@ -1008,7 +1011,7 @@ lines is a line of that set.
         give-link-results=v1, line-result=v1, link-result=v1,
     },
     text#{conforming-program=v1, result=v1, line=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     #{
         read-file=v2, unreadable-file=v2, tag-text=v2, front-matter=v1,
         file-readers=v1,
@@ -2032,7 +2035,6 @@ and its spot is the spot of its form run in the text of its file.
 @atom wrong-source-finding=v2
 @cites {
     identifiers#{citation-entry=v2},
-    data-forms#{vector-line=v2},
     ontology#{
         edge=v2, edge-source=v1, cites-edge=v2, satisfies-edge=v2,
         verifies-edge=v2, refines-edge=v2, supersedes-edge=v2,
@@ -2045,13 +2047,10 @@ and its spot is the spot of its form run in the text of its file.
 
 A tree has one tree finding of the class `wrong-source` for each edge of
 the tree that has no source, or whose source is not of a kind of item
-that its kind of edge is for as its source. For an edge that a citation
-entry or an inline citation gives, its subject is the position subject of
-the origin position of the citation entry or of the inline citation of
-the edge, and its spot is the spot of the run of that citation entry or
-inline citation in the text of the file. For an edge that a vector line
-gives, its subject is the position subject of its form position in its
-file, and its spot is the spot of its form run in the text of its file.
+that its kind of edge is for as its source. Its subject is the position
+subject of the origin position of the citation entry or of the inline
+citation of the edge. Its spot is the spot of the run of that citation
+entry or inline citation in the text of the file.
 
 ### 4.55 Findings of the class `wrong-kind`
 
@@ -2213,7 +2212,7 @@ A tree has these tree findings of the class `extern-mismatch`:
         code-span=v1, conforming-program=v1, result=v1, algorithm=v1,
         sequence=v1,
     },
-    ontology#{declared-item=v2},
+    ontology#{declared-item=v2, parameter=v2},
     #{
         file-readers=v1, markdown-line=v1, accepted-input=v2, item-file=v1,
         home-design=v2, tree-form=v1,
@@ -2410,7 +2409,7 @@ of each declared item that belongs to d.
         inline-description=v1, target=v1, citation-entry=v2, directive=v1,
         status-tag=v1, link=v1, link-text=v1,
     },
-    ontology#{declared-item=v2},
+    ontology#{declared-item=v2, parameter=v2},
     text#{
         text=v1, character=v1, run=v1, space=v1, tab=v1, line-feed=v1,
         code-span=v1, decimal-numeral=v1, whole-number=v1, algorithm=v1,
@@ -2752,7 +2751,7 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
     identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
     ontology#{
         tree=v1, declared-item=v2, containment=v2, test=v1, site=v1,
-        edge=v2, finding-class=v1,
+        edge=v2, finding-class=v1, parameter=v2,
     },
     text#{conforming-program=v1, result=v1},
     #{
@@ -2785,7 +2784,7 @@ no extern mark, no vector file, and no finding of the classes
 @req give-read-files=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{read-file=v2, file-readers=v1},
 }
@@ -2803,7 +2802,7 @@ file of the tree once, with its reader, and no other read file.
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
     },
-    ontology#{declared-item=v2, item-name=v2, tree=v1},
+    ontology#{declared-item=v2, item-name=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, item-file=v1, tree-containment=v2,
@@ -2824,7 +2823,7 @@ declaration, and no other declared item.
 @req give-extents=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v2, tree=v1},
+    ontology#{declared-item=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, extent=v1, file-line=v1,
@@ -2844,7 +2843,7 @@ as that extent.
 @req give-extent-hashes=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v2, tree=v1},
+    ontology#{declared-item=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{file-readers=v1, extent-hash=v2, unreadable-file=v2},
 }
@@ -2861,7 +2860,7 @@ nothing else as that extent hash.
 @req give-code-hashes=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1, boundary=v1},
     #{
         file-readers=v1, code-hash=v1, comment-run=v1,
@@ -2883,7 +2882,7 @@ comments with a code hash.
 @req give-containment=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v2, containment=v2, tree=v1},
+    ontology#{declared-item=v2, containment=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{file-readers=v1, tree-containment=v2, unreadable-file=v2},
 }
@@ -2902,7 +2901,7 @@ it belongs to none, and nothing else as that item.
 @req give-tests=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{test=v1, tree=v1},
+    ontology#{test=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, file-test=v1, read-file=v2,
@@ -2923,7 +2922,7 @@ other comment on a test.
 @req give-sites=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{site=v1, tree=v1},
+    ontology#{site=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, tree-site=v1, read-file=v2,
@@ -2947,7 +2946,7 @@ and its file lines, and no other site.
         inline-citation=v1,
     },
     data-forms#{vector-line=v2},
-    ontology#{edge=v2, edge-source=v1, tree=v1},
+    ontology#{edge=v2, edge-source=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, accepted-input=v2, tree-edge=v2,
@@ -2974,7 +2973,7 @@ cited item or that it has none, and no other edge.
         external-namespaces=v1, validate-bindings=v1, status-tag=v1,
         tag-line-text=v1,
     },
-    ontology#{edge-source=v1, tree=v1},
+    ontology#{edge-source=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, accepted-input=v2, item-part=v1,
@@ -2999,7 +2998,7 @@ and no other status tag.
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
     },
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, accepted-input=v2, extern-mark=v2,
@@ -3020,7 +3019,7 @@ kind design, and whether it is valid, and no other extern mark.
 @req give-vector-files=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v2, tree=v1},
+    ontology#{declared-item=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{file-readers=v1, vector-file=v2, unreadable-file=v2},
 }
@@ -3038,7 +3037,7 @@ has none, and nothing else as that vector file.
 @req give-tree-findings=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1},
+    ontology#{finding-class=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, tree-finding=v1, parse-error-finding=v2,
@@ -3066,7 +3065,7 @@ the tree has once, and no other finding of that class.
 @req give-hash-texts=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v2, tree=v1},
+    ontology#{declared-item=v2, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{file-readers=v1, extent-hash=v2, unreadable-file=v2},
 }
@@ -3083,7 +3082,7 @@ nothing else as that hash text.
 @req give-code-texts=v2
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         file-readers=v1, code-hash=v1, comment-run=v1,
@@ -3150,7 +3149,7 @@ of the vector is empty.
     ontology#{
         tree=v1, declared-item=v2, containment=v2, site=v1, edge=v2,
         edge-source=v1, external-item=v1, conformance-vector-group=v1,
-        vector-set=v2, finding-class=v1,
+        vector-set=v2, finding-class=v1, parameter=v2,
     },
     findings#{spot=v1},
     #{
@@ -3180,9 +3179,9 @@ uses no need, so these forms give no need names.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
-each JSON value that this schema names as a text, a
-whole number, a run, a position, a path set, a binding of
-`external-namespaces`, or a tree has this form:
+each JSON value that this schema names as a text, a whole number, a run,
+a position, a path set, a binding of `external-namespaces`, or a tree
+has this form:
 
 - A text, such as a valid path, a name, a subject, or a hash, is a JSON
   string whose characters are the characters of the text, in order. So
@@ -3221,15 +3220,14 @@ The member `values` of a vector is the empty JSON object, `{}`, when the
 binding of `file-readers` of the input is not valid, or a conforming
 program of the design Identifiers gives the result "invalid" for its
 binding of `external-namespaces`. Otherwise, it is a JSON object with
-these members, and an empty JSON array in one of them
-says that the tree has none of these things. In each JSON array, the
-elements stand in the order that the list gives, and the index of an
-element, as Data forms defines the
-[index](sinter:data-forms#index=v1), refers to it from other members. So
-the first element of an array has the index 1. A file is given by its
-valid path. Where this schema orders elements by positions, it uses
-the [order of positions](sinter:#position-order=v1).
-A member that the list gives only for some elements, such as `design` or
+these members, and an empty JSON array in one of them says that the tree
+has none of these things. In each JSON array, the elements stand in the
+order that the list gives, and the index of an element, as Data forms
+defines the [index](sinter:data-forms#index=v1), refers to it from other
+members. So the first element of an array has the index 1. A file is
+given by its valid path. Where this schema orders elements by positions,
+it uses the [order of positions](sinter:#position-order=v1). A member
+that the list gives only for some elements, such as `design` or
 `source`, is not in an element for which the list does not give it: the
 element of a thing that has no such item has no such member.
 
@@ -3304,9 +3302,9 @@ with the index k.
 For the input of a vector, a conforming program that reads the tree
 under the two bindings of the input and the empty set of stopped files
 gives what `values` states. When `values` is `{}`, it gives, for the
-tree, none of the things that the members of `values` name. Otherwise, when it
-gives one of the things that a member names, it gives what that member
-states for it:
+tree, none of the things that the members that this schema gives for
+`values` name. Otherwise, when it gives one of the things that a member
+names, it gives what that member states for it:
 
 - When it gives the read files, it gives the keys of `read-files`, each
   with the reader of the pair at its index, and no other read file.
@@ -3345,13 +3343,14 @@ These lines of the file are vectors of the group:
 @cites {
     rfc/8259,
     text#{
-        conforming-program=v1, text=v1, run=v1, boundary=v1,
-        valid-utf-8=v1, code-point-order=v1, code-span=v1,
+        conforming-program=v1, text=v1, whole-number=v1, run=v1,
+        boundary=v1, position=v1, valid-utf-8=v1, code-point-order=v1,
+        code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
     data-forms#{index=v1, group-form-list=v2, vector-meaning=v2},
     identifiers#{external-namespaces=v1},
-    ontology#{tree=v1, test=v1},
+    ontology#{tree=v1, test=v1, parameter=v2},
     packs#{
         valid-pack=v1, reading-of-a-text=v1, comment-node=v1,
         definition-node=v1, decoration-node=v1, test-node=v1,
@@ -3374,8 +3373,10 @@ Each vector of the group has the member `values`, and no vector has the
 member `result`; these forms name no question for `result`. The group
 uses no need, so these forms give no need names.
 
-Inside `input` and `values`, this schema uses the JSON forms that
-`markdown-vector` defines.
+Inside the members `input` and `values`, each JSON value that this
+schema names as a text, a whole number, a run, a position, a path set, a
+binding of `external-namespaces`, or a tree has the form that
+`markdown-vector` gives for it.
 
 - `input`: a JSON object with three members. `files` is the tree.
   `external-namespaces` is a binding of `external-namespaces`.
@@ -3438,6 +3439,10 @@ Inside `input` and `values`, this schema uses the JSON forms that
     code text of the attachment target to which it attaches; and
     `code-hash`, its code hash.
 
+  The rules that `markdown-vector` gives for the members of `values`,
+  their order, their indexes, and their files hold for `tests` and
+  `code-hashes` too.
+
 A name path is a JSON array of its own names, in their order. An own
 name is a JSON array of its pieces, in their order. A text piece is the
 JSON object `{"text":t}` and a placeholder is the JSON object
@@ -3449,10 +3454,13 @@ these path sets, whose reader is `markdown` where the input gives
 and foreign tag words and give these readings of these texts at these
 valid paths.
 
-For the input of a vector, a conforming program gives what
-`markdown-vector` states for each member of `values` that
-`markdown-vector` defines. When `values` is `{}`, it also gives no test,
-no code text, and no code hash for the tree. Otherwise:
+For the input of a vector, a conforming program that reads the tree
+under a binding of `file-readers` that the input stands for, its binding
+of `external-namespaces`, and the empty set of stopped files gives what
+`values` states. For each member of `values` that `markdown-vector`
+defines, it gives what `markdown-vector` states. When `values` is `{}`,
+it also gives no test, no code text, and no code hash for the tree.
+Otherwise:
 
 - When it gives the tests or the code hashes, it gives one for each
   element of `tests` or `code-hashes`, with what that element states,
