@@ -473,8 +473,9 @@ sign off code that you did not review.
   the step's heading: a few lines each, for a decision taken, an
   approach that failed and why, a deviation from the step's design,
   or an item left for later. Revise the entries before the pull
-  request opens, and ship them in it
-  (`docs/decisions/plan-journals.md`).
+  request is ready for review: before you mark a draft ready, or before
+  you open a pull request that is not a draft. Ship the entries in the
+  pull request (`docs/decisions/plan-journals.md`).
 - Ask a design question in a GitHub issue, with the options and their
   costs. The maintainer rules; the ruling is then carried out in a
   pull request.
