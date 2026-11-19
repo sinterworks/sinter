@@ -121,10 +121,10 @@ forms of a group; and the meaning of a vector.
 | [revision of an item](sinter:#item-revision=v2) | a label that an item has, which names the revised content that the item has with that label in a given tree |
 | [edge](sinter:#edge=v2) | a relation of one kind of edge from its source to its cited item, which a citation entry, an inline citation, or a vector line gives; an edge has at most one source and at most one cited item |
 | [kind of edge](sinter:#edge=v2) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
-| [be for](sinter:#edge=v2) | a kind of edge is for some kinds of item as its source and as its cited item; an edge says what its kind of edge says when, and only when, its source and its cited item are of those kinds |
+| [be for](sinter:#edge=v2) | a kind of edge is for some kinds of item as its source and as its cited item, and these kinds can depend on whether a citation entry, an inline citation, or a vector line gives the edge; an edge says what its kind of edge says when, and only when, its source and its cited item are of those kinds |
 | [stand in](sinter:#edge-source=v1) | a line of a file of a tree, a citation, or an inline citation stands in the innermost declared item of which it is a part; otherwise in the innermost test such that a comment on that test has it; otherwise in the site that has it; otherwise in no item |
 | [source](sinter:#edge=v2) | the item in which the citation or the inline citation of an edge stands, or, for an edge that a vector line gives, the group of conformance vectors of that vector line; an edge whose citation or inline citation stands in no item has no source |
-| [cited item](sinter:#edge=v2) | the item that the citation entry, the inline citation, or the form of the vector line of an edge names |
+| [cited item](sinter:#edge=v2) | the item that the citation entry or the inline citation of an edge names, or, for an edge that a vector line gives, the item that the form of that vector line names and that the specification of its vector set holds, or that the design of its vector set holds directly |
 | [pinned edge](sinter:#pinned-edge=v2) | an edge whose citation entry or inline citation has a label as its revision, or an edge that a vector line gives |
 | [work item](sinter:#work-item=v1) | a task or a plan |
 | [work item id](sinter:#work-item=v1) | the id of a work item, which never changes and which names exactly one work item |
@@ -755,18 +755,25 @@ entry or the inline citation names no item in that tree, the edge has no
 cited item in that tree. Each vector line of a vector set in a tree also
 gives one edge, whose kind of edge is `cites`. The source of that edge
 in that tree is the group of conformance vectors of that vector set
-whose name is the group of that vector line. When the vector set is of
-an item of the kind design, or of an item of the kind specification that
-belongs to an item of the kind design, the cited item of that edge in
-that tree is the declared item in that tree whose name is the name of
-that item of the kind design, `#`, and the schema part name of the form
-of that vector line; when no declared item in that tree has that name,
-or when the vector set is of an item of the kind specification that
-belongs to no item of the kind design, that edge has no cited item in
-that tree. A kind of edge is for some kinds of item as its source and as
-its cited item. An edge says what its kind of edge says when, and only
-when, its source and its cited item are of those kinds; another edge of
-that kind says nothing.
+whose name is the group of that vector line. For an edge that a vector
+line of a vector set gives in a tree, an item x is the cited item of
+that edge in that tree when each of these three conditions holds:
+
+- the vector set is of an item of the kind specification S that belongs
+  to an item of the kind design D in that tree, or the vector set is of
+  an item of the kind design D;
+- the name n, which is the name of D, `#`, and the schema part name of
+  the form of that vector line, names x in that tree, as a citation
+  entry with the name n names an item in that tree;
+- the vector set is of S and S holds x in that tree, or the vector set
+  is of D and D holds x directly in that tree.
+
+In every other case, that edge has no cited item in that tree. A kind of
+edge is for some kinds of item as its source and as its cited item, and
+these kinds can depend on whether a citation entry, an inline citation,
+or a vector line gives the edge. An edge says what its kind of edge says
+when, and only when, its source and its cited item are of those kinds;
+another edge of that kind says nothing.
 
 ### 3.26 Where lines and citations stand
 
@@ -864,12 +871,12 @@ A `verifies` edge says that its source checks code. The kind of edge
 `verifies` is for a test as its source, and for an item of the kind
 requirement, a schema, a group of conformance vectors, or a vector set
 as its cited item. When its cited item is an item of the kind
-requirement or a schema, the edge says that the code that the source
-runs meets that item. When its cited item is a group of conformance
-vectors or a vector set, the edge says, of each conformance vector in
-it, that the code that the source runs gives what that conformance
-vector says that a conforming program of its specification or its design
-gives, which is nothing when that conformance vector says no vector.
+requirement, the edge says that the code that the source runs meets that
+item. When its cited item is a group of conformance vectors or a vector
+set, the edge says, of each conformance vector in it, that the code that
+the source runs gives what that conformance vector says that a
+conforming program of its specification or its design gives, which is
+nothing when that conformance vector says no vector.
 
 ### 3.31 Edges of the kind `refines`
 
