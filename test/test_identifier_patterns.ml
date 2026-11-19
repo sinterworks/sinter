@@ -76,7 +76,10 @@ let fit_vectors = Vectors.group set ~name:"fit" ~rev:"v1" give_fit
 (* @verifies identifiers[bindings][*]=v1 *)
 let binding_vectors = Vectors.group set ~name:"bindings" ~rev:"v1" give_binding
 
-(* @verifies identifiers#{reject-unmatched-id-patterns=v1, reject-oversized-id-patterns=v1} *)
+(* @verifies identifiers#{reject-unmatched-id-patterns=v1, accept-inputs=v1}
+   Each id pattern gives the error that the interface states for it: a text
+   that does not match the production pattern, or a text beyond one of the
+   program's own limits on the length, a count, and the size. *)
 let id_pattern_errors () =
   List.iter
     (fun (pattern, want) ->
@@ -500,7 +503,10 @@ let pattern_bytes_gen =
             "~";
           ]))
 
-(* @verifies identifiers#{reject-long-id-patterns=v1, reject-empty-id-fit=v1} *)
+(* @verifies identifiers#{accept-inputs=v1, reject-empty-id-fit=v1}
+   Every text gives an id pattern or an error. An accepted id pattern keeps
+   its text, holds 1,000 characters at most, which is the program's own limit
+   on the length, and the empty id does not fit it. *)
 let id_pattern_answers_every_text =
   property ~count:2000
     ~name:

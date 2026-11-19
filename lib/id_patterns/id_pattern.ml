@@ -85,13 +85,17 @@ let parse text =
           | _ -> (value, i)
         in
         let value, i = digits i 0 in
-        (* @satisfies identifiers#reject-large-counts=v1 *)
+        (* @satisfies identifiers#accept-inputs=v1
+           The program's own limit on a count: a count above 255 makes the id
+           pattern invalid, so the size and the automaton stay small. *)
         if value > 255 then flags.large_count <- true;
         (value, i)
     | _ -> raise No_match
   in
   let expect c i = if peek i = Some c then i + 1 else raise No_match in
-  (* @satisfies identifiers#reject-oversized-id-patterns=v1 *)
+  (* @satisfies identifiers#accept-inputs=v1
+     The program's own limit on the size: each quantifier gives the number of
+     copies of its element that the size counts. *)
   let quantifier i =
     match peek i with
     | Some '?' -> (0, Some 1, 1, i + 1)
@@ -174,7 +178,9 @@ let size_cap =
     "the size is only compared with 1,000, so every cap above 1,000 gives the \
      same results"])
 
-(* @satisfies identifiers#reject-oversized-id-patterns=v1 *)
+(* @satisfies identifiers#accept-inputs=v1
+   The program's own limit on the size: these functions compute the size of
+   an id pattern, and a size above 1,000 makes the id pattern invalid. *)
 let rec size_of_branches branches =
   List.fold_left
     (fun total b -> min size_cap (total + size_of_branch b))
@@ -259,7 +265,9 @@ let in_alphabet = function
 (* @satisfies identifiers#accept-inputs=v1 *)
 let of_string text =
   if not (String.for_all in_alphabet text) then Error Unmatched
-    (* @satisfies identifiers#reject-long-id-patterns=v1 *)
+    (* @satisfies identifiers#accept-inputs=v1
+       The program's own limit on the length: an id pattern of more than 1,000
+       characters is invalid. *)
   else if String.length text > 1000 then Error Too_long
   else
     match parse text with
