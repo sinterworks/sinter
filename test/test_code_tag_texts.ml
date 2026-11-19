@@ -954,7 +954,6 @@ let reference_blocks tag_text =
               (fun (input : Tag_line.input) ->
                 input.first_line < k && k <= input.last_line)
               inputs;
-          blank = File_lines.is_blank line_text;
         })
   in
   R.blocks kinds
@@ -986,6 +985,22 @@ let no_two_blocks_share_a_line =
       in
       ok blocks)
 
+let long_prose n =
+  "@req a=v1" :: List.init n (fun k -> if k mod 2 = 0 then "" else "Text.")
+
+let many_blocks n =
+  List.init n (fun k -> if k mod 2 = 0 then "@req a=v1" else "")
+
+let blocks_grow_linearly () =
+  List.iter
+    (fun shape ->
+      let input n = tag_text_of_lines (shape n) in
+      let of_tag_text = Block.of_tag_text Binding.empty in
+      Counted_work.check_growth ~margin:1.5 ~sizes:(500, 2000) ~input
+        of_tag_text;
+      Time_growth.check ~bound:10. ~size:500 ~input of_tag_text)
+    [ long_prose; many_blocks ]
+
 let block_cases () =
   let check what lines expected =
     Alcotest.(check (list (pair int int)))
@@ -994,15 +1009,15 @@ let block_cases () =
          (fun { Block.first_line; last_line } -> (first_line, last_line))
          (Block.of_tag_text Binding.empty (tag_text_of_lines lines)))
   in
-  check "tag lines and their trailing prose up to a blank line"
+  check "tag lines and their trailing prose over a blank line"
     [ "@req a=v1"; "@req b=v1"; "Text."; "More."; ""; "After." ]
-    [ (1, 4) ];
+    [ (1, 6) ];
   check "a line before the first tag line is in no block"
     [ "Intro."; "@req a=v1"; "Text." ]
     [ (2, 3) ];
-  check "a line after a blank line after a block is in no block"
+  check "a blank line and the line after it are trailing prose"
     [ "@req a=v1"; ""; "Later." ]
-    [ (1, 1) ];
+    [ (1, 3) ];
   check "a tag line after trailing prose starts a new block (a known limit)"
     [ "@req a=v1"; "Text."; "@req b=v1"; "More." ]
     [ (1, 2); (3, 4) ];
@@ -1012,10 +1027,10 @@ let block_cases () =
     [ (1, 4) ];
   check "a tag line after a blank line starts a block"
     [ "@req a=v1"; ""; "@req b=v1" ]
-    [ (1, 1); (3, 3) ];
-  check "a line with spaces only ends trailing prose"
+    [ (1, 2); (3, 3) ];
+  check "a line with spaces only is trailing prose"
     [ "@req a=v1"; "Text."; "  "; "More." ]
-    [ (1, 2) ];
+    [ (1, 4) ];
   check "a tag line with spaces before its @" [ "  @req a=v1"; "Text." ]
     [ (1, 2) ];
   check "no block in an empty tag text" [] []
@@ -1503,6 +1518,8 @@ let tests =
     blocks_follow_the_term;
     no_two_blocks_share_a_line;
     Alcotest.test_case "blocks of tag texts" `Quick block_cases;
+    Alcotest.test_case "the blocks of a tag text grow linearly" `Quick
+      blocks_grow_linearly;
     Alcotest.test_case "files that can be read and files that cannot" `Quick
       readable_file_cases;
     read_is_total;

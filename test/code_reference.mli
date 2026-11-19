@@ -64,7 +64,7 @@ val tag_text_lines :
     run of comments [run] joins, or [None] when it has no tagged comment node.
 *)
 
-type line_kind = { tag : bool; continuation : bool; blank : bool }
+type line_kind = { tag : bool; continuation : bool }
 (** What a line of a tag text is. *)
 
 val blocks : line_kind list -> (int * int) list

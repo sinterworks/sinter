@@ -278,7 +278,7 @@ let tag_text_lines sigils text nodes run =
          (fun k -> comment_lines sigils text (List.nth nodes k).run)
          tagged)
 
-type line_kind = { tag : bool; continuation : bool; blank : bool }
+type line_kind = { tag : bool; continuation : bool }
 
 let blocks kinds =
   let kinds = Array.of_list kinds in
@@ -291,10 +291,7 @@ let blocks kinds =
     if j < n && (kinds.(j).tag || kinds.(j).continuation) then extend (j + 1)
     else j
   in
-  let rec trail j =
-    if j < n && (not kinds.(j).tag) && not kinds.(j).blank then trail (j + 1)
-    else j
-  in
+  let rec trail j = if j < n && not kinds.(j).tag then trail (j + 1) else j in
   List.filter_map
     (fun k ->
       if starts k then
