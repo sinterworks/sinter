@@ -265,6 +265,22 @@ let other_characters_are_not_blank () =
       0x1F600;
     ]
 
+(* @verifies identifiers#{accept-inputs=v1, reject-blank-link-text=v1}
+   The plain string content of an autolink is its text between < and >. The
+   text of a URI autolink starts with a scheme of ASCII letters, and the text of
+   an email autolink holds an @, so the text holds a character that is not
+   blank. A link text that holds an autolink is therefore not blank, and the
+   inline citation is valid. The autolink is a link of its own, and its
+   destination does not start with sinter:. *)
+let autolinks_in_link_text_are_not_blank () =
+  List.iter
+    (fun autolink ->
+      let markdown = Printf.sprintf "[%s](sinter:docs=v1)" autolink in
+      check_json markdown
+        (`List [ docs autolink; not_citation ])
+        (`List (link_results standard_binding markdown)))
+    [ "<https://example.com>"; "<a@example.com>" ]
+
 let link_runs_cover_the_link_in_the_text () =
   let runs string =
     List.map
@@ -556,6 +572,8 @@ let tests =
         blank_link_text_is_invalid;
       Alcotest.test_case "other characters are not blank" `Quick
         other_characters_are_not_blank;
+      Alcotest.test_case "an autolink in link text is not blank" `Quick
+        autolinks_in_link_text_are_not_blank;
       Alcotest.test_case "the run of a link covers it in the text" `Quick
         link_runs_cover_the_link_in_the_text;
       Alcotest.test_case "an inline target gives its values" `Quick
