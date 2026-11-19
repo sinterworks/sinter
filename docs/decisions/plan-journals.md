@@ -2,8 +2,8 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Record how each plan step was carried out in the plan's journal
-@decision plan-journals
-The agent that carries out a plan step writes brief entries in the plan's journal as it works, the entries are revised before the step's pull request opens, and the journal ships with the step.
+@decision plan-journals v2
+The agent that carries out a plan step writes brief entries in the plan's journal as it works, the entries are revised before the step's pull request is ready for review, and the journal ships with the step.
 
 ## Context
 
@@ -18,6 +18,10 @@ request description holds only the step and the records it adds
 (record `pull-request-descriptions`), so it does not carry this
 either.
 
+A contributor can open a pull request as a draft, so that CI runs on
+the work before the work is complete. A reviewer reads a pull request
+when it is ready for review.
+
 ## Decision
 
 - The agent that carries out a plan step appends entries to the
@@ -25,10 +29,11 @@ either.
   lines that state one pertinent fact, such as a decision taken, an
   approach that failed and why, a deviation from the design that was
   fixed for the step, or an item left for later.
-- Before the step's pull request opens, the entries are revised: wrong
-  or superseded entries are corrected, and the entries are cut to what
-  a later reader needs. The journal change ships in the step's pull
-  request.
+- Before the step's pull request is ready for review, the entries are
+  revised: wrong or superseded entries are corrected, and the entries
+  are cut to what a later reader needs. A draft is ready when it is
+  marked ready; a pull request that is not a draft is ready when it
+  opens. The journal change ships in the step's pull request.
 - Sinter joins each plan step with the journal entries for the step.
   A view of a plan shows the step and its promises, and shows the
   journal entries only on request. This part is on the roadmap and is
@@ -36,8 +41,18 @@ either.
 
 ## Alternatives considered
 
-None were put forward. The three parts were proposed together and
-adopted together.
+No alternatives to the three parts were put forward; the three parts
+were proposed together and adopted together. For the moment when the
+entries are revised, two alternatives were put forward with the
+maintainer:
+
+- **Revise before the pull request opens.** Not chosen: a draft that
+  opens early for CI holds a journal of work that is not complete, so
+  the entries would need a second revision.
+- **Keep "before the pull request opens" in this record, and name an
+  exception for early drafts in a contributor's own working rules.**
+  Not chosen: every contributor who opens an early draft meets the same
+  case, so the rule belongs here.
 
 ## Consequences
 
