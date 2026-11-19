@@ -223,10 +223,10 @@ Install that release instead, and take the pin out of this section and
 out of the `coverage` job. That job pins the same commit, for the same
 reason.
 
-`contributing/coverage.md` says how to measure the coverage on your
+`docs/contributing/coverage.md` says how to measure the coverage on your
 machine. CI measures it with the same commands on `ubuntu-26.04` and
-fails below the minimum that the `coverage` job sets. That job holds
-the number. A change does not lower the coverage.
+fails below the minimum that the `coverage` job sets. That job holds the
+number. A change does not lower the coverage.
 
 ### Mutation testing
 
@@ -258,8 +258,8 @@ dependency of the package. The install changes no version that the
 lock file pins. A move of the pin is a pull request of its own that
 names the new commit.
 
-`contributing/mutation-testing.md` says how to run a pass on the whole
-tree or on a branch, what each command and option does, how the
+`docs/contributing/mutation-testing.md` says how to run a pass on the
+whole tree or on a branch, what each command and option does, how the
 `mutation` job splits a pass into parts, how to test a survivor again
 under the seeds of a run, and the rules for running a pass.
 
@@ -352,10 +352,10 @@ dune build @bench
 dune build @bench-large
 ```
 
-`contributing/performance.md` says what the run measures, which phases
-each command has, how to compare two builds, and how the CI job finds
-its baseline. The words of a phase are the words of memory that the
-OCaml runtime allocates in that phase.
+`docs/contributing/performance.md` says what the run measures, which
+phases each command has, how to compare two builds, and how the CI job
+finds its baseline. The words of a phase are the words of memory that
+the OCaml runtime allocates in that phase.
 
 `bench/budgets.toml` holds one budget for each command, the growth
 limit (`docs/decisions/performance-budgets.md`). The growth of a phase
@@ -378,9 +378,8 @@ sees it.
 ## New files
 
 A new file under `lib/`, `bin/`, `bridge/`, `test/`, `spec/`,
-`docs/`, `contributing/`, or `.github/` needs an SPDX header with the
-license of its directory, and the line
-`Copyright <year> The Sinter Authors`:
+`docs/`, or `.github/` needs an SPDX header with the license of its
+directory, and the line `Copyright <year> The Sinter Authors`:
 
 <!-- REUSE-IgnoreStart -->
 - OCaml: `(* SPDX-License-Identifier: Apache-2.0 *)`
@@ -390,8 +389,6 @@ license of its directory, and the line
 - YAML, TOML, and shell: `# SPDX-License-Identifier: Apache-2.0`
 - Markdown in `spec/` and `docs/`:
   `<!-- SPDX-License-Identifier: CC-BY-4.0 -->`
-- Markdown in `contributing/`:
-  `<!-- SPDX-License-Identifier: Apache-2.0 -->`
 <!-- REUSE-IgnoreEnd -->
 
 Four kinds of file carry no header, and `REUSE.toml` gives each the
@@ -491,12 +488,11 @@ rule that the change adds, with what it decides in a few words. It
 holds nothing else (`docs/decisions/pull-request-descriptions.md`).
 
 Before you open a pull request that touches `lib/` or `bin/`, run the
-mutation pass on your branch with `--changed-since origin/main`, as
-"A pass on a branch" in `contributing/mutation-testing.md` says, and
-read every survivor. The `mutation`
-job makes the same pass on the pull request, and its result does not
-hold the merge, so the pass on your machine is the one that catches a
-gap before a reviewer sees it.
+mutation pass on your branch with `--changed-since origin/main`, as "A
+pass on a branch" in `docs/contributing/mutation-testing.md` says, and
+read every survivor. The `mutation` job makes the same pass on the pull
+request, and its result does not hold the merge, so the pass on your
+machine is the one that catches a gap before a reviewer sees it.
 
 A review comment names an example of a defect, not its only instance.
 When you address a comment, find and fix every instance of the same

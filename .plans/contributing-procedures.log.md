@@ -12,3 +12,10 @@
   revision rose to v5.
 - Left for later: the guide does not say whether the author of a
   dependency update runs a local mutation pass first.
+
+## Move the procedures into docs
+
+- The procedures move to `docs/contributing/` and take the license of
+  `docs/`, CC-BY-4.0, so that the license rule of the repository keeps
+  no exception. Every commit to the moved text has one contributor of
+  record, who chose the license.
