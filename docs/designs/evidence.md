@@ -1343,8 +1343,9 @@ whether a `verifies` promise is kept in a tree that has evidence, it
 must give with it, once for each test that is the source of an edge of
 the tree that is such an edge for that promise as the term `promise` of
 the Ontology states, the outcome of that test in the evidence for that
-tree and each source of that outcome once, and it must give no outcome
-and no source for another test with it.
+tree, which is "passed", "failed", or "not run", and each source of that
+outcome once, and it must give no outcome and no source for another test
+with it.
 
 ### 4.13 Nothing from evidence with a stopped reading
 
