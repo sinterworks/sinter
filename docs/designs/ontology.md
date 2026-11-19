@@ -80,7 +80,7 @@ forms of a group; and the meaning of a vector.
 | [revision of a citation entry](sinter:#pinned-edge=v2), [revision of an inline citation](sinter:#pinned-edge=v2) | the label, or `*`, that a citation entry, or the destination of an inline citation, carries after `=`, such as `v2` in `billing#limit-amount=v2` and `v3` in `docs=v3#*`; `*` stands for any label |
 | [external id](sinter:identifiers#external-id=v1) | a namespace name, such as `gh`, `/`, and an id, such as `42`, as in `gh/42`; a binding of the parameter `external-namespaces` gives the namespace names; an external id names an external item |
 | [`every-part`](sinter:identifiers#citation-line=v2) | the production that matches a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
-| [declared item](sinter:#declared-item=v2) | what a declaration declares, for a declaration that Identifiers accepts: an item of the kind design, specification, schema, requirement, atom, term, or decision record; it takes up a part of one file of a tree, and that part has its declaration |
+| [declared item](sinter:#declared-item=v2) | what a declaration declares, for a declaration for which a conforming program of Identifiers gives the result "valid": an item of the kind design, specification, schema, requirement, atom, term, or decision record; it takes up a part of one file of a tree, and that part has its declaration |
 | [item of the kind design](sinter:#declared-item=v2) | a declared item whose declaration word is `@design`; it is a design |
 | [item of the kind specification](sinter:#declared-item=v2) | a declared item whose declaration word is `@spec`; it declares one specification of the design of which it is a part |
 | [item of the kind requirement](sinter:#declared-item=v2) | a declared item whose declaration word is `@req`; it declares one requirement of the design of which it is a part |
@@ -90,7 +90,7 @@ forms of a group; and the meaning of a vector.
 | [schema](sinter:#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [atom](sinter:#atom=v1) | a declared item whose declaration word is `@atom`; it defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | [term](sinter:#term=v2) | a declared item whose declaration word is `@term`; it says what one word or one fixed phrase means, gives a form, or defines a computed value |
-| normative | giving the form of a thing, saying what a conforming program must do, defining a named verdict with its condition, or saying what a word, a form, or a computed value is; only schemas, requirements, atoms, and terms are normative |
+| normative | giving the form of a thing, saying what a conforming program must do, defining a named verdict with its condition, or saying what one word or one fixed phrase means, giving a form, or defining a computed value; only schemas, requirements, atoms, and terms are normative |
 | [decision record](sinter:#decision-record=v1) | a declared item whose declaration word is `@decision`; it records one standing practice of a repository, or one choice with its reason |
 | [finding](sinter:#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:#finding-class=v1) | a kind of finding, which a slug names |
@@ -99,7 +99,7 @@ forms of a group; and the meaning of a vector.
 | [hold directly](sinter:#containment=v2) | an item of the kind design holds a schema, an item of the kind requirement, an atom, or a term directly when that item belongs to it and to no item of the kind specification |
 | [name of a declared item](sinter:#item-name=v2) | for an item of the kind design or a decision record, the name in the target of its declaration, which is a slug, such as `billing`; for an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term, the name in the target of its declaration, except when that name is one segment and the item belongs to an item of the kind design: then the name of that item of the kind design, `#`, and that segment, such as `billing#amount` |
 | [same item](sinter:#same-item=v2) | of two items of two trees: they are one item, such as two declared items with the same kind of item and the same name |
-| [conformance vector](sinter:#conformance-vector=v2) | what one vector line of a vector set gives; when the object of its vector line states a vector of the specification or the design of the vector set, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
+| [conformance vector](sinter:#conformance-vector=v2) | the thing whose vector line is one vector line of a vector set; when the object of its vector line states a vector of the specification or the design of the vector set, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
 | [vector line of a conformance vector](sinter:#conformance-vector=v2) | one vector line of a vector set; each vector line of a vector set is the vector line of one conformance vector, and a vector set has no other conformance vector |
 | [vector set](sinter:#vector-set=v2) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [form pin](sinter:data-forms#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names a definition and a label of it |
@@ -158,7 +158,7 @@ forms of a group; and the meaning of a vector.
 | [subject of approval](sinter:#subject-of-approval=v2) | a unit that a person approves, or that the merge approves, as a whole |
 | [kind of subject of approval](sinter:#subject-of-approval=v2) | which of seven units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the schemas, the items of the kind requirement, the atoms, and the terms that it holds, a schema that an item of the kind design holds directly, an item of the kind requirement that an item of the kind design holds directly, an atom that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
 | [subject of approval of a declared item](sinter:#subject-of-approval=v2) | for an item of the kind design, an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for a schema, an item of the kind requirement, an atom, or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification |
-| [parameter](sinter:#parameter=v2), [binding of a parameter](sinter:#parameter=v2) | a parameter is a word, such as `external-namespaces`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for the parameter; when a design declares a schema for a parameter, a binding of that parameter is valid when it meets that schema; a binding of the parameter `external-namespaces` is a [binding](sinter:identifiers#external-namespaces=v1) as Identifiers defines it |
+| [parameter](sinter:#parameter=v2), [binding of a parameter](sinter:#parameter=v2) | a parameter is a word, such as `external-namespaces`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for the parameter; when a design declares a schema whose part name is the name of a parameter, a binding of that parameter is valid when, and only when, it meets that schema; a binding of the parameter `external-namespaces` is a [binding](sinter:identifiers#external-namespaces=v1) as Identifiers defines it |
 | process | one execution of a program |
 | standard input, arguments, environment | the standard input, the command-line arguments, and the environment variables of a process |
 | [judgment](sinter:#judgment=v1) | a ledger entry that records a decision of a person, such as an approval |
@@ -238,8 +238,8 @@ that item of the kind requirement in two commits (terms `item-name` and
 
 A decision record, such as the record `code-comments`, records one
 standing practice of a repository or one choice with its reason, and a
-finding reports one condition of one finding class at one part of a
-repository (terms `decision-record` and `finding-class`).
+finding is a report of one condition at one part of a repository (terms
+`decision-record` and `finding-class`).
 
 ### 2.6 Conformance vectors
 
@@ -270,9 +270,10 @@ test runners says which tests passed and which failed (terms `test`,
 
 A citation entry or an inline citation gives an edge of one kind of
 edge, such as `verifies`, from the item in which it stands to the item
-that it names (terms `edge`, `edge-source`, `cites-edge`,
-`satisfies-edge`, `verifies-edge`, `refines-edge`, and
-`supersedes-edge`).
+that it names, and a vector line gives a pinned `cites` edge from its
+group of conformance vectors (terms `edge`, `edge-source`,
+`pinned-edge`, `cites-edge`, `satisfies-edge`, `verifies-edge`,
+`refines-edge`, and `supersedes-edge`).
 
 For example, the edge of `@supersedes docs=v3#*` in the tag lines of
 the design `media` says that `media` is to replace the design `docs`,
@@ -539,7 +540,8 @@ is this:
 In a tree, each item of the kind design and each item of the kind
 specification has at most one vector set: the test-vector set of that
 item in that tree, when the tree has one, whether or not a definition
-gives the forms of a group for each of its groups.
+that the item declares gives the forms of a group for each of its
+groups.
 
 ### 3.16 Conformance vectors
 
@@ -1408,16 +1410,16 @@ of a ledger, when, and only when, one of these is true at that point:
 
 @term parameter=v2
 @cites {
-    text#{design=v1}, identifiers#{external-namespaces=v1},
+    text#{design=v1}, identifiers#{external-namespaces=v1, part-name=v1},
     #{schema=v1},
 }
 
 A parameter is a word, such as `external-namespaces`, whose value a
 design leaves open. A binding of a parameter is a value that
 configuration gives for the parameter. When a design declares a schema
-for a parameter, a binding of that parameter is valid when, and only
-when, it meets that schema. A binding of the parameter
-`external-namespaces` is a binding as Identifiers defines it.
+whose part name is the name of a parameter, a binding of that parameter
+is valid when, and only when, it meets that schema. A binding of the
+parameter `external-namespaces` is a binding as Identifiers defines it.
 
 ### 3.62 State inputs
 
