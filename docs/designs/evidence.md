@@ -2,15 +2,15 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Test evidence
-@design evidence=v1
+@design evidence=v2
 @cites text=v1
-@cites identifiers=v1
+@cites identifiers=v2
 @cites files=v1
-@cites data-forms=v1
-@cites ontology=v1
+@cites data-forms=v2
+@cites ontology=v2
 @cites packs=v1
 @cites findings=v1
-@cites documents=v1
+@cites documents=v2
 @cites w3c/rec-xml-20081126
 @cites rfc/5234
 @cites rfc/7405
@@ -20,7 +20,7 @@ reports and the default reader of JUnit XML with the data of a runner,
 the readings of report files and their test entries, the tests that a
 test result names and narrowings, the outcomes of tests in an import and
 in the evidence for a tree with the suite rule, the sources of outcomes,
-the verified conformance vectors, the finding classes `never-ran`,
+the verified groups of conformance vectors, the finding classes `never-ran`,
 `failed`, `ambiguous-result`, and `unverified-vector`, and requirements
 for conforming programs that read report files and give outcomes,
 sources, and these findings.
@@ -56,11 +56,13 @@ citation entries, id patterns, the fit of a text to an id pattern, and
 the bindings of `external-namespaces` with the results that a conforming
 program of Identifiers gives for them. From Files and paths, it takes
 valid paths and their file names. From Data forms, it takes hashes; TOML
-values; hex texts; and vector lines. From the Ontology, it takes trees,
-tests, test results and test evidence, edges with their sources and
-cited items, the edges of the kind `verifies`, the names of items, items
-in force, the ledger, conformance vectors, groups of conformance
-vectors, vector sets, promises, and finding classes. From Language
+values; hex texts; and, from its specification `test-vectors`, vector
+lines, the forms of groups, and the meaning of vectors. From the
+Ontology, it takes trees, tests, test results and test evidence, edges
+with their sources and cited items, the edges of the kind `verifies`,
+declared items and schemas, parameters, the names of items, items in
+force, the ledger, conformance vectors, groups of conformance vectors,
+vector sets, promises, and finding classes. From Language
 packs, it takes valid packs and valid descriptors, test runners with
 their adapter hashes, match tables, and runner settings; the bindings of
 `runner-settings`; the readings of texts, test nodes with their kinds
@@ -94,31 +96,31 @@ literal names `true` and `false`.
 | [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for it; a tree has evidence when it has at least one |
 | [JUnit XML report](sinter:#junit-report=v1) | a report content that is a well-formed XML document in UTF-8 or UTF-16, with no document type declaration, whose root element is `testsuites` or `testsuite` |
 | [suite element](sinter:#junit-report=v1), [case element](sinter:#junit-report=v1) | in a JUnit XML report, a `testsuite` element that is the root, a child of the root `testsuites`, or a child of a suite element; a `testcase` element whose parent is a suite element |
-| [data of a runner](sinter:#runner-data=v1) | the values of a closed set of keys for a test runner with a match table, from its runner settings, from its match table, or from defaults; it can be valid or not |
+| [data of a runner](sinter:#runner-data=v2), [value of a key](sinter:#runner-data-value=v1) | the values of a closed set of keys for a test runner with a match table, from its runner settings, from its match table, or from defaults; it can be valid or not |
 | default reader | the reader of JUnit XML reports that a conforming program uses for the report files of a test runner with a match table: what it gives is the default recognition and the default reading |
-| [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
-| [name part of a test result](sinter:#case-result=v1) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
+| [test results of a JUnit XML report](sinter:#case-result=v2) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
+| [name part of a test result](sinter:#case-result=v2) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
 | [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when it has path parts, and the shorter of its path parts and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the shorter |
-| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
-| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
-| [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
-| [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
-| [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
-| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
-| [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
-| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
+| [patterns of a test entry](sinter:#name-pattern=v2) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
+| [match a pattern](sinter:#pattern-match=v2) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
+| [default recognition](sinter:#default-recognition=v2) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
+| [default reading](sinter:#default-reader-result=v2) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
+| [result link](sinter:#reading-of-a-report-file=v2) | a pair of a test result and a test entry that a reading gives with the result "bound" |
+| [test entries of a reading](sinter:#reading-entry=v2) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
+| [reading of a report file](sinter:#reading-of-a-report-file=v2) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
+| [test results of an import](sinter:#linked-test=v2), [linked](sinter:#linked-test=v2) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
-| [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
-| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
-| [verified](sinter:#verified-vector=v1) | a conformance vector is verified when it says a vector and a test with a `verifies` edge to the vector, to its group, or to its vector set has the outcome "passed" in the evidence for the tree |
-| [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a conformance vector, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
-| [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, of a conformance vector of an item that is in force in the tree at the end of the ledger, when the vector says a vector and is not verified |
+| [outcome in an import](sinter:#import-outcome=v2) | "passed", "failed", or "not run": what the test results of one import say of a test |
+| [outcome in the evidence for a tree](sinter:#tree-outcome=v2) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
+| [sources of an outcome](sinter:#outcome-source=v2) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
+| [verified](sinter:#verified-vector=v2) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
+| [`never-ran`](sinter:#never-ran-finding=v2), [`failed`](sinter:#failed-finding=v2) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
+| [`ambiguous-result`](sinter:#ambiguous-result-finding=v2) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v2) | the finding class, for a tree that has evidence, of a group of conformance vectors of an item that is in force in the tree at the end of the ledger, when the group has at least one conformance vector that says a vector and is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -188,9 +190,10 @@ reader from files and networks that a report content names.
 
 A test runner of a language pack that has no adapter of its own has a
 match table in the descriptor of its pack. The default reader reads the
-report files of such a test runner with the data of the runner (term
-`runner-data`). The term gives the keys of the data, the value of each
-key, and when the data is valid. A pack can make a key a runner setting,
+report files of such a test runner with the data of the runner (schema
+`runner-data` and term `runner-data-value`). The schema gives the keys
+of the data and when the data is valid, and the term gives the value of
+each key. A pack can make a key a runner setting,
 such as `recognise`, so that a binding of `runner-settings` in a project
 can change it. For example, this is the data of vitest in a TypeScript
 pack:
@@ -289,10 +292,10 @@ is a test suite. The report has one case element with the name
 
 ### 2.6 Readings of report files
 
-The reading of a report file of an import (term
+The reading of a report file of an import (atom
 `reading-of-a-report-file`) is the call of the function bind of the
 adapter of its test runner, as Language packs defines it, or the default
-reading, for a test runner with a match table. The term gives its
+reading, for a test runner with a match table. The atom gives its
 result: "bound", with test results and result links; "unreadable", with
 no test result, such as for a report file that a job of continuous
 integration cut short when it ended early; or "stopped". A program may
@@ -358,8 +361,8 @@ failed when a test result that names `limits` itself, or `small`, or
 `describe` block that holds only an empty `describe` block, never
 passes.
 
-The outcome of a test in an import (term `import-outcome`) is "passed",
-"failed", or "not run". Each import counts alone: by the term
+The outcome of a test in an import (atom `import-outcome`) is "passed",
+"failed", or "not run". Each import counts alone: by the atom
 `tree-outcome`, a test passed in the evidence for a tree when it passed
 in one or more imports, even when it failed in another. A test with two
 test results that say passed and one with the status `skip` passed. A
@@ -381,25 +384,25 @@ narrowing that stands for that pair. When the program gives whether a
 promise takes, that outcome and its sources (requirement
 `give-promise-sources`).
 
-### 2.10 Verified conformance vectors
+### 2.10 Verified groups of conformance vectors
 
-A test with a `verifies` edge to a conformance vector, to a group of
-conformance vectors, or to a vector set can make the conformance vectors
-that it cites verified (term `verified-vector`). Skips of vectors inside
-such a test are not visible in a report file: the pass counts for each
-vector. For example, the test `test_offsets` with `@verifies
-data-forms#toml[offsets][*]=v2` has the outcome "passed", so each
-conformance vector of the group `offsets` that says a vector is
-verified.
+A test with a `verifies` edge to a group of conformance vectors or to a
+vector set can make the groups of conformance vectors that it cites
+verified (term `verified-vector`). Skips of vectors inside such a test
+are not visible in a report file: the pass counts for the group. For
+example, the test `test_offsets` with `@verifies
+data-forms#toml[offsets]` has the outcome "passed", so the group
+`offsets` is verified when it has at least one conformance vector that
+says a vector.
 
 ### 2.11 Findings
 
-The terms `never-ran-finding`, `failed-finding`,
+The atoms `never-ran-finding`, `failed-finding`,
 `ambiguous-result-finding`, and `unverified-vector-finding` give the
 findings of four finding classes. For example, the subject of a finding
-of the class `unverified-vector` can be `data-forms#toml[12]`, and the
-conformance vectors of a design that an effective `supersedes` edge
-replaces give no such finding.
+of the class `unverified-vector` can be `data-forms#toml[keys]`, and the
+groups of conformance vectors of a design that an effective `supersedes`
+edge replaces give no such finding.
 
 ## 3. Definitions
 
@@ -489,18 +492,18 @@ letters. These definitions apply to a JUnit XML report:
 
 ### 3.5 The data of a runner
 
-@term runner-data=v1
+@schema runner-data=v2
 @cites {
     packs#{
         test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
         valid-descriptor=v1,
     },
-    identifiers#{id-pattern=v1},
+    identifiers#{id-pattern=v2},
     data-forms#{toml-value=v1},
     text#{text=v1, character=v1, code-span=v1},
 }
 
-This definition is for a test runner of a valid descriptor that has a
+This schema is for a test runner of a valid descriptor that has a
 match table, and a valid binding of `runner-settings` for that test
 runner. The keys of the data of a runner are these, each with the kind
 of its value and its default:
@@ -527,26 +530,49 @@ of its value and its default:
   character `@` or has the character `=` after its first `@`; default
   the empty array.
 
-The data of the test runner is valid when, and only when, no text is
-both a key of its match table and the name of one of its runner
-settings, each key of its match table and each name of its runner
-settings is one of these keys, the value that these rules give for each
-key has the kind of that key, and `path` has a value. The value of a key
-is the value of the runner setting whose name is that key, under the
-binding, when the test runner has one; otherwise, the TOML value of that
-key in the match table, when the match table has that key; otherwise,
-its default; and a key with no default has no value.
+The data of the test runner meets the schema `runner-data`, and is
+valid, when, and only when, no text is both a key of its match table and
+the name of one of its runner settings, each key of its match table and
+each name of its runner settings is one of these keys, the value of each
+of its runner settings under the binding has the kind of that key, the
+TOML value of each key of its match table has the kind of that key, and
+`path` is a key of its match table or the name of one of its runner
+settings.
 
-### 3.6 The test results of a JUnit XML report
+### 3.6 The values of the data of a runner
 
-@term case-result=v1
+@term runner-data-value=v1
+@cites {
+    packs#{
+        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
+        valid-descriptor=v1,
+    },
+    data-forms#{toml-value=v1},
+    text#{code-span=v1},
+    #{runner-data=v2},
+}
+
+For a test runner of a valid descriptor that has a match table, under a
+valid binding of `runner-settings` for that test runner, the value of a
+key of the data of the runner is the value of the runner setting whose
+name is that key, under the binding, when the test runner has one;
+otherwise, the TOML value of that key in the match table, when the match
+table has that key; otherwise, its default; and a key with no default
+has no value.
+
+### 3.7 The test results of a JUnit XML report
+
+@term case-result=v2
 @cites {
     ontology#{test-evidence=v1},
     text#{
         text=v1, character=v1, space=v1, whole-number=v1, production=v1,
         rule-name=v1, code-span=v1,
     },
-    #{junit-report=v1, runner-data=v1, report-path-match=v1},
+    #{
+        junit-report=v1, runner-data=v2, runner-data-value=v1,
+        report-path-match=v1,
+    },
 }
 
 For a JUnit XML report and the valid data of a runner, the test results
@@ -595,7 +621,7 @@ line-text      = 1*DIGIT
 duration-text  = 1*DIGIT [ "." 1*DIGIT ]
 ```
 
-### 3.7 Matches of report files with valid paths
+### 3.8 Matches of report files with valid paths
 
 @term report-path-match=v1
 @cites {
@@ -613,18 +639,18 @@ file names of the valid path, the shorter is equal to the end of the
 longer. The length of that match is the number of the texts of the
 shorter of the two sequences.
 
-### 3.8 The patterns of test entries
+### 3.9 The patterns of test entries
 
-@term name-pattern=v1
+@term name-pattern=v2
 @cites {
     packs#{test-entry=v1, test-name=v1},
-    identifiers#{id-pattern=v1, fit=v1},
+    identifiers#{id-pattern=v2, fit=v2},
     files#{path=v1},
     text#{
         text=v1, character=v1, run=v1, place=v1, whole-number=v1,
         code-span=v1,
     },
-    #{runner-data=v1},
+    #{runner-data=v2, runner-data-value=v1},
 }
 
 For a test entry and the valid data of a runner, the patterns of the
@@ -672,13 +698,16 @@ separates two pattern parts. These steps give the patterns:
    `name-suffixes`. Its pattern parts are the runs of this sequence
    between its part breaks.
 
-### 3.9 Matches of patterns
+### 3.10 Matches of patterns
 
-@term pattern-match=v1
+@term pattern-match=v2
 @cites {
     ontology#{test-evidence=v1},
     text#{text=v1, character=v1, code-span=v1},
-    #{name-pattern=v1, case-result=v1, runner-data=v1},
+    #{
+        name-pattern=v2, case-result=v2, runner-data=v2,
+        runner-data-value=v1,
+    },
 }
 
 A text is an instance of an affix pattern, which is a text, when the
@@ -690,16 +719,16 @@ affix slot, of the empty text or an instance of a member of the key of
 the slot, makes each pattern part, with each element replaced by its
 text, equal to the name part of the test result at the same index.
 
-### 3.10 Default recognitions
+### 3.11 Default recognitions
 
-@term default-recognition=v1
+@atom default-recognition=v2
 @cites {
     packs#{
         valid-descriptor=v1, test-runner=v1, runner-setting-binding=v1,
         adapter-call=v1,
     },
     text#{text=v1, character=v1, code-span=v1},
-    #{junit-report=v1, runner-data=v1},
+    #{junit-report=v1, runner-data=v2, runner-data-value=v1},
 }
 
 For a report content and a test runner of a valid descriptor that has a
@@ -715,9 +744,9 @@ the first `@` of the member, and has the attribute whose name is the
 text between that `@` and the first `=` after it, with the value that is
 the text after that `=`.
 
-### 3.11 Default readings
+### 3.12 Default readings
 
-@term default-reader-result=v1
+@term default-reader-result=v2
 @cites {
     ontology#{test-evidence=v1},
     files#{path=v1},
@@ -727,8 +756,8 @@ the text after that `=`.
     },
     text#{text=v1},
     #{
-        junit-report=v1, runner-data=v1, case-result=v1,
-        report-path-match=v1, name-pattern=v1, pattern-match=v1,
+        junit-report=v1, runner-data=v2, case-result=v2,
+        report-path-match=v1, name-pattern=v2, pattern-match=v2,
     },
 }
 
@@ -749,16 +778,16 @@ parts has a result link to each test entry that these rules give:
 2. The test result has a result link to each candidate that has a
    pattern that its name parts match.
 
-### 3.12 The test entries of readings
+### 3.13 The test entries of readings
 
-@term reading-entry=v1
+@term reading-entry=v2
 @cites {
-    documents#{file-reader-binding=v1, read-file=v1, unreadable-file=v1},
+    documents#{file-readers=v1, read-file=v2, unreadable-file=v2},
     packs#{
         reading-of-a-text=v1, test-node=v1, test-entry=v1,
         parse-tree-order=v1, test-runner=v1,
     },
-    ontology#{tree=v1},
+    ontology#{tree=v1, parameter=v2},
     files#{path=v1},
     text#{text=v1, decimal-numeral=v1, whole-number=v1, code-span=v1},
     #{report-file=v1, import=v1},
@@ -775,19 +804,19 @@ numeral of the number of the test node. The number of a test node is 1
 more than the number of the test nodes of that code file before it in
 the order of the parse tree.
 
-### 3.13 Readings of report files
+### 3.14 Readings of report files
 
-@term reading-of-a-report-file=v1
+@atom reading-of-a-report-file=v2
 @cites {
-    documents#{file-reader-binding=v1},
-    ontology#{test-evidence=v1},
+    documents#{file-readers=v1},
+    ontology#{test-evidence=v1, parameter=v2},
     packs#{
         valid-pack=v1, test-runner=v1, runner-setting-binding=v1,
         test-entry=v1, adapter-request=v1, adapter-call=v1,
         adapter-instance=v1, valid-adapter=v1, call-result=v1,
     },
     text#{result=v1},
-    #{report-file=v1, import=v1, reading-entry=v1, default-reader-result=v1},
+    #{report-file=v1, import=v1, reading-entry=v2, default-reader-result=v2},
 }
 
 Under a valid binding of `file-readers`, and a valid binding of
@@ -820,17 +849,17 @@ reading of that report file has one of the results "bound",
 A result link of a reading is one of the pairs of a test result and a
 test entry that the reading gives with the result "bound".
 
-### 3.14 Linked tests
+### 3.15 Linked tests
 
-@term linked-test=v1
+@term linked-test=v2
 @cites {
-    documents#{file-reader-binding=v1, file-test=v1},
+    documents#{file-readers=v1, file-test=v1},
     packs#{test-entry=v1, test-name=v1, test-node=v1},
-    ontology#{test=v1, test-evidence=v1, tree=v1},
+    ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v2},
     files#{path=v1},
     text#{whole-number=v1},
     #{
-        import=v1, reading-of-a-report-file=v1, report-path-match=v1,
+        import=v1, reading-of-a-report-file=v2, report-path-match=v1,
         held-test=v1,
     },
 }
@@ -852,7 +881,7 @@ these conditions are true:
 - when the test node of that test is a test suite, that test holds a
   test.
 
-### 3.15 Valid narrowings
+### 3.16 Valid narrowings
 
 @term narrowing-of-an-import=v1
 @cites {
@@ -860,7 +889,7 @@ these conditions are true:
     documents#{file-test=v1},
     packs#{test-name=v1, test-node=v1},
     text#{whole-number=v1},
-    #{import=v1, linked-test=v1},
+    #{import=v1, linked-test=v2},
 }
 
 A triple of the narrowing of an import stands for the pair of the test
@@ -874,12 +903,12 @@ pair, and, for each of these pairs, the test result is linked to that
 test, and is linked to a test that is alike to the test of no pair of
 that test result.
 
-### 3.16 The tests that a test result names
+### 3.17 The tests that a test result names
 
 @term named-test=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, tree=v1},
-    #{import=v1, linked-test=v1, narrowing-of-an-import=v1},
+    #{import=v1, linked-test=v2, narrowing-of-an-import=v1},
 }
 
 A test result of an import names a test of the tree of the import, as
@@ -888,7 +917,7 @@ and, when the narrowing of the import is valid, the narrowing has no
 triple that stands for the pair of that test result and a test that is
 alike to that test. A test result names no other test.
 
-### 3.17 What statuses say
+### 3.18 What statuses say
 
 @term status-meaning=v1
 @cites {
@@ -902,7 +931,7 @@ the tests that it names passed, and a test result with the status `fail`
 or the status `error` says that the tests that it names failed. A test
 result with the status `skip` says neither.
 
-### 3.18 Held tests
+### 3.19 Held tests
 
 @term held-test=v1
 @cites {
@@ -917,14 +946,14 @@ test suites that enclose the test node of U. A test U of the tree is a
 part of a test T of the tree, as the Ontology means it, when, and only
 when, T holds U.
 
-### 3.19 The suite rule
+### 3.20 The suite rule
 
 @term suite-rule=v1
 @cites {
-    ontology#{test=v1, test-evidence=v1, promise=v1, tree=v1},
+    ontology#{test=v1, test-evidence=v1, promise=v2, tree=v1},
     packs#{test-node=v1},
     #{
-        import=v1, linked-test=v1, held-test=v1, named-test=v1,
+        import=v1, linked-test=v2, held-test=v1, named-test=v1,
         status-meaning=v1,
     },
 }
@@ -939,13 +968,14 @@ node is a test case has a test result of the import that names it and
 says that it passed, and no test result of the import names T, or a test
 that T holds, and says that the tests that it names failed.
 
-### 3.20 The outcomes of tests in an import
+### 3.21 The outcomes of tests in an import
 
-@term import-outcome=v1
+@atom import-outcome=v2
+@refines ontology#promise=v2
 @cites {
-    ontology#{test=v1, test-evidence=v1, promise=v1, tree=v1},
+    ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
-        import=v1, linked-test=v1, held-test=v1, named-test=v1,
+        import=v1, linked-test=v2, held-test=v1, named-test=v1,
         status-meaning=v1, suite-rule=v1,
     },
 }
@@ -960,27 +990,27 @@ of these:
   test that T holds, and says that the tests that it names failed;
 - otherwise, "not run".
 
-### 3.21 The outcomes of tests in the evidence for a tree
+### 3.22 The outcomes of tests in the evidence for a tree
 
-@term tree-outcome=v1
-@cites {ontology#{test=v1, tree=v1}, #{tree-evidence=v1, import=v1, import-outcome=v1}}
+@atom tree-outcome=v2
+@cites {ontology#{test=v1, tree=v1}, #{tree-evidence=v1, import=v1, import-outcome=v2}}
 
 The outcome of a test of a tree in the evidence for that tree is
 "passed" when its outcome in one or more imports of the evidence is
 "passed"; otherwise, "failed" when its outcome in one or more imports of
 the evidence is "failed"; otherwise, "not run".
 
-### 3.22 The sources of outcomes
+### 3.23 The sources of outcomes
 
-@term outcome-source=v1
+@term outcome-source=v2
 @cites {
     data-forms#{hash=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
         report-file=v1, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v1, linked-test=v1, held-test=v1,
-        named-test=v1, status-meaning=v1, import-outcome=v1,
-        tree-outcome=v1, narrowing-of-an-import=v1,
+        reading-of-a-report-file=v2, linked-test=v2, held-test=v1,
+        named-test=v1, status-meaning=v1, import-outcome=v2,
+        tree-outcome=v2, narrowing-of-an-import=v1,
     },
 }
 
@@ -1007,85 +1037,85 @@ Each of these test results is given with the number of its report file,
 the hash of the report content of that report file, its number, its
 name, and its status.
 
-### 3.23 Verified conformance vectors
+### 3.24 Verified groups of conformance vectors
 
-@term verified-vector=v1
+@term verified-vector=v2
 @cites {
-    documents#{tree-edge=v1},
+    documents#{tree-edge=v2},
     ontology#{
-        verifies-edge=v1, edge-source=v1, conformance-vector=v1,
-        conformance-vector-group=v1, vector-set=v1, test=v1, tree=v1,
+        verifies-edge=v2, edge-source=v1, conformance-vector=v2,
+        conformance-vector-group=v1, vector-set=v2, test=v1, tree=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v1},
+    #{tree-evidence=v1, tree-outcome=v2},
 }
 
-A conformance vector of a vector set of a tree is verified in the
-evidence for that tree when, and only when, it says a vector, and a test
-of the tree that is the source of an edge of the tree of the kind
-`verifies` whose cited item is that conformance vector, the group of
-conformance vectors of that vector set that has it, or that vector set
-has the outcome "passed" in the evidence for the tree.
+A group of conformance vectors of a vector set of a tree is verified in
+the evidence for that tree when, and only when, it has at least one
+conformance vector that says a vector, and a test of the tree that is
+the source of an edge of the tree of the kind `verifies` whose cited
+item is that group of conformance vectors or that vector set has the
+outcome "passed" in the evidence for the tree.
 
-### 3.24 Findings of the class `never-ran`
+### 3.25 Findings of the class `never-ran`
 
-@term never-ran-finding=v1
+@atom never-ran-finding=v2
 @cites {
-    identifiers#{citation-entry=v1},
+    identifiers#{citation-entry=v2},
     ontology#{
-        edge=v1, edge-source=v1, verifies-edge=v1, test=v1, tree=v1,
-        conformance-vector=v1, conformance-vector-group=v1, vector-set=v1,
+        edge=v2, edge-source=v1, verifies-edge=v2, schema=v1, test=v1,
+        tree=v1, conformance-vector-group=v1, vector-set=v2,
     },
     text#{requirement=v1},
     documents#{
-        tree-edge=v1, origin=v1, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        tree-edge=v2, origin=v2, origin-position=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v1},
+    #{tree-evidence=v1, tree-outcome=v2},
 }
 
 A tree that has evidence has one tree finding of the class `never-ran`
 for each edge of the tree of the kind `verifies` whose source is a test
 of the tree with the outcome "not run" in the evidence for the tree, and
-whose cited item is an item of the kind requirement, a conformance
-vector, a group of conformance vectors, or a vector set. A tree that has
-no evidence has no tree finding of the class `never-ran`. The subject of
-the finding is the position subject of the origin position of the
-citation entry of the edge. Its spot is the spot of the run of that
-citation entry in the text of the file.
+whose cited item is an item of the kind requirement, a schema, a group
+of conformance vectors, or a vector set. A tree that has no evidence has
+no tree finding of the class `never-ran`. The subject of the finding is
+the position subject of the origin position of the citation entry of the
+edge. Its spot is the spot of the run of that citation entry in the text
+of the file.
 
-### 3.25 Findings of the class `failed`
+### 3.26 Findings of the class `failed`
 
-@term failed-finding=v1
+@atom failed-finding=v2
 @cites {
-    identifiers#{citation-entry=v1},
+    identifiers#{citation-entry=v2},
     ontology#{
-        edge=v1, edge-source=v1, verifies-edge=v1, test=v1, tree=v1,
-        conformance-vector=v1, conformance-vector-group=v1, vector-set=v1,
+        edge=v2, edge-source=v1, verifies-edge=v2, schema=v1, test=v1,
+        tree=v1, conformance-vector-group=v1, vector-set=v2,
     },
     text#{requirement=v1},
     documents#{
-        tree-edge=v1, origin=v1, origin-position=v1,
-        position-subject=v1, run-spot=v1, tree-finding=v1,
+        tree-edge=v2, origin=v2, origin-position=v1,
+        position-subject=v2, run-spot=v2, tree-finding=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v1},
+    #{tree-evidence=v1, tree-outcome=v2},
 }
 
 A tree that has evidence has one tree finding of the class `failed` for
 each edge of the tree of the kind `verifies` whose source is a test of
 the tree with the outcome "failed" in the evidence for the tree, and
-whose cited item is an item of the kind requirement, a conformance
-vector, a group of conformance vectors, or a vector set. A tree that has
-no evidence has no tree finding of the class `failed`. The subject of
-the finding is the position subject of the origin position of the
-citation entry of the edge. Its spot is the spot of the run of that
-citation entry in the text of the file.
+whose cited item is an item of the kind requirement, a schema, a group
+of conformance vectors, or a vector set. A tree that has no evidence has
+no tree finding of the class `failed`. The subject of the finding is the
+position subject of the origin position of the citation entry of the
+edge. Its spot is the spot of the run of that citation entry in the text
+of the file.
 
-### 3.26 Findings of the class `ambiguous-result`
+### 3.27 Findings of the class `ambiguous-result`
 
-@term ambiguous-result-finding=v1
+@atom ambiguous-result-finding=v2
 @cites {
     packs#{test-node=v1, node-run=v1},
-    documents#{file-test=v1, position-subject=v1, run-spot=v1, tree-finding=v1},
+    documents#{file-test=v1, position-subject=v2, run-spot=v2, tree-finding=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     text#{position=v1, run=v1},
     #{tree-evidence=v1, import=v1, named-test=v1, narrowing-of-an-import=v1},
@@ -1100,78 +1130,77 @@ the position subject of the position of the start of the code of T,
 which is the run of its test node, in its file. Its spot is the spot of
 that run.
 
-### 3.27 Findings of the class `unverified-vector`
+### 3.28 Findings of the class `unverified-vector`
 
-@term unverified-vector-finding=v1
+@atom unverified-vector-finding=v2
 @cites {
-    data-forms#{vector-line=v1},
     ontology#{
-        conformance-vector=v1, vector-set=v1, item-name=v1, tree=v1,
-        in-force-item=v1, ledger=v1,
+        conformance-vector=v2, conformance-vector-group=v1,
+        vector-set=v2, item-name=v2, tree=v1, in-force-item=v2,
+        ledger=v1,
     },
-    documents#{vector-file=v1, tree-finding=v1},
+    documents#{vector-file=v2, tree-finding=v1},
     findings#{spot=v1},
     files#{path=v1},
-    text#{
-        decimal-numeral=v1, span=v1, run=v1, text-of-a-byte-sequence=v1,
-        code-span=v1,
-    },
-    #{tree-evidence=v1, verified-vector=v1},
+    text#{span=v1, code-span=v1},
+    #{tree-evidence=v1, verified-vector=v2},
 }
 
 A tree that has evidence has one tree finding of the class
-`unverified-vector` for each conformance vector of the vector set of an
-item that is in force in the tree at the end of the ledger of the
-repository, when that conformance vector says a vector and is not
-verified in the evidence for the tree. A tree that has no evidence has
-no tree finding of the class `unverified-vector`. The subject of the
-finding is the name of the item of its vector set, then `[`, then the
-decimal numeral of the number of the conformance vector, then `]`. Its
-spot is the valid path of the vector file of that item, with the span
-that is the run of the text of its content that holds the text of the
-vector line of the conformance vector without its last byte.
+`unverified-vector` for each group of conformance vectors of the vector
+set of an item that is in force in the tree at the end of the ledger of
+the repository, when that group has at least one conformance vector that
+says a vector and is not verified in the evidence for the tree. A tree
+that has no evidence has no tree finding of the class
+`unverified-vector`. The subject of the finding is the name of the item
+of its vector set, then `[`, then the name of the group of conformance
+vectors, then `]`. Its spot is the valid path of the vector file of that
+item alone, with no span.
 
 ## 4. Requirements
 
 ### 4.1 Default recognitions
 
-@req recognise-junit-reports=v1
+@req recognise-junit-reports=v2
 @cites {
     packs#{
         valid-descriptor=v1, test-runner=v1, runner-setting-binding=v1,
         adapter-call=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{default-recognition=v1},
+    #{default-recognition=v2},
 }
 
 When a conforming program gives the default recognition of a report
 content for a test runner of a valid descriptor that has a match table,
 under a valid binding of `runner-settings` for that test runner, it must
-give exactly one result: the default recognition of that report content
-for that test runner under that binding.
+give exactly one result, and only "recognised", "not recognised", or
+"failed": the default recognition of that report content for that test
+runner under that binding.
 
 ### 4.2 The results of readings
 
-@req give-reading-results=v1
+@req give-reading-results=v2
 @cites {
-    documents#{file-reader-binding=v1},
+    documents#{file-readers=v1},
+    ontology#{parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
 the result of the reading of a report file of an import, it must give
-exactly one result: the result of that reading.
+exactly one result, and only "bound", "unreadable", or "stopped": the
+result of that reading.
 
 ### 4.3 The test results of readings
 
-@req give-reading-test-results=v1
+@req give-reading-test-results=v2
 @cites {
-    documents#{file-reader-binding=v1},
-    ontology#{test-evidence=v1},
+    documents#{file-readers=v1},
+    ontology#{test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1183,11 +1212,12 @@ that reading.
 
 ### 4.4 The result links of readings
 
-@req give-reading-result-links=v1
+@req give-reading-result-links=v2
 @cites {
-    documents#{file-reader-binding=v1},
+    documents#{file-readers=v1},
+    ontology#{parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1197,12 +1227,12 @@ reading once, and no other result link of that reading.
 
 ### 4.5 No values of readings that do not bind
 
-@req omit-reading-values=v1
+@req omit-reading-values=v2
 @cites {
-    documents#{file-reader-binding=v1},
-    ontology#{test-evidence=v1},
+    documents#{file-readers=v1},
+    ontology#{test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, a conforming program must give
@@ -1211,29 +1241,30 @@ an import when the result of that reading is not "bound".
 
 ### 4.6 The requests of readings
 
-@req give-reading-requests=v1
+@req give-reading-requests=v2
 @cites {
-    documents#{file-reader-binding=v1},
+    documents#{file-readers=v1},
+    ontology#{parameter=v2},
     packs#{adapter-request=v1, adapter-call=v1, test-entry=v1},
     text#{conforming-program=v1},
-    #{report-file=v1, import=v1, reading-entry=v1, reading-of-a-report-file=v1},
+    #{report-file=v1, import=v1, reading-entry=v2, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program makes
 a call of the function bind of an adapter for the reading of a report
-file of an import, it must make it with the request that the term
+file of an import, it must make it with the request that the atom
 `reading-of-a-report-file` gives, with the test entries of that reading
 and no other test entry, and with the test entry ids of these test
 entries as the test entry ids of the call.
 
 ### 4.7 Bytes only from the report content
 
-@req read-only-report-content=v1
+@req read-only-report-content=v2
 @cites {
     w3c/rec-xml-20081126,
     packs#{adapter-call=v1},
     text#{conforming-program=v1, byte=v1},
-    #{default-recognition=v1, default-reader-result=v1},
+    #{default-recognition=v2, default-reader-result=v2},
 }
 
 For a default recognition or a default reading of a report content, a
@@ -1243,8 +1274,8 @@ resource of a network that the report content names.
 
 ### 4.8 Readings that end
 
-@req end-report-readings=v1
-@cites {text#{conforming-program=v1}, #{reading-of-a-report-file=v1}}
+@req end-report-readings=v2
+@cites {text#{conforming-program=v1}, #{reading-of-a-report-file=v2}}
 
 A conforming program must end each reading of a report file that it
 makes.
@@ -1263,27 +1294,28 @@ only when that import is given for that tree.
 
 ### 4.10 Outcomes
 
-@req give-test-outcomes=v1
+@req give-test-outcomes=v2
 @cites {
-    documents#{file-reader-binding=v1},
-    ontology#{test=v1, tree=v1},
-    text#{conforming-program=v1},
-    #{import=v1, tree-evidence=v1, import-outcome=v1, tree-outcome=v1},
+    documents#{file-readers=v1},
+    ontology#{test=v1, tree=v1, parameter=v2},
+    text#{conforming-program=v1, result=v1},
+    #{import=v1, tree-evidence=v1, import-outcome=v2, tree-outcome=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
 the outcome of a test of a tree in an import of that tree, or in the
-evidence for that tree, it must give exactly one outcome: the outcome of
-that test in that import, or in that evidence.
+evidence for that tree, it must give exactly one outcome, and only
+"passed", "failed", or "not run": the outcome of that test in that
+import, or in that evidence.
 
 ### 4.11 The sources of outcomes
 
-@req give-outcome-sources=v1
+@req give-outcome-sources=v2
 @cites {
-    documents#{file-reader-binding=v1},
-    ontology#{test=v1, tree=v1},
+    documents#{file-readers=v1},
+    ontology#{test=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1},
-    #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
+    #{tree-evidence=v1, tree-outcome=v2, outcome-source=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
@@ -1292,13 +1324,16 @@ give with it each source of that outcome once, and no other source.
 
 ### 4.12 The sources of kept promises
 
-@req give-promise-sources=v1
+@req give-promise-sources=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    documents#{file-reader-binding=v1, tree-edge=v1},
-    ontology#{promise=v1, verifies-edge=v1, edge-source=v1, test=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1, tree-edge=v2},
+    ontology#{
+        promise=v2, verifies-edge=v2, edge-source=v1, test=v1, tree=v1,
+        parameter=v2,
+    },
     text#{conforming-program=v1, result=v1},
-    #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
+    #{tree-evidence=v1, tree-outcome=v2, outcome-source=v2},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -1313,15 +1348,15 @@ and no source for another test with it.
 
 ### 4.13 Nothing from evidence with a stopped reading
 
-@req give-nothing-for-stopped-readings=v1
+@req give-nothing-for-stopped-readings=v2
 @cites {
-    ontology#{promise=v1, tree=v1, test=v1},
+    ontology#{promise=v2, tree=v1, test=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v1, import=v1, reading-of-a-report-file=v1,
-        tree-evidence=v1, import-outcome=v1, tree-outcome=v1,
-        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
-        ambiguous-result-finding=v1, unverified-vector-finding=v1,
+        report-file=v1, import=v1, reading-of-a-report-file=v2,
+        tree-evidence=v1, import-outcome=v2, tree-outcome=v2,
+        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
+        ambiguous-result-finding=v2, unverified-vector-finding=v2,
     },
 }
 
@@ -1335,17 +1370,17 @@ the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 ### 4.14 Nothing under bindings that are not valid
 
-@req give-nothing-under-invalid-bindings=v1
+@req give-nothing-under-invalid-bindings=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    documents#{file-reader-binding=v1},
-    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
         report-file=v1, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v1, import-outcome=v1, tree-outcome=v1,
-        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
-        ambiguous-result-finding=v1, unverified-vector-finding=v1,
+        reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
+        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
+        ambiguous-result-finding=v2, unverified-vector-finding=v2,
     },
 }
 
@@ -1361,16 +1396,16 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 ### 4.15 Nothing from evidence under a binding of `runner-settings` that is not valid
 
-@req give-nothing-under-invalid-runner-settings=v1
+@req give-nothing-under-invalid-runner-settings=v2
 @cites {
     packs#{runner-setting-binding=v1, test-runner=v1},
-    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
+    ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{
         report-file=v1, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v1, import-outcome=v1, tree-outcome=v1,
-        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
-        ambiguous-result-finding=v1, unverified-vector-finding=v1,
+        reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
+        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
+        ambiguous-result-finding=v2, unverified-vector-finding=v2,
     },
 }
 
@@ -1385,15 +1420,15 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 
 ### 4.16 The findings of the evidence for a tree
 
-@req give-evidence-findings=v1
+@req give-evidence-findings=v2
 @cites {
-    identifiers#{binding=v1, accept-inputs=v1},
-    documents#{file-reader-binding=v1, tree-finding=v1},
-    ontology#{finding-class=v1, tree=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1, tree-finding=v1},
+    ontology#{finding-class=v1, tree=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
-        tree-evidence=v1, never-ran-finding=v1, failed-finding=v1,
-        ambiguous-result-finding=v1, unverified-vector-finding=v1,
+        tree-evidence=v1, never-ran-finding=v2, failed-finding=v2,
+        ambiguous-result-finding=v2, unverified-vector-finding=v2,
     },
 }
 
@@ -1413,13 +1448,16 @@ section 4.
 
 The vectors of this design are in the file
 [`evidence.test-vectors.jsonl`](evidence.test-vectors.jsonl), in the
-same folder as this design. A vector is an input and what a conforming
-program gives for it. Each vector follows from the requirements and adds
-nothing to them. The vectors are in four groups, `recognitions`,
-`readings`, `outcomes`, and `findings`, and each group has a subsection
-below. The subsection names the requirements that the vectors of the
-group follow from, and it describes their inputs, results, and values.
-No vector follows from the requirements `give-reading-requests`,
+same folder as this design. The file is a test-vector set, as the
+specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
+Data forms gives it. A vector is an input and what a conforming program
+gives for it. Each vector follows from the requirements and adds nothing
+to them. No group of this design uses a need, so the forms of each group
+give no need names. The vectors are in four groups, `recognitions`,
+`readings`, `outcomes`, and `findings`, and each subsection below gives
+the forms of one group, as the term
+[`group-form-list`](sinter:data-forms#group-form-list=v2) gives them. No
+vector follows from the requirements `give-reading-requests`,
 `read-only-report-content`, `end-report-readings`,
 `take-evidence-for-own-tree`, `give-promise-sources`,
 `give-nothing-for-stopped-readings`,
@@ -1430,14 +1468,39 @@ Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as the result of a reading. So a
 vector binds a program only to what the program gives for the input.
 
-The file is a test-vector set, as the specification
-[`test-vectors`](sinter:data-forms#test-vectors=v1) of Data forms gives
-it. The vectors of the group `findings` have no member `result`.
+### 5.1 Recognitions
 
-A program does not need the revisions to run the vectors.
+@schema recognition-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, byte-sequence=v1,
+        utf-8-encoding=v1, result=v1, code-span=v1,
+    },
+    data-forms#{
+        hex-text=v1, toml-value=v1, vector-line=v2, group-form-list=v2,
+        vector-meaning=v2,
+    },
+    packs#{
+        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
+        adapter-call=v1,
+    },
+    #{
+        runner-data=v2, default-recognition=v2,
+        recognise-junit-reports=v2,
+    },
+}
 
-Inside the members `input`, `result`, and `values`, the JSON values have
-these forms:
+The group `recognitions` has the vectors of the requirement
+`recognise-junit-reports`. Each vector gives a report content and the
+data of a test runner, and the default recognition. The binding of
+`runner-settings` of each vector is valid: each runner setting has the
+type of its value in `settings`. The group uses no need, so these forms
+give no need names.
+
+The JSON values, objects, members, arrays, strings, numbers, and
+booleans of this schema are as RFC 8259 defines them. Inside the members
+`input`, `result`, and `values`, the JSON values have these forms:
 
 - A text, such as a result, a name, or a test entry id, is a JSON string
   whose characters are the characters of the text, in order.
@@ -1451,22 +1514,8 @@ these forms:
   number of the same integer, a TOML array is a JSON array of the JSON
   values of its elements, in order, and a TOML table is a JSON object
   with one member for each of its keys.
-- A name path is a JSON array with one JSON array for each name, in
-  their order. The array of a name has one JSON object for each piece,
-  in their order: `{"text": ...}` for a text piece and `{"placeholder":
-  ...}` for a placeholder, with the text of the piece as a JSON string.
-- A test entry is a JSON object with the members `id`, `path`, `line`,
-  `eline`, `suite`, and `names`: its test entry id, its path, its first
-  line, its last line, true for the kind test suite and false for the
-  kind test case, and its name path. Its test labels are empty.
 
-### 5.1 Recognitions
-
-The group `recognitions` has the vectors of the requirement
-`recognise-junit-reports`. Each vector gives a report content and the
-data of a test runner, and the default recognition. The binding of
-`runner-settings` of each vector is valid: each runner setting has the
-type of its value in `settings`.
+The members of a vector line have these forms:
 
 - `input`: a JSON object with the members `match`, the match table of
   the test runner, a TOML table; `settings`, a JSON object with one
@@ -1483,22 +1532,68 @@ content of the input for its test runner, it gives the result that
 `result` gives, and no other result.
 
 ```
-{"group":"recognitions","input":{"match":{"path":["name"]},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"a\"/></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]}},"n":1,"note":"the attribute name of the root element has the value that the member gives","result":"recognised","rev":"v1","values":{}}
+{"form":"#recognition-vector=v1","group":"recognitions","input":{"match":{"path":["name"]},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"a\"/></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]}},"note":"the attribute name of the root element has the value that the member gives","result":"recognised","values":{}}
 ```
 
 ### 5.2 Readings
+
+@schema reading-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, byte-sequence=v1,
+        whole-number=v1, code-point-order=v1, result=v1, code-span=v1,
+    },
+    data-forms#{
+        toml-value=v1, vector-line=v2, group-form-list=v2,
+        vector-meaning=v2,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    ontology#{test-evidence=v1, parameter=v2},
+    packs#{
+        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
+        test-entry=v1, test-name=v1, test-node=v1, adapter-call=v1,
+    },
+    #{
+        recognition-vector=v1, report-file=v1, runner-data=v2,
+        default-reader-result=v2, reading-of-a-report-file=v2,
+        give-reading-results=v2, give-reading-test-results=v2,
+        give-reading-result-links=v2, omit-reading-values=v2,
+    },
+}
 
 The group `readings` has the vectors of the requirements
 `give-reading-results`, `give-reading-test-results`,
 `give-reading-result-links`, and `omit-reading-values`, for test runners
 with a match table. Each vector gives a report content, the data of a
 test runner, and test entries, and the default reading: its result, its
-test results, and its result links. The bindings of `file-readers` and
-of `external-namespaces` are valid, and the binding of `runner-settings`
-is valid: each runner setting has the type of its value in `settings`.
+test results, and its result links. The binding of `file-readers` is
+valid, a conforming program of the design Identifiers gives the result
+"valid" for the binding of `external-namespaces`, and the binding of
+`runner-settings` is valid: each runner setting has the type of its
+value in `settings`. The group uses no need, so these forms give no need
+names.
+
+The JSON values, objects, members, arrays, strings, numbers, and
+booleans of this schema are as RFC 8259 defines them. Inside the members
+`input`, `result`, and `values`, a text, a byte sequence, and a TOML
+value have the forms that `recognition-vector` gives, and a name path
+and a test entry have these forms:
+
+- A name path is a JSON array with one JSON array for each name, in
+  their order. The array of a name has one JSON object for each piece,
+  in their order: `{"text": ...}` for a text piece and `{"placeholder":
+  ...}` for a placeholder, with the text of the piece as a JSON string.
+- A test entry is a JSON object with the members `id`, `path`, `line`,
+  `eline`, `suite`, and `names`: its test entry id, its path, its first
+  line, its last line, true for the kind test suite and false for the
+  kind test case, and its name path. Its test labels are empty.
+
+The members of a vector line have these forms:
 
 - `input`: a JSON object with the members `match`, `settings`, and
-  `report`, as in the group `recognitions`, and `tests`, a JSON array of
+  `report`, as in `recognition-vector`, and `tests`, a JSON array of
   the test entries, each a test entry, in the code point order of their
   test entry ids.
 - `result`: "bound" or "unreadable": the result of the reading of a
@@ -1526,10 +1621,38 @@ result links that `links` gives, and no other result link. When `values`
 is `{}`, it gives no test result and no result link.
 
 ```
-{"group":"readings","input":{"match":{"file":["classname"],"path":["name"],"placeholders":["%[sdifjoOc]","[$][A-Za-z_][A-Za-z0-9_.]*"],"suite-separator":" > ","test-separator":" > "},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"src/math.test.ts\"><testcase classname=\"src/math.test.ts\" name=\"outer &gt; each 1 + 2 = 3\" time=\"0.001\"/></testsuite></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]},"tests":[{"eline":9,"id":"src/math.test.ts#1","line":1,"names":[[{"text":"outer"}]],"path":"src/math.test.ts","suite":true},{"eline":4,"id":"src/math.test.ts#2","line":2,"names":[[{"text":"outer"}],[{"text":"each %i + %i = %i"}]],"path":"src/math.test.ts","suite":false}]},"n":101,"note":"each %i becomes a placeholder, and the file matches the path","result":"bound","rev":"v1","values":{"links":[[1,"src/math.test.ts#2"]],"results":[{"file":"src/math.test.ts","ms":1,"name":"outer > each 1 + 2 = 3","status":"pass"}]}}
+{"form":"#reading-vector=v1","group":"readings","input":{"match":{"file":["classname"],"path":["name"],"placeholders":["%[sdifjoOc]","[$][A-Za-z_][A-Za-z0-9_.]*"],"suite-separator":" > ","test-separator":" > "},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"src/math.test.ts\"><testcase classname=\"src/math.test.ts\" name=\"outer &gt; each 1 + 2 = 3\" time=\"0.001\"/></testsuite></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]},"tests":[{"eline":9,"id":"src/math.test.ts#1","line":1,"names":[[{"text":"outer"}]],"path":"src/math.test.ts","suite":true},{"eline":4,"id":"src/math.test.ts#2","line":2,"names":[[{"text":"outer"}],[{"text":"each %i + %i = %i"}]],"path":"src/math.test.ts","suite":false}]},"note":"each %i becomes a placeholder, and the file matches the path","result":"bound","values":{"links":[[1,"src/math.test.ts#2"]],"results":[{"file":"src/math.test.ts","ms":1,"name":"outer > each 1 + 2 = 3","status":"pass"}]}}
 ```
 
 ### 5.3 Outcomes
+
+@schema outcome-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, whole-number=v1, result=v1,
+        code-span=v1,
+    },
+    files#{path=v1},
+    data-forms#{
+        hash=v1, vector-line=v2, group-form-list=v2, vector-meaning=v2,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v2},
+    packs#{
+        runner-setting-binding=v1, test-runner=v1, test-node=v1,
+        test-entry=v1,
+    },
+    #{
+        recognition-vector=v1, report-file=v1, import=v1,
+        tree-evidence=v1, reading-of-a-report-file=v2, held-test=v1,
+        named-test=v1, import-outcome=v2, tree-outcome=v2,
+        outcome-source=v2, ambiguous-result-finding=v2,
+        give-test-outcomes=v2, give-outcome-sources=v2,
+        give-evidence-findings=v2,
+    },
+}
 
 The group `outcomes` has the vectors of the requirements
 `give-test-outcomes` and `give-outcome-sources`, and, for the class
@@ -1541,8 +1664,16 @@ test. The readings of the report files are given by their results, their
 test results, and their result links, and the tests are given by their
 valid paths, their names, their kinds, and the tests that hold them. The
 tree of each vector has no other test that a test result names, the
-bindings of `file-readers` and of `external-namespaces` are valid, and
-the binding of `runner-settings` for each test runner is valid.
+binding of `file-readers` is valid, a conforming program of the design
+Identifiers gives the result "valid" for the binding of
+`external-namespaces`, and the binding of `runner-settings` for each
+test runner is valid. The group uses no need, so these forms give no
+need names.
+
+The JSON values, objects, members, arrays, strings, numbers, and
+booleans of this schema are as RFC 8259 defines them. Inside the members
+`input`, `result`, and `values`, a text has the form that
+`recognition-vector` gives.
 
 - `input`: a JSON object with the members `tests`, `imports`, and
   `test`.
@@ -1597,10 +1728,39 @@ class `ambiguous-result` of the tree, it gives one for that test when
 `ambiguous` is true, and none for that test when it is false.
 
 ```
-{"group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"n":201,"note":"a test that holds tests passed: each test that it holds passed","result":"passed","rev":"v1","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
+{"form":"#outcome-vector=v1","group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"note":"a test that holds tests passed: each test that it holds passed","result":"passed","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
 ```
 
 ### 5.4 Findings
+
+@schema finding-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, code-point-order=v1, result=v1,
+        requirement=v1, code-span=v1,
+    },
+    data-forms#{vector-line=v2, group-form-list=v2, vector-meaning=v2},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, citation-entry=v2,
+    },
+    documents#{
+        file-readers=v1, origin-position=v1, position-subject=v2,
+    },
+    ontology#{
+        tree=v1, test=v1, verifies-edge=v2, edge-source=v1, schema=v1,
+        declared-item=v2, conformance-vector=v2,
+        conformance-vector-group=v1, vector-set=v2, item-name=v2,
+        in-force-item=v2, ledger=v1, finding-class=v1, parameter=v2,
+    },
+    packs#{runner-setting-binding=v1, test-runner=v1},
+    #{
+        recognition-vector=v1, tree-evidence=v1, tree-outcome=v2,
+        reading-of-a-report-file=v2, never-ran-finding=v2,
+        failed-finding=v2, unverified-vector-finding=v2,
+        give-evidence-findings=v2,
+    },
+}
 
 The group `findings` has the vectors of the requirement
 `give-evidence-findings` for the classes `never-ran`, `failed`, and
@@ -1609,10 +1769,19 @@ evidence for a tree, the edges of the kind `verifies` of the tree, and
 the conformance vectors of vector sets of the tree, and the findings of
 these classes that the tree has. The outcome of each test is given as an
 input. The tree of each vector has no other edge of the kind `verifies`
-and no other vector set. The bindings of `file-readers` and of
-`external-namespaces` are valid, the binding of `runner-settings` for
-each test runner is valid, and no reading of a report file of the
-evidence has the result "stopped".
+and no other vector set. The binding of `file-readers` is valid, a
+conforming program of the design Identifiers gives the result "valid"
+for the binding of `external-namespaces`, the binding of
+`runner-settings` for each test runner is valid, and no reading of a
+report file of the evidence has the result "stopped". Each vector of the
+group has the member `values`, and no vector has the member `result`;
+these forms name no question for `result`. The group uses no need, so
+these forms give no need names.
+
+The JSON values, objects, members, arrays, strings, numbers, and
+booleans of this schema are as RFC 8259 defines them. Inside the members
+`input` and `values`, a text has the form that `recognition-vector`
+gives.
 
 - `input`: a JSON object with the members `evidence`, `tests`, `edges`,
   and `sets`.
@@ -1626,30 +1795,29 @@ evidence has the result "stopped".
     in `tests`, from 0, of its source, a test; `subject`, the position
     subject of the origin position of its citation entry, a text; and
     `cited`, its cited item: a JSON object whose member `kind` is
-    `requirement` for an item of the kind requirement; `vector`, with
-    the members `set`, the name of the item of its vector set, and `n`,
-    its number, for a conformance vector; `group`, with the members
-    `set` and `group`, its name, for a group of conformance vectors;
-    `set`, with the member `set`, for a vector set; `other` for an item
-    of another kind; and `none` when the edge has no cited item.
+    `requirement` for an item of the kind requirement; `schema` for a
+    schema; `group`, with the members `set`, the name of the item of its
+    vector set, and `group`, its name, for a group of conformance
+    vectors; `set`, with the member `set`, for a vector set; `other` for
+    an item of another kind; and `none` when the edge has no cited item.
   - `sets` is a JSON array of the vector sets of the tree. A vector set
     is a JSON object with the members `name`, the name of its item;
     `in-force`, true when that item is in force in the tree at the end
     of the ledger, and false when it is not; and `vectors`, a JSON array
-    of its conformance vectors, each a JSON object with the members `n`,
-    its number, `group`, the name of its group, and `says`, true when it
-    says a vector, and false when it says no vector.
+    of its conformance vectors, each a JSON object with the members
+    `group`, the name of its group, and `says`, true when it says a
+    vector, and false when it says no vector.
 - `values`: a JSON object with one member, `findings`: a JSON array of
   the findings of the classes `never-ran`, `failed`, and
   `unverified-vector` that the tree has, each a JSON array of the slug
   of its class and its subject, in the code point order of the class and
   then of the subject.
 
-The vectors of this group have no member `result`. When a conforming
-program gives the findings of one of these classes of the tree, it gives
-one finding of that class for each element of `findings` with that
-class, with that subject, and no other finding of that class.
+When a conforming program gives the findings of one of these classes of
+the tree, it gives one finding of that class for each element of
+`findings` with that class, with that subject, and no other finding of
+that class.
 
 ```
-{"group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","n":1,"says":true},{"group":"offsets","n":2,"says":true},{"group":"keys","n":3,"says":true},{"group":"keys","n":4,"says":false}]}],"tests":[{"outcome":"passed"}]},"n":304,"note":"a pass of a test that cites a group verifies each vector of the group; a vector that says no vector gives no finding","rev":"v1","values":{"findings":[["unverified-vector","data-forms#toml[3]"]]}}
+{"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; another group with a vector that says a vector gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
 ```
