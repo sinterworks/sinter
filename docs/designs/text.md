@@ -38,9 +38,9 @@ design has one JSON text on each line of its text.
 
 | word or phrase | meaning |
 |---|---|
-| term | a definition that a design declares under a name, such as `whole-number`, that says what a word or fixed phrase means, gives a form, or defines a computed value; a definition of a design is a term, a schema, or an atom |
-| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
-| atom | a definition that a design declares under a name that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
+| term | a definition that a design declares under a name, such as `whole-number`, that says what a word means, gives a grammar rule that is a building block, or defines a computed value; a definition of a design is a term, a schema, or an atom |
+| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the edge of a conforming program: its layout and every constraint that is a property of the thing itself |
+| atom | a definition, declared by a design under a name, that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
 | [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions; a definition of a design is a definition that the design declares under a name |
 | [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
