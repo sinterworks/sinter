@@ -5,7 +5,7 @@
 @design findings=v2
 @cites text=v2
 @cites identifiers=v2
-@cites files=v1
+@cites files=v2
 @cites data-forms=v2
 @cites ontology=v2
 Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
