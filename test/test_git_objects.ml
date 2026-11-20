@@ -556,14 +556,14 @@ let with_objects_closes_its_pipes_when_git_does_not_start () =
   | Error other -> Alcotest.fail (print_error other));
   Alcotest.(check int) "the open descriptors" before (descriptors ())
 
-let with_objects_reads_what_git_writes_after_a_bad_answer () =
+let with_objects_drops_the_output_that_f_leaves_unread () =
   let t =
     faked
       "while [ \"$1\" = -c ]; do shift 2; done\n\
        case \"$1\" in\n\
        rev-parse) printf 'sha1\\n%s\\n' \"$0\" ;;\n\
-       cat-file) read id; printf 'junk\\n'; i=0; while [ $i -lt 4000 ]; do \
-       printf '%0100d' 0; i=$((i+1)); done ;;\n\
+       cat-file) read id; printf 'junk\\n'; i=0; while [ $i -lt 1200 ]; do \
+       printf '%01024d' 0 || exit 1; i=$((i+1)); done ;;\n\
        esac\n"
   in
   match
@@ -631,8 +631,8 @@ let tests =
         with_objects_closes_every_descriptor;
       Alcotest.test_case "with_objects closes its pipes when git does not start"
         `Quick with_objects_closes_its_pipes_when_git_does_not_start;
-      Alcotest.test_case "with_objects reads what git writes after a bad answer"
-        `Quick with_objects_reads_what_git_writes_after_a_bad_answer;
+      Alcotest.test_case "with_objects drops the output that f leaves unread"
+        `Quick with_objects_drops_the_output_that_f_leaves_unread;
       Alcotest.test_case "with_objects counts its waits" `Quick
         with_objects_counts_its_waits;
       Alcotest.test_case "with_objects gives the error of its function" `Quick

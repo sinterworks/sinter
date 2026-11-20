@@ -537,6 +537,10 @@ val with_objects : t -> (objects -> ('a, error) result) -> ('a, error) result
     [Command_failed] when git does not exit with the status 0. The process ends
     on every path, also when [f] raises; the exception then passes through.
 
+    When [f] returns before [f] reads every answer, [with_objects] reads and
+    drops the rest of git's output before [with_objects] closes the pipe and
+    waits for the process. Git does not fail on a write to a closed pipe.
+
     While [f] runs, the process ignores the signal [SIGPIPE], so that a write to
     a process that ended gives an error and does not end the process. The
     function restores the earlier behaviour when it returns. *)
