@@ -1986,11 +1986,8 @@ meets every requirement of section 5.
 
 The vectors of this design are in the file
 [`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in
-the same directory as this design. A vector gives an input of the
-vector, which holds one or more inputs of a conforming program, and what
-a conforming program gives for them. Each vector follows from the
-requirements and adds nothing to them. The vectors are in groups. Each
-group has a name, such as `citations`. The schema `vector-line` in
+the same directory as this design. Each vector follows from the
+requirements and adds nothing to them. The schema `vector-line` in
 subsection 6.1 defines the shared layout of the file and its vector
 lines. The other schemas in the subsections below name the requirements
 that the vectors of each group follow from, and they define the JSON
@@ -2027,9 +2024,7 @@ not start with U+FEFF, it holds no carriage return, it has no empty
 line, and when it is not empty it ends with a line feed. Only a line
 feed ends a line of the vector file. A JSON string of the vector file
 can hold U+0085, U+2028, or U+2029, and these characters do not end a
-line. The vector file holds zero or more vector lines. Every vector line
-in the vector file with the same `group` value names the same `#` and
-part name in `form`.
+line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line: a JSON text,
 as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
@@ -2053,12 +2048,14 @@ optional member `note`, and no other member:
   other result.
 - `values`: a JSON object that holds what a conforming program gives for
   the inputs that the schema of the group names, other than the result
-  that `result` holds when the vector has `result`. The schema of each
-  group gives the members of this JSON object, and it names each result
-  and each value that a conforming program gives and that the vectors of
-  the group do not state. In `values`, or in the `values` member of an
-  element of an array that a group schema names, an empty JSON object,
-  `{}`, says that a conforming program gives no value for that input.
+  that `result` holds when the vector has `result` and other than each
+  result and each value that the vectors of the group do not state. The
+  schema of each group gives the members of this JSON object, and it
+  names each result and each value that a conforming program gives and
+  that the vectors of the group do not state. In `values`, or in the
+  `values` member of an element of an array that a group schema names,
+  an empty JSON object, `{}`, says that a conforming program gives no
+  value for that input.
 
 A vector writes each text, binding of `external-namespaces`, and
 sequence in one fixed JSON form:
@@ -2079,7 +2076,15 @@ sequence in one fixed JSON form:
   array of its elements, in order.
 
 A vector line meets the schema `vector-line` when, and only when, it
-meets the rules of this schema for a vector line.
+meets what this schema states for one vector line: what this schema
+states from "The text of each line of the vector file" to this
+paragraph. All vector lines in the vector file with the same `group`
+have the same `#` and part name in `form`, and their labels in `form`
+may differ. The vector file meets the schema `vector-line` when, and
+only when, the vector file meets what this schema states before "The
+text of each line of the vector file" and what this paragraph states on
+`group` and `form`, and the text of each line of the vector file is a
+vector line that meets the schema `vector-line`.
 
 ### 6.2 Tag lines
 
@@ -2462,7 +2467,10 @@ group meets the schema `vector-line`.
   there is no kind word.
 - `result`: no vector of the group has this member. A conforming program
   gives the result "valid" for the citation or the inline citation, and
-  the vectors do not state this result or its values.
+  the vectors do not state this result or its values. When no line of
+  the text is a tag line, a conforming program also gives the result
+  "not a tag line" for each line of the text, and the vectors do not
+  state these results.
 - `values`: a JSON object with one member, `forms`: a JSON array with
   one element for each citation entry of the citation, in their order,
   or with one element for the target of the inline citation: its
