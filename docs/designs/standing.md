@@ -350,7 +350,8 @@ For the change of a commit, the requirements
 `compare-change-for-reused-labels`, `report-missing-base`,
 `omit-missing-base-report`, `report-cut-history`, and
 `omit-cut-history-report` state what a conforming program gives when the
-change has no base, when the tree of the commit has no item with a new
+change has no base, when the program does not give the findings of the
+class `reused-label`, when the tree of the commit has no item with a new
 label, or when the history of the default branch is cut (term
 `cut-history`) or the program stops reading the first-parent line for
 limits of its own.
@@ -373,9 +374,7 @@ which reads the ledger. The requirement
 newer and a git repository that does not hold its ledger objects. The
 requirements `give-successors` and `give-retired-findings` state what a
 conforming program gives when the first-parent line of the commit of the
-default branch is incomplete for the repository reads from which that
-program takes that first-parent line and the files of the trees of the
-commits of that first-parent line (term
+default branch is incomplete (term
 `approval#incomplete-first-parent-line`). The classes `cycle`,
 `deleted-decision`, and `reused-label` read no ledger.
 
