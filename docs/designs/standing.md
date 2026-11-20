@@ -32,18 +32,18 @@ classes at spots in those files.
 From Text and notation (`text`), the design takes texts, characters,
 spaces, tabs, places, lines, line numbers, whole numbers, decimal
 numerals, boundaries, runs, spans, positions, code point order, code
-spans, sequences, and what a conforming program and a result are. From Identifiers (`identifiers`),
-it takes tag lines, declarations, citations, citation lines with the
-production `every-part`, citation entries, inline citations, tag line
-texts, the parameter `external-namespaces` with its bindings, and the
-results that a conforming program of Identifiers gives. From Files and
-paths (`files`), it takes valid paths, path sets, valid path sets, and
-membership in the set of a path set. From Data forms (`data-forms`), it
-takes JSON values, indexes, hash forms, vector lines, test-vector sets,
-the forms of a group, and the meaning of a vector. The file that holds
-the conformance vectors of the design is a test-vector set. From RFC
-8259, the design takes JSON values, with their objects, members, arrays,
-strings, numbers, and the literal names `true` and `false`.
+spans, sequences, and what a conforming program and a result are. From
+Identifiers (`identifiers`), it takes tag lines, declarations,
+citations, citation lines with the production `every-part`, citation
+entries, inline citations, tag line texts, the parameter
+`external-namespaces` with its bindings, and the results that a
+conforming program of Identifiers gives. From Files and paths (`files`),
+it takes valid paths, path sets, valid path sets, and membership in the
+set of a path set. From Data forms (`data-forms`), it takes JSON values,
+indexes, hash forms, vector lines, test-vector sets, the forms of a
+group, and the meaning of a vector. From RFC 8259, the design takes JSON
+values, with their objects, members, arrays, strings, numbers, and the
+literal names `true` and `false`.
 
 From the Ontology (`ontology`), the design takes trees, items, declared
 items and their kinds, decision records, containment, names, current
@@ -85,17 +85,18 @@ and newer ledgers. From Approval (`approval`), it takes the parameter
 | [effective `supersedes` edge](sinter:ontology#effective-supersedes-edge=v1) | a `supersedes` edge that says what `supersedes` says, whose source and every item that holds its source are not deprecated, and whose source is approved |
 | [direct replacement](sinter:#successor=v1) | a declared item y directly replaces a declared item x when an effective `supersedes` edge has y as its source and x as its cited item, or matches `every-part` and replaces x by y by part name |
 | [successor](sinter:#successor=v1) | a declared item in force that replaces a retired declared item through one or more direct replacements, with every intermediate item retired |
-| [cycle of `supersedes` and `refines` edges](sinter:#edge-cycle=v1) | a maximal non-empty set of declared items of a tree in which each member reaches each member (itself included) along one or more `supersedes` edges (including `every-part` part replacements, effective or not) and `refines` edges that say what their kind of edge says |
+| [cycle of `supersedes` and `refines` edges](sinter:#edge-cycle=v1) | a maximal non-empty set of declared items of a tree in which each member reaches each member (itself included) along one or more `supersedes` and `refines` edges that say what their kind of edge says (`supersedes` edges effective or not, with their `every-part` part replacements) |
 | [declaration order](sinter:#cycle-finding=v1) | the order of declared items of a tree by the valid path of each item's file in code point order, and then by the origin position of the text of the tag line of each item's declaration in the order of positions |
 | [anchor member](sinter:#cycle-finding=v1) | among the members of a cycle of `supersedes` and `refines` edges whose name comes first in code point order, the member that comes first in declaration order |
 | [base item](sinter:revisions#base-item=v1) | the one declared item of a base tree with the same name in the corresponding set of names, of any kind, when the declared item of the tree is also the one declared item with its name in its set of names |
 | [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
-| [cut history](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a needed git object is missing from the repository and not fetched, or a read file of a tree on the line is in that tree's set of stopped files |
+| [incomplete first-parent line](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a non-shallow commit on the line names a first parent that is not a commit of the repository, or a needed git tree object or read-file blob of a commit on the line is missing from the repository at the end of the repository reads |
+| [cut history](sinter:#cut-history=v1) | a history of the default branch whose first-parent line is incomplete, or in which a read file of a tree of that line is in the set of stopped files of that tree |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
 | [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges that say what their kind of edge says, whose source counts, whose cited item counts as retired, and whose file is not a historical file |
-| [`cycle`](sinter:#cycle-finding=v1) | the finding class of cycles of `supersedes` and `refines` edges whose anchor member is not in a historical file |
+| [`cycle`](sinter:#cycle-finding=v1) | the finding class of the names of the anchor members of cycles of `supersedes` and `refines` edges, when the anchor member is not in a historical file |
 | [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree that are the base item of no declared item of a tree and whose file's valid path is not the valid path of a stopped file of that tree |
-| [`reused-label`](sinter:#reused-label-finding=v1) | the finding class of items with a new label whose label already appeared on the first-parent line of the default branch for a different kind or a different extent hash |
+| [`reused-label`](sinter:#reused-label-finding=v1) | the finding class of items with a new label whose base item in a tree of the first-parent line of the default branch had the same label with a different kind or a different extent hash |
 
 ## 2. Retirement, cycles, and guarantees over time
 
@@ -103,10 +104,10 @@ and newer ledgers. From Approval (`approval`), it takes the parameter
 
 A repository can bind the parameter `historical-paths` to a valid path
 set (schema `historical-paths`). The empty path set is a valid binding
-under which no file of any tree is historical. A file of a tree is a
-historical file when its valid path is in the set of that binding (term
-`historical-file`), whatever reads that file: a markdown file, a code
-file, a vector file, or a file with no reader.
+under which no file of any tree is historical. The term
+`historical-file` gives the historical files of a tree, whatever reads
+those files: a markdown file, a code file, a vector file, or a file with
+no reader.
 
 The declared items and edges of a historical file are those that the
 terms `documents#item-file` and `documents#tree-edge` give. For example,
@@ -133,12 +134,13 @@ stated:
    both `d2` and `d3`. The only successor of `d1` is `d4`, given once.
 4. **Every-part supersession and retirement of parts.** Design
    `billing-2` has `@supersedes billing=v1#*`. Design `billing` holds
-   `billing#limit` and `billing#legacy`. Design `billing-2` holds
-   `billing-2#limit` and no part named `legacy`. Both `billing#limit`
-   and `billing#legacy` are retired because they belong to the retired
-   design `billing`. The only successor of `billing#limit` is
-   `billing-2#limit`. Because `billing-2` holds no part named `legacy`,
-   `billing#legacy` has no successor.
+   the requirements `billing#limit` and `billing#legacy`. Design
+   `billing-2` holds the requirement `billing-2#limit` and no part named
+   `legacy`. Both `billing#limit` and `billing#legacy` are retired
+   because they belong to the retired design `billing`. The only
+   successor of `billing#limit` is `billing-2#limit`. Because
+   `billing-2` holds no part named `legacy`, `billing#legacy` has no
+   successor.
 5. **Deprecation.** Decision record `d1` carries `@deprecated`, and no
    effective `supersedes` edge cites `d1`. Then `d1` is retired and has
    no successor. When `d3` has `@supersedes d2=v1` and `d3` carries
@@ -221,21 +223,21 @@ successor (for example a `@deprecated` record or a retired vector
 group), `limit-retired-fix-edit-sets` adds no condition beyond
 `findings#limit-fix-edit-sets`.
 
-For example, in these cases, a successor of a retired item cannot be
-named by an edit of the citation, so no edit set meets
-`limit-retired-fix-edit-sets` for that successor, and a conforming
-program offers no fix for that finding:
+For example, in these cases, no edit of the citation or form pin meets
+`limit-retired-fix-edit-sets` for a successor of the retired item, so a
+conforming program offers no fix for that finding:
 
-1. **An unwritable form pin.** A vector line in
+1. **A form pin that cannot name the successor.** A vector line in
    `billing.test-vectors.jsonl` has `"form":"#row=v1"`, and schema
    `billing-2#row` (in another design) or `billing#spec-row` (in a
    specification of `billing` while the vector set is of `billing`
    itself) supersedes `billing#row`. By `ontology#edge`, a form pin in
    `billing.test-vectors.jsonl` can name only a schema that `billing`
    holds directly, so no edit of the form pin can cite that successor.
-2. **A pinned citation to a term with no label.** Design `billing-2` has
+2. **A pinned citation to a term with no label.** Design `billing`
+   declares `@term rate=v1`, design `billing-2` has
    `@supersedes billing=v1#*` and declares `@term rate` with no label,
-   while `docs/guide.md` holds `@cites billing#rate=v1`. Because
+   and `docs/guide.md` holds `@cites billing#rate=v1`. Because
    `billing-2#rate` has no current revision, no edit can write its
    current revision in place of the pin.
 3. **A successor with a duplicate name.** Two items in the same set of
@@ -282,7 +284,7 @@ member is `old#p`, so the cycle gives no `cycle` finding. When `old#q`
 is in a historical file and `old#p` is not, the anchor member is
 `old#p`, so the tree still has the `cycle` finding. When two members of
 a cycle share the first name in code point order, declaration order
-chooses the spot.
+chooses the anchor member (atom `cycle-finding`).
 
 ### 2.5 Deleted decision records
 
@@ -294,18 +296,19 @@ For example, when a change deletes the file of `@decision rust-bridge=v1`,
 or renames `@decision parser-bridge=v1` to `@decision wasm-bridge=v1`,
 the tree has one `deleted-decision` finding (`rust-bridge` or
 `parser-bridge`). Moving the file of a decision record to another folder
-with the same name keeps its base item and gives no finding. Changing `@decision x=v1` to `@req x=v1` in the shared set keeps `x` as
-the base item of that requirement and gives no `deleted-decision`
-finding. When the file of `@decision rust-bridge=v1` stays at the same
-valid path in the tree and is in the set of stopped files of the tree,
-the tree has no `deleted-decision` finding for `rust-bridge`. When that
-file stays at the same valid path with content that is not valid UTF-8,
-the tree still has the `deleted-decision` finding `rust-bridge`.
+with the same name keeps its base item and gives no finding. Changing
+`@decision x=v1` to `@req x=v1` in the shared set keeps `x` as the base
+item of that requirement and gives no `deleted-decision` finding. When
+the file of `@decision rust-bridge=v1` stays at the same valid path in
+the tree and is in the set of stopped files of the tree, the tree has no
+`deleted-decision` finding for `rust-bridge`. When that file stays at
+the same valid path with content that is not valid UTF-8, the tree still
+has the `deleted-decision` finding `rust-bridge`.
 
 A `deleted-decision` finding has no spot, because the finding names a
 record that is the base item of no declared item of the tree. Therefore,
-no binding of `historical-paths` removes a `deleted-decision` finding.
-The requirements `compare-change-for-deleted-decisions`,
+no valid binding of `historical-paths` removes a `deleted-decision`
+finding. The requirements `compare-change-for-deleted-decisions`,
 `report-missing-base`, and `omit-missing-base-report` cover the change
 of a commit.
 
@@ -353,9 +356,8 @@ limits of its own.
 
 ### 2.7 Bindings, ledgers, concurrent changes, and program limits
 
-All trees compared in one check are read under one binding of each
-parameter. Within one run, each tree has one set of stopped files
-wherever that run reads that tree. The requirements
+Each definition and each requirement uses one binding of each parameter
+and one set of stopped files for each distinct tree. The requirements
 `omit-results-under-invalid-reading-bindings` and
 `omit-findings-under-invalid-historical-paths` cover bindings of
 `file-readers`, `external-namespaces`, and `historical-paths` that are
@@ -365,14 +367,14 @@ branch has no commit (`changes#default-branch-commit`), so the change of
 a commit has no base.
 
 Successors and the class `retired` read in force under the bindings,
-which reads the ledger. The requirement `omit-results-from-invalid-ledgers` covers a ledger that
-is broken or newer and a git repository that does not hold its ledger
-objects. The requirements `give-successors` and `give-retired-findings`
-state what a conforming program gives when the first-parent line of the
-commit of the default branch is incomplete (term `cut-history`),
-including in a shallow clone or when the git repository lacks needed git
-objects. The classes `cycle`, `deleted-decision`, and `reused-label`
-read no ledger.
+which reads the ledger. The requirement
+`omit-results-from-invalid-ledgers` covers a ledger that is broken or
+newer and a git repository that does not hold its ledger objects. The
+requirements `give-successors` and `give-retired-findings` state what a
+conforming program gives when the first-parent line of the commit of the
+default branch is incomplete (term `cut-history`), including in a
+shallow clone or when the git repository lacks needed git objects. The
+classes `cycle`, `deleted-decision`, and `reused-label` read no ledger.
 
 The requirements `give-successors`, `give-retired-findings`, and
 `give-cycle-findings` state what a conforming program gives when it
