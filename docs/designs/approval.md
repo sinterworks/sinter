@@ -293,8 +293,8 @@ The extent hashes that a state uses, in the tree and in the trees of the
 commits of the first-parent line, are those that one binding of
 `file-readers`, one binding of `external-namespaces`, and one set of
 stopped files of each tree among them give. When two commits of the
-first-parent line have the same tree, or when the checked tree is the
-tree of a commit of that first-parent line, that tree has one set of
+first-parent line have the same tree, or when the tree is the tree of
+a commit of that first-parent line, that tree has one set of
 stopped files in every place where the state reads that tree. The state
 is under one binding of `approval-kinds` (atom `subject-state`). The
 commit of the default branch is the commit that one binding of
@@ -874,8 +874,8 @@ binding D of `default-branch-name`, a valid binding F of `file-readers`,
 and a binding N of `external-namespaces` for which a conforming program
 of the design Identifiers gives the result "valid". It applies for a git
 repository R, a tree T, and a point P of the ledger of R. When a
-conforming program gives whether a subject of approval S is approved or
-declined in T at P under A, D, F, and N, that conforming program must
+conforming program gives whether a subject of approval of T is approved
+or declined in T at P under A, D, F, and N, that conforming program must
 use one set of stopped files of U, as the set of stopped files of U, for
 each tree U that is T or, when the default branch of R has a commit H
 under D, is the tree of a commit of the first-parent line of H. To give
