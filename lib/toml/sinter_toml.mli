@@ -18,10 +18,11 @@
     included.
 
     The reader follows the specification of TOML 1.1.0 and its ABNF grammar,
-    except that the table rules of the specification [toml] of the design Data
-    forms replace three statements of TOML 1.1.0 on tables. At each point where
-    TOML 1.1.0 lets an implementation choose, the reader makes the choice that
-    the description of each type below states. *)
+    with two additions: it skips a byte order mark (the bytes 0xEF 0xBB 0xBF) at
+    the start of the byte sequence, and it accepts the second 60 on every date
+    and at every hour and minute. At each point where TOML 1.1.0 lets an
+    implementation choose, the reader makes the choice that the declarations
+    below state. *)
 
 type span = Types.span = { start : int; stop : int }
 (** A span of a byte sequence: [start] is the offset where the span starts, and
