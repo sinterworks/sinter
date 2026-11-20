@@ -281,8 +281,8 @@ group of conformance vectors (terms `edge`, `edge-source`,
 For example, the edge of `@supersedes docs=v3#*` in the tag lines of
 the design `media` says that `media` is to replace the design `docs`,
 which the label `v3` pins, and that `media#x` is to replace `docs#x`
-when `media` holds a declared item `media#x` of the same kind of item as
-`docs#x`.
+when `media` holds exactly one declared item `media#x` of the same kind
+of item as `docs#x`.
 
 ### 2.9 Revisions and pins
 
@@ -953,8 +953,8 @@ kind specification, a schema, an item of the kind requirement, an atom,
 or a term, and whose name is the name of the cited item, `#`, and a part
 name p, the declared item of the same kind of item as x that the source
 holds and whose name is the name of the source, `#`, and p is to replace
-x, when the source holds such a declared item. Only a `supersedes` edge
-says that one declared item is to replace another.
+x, when the source holds exactly one such declared item. Only a
+`supersedes` edge says that one declared item is to replace another.
 
 ### 3.33 Work items
 
@@ -1239,7 +1239,10 @@ delivery line names, and for each promise of that definition:
 - when that tree has no item of the kind requirement with the name of
   that promise, or has two or more items of the kind requirement with
   the name of that promise, that record of the job records no revision
-  and no revised content for that promise.
+  and no revised content for that promise. For that promise, that record
+  of the job records no result when that promise is a `verifies` promise
+  for which the job gives no result for whether that promise is kept,
+  and otherwise records that the promise was not kept.
 
 For each `satisfies` promise of each definition of that task that the
 delivery line names, that record of the job also records whether the
@@ -1249,9 +1252,8 @@ job also records one of three values: that the promise was kept, that
 the promise was not kept, or no result. A record of the job records no
 result for a `verifies` promise of a definition when, and only when, the
 job gives no result for whether that promise is kept. When a record of
-the job records no result, or records no revision and no revised
-content, for a promise of a definition, that promise counts as not kept
-for that definition in that record.
+the job records no result for a promise of a definition, that promise
+counts as not kept for that definition in that record.
 
 ### 3.49 The states of work items
 
