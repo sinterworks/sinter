@@ -1109,9 +1109,7 @@ start with U+FEFF, it holds no carriage return, it has no empty line,
 and when it is not empty it ends with a line feed. Only a line feed ends
 a line of the vector file. A JSON string of the vector file can hold
 U+0085, U+2028, or U+2029, and these characters do not end a line. The
-vector file holds zero or more vector lines. All vector lines with the
-same `group` in the vector file have the same `#` and schema name in
-`form`, and their labels in `form` may differ.
+vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line: a JSON text,
 as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
@@ -1179,7 +1177,15 @@ Each JSON object that a schema of a vector group describes has the
 members that the schema names for it, and no other member.
 
 A vector line meets the schema `vector-line` when, and only when, it
-meets what this schema states for a vector line.
+meets what this schema states for one vector line: what this schema
+states from "The text of each line of the vector file" to this
+paragraph. All vector lines in the vector file with the same `group`
+have the same `#` and name of a schema in `form`, and their labels in
+`form` may differ. The vector file meets the schema `vector-line` when,
+and only when, the vector file meets what this schema states before "The
+text of each line of the vector file" and what this paragraph states on
+`group` and `form`, and the text of each line of the vector file is a
+vector line that meets the schema `vector-line`.
 
 ### 5.2 Paths
 
@@ -1291,9 +1297,9 @@ member `text`, a text, in place of `bytes`. So
 text. Different lists of pieces can give the same byte sequence:
 `[{"bytes":"6161","times":1}]`, `[{"bytes":"61","times":2}]`, and
 `[{"bytes":"61","times":1},{"bytes":"61","times":1}]` all give the
-content 0x61, 0x61. Lists of pieces that give the same text stand for
-the same text. So the runner compares the byte sequences and the texts
-that the pieces give, and not the pieces.
+content 0x61, 0x61. Two lists of pieces that give the same byte sequence
+stand for the same content, and two lists of pieces that give the same
+text stand for the same text.
 
 Some file systems change entry names, add folder entries of their own,
 or do not allow some entry names. For example, a file system that
@@ -1348,10 +1354,10 @@ other name. For each vector that a run of the vectors does not skip, the
 run uses a file system that stores its folder tree and a process of the
 program for which the conditions of its input hold. A skip of a vector
 decides nothing about that vector when the runner cannot make true a
-need that the member `needs` of the vector names and reports the skipped
-vector and each such need. Any other skip of a vector makes the run of
-the vectors fail, as when the program does not give the result of the
-vector.
+need that the member `needs` of the vector names, and the runner reports
+the skipped vector and each such need. Any other skip of a vector makes
+the run of the vectors fail, as when the program does not give the
+result of the vector.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
