@@ -313,7 +313,8 @@ requirement `give-nothing-for-stopped-readings` names.
 The term `reading-entry` gives the test entries of a reading, with their
 test entry ids, such as `src/math.test.ts#3` for the third test node of
 the file `src/math.test.ts`. So two conforming programs give an adapter
-the same request for the same report file.
+the same request for the same report file under the same binding of
+`file-readers` and the same set of stopped files.
 
 ### 2.7 The tests that a test result names
 
@@ -334,13 +335,14 @@ example, `src/a.test.ts` and `lib/a.test.ts` each have `it("adds")`, and
 a report file that names no folder gives the test result `adds` with the
 file `a.test.ts`. That test result is linked to both tests. A program
 can take an input, such as an option that a person gives, that removes
-some of these pairs: a narrowing, which is part of the
-import. So two programs that get the same import give the same outcomes.
-The term `narrowing-of-an-import` says when a narrowing is valid. A
-valid narrowing removes a pair for two alike tests together, and it
-leaves each test result that it pairs naming at least one test, so no
-failure can disappear. A narrowing that is not valid removes no pair.
-When no narrowing is given, the import has the empty narrowing.
+some of these pairs: a narrowing, which is part of the import. So two
+programs that get the same import give the same outcomes under the same
+binding of `file-readers` and the same set of stopped files. The term
+`narrowing-of-an-import` says when a narrowing is valid. A valid
+narrowing removes a pair for two alike tests together, and it leaves
+each test result that it pairs naming at least one test, so no failure
+can disappear. A narrowing that is not valid removes no pair. When no
+narrowing is given, the import has the empty narrowing.
 
 A test result names a test when the test result is linked to the test,
 and a valid narrowing does not remove that pair (term `named-test`). A
@@ -903,14 +905,14 @@ test entry that the reading gives with the result "bound".
 
 Under a valid binding of `file-readers` and a set of stopped files of
 the tree of an import, the test results of that import are the test
-results of the readings of its report files under that binding and that
-set of stopped files that have the result "bound". The test results of
-an import are the test results, as the Ontology means them, of the
-execution of test runners for which the import stands. The number of a
-test result is 1 more than the number of the test results before it in
-its reading. A test result of an import is linked to a test of the tree
-of the import when, and only when, all three of these conditions are
-true:
+results of those readings of its report files, under that binding and
+that set of stopped files, that have the result "bound". The test
+results of an import are the test results, as the Ontology means them,
+of the execution of test runners for which the import stands. The number
+of a test result is 1 more than the number of the test results before it
+in its reading. A test result of an import is linked to a test of the
+tree of the import when, and only when, all three of these conditions
+are true:
 
 - the reading of the test result has a result link of that test result and a test entry whose path is the valid path of the file of that test, whose name path is equal to the name of that test, and whose kind is the kind of the test node of that test;
 - the test result has no file, or has a file that matches the valid path of the file of that test;
@@ -1289,7 +1291,7 @@ stopped files once, and no other result link of that reading.
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
-Under a valid binding of `file-readers`, for a set of stopped files of
+Under a valid binding of `file-readers` and a set of stopped files of
 the tree of an import, a conforming program must give no test results
 and no result links of the reading of a report file of that import under
 that binding and that set of stopped files when the result of that
@@ -1410,12 +1412,12 @@ Under a valid binding of `file-readers` and a binding of
 Identifiers gives the result "valid", when a conforming program gives,
 under these bindings and a set of stopped files of a tree that has
 evidence, whether a `verifies` promise is kept in that tree, for each
-test that is the source of an edge of that tree under these bindings and
-that set of stopped files that is such an edge for that promise as the
-term `promise` of the Ontology states, the conforming program must give
-once for that test, with what the conforming program gives for whether
-that promise is kept in that tree, the outcome of that test in the
-evidence for that tree under these bindings and that set of stopped
+test that, under these bindings and that set of stopped files, is the
+source of an edge of that tree that is such an edge for that promise as
+the term `promise` of the Ontology states, the conforming program must
+give once for that test, with what the conforming program gives for
+whether that promise is kept in that tree, the outcome of that test in
+the evidence for that tree under these bindings and that set of stopped
 files, which is "passed", "failed", or "not run", and each source of
 that outcome under these bindings and that set of stopped files once.
 Under a valid binding of `file-readers` and a binding of
@@ -1423,10 +1425,10 @@ Under a valid binding of `file-readers` and a binding of
 Identifiers gives the result "valid", when a conforming program gives,
 under these bindings and a set of stopped files of a tree that has
 evidence, whether a `verifies` promise is kept in that tree, the
-conforming program must give, with what the conforming program gives for
-whether that promise is kept in that tree, no outcome and no source for
-any test that is not the source of an edge of that tree under these
-bindings and that set of stopped files that is such an edge for that
+conforming program must give, with what the conforming program gives
+for whether that promise is kept in that tree, no outcome and no source
+for any test that, under these bindings and that set of stopped files,
+is not the source of an edge of that tree that is such an edge for that
 promise as the term `promise` of the Ontology states.
 
 ### 4.13 Nothing from evidence with a stopped reading
