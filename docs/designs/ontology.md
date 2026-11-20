@@ -4,7 +4,7 @@
 # Ontology
 @design ontology=v2
 @cites identifiers=v2
-@cites text=v1
+@cites text=v2
 @cites files=v1
 @cites data-forms=v2
 Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger and the repairs that they make when an agent runs them, on the judgments that they append and the repairs that they make, and on the use of declared tasks.
