@@ -104,8 +104,9 @@ the forms in which the vectors write folder trees. From the Ontology
 their bindings.
 
 From Data forms (`data-forms`), the design takes test-vector sets, in the
-format that its specification `test-vectors` gives: the file that holds
-the conformance vectors of the design is one. From POSIX.1-2024, it
+format that its specification `test-vectors` gives, and the forms of a
+group of vectors and what a vector line states. The file that holds the
+conformance vectors of the design is a test-vector set. From POSIX.1-2024, it
 takes processes and the shell, the open files of a process, pathnames,
 pipes, environment variables, the permissions and the appropriate
 privileges of a process, and its user IDs and group IDs.
@@ -1811,12 +1812,10 @@ vectors are in groups. Each group has a name, such as `hunks`, and a
 schema below gives the forms of that group, as the term
 [`group-form-list`](sinter:data-forms#group-form-list=v2) of Data forms
 gives them. Each vector of a group follows from one or more of the
-requirements that its schema names. Only the group `working-tree-files`
-uses needs; the forms of each other group give no need names. No vector
-follows from the requirements `use-one-line-map`,
-`leave-repositories-unchanged`, `read-only-repository-files`,
-`gain-no-repository-privileges`, `run-no-configured-programs`, and
-`follow-no-working-tree-links`.
+requirements that its schema names. No vector follows from the
+requirements `use-one-line-map`, `leave-repositories-unchanged`,
+`read-only-repository-files`, `gain-no-repository-privileges`,
+`run-no-configured-programs`, and `follow-no-working-tree-links`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that it names, such as the base of the change of a
@@ -1901,9 +1900,12 @@ read.
 
 When a conforming program gives the commit of the default branch under
 the binding, or gives that the default branch has no commit under it, it
-gives the commit that `commit` holds, and no other commit, when `values`
-has that member, and it gives that the default branch has no commit when
-`values` is `{}`.
+gives the commit that `commit` holds, and no other commit as the commit
+of the default branch under the binding, when `values` has that member,
+and it gives that the default branch has no commit when `values` is
+`{}`. The program does not give both a commit of the default branch
+under the binding and that the default branch has no commit under the
+binding.
 
 ```
 {"form":"#default-branch-commit-vector=v1","group":"default-branch-commits","input":{"binding":"main","local":"l","remote":"r","upstream":"u"},"note":"the upstream comes first","values":{"commit":"u"}}
@@ -1947,8 +1949,10 @@ undisturbed repository read.
 
 When a conforming program gives the head commit of the working tree, or
 gives that the working tree has none, it gives the commit that `commit`
-holds, and no other commit, when `values` has that member, and it gives
-that the working tree has no head commit when `values` is `{}`.
+holds, and no other commit as the head commit of the working tree, when
+`values` has that member, and it gives that the working tree has no head
+commit when `values` is `{}`. The program does not give both a head
+commit of the working tree and that the working tree has no head commit.
 
 ```
 {"form":"#head-commit-vector=v1","group":"head-commits","input":{"head":{"ref":"refs/remotes/origin/main"},"refs":{"refs/remotes/origin/main":"e"}},"note":"HEAD can name a ref that is not a branch","values":{"commit":"e"}}
@@ -2012,9 +2016,10 @@ of the commit, or those files, it gives one valid path, or one file with
 that valid path, for each element of `paths`, and no other. When it
 gives the file with a valid path, or gives that there is none, it gives
 the file, and no other file for that valid path, when `paths` holds that
-valid path, and that there is none when `paths` does not. The content of
-each file is the content of the blob of its entry, which the vectors do
-not give.
+valid path, and that there is none when `paths` does not. For a valid
+path, the program does not give both a file for that valid path and that
+there is none. The content of each file is the content of the blob of
+its entry, which the vectors do not give.
 
 ```
 {"form":"#commit-file-vector=v1","group":"commit-files","input":{"entries":[{"mode":"100664","name":"old.md"}]},"note":"an old mode of a regular file","values":{"paths":["old.md"]}}
@@ -2041,8 +2046,8 @@ not give.
         branch-name-vector=v1, commit-file-vector=v1,
         give-working-tree-files=v1, give-working-tree-file-at-path=v1,
         git-folder=v1, working-tree=v1, git-configuration=v1,
-        ignored-path=v1, working-tree-file=v1, repository-read=v1,
-        undisturbed-read=v1,
+        commit=v1, ignored-path=v1, working-tree-file=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2054,7 +2059,8 @@ files of the tree of the working tree. JSON objects, members, arrays,
 and strings are as RFC 8259 defines them; a text is as
 `branch-name-vector` gives; and a set of texts is as
 `commit-file-vector` gives. A folder tree is a folder tree object, whose
-file objects are file objects.
+file objects are file objects. The git repository of a vector holds no
+commit.
 
 - `input`: a JSON object with three members. `folder-tree` is the folder
   tree whose root is the root folder of the working tree, as a folder
@@ -2085,8 +2091,10 @@ of the working tree, or those files, it gives one valid path, or one
 file with that valid path, for each element of `paths`, and no other.
 When it gives the file with a valid path, or gives that there is none,
 it gives the file, and no other file for that valid path, when `paths`
-holds that valid path, and that there is none when `paths` does not. The
-content of each file is the content of its regular file.
+holds that valid path, and that there is none when `paths` does not. For
+a valid path, the program does not give both a file for that valid path
+and that there is none. The content of each file is the content of its
+regular file.
 
 These are the need names that the group `working-tree-files` uses, what
 each need is, and when a vector has it.
@@ -2229,8 +2237,9 @@ undisturbed repository read.
 
 When a conforming program gives the commit of the ref, or gives that the
 ref has none, it gives the commit that `commit` holds, and no other
-commit, when `values` has that member, and it gives that the ref has no
-commit when `values` is `{}`.
+commit as the commit of the ref, when `values` has that member, and it
+gives that the ref has no commit when `values` is `{}`. The program does
+not give both a commit of the ref and that the ref has no commit.
 
 ```
 {"form":"#ref-commit-vector=v1","group":"ref-commits","input":{"ref":"refs/heads/dangling","refs":{"refs/heads/alias":{"ref":"refs/heads/main"},"refs/heads/alias2":{"ref":"refs/heads/alias"},"refs/heads/dangling":{"ref":"refs/heads/gone"},"refs/heads/main":{"commit":"c"},"refs/tags/v1":{"other":"t"}}},"note":"a symbolic ref that names a ref that does not exist","values":{}}
@@ -2270,7 +2279,8 @@ vector stands for an undisturbed repository read.
 
 When a conforming program gives the commits of the range, it gives each
 element of `order`, and no other commit. When it gives them in an order
-as their parents-first order, it gives them in the order of `order`.
+as their parents-first order, it gives them in the order of `order`, and
+in no other order as their parents-first order.
 
 ```
 {"form":"#range-vector=v1","group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"b","to":"g"},"note":"the walk from `g` takes the first parent `c` of `f` before its second parent `e`","values":{"order":["c","d","e","f","g"]}}
@@ -2323,8 +2333,10 @@ each element of `change`, and no other commit. When it gives the merge
 bases of the two commits, it gives each element of `merge-bases`, and no
 other commit. When it gives the base of the change of h, or gives that
 the change of h has none, it gives the commit that `base` holds, and no
-other commit, when `values` has that member, and it gives that the
-change of h has no base when `values` has no member `base`.
+other commit as the base of the change of h, when `values` has that
+member, and it gives that the change of h has no base when `values` has
+no member `base`. The program does not give both a base of the change of
+h and that the change of h has no base.
 
 ```
 {"form":"#change-vector=v1","group":"changes","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1"},"note":"merges that cross: two merge bases, so no base","values":{"change":["m1"],"merge-bases":["b","c"]}}
@@ -2369,8 +2381,11 @@ When a conforming program gives the first-parent line of d, it gives the
 elements of `first-parent-line`, in their order, and no other commit.
 When it gives the landing commit of c on the first-parent line of d, or
 gives that c has none, it gives the commit that `landing-commit` holds,
-and no other commit, when `values` has that member, and it gives that c
-has no landing commit when `values` has no member `landing-commit`.
+and no other commit as the landing commit of c on that first-parent
+line, when `values` has that member, and it gives that c has no landing
+commit when `values` has no member `landing-commit`. The program does
+not give both a landing commit of c on that first-parent line and that c
+has no landing commit.
 
 ```
 {"form":"#landing-commit-vector=v1","group":"landing-commits","input":{"commit":"d","commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"line-of":"g"},"note":"`d` landed on the first-parent line of `g` through the merge commit `f`","values":{"first-parent-line":["g","f","c","b","a"],"landing-commit":"f"}}
@@ -2411,8 +2426,10 @@ stands for an undisturbed repository read.
 
 When a conforming program gives the text of the message of the commit,
 or gives that the message has no text, it gives the text that `text`
-holds, and no other text, when `values` has that member, and it gives
-that the message has no text when `values` is `{}`.
+holds, and no other text as the text of the message of the commit, when
+`values` has that member, and it gives that the message has no text when
+`values` is `{}`. The program does not give both a text of the message
+of the commit and that the message has no text.
 
 ```
 {"form":"#message-text-vector=v1","group":"message-texts","input":{"encoding":"ISO-8859-1","message":{"bytes":"636166e90a"}},"note":"the bytes are not valid UTF-8, whatever the header `encoding`","values":{}}
@@ -2479,7 +2496,9 @@ member `map`, and the program gives the new line number of the old line
 i of `f`, or gives that the old line i has none, it gives j, and no
 other new line number for the old line i, for the element of `map` whose
 first number is i, and it gives that the old line i has no new line
-number when no element of `map` has the first number i.
+number when no element of `map` has the first number i. For an old line
+i of `f`, the program does not give both a new line number for the old
+line i and that the old line i has no new line number.
 
 ```
 {"form":"#hunk-vector=v1","group":"hunks","input":{"new":"one\n2\nthree\nfour\n","old":"one\ntwo\nthree\n"},"note":"the example of section 2.7","values":{"added":2,"hunks":[{"added":1,"new-start":2,"old-start":2,"removed":1},{"added":1,"new-start":4,"old-start":4,"removed":0}],"map":[[1,1],[3,3]],"removed":1}}
@@ -2545,7 +2564,8 @@ the change of h has no diff, it gives, when `values` has the member
 `diff`, for each element of `diff`, one hunk for each element of its
 `hunks`, with its four numbers and with the valid path of `path`, and no
 other hunk, and it gives that the change of h has no diff when `values`
-is `{}`.
+is `{}`. The program does not give both a diff of the change of h and
+that the change of h has no diff.
 
 ```
 {"form":"#change-diff-vector=v1","group":"change-diffs","input":{"commits":{"a":[],"b":["a"],"c":["a"],"m1":["b","c"],"m2":["c","b"]},"default":"m2","last":"m1","trees":{"a":{},"b":{"b.md":"b\n"},"c":{"c.md":"c\n"},"m1":{},"m2":{}}},"note":"the change has no base, so it has no diff","values":{}}
@@ -2595,9 +2615,12 @@ order. Each vector stands for an undisturbed repository read.
 
 When a conforming program gives the commit of the default branch under
 the binding, or gives that the default branch has no commit under it, it
-gives the commit that `commit` holds, and no other commit, when `values`
-has that member, and it gives that the default branch has no commit when
-`values` is `{}`.
+gives the commit that `commit` holds, and no other commit as the commit
+of the default branch under the binding, when `values` has that member,
+and it gives that the default branch has no commit when `values` is
+`{}`. The program does not give both a commit of the default branch
+under the binding and that the default branch has no commit under the
+binding.
 
 ```
 {"form":"#upstream-vector=v1","group":"upstreams","input":{"binding":"main","refs":{"refs/heads/main":"l"},"settings":{"branch.main.merge":["refs/heads/main"],"branch.main.remote":["up"],"remote.up.fetch":["refs/heads/*:refs/remotes/up/*"],"remote.up.url":["/nowhere"]}},"note":"an upstream that does not exist is not the first ref that exists","values":{"commit":"l"}}
@@ -2620,8 +2643,8 @@ has that member, and it gives that the default branch has no commit when
         branch-name-vector=v1, commit-file-vector=v1,
         give-working-tree-files=v1, give-working-tree-file-at-path=v1,
         git-folder=v1, working-tree=v1, git-configuration=v1,
-        ignored-path=v1, working-tree-file=v1, repository-read=v1,
-        undisturbed-read=v1,
+        commit=v1, ignored-path=v1, working-tree-file=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2632,7 +2655,8 @@ a working tree, the file names of the other regular files of that root
 folder, and the valid paths of the files of the tree of the working
 tree. JSON objects, members, arrays, and strings are as RFC 8259 defines
 them; a text is as `branch-name-vector` gives; and a byte sequence and a
-set of texts are as `commit-file-vector` gives.
+set of texts are as `commit-file-vector` gives. The git repository of a
+vector holds no commit.
 
 - `input`: a JSON object with two members. `gitignore` is the content of
   the file `.gitignore`, as a byte sequence. `names` is the set of the
@@ -2657,8 +2681,10 @@ of the working tree, or those files, it gives one valid path, or one
 file with that valid path, for each element of `paths`, and no other.
 When it gives the file with a valid path, or gives that there is none,
 it gives the file, and no other file for that valid path, when `paths`
-holds that valid path, and that there is none when `paths` does not. The
-content of each file is the content of its regular file.
+holds that valid path, and that there is none when `paths` does not. For
+a valid path, the program does not give both a file for that valid path
+and that there is none. The content of each file is the content of its
+regular file.
 
 ```
 {"form":"#ignore-file-vector=v1","group":"ignore-files","input":{"gitignore":"b.md\r\n","names":["a.md","b.md"]},"note":"a carriage return right before a line feed is in no pattern","values":{"paths":[".gitignore","a.md"]}}
