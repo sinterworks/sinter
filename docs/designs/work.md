@@ -830,7 +830,8 @@ of these conditions are true:
 1. The member `definitions` of E holds an element D whose value of
    `task-hash` is the task hash of the definition of t that was current
    at P.
-2. Every element of `promises` of D has the value `kept` for `outcome`.
+2. Every element of `promises` of D has the value `kept` for `outcome`,
+   and has both `label` and `extent-hash`.
 
 ### 4.16 Recorded requirement content for requirement accounting
 
