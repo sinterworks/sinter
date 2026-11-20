@@ -1474,6 +1474,18 @@ let a_manifest_through_a_link_to_a_folder_below_the_root_follows_the_rule () =
       manifest as a regular file")
     (failure (scan ~manifest:given ~base:"HEAD" repo))
 
+let an_outside_link_into_the_repository_names_the_path_below_the_root () =
+  let repo =
+    repository [ ("sinter.toml", manifest); ("ci/m.toml", manifest) ]
+  in
+  let link =
+    Filename.concat (Unix.realpath (Git_fixture.temp_dir ())) "link.toml"
+  in
+  Unix.symlink (Filename.concat (Git_fixture.root repo) "ci/m.toml") link;
+  Alcotest.(check string)
+    "the manifest of the index" "ci/m.toml"
+    (index_field "manifest" (outcome (scan ~manifest:link ~base:"HEAD" repo)))
+
 let a_path_that_ends_as_a_folder_names_no_manifest () =
   let repo =
     repository [ ("sinter.toml", manifest); ("ci/m.toml", manifest) ]
@@ -1619,6 +1631,8 @@ let tests =
       a_manifest_through_a_link_to_the_root_follows_the_rule;
     case "a manifest through a link to a folder below the root follows the rule"
       a_manifest_through_a_link_to_a_folder_below_the_root_follows_the_rule;
+    case "an outside link into the repository names the path below the root"
+      an_outside_link_into_the_repository_names_the_path_below_the_root;
     case "a path that ends as a folder names no manifest"
       a_path_that_ends_as_a_folder_names_no_manifest;
     case "an outside path that ends as a folder names no manifest"
