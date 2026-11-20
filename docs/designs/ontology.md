@@ -150,7 +150,7 @@ forms of a group; and the meaning of a vector.
 | [repair](sinter:#repair=v1) | a write to the ledger of a repository, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void where each of them was |
 | [void](sinter:#repair=v1) | a ledger entry that stands where a ledger entry that a repair removed was |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
-| [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
+| [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that is accepted at its point and gives its work item the definition that it records |
 | [current definition](sinter:#work-item-state=v1) | the definition that the last accepted definition entry of a work item, in the order of the ledger, records |
 | [exist](sinter:#work-item-state=v1) | a work item exists at a point of a ledger when it has a current definition at that point |
 | [part of a plan](sinter:#work-item-state=v1) | a work item whose current definition names the plan as its plan, unless the work item is abandoned, or the plan was abandoned while the work item was not done |
@@ -167,8 +167,8 @@ forms of a group; and the meaning of a vector.
 | [state input](sinter:#state-input=v1) | one of the things on which states depend: which commits the repository has, each with its parents and its tree; the commit to which each branch points; the commit of the default branch; the tree of each working tree; the delivery lines and the task lines of the messages of commits; the ledger, in its order; test evidence; or the bindings of the parameters that designs name |
 | [retired](sinter:#retired-item=v1) | a declared item is retired when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
 | [in force](sinter:#in-force-item=v1) | a declared item is in force when it is not retired |
-| [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, and its source is approved |
-| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1), [on a cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a finite sequence of one or more `supersedes` edges in a tree, each of which says what `supersedes` says, whether or not effective, in which the cited item of each edge before the last is the source of the next, and the cited item of the last is the source of the first; an item is on a cycle of `supersedes` edges when it is the source of an edge of such a cycle |
+| [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, and its source is approved |
+| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1), [on a cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a finite sequence of one or more pairs (a, b) of declared items in a tree in which each pair comes from a `supersedes` edge that says what `supersedes` says (whether or not effective), either as its source and cited item or as a part replacement of an `every-part` edge, the second item of each pair before the last is the first item of the next, and the second item of the last is the first item of the first; an item is on a cycle of `supersedes` edges when it is the first item of a pair of such a cycle |
 | [deprecated](sinter:#deprecated-item=v1) | the state that the status word `@deprecated` gives, through a status tag that stands in the item |
 | [approved, declined](sinter:#approval-state=v1) | the states of a subject of approval whose revised content a person approved or declined, or, for a kind of subject of approval that needs no approval by a person, whose revised content merged into the default branch |
 | [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
@@ -178,7 +178,7 @@ forms of a group; and the meaning of a vector.
 | [unfinished](sinter:#work-item-state=v1) | a task is unfinished while it is open or delivered |
 | [met](sinter:#met-wait=v1) | a wait says that the work of the waiting item is to start only after the work item that it waits for is done; a wait is met when the work item that it waits for is done |
 | [ready](sinter:#ready-task=v1) | a task is ready when it is open and its waits, and the waits of each plan that it is under, are met |
-| [accounted for](sinter:#requirement-accounted-for=v1) | an item of the kind requirement is accounted for when work for it is under way, or was finished at its current revision |
+| [accounted for](sinter:#requirement-accounted-for=v1) | an item of the kind requirement is accounted for when work for it is under way, or was finished at its current revision and its current revised content |
 | statement of an agent | a text that an agent writes |
 | session | one execution of an agent on its work |
 | declared task | the task that an agent declares as the work of its session |
@@ -1170,8 +1170,8 @@ judgment is one of these four kinds of ledger entry:
   content of one subject of approval.
 - A `done` ledger entry records that a person judged the work of one
   task finished, and, for each item of the kind requirement that the
-  task promises, the revision of that item at which the person judged
-  the work finished.
+  task promises, the revision and the revised content of that item at
+  which the person judged the work finished.
 - An `abandoned` ledger entry records that a person ended one task or
   one plan, and the reason.
 
@@ -1180,15 +1180,16 @@ judgment is one of these four kinds of ledger entry:
 @term job-record=v1
 @cites #{
     ledger-entry=v1, job=v1, delivery-line=v1, promise=v1, task=v1,
-    work-item-definition=v1, item-revision=v1, declared-item=v1,
+    work-item-definition=v1, item-revision=v1, revised-content=v1,
+    declared-item=v1,
 }
 
 A record of the job is a ledger entry of the kind `delivered`: it
 records what the job observed about one delivery line, and it is a
 `delivered` ledger entry of the task that the line names. For each
 definition of that task that the line names, and for each promise of
-that definition, it records the revision of the promised item of the
-kind requirement, and whether the promise was kept.
+that definition, it records the revision and the revised content of the
+promised item of the kind requirement, and whether the promise was kept.
 
 ### 3.49 The states of work items
 
@@ -1201,14 +1202,17 @@ kind requirement, and whether the promise was kept.
 
 At each point of a ledger, the ledger entries before that point give
 the current definition of each work item, the work items that exist,
-the parts of each plan, and the state of each task and each plan:
+the parts of each plan, and the state of each task and each plan. A
+ledger entry of the kind `task`, `plan`, `done`, `abandoned`, or
+`delivered` counts in these states only when it is accepted at its
+point.
 
-1. An accepted definition entry is a definition entry that gives its
-   work item the definition that it records. The current definition of a
-   work item at a point is the definition that the last accepted
-   definition entry of the work item before that point, in the order of
-   the ledger, records. A work item exists at a point when, and only
-   when, it has a current definition at that point.
+1. An accepted definition entry is a definition entry that is accepted
+   at its point and gives its work item the definition that it records.
+   The current definition of a work item at a point is the definition
+   that the last accepted definition entry of the work item before that
+   point, in the order of the ledger, records. A work item exists at a
+   point when, and only when, it has a current definition at that point.
 2. A work item is a part of a plan at a point when, and only when, its
    current definition names that plan as its plan, unless the work item
    is abandoned at that point, or the plan was abandoned, before that
@@ -1218,21 +1222,26 @@ the parts of each plan, and the state of each task and each plan:
    point.
 3. Each task that exists at a point is in one of these four states at
    that point:
-   - abandoned, when a person ended the task before it was done;
-   - done, when, while the task was not abandoned, a person judged the
-     work of the task finished, or the job observed, in a `delivered`
-     ledger entry, that a delivery line of the task named the definition
-     of the task that was current at the point of that `delivered`
-     ledger entry, and that each promise of that definition was kept;
-   - delivered, when the job observed, in a `delivered` ledger entry, a
-     delivery line of the task, and the task is neither done nor
-     abandoned;
+   - abandoned, when, before that point, an accepted `abandoned` ledger
+     entry records that a person ended the task, and the task was not
+     done at the point of that ledger entry;
+   - done, when, before that point, an accepted `done` ledger entry
+     records that a person judged the work of the task finished, or an
+     accepted `delivered` ledger entry records that the job observed
+     that a delivery line of the task named the definition of the task
+     that was current at the point of that `delivered` ledger entry and
+     that each promise of that definition was kept, and the task was not
+     abandoned at the point of that ledger entry;
+   - delivered, when, before that point, an accepted `delivered` ledger
+     entry records that the job observed a delivery line of the task,
+     and the task is neither done nor abandoned;
    - open, when it is none of abandoned, done, and delivered.
 4. A task is unfinished at a point when, and only when, it is open or
    delivered at that point.
 5. Each plan that exists at a point is in one of these three states at
    that point:
-   - abandoned, when a person ended the plan;
+   - abandoned, when, before that point, an accepted `abandoned` ledger
+     entry records that a person ended the plan;
    - done, when it is not abandoned, it has at least one part, and each
      of its parts is done at that point;
    - open, when it is neither abandoned nor done.
@@ -1329,36 +1338,33 @@ when, and only when, the edge says what the kind of edge `supersedes`
 says in that tree (its source and its cited item are of the kinds of
 item for which that kind of edge is); neither its source nor an item
 that holds its source is deprecated in that tree; and its source is
-approved in that tree at that point. An effective `supersedes` edge is
-one whose replacement has taken effect.
+approved in that tree at that point.
 
 ### 3.55 Cycles of edges of the kind `supersedes`
 
 @term supersedes-cycle=v1
-@cites #{
-    edge=v1, supersedes-edge=v1, effective-supersedes-edge=v1,
-    item=v1, tree=v1, ledger=v1,
+@cites {
+    identifiers#{citation-entry=v1, citation-line=v1},
+    #{edge=v1, supersedes-edge=v1, declared-item=v1, tree=v1},
 }
 
 A cycle of `supersedes` edges in a tree is a finite sequence of one or
-more `supersedes` edges in that tree that meets all three of these
-conditions:
+more pairs (a, b) of declared items in that tree that meets both of
+these conditions:
 
-- each edge of the sequence says what the kind of edge `supersedes` says
-  in that tree;
-- for each edge of the sequence before the last, its cited item in that
-  tree is the source of the next edge in that tree;
-- the cited item of the last edge of the sequence in that tree is the
-  source of the first edge of the sequence in that tree.
+- for each pair (a, b) of the sequence, a `supersedes` edge in that tree
+  that says what the kind of edge `supersedes` says in that tree says
+  that a is to replace b (either because a is the source and b is the
+  cited item of that edge, or because the production `every-part`
+  matches the citation entry of that edge and the edge says that b is to
+  be replaced by a);
+- for each pair before the last, its second item is the first item of
+  the next pair, and the second item of the last pair is the first item
+  of the first pair.
 
-So a single `supersedes` edge in a tree that says what the kind of edge
-`supersedes` says in that tree, and whose cited item in that tree is its
-source in that tree, is a cycle of `supersedes` edges in that tree.
-Whether a sequence of edges is a cycle of `supersedes` edges in a tree
-does not depend on whether any edge of the sequence is effective at any
-point of a ledger. An item is on a cycle of `supersedes` edges in a tree
-when, and only when, it is the source of an edge of a cycle of
-`supersedes` edges in that tree.
+An item is on a cycle of `supersedes` edges in a tree when, and only
+when, it is the first item of a pair of a cycle of `supersedes` edges in
+that tree.
 
 ### 3.56 Retired
 
@@ -1425,8 +1431,8 @@ task is under at that point is met at that point.
 @cites #{
     declared-item=v1, containment=v1, task=v1, plan=v1, promise=v1,
     carried-out-item=v1, work-item-definition=v1, work-item-state=v1,
-    ledger=v1, item-revision=v1, item-name=v1, tree=v1, judgment=v1,
-    job-record=v1,
+    ledger=v1, item-revision=v1, revised-content=v1, item-name=v1,
+    tree=v1, judgment=v1, job-record=v1,
 }
 
 An item of the kind requirement is accounted for in a tree, at a point
@@ -1437,8 +1443,10 @@ of a ledger, when, and only when, one of these is true at that point:
 - the current definition of an open plan names, as carried out, the
   name that the item, the item of the kind specification that holds it,
   or the item of the kind design that holds it has in that tree;
-- a done task promised the item, and the work of that task was finished
-  at the current revision of the item in that tree.
+- a done task promised the item, and an accepted `done` or `delivered`
+  ledger entry that made that task done records, for that item, both
+  the current revision of the item in that tree and the same revised
+  content as the revised content of the item in that tree.
 
 ### 3.62 Parameters
 
