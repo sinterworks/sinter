@@ -1535,9 +1535,10 @@ array of its elements in order.
   once, in increasing numerical order.
 
 When a conforming program gives the successors of `target` in the tree
-at the point under the bindings and empty sets of stopped files, that
-program gives the declared item at each index in `successors` once and
-gives no other item.
+at the point under the bindings and empty sets of stopped files, and
+that program does not refuse the edges of the tree for limits of its
+own, that program gives the declared item at each index in `successors`
+once and gives no other item.
 
 ### 6.2 Findings of the class `retired`
 
@@ -1605,19 +1606,23 @@ elements in order.
     JSON object with `kind` (one of `"cites"`, `"satisfies"`,
     `"verifies"`, `"refines"`, and `"supersedes"`), `fits` (`true` when
     the edge says what its kind of edge says in the tree, and `false`
-    otherwise), `source-kind` (one of `"declared"`, `"group"`, and
-    `"other"`), `source-in-force` (present when `source-kind` is
-    `"declared"` or `"group"`: `true` when that declared item, or the
-    item of the kind design or of the kind specification of that group's
-    vector set, is in force in the tree at the point under the bindings,
-    and `false` otherwise), `cited-kind` (one of `"declared"`, `"group"`,
-    `"vector-set"`, and `"external"`), `cited-in-force` (present when
+    otherwise), `source-kind` (`"declared"` when the source is a
+    declared item, `"group"` when the source is a group of conformance
+    vectors, and `"other"` otherwise), `source-in-force` (present when
+    `source-kind` is `"declared"` or `"group"`: `true` when that
+    declared item, or the item of the kind design or of the kind
+    specification of that group's vector set, is in force in the tree at
+    the point under the bindings, and `false` otherwise), `cited-kind`
+    (`"declared"` when the cited item is a declared item, `"group"` when
+    the cited item is a group of conformance vectors, `"vector-set"`
+    when the cited item is a vector set, and `"external"` when the cited
+    item is an external item), `cited-in-force` (present when
     `cited-kind` is `"declared"`, `"group"`, or `"vector-set"`: `true`
     when that declared item, or the item of the kind design or of the
-    kind specification of that vector set, is in force in the tree at
-    the point under the bindings, and `false` otherwise), `path` (the
-    valid path of the file of the edge), and `at` (the position subject
-    of the edge).
+    kind specification of that group's vector set or of that vector set,
+    is in force in the tree at the point under the bindings, and `false`
+    otherwise), `path` (the valid path of the file of the edge), and
+    `at` (the position subject of the edge).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: `{}` when `historical-paths` is not a valid path set;
@@ -1628,9 +1633,10 @@ elements in order.
 When `values` is `{}`, a conforming program gives no finding of the
 class `retired` for the tree. When `values` is not `{}` and a conforming
 program gives the findings of the class `retired` of the tree at the
-point under the bindings and empty sets of stopped files, that program
-gives one finding of that class with each subject in `findings` and
-gives no other finding of that class.
+point under the bindings and empty sets of stopped files, and that
+program does not refuse the edges of the tree for limits of its own,
+that program gives one finding of that class with each subject in
+`findings` and gives no other finding of that class.
 
 ### 6.3 Offered fixes of `retired` findings
 
@@ -1839,11 +1845,12 @@ array of its elements in order.
 When `values` is `{}`, a conforming program gives no finding of the
 class `cycle` for the tree. When `values` is not `{}` and a conforming
 program gives the findings of the class `cycle` of the tree under the
-bindings and the empty set of stopped files, that program gives one
-finding of that class for each element of `findings`, with the subject
-that the element states, and gives no other finding of that class; when
-that program gives the spot of such a finding, the spot has the valid
-path and start position that the element states.
+bindings and the empty set of stopped files, and that program does not
+refuse the edges of the tree for limits of its own, that program gives
+one finding of that class for each element of `findings`, with the
+subject that the element states, and gives no other finding of that
+class; when that program gives the spot of such a finding, the spot has
+the valid path and start position that the element states.
 
 ### 6.5 Findings of the class `deleted-decision`
 
