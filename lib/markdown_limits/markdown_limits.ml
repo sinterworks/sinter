@@ -9,7 +9,13 @@ type text = Lines.t
 
 let last_runs bytes first =
   let n = String.length bytes in
-  let last = Hashtbl.create 16 in
+  let last =
+    Hashtbl.create
+      (16
+      [@mutaml.skip
+        "the size is only the first capacity of the table, and the table grows \
+         as it needs, so each lookup gives the same result"])
+  in
   let rec scan i =
     if i < n then
       if bytes.[i] = '`' then (
@@ -24,41 +30,23 @@ let last_runs bytes first =
   scan first;
   last
 
-let opened = 0
-let in_code = 1
-let in_html = 2
-let blocked = 3
+type state = Open | In_code of int | In_html | Blocked
 
 let brackets_from ~limit bytes first =
   let n = String.length bytes in
   let last = last_runs bytes first in
-  let last_gt = Option.value ~default:(-1) (String.rindex_opt bytes '>') in
-  let size = ref (max 1 (min 64 limit)) in
-  let state = ref (Array.make !size opened)
-  and code = ref (Array.make !size 0) in
-  let top = ref 0 and pending = ref 0 and best = ref 0 in
-  let backslashes = ref 0 and blank = ref true in
-  let push () =
-    if !top = !size then (
-      let grow a =
-        let b = Array.make (2 * !size) 0 in
-        Array.blit a 0 b 0 !size;
-        b
-      in
-      state := grow !state;
-      code := grow !code;
-      size := 2 * !size);
-    !state.(!top) <- opened;
-    incr top;
-    best := max !best !top
+  let last_gt = String.rindex_opt bytes '>' in
+  let stack = Dynarray.create () in
+  let best = ref 0 and backslashes = ref 0 in
+  let blank =
+    ref
+      (true
+      [@mutaml.skip
+        "the stack is empty until the first [ that counts, and that [ makes \
+         its line not blank, so the first value changes nothing"])
   in
-  let resolve outcome =
-    if !pending > 0 then (
-      for k = 0 to !top - 1 do
-        if !state.(k) = in_html then !state.(k) <- outcome
-      done;
-      pending := 0)
-  in
+  let update f = Dynarray.iteri (fun k s -> Dynarray.set stack k (f s)) stack in
+  let resolve outcome = update (function In_html -> outcome | s -> s) in
   let run i even =
     let j = ref i in
     while !j < n && bytes.[!j] = '`' do
@@ -67,26 +55,24 @@ let brackets_from ~limit bytes first =
     let length = !j - i in
     let l = if even then length else length - 1 in
     let later =
-      l > 0
-      && match Hashtbl.find_opt last l with Some s -> s > i | None -> false
+      match Hashtbl.find_opt last l with Some s -> s > i | None -> false
     in
-    for k = 0 to !top - 1 do
-      if !state.(k) = in_code then (
-        if !code.(k) = length then !state.(k) <- opened)
-      else if !state.(k) = opened && later then (
-        !state.(k) <- in_code;
-        !code.(k) <- l)
-    done;
+    update (function
+      | In_code m when m = length -> Open
+      | Open when later -> In_code l
+      | s -> s);
     length
   in
   let html i =
-    let next = if i + 1 < n then bytes.[i + 1] else ' ' in
-    let outcome = if next = '!' || next = '?' then blocked else in_html in
-    for k = 0 to !top - 1 do
-      if !state.(k) = opened then (
-        !state.(k) <- outcome;
-        if outcome = in_html then incr pending)
-    done
+    let next = bytes.[i + 1] in
+    let outcome = if next = '!' || next = '?' then Blocked else In_html in
+    update (function Open -> outcome | s -> s)
+  in
+  let gt_after i =
+    match last_gt with
+    | Some g -> (
+        ((g > i) [@mutaml.skip "the byte at i is a <, so g is never i"]))
+    | None -> false
   in
   let i = ref first in
   while !i < n && !best <= limit do
@@ -95,38 +81,39 @@ let brackets_from ~limit bytes first =
     let step =
       match c with
       | '\n' | '\r' ->
-          resolve blocked;
+          resolve Blocked;
           if c = '\n' || !i + 1 >= n || bytes.[!i + 1] <> '\n' then (
-            if !blank then (
-              top := 0;
-              pending := 0);
+            if !blank then Dynarray.clear stack;
             blank := true);
           1
       | ' ' | '\t' -> 1
       | '[' ->
           blank := false;
-          if even then push ();
+          if even then (
+            Dynarray.add_last stack Open;
+            best := max !best (Dynarray.length stack));
           1
       | ']' ->
           blank := false;
-          if even && !top > 0 && !state.(!top - 1) = opened then decr top;
+          if even && Dynarray.find_last stack = Some Open then
+            ignore (Dynarray.pop_last stack);
           1
       | '>' ->
           blank := false;
-          resolve opened;
+          resolve Open;
           1
       | '"' | '\'' ->
           blank := false;
-          resolve blocked;
+          resolve Blocked;
           1
       | '`' ->
           blank := false;
-          resolve blocked;
+          resolve Blocked;
           run !i even
       | '<' ->
           blank := false;
-          resolve blocked;
-          if even && last_gt > !i then html !i;
+          resolve Blocked;
+          if even && gt_after !i then html !i;
           1
       | _ ->
           blank := false;
