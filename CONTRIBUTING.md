@@ -260,8 +260,9 @@ names the new commit.
 
 `docs/contributing/mutation-testing.md` says how to run a pass on the
 whole tree or on a branch, what each command and option does, how the
-`mutation` job splits a pass into parts, how to test a survivor again
-under the seeds of a run, and the rules for running a pass.
+`mutation` job selects test groups, splits a pass into parts, and checks
+the selection with a canary, how to test a survivor again under the
+seeds of a run, and the rules for running a pass.
 
 Two rules keep the suite and the measured code fit for a pass:
 
@@ -285,7 +286,7 @@ Two rules keep the suite and the measured code fit for a pass:
 `--fail-under`, 2 when it is below, and 1 when the tool could not do its
 work. Give it the number that the job "Report the mutation score" holds
 in `MUTATION_MINIMUM`, so that a pass on your own machine answers as the
-job does. The five jobs of the mutation pass are not required checks:
+job does. The jobs of the mutation pass are not required checks:
 they never hold a merge, and a failure stays red on the pull request for
 the author and the reviewer to read. The number is fixed at 95 by a
 ruling of the maintainer (`docs/decisions/mutation-gate.md`). It does

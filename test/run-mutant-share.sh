@@ -47,9 +47,11 @@ fi
 
 echo "The seeds of the property tests are ${number}1 and ${number}2."
 echo "To test this share again under the same seeds, give the option -s $number."
+echo "The mutants of each mutation file run only the test groups that can reach its code."
 echo "To test one mutant again, build the tests with the code instrumented, and run at the root:"
-echo "  MUTAML_MUTANT=<name of the mutant> QCHECK_SEED=${number}1 test/run-mutants.sh"
+echo "  MUTAML_MUTANT=<name of the mutant> QCHECK_SEED=${number}1 <the test command of its file>"
 echo "and then the same command with QCHECK_SEED=${number}2."
+echo "The line before the mutants of each file gives its test command."
 
 dir=_mutations/share
 log=_mutations/runner.log
@@ -57,11 +59,26 @@ rm -rf "$dir"
 mkdir -p "$dir"
 : >"$log"
 
+sh test/mutant-groups.sh >"$dir/groups"
+
+quote() {
+  printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
 total=$#
 index=0
 for file in "$@"; do
   index=$((index + 1))
-  echo "Testing the mutants of $file ($index of $total)." | tee -a "$log"
+  filter=$(awk -F '\t' -v file="$file" '$1 == file { print $2 }' "$dir/groups")
+  case $filter in
+    all) command=test/run-mutants.sh ;;
+    ^*) command="test/run-mutants.sh test $(quote "$filter")" ;;
+    *)
+      echo "The map of test groups names no test group for $file."
+      exit 1
+      ;;
+  esac
+  echo "Testing the mutants of $file ($index of $total) with the test command: $command" | tee -a "$log"
   rm -f mutaml-report.json "$dir/status"
   {
     status=0
@@ -69,12 +86,12 @@ for file in "$@"; do
       mutaml-runner --build-context _build/default -j "$workers" \
         --repeat 2 --test-env "QCHECK_SEED=${number}{}" \
         --baseline-env "QCHECK_SEED=${number}2" \
-        --changed-since "$since" --muts "$file" test/run-mutants.sh || status=$?
+        --changed-since "$since" --muts "$file" "$command" || status=$?
     else
       mutaml-runner --build-context _build/default -j "$workers" \
         --repeat 2 --test-env "QCHECK_SEED=${number}{}" \
         --baseline-env "QCHECK_SEED=${number}2" \
-        --muts "$file" test/run-mutants.sh || status=$?
+        --muts "$file" "$command" || status=$?
     fi
     echo "$status" >"$dir/status"
   } 2>&1 | tee -a "$log"
