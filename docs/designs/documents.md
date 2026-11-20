@@ -156,7 +156,7 @@ names `true` and `false`.
 | [position subject](sinter:#position-subject=v1) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
-| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
+| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
 | [edit distance](sinter:#edit-distance=v1) | the least number of insertions, removals, replacements, and swaps of characters next to each other that change one text into another |
 | [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding, which a slug names |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
@@ -1824,10 +1824,11 @@ r.
 }
 
 A tree finding of a tree, of the class that a slug c names, with a
-subject s and a spot p, is a finding whose tree is that tree, whose
-finding class is the class that c names, whose subject is s, whose spot
-is p, and that is not ackable. Its message, its mark, its related
-messages, and its fix are those that the program that gives it gives.
+subject s and either a spot p or no spot, is a finding whose tree is
+that tree, whose finding class is the class that c names, whose subject
+is s, whose spot is p when it has a spot and none when it has no spot,
+and that is not ackable. Its message, its mark, its related messages,
+and its fix are those that the program that gives it gives.
 
 ### 4.47 Edit distance
 
