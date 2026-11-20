@@ -665,13 +665,23 @@ let well_named_files_follow_the_terms =
            Some (List.map fst (Pack_reference.files tree))
          else None))
 
-let best_time action =
+let least_times small large =
+  let time times action =
+    let start = Sys.time () in
+    ignore (Sys.opaque_identity (Time_growth.repeat times action ()));
+    (Sys.time () -. start) /. float_of_int times
+  in
+  let rec calibrate times action =
+    if times >= 1024 || time times action *. float_of_int times >= 0.02 then
+      times
+    else calibrate (2 * times) action
+  in
+  let small_times = calibrate 1 small and large_times = calibrate 1 large in
   List.fold_left
-    (fun best _ ->
-      let start = Unix.gettimeofday () in
-      ignore (Sys.opaque_identity (action ()));
-      Float.min best (Unix.gettimeofday () -. start))
-    infinity [ 1; 2; 3 ]
+    (fun (small_best, large_best) _ ->
+      ( Float.min small_best (time small_times small),
+        Float.min large_best (time large_times large) ))
+    (infinity, infinity) [ 1; 2; 3 ]
 
 let flat count =
   List.init count (fun index -> tree_regular (Printf.sprintf "f%06d" index))
@@ -689,12 +699,13 @@ let spread count =
 let decision_time_grows_with_n_log_n () =
   List.iter
     (fun (what, make) ->
-      check_growth what ~times:8
-        (let entries = make 40_000 in
-         best_time (fun () -> Pack.well_named_files entries))
-        (let entries = make 320_000 in
-         best_time (fun () -> Pack.well_named_files entries))
-        24.)
+      let small_entries = make 40_000 and large_entries = make 320_000 in
+      let small, large =
+        least_times
+          (fun () -> Pack.well_named_files small_entries)
+          (fun () -> Pack.well_named_files large_entries)
+      in
+      check_growth what ~times:8 small large 24.)
     [
       ("the decision on 40,000 and 320,000 files in one folder", flat);
       ("the decision on 40,000 and 320,000 nested folders", chain);
