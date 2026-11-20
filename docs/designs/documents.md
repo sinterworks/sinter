@@ -1826,9 +1826,9 @@ r.
 A tree finding of a tree, of the class that a slug c names, with a
 subject s and either a spot p or no spot, is a finding whose tree is
 that tree, whose finding class is the class that c names, whose subject
-is s, whose spot is p when it has a spot and none when it has no spot,
-and that is not ackable. Its message, its mark, its related messages,
-and its fix are those that the program that gives it gives.
+is s, whose spot is p when a spot p is given and none when no spot is
+given, and that is not ackable. Its message, its mark, its related
+messages, and its fix are those that the program that gives it gives.
 
 ### 4.47 Edit distance
 
