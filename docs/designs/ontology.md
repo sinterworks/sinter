@@ -129,9 +129,9 @@ forms of a group; and the meaning of a vector.
 | [work item](sinter:#work-item=v1) | a task or a plan |
 | [work item id](sinter:#work-item=v1) | the id of a work item, which never changes and which names exactly one work item |
 | [display name](sinter:#work-item=v1) | the name of a work item that a person reads, which can change |
-| [task](sinter:#task=v1) | one piece of work that one person or one agent can finish alone |
-| [work of a task](sinter:#task=v1) | what people and agents change in the trees of a repository to finish a task |
-| [paths of a task](sinter:#task=v1) | the path set whose set has the valid paths of the files of a tree that the work of a task is to add, change, or remove |
+| [task](sinter:#task=v2) | one piece of work that one person or one agent can finish alone |
+| [work of a task](sinter:#task=v2) | what people and agents change in the trees of a repository to finish a task |
+| [paths of a task](sinter:#task=v2) | the path set whose set has the valid paths of the files of a tree that the work of a task is to add, change, or remove |
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [set of a path set](sinter:files#path-set-membership=v2) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v2) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
@@ -165,9 +165,10 @@ forms of a group; and the meaning of a vector.
 | [record of the job](sinter:#job-record=v1) | a ledger entry that records what the job observed |
 | [state](sinter:#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, in a tree, at a point of a ledger, or both, such as in force or done |
 | [state input](sinter:#state-input=v1) | one of the things on which states depend: which commits the repository has, each with its parents and its tree; the commit to which each branch points; the commit of the default branch; the tree of each working tree; the delivery lines and the task lines of the messages of commits; the ledger, in its order; test evidence; or the bindings of the parameters that designs name |
-| [retired](sinter:#retired-item=v2) | a declared item is retired when it is deprecated, when it is the cited item of an effective `supersedes` edge, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
+| [retired](sinter:#retired-item=v2) | a declared item is retired when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
 | [in force](sinter:#in-force-item=v2) | a declared item is in force when it is not retired |
 | [effective](sinter:#effective-supersedes-edge=v2) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, and its source is approved |
+| [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1), [on a cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a finite sequence of one or more `supersedes` edges in a tree, each of which says what `supersedes` says, whether or not effective, in which the cited item of each edge before the last is the source of the next, and the cited item of the last is the source of the first; an item is on a cycle of `supersedes` edges when it is the source of an edge of such a cycle |
 | [deprecated](sinter:#deprecated-item=v2) | the state that the status word `@deprecated` gives, through a status tag that stands in the item |
 | [approved, declined](sinter:#approval-state=v2) | the states of a subject of approval whose revised content a person approved or declined, or, for a kind of subject of approval that needs no approval by a person, whose revised content merged into the default branch |
 | [draft](sinter:#draft-design=v2) | an item of the kind design is a draft while it is not approved |
@@ -309,10 +310,11 @@ record of one event, such as one approval that a person gave (terms
 A state, such as in force, approved, suspect, or done, is a named
 condition of an item, an edge, a wait, or a subject of approval, and it
 follows from the state inputs alone (terms `state`, `state-input`,
-`subject-of-approval`, and `approval-state`, atoms `work-item-state`,
-`deprecated-item`, `draft-design`, `effective-supersedes-edge`,
-`retired-item`, `in-force-item`, `suspect-edge`, `met-wait`,
-`ready-task`, and `requirement-accounted-for`, and requirement
+`subject-of-approval`, `approval-state`, and `supersedes-cycle`, atoms
+`work-item-state`, `deprecated-item`, `draft-design`,
+`effective-supersedes-edge`, `retired-item`, `in-force-item`,
+`suspect-edge`, `met-wait`, `ready-task`, and
+`requirement-accounted-for`, and requirement
 `compute-states-from-artifacts`).
 
 What a program gives while another process changes a state input is a
@@ -343,7 +345,7 @@ for nothing other than the brief of that session (section 4.6).
 @term item=v2
 @cites #{
     declared-item=v2, schema=v1, atom=v1, term=v2, decision-record=v1,
-    conformance-vector-group=v1, vector-set=v2, task=v1, plan=v1,
+    conformance-vector-group=v1, vector-set=v2, task=v2, plan=v1,
     test=v1, site=v1, external-item=v1,
 }
 
@@ -676,7 +678,7 @@ external item too.
     text#{text=v1, design=v1},
     #{
         item=v2, declared-item=v2, containment=v2, term=v2,
-        conformance-vector-group=v1, vector-set=v2, task=v1, plan=v1,
+        conformance-vector-group=v1, vector-set=v2, task=v2, plan=v1,
         test=v1, site=v1, external-item=v1, same-item=v2, tree=v1,
     },
 }
@@ -925,7 +927,7 @@ that one declared item is to replace another.
 ### 3.33 Work items
 
 @term work-item=v1
-@cites #{task=v1, plan=v1, tree=v1}
+@cites #{task=v2, plan=v1, tree=v1}
 
 A work item is a task or a plan. No work item is in a file of a tree.
 Each work item has a work item id, which never changes and which names
@@ -933,7 +935,7 @@ exactly one work item, and a display name, which can change.
 
 ### 3.34 Tasks
 
-@term task=v1
+@term task=v2
 @cites {
     files#{path=v1, path-set=v1, path-set-membership=v2},
     #{person=v1, agent=v1, external-item=v1, tree=v1},
@@ -957,7 +959,7 @@ branch.
     data-forms#{group-form-list=v2},
     text#{requirement=v1, design=v1},
     #{
-        task=v1, edge=v2, declared-item=v2, item-name=v2, test=v1,
+        task=v2, edge=v2, declared-item=v2, item-name=v2, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v2, verifies-edge=v2,
         suspect-edge=v2, conformance-vector=v2,
         conformance-vector-group=v1, vector-set=v2,
@@ -989,7 +991,7 @@ other tests.
 ### 3.36 Plans
 
 @term plan=v1
-@cites #{task=v1}
+@cites #{task=v2}
 
 A plan is one piece of work that is made up of tasks and plans.
 
@@ -1004,7 +1006,7 @@ work item, the work item that it waits for.
 ### 3.38 What a plan carries out
 
 @term carried-out-item=v1
-@cites #{plan=v1, item-name=v2, declared-item=v2, task=v1}
+@cites #{plan=v1, item-name=v2, declared-item=v2, task=v2}
 
 A plan carries out a set of items of the kind requirement,
 specification, or design: the work of the tasks that make up the plan,
@@ -1015,7 +1017,7 @@ them by its name.
 
 @term work-item-definition=v1
 @cites #{
-    work-item=v1, task=v1, promise=v2, plan=v1, wait=v1,
+    work-item=v1, task=v2, promise=v2, plan=v1, wait=v1,
     carried-out-item=v1, external-item=v1, declared-item=v2,
 }
 
@@ -1034,7 +1036,7 @@ part of a definition.
 @term delivery-line=v1
 @cites {
     text#{line=v1},
-    #{task=v1, work-item=v1, work-item-definition=v1},
+    #{task=v2, work-item=v1, work-item-definition=v1},
 }
 
 A delivery line is a line of the message of a commit that says that the
@@ -1044,7 +1046,7 @@ item id, and it names definitions of the task.
 ### 3.41 Task lines
 
 @term task-line=v1
-@cites {text#{line=v1}, #{task=v1, work-item=v1}}
+@cites {text#{line=v1}, #{task=v2, work-item=v1}}
 
 A task line is a line of the message of a commit that names one task by
 its work item id, and that says that the commit does part of the work of
@@ -1053,7 +1055,7 @@ the task without finishing it.
 ### 3.42 Ledger entries
 
 @term ledger-entry=v1
-@cites #{person=v1, agent=v1, job=v1, task=v1, plan=v1}
+@cites #{person=v1, agent=v1, job=v1, task=v2, plan=v1}
 
 A ledger entry is a record of one event, such as one approval that a
 person gave, or one observation of the job. Each ledger entry has one
@@ -1104,7 +1106,7 @@ repair removed one ledger entry, and the reason for the removal.
 
 @term definition-entry=v1
 @cites #{
-    ledger-entry=v1, work-item=v1, task=v1, plan=v1,
+    ledger-entry=v1, work-item=v1, task=v2, plan=v1,
     work-item-definition=v1, judgment=v1,
 }
 
@@ -1155,7 +1157,7 @@ the same item.
 @term judgment=v1
 @cites #{
     ledger-entry=v1, person=v1, subject-of-approval=v2,
-    revised-content=v2, task=v1, plan=v1, promise=v2, item-revision=v2,
+    revised-content=v2, task=v2, plan=v1, promise=v2, item-revision=v2,
     declared-item=v2,
 }
 
@@ -1177,7 +1179,7 @@ judgment is one of these four kinds of ledger entry:
 
 @term job-record=v1
 @cites #{
-    ledger-entry=v1, job=v1, delivery-line=v1, promise=v2, task=v1,
+    ledger-entry=v1, job=v1, delivery-line=v1, promise=v2, task=v2,
     work-item-definition=v1, item-revision=v2, declared-item=v2,
 }
 
@@ -1193,7 +1195,7 @@ kind requirement, and whether the promise was kept.
 @atom work-item-state=v2
 @cites #{
     ledger=v1, ledger-entry=v1, definition-entry=v1, work-item=v1,
-    task=v1, plan=v1, work-item-definition=v1, promise=v2, person=v1,
+    task=v2, plan=v1, work-item-definition=v1, promise=v2, person=v1,
     job=v1, job-record=v1, delivery-line=v1, state=v1, judgment=v1,
 }
 
@@ -1330,22 +1332,54 @@ that holds its source is deprecated in that tree; and its source is
 approved in that tree at that point. An effective `supersedes` edge is
 one whose replacement has taken effect.
 
-### 3.55 Retired
+### 3.55 Cycles of edges of the kind `supersedes`
+
+@term supersedes-cycle=v1
+@cites #{
+    edge=v2, supersedes-edge=v2, effective-supersedes-edge=v2,
+    item=v2, tree=v1, ledger=v1,
+}
+
+A cycle of `supersedes` edges in a tree is a finite sequence of one or
+more `supersedes` edges in that tree that meets all three of these
+conditions:
+
+- each edge of the sequence says what the kind of edge `supersedes` says
+  in that tree;
+- for each edge of the sequence before the last, its cited item in that
+  tree is the source of the next edge in that tree;
+- the cited item of the last edge of the sequence in that tree is the
+  source of the first edge of the sequence in that tree.
+
+So a single `supersedes` edge in a tree that says what the kind of edge
+`supersedes` says in that tree, and whose cited item in that tree is its
+source in that tree, is a cycle of `supersedes` edges in that tree.
+Whether a sequence of edges is a cycle of `supersedes` edges in a tree
+does not depend on whether any edge of the sequence is effective at any
+point of a ledger. An item is on a cycle of `supersedes` edges in a tree
+when, and only when, it is the source of an edge of a cycle of
+`supersedes` edges in that tree.
+
+### 3.56 Retired
 
 @atom retired-item=v2
 @cites #{
     declared-item=v2, deprecated-item=v2, effective-supersedes-edge=v2,
-    edge=v2, containment=v2, tree=v1, ledger=v1,
+    supersedes-cycle=v1, edge=v2, containment=v2, tree=v1, ledger=v1,
 }
 
 A declared item is retired in a tree, at a point of a ledger, when, and
-only when, it is deprecated in that tree; it is the cited item of an
-effective `supersedes` edge in that tree at that point; or it belongs to
-a retired item of the kind design or to a retired item of the kind
-specification in that tree at that point. A retired item no longer
-applies in that tree at that point.
+only when, one of these is true:
 
-### 3.56 In force
+- it is deprecated in that tree;
+- it is the cited item of an effective `supersedes` edge in that tree at
+  that point, and it is on no cycle of `supersedes` edges in that tree;
+- it belongs to a retired item of the kind design or to a retired item
+  of the kind specification in that tree at that point.
+
+A retired item no longer applies in that tree at that point.
+
+### 3.57 In force
 
 @atom in-force-item=v2
 @cites #{declared-item=v2, retired-item=v2, tree=v1, ledger=v1}
@@ -1353,7 +1387,7 @@ applies in that tree at that point.
 A declared item is in force in a tree, at a point of a ledger, when,
 and only when, it is not retired in that tree at that point.
 
-### 3.57 Suspect
+### 3.58 Suspect
 
 @atom suspect-edge=v2
 @cites #{pinned-edge=v2, edge=v2, item-revision=v2, tree=v1}
@@ -1362,7 +1396,7 @@ An edge is suspect in a tree when, and only when, it is pinned, it has a
 cited item in that tree, and that item has no current revision in that
 tree or a current revision other than the label of the edge.
 
-### 3.58 Met waits
+### 3.59 Met waits
 
 @atom met-wait=v2
 @cites #{wait=v1, work-item=v1, work-item-state=v2, ledger=v1}
@@ -1372,11 +1406,11 @@ work item that it waits for is done. A wait is met at a point of a
 ledger when, and only when, the work item that it waits for is done at
 that point.
 
-### 3.59 Ready tasks
+### 3.60 Ready tasks
 
 @atom ready-task=v2
 @cites #{
-    task=v1, plan=v1, met-wait=v2, wait=v1, work-item-definition=v1,
+    task=v2, plan=v1, met-wait=v2, wait=v1, work-item-definition=v1,
     work-item-state=v2, ledger=v1,
 }
 
@@ -1385,11 +1419,11 @@ at that point, each wait of its current definition is met at that
 point, and each wait of the current definition of each plan that the
 task is under at that point is met at that point.
 
-### 3.60 Requirements accounted for
+### 3.61 Requirements accounted for
 
 @atom requirement-accounted-for=v2
 @cites #{
-    declared-item=v2, containment=v2, task=v1, plan=v1, promise=v2,
+    declared-item=v2, containment=v2, task=v2, plan=v1, promise=v2,
     carried-out-item=v1, work-item-definition=v1, work-item-state=v2,
     ledger=v1, item-revision=v2, item-name=v2, tree=v1, judgment=v1,
     job-record=v1,
@@ -1406,7 +1440,7 @@ of a ledger, when, and only when, one of these is true at that point:
 - a done task promised the item, and the work of that task was finished
   at the current revision of the item in that tree.
 
-### 3.61 Parameters
+### 3.62 Parameters
 
 @term parameter=v2
 @cites {
@@ -1421,7 +1455,7 @@ whose part name is the name of a parameter, a binding of that parameter
 is valid when, and only when, it meets that schema. A binding of the
 parameter `external-namespaces` is a binding as Identifiers defines it.
 
-### 3.62 State inputs
+### 3.63 State inputs
 
 @term state-input=v1
 @cites {
@@ -1519,7 +1553,7 @@ of the program cannot give.
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
     text#{text=v1, conforming-program=v1},
-    #{agent=v1, task=v1, state-input=v1},
+    #{agent=v1, task=v2, state-input=v1},
 }
 
 A session is one execution of an agent on its work. The declared task of
