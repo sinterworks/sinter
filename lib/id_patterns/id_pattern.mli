@@ -10,8 +10,9 @@
     pattern. *)
 
 type t
-(** An id pattern that the program accepts: it matches the production [pattern],
-    and none of the conditions of {!error} holds for it. *)
+(** An id pattern that the program accepts: a valid id pattern within the
+    program's own limits. It matches the production [pattern], and none of the
+    conditions of {!error} holds for it. *)
 
 (** Why an id pattern is invalid. When several conditions hold, the error is one
     of them. *)

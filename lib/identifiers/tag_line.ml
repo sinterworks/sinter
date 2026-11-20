@@ -59,7 +59,13 @@ let target_end s i =
   in
   go i
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A declaration is valid only when its text matches `declaration-line` and
+   its target is not external: `@decision` and `@design` take a slug,
+   `@spec` a segment or a full name, `@atom`, `@req`, and `@schema` a slug or
+   a full name, each with `=` and a label, and `@term` a slug or a full name
+   with an optional `=` and label. Its values are the slug, the part name,
+   the revision, and the inline description. *)
 let declaration binding word s k =
   let ( let* ) = Option.bind in
   let* i = target_start s k in
@@ -97,7 +103,10 @@ let declaration binding word s k =
                inline_description;
              })
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1} *)
+(* @satisfies identifiers#give-line-results=v1
+   Only `@cites` and `@verifies` allow a vector selection, only `@cites`
+   allows the revision `*`, and only `@supersedes` allows an every-part
+   target. *)
 let rules_of = function
   | Tag_word.Cites ->
       {
@@ -140,7 +149,10 @@ let element_end s i =
   in
   go i
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1} *)
+(* @satisfies identifiers#give-line-results=v1
+   A target list or a scoped list is `{`, one or more elements separated by
+   `,`, one optional `,` before the `}`, and `}`, with spaces, tabs, and line
+   feeds only where `list-space` stands. *)
 let list s i element =
   let ( let* ) = Option.bind in
   let rec items i acc =
@@ -157,7 +169,10 @@ let list s i element =
   in
   items i []
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A citation is valid only when its text matches `citation-line` for its
+   tag word; its values are one list for each citation entry, in their
+   order, and the inline description. *)
 let citation binding word s k =
   let ( let* ) = Option.bind in
   let rules = rules_of word in
@@ -187,7 +202,10 @@ let citation binding word s k =
   in
   let* inline_description = rest s j in
   let entries = List.concat groups in
-  (* @satisfies identifiers#reject-repeated-entries=v1 *)
+  (* @satisfies identifiers#give-line-results=v1
+     A citation does not meet the schema `citation-line` when two of its
+     entries have the same entry name and either neither has a vector
+     selection or both have the same vector selection. *)
   let keys = List.sort compare (List.map snd entries) in
   let rec distinct = function
     | a :: (b :: _ as others) -> a <> b && distinct others
@@ -197,13 +215,17 @@ let citation binding word s k =
     Some (Citation { word; entries = List.map fst entries; inline_description })
   else None
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A status tag is valid when its text matches `status-line`; its value is
+   the inline description. *)
 let status word s k =
   Option.map
     (fun inline_description -> Status_tag { word; inline_description })
     (rest s k)
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   An `@extern` line is valid when its text matches `extern-line`; its
+   values are the kind word, the part name, and the inline description. *)
 let extern s k =
   let ( let* ) = Option.bind in
   let* i = target_start s k in
@@ -213,7 +235,9 @@ let extern s k =
   let* inline_description = rest s q in
   Some (Extern { kind_word; part_name = sub s (i + j) q; inline_description })
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   An `@ack` line is valid when its text matches `ack-line`; its values are
+   the slug, the subject, and the hash prefix. *)
 let ack s k =
   let ( let* ) = Option.bind in
   let* i = target_start s k in
@@ -264,7 +288,9 @@ let read binding text =
          (Lines.all (Lines.of_text text)))
   in
   let count = Array.length lines in
-  (* @satisfies identifiers#give-no-results-for-non-inputs=v1 *)
+  (* @satisfies identifiers#give-no-results-for-non-inputs=v1
+     The continuation lines of a citation join the text of the citation, so
+     they get no result of their own. *)
   let continued s k first =
     let buffer = Buffer.create (length s) in
     Buffer.add_string buffer s;
@@ -293,7 +319,10 @@ let read binding text =
     let last = scan (Lexical.skip_wsp s k) 0 first in
     (Buffer.contents buffer, last)
   in
-  (* @satisfies identifiers#{give-results=v1, give-tag-words=v1} *)
+  (* @satisfies identifiers#{give-line-results=v1, give-tag-words=v1}
+     Each input that the lines make gets exactly one line result: "not a tag
+     line", "other tag word" with the tag word, "invalid" with the tag word,
+     or "valid" with the tag word and the values. *)
   let rec inputs i acc =
     if i >= count then List.rev acc
     else

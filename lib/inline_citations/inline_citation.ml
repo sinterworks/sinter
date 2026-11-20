@@ -12,7 +12,9 @@ type link_result =
 
 type link = { run : Text.run; result : link_result }
 
-(* @satisfies identifiers#{give-results=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-link-results=v1, give-values=v1}
+   The links and the images are those of the markdown document of the text:
+   the text of its body, with no U+FEFF at its start. *)
 let markdown_document text =
   let body =
     Text.encode
@@ -27,7 +29,9 @@ let last_byte meta = C.Textloc.last_byte (textloc meta)
 let slice md meta =
   String.sub md (first_byte meta) (last_byte meta - first_byte meta + 1)
 
-(* @satisfies identifiers#reject-blank-link-text=v1 *)
+(* @satisfies identifiers#give-link-results=v1
+   The blank characters are the Unicode whitespace characters of CommonMark
+   0.31.2 and U+200B, U+200C, U+200D, U+2060, and U+FEFF. *)
 let is_blank = function
   | 0x09 | 0x0A | 0x0C | 0x0D | 0x20 | 0xA0 | 0x1680 | 0x2000 | 0x2001 | 0x2002
   | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200A
@@ -45,7 +49,10 @@ let all_blank s =
   in
   go 0
 
-(* @satisfies identifiers#reject-blank-link-text=v1 *)
+(* @satisfies identifiers#give-link-results=v1
+   An inline citation is invalid when the plain string content of its link
+   text holds no character other than blank characters; raw HTML gives no
+   characters to that content, and an autolink gives its text. *)
 let rec blank (inline : Inline.t) =
   match inline with
   | Inline.Text (text, _) -> all_blank text
@@ -60,7 +67,9 @@ let rec blank (inline : Inline.t) =
 let tight_starts acc lines =
   List.fold_left (fun acc (_, (_, meta)) -> first_byte meta :: acc) acc lines
 
-(* @satisfies identifiers#give-values=v1 *)
+(* @satisfies identifiers#give-values=v1
+   The raw content that gives the link text starts a line at each line start
+   of the paragraph or the heading that holds the link. *)
 let rec starts acc (inline : Inline.t) =
   match inline with
   | Inline.Break (_, meta) -> (last_byte meta + 1) :: acc
@@ -86,7 +95,10 @@ let rec starts acc (inline : Inline.t) =
   | Inline.Inlines (inlines, _) -> List.fold_left starts acc inlines
   | _ -> acc
 
-(* @satisfies identifiers#give-values=v1 *)
+(* @satisfies identifiers#give-values=v1
+   The link text is the text of the raw content, with each line without the
+   markers of block quotes and list items and without the spaces and tabs at
+   its start, and with a line feed between two lines. *)
 let raw_content md line_starts first stop =
   let next_start q =
     let rec search low high =
@@ -121,7 +133,10 @@ let raw_content md line_starts first stop =
   in
   String.concat "\n" (segments first first [])
 
-(* @satisfies identifiers#{give-results=v1, accept-inputs=v1, reject-unmatched-inputs=v1, reject-blank-link-text=v1} *)
+(* @satisfies identifiers#give-link-results=v1
+   A link whose destination does not start with `sinter:` is not an inline
+   citation; an inline citation is valid only when its destination matches
+   `inline-destination` under the binding and its link text is not blank. *)
 let citation binding destination link_text ~blank =
   let prefix = "sinter:" in
   if not (String.starts_with ~prefix destination) then Not_an_inline_citation
@@ -155,7 +170,9 @@ let read binding text =
       until = from + index.(last_byte meta + 1);
     }
   in
-  (* @satisfies identifiers#give-values=v1 *)
+  (* @satisfies identifiers#give-values=v1
+     The link text of an inline link or a reference link is the raw content
+     between its `[` and the `]` that closes that `[`. *)
   let link_text line_starts l meta =
     let closer =
       match Inline.Link.text l with
@@ -172,7 +189,10 @@ let read binding text =
         | None -> "")
     | _ -> ""
   in
-  (* @satisfies identifiers#{give-results=v1, reject-unmatched-inputs=v1, give-values=v1} *)
+  (* @satisfies identifiers#{give-link-results=v1, give-values=v1}
+     Each link and each image gets exactly one link result: an image is not
+     an inline citation, and the link text of an autolink is its text between
+     `<` and `>`. *)
   let rec visit line_starts acc (inline : Inline.t) =
     match inline with
     | Inline.Link (l, meta) ->
@@ -203,7 +223,10 @@ let read binding text =
     Array.sort compare line_starts;
     visit line_starts acc inline
   in
-  (* @satisfies identifiers#give-results=v1 *)
+  (* @satisfies identifiers#{give-link-results=v1, give-no-results-for-non-inputs=v1}
+     Only the links and the images of the paragraphs and the headings of the
+     markdown document get a link result, so a text in a code block gets
+     none. *)
   let rec blocks acc (block : C.Block.t) =
     match block with
     | C.Block.Blocks (bs, _) -> List.fold_left blocks acc bs

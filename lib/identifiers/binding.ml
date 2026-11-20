@@ -10,7 +10,11 @@ type error =
   | Repeated_namespace_name of string
   | Invalid_id_pattern of { namespace_name : string; error : Id_pattern.error }
 
-(* @satisfies identifiers#{reject-malformed-namespace-names=v1, reject-repeated-namespace-names=v1, reject-invalid-binding-patterns=v1, accept-inputs=v1} *)
+(* @satisfies identifiers#validate-bindings=v1
+   A binding gets exactly one result: [Ok] ("valid") when it meets the schema
+   `external-namespaces`, and [Error] ("invalid") when a namespace name does
+   not match `namespace-name`, two pairs have the same namespace name, or an
+   id pattern is not valid or goes beyond the limits of `Id_pattern`. *)
 let make pairs =
   let add binding (name, pattern) =
     match binding with

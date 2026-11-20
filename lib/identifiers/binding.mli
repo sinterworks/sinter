@@ -5,11 +5,14 @@
     [identifiers=v1] defines them: finite sets of pairs of a namespace name and
     an id pattern. *)
 
-(* @satisfies identifiers#give-no-results-under-rejected-bindings=v1 *)
+(* @satisfies identifiers#give-no-results-under-rejected-bindings=v1
+   Only a binding with the result "valid" is a value of this type, so no line,
+   link, or image is read under a binding with the result "invalid". *)
 type t
-(** A binding that the program accepts. Each namespace name of it matches the
-    production [namespace-name], no two of its pairs have the same namespace
-    name, and each of its id patterns is accepted. *)
+(** A binding that the program accepts: it meets the schema
+    [external-namespaces]. Each namespace name of it matches the production
+    [namespace-name], no two of its pairs have the same namespace name, and each
+    of its id patterns is a valid id pattern that the program accepts. *)
 
 (** Why a binding is invalid. Each error names a pair of the list that {!make}
     took for which the condition holds. *)
@@ -19,9 +22,12 @@ type error =
   | Repeated_namespace_name of string
       (** another pair of the list has the same namespace name *)
   | Invalid_id_pattern of { namespace_name : string; error : Id_pattern.error }
-      (** the id pattern of the pair with this namespace name is invalid *)
+      (** the id pattern of the pair with this namespace name is not a valid id
+          pattern, or goes beyond the limits of {!Id_pattern.of_string} *)
 
-(* @satisfies identifiers#give-no-results-under-rejected-bindings=v1 *)
+(* @satisfies identifiers#{validate-bindings=v1, give-no-results-under-rejected-bindings=v1}
+   A binding gets "valid" as [Ok] and "invalid" as [Error], and only [Ok]
+   gives a binding under which a text can be read. *)
 val make : (string * string) list -> (t, error) result
 (** [make pairs] is the binding of [pairs], each a namespace name and an id
     pattern, when the program accepts it. The order of [pairs] has no effect on

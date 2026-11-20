@@ -82,10 +82,14 @@ let lower_name s i =
 
 let group_name = lower_name
 
-(* @satisfies identifiers#give-tag-words=v1 *)
+(* @satisfies identifiers#give-tag-words=v1
+   The tag word of a tag line is its `@` and the longest run of ASCII
+   letters, ASCII digits, and `-` right after that `@`. *)
 let tag_word s i = run s (i + 1) (fun c -> is_alnum c || c = '-')
 
-(* @satisfies identifiers#reject-malformed-namespace-names=v1 *)
+(* @satisfies identifiers#validate-bindings=v1
+   A binding meets the schema `external-namespaces` only when each of its
+   namespace names matches the production `namespace-name`. *)
 let is_namespace_name s = lower_name s 0 = Some (String.length s)
 
 let is_hash_prefix s =

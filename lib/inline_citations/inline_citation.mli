@@ -9,7 +9,9 @@
     replaced by U+FFFD. Its links and images are those of CommonMark 0.31.2, and
     an autolink in the link text of a link is a link too. *)
 
-(* @satisfies identifiers#give-no-other-values=v1 *)
+(* @satisfies identifiers#{give-link-results=v1, give-no-other-values=v1}
+   The three cases are the three link results, and only a valid inline
+   citation holds values. *)
 
 (** The result of a link or an image, with the values that go with it. *)
 type link_result =
@@ -29,7 +31,9 @@ type link = { run : Sinter_text.Text.run; result : link_result }
     boundary right before its first character to the boundary right after its
     last character. *)
 
-(* @satisfies identifiers#use-one-binding=v1 *)
+(* @satisfies identifiers#use-one-binding=v1
+   Every link and image of the text is read under the one binding that the
+   caller gives. *)
 val read : Binding.t -> Sinter_text.Text.t -> link list
 (** [read binding text] is the links and the images of the markdown document of
     [text] under [binding], in the order in which they start in the markdown

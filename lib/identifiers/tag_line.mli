@@ -7,7 +7,9 @@
     Each text here is the UTF-8 encoding of a run of the text of the tag line,
     with its case unchanged. *)
 
-(* @satisfies identifiers#give-no-other-values=v1 *)
+(* @satisfies identifiers#give-no-other-values=v1
+   Each case of a valid tag line holds only the values that its kind of tag
+   line gives. *)
 
 (** A valid tag line, with its values. *)
 type tag =
@@ -43,7 +45,9 @@ type tag =
       (** An [@ack] line, a directive. [subject] is the empty text when the line
           has no subject. *)
 
-(* @satisfies identifiers#give-no-other-values=v1 *)
+(* @satisfies identifiers#{give-line-results=v1, give-no-other-values=v1}
+   The four cases are the four line results; "other tag word" and "invalid"
+   hold the tag word and no other value. *)
 
 (** The result of a line of a text, with the values that go with it. *)
 type line_result =
@@ -53,8 +57,12 @@ type line_result =
   | Other_tag_word of string
       (** a tag line whose tag word, given here, is not a Sinter tag word *)
   | Invalid of Tag_word.t
-      (** a tag line with this Sinter tag word that has no match *)
-  | Valid of tag  (** a tag line with a match, and its values *)
+      (** a tag line with this Sinter tag word whose text does not meet the
+          schema of its kind of tag line, or that has no match of the input
+          under the binding *)
+  | Valid of tag
+      (** a tag line whose text meets the schema of its kind of tag line and
+          that has a match of the input under the binding, with its values *)
 
 type input = { first_line : int; last_line : int; result : line_result }
 (** An input that the lines of a text make: a line, or a citation with its
@@ -65,7 +73,9 @@ type input = { first_line : int; last_line : int; result : line_result }
 val tag_word : tag -> Tag_word.t
 (** [tag_word tag] is the tag word of [tag]. *)
 
-(* @satisfies identifiers#use-one-binding=v1 *)
+(* @satisfies identifiers#use-one-binding=v1
+   Every line of the text is read under the one binding that the caller
+   gives. *)
 val read : Binding.t -> Sinter_text.Text.t -> input list
 (** [read binding text] is the inputs that the lines of [text] make under
     [binding], in the order of their first lines. Each line of [text] is in

@@ -19,7 +19,9 @@ type error =
 
 exception No_match
 
-(* @satisfies identifiers#reject-unmatched-id-patterns=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   A `literal` is one printable ASCII character other than the characters
+   that the production `pattern` keeps for its syntax. *)
 let is_literal c =
   match c with
   | '!' | '"'
@@ -33,7 +35,9 @@ let is_literal c =
       true
   | _ -> false
 
-(* @satisfies identifiers#reject-unmatched-id-patterns=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   A `single` class member is a printable ASCII character other than `\`,
+   `[`, `]`, `^`, `-`, `#`, `/`, `=`, `@`, `,`, `{`, and `}`. *)
 let is_single c =
   match c with
   | '!' | '"'
@@ -47,7 +51,9 @@ let is_single c =
       true
   | _ -> false
 
-(* @satisfies identifiers#reject-unmatched-id-patterns=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   A `range` is two digits, two upper-case letters, or two lower-case
+   letters with `-` between them. *)
 let same_range_kind a b =
   match (a, b) with
   | '0' .. '9', '0' .. '9' | 'A' .. 'Z', 'A' .. 'Z' | 'a' .. 'z', 'a' .. 'z' ->
@@ -66,7 +72,10 @@ type flags = {
   mutable reversed_bounds : bool;
 }
 
-(* @satisfies identifiers#reject-unmatched-id-patterns=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   An id pattern that does not match the production `pattern` is not a valid
+   id pattern; the parse also notes each reversed range, each reversed pair
+   of quantifier bounds, and each count above the program's own limit. *)
 let parse text =
   let n = String.length text in
   let flags =
@@ -85,7 +94,7 @@ let parse text =
           | _ -> (value, i)
         in
         let value, i = digits i 0 in
-        (* @satisfies identifiers#accept-inputs=v1
+        (* @satisfies identifiers#validate-id-patterns=v1
            The program's own limit on a count: a count above 255 makes the id
            pattern invalid, so the size and the automaton stay small. *)
         if value > 255 then flags.large_count <- true;
@@ -93,7 +102,7 @@ let parse text =
     | _ -> raise No_match
   in
   let expect c i = if peek i = Some c then i + 1 else raise No_match in
-  (* @satisfies identifiers#accept-inputs=v1
+  (* @satisfies identifiers#validate-id-patterns=v1
      The program's own limit on the size: each quantifier gives the number of
      copies of its element that the size counts. *)
   let quantifier i =
@@ -109,7 +118,9 @@ let parse text =
             (least, None, least + 1, i + 2)
         | Some ',' ->
             let most, i = count (i + 1) in
-            (* @satisfies identifiers#reject-reversed-bounds=v1 *)
+            (* @satisfies identifiers#validate-id-patterns=v1
+               A quantifier `{n,m}` in which `n` is greater than `m` makes
+               the id pattern invalid. *)
             if least > most then flags.reversed_bounds <- true;
             (least, Some most, max most 1, expect '}' i)
         | _ -> raise No_match)
@@ -127,7 +138,9 @@ let parse text =
              | Some d -> same_range_kind c d
              | None -> false ->
           let d = text.[i + 2] in
-          (* @satisfies identifiers#reject-reversed-ranges=v1 *)
+          (* @satisfies identifiers#validate-id-patterns=v1
+             A `range` whose first character comes after its last character
+             in code point order makes the id pattern invalid. *)
           if c > d then flags.reversed_range <- true;
           members (i + 3) ((c, d) :: acc)
       | Some c when is_single c -> members (i + 1) ((c, c) :: acc)
@@ -178,7 +191,7 @@ let size_cap =
     "the size is only compared with 1,000, so every cap above 1,000 gives the \
      same results"])
 
-(* @satisfies identifiers#accept-inputs=v1
+(* @satisfies identifiers#validate-id-patterns=v1
    The program's own limit on the size: these functions compute the size of
    an id pattern, and a size above 1,000 makes the id pattern invalid. *)
 let rec size_of_branches branches =
@@ -195,7 +208,8 @@ and size_of_piece p =
   in
   min size_cap (atom * p.copies)
 
-(* @satisfies identifiers#reject-empty-id-fit=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   An id pattern that the empty id fits is not a valid id pattern. *)
 let rec nullable_branches branches = List.exists nullable_branch branches
 and nullable_branch b = List.for_all nullable_piece b
 
@@ -206,7 +220,9 @@ and nullable_piece p =
   | Literal _ | Class _ -> false
   | Sub bs -> nullable_branches bs
 
-(* @satisfies identifiers#decide-fit=v1 *)
+(* @satisfies identifiers#decide-fit=v1
+   The automaton accepts a run when, and only when, the run fits the
+   branches, as the atom `fit` gives the fit of each element. *)
 let compile branches =
   let states = Dynarray.create () in
   let add state =
@@ -262,10 +278,13 @@ let in_alphabet = function
       true
   | _ -> false
 
-(* @satisfies identifiers#accept-inputs=v1 *)
+(* @satisfies identifiers#validate-id-patterns=v1
+   An id pattern gets exactly one result: [Ok] ("valid") for a valid id
+   pattern within the program's own limits, and [Error] ("invalid") for each
+   other id pattern. *)
 let of_string text =
   if not (String.for_all in_alphabet text) then Error Unmatched
-    (* @satisfies identifiers#accept-inputs=v1
+    (* @satisfies identifiers#validate-id-patterns=v1
        The program's own limit on the length: an id pattern of more than 1,000
        characters is invalid. *)
   else if String.length text > 1000 then Error Too_long
@@ -284,7 +303,9 @@ let of_string text =
 
 let to_string pattern = pattern.text
 
-(* @satisfies identifiers#decide-fit=v1 *)
+(* @satisfies identifiers#decide-fit=v1
+   A pair gets exactly one result: [true] ("fits") when the whole id fits the
+   id pattern, and [false] ("does not fit") otherwise. *)
 let fits pattern id =
   let count = Array.length pattern.states in
   let closure set =

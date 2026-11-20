@@ -5,7 +5,9 @@ type rules = { vector_selection : bool; any_revision : bool; every_part : bool }
 type key = string option * string option * string option
 type scope = { kind_word : Kind_word.t option; slug : string option }
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1, give-values=v1}
+   A target or a citation entry starts with a kind word when the text before
+   its first `:` is a kind word; that kind word is a value of its match. *)
 let kind_word s =
   match String.index_opt s ':' with
   | Some i -> (
@@ -30,7 +32,10 @@ let namespace_of s =
   let head = prefix_until (snd (after_kind_word s)) [ '#'; '='; '[' ] in
   prefix_until head [ '/' ]
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1}
+   A target or a citation entry is an external target when the text of its
+   head before its first `/`, or its whole head when the head holds no `/`,
+   is the namespace name of an external namespace of the binding. *)
 let is_external binding s =
   Option.is_some (Binding.id_pattern binding (namespace_of s))
 
@@ -38,7 +43,11 @@ let ends s i = i = String.length s
 let peek s i = if i < String.length s then Some s.[i] else None
 let sub s i j = String.sub s i (j - i)
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, reject-repeated-entries=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1, give-values=v1}
+   An external target has a match only as `external-ref` whose id fits the id
+   pattern of its external namespace; its entry name is the external id with
+   its `#` and part name, and its values are the namespace name, the id, and
+   the part name. *)
 let external_ref binding kind_word r =
   let namespace_name = prefix_until r [ '/' ] in
   let i = String.length namespace_name in
@@ -63,7 +72,9 @@ let external_ref binding kind_word r =
       | _ -> None)
   | _ -> None
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1, give-values=v1}
+   A name is a slug, a full name, or `#` and a part name, and its slug and
+   its part name are values of its match. *)
 let name r =
   if peek r 0 = Some '#' then
     Option.map (fun j -> (None, Some (sub r 1 j), j)) (Lexical.segment r 1)
@@ -139,7 +150,10 @@ let internal rules kind_word r =
   | None -> None
   | Some (slug, part_name, i) -> finish rules kind_word slug part_name r i
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A scoped list starts with an optional kind word and `:` and an optional
+   slug; each part stands for a single target with that kind word and slug,
+   so a part never matches when that single target is external. *)
 let scope binding prefix =
   let kind_word, r = after_kind_word prefix in
   if is_external binding prefix then None
@@ -148,7 +162,9 @@ let scope binding prefix =
     Some { kind_word; slug = Some r }
   else None
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A part of a scoped list is a part name followed by what the rules allow
+   after a name. *)
 let part rules scope text =
   match Lexical.segment text 0 with
   | Some i ->
