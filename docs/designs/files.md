@@ -2,8 +2,8 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Files and paths
-@design files=v2
-@cites text=v2
+@design files=v1
+@cites text=v1
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
@@ -70,20 +70,20 @@ JSON text.
 | folder entry for a file name | the folder entry of a folder whose entry name is the UTF-8 encoding of the file name, byte for byte |
 | [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text as a path in a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
 | [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
-| [file-read result](sinter:#file-read-result=v2) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read", "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
+| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read", "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
 | [file of the path](sinter:#path-file=v1) | in a folder tree, a file that a valid path names: the root, or, for file name k, the file of the folder entry for file name k in folder k, where folder 1 is the root and folder k + 1 is the folder that file name k names, when file name k is not the last |
 | [folder of the path](sinter:#path-file=v1) | in a folder tree, a folder k of a valid path: the root, or a folder that a file name other than the last names |
 | [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | find a file by the reference of the symbolic link |
 | [valid glob](sinter:#glob=v1) | a pattern for valid paths, such as `docs/**/*.md` |
 | [glob segment](sinter:#glob=v1) | one of the texts that a valid glob joins with `/`, such as `docs`, `**`, or `*.md` in `docs/**/*.md`; when the valid glob ends with `/`, the text `**` is one more glob segment after them, so the glob segments of `docs/` are `docs` and `**`; the glob segments of a valid glob have numbers from 1, in order |
-| [fit](sinter:#glob-fit=v2) | a valid path fits a valid glob when the valid path has the form that the valid glob gives |
+| [fit](sinter:#glob-fit=v1) | a valid path fits a valid glob when the valid path has the form that the valid glob gives |
 | [path set](sinter:#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
 | [path set member](sinter:#path-set=v1) | one text of a path set |
 | [plain member](sinter:#path-set=v1) | a path set member that does not start with `!` |
 | [`!` member](sinter:#path-set=v1) | a path set member that starts with `!`, such as `!docs/old/` |
 | [glob text of a path set member](sinter:#path-set=v1) | the text after the `!` of a `!` member, or the whole path set member for a plain member; it can be a text that is not a valid glob |
 | [valid path set](sinter:#valid-path-set=v1) | a path set in which the glob text of each path set member is a valid glob, no two path set members are the same text, and at least one path set member is a plain member when the path set holds a path set member |
-| [set of a path set](sinter:#path-set-membership=v2) | the valid paths that fit the glob text of a plain member of the path set and the glob text of no `!` member of it, when the glob text of each path set member is a valid glob |
+| [set of a path set](sinter:#path-set-membership=v1) | the valid paths that fit the glob text of a plain member of the path set and the glob text of no `!` member of it, when the glob text of each path set member is a valid glob |
 | validate | to validate a text as a path, a text as a glob, or a path set is to make an operation to give for it one of the results "valid" and "invalid", other than a file read; a validation is one such operation, also when the program gives another thing in it, or nothing |
 | decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob is to make an operation to give one of the results "in the set" and "not in the set"; the program decides in such an operation also when it gives another thing in it, or nothing |
 | [file object](sinter:#file-object=v1) | a JSON object that stands for a file, and for the permissions of a program for it: its member `type`, such as `"regular file"`; by its type, its member `entries`, `content`, or `reference`, or none of them; and the members `read`, `search`, `write`, and `owned-by-other` only when their values differ from the values that apply without them |
@@ -576,7 +576,7 @@ are the folders k that exist for that valid path in that folder tree.
 
 ### 3.16 The result of a file read
 
-@atom file-read-result=v2
+@atom file-read-result=v1
 @cites {
     #{
         folder=v1, regular-file=v1, symbolic-link=v1,
@@ -632,7 +632,7 @@ ends with `/`. They have numbers from 1, in that order.
 
 ### 3.18 Valid paths that fit valid globs
 
-@atom glob-fit=v2
+@atom glob-fit=v1
 @cites {
     #{path=v1, glob=v1},
     text#{
@@ -695,9 +695,9 @@ at least one path set member.
 
 ### 3.21 The set of a path set
 
-@atom path-set-membership=v2
+@atom path-set-membership=v1
 @cites {
-    #{path=v1, glob=v1, glob-fit=v2, path-set=v1},
+    #{path=v1, glob=v1, glob-fit=v1, path-set=v1},
     text#{text=v1, result=v1, code-span=v1},
 }
 
@@ -880,12 +880,12 @@ and must not give the result "invalid" when the text is a valid path.
 
 ### 4.3 The result of a file read
 
-@req give-file-read-results=v2
+@req give-file-read-results=v1
 @cites {
     posix/2024,
     #{
         system=v1, folder-tree=v1, path=v1, file-read=v1,
-        file-read-result=v2,
+        file-read-result=v1,
     },
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
@@ -903,11 +903,11 @@ a pathname of POSIX.1-2024 or on the size of a file.
 
 ### 4.4 The text of the content
 
-@req give-file-text=v2
+@req give-file-text=v1
 @cites {
     #{
         folder-tree=v1, regular-file=v1, path=v1, file-read=v1,
-        file-read-result=v2,
+        file-read-result=v1,
     },
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
@@ -1019,9 +1019,9 @@ not match `glob`.
 
 ### 4.12 Whether valid paths fit valid globs
 
-@req decide-glob-fit=v2
+@req decide-glob-fit=v1
 @cites {
-    #{glob=v1, path=v1, glob-fit=v2},
+    #{glob=v1, path=v1, glob-fit=v1},
     text#{conforming-program=v1, result=v1, requirement=v1},
 }
 
@@ -1048,9 +1048,9 @@ set is valid, and "invalid" when the path set is not valid.
 
 ### 4.14 Whether valid paths are in the sets of path sets
 
-@req decide-path-set-membership=v2
+@req decide-path-set-membership=v1
 @cites {
-    #{path-set=v1, glob=v1, path=v1, path-set-membership=v2},
+    #{path-set=v1, glob=v1, path=v1, path-set-membership=v1},
     text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
 }
 
@@ -1214,7 +1214,7 @@ program gives the result that `result` holds, and no other result.
     posix/2024,
     #{
         vector-line=v1, give-invalid-for-non-paths=v1,
-        give-file-read-results=v2, give-file-text=v2,
+        give-file-read-results=v1, give-file-text=v1,
         omit-texts-of-other-results=v1, system=v1, file-system=v1,
         folder=v1, regular-file=v1, symbolic-link=v1,
         file-of-another-kind=v1, folder-tree=v1, path=v1, file-read=v1,
@@ -1389,8 +1389,8 @@ program gives the result that `result` holds, and no other result.
 @cites {
     rfc/8259,
     #{
-        vector-line=v1, decide-glob-fit=v2, glob=v1, path=v1,
-        glob-fit=v2,
+        vector-line=v1, decide-glob-fit=v1, glob=v1, path=v1,
+        glob-fit=v1,
     },
     text#{
         conforming-program=v1, input=v1, text=v1, line=v1, result=v1,
@@ -1461,8 +1461,8 @@ gives the result that `result` holds, and no other result.
 @cites {
     rfc/8259,
     #{
-        vector-line=v1, decide-path-set-membership=v2, path-set=v1,
-        valid-path-set=v1, glob=v1, path=v1, path-set-membership=v2,
+        vector-line=v1, decide-path-set-membership=v1, path-set=v1,
+        valid-path-set=v1, glob=v1, path=v1, path-set-membership=v1,
     },
     text#{
         conforming-program=v1, input=v1, text=v1, line=v1, sequence=v1,
