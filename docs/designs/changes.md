@@ -1131,7 +1131,7 @@ is not a file of a working tree of the git repository, as the term
 
 To change a file is to change the content of a regular file, the folder
 entries of a folder, the reference of a symbolic link, or the data of a
-file of another kind.
+file of another kind. Taking bytes from a file changes no file.
 
 An own change of a repository read is the creation, the deletion, or
 the change of one file that the program that makes the repository read,
