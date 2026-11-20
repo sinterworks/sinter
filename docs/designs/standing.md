@@ -92,7 +92,7 @@ and in force under the bindings.
 | [anchor member](sinter:#cycle-finding=v1) | among the members of a cycle of `supersedes` and `refines` edges whose name comes first in code point order, the member that comes first in declaration order |
 | [base item](sinter:revisions#base-item=v1) | the one declared item of a base tree with the same name in the corresponding set of names, of any kind, when the declared item of the tree is also the one declared item with its name in its set of names |
 | [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
-| [cut history](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a needed git object is missing from the repository, or a read file of a tree on the line is in that tree's set of stopped files |
+| [cut history](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a needed git object is missing from the repository and not fetched, or a read file of a tree on the line is in that tree's set of stopped files |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
 | [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges whose source counts, whose cited item counts as retired, and whose file is not a historical file |
 | [`cycle`](sinter:#cycle-finding=v1) | the finding class of cycles of `supersedes` and `refines` edges whose anchor member is not in a historical file |
@@ -767,40 +767,39 @@ declaration of d in the text of the file of d in T.
 
 @term cut-history=v1
 @cites {
-    files#{path=v1},
     ontology#{default-branch=v1, tree=v1, parameter=v1},
     changes#{
         commit=v1, commit-file=v1, shallow-commit=v1,
         default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        first-parent-line=v1, repository-read=v1,
     },
-    documents#{
-        file-readers=v1, file-reader=v1, read-file=v1,
-        unreadable-file=v1,
-    },
-    text#{
-        byte-sequence=v1, utf-8-encoding=v1, text=v1, line-feed=v1,
-        space=v1, tab=v1, code-span=v1,
-    },
+    documents#{file-readers=v1, read-file=v1, unreadable-file=v1},
+    text#{code-span=v1},
 }
 
-This term is for a git repository R, a binding D of
+This term is for a git repository R, the repository reads from which a
+program takes the first-parent line of the commit of the default branch
+and the files of the trees of its commits, a binding D of
 `default-branch-name` under which the default branch of R has a commit
 d, a valid binding F of `file-readers`, and, for each commit c of the
-first-parent line of d, a set Uc of stopped files of the tree of c. The
-history of the default branch of R under D, F, and these sets is cut
-when, and only when, one or more of these four conditions holds:
+first-parent line of d, a set Uc of stopped files of the tree of c. In
+this term, R holds a git object when R holds that git object at the end
+of those repository reads. Thus R holds each git object that the program
+fetches into R during those repository reads, and R does not hold a git
+object that R lacks and that the program does not fetch. The history of
+the default branch of R under D, F, and these sets is cut for those
+repository reads when, and only when, one or more of these four
+conditions holds:
 
 1. A commit of the first-parent line of d is a shallow commit of R.
 2. A commit of the first-parent line of d is not a shallow commit of R,
    and its commit object names as its first parent a git object that is
    not a commit of R.
 3. For some commit c of the first-parent line of d, R does not hold the
-   git tree object of c, or does not hold a git tree object named by a
+   git tree object of c, does not hold a git tree object named by a
    tree entry under it, or does not hold the blob of a regular-file
-   entry under it whose byte path is the UTF-8 encoding of a valid path
-   that has a reader under F, has no line feed, and has no space and no
-   tab as its first character or as its last character.
+   entry under it whose file in the tree of c is a read file of the
+   tree of c under F.
 4. For some commit c of the first-parent line of d, a read file of the
    tree of c under F is in Uc.
 
@@ -1128,7 +1127,9 @@ other finding of that class.
 @req compare-change-for-reused-labels=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v1},
+    ontology#{
+        finding-class=v1, default-branch=v1, tree=v1, parameter=v1,
+    },
     changes#{
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, change-of-a-commit=v1, change-base=v1,
@@ -1162,8 +1163,10 @@ of the change of h, the first-parent line of d, and the files of the
 trees of h, of that base, and of the commits of that line is
 undisturbed. Third, either the tree of h has no item with a new label
 against the tree of the base of the change of h under F, N, H, UT, and
-UB, or the history of the default branch of R under D, F, and the sets
-Uc is not cut.
+UB, or both of these hold: the history of the default branch of R under
+D, F, and the sets Uc is not cut for those repository reads, and that
+program does not stop reading the first-parent line of d for limits of
+its own.
 
 When the tree of h has no item with a new label against the tree of the
 base of the change of h under F, N, H, UT, and UB, that program must
@@ -1171,9 +1174,7 @@ give no finding of the class `reused-label`. Otherwise, that program
 must give each tree finding of the class `reused-label` that the tree of
 h has against the tree of the base of the change of h and L under F, N,
 H, UT, UB, and the sets Uc once, and must give no other finding of that
-class, except that when that program stops reading the first-parent line
-of d for limits of its own, that program must give that it cannot see
-the whole history and must give no finding of that class.
+class.
 
 ### 5.12 The change of a commit with no base
 
@@ -1219,12 +1220,14 @@ that program takes whether the change of h has a base is undisturbed.
 Under that binding and when both conditions hold, that program must not
 give that the change of h has no base.
 
-### 5.14 When the first-parent line is cut
+### 5.14 When the first-parent line is cut or stopped for limits
 
 @req report-cut-history=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v1},
+    ontology#{
+        finding-class=v1, default-branch=v1, tree=v1, parameter=v1,
+    },
     changes#{
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, change-of-a-commit=v1, change-base=v1,
@@ -1254,17 +1257,20 @@ of the change of h, the first-parent line of d, and the files of the
 trees of h, of that base, and of the commits of that line is
 undisturbed. Third, the tree of h has at least one item with a new label
 against the tree of the base of the change of h under F, N, H, UT, and
-UB. Fourth, the history of the default branch of R under D, F, and the
-sets Uc is cut. When all four conditions hold, that program must give
-that it cannot see the whole history, and must give no finding of the
-class `reused-label`.
+UB. Fourth, either the history of the default branch of R under D, F,
+and the sets Uc is cut for those repository reads, or that program stops
+reading the first-parent line of d for limits of its own. When all four
+conditions hold, that program must give that it cannot see the whole
+history, and must give no finding of the class `reused-label`.
 
 ### 5.15 When the first-parent line is complete or no label is new
 
 @req omit-cut-history-report=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v1},
+    ontology#{
+        finding-class=v1, default-branch=v1, tree=v1, parameter=v1,
+    },
     changes#{
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, change-of-a-commit=v1, change-base=v1,
@@ -1295,9 +1301,10 @@ trees of h, of that base, and of the commits of that line is
 undisturbed. Third, either the tree of h has no item with a new label
 against the tree of the base of the change of h under F, N, H, UT, and
 UB, or the history of the default branch of R under D, F, and the sets
-Uc is not cut and the program does not stop reading the first-parent
-line of d for limits of its own. When all three conditions hold, that
-program must not give that it cannot see the whole history.
+Uc is not cut for those repository reads and that program does not stop
+reading the first-parent line of d for limits of its own. When all three
+conditions hold, that program must not give that it cannot see the whole
+history.
 
 ## 6. Conformance
 
