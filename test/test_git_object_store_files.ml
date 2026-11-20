@@ -168,6 +168,13 @@ let index_versions repo =
       else None)
     (Array.to_list (Sys.readdir (git_folder repo / "objects" / "pack")))
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+   @cites changes#commit=v1
+   In repositories that git creates, in both SHA-1 and SHA-256, the store must
+   give the same type and content as `git cat-file --batch` for every loose
+   object, every packed object with `OFS_DELTA` and `REF_DELTA` entries, and
+   every object in an alternate named by `info/alternates`. Any missing object,
+   damage, or difference in type or content fails the test. *)
 let repository_tests =
   List.concat_map
     (fun object_format ->
@@ -706,6 +713,66 @@ let permission_tests =
           (result_text (Store.find store (id_of Id.Sha1 (O.hex y)))));
   ]
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+   @cites changes#commit=v1
+   By the term `commit`, the base of a `REF_DELTA` entry in a pack is in the
+   same pack. In a repacked repository on disk, the test adds a second pack
+   whose `REF_DELTA` entry names a blob from the first pack. The test fails
+   when the store gives that object or reports a problem other than
+   `Base_not_in_pack` at offset 12 of the second pack. *)
+let ref_delta_pack_tests =
+  [
+    slow "a pack whose REF_DELTA base is in another pack gives nothing"
+      (fun () ->
+        let repo = history () in
+        ignore (Repo.git repo [ "repack"; "-adf"; "-q" ]);
+        let all = catalog repo in
+        let blobs = List.filter (fun (_, k, _) -> k = Store.Blob) all in
+        let base_hex, _, base =
+          List.find (fun (_, _, c) -> String.length c > 500) blobs
+        in
+        let target = base ^ "one more line\n" in
+        let target_raw = O.id Id.Sha1 O.Blob target in
+        let base_id = id_of Id.Sha1 base_hex in
+        let base_raw = Id.to_bytes base_id in
+        let pack =
+          O.pack Id.Sha1
+            [
+              O.Ref_delta
+                ( base_raw,
+                  O.delta ~base_size:(String.length base)
+                    ~result_size:(String.length target)
+                    (O.delta_between base target) );
+            ]
+        in
+        let name = O.hex pack.checksum in
+        O.write_pack
+          (git_folder repo / "objects")
+          ~name pack
+          (O.index_v2 Id.Sha1 ~pack [ target_raw ]);
+        let store = Store.create limits Id.Sha1 ~git_folder:(git_folder repo) in
+        let expected_path =
+          git_folder repo / "objects" / "pack" / ("pack-" ^ name ^ ".pack")
+        in
+        match Store.find store (id_of Id.Sha1 (O.hex target_raw)) with
+        | Ok
+            {
+              held = None;
+              damage =
+                [
+                  {
+                    pathname;
+                    offset = Some 12;
+                    problem = Store.Base_not_in_pack missing;
+                  };
+                ];
+            } ->
+            Alcotest.(check string) "the pack pathname" expected_path pathname;
+            Alcotest.(check string)
+              "the missing base id" base_hex (Id.to_hex missing)
+        | other -> Alcotest.fail (result_text other));
+  ]
+
 let tests =
   permission_tests @ no_wait_tests @ environment_tests @ repository_tests
-  @ partial_clone_tests @ unchanged_tests @ growth_tests
+  @ ref_delta_pack_tests @ partial_clone_tests @ unchanged_tests @ growth_tests
