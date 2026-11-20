@@ -396,14 +396,14 @@ Identifiers.
 
 Two promise objects are equal when, and only when, they have the same
 value of `kind` and the same value of `req`. In promise order, a promise
-object A comes before a promise object B that is not equal to A when,
+object q1 comes before a promise object q2 that is not equal to q1 when,
 and only when, one of these two conditions is true:
 
-1. The value of `kind` of A comes before the value of `kind` of B in
+1. The value of `kind` of q1 comes before the value of `kind` of q2 in
    code point order.
-2. The value of `kind` of A and the value of `kind` of B are the same
-   text, and the value of `req` of A comes before the value of `req` of
-   B in code point order.
+2. The value of `kind` of q1 and the value of `kind` of q2 are the same
+   text, and the value of `req` of q1 comes before the value of `req` of
+   q2 in code point order.
 
 ### 4.4 Task hashes
 
@@ -419,21 +419,21 @@ and only when, one of these two conditions is true:
     #{task-promise=v1},
 }
 
-For a valid path set P and a finite set Q of promise objects in which no
-two promise objects are equal, the task-hash object of P and Q is the
+For a valid path set G and a finite set Q of promise objects in which no
+two promise objects are equal, the task-hash object of G and Q is the
 JSON object with exactly two members:
 
-- `paths`, an array whose elements are the path set members of P, each
+- `paths`, an array whose elements are the path set members of G, each
   as a string, in code point order;
 - `promises`, an array whose elements are the promise objects of Q, in
   promise order.
 
-The task-hash pre-image of P and Q is the canonical form of the
-task-hash object of P and Q. The task hash of P and Q is the hash of the
-canonical byte sequence of the task-hash object of P and Q. For a
-definition of a task whose paths are P and whose promises are Q, the
-task-hash pre-image of that definition is the task-hash pre-image of P
-and Q, and the task hash of that definition is the task hash of P and Q.
+The task-hash pre-image of G and Q is the canonical form of the
+task-hash object of G and Q. The task hash of G and Q is the hash of the
+canonical byte sequence of the task-hash object of G and Q. For a
+definition of a task whose paths are G and whose promises are Q, the
+task-hash pre-image of that definition is the task-hash pre-image of G
+and Q, and the task hash of that definition is the task hash of G and Q.
 
 ### 4.5 Indexes in a ledger
 
@@ -664,8 +664,8 @@ gives.
 }
 
 For a point P of a ledger, a task or plan w, and a candidate definition
-D for w, let W be the set of all work items that exist at P together
-with w. The effective definition of w is D, and the effective definition
+d for w, let W be the set of all work items that exist at P together
+with w. The effective definition of w is d, and the effective definition
 of each other work item in W is its current definition at P.
 
 A composition edge is a pair (p, x) of a plan p in W and a work item x
@@ -689,7 +689,7 @@ graph has these directed edges between work items in W:
    effective definitions and the effective definition of p names a wait
    for y.
 
-A work-graph cycle exists for w and D at P when, and only when, either a
+A work-graph cycle exists for w and d at P when, and only when, either a
 composition cycle exists, or no composition cycle exists and the
 combined work graph has a finite sequence of one or more directed edges
 (u1, v1), ..., (uk, vk) in which vi is u(i + 1) for each whole number i
@@ -798,11 +798,11 @@ when, each of these four conditions is true:
 3. No accepted `delivered` ledger entry at an index before P has the
    same value of `commit`, the same value of `work-item`, and the same
    value of `hash` as E.
-4. For each element D of `definitions` of E, there is an accepted `task`
+4. For each element o of `definitions` of E, there is an accepted `task`
    ledger entry at an index before P whose `work-item` is the
    `work-item` of E and whose definition has the value of `task-hash` of
-   D as its task hash, and the set of pairs of `kind` and `req` of the
-   elements of `promises` of D is the set of pairs of `kind` and `req`
+   o as its task hash, and the set of pairs of `kind` and `req` of the
+   elements of `promises` of o is the set of pairs of `kind` and `req`
    of the promises of that definition.
 
 ### 4.15 Task completion by `delivered` ledger entries
@@ -826,10 +826,10 @@ delivery line of t named the definition of t that was current at P and
 that each promise of that definition was kept when, and only when, both
 of these conditions are true:
 
-1. The member `definitions` of E holds an element D whose value of
+1. The member `definitions` of E holds an element o whose value of
    `task-hash` is the task hash of the definition of t that was current
    at P.
-2. Every element of `promises` of D has the value `kept` for `outcome`,
+2. Every element of `promises` of o has the value `kept` for `outcome`,
    and has both `label` and `extent-hash`.
 
 ### 4.16 Recorded requirement content for requirement accounting
@@ -868,8 +868,8 @@ under F, N, and S:
   current revision of r in T and the same revised content as the revised
   content of r in T for a promise of the definition of its task that was
   current at P when, and only when, `definitions` of E holds an element
-  D whose `task-hash` is the task hash of that current definition, and
-  `promises` of D holds an element whose `req` is the name of r in T,
+  o whose `task-hash` is the task hash of that current definition, and
+  `promises` of o holds an element whose `req` is the name of r in T,
   that element has both `label` and `extent-hash`, the value of `label`
   of that element is the current revision of r in T, and the value of
   `extent-hash` of that element is the extent hash of r in T under F, N,
@@ -968,31 +968,31 @@ at P. This holds whatever the state of that task at P.
 This atom applies for a tree T, a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", a set S of stopped files of T,
-the evidence E for T, and the bindings of `runner-settings` for the test
-runners of the report files of the imports of E.
+the evidence V for T, and the bindings of `runner-settings` for the test
+runners of the report files of the imports of V.
 
-Evidence E forbids a verifies result in T under F, S, and those
+Evidence V forbids a verifies result in T under F, S, and those
 bindings of `runner-settings` when, and only when, T has evidence and
 at least one of these two conditions is true:
 
-1. The reading of a report file of an import of E under F and S has the
+1. The reading of a report file of an import of V under F and S has the
    result "stopped".
 2. The binding of `runner-settings` for the test runner of a report
-   file of an import of E is not valid.
+   file of an import of V is not valid.
 
-For a task definition D and a promise q of D, the job promise outcome
-of q for D in T under F, N, S, E, and those bindings of
+For a task definition d and a promise q of d, the job promise outcome
+of q for d in T under F, N, S, V, and those bindings of
 `runner-settings` is one of "kept", "not-kept", and "no-result":
 
 - When q has the kind `satisfies`, the job promise outcome is "kept"
   when q is kept in T under F, N, and S by `ontology#promise`, with the
-  paths of D as the paths of the task, and "not-kept" otherwise.
-- When q has the kind `verifies` and E forbids a verifies result in T,
+  paths of d as the paths of the task, and "not-kept" otherwise.
+- When q has the kind `verifies` and V forbids a verifies result in T,
   the job promise outcome is "no-result".
-- When q has the kind `verifies` and E does not forbid a verifies
+- When q has the kind `verifies` and V does not forbid a verifies
   result in T, the job promise outcome is "kept" when T has evidence
-  and q is kept in T under F, N, S, and E by `ontology#promise` and
-  `evidence#tree-outcome`, with the paths of D as the paths of the task,
+  and q is kept in T under F, N, S, and V by `ontology#promise` and
+  `evidence#tree-outcome`, with the paths of d as the paths of the task,
   and "not-kept" otherwise.
 
 ### 4.21 Promise outcomes in findings
@@ -1018,8 +1018,8 @@ of q for D in T under F, N, S, E, and those bindings of
 This term applies for a tree T, a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", a set S of stopped files of T,
-the evidence E for T, and the bindings of `runner-settings` for the test
-runners of the report files of the imports of E.
+the evidence V for T, and the bindings of `runner-settings` for the test
+runners of the report files of the imports of V.
 
 An edge e of T under F, N, and S is a qualifying `verifies` edge for a
 `verifies` promise q in T when, and only when, each of these four
@@ -1035,24 +1035,24 @@ conditions is true:
 3. The edge e is not suspect in T.
 4. The file of e is a read file of T.
 
-For a task definition D and a promise q of D, the class promise outcome
-of q for D in T under F, N, S, E, and those bindings of
+For a task definition d and a promise q of d, the class promise outcome
+of q for d in T under F, N, S, V, and those bindings of
 `runner-settings` is one of "known kept", "known not kept", and "not
 known":
 
 - When q has the kind `satisfies`, the class promise outcome is "known
   kept" when q is kept in T under F, N, and S by `ontology#promise`,
-  with the paths of D as the paths of the task, and "known not kept"
+  with the paths of d as the paths of the task, and "known not kept"
   otherwise.
-- When q has the kind `verifies`, T has evidence, and E does not forbid
+- When q has the kind `verifies`, T has evidence, and V does not forbid
   a verifies result in T, the class promise outcome is "known kept"
-  when q is kept in T under F, N, S, and E by `ontology#promise` and
-  `evidence#tree-outcome`, with the paths of D as the paths of the task,
+  when q is kept in T under F, N, S, and V by `ontology#promise` and
+  `evidence#tree-outcome`, with the paths of d as the paths of the task,
   and "known not kept" otherwise.
-- When q has the kind `verifies` and either T has no evidence or E
+- When q has the kind `verifies` and either T has no evidence or V
   forbids a verifies result in T, the class promise outcome is "not
   known" when T has at least one qualifying `verifies` edge for q whose
-  file has a valid path in the set of the paths of D, and "known not
+  file has a valid path in the set of the paths of d, and "known not
   kept" otherwise.
 
 ### 4.22 Edges that keep a promise outside a task's paths
@@ -1076,22 +1076,22 @@ known":
 This term applies for a tree T, a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", a set S of stopped files of T,
-the evidence E for T, and the bindings of `runner-settings` for the test
-runners of the report files of the imports of E.
+the evidence V for T, and the bindings of `runner-settings` for the test
+runners of the report files of the imports of V.
 
 An edge e of T under F, N, and S is known to keep a promise q of a task
-definition D outside the paths of D in T when, and only when, the valid
-path of the file of e is not in the set of the paths of D and one of
+definition d outside the paths of d in T when, and only when, the valid
+path of the file of e is not in the set of the paths of d and one of
 these two conditions is true:
 
 - The promise q has the kind `satisfies`, and e is an edge of the kind
   `satisfies` that says what the kind of edge `satisfies` says, whose
   cited item is the item of the kind requirement whose name is the
   `req` of q, and that is not suspect in T.
-- The promise q has the kind `verifies`, T has evidence, E does not
+- The promise q has the kind `verifies`, T has evidence, V does not
   forbid a verifies result in T, e is a qualifying `verifies` edge for
   q in T, and the test that is the source of e has the outcome "passed"
-  in E under F and S.
+  in V under F and S.
 
 ### 4.23 The range of a run of the job
 
@@ -1222,8 +1222,9 @@ text of the message of a commit of the change of h under D.
     files#{path=v1},
     changes#{line-text=v1},
     identifiers#{
-        citation=v1, citation-line=v1, citation-entry=v1, label=v1,
-        revision=v1, external-namespaces=v1, validate-bindings=v1,
+        citation=v1, citation-line=v1, citation-entry=v1, match=v1,
+        label=v1, revision=v1, external-namespaces=v1,
+        validate-bindings=v1,
     },
     documents#{
         file-readers=v1, read-file=v1, unreadable-file=v1, tag-text=v1,
@@ -1402,7 +1403,7 @@ For a git repository R, a commit h of R, a binding D of
 `default-branch-name`, a valid binding F of `file-readers`, a binding N
 of `external-namespaces` for which a conforming program of Identifiers
 gives the result "valid", a set SH of stopped files of the tree of h,
-the evidence EH for the tree of h, the bindings of `runner-settings`,
+the evidence VH for the tree of h, the bindings of `runner-settings`,
 and a point P of the ledger of R:
 
 - When the default branch of R has no commit under D, the tree of h has
@@ -1413,11 +1414,11 @@ and a point P of the ledger of R:
   `delivery-on-unmet-task` for each task t that exists at P and meets
   both of these conditions:
   1. At least one line of the text of the message of a commit of the
-     change of h under D meets `delivery-line-form`, names t, and counts
-     at P.
+     change of h under D meets `delivery-line-form`, has the task id of
+     t as its task id, and counts at P.
   2. At least one promise of the current definition of t at P has the
      class promise outcome "known not kept" in the tree of h under F, N,
-     SH, EH, and the bindings of `runner-settings`.
+     SH, VH, and the bindings of `runner-settings`.
 
 The subject of that finding is the task id of t. That finding has no
 spot.
@@ -1452,7 +1453,7 @@ binding F of `file-readers`, a binding N of `external-namespaces` for
 which a conforming program of Identifiers gives the result "valid", sets
 SB and SH of stopped files of the trees of b and of h (where SB and SH
 are the same set when the tree of b and the tree of h are the same
-tree), the evidence EB and EH for the trees of b and of h, the bindings
+tree), the evidence VB and VH for the trees of b and of h, the bindings
 of `runner-settings`, and a point P of the ledger of R, the tree of h
 has, at P under these bindings and inputs, one tree finding of the
 class `missing-delivery` for each task t that exists at P and meets all
@@ -1461,13 +1462,14 @@ five of these conditions:
 1. Task t is unfinished at P.
 2. The current definition of t at P has at least one promise.
 3. No line of the text of the message of a commit of the change of h
-   under D meets `delivery-line-form`, names t, and counts at P.
+   under D meets `delivery-line-form`, has the task id of t as its task
+   id, and counts at P.
 4. Every promise of the current definition of t at P has the class
-   promise outcome "known kept" in the tree of h under F, N, SH, EH,
+   promise outcome "known kept" in the tree of h under F, N, SH, VH,
    and the bindings of `runner-settings`.
 5. At least one promise of the current definition of t at P has the
    class promise outcome "known not kept" in the tree of b under F, N,
-   SB, EB, and the bindings of `runner-settings`.
+   SB, VB, and the bindings of `runner-settings`.
 
 The subject of that finding is the task id of t. That finding has no
 spot.
@@ -1502,8 +1504,8 @@ finding of the class `delivery-without-change` for each task t that
 exists at P and meets both of these conditions:
 
 1. At least one line of the text of the message of a commit of the
-   change of h under D meets `delivery-line-form`, names t, and counts
-   at P.
+   change of h under D meets `delivery-line-form`, has the task id of t
+   as its task id, and counts at P.
 2. No valid path p that has at least one hunk in a diff of the change
    of h under D is in the set of the paths of the current definition of
    t at P.
@@ -1592,7 +1594,7 @@ span. When the tree of h has no file at p, that finding has no spot.
 
 For a tree T, a valid binding F of `file-readers`, a binding N of
 `external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", a set S of stopped files of T, the evidence E
+gives the result "valid", a set S of stopped files of T, the evidence V
 for T, the bindings of `runner-settings`, and a point P of a ledger, T
 has, at P under these bindings and inputs, one tree finding of the
 class `promise-outside-paths` for each pair of a task t that is
@@ -1600,10 +1602,10 @@ unfinished at P and a promise q of the current definition of t at P
 that meets both of these conditions:
 
 1. The class promise outcome of q for the current definition of t at P
-   in T under F, N, S, E, and the bindings of `runner-settings` is "known
+   in T under F, N, S, V, and the bindings of `runner-settings` is "known
    not kept".
 2. At least one edge of T under F, N, and S is known to keep q outside
-   the paths of the current definition of t at P in T under F, N, S, E,
+   the paths of the current definition of t at P in T under F, N, S, V,
    and the bindings of `runner-settings`.
 
 The subject of that finding is the task id of t, then a space, then the
@@ -1640,12 +1642,12 @@ in T, in the text of the file of that edge.
 
 For a tree T, a valid binding F of `file-readers`, a binding N of
 `external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", a set S of stopped files of T, the evidence E
+gives the result "valid", a set S of stopped files of T, the evidence V
 for T, the bindings of `runner-settings`, and a point P of a ledger, T
 has, at P under these bindings and inputs, one tree finding of the
 class `unmet-promise` for each pair of a task t that is unfinished at P
 and a promise q of the current definition of t at P whose class promise
-outcome in T under F, N, S, E, and the bindings of `runner-settings` is
+outcome in T under F, N, S, V, and the bindings of `runner-settings` is
 "known not kept".
 
 The subject of that finding is the task id of t, then a space, then the
@@ -1682,12 +1684,12 @@ plan id that no work item has at P.
     #{task-promise=v1, task-hash=v1},
 }
 
-For a valid path set P and a finite set Q of promise objects in which no
+For a valid path set G and a finite set Q of promise objects in which no
 two promise objects are equal, when a conforming program gives the
-task-hash pre-image of P and Q, it must give only the task-hash
-pre-image of P and Q, or refuse for limits of its own and give no
-result. For such P and Q, when a conforming program gives the task hash
-of P and Q, it must give only the task hash of P and Q, or refuse for
+task-hash pre-image of G and Q, it must give only the task-hash
+pre-image of G and Q, or refuse for limits of its own and give no
+result. For such G and Q, when a conforming program gives the task hash
+of G and Q, it must give only the task hash of G and Q, or refuse for
 limits of its own and give no result.
 
 ### 5.3 Delivery lines of commit messages
@@ -1951,21 +1953,21 @@ This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", the set S of stopped files of a
 tree T for the execution (requirement `use-one-stopped-set-per-tree`),
-the evidence E for T, and the bindings of `runner-settings`. When a
+the evidence V for T, and the bindings of `runner-settings`. When a
 conforming program runs the job in an execution whose input says that
 the execution is the job and appends a `delivered` ledger entry that
-records a `verifies` promise q of a task definition D in T under F, N,
-S, E, and those bindings of `runner-settings`:
+records a `verifies` promise q of a task definition d in T under F, N,
+S, V, and those bindings of `runner-settings`:
 
-- When E does not forbid a verifies result in T, the program must give
-  exactly one result for whether q is kept in T for D, and only "kept"
-  or "not-kept": the job promise outcome of q for D in T. When T has
-  evidence and E does not forbid a verifies result in T, the program
+- When V does not forbid a verifies result in T, the program must give
+  exactly one result for whether q is kept in T for d, and only "kept"
+  or "not-kept": the job promise outcome of q for d in T. When T has
+  evidence and V does not forbid a verifies result in T, the program
   must give with that result the test outcomes and sources that
   `evidence#give-promise-sources` requires for q in T, taking the paths
-  of D as the paths of the task in `ontology#promise`.
-- When E forbids a verifies result in T, the program must give no
-  result for whether q is kept in T for D.
+  of d as the paths of the task in `ontology#promise`.
+- When V forbids a verifies result in T, the program must give no
+  result for whether q is kept in T for d.
 
 ### 5.13 Appending `delivered` ledger entries
 
@@ -2020,7 +2022,7 @@ ready to record with range C; and R′ holds the tree objects of H.
 
 When the program finishes the run under these conditions, with the set S
 of stopped files of the tree of H for the execution (requirement
-`use-one-stopped-set-per-tree`), the evidence E for the tree of H, and
+`use-one-stopped-set-per-tree`), the evidence V for the tree of H, and
 the bindings of `runner-settings`, the program must give none of
 "already recorded", "cannot see range", "invalid bindings", "invalid
 ledger", "no default branch commit", and "no git identity", must end
@@ -2052,7 +2054,7 @@ order:
    and no other element, where the program must write:
    - `kind` as the `kind` of q and `req` as the `req` of q;
    - `outcome` as the job promise outcome of q for that definition in
-     the tree of H under F, N, S, E, and the bindings of
+     the tree of H under F, N, S, V, and the bindings of
      `runner-settings`;
    - when the tree of H has, under F, N, and S, exactly one declared
      item of the kind requirement whose name in the tree of H is the
@@ -2284,7 +2286,7 @@ This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", the set S of stopped files of a
 tree T for the execution (requirement `use-one-stopped-set-per-tree`),
-the evidence E for T, and the bindings of `runner-settings`. When a
+the evidence V for T, and the bindings of `runner-settings`. When a
 conforming program gives the findings of one of the classes
 `promise-outside-paths` and `unmet-promise` of T at a point P of a valid
 ledger of a git repository that holds its ledger objects, and no other
@@ -2324,7 +2326,7 @@ binding D of `default-branch-name`, a valid binding F of
 `file-readers`, a binding N of `external-namespaces` for which a
 conforming program of Identifiers gives the result "valid", the set SH
 of stopped files of the tree of h for the execution (requirement
-`use-one-stopped-set-per-tree`), the evidence EH for the tree of h, and
+`use-one-stopped-set-per-tree`), the evidence VH for the tree of h, and
 the bindings of `runner-settings`. When a conforming program gives the
 findings of the class `malformed-delivery` of the tree of h at a point P
 of a valid ledger of R (where R holds its ledger objects) under these
@@ -2371,8 +2373,8 @@ base b, a valid binding F of `file-readers`, a binding N of
 gives the result "valid", the sets SB and SH of stopped files of the
 trees of b and of h for the execution (requirement
 `use-one-stopped-set-per-tree`, where SB and SH are the same set when
-the tree of b and the tree of h are the same tree), the evidence EB and
-EH for the trees of b and of h, and the bindings of `runner-settings`;
+the tree of b and the tree of h are the same tree), the evidence VB and
+VH for the trees of b and of h, and the bindings of `runner-settings`;
 for the class `unplanned-change`, this requirement applies only under a
 valid binding X of `exempt-paths` as well. When a conforming program
 gives the findings of one of the classes `missing-delivery`,
