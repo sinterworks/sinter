@@ -45,15 +45,16 @@ of refs, git tree objects with their entries, the names, byte paths, and
 modes of these entries, tree entries, regular-file entries, blobs and
 their contents, reach and ancestry, branch names, the git configuration,
 remotes, their addresses, and fetches, and the requirement
-`run-no-configured-programs`. From Data forms (`data-forms`), it takes
-JSON values, objects and their members, line objects, canonical byte
-sequences, canonical lines, the JSON values of byte sequences, hex
+`run-no-configured-programs`. From Data forms (`data-forms`), the design
+takes JSON values, objects and their members, line objects, canonical
+byte sequences, canonical lines, the JSON values of byte sequences, hex
 texts, hash ids with their id prefixes, vector lines, the forms of a
-group, the meaning of a vector, and test-vector sets: the file that
-holds the conformance vectors of the design is one. From Text and
-notation (`text`), the design takes texts, characters, hex digits, whole
-numbers, bytes, byte sequences, UTF-8 encodings, code spans,
-productions, and what a conforming program, an input, and a result are.
+group, the meaning of a vector, and test-vector sets. The file that
+holds the conformance vectors of the design is a test-vector set. From
+Text and notation (`text`), the design takes texts, characters, hex
+digits, whole numbers, bytes, byte sequences, UTF-8 encodings, code
+spans, productions, and what a conforming program, an input, and a
+result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, the design takes which
@@ -272,16 +273,17 @@ the clone's shared clone does not account for that line (term
 with a void is accounted for, so that line is not provisional.
 
 A clone pushes its ledger entries to its shared clone: to each git
-repository that a push to that remote reaches, which is the one from
-which a fetch takes git objects unless the git configuration gives that
-remote another address for a push. The requirement
-`push-only-extensions` gives the commit that a push sends and what a
-program checks before that push. So when a git repository that a push
-reaches pulls from no shared clone of its own, each ledger entry of its
-stored ledger keeps its `seq`, and that ledger changes only at its end,
-other than in a repair. A shared clone that pulls from a shared clone of
-its own can give entries of the ledger of the first shared clone new
-values of `seq`.
+repository that a push to that remote reaches. Each git repository that
+a push to that remote reaches is the git repository from which a fetch
+takes git objects unless the git configuration gives that remote another
+address for a push. The requirement `push-only-extensions` gives the
+commit that a push sends and what a program checks before that push. So
+when a git repository that a push reaches pulls from no shared clone of
+its own, each ledger entry of the stored ledger of that git repository
+keeps the `seq` of that ledger entry, and that ledger changes only at
+the end of that ledger, other than in a repair. A shared clone that
+pulls from a shared clone of its own can give entries of the ledger of
+the first shared clone new values of `seq`.
 
 When another clone pushed first, the ledger commit of a clone does not
 extend the ledger commit of its shared clone. The clone then pulls the
@@ -1272,8 +1274,9 @@ sequence has this form:
   JSON string whose characters are the characters of the text, in order.
 - A byte sequence, such as the name of an entry of a git tree object or
   the content of a blob, is a JSON string when it is the UTF-8 encoding
-  of a text: the JSON string of that text. Otherwise, it is a JSON
-  object with one member, `bytes`, whose value is the
+  of a text: the JSON string of that text. When a byte sequence is not
+  the UTF-8 encoding of a text, that byte sequence is a JSON object with
+  one member, `bytes`, whose value is the
   [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
   JSON string.
 - A git tree object is a JSON array with one JSON object for each entry
@@ -1400,22 +1403,22 @@ and 7 of a valid ledger tree, and no line is a newer line, and it is
 newer when a line is a newer line.
 
 - `input`: a JSON object with three members. `clone` is the lines of the
-  git tree object of a, a list of lines. `shared` is the lines of the git
-  tree object of s, a list of lines. `refused` is a JSON array of texts:
-  the values of `id` of the objects of the lines of a for which the
-  acceptance rule of the kind of the ledger entry of the line that comes
-  from that line does not accept that ledger entry at its point; the
-  acceptance rules accept each other ledger entry of a line that comes
-  from a line of a, other than a void, at its point.
-- `result`: no vector of the group has this member.
+  git tree object of a, a list of lines. `shared` is the lines of the
+  git tree object of s, a list of lines. `refused` is a JSON array of
+  texts: the values of `id` of the objects of the lines of a for which
+  the acceptance rule of the kind of the ledger entry of the line that
+  comes from that line does not accept that ledger entry at its point;
+  the acceptance rules accept each other ledger entry of a line that
+  comes from a line of a, other than a void, at its point.
+- `result`: no vector of the group has the member `result`.
 - `values`: when a conforming program can pull into A from s, a JSON
   object with two members. `lines` is the lines of the git tree object
   of a pull commit of s over a, as a sequence in the order of the `seq`
   of their objects, in which each line is the value of `id` of its
-  object. `left` is the lines that leave, as a sequence in the order
-  of the `seq` of their objects, in which each line is the value of `id`
-  of its object. When a conforming program does not pull into A from s,
-  the empty JSON object, `{}`.
+  object. `left` is the lines that leave, as a sequence in the order of
+  the `seq` of their objects, in which each line is the value of `id` of
+  its object. When a conforming program does not pull into A from s, the
+  empty JSON object, `{}`.
 
 When a conforming program pulls into A the ledger entries of the shared
 clone of A from s, the lines of the git tree object of the new ledger
