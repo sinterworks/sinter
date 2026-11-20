@@ -566,9 +566,9 @@ conditions:
 1. It has the member `req`, whose value is a string that matches the
    production `slug` or the production `full-name` of Identifiers.
 2. Either it has both the member `label`, whose value is a string that
-   is a label, and the member `hash`, whose value is a string that fits
-   the hash form; or it has neither `label` nor `hash`.
-3. It has no member other than `req`, `label`, and `hash`.
+   is a label, and the member `extent-hash`, whose value is a string
+   that fits the hash form; or it has neither `label` nor `extent-hash`.
+3. It has no member other than `req`, `label`, and `extent-hash`.
 
 The fields of the kind `done` are these required fields, with these
 values:
@@ -642,10 +642,10 @@ conditions:
    `verifies`, the value of `outcome` is one of the strings `kept`,
    `not-kept`, and `no-result`.
 3. Either it has both the member `label`, whose value is a string that
-   is a label, and the member `hash`, whose value is a string that fits
-   the hash form; or it has neither `label` nor `hash`.
+   is a label, and the member `extent-hash`, whose value is a string
+   that fits the hash form; or it has neither `label` nor `extent-hash`.
 4. It has no member other than `kind`, `req`, `outcome`, `label`, and
-   `hash`.
+   `extent-hash`.
 
 A definition observation for a short task hash s is a JSON object that
 has the member `task-hash`, has the member `promises`, and has no other
@@ -867,19 +867,20 @@ under F, N, and S:
 - An accepted `done` ledger entry E records both the current revision of
   r in T and the same revised content as the revised content of r in T
   for r when, and only when, `requirements` of E holds an element whose
-  `req` is the name of r in T, that element has both `label` and `hash`,
-  the value of `label` of that element is the current revision of r in
-  T, and the value of `hash` of that element is the extent hash of r in
-  T under F, N, and S.
+  `req` is the name of r in T, that element has both `label` and
+  `extent-hash`, the value of `label` of that element is the current
+  revision of r in T, and the value of `extent-hash` of that element is
+  the extent hash of r in T under F, N, and S.
 - An accepted `delivered` ledger entry E at its point P records both the
   current revision of r in T and the same revised content as the revised
   content of r in T for a promise of the definition of its task that was
   current at P when, and only when, `definitions` of E holds an element
   D whose `task-hash` is the task hash of that current definition, and
   `promises` of D holds an element whose `req` is the name of r in T,
-  that element has both `label` and `hash`, the value of `label` of that
-  element is the current revision of r in T, and the value of `hash` of
-  that element is the extent hash of r in T under F, N, and S.
+  that element has both `label` and `extent-hash`, the value of `label`
+  of that element is the current revision of r in T, and the value of
+  `extent-hash` of that element is the extent hash of r in T under F, N,
+  and S.
 
 ### 4.16 The form of delivery lines
 
@@ -1856,13 +1857,13 @@ apply to E:
    F, N, and S, exactly one declared item of the kind requirement whose
    name in T is the value of `req` of that requirement record, that
    requirement record must hold `label` with the current revision of
-   that declared item in T and `hash` with the extent hash of that
-   declared item in T under F, N, and S.
+   that declared item in T and `extent-hash` with the extent hash of
+   that declared item in T under F, N, and S.
 4. For each requirement record in `requirements` of E, when T has, under
    F, N, and S, no declared item of the kind requirement whose name in T
    is the value of `req` of that requirement record, or more than one
    such declared item, that requirement record must hold neither `label`
-   nor `hash`.
+   nor `extent-hash`.
 
 ### 5.12 Promise outcomes in the job
 
@@ -1981,11 +1982,12 @@ that message text in line-number order:
    - when the tree of H has, under F, N, and S, exactly one declared
      item of the kind requirement whose name in the tree of H is the
      `req` of q, the promise observation must hold `label` with the
-     current revision of that item in the tree of H and `hash` with the
-     extent hash of that item in the tree of H under F, N, and S;
+     current revision of that item in the tree of H and `extent-hash`
+     with the extent hash of that item in the tree of H under F, N, and
+     S;
    - when the tree of H has, under F, N, and S, no such declared item
      or more than one such declared item, the promise observation must
-     hold neither `label` nor `hash`.
+     hold neither `label` nor `extent-hash`.
 3. The program must append no `delivered` ledger entry for any
    malformed delivery line, for any delivery line whose task does not
    exist at that point, or for any delivery line that an earlier
@@ -2575,10 +2577,10 @@ are the characters of the text, in order.
   - `plans`: a JSON array of distinct plan ids;
   - `requirements`: a JSON array of JSON objects, each standing for one
     declared item of the kind requirement of the tree, with `req` (its
-    name), `label` (its current revision), `hash` (its extent hash),
-    optional `spec` (the name of the item of the kind specification that
-    holds it, if any), and optional `design` (the name of the item of
-    the kind design to which it belongs, if any).
+    name), `label` (its current revision), `extent-hash` (its extent
+    hash), optional `spec` (the name of the item of the kind
+    specification that holds it, if any), and optional `design` (the
+    name of the item of the kind design to which it belongs, if any).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with four members:
@@ -2601,7 +2603,7 @@ no state or readiness result for a task id or plan id that does not
 appear in `task-states`, `plan-states`, or `ready`.
 
 ```
-{"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":[{"promises":[{"hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit"}],"task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
+{"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":[{"promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit"}],"task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
 ```
 
 ### 6.5 Promise findings
