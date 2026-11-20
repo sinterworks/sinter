@@ -3,7 +3,7 @@
 
 # Data forms
 @design data-forms=v2
-@cites text=v1
+@cites text=v2
 @cites rfc/3339
 @cites rfc/5234
 @cites rfc/7405
