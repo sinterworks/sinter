@@ -157,6 +157,7 @@ of its Conformance section name.
 | [repository files](sinter:#repository-file=v1) | the files of the git folder of a git repository, of its object databases, and of the folder trees of its working trees, the files to which the symbolic links of the git folder and of its object databases lead, with the files of the folders among them, in turn, and the files of its git configuration, its excludes files, its indexes, and the files of git attributes that the page gitattributes gives other than as files `.gitattributes` in the folders of its working trees, with the symbolic links on their pathnames followed |
 | [program file](sinter:#program-file=v1) | a file that the system loads to start a conforming program, or that the act that installed the program put on the system, as that act put them, with the files of the other programs and libraries that the same act put there; not a file that the program or its runtime creates as it runs |
 | shallow clone | a git repository whose file `shallow` names commits whose parents it does not hold |
+| [shallow commit](sinter:#shallow-commit=v1) | a commit of a git repository that the file `shallow` of its git folder names |
 | partial clone | a git repository that leaves out some git objects, which it can take from the git repository at an address of a remote |
 | submodule | a git repository whose working tree is in a folder of the working tree of another git repository; a git tree object names it by a submodule entry |
 | jj | Jujutsu, a version control program that can keep its data in a git repository |
@@ -1253,6 +1254,21 @@ libraries that the same act put there, such as its modules, its data,
 and the modules of its libraries. A file that the program or its runtime
 creates as it runs, such as a cache of compiled code, is not a program
 file.
+
+### 4.34 Shallow commits
+
+@term shallow-commit=v1
+@cites {
+    gitdoc/gitrepository-layout,
+    gitdoc/gitglossary,
+    text#{code-span=v1},
+    #{git-folder=v1, commit=v1},
+}
+
+A shallow commit of a git repository is a commit of the git repository
+that the file `shallow` of its git folder names, as the pages
+gitglossary and gitrepository-layout define shallow repositories and
+that file.
 
 ## 5. Requirements
 
