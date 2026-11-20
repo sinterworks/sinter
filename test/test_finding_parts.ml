@@ -34,9 +34,6 @@ let some = function Some value -> value | None -> invalid_arg "some"
 let message string = ok (Message.of_text (text_of string))
 let subject string = ok (Subject.of_text (text_of string))
 let class_slug string = some (Class_slug.of_text (text_of string))
-
-(* The finding ids. *)
-
 let findings_set = S.read "findings"
 
 let give_finding_ids (vector : Sinter_test_vectors.Test_vector_set.vector) =
@@ -219,8 +216,6 @@ let class_slugs_are_slugs =
           && string_of (Class_slug.to_text slug) = text
       | None -> not (Sinter_identifiers.Slug_form.is_slug text))
 
-(* The marks. *)
-
 let mark_text_gen =
   Gen.map
     (fun (bom, parts) ->
@@ -296,9 +291,6 @@ let marks_lie_in_the_spot_and_its_first_line =
               Spot.of_run tree path { from = mf; until = mu } = Error error
           | Error error, Error want -> mark_error error = want
           | _ -> false))
-
-(* A world of two trees with equal contents, one other tree, and parts in
-   each. *)
 
 let content = "abc\ndef"
 let tree_t = tree_of [ ("a.md", content); ("b.md", "x") ]
@@ -535,8 +527,6 @@ let equal_compares_every_part () =
        ~related:[ related_pool.(0); related_pool.(1) ]
        ~fix:None ~ackable:true)
 
-(* The fixes. *)
-
 let edit_set_pool =
   [|
     edit_set_in tree_t 1 2 "X";
@@ -607,8 +597,6 @@ let fixes_hold_distinct_edit_sets_of_one_tree =
                      (ok (Finding_fix.make (message "fix it") (List.rev sets))))
              )
       | _ -> false)
-
-(* The finding sets. *)
 
 type pick = { id : int; scope : int; words : int; ack : bool }
 
