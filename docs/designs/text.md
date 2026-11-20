@@ -1278,9 +1278,7 @@ section 4.
 The vectors of this design are in the file
 [`text.test-vectors.jsonl`](text.test-vectors.jsonl), in the same
 directory as this design. Each vector follows from the requirements and
-adds nothing to them. The schema `vector-line` gives the layout of the
-vector file and of each vector line, and the schemas after it give the
-groups.
+adds nothing to them.
 
 Several requirements apply only when a program gives the thing that they
 name, such as a line number. So a vector holds a program only to what
@@ -1344,9 +1342,7 @@ UTF-8. Its text has no byte order mark and no carriage return, it has no
 empty line, and when it is not empty it ends with a line feed. So only a
 line feed ends a line of the vector file. A JSON string of the vector
 file can hold U+0085, U+2028, or U+2029, and these characters do not end
-a line. The vector file holds zero or more vector lines. All vector
-lines with the same `group` in the vector file have the same `#` and
-schema name in `form`, and their labels in `form` may differ.
+a line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line. A vector line
 meets the schema `canonical-vector-line`, and its JSON object has the
@@ -1373,7 +1369,15 @@ these rules state:
   program gives none of the things that the schema names for `values`.
 
 A vector line meets the schema `vector-line` when, and only when, it
-meets the rules of this schema for a vector line.
+meets what this schema states for one vector line: what this schema
+states from "The text of each line of the vector file" to this
+paragraph. All vector lines in the vector file with the same `group`
+have the same `#` and name of a schema in `form`, and their labels in
+`form` may differ. The vector file meets the schema `vector-line` when,
+and only when, the vector file meets what this schema states before "The
+text of each line of the vector file" and what this paragraph states on
+`group` and `form`, and the text of each line of the vector file is a
+vector line that meets the schema `vector-line`.
 
 ### 5.3 Byte sequences that a program decodes
 
