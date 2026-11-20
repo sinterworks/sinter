@@ -5,7 +5,7 @@
 @design packs=v2
 @cites text=v2
 @cites identifiers=v2
-@cites files=v1
+@cites files=v2
 @cites data-forms=v2
 @cites ontology=v2
 @cites rfc/5234
@@ -1559,7 +1559,7 @@ when its default value is a TOML array.
 #### 5.1.12 File grammars
 
 @term file-grammar=v2
-@cites {files#{path=v1, glob-fit=v1}, #{valid-descriptor=v2, descriptor-grammar=v2}}
+@cites {files#{path=v1, glob-fit=v2}, #{valid-descriptor=v2, descriptor-grammar=v2}}
 
 For a valid descriptor and a valid path, the file grammar of that valid
 path is the first grammar of the descriptor, in the order of its
