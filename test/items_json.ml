@@ -30,10 +30,11 @@ let element ~kind ~name ~file ~at ~extent ~design ~specification ~vector_file =
 let kind_text = function
   | Declared_items.Design -> "design"
   | Specification -> "specification"
+  | Schema -> "schema"
   | Requirement -> "requirement"
+  | Atom -> "atom"
   | Term -> "term"
   | Decision_record -> "decision record"
-  | Declared_finding_class -> "declared finding class"
 
 let path_text path = Text.encode (Path.to_text path)
 

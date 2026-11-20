@@ -307,9 +307,6 @@ let name_sets_follow_the_term =
                 r.design = None && not (String.contains r.name '#')
             | Declared_finding_class -> false)
       in
-      let classes =
-        where (fun r -> r.kind = Items_reference.Declared_finding_class)
-      in
       let check set expected =
         List.map Declared_items.number (Declared_items.members b.declared set)
         = expected
@@ -324,7 +321,6 @@ let name_sets_follow_the_term =
         && Declared_items.named b.declared set "no-such-name" = []
       in
       check Declared_items.Shared shared
-      && check Declared_items.Finding_classes classes
       && List.for_all
            (fun item ->
              let k = Declared_items.number item in
@@ -754,8 +750,7 @@ let queries_grow_as_logarithms () =
            Declared_items.extent_holders declared path lines,
            Declared_items.slug_design declared "big",
            Declared_items.named declared Declared_items.Shared name,
-           Declared_items.file_items declared path,
-           Declared_items.members declared Declared_items.Finding_classes )))
+           Declared_items.file_items declared path )))
 
 let tests =
   [

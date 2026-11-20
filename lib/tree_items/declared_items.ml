@@ -16,10 +16,11 @@ open Sinter_tree_inputs
 type kind =
   | Design
   | Specification
+  | Schema
   | Requirement
+  | Atom
   | Term
   | Decision_record
-  | Declared_finding_class
 
 type item = {
   number : int;
@@ -43,7 +44,7 @@ type item = {
 module By_text = Map.Make (String)
 module By_number = Map.Make (Int)
 
-type set_key = Shared_key | Finding_key | Design_key of int
+type set_key = Shared_key | Design_key of int
 
 module By_name = Map.Make (struct
   type t = set_key * string
@@ -67,7 +68,7 @@ type file_index = {
 }
 
 type error = Repeated_path of Path.t
-type name_set = Shared | Finding_classes | Of_design of item
+type name_set = Shared | Of_design of item
 
 type t = {
   items : item list;
@@ -84,11 +85,13 @@ let equal a b = a == b
 let kind_of_word = function
   | Tag_word.Design -> Some Design
   | Spec -> Some Specification
+  | Schema -> Some Schema
   | Req -> Some Requirement
+  | Atom -> Some Atom
   | Term -> Some Term
   | Decision -> Some Decision_record
-  | Atom | Schema | Cites | Refines | Satisfies | Supersedes | Verifies
-  | Deprecated | Ack | Extern ->
+  | Cites | Refines | Satisfies | Supersedes | Verifies | Deprecated | Ack
+  | Extern ->
       None
 
 type declaration = {
@@ -150,25 +153,20 @@ let rec with_next first = function
       (d, first, next) :: with_next false rest
 
 (* @satisfies documents#give-extents=v1
-   In markdown, a declared finding class that is the only declaration of the
-   first paragraph of the section of level 0 claims every markdown line; each
-   other declaration claims its section or list item from its first line, or
-   from its own line when another declaration of its paragraph comes before it,
-   to the line before the next declaration of its paragraph. *)
-let markdown_claims file ~level_0 (range : Markdown_file.range)
+   In markdown, each declaration, of any kind, claims its section or list item
+   from its first line, or from its own line when another declaration of its
+   paragraph comes before it, to the line before the next declaration of its
+   paragraph; no declaration claims the front matter. *)
+let markdown_claims file (range : Markdown_file.range)
     (paragraph : Markdown_file.paragraph) declarations =
   let line d = paragraph.lines.first + d.tag_line - 1 in
   List.map
     (fun (d, first, next) ->
-      match (d.decl_kind, first, next) with
-      | Declared_finding_class, true, None when level_0 ->
-          (d, trim file (Tree_file.all_lines file))
-      | _ ->
-          let from = if first then range.first else line d in
-          let last =
-            match next with Some next -> line next - 1 | None -> range.last
-          in
-          (d, trim file (Line_set.range from last)))
+      let from = if first then range.first else line d in
+      let last =
+        match next with Some next -> line next - 1 | None -> range.last
+      in
+      (d, trim file (Line_set.range from last)))
     (with_next true declarations)
 
 let rec by_block blocks declarations =
@@ -238,23 +236,23 @@ let scope_of kind claim ~holder =
       match holder with
       | `Lines lines -> Some lines
       | `Run scope -> Some (Lazy.force scope))
-  | Requirement | Term | Decision_record | Declared_finding_class -> None
+  | Schema | Requirement | Atom | Term | Decision_record -> None
 
 let raw_items file =
   List.concat_map
     (fun (tag_text : Tree_file.tag_text) ->
       let declarations = declarations tag_text in
-      let markdown ~level_0 (range : Markdown_file.range) paragraph =
-        ( markdown_claims file ~level_0 range paragraph declarations,
+      let markdown (range : Markdown_file.range) paragraph =
+        ( markdown_claims file range paragraph declarations,
           `Lines (Line_set.range range.first range.last) )
       in
       let claims, holder =
         match tag_text.holder with
         | Tree_file.Section
-            { lines = Some range; heading; first_paragraph = Some paragraph } ->
-            markdown ~level_0:(heading = None) range paragraph
+            { lines = Some range; first_paragraph = Some paragraph; _ } ->
+            markdown range paragraph
         | Tree_file.List_item { lines; first_paragraph = Some paragraph } ->
-            markdown ~level_0:false lines paragraph
+            markdown lines paragraph
         | Tree_file.Section _ | Tree_file.List_item _ ->
             ([], `Lines Line_set.empty)
         | Tree_file.Comment_run run ->
@@ -287,8 +285,9 @@ let full_name_design slug_designs = function
 (* @satisfies documents#give-containment=v1
    The home design of a thing is the innermost design in whose scope it is;
    otherwise, in code, the design of the slug of the full name of the innermost
-   requirement or term in whose claim it is; otherwise the design of the slug
-   of the full name of the innermost specification in whose scope it is. *)
+   requirement, schema, atom, or term in whose claim it is; otherwise the
+   design of the slug of the full name of the innermost specification in whose
+   scope it is. *)
 let home slug_designs index lines =
   match Line_set.Index.innermost index.design_scopes lines with
   | Some design -> Some design
@@ -307,38 +306,39 @@ let home slug_designs index lines =
             (Line_set.Index.innermost index.specification_scopes lines))
 
 (* @satisfies documents#give-containment=v1
-   A specification, a requirement, or a term named by a full name belongs to
-   the design of its slug; one named by a segment belongs to the home design of
-   its declaration; one named by another slug belongs to no design. *)
+   A specification, a schema, a requirement, an atom, or a term named by a full
+   name belongs to the design of its slug; one named by a segment belongs to
+   the home design of its declaration; one named by another slug belongs to no
+   design. *)
 let design_of slug_designs index item =
   match item.kind with
-  | Specification | Requirement | Term -> (
+  | Specification | Schema | Requirement | Atom | Term -> (
       match item.part_name with
       | Some _ -> lookup_slug slug_designs item.slug
       | None ->
           if String.contains item.slug '/' then None
           else home slug_designs index item.line)
-  | Design | Decision_record | Declared_finding_class -> None
+  | Design | Decision_record -> None
 
 (* @satisfies documents#give-containment=v1
-   A requirement or a term belongs to the innermost specification in whose
-   scope its declaration is, when the two belong to the same design or both to
-   none. *)
+   A schema, a requirement, an atom, or a term belongs to the innermost
+   specification in whose scope its declaration is, when the two belong to the
+   same design or both to none. *)
 let specification_of index item =
   match item.kind with
-  | Requirement | Term -> (
+  | Schema | Requirement | Atom | Term -> (
       match Line_set.Index.innermost index.specification_scopes item.line with
       | Some spec when Option.equal equal spec.design item.design -> Some spec
       | _ -> None)
-  | Design | Specification | Decision_record | Declared_finding_class -> None
+  | Design | Specification | Decision_record -> None
 
 (* @satisfies documents#give-declared-items=v1
-   An item of the kind specification, requirement, or term named by one
-   segment and that belongs to a design has the name of that design, [#], and
-   that segment; each other item has the name in its target. *)
+   An item of the kind specification, schema, requirement, atom, or term named
+   by one segment and that belongs to a design has the name of that design,
+   [#], and that segment; each other item has the name in its target. *)
 let name_of item =
   match (item.kind, item.part_name, item.design) with
-  | (Specification | Requirement | Term), None, Some design
+  | (Specification | Schema | Requirement | Atom | Term), None, Some design
     when not (String.contains item.slug '/') ->
       design.slug ^ "#" ^ item.slug
   | _, Some part, _ -> item.slug ^ "#" ^ part
@@ -382,7 +382,7 @@ let extents items =
       (fun d -> if List.mem d.kind kinds then d.extent <- extent d)
       items
   in
-  pass [ Requirement; Term; Decision_record; Declared_finding_class ];
+  pass [ Schema; Requirement; Atom; Term; Decision_record ];
   pass [ Specification ];
   pass [ Design ]
 
@@ -415,9 +415,7 @@ let vector_path_of item =
       Option.bind (decoded design.name) (fun x ->
           Option.bind (decoded part) (fun y ->
               make design (Test_vector_file_name.of_specification x y)))
-  | ( ( Specification | Requirement | Term | Decision_record
-      | Declared_finding_class ),
-      _ ) ->
+  | (Specification | Schema | Requirement | Atom | Term | Decision_record), _ ->
       None
 
 (* @satisfies documents#give-vector-files=v1
@@ -445,10 +443,9 @@ let vector_files tree items =
 let set_key item =
   match (item.kind, item.design) with
   | (Design | Decision_record), _ -> Some Shared_key
-  | Declared_finding_class, _ -> Some Finding_key
-  | (Specification | Requirement | Term), Some design ->
+  | (Specification | Schema | Requirement | Atom | Term), Some design ->
       Some (Design_key design.number)
-  | (Specification | Requirement | Term), None ->
+  | (Specification | Schema | Requirement | Atom | Term), None ->
       if String.contains item.name '#' then None else Some Shared_key
 
 let make_item file number (d, claim, scope) =
@@ -491,7 +488,7 @@ let build tree files =
       (fun table item ->
         match item.kind with
         | Design | Decision_record -> By_text.add_to_list item.slug item table
-        | Specification | Requirement | Term | Declared_finding_class -> table)
+        | Specification | Schema | Requirement | Atom | Term -> table)
       By_text.empty (List.rev items)
   in
   let partial =
@@ -507,7 +504,8 @@ let build tree files =
               index_of items (of_kinds [ Specification ] (fun i -> i.scope));
             requirement_claims =
               index_of items
-                (of_kinds [ Requirement; Term ] (fun i -> Some i.claim));
+                (of_kinds [ Schema; Requirement; Atom; Term ] (fun i ->
+                     Some i.claim));
             extents = Line_set.Index.make [];
           }
         in
@@ -632,7 +630,6 @@ let extent_holders declared path lines =
 
 let key = function
   | Shared -> Shared_key
-  | Finding_classes -> Finding_key
   | Of_design design -> Design_key design.number
 
 let named declared set name =

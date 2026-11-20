@@ -29,10 +29,11 @@ open Sinter_tree_inputs
 type kind =
   | Design  (** [@design] *)
   | Specification  (** [@spec] *)
+  | Schema  (** [@schema] *)
   | Requirement  (** [@req] *)
+  | Atom  (** [@atom] *)
   | Term  (** [@term] *)
   | Decision_record  (** [@decision] *)
-  | Declared_finding_class  (** [@finding-class] *)
 
 type item
 (** A declared item of a tree. *)
@@ -122,10 +123,11 @@ val target_name : item -> string * string option
 
 val name : item -> string
 (** [name item] is the name of [item], as the term [item-name] of the design
-    [ontology=v1] gives it: for an item of the kind specification, requirement,
-    or term whose declaration names it by one segment and that belongs to an
-    item of the kind design, the name of that design, [#], and that segment; for
-    each other item, the name in the target of its declaration. *)
+    [ontology=v1] gives it: for an item of the kind specification, schema,
+    requirement, atom, or term whose declaration names it by one segment and
+    that belongs to an item of the kind design, the name of that design, [#],
+    and that segment; for each other item, the name in the target of its
+    declaration. *)
 
 val claim : item -> Text.run list
 (** [claim item] is the claim of [item], a set of file lines of its file, as the
@@ -177,8 +179,9 @@ val home_design : t -> Path.t -> Text.run list -> item option
       scopes it is, when there is one;
     + otherwise, when the file is a code file, the design of the slug of the
       name in the target of the declaration of the innermost, by their claims,
-      of the items of the kind requirement and the terms in whose claims it is,
-      when that name is a full name and that slug has a design;
+      of the items of the kind requirement, the schemas, the atoms, and the
+      terms in whose claims it is, when that name is a full name and that slug
+      has a design;
     + otherwise, the design of the slug of the name in the target of the
       declaration of the innermost, by their scopes, of the items of the kind
       specification in whose scopes it is, when that name is a full name and
@@ -188,10 +191,10 @@ val home_design : t -> Path.t -> Text.run list -> item option
     It is [None] when [path] is the valid path of no file of [declared]. An
     element of [lines] that is no file line of the file counts as no line. The
     time is that of three calls of {!Line_set.Index.innermost}, for the scopes
-    of the designs, the claims of the requirements and terms, and the scopes of
-    the specifications of the file, and logarithmic in the number of the files,
-    of the items, and of the file lines of the file for each element of [lines].
-*)
+    of the designs, the claims of the requirements, the schemas, the atoms, and
+    the terms, and the scopes of the specifications of the file, and logarithmic
+    in the number of the files, of the items, and of the file lines of the file
+    for each element of [lines]. *)
 
 val part_of : t -> Path.t -> Text.run list -> item option
 (** [part_of declared path lines] is the innermost, by their extents, of the
@@ -215,14 +218,13 @@ val extent_holders : t -> Path.t -> Text.run list -> item list
 type name_set =
   | Shared
       (** the items of the kind design, the decision records, and the items of
-          the kind specification, the items of the kind requirement, and the
-          terms that belong to no item of the kind design and whose names are
-          slugs *)
-  | Finding_classes  (** the declared finding classes *)
+          the kind specification, the schemas, the items of the kind
+          requirement, the atoms, and the terms that belong to no item of the
+          kind design and whose names are slugs *)
   | Of_design of item
-      (** the items of the kind specification, the items of the kind
-          requirement, and the terms that belong to this item of the kind design
-      *)
+      (** the items of the kind specification, the schemas, the items of the
+          kind requirement, the atoms, and the terms that belong to this item of
+          the kind design *)
 
 val members : t -> name_set -> item list
 (** [members declared set] is the items of [set], in the order of {!items}. It
