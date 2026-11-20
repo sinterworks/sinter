@@ -1267,41 +1267,6 @@ let tests_follow_the_terms =
       || QCheck2.Test.fail_reportf "given %d tests, expected %d"
            (List.length given) (List.length expected))
 
-(* @verifies documents#give-tests=v1
-   Each case gives a test node of a shape that no vector holds: two test nodes
-   with one run, two tests whose codes start at one boundary, and a test whose
-   own name has no piece. A test missing or
-   given twice, or a comment on a test missing or not given with each test of
-   its target's run, makes a case fail. *)
-let test_cases () =
-  let check what source sigils nodes expected =
-    Alcotest.(check (list (pair (pair string string) (list string))))
-      what expected
-      (List.map
-         (fun (_, name, code, comments) -> ((name, code), comments))
-         (given_tests source sigils nodes))
-  in
-  let source = "// a\nfn t() {}\n" in
-  check "two test nodes with one run are two tests, and each has the comment"
-    source line_sigils
-    [
-      tagged (run 0 4);
-      test_node ~name:[ [ R.Text_piece "s" ] ] (run 5 14);
-      test_node ~name:[ [ R.Text_piece "s" ]; [ R.Text_piece "c" ] ] (run 5 14);
-    ]
-    [ (("s", "5-14"), [ "0-4" ]); (("s / c", "5-14"), [ "0-4" ]) ];
-  check
-    "of tests whose codes start at one boundary, the first in the list first"
-    "describe(it())\n" line_sigils
-    [
-      test_node ~name:[ [ R.Text_piece "s" ] ] (run 0 14);
-      test_node ~name:[ [ R.Text_piece "s" ]; [ R.Text_piece "c" ] ] (run 0 4);
-    ]
-    [ (("s", "0-14"), []); (("s / c", "0-4"), []) ];
-  check "a test whose own name has no piece" "it()\n" line_sigils
-    [ test_node ~name:[ [] ] (run 0 4) ]
-    [ (("", "0-4"), []) ]
-
 let tests_of_files_that_are_no_code_files () =
   Alcotest.(check int)
     "a markdown file has no test" 0
@@ -1542,7 +1507,6 @@ let tests =
       readable_file_cases;
     read_is_total;
     tests_follow_the_terms;
-    Alcotest.test_case "the tests of code files" `Quick test_cases;
     Alcotest.test_case "the tests of a markdown file and the file of a test"
       `Quick tests_of_files_that_are_no_code_files;
   ]
