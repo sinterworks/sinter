@@ -2,11 +2,11 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Ontology
-@design ontology=v2
-@cites identifiers=v2
-@cites text=v2
-@cites files=v2
-@cites data-forms=v2
+@design ontology=v1
+@cites identifiers=v1
+@cites text=v1
+@cites files=v1
+@cites data-forms=v1
 Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger and the repairs that they make when an agent runs them, on the judgments that they append and the repairs that they make, and on the use of declared tasks.
 
 Sinter traces the items of a repository, such as items of the kind
@@ -48,8 +48,8 @@ forms of a group; and the meaning of a vector.
 | word or phrase | meaning |
 |---|---|
 | Sinter | the tool that traces the items of a repository and checks the agreements that the people who work on the repository made |
-| [item](sinter:#item=v2) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
-| [kind of item](sinter:#item=v2) | one of the fourteen kinds of item, such as design or task; each item has one |
+| [item](sinter:#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
+| [kind of item](sinter:#item=v1) | one of the fourteen kinds of item, such as design or task; each item has one |
 | repository, commit, message of a commit, parent, branch, working tree, clone, push, pull request, merge | the thing of git, or of a host of git repositories, that has this name |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [tree](sinter:#tree=v1) | a set whose members are the files of the tree, in which no two files of the tree have the same valid path, such as the tree of a commit or the tree of a working tree |
@@ -64,47 +64,47 @@ forms of a group; and the meaning of a vector.
 | [job](sinter:#job=v1) | an execution of a conforming program that continuous integration starts at each push to the default branch of a repository |
 | [tag line](sinter:identifiers#tag-line=v1), [tag word](sinter:identifiers#tag-word=v1) | a line whose first character, after the spaces and tabs at its start, is `@`; its tag word is that `@` with the longest run of ASCII letters, ASCII digits, and `-` right after it, such as `@req` |
 | [declaration](sinter:identifiers#declaration=v1) | a tag line whose tag word is a declaration word, such as `@req limit-amount=v2` |
-| [declaration word](sinter:identifiers#sinter-tag-word=v2) | one of the tag words `@atom`, `@decision`, `@design`, `@req`, `@schema`, `@spec`, and `@term` |
+| [declaration word](sinter:identifiers#sinter-tag-word=v1) | one of the tag words `@atom`, `@decision`, `@design`, `@req`, `@schema`, `@spec`, and `@term` |
 | [citation](sinter:identifiers#citation=v1) | a tag line whose tag word is a citation word, such as `@cites billing#limit-amount=v2` |
-| [citation word](sinter:identifiers#sinter-tag-word=v2) | one of the tag words `@cites`, `@refines`, `@satisfies`, `@supersedes`, and `@verifies` |
-| [citation entry](sinter:identifiers#citation-entry=v2) | one entry of the target of a citation, with one name or one external id, such as `billing#limit-amount=v2` in `@cites billing#limit-amount=v2`; in `@cites #{amount=v1}`, the part `amount=v1` stands for the citation entry `#amount=v1` |
+| [citation word](sinter:identifiers#sinter-tag-word=v1) | one of the tag words `@cites`, `@refines`, `@satisfies`, `@supersedes`, and `@verifies` |
+| [citation entry](sinter:identifiers#citation-entry=v1) | one entry of the target of a citation, with one name or one external id, such as `billing#limit-amount=v2` in `@cites billing#limit-amount=v2`; in `@cites #{amount=v1}`, the part `amount=v1` stands for the citation entry `#amount=v1` |
 | [inline citation](sinter:identifiers#inline-citation=v1) | a markdown link whose destination starts with `sinter:`, such as `[the limit](sinter:billing#limit-amount=v2)` |
 | [target](sinter:identifiers#target=v1) | the text that follows the tag word of a declaration or a citation, up to the first space or tab outside braces, such as `limit-amount=v2` in `@req limit-amount=v2`; for an inline citation, its destination after `sinter:`, such as `billing#limit-amount=v2` |
 | [status tag](sinter:identifiers#status-tag=v1) | a tag line whose tag word is a status word, such as `@deprecated` |
-| [status word](sinter:identifiers#sinter-tag-word=v2) | the tag word `@deprecated` |
+| [status word](sinter:identifiers#sinter-tag-word=v1) | the tag word `@deprecated` |
 | [`@ack` line](sinter:identifiers#directive=v1) | a tag line whose tag word is `@ack`, such as `@ack retired docs#size=v2 3f2a9c1d` |
 | [slug](sinter:identifiers#slug=v1) | one segment, or several segments joined by `/`, such as `billing` or `billing/auth`; a segment is a text of ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them |
 | [part name](sinter:identifiers#part-name=v1) | a segment, such as `limit-amount` in `billing#limit-amount` |
 | [full name](sinter:identifiers#full-name=v1) | a slug, `#`, and a part name, such as `billing#limit-amount` |
 | [label](sinter:identifiers#label=v1) | a text of the characters from `!` to `~`, other than `/`, `#`, `@`, `*`, `=`, `,`, `{`, `}`, `[`, and `]`, such as `v2` |
-| [revision of a citation entry](sinter:#pinned-edge=v2), [revision of an inline citation](sinter:#pinned-edge=v2) | the label, or `*`, that a citation entry, or the destination of an inline citation, carries after `=`, such as `v2` in `billing#limit-amount=v2` and `v3` in `docs=v3#*`; `*` stands for any label |
+| [revision of a citation entry](sinter:#pinned-edge=v1), [revision of an inline citation](sinter:#pinned-edge=v1) | the label, or `*`, that a citation entry, or the destination of an inline citation, carries after `=`, such as `v2` in `billing#limit-amount=v2` and `v3` in `docs=v3#*`; `*` stands for any label |
 | [external id](sinter:identifiers#external-id=v1) | a namespace name, such as `gh`, `/`, and an id, such as `42`, as in `gh/42`; a binding of the parameter `external-namespaces` gives the namespace names; an external id names an external item |
-| [`every-part`](sinter:identifiers#citation-line=v2) | the production that matches a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
-| [declared item](sinter:#declared-item=v2) | what a declaration declares, for a declaration for which a conforming program of Identifiers gives the result "valid": an item of the kind design, specification, schema, requirement, atom, term, or decision record; it takes up a part of one file of a tree, and that part has its declaration |
-| [item of the kind design](sinter:#declared-item=v2) | a declared item whose declaration word is `@design`; it is a design |
-| [item of the kind specification](sinter:#declared-item=v2) | a declared item whose declaration word is `@spec`; it declares one specification of the design of which it is a part |
-| [item of the kind requirement](sinter:#declared-item=v2) | a declared item whose declaration word is `@req`; it declares one requirement of the design of which it is a part |
+| [`every-part`](sinter:identifiers#citation-line=v1) | the production that matches a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
+| [declared item](sinter:#declared-item=v1) | what a declaration declares, for a declaration for which a conforming program of Identifiers gives the result "valid": an item of the kind design, specification, schema, requirement, atom, term, or decision record; it takes up a part of one file of a tree, and that part has its declaration |
+| [item of the kind design](sinter:#declared-item=v1) | a declared item whose declaration word is `@design`; it is a design |
+| [item of the kind specification](sinter:#declared-item=v1) | a declared item whose declaration word is `@spec`; it declares one specification of the design of which it is a part |
+| [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req`; it declares one requirement of the design of which it is a part |
 | [design](sinter:text#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [requirement](sinter:text#requirement=v1) | an obligation that a design declares under a name and states with the word must |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | [schema](sinter:#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [atom](sinter:#atom=v1) | a declared item whose declaration word is `@atom`; it defines a named verdict that a conforming program gives, with the condition under which it gives that name |
-| [term](sinter:#term=v2) | a declared item whose declaration word is `@term`; it says what one word or one fixed phrase means, gives a form, or defines a computed value |
+| [term](sinter:#term=v1) | a declared item whose declaration word is `@term`; it says what one word or one fixed phrase means, gives a form, or defines a computed value |
 | normative | giving the form of a thing, saying what a conforming program must do, defining a named verdict with its condition, or saying what one word or one fixed phrase means, giving a form, or defining a computed value; only schemas, requirements, atoms, and terms are normative |
 | [decision record](sinter:#decision-record=v1) | a declared item whose declaration word is `@decision`; it records one standing practice of a repository, or one choice with its reason |
 | [finding](sinter:#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:#finding-class=v1) | a kind of finding, which a slug names |
-| [containment](sinter:#containment=v2) | the relation in which an item of the kind design holds items of the kind specification, schemas, items of the kind requirement, atoms, and terms, and an item of the kind specification holds schemas, items of the kind requirement, atoms, and terms |
-| [hold](sinter:#containment=v2), [belong to](sinter:#containment=v2) | an item of the kind design holds each of its items of the kind specification, its schemas, its items of the kind requirement, its atoms, and its terms, and each of them belongs to that item of the kind design; an item of the kind specification holds its schemas, its items of the kind requirement, its atoms, and its terms in the same way |
-| [hold directly](sinter:#containment=v2) | an item of the kind design holds a schema, an item of the kind requirement, an atom, or a term directly when that item belongs to it and to no item of the kind specification |
-| [name of a declared item](sinter:#item-name=v2) | for an item of the kind design or a decision record, the name in the target of its declaration, which is a slug, such as `billing`; for an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term, the name in the target of its declaration, except when that name is one segment and the item belongs to an item of the kind design: then the name of that item of the kind design, `#`, and that segment, such as `billing#amount` |
-| [same item](sinter:#same-item=v2) | of two items of two trees: they are one item, such as two declared items with the same kind of item and the same name |
-| [conformance vector](sinter:#conformance-vector=v2) | the thing whose vector line is one vector line of a vector set; when the object of its vector line states a vector of the specification or the design of the vector set, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
-| [vector line of a conformance vector](sinter:#conformance-vector=v2) | one vector line of a vector set; each vector line of a vector set is the vector line of one conformance vector, and a vector set has no other conformance vector |
-| [vector set](sinter:#vector-set=v2) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
+| [containment](sinter:#containment=v1) | the relation in which an item of the kind design holds items of the kind specification, schemas, items of the kind requirement, atoms, and terms, and an item of the kind specification holds schemas, items of the kind requirement, atoms, and terms |
+| [hold](sinter:#containment=v1), [belong to](sinter:#containment=v1) | an item of the kind design holds each of its items of the kind specification, its schemas, its items of the kind requirement, its atoms, and its terms, and each of them belongs to that item of the kind design; an item of the kind specification holds its schemas, its items of the kind requirement, its atoms, and its terms in the same way |
+| [hold directly](sinter:#containment=v1) | an item of the kind design holds a schema, an item of the kind requirement, an atom, or a term directly when that item belongs to it and to no item of the kind specification |
+| [name of a declared item](sinter:#item-name=v1) | for an item of the kind design or a decision record, the name in the target of its declaration, which is a slug, such as `billing`; for an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term, the name in the target of its declaration, except when that name is one segment and the item belongs to an item of the kind design: then the name of that item of the kind design, `#`, and that segment, such as `billing#amount` |
+| [same item](sinter:#same-item=v1) | of two items of two trees: they are one item, such as two declared items with the same kind of item and the same name |
+| [conformance vector](sinter:#conformance-vector=v1) | the thing whose vector line is one vector line of a vector set; when the object of its vector line states a vector of the specification or the design of the vector set, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
+| [vector line of a conformance vector](sinter:#conformance-vector=v1) | one vector line of a vector set; each vector line of a vector set is the vector line of one conformance vector, and a vector set has no other conformance vector |
+| [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
 | [form pin](sinter:data-forms#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names a definition and a label of it |
-| [form of a vector line](sinter:data-forms#vector-line=v2) | the value of the member `form` of the object of a vector line, which is a form pin |
-| [group of a vector line](sinter:data-forms#vector-line=v2) | the value of the member `group` of the object of a vector line, which is a group name such as `offsets` |
+| [form of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `form` of the object of a vector line, which is a form pin |
+| [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, which is a group name such as `offsets` |
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
 | [test](sinter:#test=v1) | a unit of code that a test runner runs and that can pass or fail, or a set of such units that the code groups under one name, such as the tests of one `describe` block |
 | test runner | a program that runs tests and gives a test result for each test that it runs |
@@ -116,26 +116,26 @@ forms of a group; and the meaning of a vector.
 | [test result](sinter:#test-evidence=v1) | what a test runner gives for one test that it runs; each test result names no test, one test, or more than one test, and it says the same of each test that it names |
 | [site](sinter:#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line, such as one section of a file of a tree in markdown, or one comment in code; no two sites of a file of a tree have a line in common |
 | [external item](sinter:#external-item=v1) | a thing outside the repository that an external id names, such as an issue or a published standard |
-| [label of an item](sinter:#revised-content=v2), [current revision](sinter:#item-revision=v2) | the label that a declared item has in a given tree: the text that `label` matches in its declaration, when its declaration has one, such as `v2` in the declaration `@req limit-amount=v2` |
-| [revised content](sinter:#revised-content=v2) | the part of an item that its label covers, such as the text of an item of the kind requirement |
-| [revision of an item](sinter:#item-revision=v2) | a label that an item has, which names the revised content that the item has with that label in a given tree |
-| [edge](sinter:#edge=v2) | a relation of one kind of edge from its source to its cited item, which a citation entry, an inline citation, or a vector line gives; an edge has at most one source and at most one cited item |
-| [kind of edge](sinter:#edge=v2) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
-| [be for](sinter:#edge=v2) | a kind of edge is for some kinds of item as its source and as its cited item, and these kinds can depend on whether a citation entry, an inline citation, or a vector line gives the edge; an edge says what its kind of edge says when, and only when, its source and its cited item are of those kinds |
+| [label of an item](sinter:#revised-content=v1), [current revision](sinter:#item-revision=v1) | the label that a declared item has in a given tree: the text that `label` matches in its declaration, when its declaration has one, such as `v2` in the declaration `@req limit-amount=v2` |
+| [revised content](sinter:#revised-content=v1) | the part of an item that its label covers, such as the text of an item of the kind requirement |
+| [revision of an item](sinter:#item-revision=v1) | a label that an item has, which names the revised content that the item has with that label in a given tree |
+| [edge](sinter:#edge=v1) | a relation of one kind of edge from its source to its cited item, which a citation entry, an inline citation, or a vector line gives; an edge has at most one source and at most one cited item |
+| [kind of edge](sinter:#edge=v1) | one of `cites`, `satisfies`, `verifies`, `refines`, and `supersedes` |
+| [be for](sinter:#edge=v1) | a kind of edge is for some kinds of item as its source and as its cited item, and these kinds can depend on whether a citation entry, an inline citation, or a vector line gives the edge; an edge says what its kind of edge says when, and only when, its source and its cited item are of those kinds |
 | [stand in](sinter:#edge-source=v1) | a line of a file of a tree, a citation, or an inline citation stands in the innermost declared item of which it is a part; otherwise in the innermost test such that a comment on that test has it; otherwise in the site that has it; otherwise in no item |
-| [source](sinter:#edge=v2) | the item in which the citation or the inline citation of an edge stands, or, for an edge that a vector line gives, the group of conformance vectors of that vector line; an edge whose citation or inline citation stands in no item has no source |
-| [cited item](sinter:#edge=v2) | the item that the citation entry or the inline citation of an edge names, or, for an edge that a vector line gives, the item that the form of that vector line names and that the specification of its vector set holds, or that the design of its vector set holds directly |
-| [pinned edge](sinter:#pinned-edge=v2) | an edge whose citation entry or inline citation has a label as its revision, or an edge that a vector line gives |
+| [source](sinter:#edge=v1) | the item in which the citation or the inline citation of an edge stands, or, for an edge that a vector line gives, the group of conformance vectors of that vector line; an edge whose citation or inline citation stands in no item has no source |
+| [cited item](sinter:#edge=v1) | the item that the citation entry or the inline citation of an edge names, or, for an edge that a vector line gives, the item that the form of that vector line names and that the specification of its vector set holds, or that the design of its vector set holds directly |
+| [pinned edge](sinter:#pinned-edge=v1) | an edge whose citation entry or inline citation has a label as its revision, or an edge that a vector line gives |
 | [work item](sinter:#work-item=v1) | a task or a plan |
 | [work item id](sinter:#work-item=v1) | the id of a work item, which never changes and which names exactly one work item |
 | [display name](sinter:#work-item=v1) | the name of a work item that a person reads, which can change |
-| [task](sinter:#task=v2) | one piece of work that one person or one agent can finish alone |
-| [work of a task](sinter:#task=v2) | what people and agents change in the trees of a repository to finish a task |
-| [paths of a task](sinter:#task=v2) | the path set whose set has the valid paths of the files of a tree that the work of a task is to add, change, or remove |
+| [task](sinter:#task=v1) | one piece of work that one person or one agent can finish alone |
+| [work of a task](sinter:#task=v1) | what people and agents change in the trees of a repository to finish a task |
+| [paths of a task](sinter:#task=v1) | the path set whose set has the valid paths of the files of a tree that the work of a task is to add, change, or remove |
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
-| [set of a path set](sinter:files#path-set-membership=v2) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
-| [promise](sinter:#promise=v2) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
-| [keep a promise](sinter:#promise=v2) | a promise is kept in a tree when the tree has an edge that it promises, from a file in the paths of its task, that is not suspect, and, for `verifies`, test evidence shows that the source of that edge passed |
+| [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
+| [promise](sinter:#promise=v1) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
+| [keep a promise](sinter:#promise=v1) | a promise is kept in a tree when the tree has an edge that it promises, from a file in the paths of its task, that is not suspect, and, for `verifies`, test evidence shows that the source of that edge passed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that it waits for |
@@ -150,35 +150,35 @@ forms of a group; and the meaning of a vector.
 | [repair](sinter:#repair=v1) | a write to the ledger of a repository, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void where each of them was |
 | [void](sinter:#repair=v1) | a ledger entry that stands where a ledger entry that a repair removed was |
 | [definition entry](sinter:#definition-entry=v1) | a ledger entry that records one definition of one work item |
-| [accepted definition entry](sinter:#work-item-state=v2) | a definition entry that gives its work item the definition that it records |
-| [current definition](sinter:#work-item-state=v2) | the definition that the last accepted definition entry of a work item, in the order of the ledger, records |
-| [exist](sinter:#work-item-state=v2) | a work item exists at a point of a ledger when it has a current definition at that point |
-| [part of a plan](sinter:#work-item-state=v2) | a work item whose current definition names the plan as its plan, unless the work item is abandoned, or the plan was abandoned while the work item was not done |
-| [under a plan](sinter:#work-item-state=v2) | a part of the plan, or under a part of the plan |
-| [subject of approval](sinter:#subject-of-approval=v2) | a unit that a person approves, or that the merge approves, as a whole |
-| [kind of subject of approval](sinter:#subject-of-approval=v2) | which of seven units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the schemas, the items of the kind requirement, the atoms, and the terms that it holds, a schema that an item of the kind design holds directly, an item of the kind requirement that an item of the kind design holds directly, an atom that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
-| [subject of approval of a declared item](sinter:#subject-of-approval=v2) | for an item of the kind design, an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for a schema, an item of the kind requirement, an atom, or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification |
-| [parameter](sinter:#parameter=v2), [binding of a parameter](sinter:#parameter=v2) | a parameter is a word, such as `external-namespaces`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for the parameter; when a design declares a schema whose part name is the name of a parameter, a binding of that parameter is valid when, and only when, it meets that schema; a binding of the parameter `external-namespaces` is a [binding](sinter:identifiers#external-namespaces=v1) as Identifiers defines it |
+| [accepted definition entry](sinter:#work-item-state=v1) | a definition entry that gives its work item the definition that it records |
+| [current definition](sinter:#work-item-state=v1) | the definition that the last accepted definition entry of a work item, in the order of the ledger, records |
+| [exist](sinter:#work-item-state=v1) | a work item exists at a point of a ledger when it has a current definition at that point |
+| [part of a plan](sinter:#work-item-state=v1) | a work item whose current definition names the plan as its plan, unless the work item is abandoned, or the plan was abandoned while the work item was not done |
+| [under a plan](sinter:#work-item-state=v1) | a part of the plan, or under a part of the plan |
+| [subject of approval](sinter:#subject-of-approval=v1) | a unit that a person approves, or that the merge approves, as a whole |
+| [kind of subject of approval](sinter:#subject-of-approval=v1) | which of seven units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the schemas, the items of the kind requirement, the atoms, and the terms that it holds, a schema that an item of the kind design holds directly, an item of the kind requirement that an item of the kind design holds directly, an atom that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
+| [subject of approval of a declared item](sinter:#subject-of-approval=v1) | for an item of the kind design, an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for a schema, an item of the kind requirement, an atom, or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification |
+| [parameter](sinter:#parameter=v1), [binding of a parameter](sinter:#parameter=v1) | a parameter is a word, such as `external-namespaces`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for the parameter; when a design declares a schema whose part name is the name of a parameter, a binding of that parameter is valid when, and only when, it meets that schema; a binding of the parameter `external-namespaces` is a [binding](sinter:identifiers#external-namespaces=v1) as Identifiers defines it |
 | process | one execution of a program |
 | standard input, arguments, environment | the standard input, the command-line arguments, and the environment variables of a process |
 | [judgment](sinter:#judgment=v1) | a ledger entry that records a decision of a person, such as an approval |
 | [record of the job](sinter:#job-record=v1) | a ledger entry that records what the job observed |
 | [state](sinter:#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, in a tree, at a point of a ledger, or both, such as in force or done |
 | [state input](sinter:#state-input=v1) | one of the things on which states depend: which commits the repository has, each with its parents and its tree; the commit to which each branch points; the commit of the default branch; the tree of each working tree; the delivery lines and the task lines of the messages of commits; the ledger, in its order; test evidence; or the bindings of the parameters that designs name |
-| [retired](sinter:#retired-item=v2) | a declared item is retired when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
-| [in force](sinter:#in-force-item=v2) | a declared item is in force when it is not retired |
-| [effective](sinter:#effective-supersedes-edge=v2) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, and its source is approved |
+| [retired](sinter:#retired-item=v1) | a declared item is retired when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired item of the kind design or a retired item of the kind specification |
+| [in force](sinter:#in-force-item=v1) | a declared item is in force when it is not retired |
+| [effective](sinter:#effective-supersedes-edge=v1) | a `supersedes` edge is effective when its replacement has taken effect: the edge says what its kind of edge says, neither its source nor an item that holds its source is deprecated, and its source is approved |
 | [cycle of `supersedes` edges](sinter:#supersedes-cycle=v1), [on a cycle of `supersedes` edges](sinter:#supersedes-cycle=v1) | a finite sequence of one or more `supersedes` edges in a tree, each of which says what `supersedes` says, whether or not effective, in which the cited item of each edge before the last is the source of the next, and the cited item of the last is the source of the first; an item is on a cycle of `supersedes` edges when it is the source of an edge of such a cycle |
-| [deprecated](sinter:#deprecated-item=v2) | the state that the status word `@deprecated` gives, through a status tag that stands in the item |
-| [approved, declined](sinter:#approval-state=v2) | the states of a subject of approval whose revised content a person approved or declined, or, for a kind of subject of approval that needs no approval by a person, whose revised content merged into the default branch |
-| [draft](sinter:#draft-design=v2) | an item of the kind design is a draft while it is not approved |
-| [suspect](sinter:#suspect-edge=v2) | a pinned edge is suspect when it has a cited item, and that item has no current revision or a current revision other than the label of the edge |
-| [open, delivered, done, abandoned](sinter:#work-item-state=v2) | the four states of a task |
-| [open, done, abandoned](sinter:#work-item-state=v2) | the three states of a plan |
-| [unfinished](sinter:#work-item-state=v2) | a task is unfinished while it is open or delivered |
-| [met](sinter:#met-wait=v2) | a wait says that the work of the waiting item is to start only after the work item that it waits for is done; a wait is met when the work item that it waits for is done |
-| [ready](sinter:#ready-task=v2) | a task is ready when it is open and its waits, and the waits of each plan that it is under, are met |
-| [accounted for](sinter:#requirement-accounted-for=v2) | an item of the kind requirement is accounted for when work for it is under way, or was finished at its current revision |
+| [deprecated](sinter:#deprecated-item=v1) | the state that the status word `@deprecated` gives, through a status tag that stands in the item |
+| [approved, declined](sinter:#approval-state=v1) | the states of a subject of approval whose revised content a person approved or declined, or, for a kind of subject of approval that needs no approval by a person, whose revised content merged into the default branch |
+| [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
+| [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when it has a cited item, and that item has no current revision or a current revision other than the label of the edge |
+| [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
+| [open, done, abandoned](sinter:#work-item-state=v1) | the three states of a plan |
+| [unfinished](sinter:#work-item-state=v1) | a task is unfinished while it is open or delivered |
+| [met](sinter:#met-wait=v1) | a wait says that the work of the waiting item is to start only after the work item that it waits for is done; a wait is met when the work item that it waits for is done |
+| [ready](sinter:#ready-task=v1) | a task is ready when it is open and its waits, and the waits of each plan that it is under, are met |
+| [accounted for](sinter:#requirement-accounted-for=v1) | an item of the kind requirement is accounted for when work for it is under way, or was finished at its current revision |
 | statement of an agent | a text that an agent writes |
 | session | one execution of an agent on its work |
 | declared task | the task that an agent declares as the work of its session |
@@ -342,10 +342,10 @@ for nothing other than the brief of that session (section 4.6).
 
 ### 3.1 Items
 
-@term item=v2
+@term item=v1
 @cites #{
-    declared-item=v2, schema=v1, atom=v1, term=v2, decision-record=v1,
-    conformance-vector-group=v1, vector-set=v2, task=v2, plan=v1,
+    declared-item=v1, schema=v1, atom=v1, term=v1, decision-record=v1,
+    conformance-vector-group=v1, vector-set=v1, task=v1, plan=v1,
     test=v1, site=v1, external-item=v1,
 }
 
@@ -408,10 +408,10 @@ integration starts at each push to the default branch of a repository.
 
 ### 3.7 Declared items
 
-@term declared-item=v2
+@term declared-item=v1
 @cites {
     identifiers#{
-        declaration=v1, sinter-tag-word=v2, external-namespaces=v1,
+        declaration=v1, sinter-tag-word=v1, external-namespaces=v1,
         give-line-results=v1, line-result=v1,
     },
     text#{
@@ -440,8 +440,8 @@ the design Identifiers gives the result "valid" under the binding of
 
 ### 3.8 Containment
 
-@term containment=v2
-@cites #{declared-item=v2, schema=v1, atom=v1, term=v2}
+@term containment=v1
+@cites #{declared-item=v1, schema=v1, atom=v1, term=v1}
 
 Containment is a relation in which one declared item holds another, and
 the other belongs to it. It links these kinds of item: an item of the
@@ -461,7 +461,7 @@ item belongs to it and to no item of the kind specification.
 ### 3.9 Schemas
 
 @term schema=v1
-@cites {text#{conforming-program=v1}, #{declared-item=v2}}
+@cites {text#{conforming-program=v1}, #{declared-item=v1}}
 
 A schema is a declared item whose declaration word is `@schema`. It
 gives the form of a thing that crosses the boundary of a conforming
@@ -471,7 +471,7 @@ itself.
 ### 3.10 Atoms
 
 @term atom=v1
-@cites {text#{conforming-program=v1}, #{declared-item=v2}}
+@cites {text#{conforming-program=v1}, #{declared-item=v1}}
 
 An atom is a declared item whose declaration word is `@atom`. It defines
 a named verdict that a conforming program gives, with the condition
@@ -479,8 +479,8 @@ under which it gives that name.
 
 ### 3.11 Terms
 
-@term term=v2
-@cites #{declared-item=v2}
+@term term=v1
+@cites #{declared-item=v1}
 
 A term is a declared item whose declaration word is `@term`. It says
 what one word or one fixed phrase means, gives a form, or defines a
@@ -489,7 +489,7 @@ computed value. Other items can use what it defines.
 ### 3.12 Decision records
 
 @term decision-record=v1
-@cites #{declared-item=v2}
+@cites #{declared-item=v1}
 
 A decision record is a declared item whose declaration word is
 `@decision`. It records one standing practice of a repository, or one
@@ -505,14 +505,14 @@ finding class is a kind of finding, which a slug names.
 
 ### 3.14 Names
 
-@term item-name=v2
+@term item-name=v1
 @cites {
     identifiers#{
         slug=v1, full-name=v1, declaration=v1, segment=v1,
-        declaration-line=v2, target=v1,
+        declaration-line=v1, target=v1,
     },
     #{
-        declared-item=v2, containment=v2, schema=v1, atom=v1, term=v2,
+        declared-item=v1, containment=v1, schema=v1, atom=v1, term=v1,
         decision-record=v1, tree=v1,
     },
 }
@@ -533,10 +533,10 @@ is this:
 
 ### 3.15 Vector sets
 
-@term vector-set=v2
+@term vector-set=v1
 @cites {
-    data-forms#{test-vector-set=v2, group-form-list=v2},
-    #{declared-item=v2, tree=v1},
+    data-forms#{test-vector-set=v1, group-form-list=v1},
+    #{declared-item=v1, tree=v1},
 }
 
 In a tree, each item of the kind design and each item of the kind
@@ -547,16 +547,16 @@ groups.
 
 ### 3.16 Conformance vectors
 
-@term conformance-vector=v2
+@term conformance-vector=v1
 @cites {
     data-forms#{
-        vector-line=v2, vector-object=v2, vector-meaning=v2,
+        vector-line=v1, vector-object=v1, vector-meaning=v1,
     },
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1,
     },
-    #{vector-set=v2, declared-item=v2, containment=v2},
+    #{vector-set=v1, declared-item=v1, containment=v1},
 }
 
 Each vector line of a vector set is the vector line of one conformance
@@ -577,8 +577,8 @@ conformance vector says no vector.
 
 @term conformance-vector-group=v1
 @cites {
-    data-forms#{vector-line=v2, vector-object=v2},
-    #{vector-set=v2, conformance-vector=v2},
+    data-forms#{vector-line=v1, vector-object=v1},
+    #{vector-set=v1, conformance-vector=v1},
 }
 
 For each group that a vector line of a vector set has as the value of
@@ -590,11 +590,11 @@ vectors.
 
 ### 3.18 Identity of items across trees
 
-@term same-item=v2
+@term same-item=v1
 @cites {
     files#{path=v1},
     #{
-        item=v2, declared-item=v2, item-name=v2, vector-set=v2,
+        item=v1, declared-item=v1, item-name=v1, vector-set=v1,
         conformance-vector-group=v1, test=v1, tree=v1,
     },
 }
@@ -648,7 +648,7 @@ tests failed.
 @cites {
     identifiers#{citation=v1, inline-citation=v1, directive=v1},
     text#{line=v1},
-    #{declared-item=v2, test=v1, tree=v1},
+    #{declared-item=v1, test=v1, tree=v1},
 }
 
 A site is a part of a file of a tree that is outside every declared item
@@ -670,16 +670,16 @@ external item too.
 
 ### 3.23 Revised content
 
-@term revised-content=v2
+@term revised-content=v1
 @cites {
     identifiers#{
-        label=v1, declaration=v1, declaration-line=v2, match=v1,
+        label=v1, declaration=v1, declaration-line=v1, match=v1,
     },
     text#{text=v1, design=v1},
     #{
-        item=v2, declared-item=v2, containment=v2, term=v2,
-        conformance-vector-group=v1, vector-set=v2, task=v2, plan=v1,
-        test=v1, site=v1, external-item=v1, same-item=v2, tree=v1,
+        item=v1, declared-item=v1, containment=v1, term=v1,
+        conformance-vector-group=v1, vector-set=v1, task=v1, plan=v1,
+        test=v1, site=v1, external-item=v1, same-item=v1, tree=v1,
     },
 }
 
@@ -703,13 +703,13 @@ an external item have no revised content.
 
 ### 3.24 Revisions of items
 
-@term item-revision=v2
+@term item-revision=v1
 @cites {
     identifiers#{
-        label=v1, declaration=v1, declaration-line=v2, match=v1,
+        label=v1, declaration=v1, declaration-line=v1, match=v1,
     },
     text#{text=v1},
-    #{revised-content=v2, tree=v1, item=v2, term=v2},
+    #{revised-content=v1, tree=v1, item=v1, term=v1},
 }
 
 A revision of an item is a label that the item has, and it names the
@@ -722,20 +722,20 @@ revision. An item that has no revised content has no revision.
 
 ### 3.25 Edges
 
-@term edge=v2
+@term edge=v1
 @cites {
     identifiers#{
-        citation=v1, citation-entry=v2, sinter-tag-word=v2,
+        citation=v1, citation-entry=v1, sinter-tag-word=v1,
         inline-citation=v1, external-namespaces=v1,
         give-line-results=v1, give-link-results=v1, line-result=v1,
         link-result=v1,
     },
-    data-forms#{vector-line=v2, form-pin=v1},
+    data-forms#{vector-line=v1, form-pin=v1},
     text#{design=v1, conforming-program=v1, result=v1},
     #{
-        item=v2, tree=v1, edge-source=v1, item-name=v2,
-        external-item=v1, vector-set=v2, conformance-vector-group=v1,
-        declared-item=v2, containment=v2,
+        item=v1, tree=v1, edge-source=v1, item-name=v1,
+        external-item=v1, vector-set=v1, conformance-vector-group=v1,
+        declared-item=v1, containment=v1,
     },
 }
 
@@ -785,7 +785,7 @@ another edge of that kind says nothing.
 @cites {
     identifiers#{citation=v1, inline-citation=v1},
     text#{line=v1},
-    #{declared-item=v2, test=v1, site=v1, tree=v1, item=v2},
+    #{declared-item=v1, test=v1, site=v1, tree=v1, item=v1},
 }
 
 A line of a file of a tree, a citation, or an inline citation stands in
@@ -798,16 +798,16 @@ otherwise, in no item.
 
 ### 3.27 Pinned edges
 
-@term pinned-edge=v2
+@term pinned-edge=v1
 @cites {
     identifiers#{
-        revision=v1, label=v1, citation-entry=v2, inline-citation=v1,
-        citation-line=v2, inline-destination=v2, destination=v1,
+        revision=v1, label=v1, citation-entry=v1, inline-citation=v1,
+        citation-line=v1, inline-destination=v1, destination=v1,
         match=v1,
     },
-    data-forms#{vector-line=v2, form-pin=v1},
+    data-forms#{vector-line=v1, form-pin=v1},
     text#{text=v1},
-    #{edge=v2, item-revision=v2, revised-content=v2},
+    #{edge=v1, item-revision=v1, revised-content=v1},
 }
 
 The revision of a citation entry is the text that `revision` matches in
@@ -830,13 +830,13 @@ item.
 
 ### 3.28 Edges of the kind `cites`
 
-@term cites-edge=v2
+@term cites-edge=v1
 @cites {
-    identifiers#{citation-entry=v2, inline-citation=v1},
-    data-forms#{vector-line=v2},
+    identifiers#{citation-entry=v1, inline-citation=v1},
+    data-forms#{vector-line=v1},
     #{
-        edge=v2, declared-item=v2, schema=v1, test=v1, site=v1,
-        external-item=v1, conformance-vector-group=v1, vector-set=v2,
+        edge=v1, declared-item=v1, schema=v1, test=v1, site=v1,
+        external-item=v1, conformance-vector-group=v1, vector-set=v1,
     },
 }
 
@@ -851,8 +851,8 @@ cited item.
 
 ### 3.29 Edges of the kind `satisfies`
 
-@term satisfies-edge=v2
-@cites #{edge=v2, declared-item=v2, schema=v1, test=v1, site=v1}
+@term satisfies-edge=v1
+@cites #{edge=v1, declared-item=v1, schema=v1, test=v1, site=v1}
 
 A `satisfies` edge says that its source does what its cited item says.
 The kind of edge `satisfies` is for a declared item, a test, or a site
@@ -861,13 +861,13 @@ its cited item.
 
 ### 3.30 Edges of the kind `verifies`
 
-@term verifies-edge=v2
+@term verifies-edge=v1
 @cites {
     text#{input=v1, conforming-program=v1, design=v1, specification=v1},
     #{
-        edge=v2, declared-item=v2, schema=v1, test=v1,
-        conformance-vector=v2, conformance-vector-group=v1,
-        vector-set=v2,
+        edge=v1, declared-item=v1, schema=v1, test=v1,
+        conformance-vector=v1, conformance-vector-group=v1,
+        vector-set=v1,
     },
 }
 
@@ -884,9 +884,9 @@ nothing when that conformance vector says no vector.
 
 ### 3.31 Edges of the kind `refines`
 
-@term refines-edge=v2
+@term refines-edge=v1
 @cites #{
-    edge=v2, item=v2, declared-item=v2, schema=v1, atom=v1, term=v2,
+    edge=v1, item=v1, declared-item=v1, schema=v1, atom=v1, term=v1,
     decision-record=v1,
 }
 
@@ -902,12 +902,12 @@ of these three groups:
 
 ### 3.32 Edges of the kind `supersedes`
 
-@term supersedes-edge=v2
+@term supersedes-edge=v1
 @cites {
-    identifiers#{citation-entry=v2, citation-line=v2, part-name=v1},
+    identifiers#{citation-entry=v1, citation-line=v1, part-name=v1},
     #{
-        item=v2, edge=v2, declared-item=v2, containment=v2,
-        item-name=v2, schema=v1, atom=v1, term=v2,
+        item=v1, edge=v1, declared-item=v1, containment=v1,
+        item-name=v1, schema=v1, atom=v1, term=v1,
     },
 }
 
@@ -927,7 +927,7 @@ that one declared item is to replace another.
 ### 3.33 Work items
 
 @term work-item=v1
-@cites #{task=v2, plan=v1, tree=v1}
+@cites #{task=v1, plan=v1, tree=v1}
 
 A work item is a task or a plan. No work item is in a file of a tree.
 Each work item has a work item id, which never changes and which names
@@ -935,9 +935,9 @@ exactly one work item, and a display name, which can change.
 
 ### 3.34 Tasks
 
-@term task=v2
+@term task=v1
 @cites {
-    files#{path=v1, path-set=v1, path-set-membership=v2},
+    files#{path=v1, path-set=v1, path-set-membership=v1},
     #{person=v1, agent=v1, external-item=v1, tree=v1},
 }
 
@@ -952,17 +952,17 @@ branch.
 
 ### 3.35 Promises
 
-@term promise=v2
+@term promise=v1
 @cites {
     identifiers#{citation=v1},
-    files#{path=v1, path-set-membership=v2},
-    data-forms#{group-form-list=v2},
+    files#{path=v1, path-set-membership=v1},
+    data-forms#{group-form-list=v1},
     text#{requirement=v1, design=v1},
     #{
-        task=v2, edge=v2, declared-item=v2, item-name=v2, test=v1,
-        tree=v1, test-evidence=v1, satisfies-edge=v2, verifies-edge=v2,
-        suspect-edge=v2, conformance-vector=v2,
-        conformance-vector-group=v1, vector-set=v2,
+        task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
+        tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
+        suspect-edge=v1, conformance-vector=v1,
+        conformance-vector-group=v1, vector-set=v1,
     },
 }
 
@@ -991,7 +991,7 @@ other tests.
 ### 3.36 Plans
 
 @term plan=v1
-@cites #{task=v2}
+@cites #{task=v1}
 
 A plan is one piece of work that is made up of tasks and plans.
 
@@ -1006,7 +1006,7 @@ work item, the work item that it waits for.
 ### 3.38 What a plan carries out
 
 @term carried-out-item=v1
-@cites #{plan=v1, item-name=v2, declared-item=v2, task=v2}
+@cites #{plan=v1, item-name=v1, declared-item=v1, task=v1}
 
 A plan carries out a set of items of the kind requirement,
 specification, or design: the work of the tasks that make up the plan,
@@ -1017,8 +1017,8 @@ them by its name.
 
 @term work-item-definition=v1
 @cites #{
-    work-item=v1, task=v2, promise=v2, plan=v1, wait=v1,
-    carried-out-item=v1, external-item=v1, declared-item=v2,
+    work-item=v1, task=v1, promise=v1, plan=v1, wait=v1,
+    carried-out-item=v1, external-item=v1, declared-item=v1,
 }
 
 A definition of a task is a display name, paths, promises, at most one
@@ -1036,7 +1036,7 @@ part of a definition.
 @term delivery-line=v1
 @cites {
     text#{line=v1},
-    #{task=v2, work-item=v1, work-item-definition=v1},
+    #{task=v1, work-item=v1, work-item-definition=v1},
 }
 
 A delivery line is a line of the message of a commit that says that the
@@ -1046,7 +1046,7 @@ item id, and it names definitions of the task.
 ### 3.41 Task lines
 
 @term task-line=v1
-@cites {text#{line=v1}, #{task=v2, work-item=v1}}
+@cites {text#{line=v1}, #{task=v1, work-item=v1}}
 
 A task line is a line of the message of a commit that names one task by
 its work item id, and that says that the commit does part of the work of
@@ -1055,7 +1055,7 @@ the task without finishing it.
 ### 3.42 Ledger entries
 
 @term ledger-entry=v1
-@cites #{person=v1, agent=v1, job=v1, task=v2, plan=v1}
+@cites #{person=v1, agent=v1, job=v1, task=v1, plan=v1}
 
 A ledger entry is a record of one event, such as one approval that a
 person gave, or one observation of the job. Each ledger entry has one
@@ -1106,7 +1106,7 @@ repair removed one ledger entry, and the reason for the removal.
 
 @term definition-entry=v1
 @cites #{
-    ledger-entry=v1, work-item=v1, task=v2, plan=v1,
+    ledger-entry=v1, work-item=v1, task=v1, plan=v1,
     work-item-definition=v1, judgment=v1,
 }
 
@@ -1120,11 +1120,11 @@ definition entry records no judgment.
 
 ### 3.46 Subjects of approval
 
-@term subject-of-approval=v2
+@term subject-of-approval=v1
 @cites #{
-    person=v1, declared-item=v2, schema=v1, atom=v1, term=v2,
-    decision-record=v1, containment=v2, revised-content=v2,
-    same-item=v2, tree=v1,
+    person=v1, declared-item=v1, schema=v1, atom=v1, term=v1,
+    decision-record=v1, containment=v1, revised-content=v1,
+    same-item=v1, tree=v1,
 }
 
 A subject of approval is a unit that a person approves, or that the
@@ -1156,9 +1156,9 @@ the same item.
 
 @term judgment=v1
 @cites #{
-    ledger-entry=v1, person=v1, subject-of-approval=v2,
-    revised-content=v2, task=v2, plan=v1, promise=v2, item-revision=v2,
-    declared-item=v2,
+    ledger-entry=v1, person=v1, subject-of-approval=v1,
+    revised-content=v1, task=v1, plan=v1, promise=v1, item-revision=v1,
+    declared-item=v1,
 }
 
 A judgment is a ledger entry that records a decision of a person. A
@@ -1179,8 +1179,8 @@ judgment is one of these four kinds of ledger entry:
 
 @term job-record=v1
 @cites #{
-    ledger-entry=v1, job=v1, delivery-line=v1, promise=v2, task=v2,
-    work-item-definition=v1, item-revision=v2, declared-item=v2,
+    ledger-entry=v1, job=v1, delivery-line=v1, promise=v1, task=v1,
+    work-item-definition=v1, item-revision=v1, declared-item=v1,
 }
 
 A record of the job is a ledger entry of the kind `delivered`: it
@@ -1192,10 +1192,10 @@ kind requirement, and whether the promise was kept.
 
 ### 3.49 The states of work items
 
-@atom work-item-state=v2
+@atom work-item-state=v1
 @cites #{
     ledger=v1, ledger-entry=v1, definition-entry=v1, work-item=v1,
-    task=v2, plan=v1, work-item-definition=v1, promise=v2, person=v1,
+    task=v1, plan=v1, work-item-definition=v1, promise=v1, person=v1,
     job=v1, job-record=v1, delivery-line=v1, state=v1, judgment=v1,
 }
 
@@ -1241,7 +1241,7 @@ the parts of each plan, and the state of each task and each plan:
 
 @term state=v1
 @cites #{
-    item=v2, edge=v2, wait=v1, subject-of-approval=v2, tree=v1,
+    item=v1, edge=v1, wait=v1, subject-of-approval=v1, tree=v1,
     ledger=v1,
 }
 
@@ -1251,7 +1251,7 @@ of a ledger.
 
 ### 3.51 Deprecated
 
-@atom deprecated-item=v2
+@atom deprecated-item=v1
 @cites {
     identifiers#{
         status-tag=v1, external-namespaces=v1, give-line-results=v1,
@@ -1259,7 +1259,7 @@ of a ledger.
     },
     text#{design=v1, conforming-program=v1, result=v1},
     #{
-        declared-item=v2, schema=v1, atom=v1, term=v2,
+        declared-item=v1, schema=v1, atom=v1, term=v1,
         decision-record=v1, tree=v1, edge-source=v1,
     },
 }
@@ -1273,14 +1273,14 @@ that the item no longer applies and that nothing replaces it.
 
 ### 3.52 Approved and declined
 
-@term approval-state=v2
+@term approval-state=v1
 @cites {
     text#{design=v1},
     #{
-        subject-of-approval=v2, person=v1, revised-content=v2,
-        containment=v2, schema=v1, atom=v1, term=v2, declared-item=v2,
+        subject-of-approval=v1, person=v1, revised-content=v1,
+        containment=v1, schema=v1, atom=v1, term=v1, declared-item=v1,
         default-branch=v1, tree=v1, ledger=v1, state=v1,
-        ledger-entry=v1, judgment=v1, parameter=v2,
+        ledger-entry=v1, judgment=v1, parameter=v1,
     },
 }
 
@@ -1310,18 +1310,18 @@ a point of a ledger, these are the states approved and declined:
 
 ### 3.53 Drafts
 
-@atom draft-design=v2
-@cites #{declared-item=v2, approval-state=v2, tree=v1, ledger=v1}
+@atom draft-design=v1
+@cites #{declared-item=v1, approval-state=v1, tree=v1, ledger=v1}
 
 An item of the kind design is a draft in a tree, at a point of a ledger,
 when, and only when, it is not approved in that tree at that point.
 
 ### 3.54 Effective edges of the kind `supersedes`
 
-@atom effective-supersedes-edge=v2
+@atom effective-supersedes-edge=v1
 @cites #{
-    edge=v2, supersedes-edge=v2, deprecated-item=v2, approval-state=v2,
-    tree=v1, ledger=v1, item=v2, containment=v2,
+    edge=v1, supersedes-edge=v1, deprecated-item=v1, approval-state=v1,
+    tree=v1, ledger=v1, item=v1, containment=v1,
 }
 
 A `supersedes` edge is effective in a tree, at a point of a ledger,
@@ -1336,8 +1336,8 @@ one whose replacement has taken effect.
 
 @term supersedes-cycle=v1
 @cites #{
-    edge=v2, supersedes-edge=v2, effective-supersedes-edge=v2,
-    item=v2, tree=v1, ledger=v1,
+    edge=v1, supersedes-edge=v1, effective-supersedes-edge=v1,
+    item=v1, tree=v1, ledger=v1,
 }
 
 A cycle of `supersedes` edges in a tree is a finite sequence of one or
@@ -1362,10 +1362,10 @@ when, and only when, it is the source of an edge of a cycle of
 
 ### 3.56 Retired
 
-@atom retired-item=v2
+@atom retired-item=v1
 @cites #{
-    declared-item=v2, deprecated-item=v2, effective-supersedes-edge=v2,
-    supersedes-cycle=v1, edge=v2, containment=v2, tree=v1, ledger=v1,
+    declared-item=v1, deprecated-item=v1, effective-supersedes-edge=v1,
+    supersedes-cycle=v1, edge=v1, containment=v1, tree=v1, ledger=v1,
 }
 
 A declared item is retired in a tree, at a point of a ledger, when, and
@@ -1381,16 +1381,16 @@ A retired item no longer applies in that tree at that point.
 
 ### 3.57 In force
 
-@atom in-force-item=v2
-@cites #{declared-item=v2, retired-item=v2, tree=v1, ledger=v1}
+@atom in-force-item=v1
+@cites #{declared-item=v1, retired-item=v1, tree=v1, ledger=v1}
 
 A declared item is in force in a tree, at a point of a ledger, when,
 and only when, it is not retired in that tree at that point.
 
 ### 3.58 Suspect
 
-@atom suspect-edge=v2
-@cites #{pinned-edge=v2, edge=v2, item-revision=v2, tree=v1}
+@atom suspect-edge=v1
+@cites #{pinned-edge=v1, edge=v1, item-revision=v1, tree=v1}
 
 An edge is suspect in a tree when, and only when, it is pinned, it has a
 cited item in that tree, and that item has no current revision in that
@@ -1398,8 +1398,8 @@ tree or a current revision other than the label of the edge.
 
 ### 3.59 Met waits
 
-@atom met-wait=v2
-@cites #{wait=v1, work-item=v1, work-item-state=v2, ledger=v1}
+@atom met-wait=v1
+@cites #{wait=v1, work-item=v1, work-item-state=v1, ledger=v1}
 
 A wait says that the work of the waiting item is to start only after the
 work item that it waits for is done. A wait is met at a point of a
@@ -1408,10 +1408,10 @@ that point.
 
 ### 3.60 Ready tasks
 
-@atom ready-task=v2
+@atom ready-task=v1
 @cites #{
-    task=v2, plan=v1, met-wait=v2, wait=v1, work-item-definition=v1,
-    work-item-state=v2, ledger=v1,
+    task=v1, plan=v1, met-wait=v1, wait=v1, work-item-definition=v1,
+    work-item-state=v1, ledger=v1,
 }
 
 A task is ready at a point of a ledger when, and only when, it is open
@@ -1421,11 +1421,11 @@ task is under at that point is met at that point.
 
 ### 3.61 Requirements accounted for
 
-@atom requirement-accounted-for=v2
+@atom requirement-accounted-for=v1
 @cites #{
-    declared-item=v2, containment=v2, task=v2, plan=v1, promise=v2,
-    carried-out-item=v1, work-item-definition=v1, work-item-state=v2,
-    ledger=v1, item-revision=v2, item-name=v2, tree=v1, judgment=v1,
+    declared-item=v1, containment=v1, task=v1, plan=v1, promise=v1,
+    carried-out-item=v1, work-item-definition=v1, work-item-state=v1,
+    ledger=v1, item-revision=v1, item-name=v1, tree=v1, judgment=v1,
     job-record=v1,
 }
 
@@ -1442,7 +1442,7 @@ of a ledger, when, and only when, one of these is true at that point:
 
 ### 3.62 Parameters
 
-@term parameter=v2
+@term parameter=v1
 @cites {
     text#{design=v1}, identifiers#{external-namespaces=v1, part-name=v1},
     #{schema=v1},
@@ -1462,7 +1462,7 @@ parameter `external-namespaces` is a binding as Identifiers defines it.
     text#{design=v1},
     #{
         tree=v1, default-branch=v1, delivery-line=v1, task-line=v1,
-        ledger=v1, test-evidence=v1, parameter=v2,
+        ledger=v1, test-evidence=v1, parameter=v1,
     },
 }
 
@@ -1481,8 +1481,8 @@ parameters that designs name.
 @cites {
     text#{conforming-program=v1, input=v1},
     #{
-        state=v1, state-input=v1, item=v2, edge=v2, wait=v1,
-        subject-of-approval=v2,
+        state=v1, state-input=v1, item=v1, edge=v1, wait=v1,
+        subject-of-approval=v1,
     },
 }
 
@@ -1497,7 +1497,7 @@ the states, and that no other process changes while the program runs.
 @cites {
     text#{conforming-program=v1, input=v1},
     #{
-        state=v1, item=v2, edge=v2, wait=v1, subject-of-approval=v2,
+        state=v1, item=v1, edge=v1, wait=v1, subject-of-approval=v1,
         ledger-entry=v1, person=v1,
     },
 }
@@ -1553,7 +1553,7 @@ of the program cannot give.
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
     text#{text=v1, conforming-program=v1},
-    #{agent=v1, task=v2, state-input=v1},
+    #{agent=v1, task=v1, state-input=v1},
 }
 
 A session is one execution of an agent on its work. The declared task of
