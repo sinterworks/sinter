@@ -88,11 +88,13 @@ let core_table = "__indirect_function_table"
 let i32_global ~mutable_ =
   Wasm_module.Global_import { value_type = I32; mutable_ }
 
-(* @satisfies packs#confine-grammars=v1
+(* @satisfies packs#{confine-grammars=v1, isolate-grammars=v1}
    The module of a grammar gets only the memory, the table, the global
    __stack_pointer, and the function exports of its own instance of the core,
    new constant globals, and a function that traps; each other import is
-   refused, so its code reaches nothing of another instance. *)
+   refused. So its code reaches nothing of another instance, and it gets no
+   function that takes bytes from a file, writes output, uses a network, reads
+   a clock, or starts a process. *)
 let given core_exports (import : Wasm_module.import) =
   match (import.name, import.type_) with
   | "memory", Memory_import _ -> true
@@ -212,10 +214,12 @@ let run_starts store grammar exports =
   if List.mem_assoc "_initialize" exports then invoke "_initialize"
   else invoke "__wasm_call_ctors"
 
-(* @satisfies packs#confine-grammars=v1
+(* @satisfies packs#{confine-grammars=v1, end-grammar-code=v1}
    Each instance of a grammar is a new store with a new instance of the core,
    to which the program links the module alone; no store, memory, table, or
-   global is shared with another instance of a grammar or of an adapter. *)
+   global is shared with another instance of a grammar or of an adapter. The
+   store has the limits of the decision or the parse, so the code of the
+   grammar stops at the fuel of those limits. *)
 let with_instance ~limits core compiled information exports name use =
   let store = Store.create (Core.engine core) limits in
   Fun.protect

@@ -125,7 +125,7 @@ let grammar value =
     Some { grammar_name; hash; license; globs }
 
 (* @satisfies packs#read-descriptor=v1
-   No two grammars of a descriptor have one name. *)
+   No two grammars of a descriptor have the same name. *)
 let distinct_names grammars =
   let names =
     List.sort String.compare

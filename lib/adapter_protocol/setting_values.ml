@@ -76,9 +76,11 @@ let same_type default value =
   | String _, String _ | Boolean _, Boolean _ | Strings _, Strings _ -> true
   | _ -> false
 
-(* @satisfies packs#give-requests=v1
-   A pair must name a runner setting of the test runner, once, with a TOML
-   value of its type; a runner setting with no pair keeps its default value. *)
+(* @satisfies packs#{give-requests=v1, runner-settings=v1}
+   A binding meets the schema runner-settings when each pair names a runner
+   setting of the test runner, once, with a TOML value of its type. The value
+   of a runner setting with no pair is its default value, as the term
+   runner-setting-value gives it. *)
 let bind (runner : Descriptor.runner) binding =
   let defaults =
     List.fold_left

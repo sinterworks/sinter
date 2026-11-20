@@ -65,18 +65,19 @@ let required members key f =
   let* value = List.assoc_opt key members in
   f value
 
-(* @satisfies packs#omit-adapter-error-texts=v1
-   A response gives an error text only when its JSON value is an object with
-   exactly one member, [error], whose value is a string. *)
+(* @satisfies packs#{omit-adapter-error-texts=v1, adapter-response=v1}
+   A response gives an error text only when it is an error response: its JSON
+   value is an object with exactly one member, [error], whose value is a
+   string. *)
 let error_text value =
   match members value with
   | Some [ ("error", Json.String text) ] -> Some text
   | _ -> None
 
-(* @satisfies packs#give-call-results=v1
-   A response of recognise gives "recognised" or "not recognised" only for an
-   object with exactly the member [recognised] and a boolean value; each other
-   response gives "failed". *)
+(* @satisfies packs#{give-call-results=v1, adapter-response=v1}
+   A response of recognise gives "recognised" or "not recognised" only when it
+   is a recognise response: an object with exactly the member [recognised] and
+   a boolean value. Each other response gives "failed". *)
 let recognise response =
   match Json.read_json_text response with
   | None -> Recognition_failed None
@@ -97,7 +98,7 @@ let at_least least = function
   | Json.Integer number when number >= least -> Some number
   | _ -> None
 
-(* @satisfies packs#{give-call-results=v1, give-call-values=v1}
+(* @satisfies packs#{give-call-results=v1, give-call-values=v1, adapter-response=v1}
    A result object has [name] and [status], can have [file], [line] of 1 or
    more, and [ms] of 0 or more, and no other member; it gives these values. *)
 let test_result value =
@@ -115,10 +116,11 @@ let test_result value =
     let* ms = optional members "ms" (at_least 0) in
     Some { name; status; file; line; ms }
 
-(* @satisfies packs#{give-call-results=v1, give-call-values=v1}
+(* @satisfies packs#{give-call-results=v1, give-call-values=v1, adapter-response=v1}
    A binding object has exactly [result], an index of a test result, [test], a
-   test entry id of the call, and [reason], a string with no line feed; it
-   gives these values. *)
+   string, and [reason], a string with no line feed. The result "bound" also
+   needs that [test] is a test entry id of the call. The binding object gives
+   these values. *)
 let binding ~count ~ids value =
   let* members = members value in
   match members with
@@ -133,7 +135,7 @@ let binding ~count ~ids value =
       Some { result; test; reason }
   | _ -> None
 
-(* @satisfies packs#give-call-results=v1
+(* @satisfies packs#{give-call-results=v1, adapter-response=v1}
    No two binding objects have the same test result and the same test entry
    id. *)
 let distinct bindings =
@@ -145,10 +147,11 @@ let distinct bindings =
   in
   go Pairs.empty bindings
 
-(* @satisfies packs#{give-call-results=v1, give-call-values=v1}
-   A response of bind gives "bound" only for an object with exactly
-   [bindings], [results], and [warnings], each of its form, and then gives
-   their values in their order; each other response gives "failed". *)
+(* @satisfies packs#{give-call-results=v1, give-call-values=v1, adapter-response=v1}
+   A response of bind gives "bound" only when it is a bind response, an object
+   with exactly [bindings], [results], and [warnings], each of its form, whose
+   binding objects each name a test entry id of the call. It then gives their
+   values in their order. Each other response gives "failed". *)
 let bound ~ids value =
   match members value with
   | Some

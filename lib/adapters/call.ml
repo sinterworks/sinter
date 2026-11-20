@@ -51,7 +51,7 @@ let place instance part bytes =
     Ok address
 
 (* @satisfies packs#give-call-results=v1
-   Steps 4 and 5: the function gets the two addresses and the two lengths; of
+   Step 4: the function gets the two addresses and the two lengths; of
    the i64 that it gives, the high 32 bits are the address and the low 32 bits
    the length of the response, which must lie inside the memory. *)
 let respond instance export ~request ~content =
