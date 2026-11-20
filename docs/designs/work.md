@@ -34,10 +34,10 @@ entries give each work item's state, each task's readiness, and which
 requirements work accounts for. On the default branch, the job records
 each qualifying delivery line of an existing task that no earlier
 accepted entry records in a `delivered` ledger entry with the labels,
-extent hashes, and promise outcomes of the commit of the default branch. On
-branches and trees, eight finding classes check delivery lines,
-promises, and whether changed files lie inside the paths of the tasks of
-the change or the exempt paths.
+extent hashes, and promise outcomes observed in the tree of the commit
+of the default branch. On branches and trees, eight finding classes
+check delivery lines, promises, and whether changed files lie inside the
+paths of the tasks of the change or the exempt paths.
 
 From Text and notation (`text`), the design takes characters, spaces,
 tabs, line feeds, texts, whole numbers, decimal numerals, hex digits,
@@ -45,10 +45,10 @@ code point order, places, boundaries, runs, lines, line numbers,
 code spans, the notation of productions, rule names, and algorithms,
 valid UTF-8, and what a conforming program, an input, and a result are.
 From Identifiers (`identifiers`), it takes slugs, full names, labels,
-revisions, citations, citation lines, citation entries, external ids,
-bindings of the parameter `external-namespaces`, and the result "valid"
-of such a binding. From Files and paths (`files`), it takes valid paths,
-path sets, valid path sets, and path-set membership. From Data forms
+revisions, citations, citation lines, citation entries, matches,
+external ids, bindings of the parameter `external-namespaces`, and the
+result "valid" of such a binding. From Files and paths (`files`), it
+takes valid paths, path sets, valid path sets, and path-set membership. From Data forms
 (`data-forms`), it takes indexes, JSON values, canonical forms,
 canonical byte sequences, hashes, hash forms, id prefixes, hash-id
 forms, test-vector sets, vector lines, the forms of a group, and the
@@ -80,8 +80,9 @@ ledger entry, acceptance rules, valid ledgers, ledger objects, stored
 ledgers, and the requirement leaving `delivered` entries to the job.
 From Test evidence (`evidence`), it takes report files, imports,
 readings of report files, tree evidence, test outcomes in the evidence
-for a tree, and the requirements that forbid a verifies result for
-stopped readings or runner settings that are not valid.
+for a tree, the requirement to give the sources of kept `verifies`
+promises, and the requirements that forbid a verifies result for stopped
+readings or runner settings that are not valid.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings `%s"..."` of RFC 7405. From RFC 8259, the design
@@ -116,8 +117,8 @@ an environment and git configuration.
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own, such as the files whose reading it stops for limits of its own |
 | [job promise outcome](sinter:#job-promise-outcome=v1) | the outcome that the job records for a promise of a task definition in a tree: `"kept"`, `"not-kept"`, or (for a `verifies` promise when the evidence for the tree forbids a verifies result) `"no-result"` |
 | [class promise outcome](sinter:#class-promise-outcome=v1) | the outcome that the finding classes of Work read for a promise of a task definition in a tree: `"known kept"`, `"known not kept"`, or `"not known"` |
-| [known to keep a promise outside the paths](sinter:#outside-promise-edge=v1) | an edge outside a task definition's paths that keeps a promise of that definition in a tree under the rules of findings |
-| [range of a run](sinter:#job-range=v1), [run status](sinter:#job-range=v1) | the status of a run of the job for a repository and the commit of the default branch: already recorded, ready to record (with a commit range to the commit of the default branch), or cut when missing commits or shallow commits keep the clone from deciding the range |
+| [known to keep a promise outside the paths](sinter:#outside-promise-edge=v1) | an edge whose file is outside a task definition's paths and that would keep a promise of that definition in a tree; for a `verifies` promise, only when the tree has evidence that does not forbid a verifies result and the test of the edge passed |
+| [range of a run](sinter:#job-range=v1), [run status](sinter:#job-range=v1) | the status of a run of the job for a git repository and the commit of the default branch: already recorded, ready to record (with a commit range to the commit of the default branch), or cut when missing commits or shallow commits keep the git repository from deciding the range |
 | [git identity](sinter:#git-identity=v1) | the configured committer identity `Name <email>` that git's environment variables and configuration give, excluding any guessed default |
 | [tasks of a change](sinter:#change-task=v1) | the existing tasks named by delivery lines or task lines in the commits of the change of a commit |
 | [only re-pins](sinter:#repin-only-file=v1) | a read file that can be read in both trees, with the same number of line texts, whose differing lines each hold at least one citation pin and differ only in citation pins, with each changed new pin equal to the current revision of its cited item |
@@ -143,18 +144,14 @@ chooses an id of the right form that no existing work item has at the
 point of the first definition entry (requirement
 `assign-new-work-item-id`).
 
-A `task` ledger entry records one whole definition of a task, and a
-`plan` ledger entry records one whole definition of a plan (schemas
-`task-field` and `plan-field`). The integer `def` numbers the
-definitions of one work item in order, starting at `1` at creation and
-rising by `1` at each accepted change. A task with an external item in
-`item`, such as `gh/42`, may carry an empty string in `name`; a task
-without `item`, and every plan, carries a non-empty `name`. A task's
-`paths` holds a valid path set, which can be empty (`[]`). A task whose
-`paths` is empty (`[]`) changes no files, so every counting delivery
-line for it gives `delivery-without-change`; such a task finishes with a
-`done` entry. For example, a `task` ledger entry with common fields
-looks like this:
+A `task` ledger entry records one whole definition of a task (schema
+`task-field`), and a `plan` ledger entry records one whole definition of
+a plan (schema `plan-field`). A task whose `paths` is empty (`[]`)
+changes no files, so a counting delivery line for it in a change with a
+base gives `delivery-without-change`. When such a task has at least one
+promise, no edge can keep that promise, so only a `done` entry finishes
+the task. For example, a `task` ledger entry with common fields looks
+like this:
 
 ```
 {"by":"Ada Lovelace <ada@example.com>","def":1,"id":"e-e137e6aa912bea710e6643ab32328a8e","kind":"task","name":"Enforce billing limit","paths":["src/billing/**","!src/billing/generated/**"],"promises":[{"kind":"satisfies","req":"billing#limit"},{"kind":"verifies","req":"billing#limit"}],"seq":1,"v":1,"waits":[],"work-item":"t-3f2a9c1d07e4"}
@@ -177,8 +174,9 @@ acceptance rule reads only the candidate ledger entry and the ledger
 entries before its point, and never a tree, a commit, a binding, or test
 evidence.
 
-The term `work-graph-cycle` rules out cycles of plans that hold work
-items, cycles of waits, and cycles that mix both. For example, plan `p1`
+Condition 6 of `definition-acceptance-rule` refuses a definition for
+which the term `work-graph-cycle` finds a cycle of plans that hold work
+items, a cycle of waits, or a cycle that mixes both. For example, plan `p1`
 under `p2` and `p2` under `p1` forms a cycle of plans; `t1` waiting for
 `t2` and `t2` waiting for `t1` forms a cycle of waits; and because every
 work item under a plan inherits the waits of that plan, a plan waiting
@@ -189,18 +187,18 @@ forms a cycle through both plans.
 Under these rules, a done plan can still be edited and a new part can
 name a done plan and reopen it, while an abandoned plan and a done or
 abandoned task stay closed. A `delivered` entry for a task that is
-already done or abandoned is still accepted as a recorded fact and
-changes no state.
+already done or abandoned is still accepted as a recorded fact, and it
+changes no state of any task or plan. For a done task, such an entry can
+still account for a requirement (atom `recorded-requirement-content`).
 
 ### 2.3 Task hashes, delivery lines, and task lines
 
-The [task hash](sinter:#task-hash=v1) of a task definition uses only its
-`paths` and its `promises`. The task id, the display name, the external
-item, the plan of the task, and the waits do not enter the task hash. To
-make the hash independent of the order in which a ledger entry lists
-paths or promises, the pre-image object sorts `paths` in code point
-order and `promises` in [promise order](sinter:#task-promise=v1).
-Changing a task's display name or waits keeps the same task hash.
+The term `task-hash` gives the
+[task-hash pre-image](sinter:#task-hash=v1) and
+[task hash](sinter:#task-hash=v1) of a task definition from its `paths`
+and `promises` (using [promise order](sinter:#task-promise=v1)). For
+example, changing a task's display name or waits keeps the same task
+hash.
 
 A [delivery line](sinter:#delivery-line-form=v1) in a commit message has
 the form `Delivers: t-3f2a9c1d07e4 0e515c`, with optional spaces, tabs,
@@ -219,9 +217,9 @@ entries that task states, plan states, and readiness read, and the atom
 `delivered` entries that requirement accounting reads. For example, in
 a `delivered` entry, a `verifies` promise with the outcome `no-result`
 counts as not kept, so the task becomes delivered rather than done.
-When a person appends a `done` entry, requirement
-`record-done-requirements` governs what the entry records for each
-promised requirement in the judged tree.
+When a program appends a `done` entry to record that a person judged the
+work of a task finished, requirement `record-done-requirements` governs
+what the entry records for each promised requirement in the judged tree.
 
 What a program gives while another process changes a file, a ref, or the
 ledger is a matter of the quality of an implementation.
@@ -246,30 +244,30 @@ the tree of `h` it prevents a finding of `missing-delivery` (atom
 
 ### 2.6 The job on the default branch
 
-The job reads the stored ledger of the clone (term
-`ledger#stored-ledger`) and runs on the commit `H` of the default branch
-under `default-branch-name`, when the environment of a process of the
-execution holds a job marker (term `ledger#job-marker`). The
-requirements of the job check its inputs in one order: valid bindings
-of `file-readers` and `external-namespaces` (requirement
-`reject-job-under-invalid-bindings`), a valid ledger whose ledger
-objects the clone holds (requirement `reject-job-on-invalid-ledger`), a
-commit `H` on the default branch (requirement
-`reject-job-without-default-branch`), and a
+The job reads the stored ledger of the git repository (term
+`ledger#stored-ledger`), may fetch git objects into the git repository
+as part of its repository reads (term `job-range`), and runs on the
+commit `H` of the default branch under `default-branch-name`, when the
+environment of a process of the execution holds a job marker (term
+`ledger#job-marker`). The requirements of the job check its inputs in
+one order: valid bindings of `file-readers` and `external-namespaces`
+(requirement `reject-job-under-invalid-bindings`), a valid ledger whose
+ledger objects the read repository holds (requirement
+`reject-job-on-invalid-ledger`), a commit `H` on the default branch
+(requirement `reject-job-without-default-branch`), and a
 [git identity](sinter:#git-identity=v1) in the environment (requirement
 `reject-job-without-git-identity`).
 
-When all four checks hold, the job may fetch git objects into the
-repository as part of its repository reads, and the term `job-range`
-gives the [run status](sinter:#job-range=v1) on the read repository and
-`H`. Requirements `report-already-recorded-head`,
-`report-cut-job-range`, and `append-delivered-entries` govern the
-outcome, exit status, and appended `delivered` entries for each status. For example, if one push brings
+When all four checks hold, the term `job-range` gives the
+[run status](sinter:#job-range=v1) on the read repository and `H`.
+Requirements `report-already-recorded-head`, `report-cut-job-range`, and
+`append-delivered-entries` govern the outcome, exit status, and appended
+`delivered` entries for each status. For example, if one push brings
 merge `M1` (with a delivery line for `t1`) and then merge `M2` (with a
 delivery line for `t2`), with `H = M2`, both `delivered` entries record
-`head = M2`, the entry for `M1` records `merge = M1`, the entry for
-`M2` records `merge = M2`, and both record labels, extent hashes, and
-promise outcomes observed in the tree of `M2`.
+`head = M2`, the entry for `M1` records `merge = M1`, the entry for `M2`
+records `merge = M2`, and both record labels, extent hashes, and promise
+outcomes observed in the tree of `M2`.
 
 ### 2.7 The path check and re-pins
 
