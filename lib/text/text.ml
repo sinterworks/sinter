@@ -14,7 +14,10 @@ let offsets_of bytes count =
           offset + Uchar.utf_decode_length (String.get_utf_8_uchar bytes offset);
       offset)
 
-(* @satisfies text#{validate-utf-8=v1, give-texts-of-byte-sequences=v1, omit-texts-of-invalid-byte-sequences=v1} *)
+(* @satisfies text#{validate-utf-8=v1, give-texts-of-byte-sequences=v1, omit-texts-of-invalid-byte-sequences=v1}
+   One result for each byte sequence: a text of one character for each
+   UTF8-char, in order, when the bytes are valid UTF-8, and an error and no text
+   when they are not. *)
 let decode bytes =
   let n = String.length bytes in
   let rec scan i count =
@@ -29,7 +32,9 @@ let decode bytes =
 
 let encode text = text.bytes
 
-(* @satisfies text#give-utf-8-encodings=v1 *)
+(* @satisfies text#give-utf-8-encodings=v1
+   A text keeps the UTF-8 encoding of its characters in order, so encode gives
+   that encoding and no other byte sequence. *)
 let of_uchars characters =
   let count = List.length characters in
   let buffer = Buffer.create count in

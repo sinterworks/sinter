@@ -19,7 +19,10 @@ let is text place c = Text.get text place = Some c
 let of_text text =
   let body = Text.body text in
   let starts = ref [] and ends = ref [] in
-  (* @satisfies text#{give-lines=v1, give-only-lines=v1} *)
+  (* @satisfies text#{give-lines=v1, give-only-lines=v1}
+     Each line feed of the body ends a line, with the carriage return right
+     before it, and a last run that is empty is no line, so the lines are the
+     lines of the text and no other runs. *)
   let rec scan start p =
     if p > body.until then
       begin if start < body.until then begin
@@ -38,7 +41,10 @@ let of_text text =
   scan body.from body.from;
   let starts = Array.of_list (List.rev !starts)
   and ends = Array.of_list (List.rev !ends) in
-  (* @satisfies text#give-span-ends=v1 *)
+  (* @satisfies text#give-span-ends=v1
+     For each line, the last line at or before it that holds a place, or the
+     first line when none does, so that the end of a span is at the last place
+     of the span that is a place of a line. *)
   let filled = Array.copy starts in
   Array.iteri
     (fun i s ->
@@ -51,7 +57,9 @@ let count lines = Array.length lines.starts
 let run lines i = { Text.from = lines.starts.(i); until = lines.ends.(i) }
 let all lines = List.init (count lines) (run lines)
 
-(* @satisfies text#{give-numbered-lines=v1, give-only-lines=v1} *)
+(* @satisfies text#{give-numbered-lines=v1, give-only-lines=v1}
+   The line with the line number k is the k-th line, and no run is given for a
+   line number less than 1 or greater than the number of lines. *)
 let line lines k =
   if k < 1 || k > count lines then None else Some (run lines (k - 1))
 
@@ -66,7 +74,12 @@ let last_start_at_or_before lines b =
   if count lines = 0 || lines.starts.(0) > b then -1
   else search 0 (count lines - 1)
 
-(* @satisfies text#{give-character-positions=v1, give-span-starts=v1, give-span-ends=v1} *)
+(* @satisfies text#{give-character-positions=v1, give-span-starts=v1, give-span-ends=v1}
+   The position of a boundary of the body: in a line, the line number of that
+   line and 1 more than the places of the line before the boundary; inside a
+   line ending, the line number and the end of the line that ends where the line
+   ending starts; otherwise the line number after the last line and the column
+   1. *)
 let boundary_position lines b =
   let i = last_start_at_or_before lines b in
   let beyond = { line = count lines + 1; column = 1 } in
@@ -77,14 +90,21 @@ let boundary_position lines b =
     { line = i + 1; column = lines.ends.(i) - lines.starts.(i) + 1 }
   else beyond
 
-(* @satisfies text#{give-character-positions=v1, omit-byte-order-mark-positions=v1} *)
+(* @satisfies text#give-character-positions=v1
+   The position of the character at a place of the body is the position of the
+   boundary right before it; a place that is not a place of the body gives no
+   position. *)
 let character_position lines place =
   if place < 1 || place > Text.length lines.text then Error Not_a_place
   else if place = 1 && Text.has_byte_order_mark lines.text then
     Error Byte_order_mark
   else Ok (boundary_position lines (place - 1))
 
-(* @satisfies text#{give-span-ends=v1, give-positions-only-for-spans=v1} *)
+(* @satisfies text#{give-span-starts=v1, give-span-ends=v1}
+   The start of a span is the position of its first boundary, and its end is
+   the position of the boundary after its last place that is a place of a
+   line, or the start when no such place exists; a run that is not a span gives
+   no position. *)
 let span lines (run : Text.run) =
   let length = Text.length lines.text in
   if run.from < 0 || run.until < run.from || run.until > length then
