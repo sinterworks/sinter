@@ -6,11 +6,13 @@
     and its base, first-parent lines, and landing commits.
 
     The caller names each commit by a value of a type of its own, such as an
-    object id, and gives the parents of a commit through a function. A commit c
-    reaches itself, each of its parents, each parent of each of them, and so on;
-    the ancestry of c is the set of the commits that c reaches. The range from a
-    commit s to a commit h is the set of the commits that h reaches and that s
-    does not reach; the range from no commit to h is the ancestry of h.
+    object id, and gives the parents of a commit through a function. As the atom
+    [reach] of the design [changes=v1] defines reach, a commit c reaches itself,
+    each of its parents, each parent of each of them, and so on, and no other
+    commit; the ancestry of c is the set of the commits that c reaches. The
+    range from a commit s to a commit h is the set of the commits that h reaches
+    and that s does not reach; the range from no commit to h is the ancestry of
+    h.
 
     Each function reads the parents of a commit only through the function that
     the caller gives, and only for commits that the walk of its result reaches.
@@ -29,12 +31,14 @@ module Make (Id : Hashtbl.HashedType) : sig
   val parents : named:Id.t list -> shallow:bool -> Id.t list
   (** [parents ~named ~shallow] is the parents of a commit whose commit object
       names the commits [named], in that order. It is [named] when [shallow] is
-      [false], and [[]] when [shallow] is [true], for a commit that the file
-      [shallow] of the git folder names. *)
+      [false], and [[]] when [shallow] is [true], for a shallow commit: a commit
+      that the file [shallow] of the git folder names, as the term
+      [shallow-commit] of the design [changes=v1] defines it. *)
 
   val reaches : 'e graph -> Id.t -> Id.t -> (bool, 'e) result
   (** [reaches graph c c'] is [Ok true] when [c] reaches [c'], and [Ok false]
-      when it does not. *)
+      when it does not. [Ok true] stands for the result "reaches" of the atom
+      [reach], and [Ok false] for the result "does not reach". *)
 
   val range : 'e graph -> from:Id.t option -> Id.t -> (Id.t list, 'e) result
   (** [range graph ~from:s h] is the commits of the range from [s] to [h], or

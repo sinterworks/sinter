@@ -1,8 +1,9 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** The commits that the file [shallow] of a git folder names, from its content,
-    as the term [commit] of the design [changes=v1] gives them. *)
+(** The shallow commits that the file [shallow] of a git folder names, from its
+    content, as the term [shallow-commit] of the design [changes=v1] defines
+    them. The term [commit] gives each of them no parents. *)
 
 type error =
   | Malformed_line of int
