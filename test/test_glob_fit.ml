@@ -26,12 +26,14 @@ let give_fit (vector : Vectors.vector) =
 (* @verifies files[globs][*]=v1
    The vectors check "valid" and "invalid" for texts that match `glob` and
    texts that do not. *)
-let glob_vectors = Vectors.group files_set ~name:"globs" ~rev:"v1" give_glob
+let glob_vectors =
+  Vectors.group files_set ~name:"globs" ~form:"#glob-vector=v1" give_glob
 
 (* @verifies files[fits][*]=v1
    The vectors check "fits" and "does not fit" for pairs of a valid path and
    a valid glob. *)
-let fit_vectors = Vectors.group files_set ~name:"fits" ~rev:"v1" give_fit
+let fit_vectors =
+  Vectors.group files_set ~name:"fits" ~form:"#fit-vector=v1" give_fit
 
 let single_stars text =
   let buffer = Buffer.create (String.length text) in

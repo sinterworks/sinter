@@ -52,7 +52,8 @@ let give_compute (vector : Vectors.vector) =
    The test fails when the text that compute gives for the id prefix, the
    number of hex digits, and the bytes of a vector is not its hash id. *)
 let compute_vectors =
-  Vectors.group hash_ids_set ~name:"compute" ~rev:"v1" give_compute
+  Vectors.group hash_ids_set ~name:"compute" ~form:"#compute-hash-id-vector=v1"
+    give_compute
 
 let give_validate (vector : Vectors.vector) =
   match
@@ -67,7 +68,8 @@ let give_validate (vector : Vectors.vector) =
    The test fails when validate gives a hash id for a text that the vector
    calls invalid, or no hash id for a text that the vector calls valid. *)
 let validate_vectors =
-  Vectors.group hash_ids_set ~name:"validate" ~rev:"v1" give_validate
+  Vectors.group hash_ids_set ~name:"validate"
+    ~form:"#validate-hash-id-vector=v1" give_validate
 
 let is_id_prefix text =
   let length = String.length text in

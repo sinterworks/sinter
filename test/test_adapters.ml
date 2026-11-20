@@ -111,7 +111,8 @@ let give_decision (vector : Vectors.vector) =
    what its code needs, and compares "valid" or "invalid" with the result of
    the vector; the decision of the module that loops must end. *)
 let adapter_vectors =
-  Vectors.group adapters_set ~name:"adapters" ~rev:"v1" give_decision
+  Vectors.group adapters_set ~name:"adapters" ~form:"#adapter-vector=v1"
+    give_decision
 
 let ids_of input = List.map P.string (P.list (P.required "ids" input))
 
@@ -148,7 +149,8 @@ let give_call (vector : Vectors.vector) =
    the vector, under limits far above what its code needs, and compares the
    result and the values with those of the vector; the call whose function
    loops must end. *)
-let call_vectors = Vectors.group adapters_set ~name:"calls" ~rev:"v1" give_call
+let call_vectors =
+  Vectors.group adapters_set ~name:"calls" ~form:"#call-vector=v1" give_call
 
 let import_of_each_kind =
   [
@@ -909,7 +911,7 @@ let response_vector_through_calls () =
         cause <> None || result <> expected_result
         || not (Vectors.equal_json values expected_values)
       then
-        Alcotest.failf "vector %d: %s %s with %s" vector.number result
+        Alcotest.failf "line %d: %s %s with %s" vector.line result
           (Yojson.Basic.to_string values)
           (cause_text cause))
     (Vectors.vectors adapters_set "responses")
@@ -1101,7 +1103,7 @@ let request_cases =
             match P.string (P.required "function" input) with
             | "recognise" ->
                 recognised
-                  (Printf.sprintf "vector %d" vector.number)
+                  (Printf.sprintf "line %d" vector.line)
                   (Call.recognise_request ~limits:generous decision ~runner
                      ~settings ~report ~content)
             | _ -> (
@@ -1116,11 +1118,10 @@ let request_cases =
                 with
                 | Ok { result = Bound _; cause = None } -> ()
                 | Ok { result; cause } ->
-                    Alcotest.failf "vector %d: %s with %s" vector.number
+                    Alcotest.failf "line %d: %s with %s" vector.line
                       (fst (binding_form result))
                       (cause_text cause)
-                | Error _ ->
-                    Alcotest.failf "vector %d: no request" vector.number))
+                | Error _ -> Alcotest.failf "line %d: no request" vector.line))
           (Vectors.vectors adapters_set "requests"));
     case "another request is not the request of the adapter" (fun () ->
         let runner = P.runner_of "vitest" in

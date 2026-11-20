@@ -69,7 +69,8 @@ let give_forms (vector : Vectors.vector) =
    inline citation, and compares the canonical form of each with its slug and
    kind word against the form that the vector gives. *)
 let canonical_entry_vectors =
-  Vectors.group set ~name:"canonical-entries" ~rev:"v1" give_forms
+  Vectors.group set ~name:"canonical-entries" ~form:"#canonical-entry-vector=v1"
+    give_forms
 
 type expected = { name : string; suffix : string }
 

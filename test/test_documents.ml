@@ -287,7 +287,8 @@ let set = Vectors.read "documents"
    the program gives none of them under bindings that are not valid, by the
    values {}. The program gives no extent hash, hash text, or forms text, so
    the test checks it on no member of these. *)
-let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
+let markdown_vectors =
+  Vectors.group set ~name:"markdown" ~form:"#markdown-vector=v1" give
 
 (* @verifies documents[code][*]=v1
    The test compares the read files that the program gives, each with the pair
@@ -297,17 +298,17 @@ let markdown_vectors = Vectors.group set ~name:"markdown" ~rev:"v1" give
    order of each member, with the members read-files, tests, and items of each
    vector of the group. The program gives no extent hash, hash text, forms
    text, or code hash, so the test checks it on no member of these. *)
-let code_vectors = Vectors.group set ~name:"code" ~rev:"v1" give
+let code_vectors = Vectors.group set ~name:"code" ~form:"#code-vector=v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
 
 let proposed_vectors =
-  List.map
-    (fun line ->
+  List.mapi
+    (fun index line ->
       let json = Yojson.Basic.from_string line in
       let field name = List.assoc_opt name (fields json) in
       ( (match field "note" with Some (`String note) -> note | _ -> ""),
         {
-          Vectors.number = (match field "n" with Some (`Int n) -> n | _ -> 0);
+          Vectors.line = index + 1;
           group = string (member "group" json);
           input = member "input" json;
           result = None;
@@ -336,7 +337,7 @@ let proposed_vectors_pass =
           match vector.values with
           | Some stated ->
               if not (Vectors.equal_json stated given) then
-                Alcotest.failf "vector %d\nstated %s\ngiven %s" vector.number
+                Alcotest.failf "line %d\nstated %s\ngiven %s" vector.line
                   (Yojson.Basic.to_string stated)
                   (Yojson.Basic.to_string given)
           | None -> Alcotest.fail "a proposed vector has values"))

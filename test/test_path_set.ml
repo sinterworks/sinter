@@ -35,13 +35,15 @@ let give_membership (vector : Vectors.vector) =
 (* @verifies files[path-sets][*]=v1
    The vectors check "valid" and "invalid" for path sets. *)
 let path_set_vectors =
-  Vectors.group files_set ~name:"path-sets" ~rev:"v1" give_path_set
+  Vectors.group files_set ~name:"path-sets" ~form:"#path-set-vector=v1"
+    give_path_set
 
 (* @verifies files[memberships][*]=v1
    The vectors check "in the set" and "not in the set" for a valid path and a
    path set whose glob texts are valid globs. *)
 let membership_vectors =
-  Vectors.group files_set ~name:"memberships" ~rev:"v1" give_membership
+  Vectors.group files_set ~name:"memberships" ~form:"#membership-vector=v1"
+    give_membership
 
 let member_gen =
   Gen.map2

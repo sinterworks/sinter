@@ -32,7 +32,8 @@ let give_compute (vector : Vectors.vector) =
    The test gives the bytes of each vector to compute and fails when the
    text that compute gives is not the hash of the vector. *)
 let compute_vectors =
-  Vectors.group hashes_set ~name:"compute" ~rev:"v1" give_compute
+  Vectors.group hashes_set ~name:"compute" ~form:"#compute-hash-vector=v1"
+    give_compute
 
 let give_validate (vector : Vectors.vector) =
   match Hash.validate (input_text vector) with
@@ -43,7 +44,8 @@ let give_validate (vector : Vectors.vector) =
    The test fails when validate gives a hash for a text that the vector
    calls invalid, or no hash for a text that the vector calls valid. *)
 let validate_vectors =
-  Vectors.group hashes_set ~name:"validate" ~rev:"v1" give_validate
+  Vectors.group hashes_set ~name:"validate" ~form:"#validate-hash-vector=v1"
+    give_validate
 
 let bytes_gen =
   Gen.oneof

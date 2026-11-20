@@ -70,20 +70,20 @@ let skipped =
     (fun (vector : Vectors.vector) ->
       match unmet_needs vector with
       | [] -> None
-      | needs -> Some (vector.number, needs))
+      | needs -> Some (vector.line, needs))
     (Vectors.vectors files_set "file-reads")
 
 let outcomes = Hashtbl.create 64
 
 let outcome (vector : Vectors.vector) =
-  match Hashtbl.find_opt outcomes vector.number with
+  match Hashtbl.find_opt outcomes vector.line with
   | Some outcome -> outcome
   | None ->
       let text = text_of (json_string (json_member "text" vector.input)) in
       let outcome =
         Files_tree.run (tree_of vector) (fun root -> read_text ~root text)
       in
-      Hashtbl.replace outcomes vector.number outcome;
+      Hashtbl.replace outcomes vector.line outcome;
       outcome
 
 let one_piece text =
@@ -116,8 +116,8 @@ let give_file_read (vector : Vectors.vector) =
    The vectors check the result of a file read, and the text of the content
    with "found", for a text in a folder tree that the test makes. *)
 let file_read_vectors =
-  Vectors.group files_set ~name:"file-reads" ~rev:"v1" ~needs:need_holds
-    ~skipped give_file_read
+  Vectors.group files_set ~name:"file-reads" ~form:"#file-read-vector=v1"
+    ~needs:need_holds ~skipped give_file_read
 
 let reference text (tree : Files_tree.file) =
   let open Files_tree in

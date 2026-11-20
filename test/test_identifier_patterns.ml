@@ -68,13 +68,15 @@ let give_binding (vector : Vectors.vector) =
 
 (* @verifies identifiers[id-patterns][*]=v1 *)
 let id_pattern_vectors =
-  Vectors.group set ~name:"id-patterns" ~rev:"v1" give_id_pattern
+  Vectors.group set ~name:"id-patterns" ~form:"#id-pattern-vector=v1"
+    give_id_pattern
 
 (* @verifies identifiers[fit][*]=v1 *)
-let fit_vectors = Vectors.group set ~name:"fit" ~rev:"v1" give_fit
+let fit_vectors = Vectors.group set ~name:"fit" ~form:"#fit-vector=v1" give_fit
 
 (* @verifies identifiers[bindings][*]=v1 *)
-let binding_vectors = Vectors.group set ~name:"bindings" ~rev:"v1" give_binding
+let binding_vectors =
+  Vectors.group set ~name:"bindings" ~form:"#binding-vector=v1" give_binding
 
 (* @verifies identifiers#{reject-unmatched-id-patterns=v1, accept-inputs=v1}
    Each id pattern gives the error that the interface states for it: a text

@@ -825,9 +825,9 @@ let head_commits_on (vector : Vectors.vector) =
    empty file as no ref, or a packed ref under a broken loose ref, fails. *)
 let ref_commit_vectors =
   [
-    Vectors.group set ~name:"ref-commits" ~rev:"v1"
+    Vectors.group set ~name:"ref-commits" ~form:"#ref-commit-vector=v1"
       (ref_commits_on ~packed:false);
-    Vectors.group set ~name:"ref-commits" ~rev:"v1"
+    Vectors.group set ~name:"ref-commits" ~form:"#ref-commit-vector=v1"
       (ref_commits_on ~packed:true);
   ]
 
@@ -836,7 +836,10 @@ let ref_commit_vectors =
    from the reader of the files format must be that of the vector, or the test
    fails. *)
 let head_commit_vectors =
-  [ Vectors.group set ~name:"head-commits" ~rev:"v1" head_commits_on ]
+  [
+    Vectors.group set ~name:"head-commits" ~form:"#head-commit-vector=v1"
+      head_commits_on;
+  ]
 
 let git_lines repo args =
   match Git_fixture.git repo args with

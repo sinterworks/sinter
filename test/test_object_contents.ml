@@ -358,7 +358,7 @@ let message_text_inputs_tests =
             in
             let other = header ^ "\n\nanother message\xff\n" in
             Alcotest.(check bool)
-              (Printf.sprintf "vector %d" vector.number)
+              (Printf.sprintf "line %d" vector.line)
               true
               (parse_named Id.Sha1 content = parse_named Id.Sha1 other))
           (Vectors.vectors set "message-texts"));

@@ -266,7 +266,7 @@ let vector_files () =
                   | `String content when Filename.check_suffix path ".md" ->
                       let markdown = read content in
                       Alcotest.(check bool)
-                        (Printf.sprintf "vector %d, %s" vector.number path)
+                        (Printf.sprintf "line %d, %s" vector.line path)
                         true
                         (tag_line_inputs_are_those_of_identifiers markdown
                         && link_inputs_are_those_of_identifiers markdown)

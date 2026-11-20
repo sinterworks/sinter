@@ -84,7 +84,8 @@ let give_ref_commit (vector : Vectors.vector) =
    no ref; a program that stops at the first symbolic ref, or takes another
    object as a commit, gives another commit. *)
 let ref_commit_vectors =
-  Vectors.group set ~name:"ref-commits" ~rev:"v1" give_ref_commit
+  Vectors.group set ~name:"ref-commits" ~form:"#ref-commit-vector=v1"
+    give_ref_commit
 
 let give_head_commit (vector : Vectors.vector) =
   let refs =
@@ -107,7 +108,8 @@ let give_head_commit (vector : Vectors.vector) =
    program that reads a detached HEAD as a ref, or gives a commit for a branch
    that does not exist, gives another head commit. *)
 let head_commit_vectors =
-  Vectors.group set ~name:"head-commits" ~rev:"v1" give_head_commit
+  Vectors.group set ~name:"head-commits" ~form:"#head-commit-vector=v1"
+    give_head_commit
 
 let upstream_name = "refs/remotes/upstream/the-branch"
 
@@ -153,7 +155,8 @@ let give_default_branch (vector : Vectors.vector) =
    exists with no commit, or takes a binding that is not a branch name, gives
    another commit. *)
 let default_branch_vectors =
-  Vectors.group set ~name:"default-branch-commits" ~rev:"v1" give_default_branch
+  Vectors.group set ~name:"default-branch-commits"
+    ~form:"#default-branch-commit-vector=v1" give_default_branch
 
 let give_message (vector : Vectors.vector) =
   match Message.text (Model.commit_object_of_message_input vector.input) with
@@ -165,7 +168,8 @@ let give_message (vector : Vectors.vector) =
    any, and the text of the message, or none; a program that drops a carriage
    return or U+FEFF, or follows the header `encoding`, gives another text. *)
 let message_vectors =
-  Vectors.group set ~name:"message-texts" ~rev:"v1" give_message
+  Vectors.group set ~name:"message-texts" ~form:"#message-text-vector=v1"
+    give_message
 
 let rec entries_under prefix (entries : Model.entry list) =
   List.map
@@ -245,7 +249,8 @@ let give_commit_files (vector : Vectors.vector) =
    other paths. The lookup of each byte path of the entries must find a file
    exactly for those paths. *)
 let commit_file_vectors =
-  Vectors.group set ~name:"commit-files" ~rev:"v1" give_commit_files
+  Vectors.group set ~name:"commit-files" ~form:"#commit-file-vector=v1"
+    give_commit_files
 
 let tree_of json =
   match json with
@@ -304,7 +309,8 @@ let give_change_diff (vector : Vectors.vector) =
    is no base; a diff from the commit of the default branch, or a diff when the
    merge bases cross, fails. *)
 let change_diff_vectors =
-  Vectors.group set ~name:"change-diffs" ~rev:"v1" give_change_diff
+  Vectors.group set ~name:"change-diffs" ~form:"#change-diff-vector=v1"
+    give_change_diff
 
 let property ?(count = 1000) ~name ~print generator check =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick

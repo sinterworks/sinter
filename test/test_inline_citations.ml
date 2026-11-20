@@ -59,11 +59,13 @@ let give_rejected_binding (vector : Vectors.vector) =
 
 (* @verifies identifiers[inline-citations][*]=v1 *)
 let inline_citation_vectors =
-  Vectors.group set ~name:"inline-citations" ~rev:"v1" give_inline
+  Vectors.group set ~name:"inline-citations" ~form:"#inline-citation-vector=v1"
+    give_inline
 
 (* @verifies identifiers[rejected-bindings][*]=v1 *)
 let rejected_binding_vectors =
-  Vectors.group set ~name:"rejected-bindings" ~rev:"v1" give_rejected_binding
+  Vectors.group set ~name:"rejected-bindings"
+    ~form:"#rejected-binding-vector=v1" give_rejected_binding
 
 let markdown_valid ?(target = []) text =
   `Assoc
@@ -401,7 +403,7 @@ let line_texts_hold_no_link () =
         (fun (vector : Vectors.vector) ->
           let binding, text = read_input vector in
           Alcotest.(check int)
-            (Printf.sprintf "the links of vector %d" vector.number)
+            (Printf.sprintf "the links of line %d" vector.line)
             0
             (List.length (Inline_citation.read binding (text_of text))))
         (Vectors.vectors set group))

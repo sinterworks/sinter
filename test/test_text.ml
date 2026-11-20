@@ -138,21 +138,25 @@ let give_span (vector : Vectors.vector) =
   | Error Lines.Not_a_run -> `Assoc [ ("values", `String "not a run") ]
 
 (* @verifies text[decode][*]=v1 *)
-let decode_vectors = Vectors.group text_set ~name:"decode" ~rev:"v1" give_decode
+let decode_vectors =
+  Vectors.group text_set ~name:"decode" ~form:"#decode-vector=v1" give_decode
 
 (* @verifies text[encode][*]=v1 *)
-let encode_vectors = Vectors.group text_set ~name:"encode" ~rev:"v1" give_encode
+let encode_vectors =
+  Vectors.group text_set ~name:"encode" ~form:"#encode-vector=v1" give_encode
 
 (* @verifies text[lines][*]=v1 *)
-let lines_vectors = Vectors.group text_set ~name:"lines" ~rev:"v1" give_lines
+let lines_vectors =
+  Vectors.group text_set ~name:"lines" ~form:"#line-vector=v1" give_lines
 
 (* @verifies text[character-positions][*]=v1 *)
 let character_position_vectors =
-  Vectors.group text_set ~name:"character-positions" ~rev:"v1"
-    give_character_position
+  Vectors.group text_set ~name:"character-positions"
+    ~form:"#character-position-vector=v1" give_character_position
 
 (* @verifies text[spans][*]=v1 *)
-let span_vectors = Vectors.group text_set ~name:"spans" ~rev:"v1" give_span
+let span_vectors =
+  Vectors.group text_set ~name:"spans" ~form:"#span-vector=v1" give_span
 
 let invalid_place bytes =
   match Text.decode bytes with

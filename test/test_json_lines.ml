@@ -74,7 +74,8 @@ let give_write_json (vector : Vectors.vector) =
    than its canonical byte sequence, or when a thing that is not a JSON
    value, and so has no canonical byte sequence, gets one. *)
 let write_json_vectors =
-  Vectors.group json_lines_set ~name:"write-json" ~rev:"v1" give_write_json
+  Vectors.group json_lines_set ~name:"write-json" ~form:"#write-json-vector=v1"
+    give_write_json
 
 (* @verifies data-forms#write-canonical-json=v1
    The test fails when the canonical byte sequence of a generated JSON value
@@ -630,7 +631,8 @@ let give_write_line (vector : Vectors.vector) =
    than its canonical line, or when a thing that is not a line object, and
    so has no canonical line, gets one. *)
 let write_line_vectors =
-  Vectors.group json_lines_set ~name:"write-line" ~rev:"v1" give_write_line
+  Vectors.group json_lines_set ~name:"write-line" ~form:"#write-line-vector=v1"
+    give_write_line
 
 let give_read_line (vector : Vectors.vector) =
   match Json_line.read (V.of_hex (input_text vector)) with
@@ -648,7 +650,8 @@ let give_read_line (vector : Vectors.vector) =
    result, or the line object that read gives, differs from the result
    and the line object of a vector. *)
 let read_line_vectors =
-  Vectors.group json_lines_set ~name:"read-line" ~rev:"v1" give_read_line
+  Vectors.group json_lines_set ~name:"read-line" ~form:"#read-line-vector=v1"
+    give_read_line
 
 let line thing =
   Option.bind (Json_text.to_json_value (library_thing thing)) Json_line.of_json
@@ -764,7 +767,8 @@ let give_read_json (vector : Vectors.vector) =
    when that result, or the JSON value that it gives, differs from the
    result and the JSON value of a vector. *)
 let read_json_vectors =
-  Vectors.group json_lines_set ~name:"read-json" ~rev:"v1" give_read_json
+  Vectors.group json_lines_set ~name:"read-json" ~form:"#read-json-vector=v1"
+    give_read_json
 
 let read_json_agrees bytes =
   match (Json.read_json_text bytes, V.json_value_of_bytes bytes) with

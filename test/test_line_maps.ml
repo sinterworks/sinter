@@ -89,7 +89,8 @@ let give_hunks (vector : Vectors.vector) =
    and add together, and, where the line map is the only one, each hunk and the
    new line number of each old line; a wrong map or a wrong hunk changes one of
    them. *)
-let hunk_vectors = Vectors.group set ~name:"hunks" ~rev:"v1" give_hunks
+let hunk_vectors =
+  Vectors.group set ~name:"hunks" ~form:"#hunk-vector=v1" give_hunks
 
 let print_pair (old_content, new_content) =
   Printf.sprintf "old: %s, new: %s"

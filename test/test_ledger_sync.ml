@@ -88,7 +88,8 @@ let give_pull (vector : Vectors.vector) =
    line for which s accounts, gives a moved line the wrong `seq` or `id`,
    keeps a refused or void line, reports a line that does not leave, or pulls
    where it must refuse, fails. *)
-let pull_vectors = Vectors.group Lv.set ~name:"pulls" ~rev:"v1" give_pull
+let pull_vectors =
+  Vectors.group Lv.set ~name:"pulls" ~form:"#pull-vector=v1" give_pull
 
 type scenario = {
   clone : Model.entry list option;

@@ -114,7 +114,8 @@ let give_request (vector : Vectors.vector) =
    its report name, and, for bind, its root and its test entries, and compares
    its bytes with the request of the vector. *)
 let request_vectors =
-  Vectors.group adapters_set ~name:"requests" ~rev:"v1" give_request
+  Vectors.group adapters_set ~name:"requests" ~form:"#request-vector=v1"
+    give_request
 
 let text = Text.encode
 
@@ -191,7 +192,8 @@ let give_response (vector : Vectors.vector) =
    entry ids, and compares the result, the test results, the binding objects,
    the warnings, and the error text with those of the vector. *)
 let response_vectors =
-  Vectors.group adapters_set ~name:"responses" ~rev:"v1" give_response
+  Vectors.group adapters_set ~name:"responses" ~form:"#response-vector=v1"
+    give_response
 
 let pick = Gen.oneof_list
 

@@ -105,7 +105,8 @@ let give_descriptor (vector : Vectors.vector) =
    decision on a rule, a wrong or missing value, or a value of an absent
    adapter or match table fails it. *)
 let descriptor_vectors =
-  Vectors.group descriptor_set ~name:"descriptors" ~rev:"v1" give_descriptor
+  Vectors.group descriptor_set ~name:"descriptors" ~form:"#descriptor-vector=v1"
+    give_descriptor
 
 let member name = function
   | `Assoc members -> (
@@ -143,7 +144,8 @@ let give_file_grammar (vector : Vectors.vector) =
    The test gives each valid path of the group with its valid descriptor and
    compares the file grammar, or its absence, with the vector. *)
 let file_grammar_vectors =
-  Vectors.group descriptor_set ~name:"file-grammars" ~rev:"v1" give_file_grammar
+  Vectors.group descriptor_set ~name:"file-grammars"
+    ~form:"#file-grammar-vector=v1" give_file_grammar
 
 let vector_groups = [ descriptor_vectors; file_grammar_vectors ]
 

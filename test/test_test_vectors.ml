@@ -53,7 +53,8 @@ let give_read_set (vector : Vectors.vector) =
    result, or the objects that read gives, differ from the result and the
    objects of a vector. *)
 let read_set_vectors =
-  Vectors.group test_vectors_set ~name:"read-set" ~rev:"v1" give_read_set
+  Vectors.group test_vectors_set ~name:"read-set" ~form:"#read-set-vector=v1"
+    give_read_set
 
 let library_version (version : Set_model.version) =
   match Test_vector_set.read (Set_model.write version.objects) with
@@ -101,8 +102,8 @@ let give_validate_sequence (vector : Vectors.vector) =
    The test fails when validate gives a result other than the result of a
    vector for its sequence of versions. *)
 let validate_sequence_vectors =
-  Vectors.group test_vectors_set ~name:"validate-sequence" ~rev:"v1"
-    give_validate_sequence
+  Vectors.group test_vectors_set ~name:"validate-sequence"
+    ~form:"#validate-sequence-vector=v1" give_validate_sequence
 
 let text value = V.String (V.Text value)
 

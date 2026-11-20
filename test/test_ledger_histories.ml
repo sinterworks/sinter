@@ -33,7 +33,7 @@ let give_history (vector : Vectors.vector) =
    drops a line, a merge, or an earlier git tree object that is no valid
    ledger tree as intact, or that gives a result for a newer ledger, fails. *)
 let history_vectors =
-  Vectors.group Lv.set ~name:"histories" ~rev:"v1" give_history
+  Vectors.group Lv.set ~name:"histories" ~form:"#history-vector=v1" give_history
 
 type history = { commits : (string * Model.commit) list; head : string }
 

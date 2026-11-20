@@ -81,7 +81,7 @@ let skipped group =
     (fun (vector : Vectors.vector) ->
       match unmet_needs vector with
       | [] -> None
-      | needs -> Some (vector.number, needs))
+      | needs -> Some (vector.line, needs))
     (Vectors.vectors packs_set group)
 
 let give_well_named vector =
@@ -96,8 +96,8 @@ let give_well_named vector =
    compares whether the pack read from it is well named with the result of the
    vector, so a wrong decision on any rule of a well-named pack fails it. *)
 let well_named_vectors =
-  Vectors.group packs_set ~name:"well-named-packs" ~rev:"v1"
-    ~needs:(Lazy.force needs)
+  Vectors.group packs_set ~name:"well-named-packs"
+    ~form:"#well-named-pack-vector=v1" ~needs:(Lazy.force needs)
     ~skipped:(skipped "well-named-packs")
     give_well_named
 
@@ -124,7 +124,7 @@ let give_pack_hash vector =
    the pack read from it with those of the vector, or with no listing and no
    hash for a pack that is not well named. *)
 let pack_hash_vectors =
-  Vectors.group packs_set ~name:"pack-hashes" ~rev:"v1"
+  Vectors.group packs_set ~name:"pack-hashes" ~form:"#pack-hash-vector=v1"
     ~needs:(Lazy.force needs) ~skipped:(skipped "pack-hashes") give_pack_hash
 
 let reference_use tree paths =

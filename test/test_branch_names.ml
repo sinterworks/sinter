@@ -36,7 +36,8 @@ let give_branch_name (vector : Vectors.vector) =
    Each vector gives a text and "valid" or "invalid"; the test fails when
    of_text accepts a text that a condition refuses, or refuses a branch name. *)
 let branch_name_vectors =
-  Vectors.group set ~name:"branch-names" ~rev:"v1" give_branch_name
+  Vectors.group set ~name:"branch-names" ~form:"#branch-name-vector=v1"
+    give_branch_name
 
 let any_text_gen =
   Gen.map

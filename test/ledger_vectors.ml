@@ -93,7 +93,9 @@ let give_model_pull (vector : Vectors.vector) =
 let reference_tests =
   Vectors.tests "the reference reading of ledger"
     [
-      Vectors.group set ~name:"ledgers" ~rev:"v1" give_model_ledger;
-      Vectors.group set ~name:"histories" ~rev:"v1" give_model_history;
-      Vectors.group set ~name:"pulls" ~rev:"v1" give_model_pull;
+      Vectors.group set ~name:"ledgers" ~form:"#ledger-vector=v1"
+        give_model_ledger;
+      Vectors.group set ~name:"histories" ~form:"#history-vector=v1"
+        give_model_history;
+      Vectors.group set ~name:"pulls" ~form:"#pull-vector=v1" give_model_pull;
     ]

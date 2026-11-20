@@ -131,25 +131,28 @@ let give_continuation (vector : Vectors.vector) =
 
 (* @verifies identifiers[other-lines][*]=v1 *)
 let other_line_vectors =
-  Vectors.group set ~name:"other-lines" ~rev:"v1" give_line
+  Vectors.group set ~name:"other-lines" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[declarations][*]=v1 *)
 let declaration_vectors =
-  Vectors.group set ~name:"declarations" ~rev:"v1" give_line
+  Vectors.group set ~name:"declarations" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[citations][*]=v1 *)
-let citation_vectors = Vectors.group set ~name:"citations" ~rev:"v1" give_line
+let citation_vectors =
+  Vectors.group set ~name:"citations" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[status-tags][*]=v1 *)
 let status_tag_vectors =
-  Vectors.group set ~name:"status-tags" ~rev:"v1" give_line
+  Vectors.group set ~name:"status-tags" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[directives][*]=v1 *)
-let directive_vectors = Vectors.group set ~name:"directives" ~rev:"v1" give_line
+let directive_vectors =
+  Vectors.group set ~name:"directives" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[continuation-lines][*]=v1 *)
 let continuation_line_vectors =
-  Vectors.group set ~name:"continuation-lines" ~rev:"v1" give_continuation
+  Vectors.group set ~name:"continuation-lines"
+    ~form:"#continuation-line-vector=v1" give_continuation
 
 let check_json name want have =
   if not (Vectors.equal_json want have) then

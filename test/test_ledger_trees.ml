@@ -69,7 +69,8 @@ let give_ledger (vector : Vectors.vector) =
    another order fails. The blob of each entry that is not a chunk fails to
    read, so a program that reads a git object that is no ledger object also
    fails. *)
-let ledger_vectors = Vectors.group Lv.set ~name:"ledgers" ~rev:"v1" give_ledger
+let ledger_vectors =
+  Vectors.group Lv.set ~name:"ledgers" ~form:"#ledger-vector=v1" give_ledger
 
 let property ?(count = 300) ~name generator check =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick

@@ -56,7 +56,8 @@ let give_reach (vector : Vectors.vector) =
    Each vector gives two commits of a commit graph and whether the first
    reaches the second, through second parents too; a walk that misses a parent
    or a commit itself gives the other result. *)
-let reach_vectors = Vectors.group set ~name:"reach" ~rev:"v1" give_reach
+let reach_vectors =
+  Vectors.group set ~name:"reach" ~form:"#reach-vector=v1" give_reach
 
 let give_parents (vector : Vectors.vector) =
   let named = Model.names_of_json (required "named" vector.input) in
@@ -71,7 +72,8 @@ let give_parents (vector : Vectors.vector) =
    Each vector gives the commits that a commit object names and whether the
    file `shallow` names the commit; a program that drops, reorders, or merges
    parents, or keeps them for a shallow commit, gives other parents. *)
-let parent_vectors = Vectors.group set ~name:"parents" ~rev:"v1" give_parents
+let parent_vectors =
+  Vectors.group set ~name:"parents" ~form:"#parent-vector=v1" give_parents
 
 let give_range (vector : Vectors.vector) =
   let graph = graph_of (commits_of vector.input) in
@@ -83,7 +85,8 @@ let give_range (vector : Vectors.vector) =
    Each vector gives the commits of a range in their parents-first order; a
    range with a commit too many or too few, or another order of the walk of
    the parents, gives another sequence. *)
-let range_vectors = Vectors.group set ~name:"ranges" ~rev:"v1" give_range
+let range_vectors =
+  Vectors.group set ~name:"ranges" ~form:"#range-vector=v1" give_range
 
 let give_change (vector : Vectors.vector) =
   let graph = graph_of (commits_of vector.input) in
@@ -109,7 +112,8 @@ let give_change (vector : Vectors.vector) =
    that commit and the commit of the default branch, and the base when there is
    exactly one merge base; a wrong range, a common ancestor that another one
    reaches, or a base of two merge bases fails. *)
-let change_vectors = Vectors.group set ~name:"changes" ~rev:"v1" give_change
+let change_vectors =
+  Vectors.group set ~name:"changes" ~form:"#change-vector=v1" give_change
 
 let give_landing (vector : Vectors.vector) =
   let graph = graph_of (commits_of vector.input) in
@@ -130,7 +134,8 @@ let give_landing (vector : Vectors.vector) =
    line that takes a second parent, or a landing commit that is not the last of
    the line to reach the commit, fails. *)
 let landing_vectors =
-  Vectors.group set ~name:"landing-commits" ~rev:"v1" give_landing
+  Vectors.group set ~name:"landing-commits" ~form:"#landing-commit-vector=v1"
+    give_landing
 
 let property ?(count = 1000) ~name generator check =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick

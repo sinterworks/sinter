@@ -100,13 +100,15 @@ let give_root_table (vector : Vectors.vector) =
    The test gives the bytes of each vector to the adapter and fails unless it
    gives "valid" and a root table whose form is the form of the vector. *)
 let give_root_table_vectors =
-  Vectors.group toml_set ~name:"give-root-table" ~rev:"v1" give_root_table
+  Vectors.group toml_set ~name:"give-root-table"
+    ~form:"#toml-document-vector=v1" give_root_table
 
 (* @verifies data-forms#toml[reject-byte-sequence][*]=v1
    The test fails when the adapter gives "valid" and a table for a byte
    sequence that the vector calls invalid. *)
 let reject_byte_sequence_vectors =
-  Vectors.group toml_set ~name:"reject-byte-sequence" ~rev:"v1" give_root_table
+  Vectors.group toml_set ~name:"reject-byte-sequence"
+    ~form:"#toml-document-vector=v1" give_root_table
 
 let give_span (vector : Vectors.vector) =
   match (D.read (input_bytes vector), vector.values) with
@@ -123,7 +125,8 @@ let give_span (vector : Vectors.vector) =
    of the vector, a span whose start or end differs from the vector, or a
    result other than "valid". *)
 let give_span_vectors =
-  Vectors.group toml_set ~name:"give-span" ~rev:"v1" give_span
+  Vectors.group toml_set ~name:"give-span" ~form:"#toml-span-vector=v1"
+    give_span
 
 let give_omit_span (vector : Vectors.vector) =
   match D.read (input_bytes vector) with
@@ -146,7 +149,8 @@ let give_omit_span (vector : Vectors.vector) =
    The test fails when the adapter gives a span of a TOML value at the
    location of the vector, which has no span. *)
 let omit_span_vectors =
-  Vectors.group toml_set ~name:"omit-span" ~rev:"v1" give_omit_span
+  Vectors.group toml_set ~name:"omit-span" ~form:"#toml-span-vector=v1"
+    give_omit_span
 
 let adapter bytes =
   match D.read bytes with

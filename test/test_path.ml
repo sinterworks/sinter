@@ -57,7 +57,8 @@ let give_path (vector : Vectors.vector) =
 (* @verifies files[paths][*]=v1
    The vectors check "valid" and "invalid" for texts that match `path` and
    texts that do not. *)
-let path_vectors = Vectors.group files_set ~name:"paths" ~rev:"v1" give_path
+let path_vectors =
+  Vectors.group files_set ~name:"paths" ~form:"#path-vector=v1" give_path
 
 let interesting =
   [
