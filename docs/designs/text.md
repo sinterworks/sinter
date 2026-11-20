@@ -7,7 +7,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when it is
@@ -38,12 +38,12 @@ design has one JSON text on each line of its text.
 
 | word or phrase | meaning |
 |---|---|
-| definition | a term, a schema, or an atom that a design declares under a name |
-| term | a definition that a design declares under a name, such as `whole-number`, that says what a word means, gives a grammar rule that is a building block, or defines a computed value; a definition of a design is a term, a schema, or an atom |
-| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the edge of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [definition](sinter:#design=v1) | a term, a schema, or an atom that a design declares under a name |
+| term | a definition that a design declares under a name, such as `whole-number`, that says what a word means, gives a grammar rule that is a building block, or defines a computed value |
+| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
 | atom | a definition, declared by a design under a name, that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
-| [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions; a definition of a design is a definition that the design declares under a name |
+| [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
 | [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
@@ -95,7 +95,10 @@ design has one JSON text on each line of its text.
 | [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after it up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
 | [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
 | [give](sinter:#algorithm=v1) | for each choice of a value for each of its header value names, an algorithm gives the value V of the step `Give V.` at which its steps end for these values |
-| [canonical vector line](sinter:#canonical-vector-line=v1) | a JSON text, as RFC 8259 defines it, that holds one JSON object with no repeated member names, no `null`, no number with a fraction or an exponent, no whole number outside −9,007,199,254,740,991 to 9,007,199,254,740,991, no leading `-` on 0, no space, tab, line feed, or carriage return outside JSON strings, members in code point order of their names, and fixed JSON string escapes |
+| [canonical vector line](sinter:#canonical-vector-line=v1) | a JSON text, as RFC 8259 defines it, that holds one JSON object and writes that object and each JSON value inside it in the single form that `canonical-vector-line` fixes |
+| [vector](sinter:#vector-line=v1) | an input and what a conforming program gives for it |
+| [group](sinter:#vector-line=v1) | a named set of vectors, such as `decode` |
+| [vector line](sinter:#vector-line=v1) | the text of one line of the vector file: a canonical vector line whose JSON object holds one vector |
 
 ## 2. Numbers, texts, bytes, lines, and notation
 
@@ -341,10 +344,10 @@ has the start line 1, column 4, and the end line 1, column 4.
 ### 2.5 Designs, specifications, requirements, and conforming programs
 
 A design is a document that declares, each under a name, obligations
-and definitions. A definition of a design is a definition that the
-design declares under a name, such as `whole-number`. A requirement is
-an obligation that a design declares under a name, such as
-`give-lines`, and states with the word must. A specification of a
+and definitions. A definition of a design is a term, a schema, or an
+atom that the design declares under a name, such as `whole-number`. A
+requirement is an obligation that a design declares under a name, such
+as `give-lines`, and states with the word must. A specification of a
 design is a part of the design that has a name of its own and that
 declares some of the obligations and definitions of the design.
 
@@ -528,8 +531,8 @@ A carriage return is the character whose code point is 13.
 @term design=v1
 
 A design is a document that declares, each under a name, obligations
-and definitions. A definition of a design is a definition that the
-design declares under a name.
+and definitions. A definition of a design is a term, a schema, or an
+atom that the design declares under a name.
 
 ### 3.9 Requirements
 
@@ -1274,13 +1277,10 @@ section 4.
 
 The vectors of this design are in the file
 [`text.test-vectors.jsonl`](text.test-vectors.jsonl), in the same
-directory as this design. A vector is an input and what a conforming
-program gives for it. Each vector follows from the requirements and adds
-nothing to them. The schema `vector-line` states the layout of the file
-and of each vector line. The vectors are in groups. Each group has a
-name, such as `decode`, and a schema in a subsection below. The schema
-names the requirements that the vectors of the group follow from, and it
-describes their inputs, results, and values.
+directory as this design. Each vector follows from the requirements and
+adds nothing to them. The schema `vector-line` gives the layout of the
+vector file and of each vector line, and the schemas after it give the
+groups.
 
 Several requirements apply only when a program gives the thing that they
 name, such as a line number. So a vector holds a program only to what
@@ -1309,8 +1309,9 @@ holds one JSON object and meets all of these rules:
   9,007,199,254,740,991. A JSON number that writes 0 has no leading `-`.
 - There is no space, tab, line feed, or carriage return outside JSON
   strings.
-- The members of each JSON object stand in code point order of their
-  names.
+- The members of each JSON object stand in code point order of the texts
+  of their names, where each escape sequence stands for the character
+  that it writes.
 - In each JSON string, `"` is written `\"`, `\` is written `\\`, the
   characters U+0008, U+0009, U+000A, U+000C, and U+000D are written
   `\b`, `\t`, `\n`, `\f`, and `\r`, each other character from U+0000 to
@@ -1328,30 +1329,35 @@ when, it is a canonical vector line.
     rfc/8259,
     #{
         canonical-vector-line=v1, conforming-program=v1, design=v1,
-        input=v1, result=v1, valid-utf-8=v1, text=v1,
+        input=v1, result=v1, byte-sequence=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, text=v1, character=v1,
         byte-order-mark=v1, line=v1, line-feed=v1, carriage-return=v1,
         whole-number=v1, decimal-numeral=v1, u-numeral=v1, code-span=v1,
     },
 }
 
-The file is valid UTF-8. Its text has no byte order mark and no carriage
-return, it has no empty line, and when it is not empty it ends with a
-line feed. The file holds zero or more vector lines. Each line of the
-text of the file is a vector line: a canonical vector line, which meets
-the schema `canonical-vector-line`. So only a line feed ends a line of
-the file. U+0085, U+2028, and U+2029 are in some JSON strings of the
-file, and they do not end a line.
+A vector of this design is an input and what a conforming program gives
+for it. The vectors are in groups, and each group has a name, such as
+`decode`. The vector file of this design, `text.test-vectors.jsonl` in
+the same directory as this design, is a byte sequence that is valid
+UTF-8. Its text has no byte order mark and no carriage return, it has no
+empty line, and when it is not empty it ends with a line feed. So only a
+line feed ends a line of the vector file. A JSON string of the vector
+file can hold U+0085, U+2028, or U+2029, and these characters do not end
+a line. The vector file holds zero or more vector lines. All vector
+lines with the same `group` in the vector file have the same `#` and
+schema name in `form`, and their labels in `form` may differ.
 
-The JSON object of a vector line has the members `form`, `group`,
-`input`, `note`, `result`, and `values`, in that order, with `note` and
-`result` only where these rules state:
+The text of each line of the vector file is a vector line. A vector line
+meets the schema `canonical-vector-line`, and its JSON object has the
+members `form`, `group`, `input`, `note`, `result`, and `values`, in
+that order, and no other member, with `note` and `result` only where
+these rules state:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
-  for the group of the vector, `=`, and a label of that schema: `v`,
-  then the decimal numeral of a whole number of 1 or more, such as `v1`
-  (for example, `"#decode-vector=v1"`). All vector lines with the same
-  `group` in the file have the same `#` and schema name in `form`. Their
-  labels in `form` may differ.
+  for the group of the vector, `=`, and a label: `v`, then the decimal
+  numeral of a whole number of 1 or more, such as `v1` (for example,
+  `"#decode-vector=v1"`).
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
 - `note`: an explanation of the vector, as a JSON string, which a
@@ -1365,6 +1371,9 @@ The JSON object of a vector line has the members `form`, `group`,
   schema of the group says which of these things a conforming program
   gives in each case. An empty JSON object, `{}`, says that a conforming
   program gives none of the things that the schema names for `values`.
+
+A vector line meets the schema `vector-line` when, and only when, it
+meets the rules of this schema for a vector line.
 
 ### 5.3 Byte sequences that a program decodes
 
@@ -1384,8 +1393,8 @@ The JSON object of a vector line has the members `form`, `group`,
 The group `decode` holds the vectors of the requirements
 `validate-utf-8`, `give-texts-of-byte-sequences`, and
 `omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
-sequence and what a conforming program gives when it decodes the byte
-sequence as UTF-8. Each vector line of the group meets the schema
+sequence and what a conforming program gives for it by these
+requirements. Each vector line of the group meets the schema
 `vector-line`.
 
 Inside `input`, `result`, and `values`, a text and a byte sequence have
@@ -1410,10 +1419,10 @@ vector line hold these things:
   empty JSON object, `{}`.
 
 When a conforming program gives a result for whether the byte sequence
-is valid UTF-8, it gives the result that `result` holds, and no other
-result. When it gives a text as the text of the byte sequence, it gives
-the text that `text` holds, and no other text. When `values` is `{}`, it
-gives no text as the text of the byte sequence.
+is valid UTF-8, it gives the result that `result` holds, once, and no
+other result. When it gives a text as the text of the byte sequence, it
+gives the text that `text` holds, and no other text. When `values` is
+`{}`, it gives no text as the text of the byte sequence.
 
 ```
 {"form":"#decode-vector=v1","group":"decode","input":"6869","result":"valid","values":{"text":"hi"}}
