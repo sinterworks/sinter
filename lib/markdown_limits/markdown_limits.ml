@@ -132,22 +132,24 @@ let containers_from ~limit bytes first =
   let marker_end k = ends k || bytes.[k] = ' ' || bytes.[k] = '\t' in
   let rec ordered i j =
     if j < n && is_digit bytes.[j] && j - i < 9 then ordered i (j + 1)
-    else if
-      j > i && j < n
-      && (bytes.[j] = '.' || bytes.[j] = ')')
-      && marker_end (j + 1)
+    else if j < n && (bytes.[j] = '.' || bytes.[j] = ')') && marker_end (j + 1)
     then Some (j + 1)
     else None
   in
   let best = ref 0 and i = ref first in
-  while !i < n && !best <= limit do
+  while
+    (!i < n)
+    [@mutaml.skip
+      "a line that starts at the end of the bytes is empty, and its depth 0 \
+       changes no result"]
+    && !best <= limit
+  do
     let column = ref 0 and white = ref 0 and markers = ref 0 in
-    let w = ref 0 and listed = ref false and leading = ref true in
-    let list_marker next =
-      if not !listed then (
-        w := !white;
-        listed := true);
+    let depth = ref 0 and listed = ref false and leading = ref true in
+    let marker next list =
       incr markers;
+      depth := if !listed then !depth + 1 else !markers + (!white / 2);
+      listed := !listed || list;
       column := !column + (next - !i);
       i := next
     in
@@ -159,20 +161,16 @@ let containers_from ~limit bytes first =
             white := !white + width;
             column := !column + width;
             incr i
-        | '>' ->
-            if not !listed then w := !white;
-            incr markers;
-            incr column;
-            incr i
-        | ('-' | '+' | '*') when marker_end (!i + 1) -> list_marker (!i + 1)
+        | '>' -> marker (!i + 1) false
+        | ('-' | '+' | '*') when marker_end (!i + 1) -> marker (!i + 1) true
         | c when is_digit c -> (
             match ordered !i !i with
-            | Some next -> list_marker next
+            | Some next -> marker next true
             | None -> leading := false)
         | _ -> leading := false
       else incr i
     done;
-    if !markers > 0 then best := max !best (!markers + (!w / 2));
+    best := max !best !depth;
     incr i
   done;
   if !best <= limit then Some !best else None
