@@ -1631,13 +1631,14 @@ elements in order.
     (`"declared"` when the cited item is a declared item, `"group"` when
     the cited item is a group of conformance vectors, `"vector-set"`
     when the cited item is a vector set, and `"external"` when the cited
-    item is an external item), `cited-in-force` (present when
-    `cited-kind` is `"declared"`, `"group"`, or `"vector-set"`: `true`
-    when that declared item, or the item of the kind design or of the
-    kind specification of that group's vector set or of that vector set,
-    is in force in the tree at the point under the bindings, and `false`
-    otherwise), `path` (the valid path of the file of the edge), and
-    `at` (the position subject of the edge).
+    item is an external item or when the edge has no cited item),
+    `cited-in-force` (present when `cited-kind` is `"declared"`,
+    `"group"`, or `"vector-set"`: `true` when that declared item, or the
+    item of the kind design or of the kind specification of the vector
+    set (for `"group"`, the vector set of that group), is in force in
+    the tree at the point under the bindings, and `false` otherwise),
+    `path` (the valid path of the file of the edge), and `at` (the
+    position subject of the edge).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: `{}` when `historical-paths` is not a valid path set;
