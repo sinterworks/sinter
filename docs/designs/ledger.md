@@ -125,8 +125,8 @@ The git tree object of the ledger commit holds the ledger entries in
 chunks: regular files at chunk paths, such as
 `entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl` (terms
 `chunk-path` and `chunk`). The schema `valid-ledger-tree` gives the form
-of a valid ledger. For example, a valid ledger of 87 ledger entries can
-have two chunks:
+of a valid ledger tree. For example, a valid ledger of 87 ledger entries
+can have two chunks:
 
 ```
 entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl    50 lines
@@ -170,10 +170,9 @@ members that the requirement `ignore-unknown-members` names, such as
 `ts` and a member that no design names, change no state.
 
 The field `v` gives the version of the form of a ledger entry; the form
-of the schema `entry-field` is the version 1. Adding a field to a kind
-of ledger entry needs no new value of `v`, because members that no
-design names change no state (requirement `ignore-unknown-members`). A
-newer line (term
+of the schema `entry-field` is the version 1. The value 1 of `v` stands
+for the form of the common fields, so a field that a design adds to a
+kind of ledger entry needs no new value of `v`. A newer line (term
 `newer-line`) makes a ledger newer. A program gives no state from a
 newer ledger, and it appends nothing to it (requirements
 `give-states-only-from-valid-ledgers` and
@@ -535,10 +534,10 @@ the git object to which its ledger ref resolves, as the term
 the ledger objects of that commit. The history objects of a git
 repository are its ledger objects and, for each commit that the ledger
 commit reaches, the ledger objects of that commit. A git repository does
-not hold the ledger objects of a commit when a tree entry among the
-entries of the git tree object of that commit names a git object that is
-not a git tree object, or when a chunk of that git tree object names a
-git object that is not a blob.
+not hold the ledger objects of a commit when the git object of a tree
+entry among the entries of the git tree object of that commit is not a
+git tree object, or when the git object of a chunk of that git tree
+object is not a blob.
 
 ### 4.9 Valid ledger trees
 
