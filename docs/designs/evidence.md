@@ -121,7 +121,7 @@ literal names `true` and `false`.
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, a set of stopped files of that tree, and a given set of declared items of the tree, of a group of conformance vectors of a declared item in that set, when that group has at least one conformance vector that says a vector, and that group is not verified |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, under a set of stopped files of that tree, and for a given set S of declared items of the tree, of a group of conformance vectors of a declared item in S, when that group has at least one conformance vector that says a vector, and that group is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -795,23 +795,24 @@ parts has a result link to each test entry that these rules give:
     #{report-file=v1, import=v1},
 }
 
-Under a valid binding of `file-readers`, the test entries of the reading
-of a report file of an import are these: for each code file of the tree
-of the import that can be read and whose pack has, in its descriptor, a
-test runner with the name of the test runner of the report file, and for
-each test node that the reading of the text of that code file, with that
-pack, gives, the test entry of that test node whose test entry id is the
-text of the valid path of the code file, then `#`, then the decimal
-numeral of the number of the test node. The number of a test node is 1
-more than the number of the test nodes of that code file before it in
-the order of the parse tree.
+Under a valid binding of `file-readers` and a set of stopped files of
+the tree of an import, the test entries of the reading of a report file
+of that import are these: for each code file of that tree that can be
+read under that binding and that set of stopped files and whose pack
+has, in its descriptor, a test runner with the name of the test runner
+of the report file, and for each test node that the reading of the text
+of that code file, with that pack, gives, the test entry of that test
+node whose test entry id is the text of the valid path of the code file,
+then `#`, then the decimal numeral of the number of the test node. The
+number of a test node is 1 more than the number of the test nodes of
+that code file before it in the order of the parse tree.
 
 ### 3.14 Readings of report files
 
 @atom reading-of-a-report-file=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, test-evidence=v1, parameter=v1},
     packs#{
         valid-pack=v1, test-runner=v1, runner-settings=v1,
         test-entry=v1, adapter-request=v1, adapter-call=v1,
@@ -821,10 +822,10 @@ the order of the parse tree.
     #{report-file=v1, import=v1, reading-entry=v1, default-reader-result=v1},
 }
 
-Under a valid binding of `file-readers`, and a valid binding of
-`runner-settings` for the test runner of a report file of an import, the
-reading of that report file has one of the results "bound",
-"unreadable", and "stopped":
+Under a valid binding of `file-readers`, a set of stopped files of the
+tree of an import, and a valid binding of `runner-settings` for the test
+runner of a report file of that import, the reading of that report file
+has one of the results "bound", "unreadable", and "stopped":
 
 - When the test runner has an adapter hash, the reading is the call of
   the function bind of the content of the file `adapters/<r>.wasm` of
@@ -855,7 +856,7 @@ test entry that the reading gives with the result "bound".
 
 @term linked-test=v1
 @cites {
-    documents#{file-readers=v1, file-test=v1},
+    documents#{file-readers=v1, file-test=v1, unreadable-file=v1},
     packs#{test-entry=v1, test-name=v1, test-node=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v1},
     files#{path=v1},
@@ -866,17 +867,18 @@ test entry that the reading gives with the result "bound".
     },
 }
 
-Under a valid binding of `file-readers`, the test results of an import
-are the test results of the readings of its report files that have the
-result "bound". They are the test results, as the Ontology means them,
-of the execution of test runners for which the import stands. The number
-of a test result is 1 more than the number of the test results before it
-in its reading. A test result of an import is linked to a test of the
-tree of the import when, and only when, its reading has a result link of
-that test result and a test entry whose path is the valid path of the
-file of that test, whose name path is equal to the name of that test,
-and whose kind is the kind of the test node of that test, and both of
-these conditions are true:
+Under a valid binding of `file-readers` and a set of stopped files of
+the tree of an import, the test results of that import are the test
+results of the readings of its report files under that binding and that
+set of stopped files that have the result "bound". They are the test
+results, as the Ontology means them, of the execution of test runners
+for which the import stands. The number of a test result is 1 more than
+the number of the test results before it in its reading. A test result
+of an import is linked to a test of the tree of the import when, and
+only when, its reading has a result link of that test result and a test
+entry whose path is the valid path of the file of that test, whose name
+path is equal to the name of that test, and whose kind is the kind of
+the test node of that test, and both of these conditions are true:
 
 - the test result has no file, or has a file that matches that valid
   path;
@@ -1186,69 +1188,76 @@ runner under that binding.
 
 @req give-reading-results=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
-Under a valid binding of `file-readers`, when a conforming program gives
-the result of the reading of a report file of an import, it must give
-exactly one result, and only "bound", "unreadable", or "stopped": the
-result of that reading.
+Under a valid binding of `file-readers`, when a conforming program
+gives, under that binding and a set of stopped files of the tree of an
+import, the result of the reading of a report file of that import, it
+must give exactly one result, and only "bound", "unreadable", or
+"stopped": the result of that reading under that binding and that set of
+stopped files.
 
 ### 4.3 The test results of readings
 
 @req give-reading-test-results=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
-of the reading of a report file of an import, a conforming program gives
-the test results of that reading, it must give each test result of that
-reading once, in their order, with its name, its status, and its file,
-its line, and its duration when it has them, and no other test result of
-that reading.
+of the reading of a report file of an import under that binding and a
+set of stopped files of the tree of that import, a conforming program
+gives the test results of that reading, it must give each test result of
+that reading under that binding and that set of stopped files once, in
+their order, with its name, its status, and its file, its line, and its
+duration when it has them, and no other test result of that reading.
 
 ### 4.4 The result links of readings
 
 @req give-reading-result-links=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
-of the reading of a report file of an import, a conforming program gives
-the result links of that reading, it must give each result link of that
-reading once, and no other result link of that reading.
+of the reading of a report file of an import under that binding and a
+set of stopped files of the tree of that import, a conforming program
+gives the result links of that reading, it must give each result link of
+that reading under that binding and that set of stopped files once, and
+no other result link of that reading.
 
 ### 4.5 No values of readings that do not bind
 
 @req omit-reading-values=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
-Under a valid binding of `file-readers`, a conforming program must give
-no test results and no result links of the reading of a report file of
-an import when the result of that reading is not "bound".
+Under a valid binding of `file-readers`, for a set of stopped files of
+the tree of an import, a conforming program must give no test results
+and no result links of the reading of a report file of that import under
+that binding and that set of stopped files when the result of that
+reading under that binding and that set of stopped files is not "bound".
 
 ### 4.6 The requests of readings
 
 @req give-reading-requests=v1
 @cites {
-    documents#{file-readers=v1},
-    ontology#{parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, parameter=v1},
     packs#{adapter-request=v1, adapter-call=v1, test-entry=v1},
     text#{conforming-program=v1},
     #{report-file=v1, import=v1, reading-entry=v1, reading-of-a-report-file=v1},
@@ -1256,10 +1265,12 @@ an import when the result of that reading is not "bound".
 
 Under a valid binding of `file-readers`, when a conforming program makes
 a call of the function bind of an adapter for the reading of a report
-file of an import, it must make it with the request that the atom
-`reading-of-a-report-file` gives, with the test entries of that reading
-and no other test entry, and with the test entry ids of these test
-entries as the test entry ids of the call.
+file of an import under that binding and a set of stopped files of the
+tree of that import, it must make that call with the request that the
+atom `reading-of-a-report-file` gives under that binding and that set of
+stopped files, with the test entries of that reading under that binding
+and that set of stopped files and no other test entry, and with the test
+entry ids of these test entries as the test entry ids of the call.
 
 ### 4.7 Bytes only from the report content
 
@@ -1300,38 +1311,42 @@ only when that import is given for that tree.
 
 @req give-test-outcomes=v1
 @cites {
-    documents#{file-readers=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
     ontology#{test=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{import=v1, tree-evidence=v1, import-outcome=v1, tree-outcome=v1},
 }
 
-Under a valid binding of `file-readers`, when a conforming program gives
-the outcome of a test of a tree in an import of that tree, or in the
+Under a valid binding of `file-readers`, when a conforming program
+gives, under that binding and a set of stopped files of a tree, the
+outcome of a test of that tree in an import of that tree, or in the
 evidence for that tree, it must give exactly one outcome, and only
 "passed", "failed", or "not run": the outcome of that test in that
-import, or in that evidence.
+import, or in that evidence, under that binding and that set of stopped
+files.
 
 ### 4.11 The sources of outcomes
 
 @req give-outcome-sources=v1
 @cites {
-    documents#{file-readers=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
     ontology#{test=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1},
     #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
 }
 
-Under a valid binding of `file-readers`, when a conforming program gives
-the outcome of a test of a tree in the evidence for that tree, it must
-give with it each source of that outcome once, and no other source.
+Under a valid binding of `file-readers`, when a conforming program
+gives, under that binding and a set of stopped files of a tree, the
+outcome of a test of that tree in the evidence for that tree, it must
+give with that outcome each source of that outcome under that binding
+and that set of stopped files once, and no other source.
 
 ### 4.12 The sources of kept promises
 
 @req give-promise-sources=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, tree-edge=v1},
+    documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     ontology#{
         promise=v1, verifies-edge=v1, edge-source=v1, test=v1, tree=v1,
         parameter=v1,
@@ -1342,14 +1357,17 @@ give with it each source of that outcome once, and no other source.
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-whether a `verifies` promise is kept in a tree that has evidence, it
-must give with it, once for each test that is the source of an edge of
-the tree that is such an edge for that promise as the term `promise` of
-the Ontology states, the outcome of that test in the evidence for that
-tree, which is "passed", "failed", or "not run", and each source of that
-outcome once, and it must give no outcome and no source for another test
-with it.
+Identifiers gives the result "valid", when a conforming program gives,
+under these bindings and a set of stopped files of a tree that has
+evidence, whether a `verifies` promise is kept in that tree, it must
+give with it, once for each test that is the source of an edge of that
+tree under these bindings and that set of stopped files that is such an
+edge for that promise as the term `promise` of the Ontology states, the
+outcome of that test in the evidence for that tree under these bindings
+and that set of stopped files, which is "passed", "failed", or "not
+run", and each source of that outcome under these bindings and that set
+of stopped files once, and it must give no outcome and no source for
+another test with it.
 
 ### 4.13 Nothing from evidence with a stopped reading
 
@@ -1439,12 +1457,12 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the findings of a tree of one of the classes `never-ran`, `failed`, and
-`ambiguous-result`, which rest on the evidence for that tree, under
-these bindings and a set of stopped files of that tree, it must give
-each tree finding of that class that the tree has under these bindings
-and this set once, and no other finding of that class.
+Identifiers gives the result "valid", when a conforming program gives,
+under these bindings and a set of stopped files of a tree, the findings
+of that tree of one of the classes `never-ran`, `failed`, and
+`ambiguous-result`, which rest on the evidence for that tree, it must
+give each tree finding of that class that the tree has under these
+bindings and this set once, and no other finding of that class.
 
 ### 4.17 Findings of the class `unverified-vector`
 
@@ -1459,13 +1477,13 @@ and this set once, and no other finding of that class.
 
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the findings of a tree of the class `unverified-vector`, which rest on
-the evidence for that tree, under these bindings and a set of stopped
-files of that tree, it must take a set S of declared items of that tree
-as an input, and it must give each tree finding of that class that the
-tree has for S under these bindings and this set once, and no other
-finding of that class.
+Identifiers gives the result "valid", when a conforming program gives,
+under these bindings and a set of stopped files of a tree, the findings
+of that tree of the class `unverified-vector`, which rest on the
+evidence for that tree, it must take a set S of declared items of that
+tree as an input, and it must give each tree finding of that class that
+the tree has for S under these bindings and this set of stopped files
+once, and no other finding of that class.
 
 ## 5. Conformance
 
@@ -1578,15 +1596,15 @@ content of the input for its test runner, it gives the result that
         vector-meaning=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
+    ontology#{tree=v1, test-evidence=v1, parameter=v1},
     packs#{
         test-runner=v1, runner-setting=v1, runner-settings=v1,
         test-entry=v1, test-name=v1, test-node=v1, adapter-call=v1,
     },
     #{
-        recognition-vector=v1, report-file=v1, runner-data=v1,
-        case-result=v1, default-reader-result=v1,
+        recognition-vector=v1, report-file=v1, import=v1,
+        runner-data=v1, case-result=v1, default-reader-result=v1,
         reading-of-a-report-file=v1, give-reading-results=v1,
         give-reading-test-results=v1, give-reading-result-links=v1,
         omit-reading-values=v1,
@@ -1628,8 +1646,9 @@ The members of a vector line have these forms:
   test entry ids.
 - `result`: "bound" or "unreadable": the result of the reading of a
   report file with that report content, whose test runner has that match
-  table and those runner settings, when its test entries are those of
-  `tests` and the program does not stop it.
+  table and those runner settings, when its test entries, under the
+  binding of `file-readers` and a set of stopped files of the tree of
+  its import, are those of `tests` and the program does not stop it.
 - `values`: with "bound", a JSON object with the members `results` and
   `links`. `results` is a JSON array with one JSON object for each test
   result, in their order, with the members `name`, the name of the test
@@ -1668,7 +1687,7 @@ is `{}`, it gives no test result and no result link.
         hash=v1, vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
+    documents#{file-readers=v1, unreadable-file=v1},
     ontology#{
         test=v1, test-evidence=v1, tree=v1, finding-class=v1,
         parameter=v1,
@@ -1700,8 +1719,8 @@ tree of each vector has no other test that a test result names, the
 binding of `file-readers` is valid, a conforming program of the design
 Identifiers gives the result "valid" for the binding of
 `external-namespaces`, and the binding of `runner-settings` for each
-test runner is valid. The group uses no need, so these forms give no
-need names.
+test runner is valid. Each vector is for the empty set of stopped files
+of the tree. The group uses no need, so these forms give no need names.
 
 The JSON values, objects, members, arrays, strings, numbers, and the
 literal names `true` and `false` of this schema are as RFC 8259 defines
@@ -1755,12 +1774,14 @@ The members of a vector line have these forms:
   `name`, and `status`.
 
 When a conforming program gives the outcome of that test in the evidence
-for the tree, it gives the outcome that `result` gives, and no other
-outcome. With that outcome, it gives the sources that `sources` gives,
-and no other source; the order of the sources, and of the triples of a
-source, is not part of what it gives. When it gives the findings of the
-class `ambiguous-result` of the tree, it gives one for that test when
-`ambiguous` is true, and none for that test when it is false.
+for the tree under the empty set of stopped files of the tree, it gives
+the outcome that `result` gives, and no other outcome. With that
+outcome, it gives the sources that `sources` gives, and no other source;
+the order of the sources, and of the triples of a source, is not part of
+what it gives. When it gives the findings of the class
+`ambiguous-result` of the tree under the empty set of stopped files of
+the tree, it gives one for that test when `ambiguous` is true, and none
+for that test when it is false.
 
 ```
 {"form":"#outcome-vector=v1","group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"note":"a test that holds tests passed: each test that it holds passed","result":"passed","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
