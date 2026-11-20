@@ -47,12 +47,13 @@ ancestry, branch names, the git configuration, remotes, their
 addresses, and fetches, and the requirement
 `run-no-configured-programs`. From Data forms (`data-forms`), it takes
 JSON values, objects and their members, line objects, canonical byte
-sequences, canonical lines, the JSON values of byte sequences, hash ids
-with their id prefixes, and test-vector sets: the file that holds the
-conformance vectors of the design is one. From Text and notation
-(`text`), it takes texts, characters, hex digits, whole numbers, bytes,
-byte sequences, UTF-8 encodings, code spans, productions, and what a
-conforming program, an input, and a result are.
+sequences, canonical lines, the JSON values of byte sequences, hex
+texts, hash ids with their id prefixes, vector lines, the forms of a
+group, the meaning of a vector, and test-vector sets: the file that
+holds the conformance vectors of the design is one. From Text and
+notation (`text`), it takes texts, characters, hex digits, whole
+numbers, bytes, byte sequences, UTF-8 encodings, code spans,
+productions, and what a conforming program, an input, and a result are.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, it takes which addresses of
@@ -79,6 +80,8 @@ text.
 | [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; the execution of a conforming program that continuous integration starts at each push of commits to the default branch, as git means a push |
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
+| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [atom](sinter:ontology#atom=v1) | a declared item whose declaration word is `@atom`; it defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
 | [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; its addresses for a fetch and for a push are those that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after their rewrite, as the term `changes#remote-transfer` gives them |
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when it resolves to a commit |
@@ -111,6 +114,9 @@ text.
 | environment | the environment variables of a process |
 | [external id](sinter:identifiers#external-id=v1) | a namespace name, `/`, and an id, such as `gh/42`, which names an external item |
 | tracker | a service that holds external items, such as the issues of the host of a project |
+| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 
 ## 2. The ledger and its storage
 
@@ -170,9 +176,7 @@ members that the requirement `ignore-unknown-members` names, such as
 `ts` and a member that no design names, change no state.
 
 The field `v` gives the version of the form of a ledger entry; the form
-of the schema `entry-field` is the version 1. The value 1 of `v` stands
-for the form of the common fields, so a field that a design adds to a
-kind of ledger entry needs no new value of `v`. A newer line (term
+of the schema `entry-field` is the version 1. A newer line (term
 `newer-line`) makes a ledger newer. A program gives no state from a
 newer ledger, and it appends nothing to it (requirements
 `give-states-only-from-valid-ledgers` and
@@ -363,28 +367,21 @@ took from a tracker, such as the title or the state of an issue
 @schema agent-markers=v1
 @cites {ontology#{parameter=v1}, text#{text=v1, code-span=v1}}
 
-The parameter `agent-markers` gives the names of the agent markers. A
-binding of it is a finite set of texts.
+A binding of the parameter `agent-markers` is a finite set of texts.
 
 ### 3.2 `job-markers`
 
 @schema job-markers=v1
 @cites {ontology#{parameter=v1}, text#{text=v1, code-span=v1}}
 
-The parameter `job-markers` gives the names of the job markers. A
-binding of it is a finite set of texts.
+A binding of the parameter `job-markers` is a finite set of texts.
 
 ### 3.3 `ledger-remote`
 
 @schema ledger-remote=v1
-@cites {
-    ontology#{parameter=v1},
-    changes#{remote-transfer=v1},
-    text#{text=v1, code-span=v1},
-}
+@cites {ontology#{parameter=v1}, text#{text=v1, code-span=v1}}
 
-The parameter `ledger-remote` gives the remote by which a clone names
-its shared clone. A binding of it is a text, such as `origin`.
+A binding of the parameter `ledger-remote` is a text, such as `origin`.
 
 ## 4. Definitions
 
@@ -1172,8 +1169,7 @@ holds a program only to what the program gives or makes for the input.
 The file is a test-vector set, in the form that the specification
 [`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives. By
 the term `data-forms#vector-meaning`, the object of each vector line of
-the file states one vector of this design. No group of this design uses
-a need, so the forms of each group give no need names.
+the file states one vector of this design.
 
 ### 6.1 Ledgers
 
@@ -1365,8 +1361,7 @@ line is a newer line.
   from that line does not accept that ledger entry at its point; the
   acceptance rules accept each other ledger entry of a line that comes
   from a line of a, other than a void, at its point.
-- `result`: the forms of the group name no question for `result`; no
-  vector of the group has this member.
+- `result`: no vector of the group has this member.
 - `values`: when a conforming program can pull into A from s, a JSON
   object with two members. `lines` is the lines of the git tree object
   of a pull commit of s over a, as a sequence in the order of the `seq`
