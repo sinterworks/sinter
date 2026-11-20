@@ -3,15 +3,15 @@
 
 # Approval
 @design approval=v2
-@cites text=v1
+@cites text=v2
 @cites identifiers=v2
 @cites files=v1
 @cites data-forms=v2
 @cites ontology=v2
-@cites changes=v1
-@cites findings=v1
+@cites changes=v2
+@cites findings=v2
 @cites documents=v2
-@cites ledger=v1
+@cites ledger=v2
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
@@ -95,7 +95,7 @@ strings, numbers, and the literal names `true` and `false`.
 | [subject text](sinter:#subject-text=v2) | a text that matches the production `subject-text`, such as `req:billing#limit`; the subject text of a subject of approval of a tree is the kind word of its kind of subject of approval, `:`, and the name of its declared item in that tree |
 | [judgment](sinter:ontology#judgment=v1) | a ledger entry that records a decision of a person: a ledger entry of the kind `approval`, `decline`, `done`, or `abandoned` |
 | an approval, a decline | with an article: a ledger entry of the kind `approval`; a ledger entry of the kind `decline`; without an article, "approval" is the act of a person who approves |
-| [field of a kind](sinter:ledger#entry-field=v1) | a member of the object of a ledger entry that a design names for its kind, other than the common fields, such as `subject` |
+| [field of a kind](sinter:ledger#entry-field=v2) | a member of the object of a ledger entry that a design names for its kind, other than the common fields, such as `subject` |
 | [fields of an `approval` or `decline` ledger entry](sinter:#judgment-field=v2) | `subject`, a string that is a subject text; `hash`, a string that fits the hash form; `saw`, one of the strings `none`, `approval`, and `decline`; and, for a decline only, the optional `reason`, a string |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [index in a ledger](sinter:#ledger-index=v1), [point of an index](sinter:#ledger-index=v1) | the number, counted from 1, of an element of the sequence of a ledger; the point of the index k is the point of the first k − 1 ledger entries; the indexes before the point of the first n ledger entries are the indexes 1 to n |
@@ -104,14 +104,14 @@ strings, numbers, and the literal names `true` and `false`.
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v2) | it holds for a ledger entry E of one of these kinds at a point P when its `saw` is the kind of the judgment before E at P, or `none` when there is none, and, for an approval, its `saw` is not `approval` |
 | [latest judgment](sinter:#latest-judgment=v2) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers` and a binding of `external-namespaces`: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
-| [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a binding of `default-branch-name` |
+| [commit of the default branch](sinter:changes#default-branch-commit=v2) | the commit that the default branch has, under a binding of `default-branch-name` |
 | [has merged](sinter:#merged-content=v2) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, the revised content of a subject of approval in a tree has merged into the default branch of a git repository when the default branch of that git repository has a commit, and the tree of a commit of the first-parent line of that commit gives the same subject of approval the same extent hash |
 | [approved, declined, neither](sinter:#subject-state=v2) | the three states of a subject of approval in a tree, at a point of the ledger of a git repository, under the bindings of the parameters |
 | [in force](sinter:ontology#in-force-item=v2) | a declared item is in force in a tree, at a point of a ledger, when it is not retired there: when it still applies |
 | [in force under the bindings](sinter:#bound-in-force-item=v2) | in force as the atom `ontology#in-force-item` gives it, where the state approved of the source of each `supersedes` edge follows from the states that the atom `subject-state` gives, and where each status tag and each edge is read under the bindings of `file-readers` and `external-namespaces` |
 | [subject order](sinter:#subject-order=v1) | the order of the subjects of approval of a tree by the valid paths of the files of their declared items, and then by the positions of their declarations |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable |
-| [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
+| [subject of a finding](sinter:findings#finding-subject=v2) | the text that names what a finding is about |
 | [position subject](sinter:documents#position-subject=v2) | the subject of a finding at a position, such as `src/fee.ml@L3C4` |
 
 ## 2. Judgments and approval states
@@ -407,7 +407,7 @@ name of its declared item in that tree.
 
 @schema judgment-field=v2
 @cites {
-    ledger#{entry-field=v1},
+    ledger#{entry-field=v2},
     data-forms#{json-value=v1, hash-form=v1},
     ontology#{ledger-entry=v1},
     text#{text=v1, code-span=v1},
@@ -499,7 +499,7 @@ latest judgment at P under F and N when no index before P is such.
 @term merged-content=v2
 @cites {
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
+        commit=v1, commit-file=v1, default-branch-commit=v2,
         first-parent-line=v1,
     },
     ontology#{
@@ -533,8 +533,8 @@ F, and N.
         default-branch=v1, parameter=v2,
     },
     identifiers#{external-namespaces=v1},
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
     documents#{file-readers=v1},
     text#{code-span=v1},
     #{
@@ -574,8 +574,8 @@ is neither approved nor declined.
         approval-state=v2, edge=v2, tree=v1, ledger=v1, parameter=v2,
     },
     identifiers#{external-namespaces=v1, status-tag=v1},
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
     documents#{file-readers=v1},
     text#{code-span=v1},
     #{approval-kinds=v1, subject-state=v2},
@@ -628,9 +628,9 @@ order of positions.
         file-readers=v1, item-file=v1, origin=v2, run-spot=v2,
         tree-finding=v1,
     },
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
-    findings#{finding-subject=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
+    findings#{finding-subject=v2},
     text#{code-span=v1},
     #{
         approval-kinds=v1, subject-text=v2, subject-state=v2,
@@ -663,9 +663,9 @@ the subject order, in the text of the file of that declared item.
         file-readers=v1, item-file=v1, origin=v2, run-spot=v2,
         tree-finding=v1,
     },
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
-    findings#{finding-subject=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
+    findings#{finding-subject=v2},
     text#{code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-text=v2,
@@ -705,8 +705,8 @@ subject order, in the text of the file of that declared item.
         origin-position=v1, position-subject=v2, run-spot=v2,
         tree-finding=v1,
     },
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
     text#{code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-state=v2,
@@ -736,8 +736,8 @@ text of the file of the edge.
 @cites {
     ontology#{subject-of-approval=v2, tree=v1, ledger=v1, parameter=v2},
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
     documents#{file-readers=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{approval-kinds=v1, subject-state=v2},
@@ -836,7 +836,7 @@ approval, and no finding of the classes `declined`,
 
 @req give-no-findings-from-invalid-ledgers=v2
 @cites {
-    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ledger#{ledger-validity=v2, ledger-object=v2, stored-ledger=v2},
     ontology#{tree=v1, ledger=v1, finding-class=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
@@ -857,8 +857,8 @@ repository does not hold its ledger objects.
 @cites {
     ontology#{finding-class=v1, tree=v1, ledger=v1, parameter=v2},
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    changes#{default-branch-commit=v1},
-    ledger#{stored-ledger=v1},
+    changes#{default-branch-commit=v2},
+    ledger#{stored-ledger=v2},
     documents#{file-readers=v1, tree-finding=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{
@@ -918,9 +918,9 @@ program gives for the input.
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{ledger=v1, ledger-entry=v1, parameter=v2},
-    changes#{default-branch-commit=v1},
+    changes#{default-branch-commit=v2},
     documents#{file-readers=v1},
-    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ledger#{ledger-validity=v2, ledger-object=v2, stored-ledger=v2},
     #{
         subject-text=v2, judgment-field=v2, judgment-acceptance-rule=v2,
         give-judgment-acceptance=v2,
@@ -991,13 +991,13 @@ accepted at its point, it gives "accepted" when the element of
         subject-of-approval=v2, declared-item=v2, schema=v1, tree=v1,
         edge=v2, ledger=v1, finding-class=v1, parameter=v2,
     },
-    changes#{default-branch-commit=v1},
+    changes#{default-branch-commit=v2},
     documents#{
         file-readers=v1, tree-edge=v2, origin-position=v1,
         position-subject=v2, tree-finding=v1,
     },
-    findings#{finding-subject=v1},
-    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    findings#{finding-subject=v2},
+    ledger#{ledger-validity=v2, ledger-object=v2, stored-ledger=v2},
     #{
         approval-kinds=v1, subject-text=v2, subject-state=v2,
         bound-in-force-item=v2, declined-finding=v2,
@@ -1087,11 +1087,11 @@ of that class.
         default-branch=v1, parameter=v2,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
+        commit=v1, commit-file=v1, default-branch-commit=v2,
         first-parent-line=v1,
     },
     documents#{file-readers=v1, extent-hash=v2},
-    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ledger#{ledger-validity=v2, ledger-object=v2, stored-ledger=v2},
     #{
         approval-kinds=v1, subject-text=v2, subject-state=v2,
         give-subject-states=v2, acceptance-vector=v1,
