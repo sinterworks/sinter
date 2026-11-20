@@ -15,8 +15,9 @@
       comes right before it, and the pattern ends right after it or a [/] or
       [\/] comes right after it. A special run with a [/] after it takes that
       [/] with it and matches zero or more names, each with a [/] after it: a
-      byte sequence that is empty or that ends with [/]. A special run at the
-      end of the pattern matches any byte sequence, [/] included.
+      byte sequence that is empty or that ends with [/]. A special run with [\/]
+      after it, and a special run at the end of the pattern, match any byte
+      sequence, [/] included; the [\/] then matches [/] by the first rule.
     - Any other run of one or more [*] matches a byte sequence that holds no
       [/], the empty one included.
     - [\[] starts a bracket expression, which ends at the first [\]] after its
@@ -27,11 +28,11 @@
       members are: [\[:], a name, and the next [:\]], for the classes [alnum],
       [alpha], [blank], [cntrl], [digit], [graph], [lower], [print], [punct],
       [space], [upper], and [xdigit] of the bytes 0x00 to 0x7F; a byte, a [-],
-      and a byte, for each byte from the first to the second, by their values;
-      [\ ] and a byte, for that byte; and any other byte, for itself. A [-]
-      right before the [\]] that ends the expression is a member for itself. A
-      bracket expression with no end, or with a class name that is not in this
-      list, makes the pattern match no pathname.
+      and a byte, for the first byte and for each byte from the first to the
+      second, by their values; [\ ] and a byte, for that byte; and any other
+      byte, for itself. A [-] right before the [\]] that ends the expression is
+      a member for itself. A bracket expression with no end, or with a class
+      name that is not in this list, makes the pattern match no pathname.
     - Each other byte matches itself.
 
     The pattern matches the pathname when its parts, in order, match the whole

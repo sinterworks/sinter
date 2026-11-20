@@ -86,6 +86,7 @@ let bracket pattern start =
             match member_at (next + 1) with
             | None -> None
             | Some (high, after) ->
+                let high = max low high in
                 members_from after ((fun c -> low <= c && c <= high) :: members)
           else members_from next (Char.equal low :: members)
   in
@@ -117,7 +118,7 @@ let compile ?(case_fold = false) pattern =
             && pattern.[stop] = '\\'
             && stop + 1 < length
             && pattern.[stop + 1] = '/'
-          then tokens (stop + 2) (Names :: found)
+          then tokens stop (Anything :: found)
           else tokens stop (Star :: found)
       | '[' -> (
           match bracket pattern (k + 1) with
@@ -160,7 +161,7 @@ let matches pattern pathname =
                     <> negated)
             | Star ->
                 next.(at) || (at < size && pathname.[at] <> '/' && row.(at + 1))
-            | Anything -> true
+            | Anything -> next.(at) || (at < size && row.(at + 1))
             | Names ->
                 later :=
                   !later || (at < size && pathname.[at] = '/' && next.(at + 1));

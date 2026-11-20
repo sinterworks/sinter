@@ -107,15 +107,13 @@ module Reference = struct
             done;
             let run = !j - i in
             let before = i = 0 || p.[i - 1] = '/' in
-            let slash_after =
-              if !j < n && p.[!j] = '/' then Some 1
-              else if !j + 1 < n && p.[!j] = '\\' && p.[!j + 1] = '/' then
-                Some 2
-              else None
+            let escaped_slash =
+              !j + 1 < n && p.[!j] = '\\' && p.[!j + 1] = '/'
             in
-            if run >= 2 && before && !j = n then List.rev (Everything :: acc)
-            else if run >= 2 && before && slash_after <> None then
-              go (!j + Option.value slash_after ~default:0) (Names :: acc)
+            if run >= 2 && before && (!j = n || escaped_slash) then
+              go !j (Everything :: acc)
+            else if run >= 2 && before && !j < n && p.[!j] = '/' then
+              go (!j + 1) (Names :: acc)
             else go !j (Star :: acc)
         | '[' -> (
             match bracket p (i + 1) with
@@ -131,7 +129,7 @@ module Reference = struct
     let test c =
       match member with
       | Byte b -> b = c
-      | Range (a, b) -> a <= c && c <= b
+      | Range (a, b) -> c = a || (a <= c && c <= b)
       | Class f -> f c
     in
     test c
@@ -157,7 +155,10 @@ module Reference = struct
                   && go (t + 1) (i + 1)
               | One -> i < n && s.[i] <> '/' && go (t + 1) (i + 1)
               | Star -> go (t + 1) i || (i < n && s.[i] <> '/' && go t (i + 1))
-              | Everything -> true
+              | Everything ->
+                  List.exists
+                    (fun j -> go (t + 1) j)
+                    (List.init (n - i + 1) (fun k -> i + k))
               | Names ->
                   go (t + 1) i
                   || List.exists
@@ -197,7 +198,7 @@ let table =
     ("a**", "a/b", false);
     ("**a", "x/a", false);
     ("**\\/x", "a/x", true);
-    ("**\\/x", "x", true);
+    ("**\\/x", "x", false);
     ("*", "", true);
     ("*", "a/b", false);
     ("*.md", "a.md", true);
@@ -215,7 +216,9 @@ let table =
     ("[!]]", "]", false);
     ("[a-]", "-", true);
     ("[c-a]", "b", false);
+    ("[c-a]", "c", true);
     ("[!c-a]", "b", true);
+    ("[!c-a]", "c", false);
     ("[[:digit:]]", "7", true);
     ("[[:digit:]x]", "x", true);
     ("[[:upper:]]", "a", false);
@@ -255,6 +258,7 @@ let fold_table =
     ("[A-C]", "b", true, false);
     ("[[:upper:]]", "a", true, false);
     ("[!A]", "a", false, true);
+    ("[c-a]", "C", true, false);
     ("\xc3\x89", "\xc3\xa9", false, false);
   ]
 
@@ -278,6 +282,35 @@ let table_tests =
               expected
               (Reference.matches pattern pathname))
           table);
+    case "a run of * before \\/ matches any bytes, and \\/ matches /" (fun () ->
+        List.iter
+          (fun (pattern, pathname, expected) ->
+            Alcotest.(check bool)
+              (Printf.sprintf "%S against %S" pattern pathname)
+              expected (matches pattern pathname))
+          [
+            ("**\\/x", "x", false);
+            ("**\\/x", "/x", true);
+            ("**\\/x", "a/x", true);
+            ("**\\/x", "a/b/x", true);
+            ("**\\/x", "ax", false);
+            ("a/**\\/x", "a/x", false);
+            ("a/**\\/x", "a//x", true);
+            ("a/**\\/x", "a/b/x", true);
+            ("a/**\\/x", "a/b/c/x", true);
+            ("a/**\\/x", "ab/x", false);
+            ("a/**\\/", "a/", false);
+            ("a/**\\/", "a/b/", true);
+            ("a/**\\/", "a/b", false);
+            ("a/**\\/", "a//", true);
+            ("a/***\\/x", "a/x", false);
+            ("a/***\\/x", "a//x", true);
+            ("a**\\/x", "a/x", true);
+            ("a**\\/x", "ab/x", true);
+            ("a**\\/x", "ab/c/x", false);
+            ("a\\/**/x", "a/x", true);
+            ("a\\/**/x", "a/b/x", true);
+          ]);
     case "with case_fold, the letters A to Z match a to z" (fun () ->
         List.iter
           (fun (pattern, pathname, folded, plain) ->
@@ -295,8 +328,8 @@ let table_tests =
 (* @verifies changes#give-default-branch-commits=v1
    In a pattern of a condition of the git configuration, a class of a bracket
    expression must match exactly its bytes of 0x00 to 0x7F, and a range must
-   match each byte from its first byte to its second byte, by their values,
-   other than `/`. *)
+   match its first byte and each byte from its first byte to its second byte,
+   by their values, other than `/`. *)
 let class_tests =
   [
     case "each class matches exactly its bytes of 0x00 to 0x7F" (fun () ->
@@ -355,6 +388,31 @@ let class_tests =
                 (Wildmatch.matches pattern (String.make 1 (Char.chr code)))
             done)
           [ (0x01, 0x7e); (0x80, 0xff); (0x30, 0x39); (0x41, 0x41) ]);
+    case "a range whose second byte is below its first matches its first byte"
+      (fun () ->
+        List.iter
+          (fun (pattern, pathname, expected) ->
+            Alcotest.(check bool)
+              (Printf.sprintf "%S against %S" pattern pathname)
+              expected (matches pattern pathname))
+          [
+            ("r[c-a]", "rc", true);
+            ("r[c-a]", "ra", false);
+            ("r[c-a]", "rb", false);
+            ("r[c-a]", "rd", false);
+            ("r[c-a]", "r-", false);
+            ("r[!c-a]", "rb", true);
+            ("r[!c-a]", "rc", false);
+            ("r[xc-a]", "rx", true);
+            ("r[xc-a]", "rc", true);
+            ("r[xc-a]", "rb", false);
+            ("r[\\c-a]", "rc", true);
+            ("r[c-\\a]", "rc", true);
+            ("r[z-a-c]", "rz", true);
+            ("r[z-a-c]", "r-", true);
+            ("r[z-a-c]", "ra", false);
+            ("r[z-a-c]", "rb", false);
+          ]);
   ]
 
 let pattern_gen =
