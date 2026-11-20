@@ -217,8 +217,8 @@ let decision_cases =
         List.iter
           (fun (feature, bytes) -> is_valid feature bytes)
           F.core_2_features);
-    (* @verifies packs#validate-adapters=v1
-       Each byte sequence is a valid adapter but for one construct of a later
+    (* @verifies packs#{adapter-module=v1, validate-adapters=v1}
+       Each byte sequence is an adapter module but for one construct of a later
        proposal, so a decision that took a module beyond Core 2.0 as a
        WebAssembly module would give "valid". *)
     case "a construct of a later proposal makes an adapter invalid" (fun () ->
@@ -241,8 +241,8 @@ let decision_cases =
             ("a component", "\x00asm\x0d\x00\x01\x00");
             ("no byte", "");
           ]);
-    (* @verifies packs#validate-adapters=v1
-       A valid adapter has no import; an import of each kind, beside the five
+    (* @verifies packs#{adapter-module=v1, validate-adapters=v1}
+       An adapter module has no import; an import of each kind, beside the five
        exports with their types, makes the decision "invalid". *)
     case "an import of each kind makes an adapter invalid" (fun () ->
         List.iter
@@ -260,9 +260,10 @@ let decision_cases =
           (adapter_with_exports
              (right_exports
              @ [ ("__heap_base", "(global $g)"); ("t", "(table $t)") ])));
-    (* @verifies packs#validate-adapters=v1
-       Each of the five names, missing, makes the decision "invalid", so a
-       decision that left out the check of one export would give "valid". *)
+    (* @verifies packs#{adapter-module=v1, validate-adapters=v1}
+       Each of the five names of an adapter module, missing, makes the decision
+       "invalid", so a decision that left out the check of one export would
+       give "valid". *)
     case "each missing export makes an adapter invalid" (fun () ->
         List.iter
           (fun name ->
@@ -270,9 +271,9 @@ let decision_cases =
               (function Adapter.Missing_export n -> n = name | _ -> false)
               (adapter_with_exports (List.remove_assoc name right_exports)))
           export_names);
-    (* @verifies packs#validate-adapters=v1
-       Each of the five names, exported as another kind or as a function of
-       another type, makes the decision "invalid". *)
+    (* @verifies packs#{adapter-module=v1, validate-adapters=v1}
+       Each of the five names of an adapter module, exported as another kind or
+       as a function of another type, makes the decision "invalid". *)
     case "each export of the wrong kind or type makes an adapter invalid"
       (fun () ->
         List.iter

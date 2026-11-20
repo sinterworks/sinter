@@ -80,12 +80,13 @@ let a_reading_keeps_its_lines_and_nodes () =
 
 let bom = "\xef\xbb\xbf// a\n"
 
-(* @verifies packs#{parse-tree=v1, node-run=v1}
-   A node list or body-node list that breaks the run bounds or the nesting of
-   the term node-run is no parse tree, so Reading.check refuses it. Each case
-   checks one condition or boundary shape and checks that Reading.check reports
-   the lowest node number, the first failed check, and the lowest body-node
-   number. *)
+(* @verifies packs#{give-reading-nodes=v1, give-reading-node-values=v1}
+   A reading with the result "parsed" gives nodes whose runs and body-node runs
+   lie in the body of the text and obey the nesting of parse-tree and node-run,
+   at least one body node for each definition node, and a name path with at
+   least one own name for each test node. Each case checks one condition or
+   boundary shape and checks that Reading.check reports the lowest node number,
+   the first failed check, and the lowest body-node number. *)
 let simple_cases =
   [
     ( "a run that ends after the last boundary",
@@ -430,12 +431,13 @@ let print_case (source, nodes) =
   Printf.sprintf "%S\n%s" source
     (String.concat "\n" (List.map print_node nodes))
 
-(* @verifies packs#{parse-tree=v1, node-run=v1}
+(* @verifies packs#{give-reading-nodes=v1, give-reading-node-values=v1}
    For generated readings, Reading.check accepts a node list when and only when
    each run lies in the body of the text, the node runs and each body-node list
-   obey the nesting of the term node-run, and the definition and test checks
-   pass. A stack check that misses an ancestor crossing or reports another node
-   or body number disagrees with the direct pairwise model of node-run. *)
+   obey the nesting of parse-tree and node-run, and the definition and test
+   checks pass. A stack check that misses an ancestor crossing or reports
+   another node or body number disagrees with the direct pairwise model of
+   node-run. *)
 let check_is_total_and_exact =
   property ~count:3000 ~name:"check gives each reading the result of its checks"
     ~print:print_case case_gen (fun (source, nodes) ->

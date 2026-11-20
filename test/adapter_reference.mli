@@ -2,9 +2,9 @@
 (* Copyright 2026 The Sinter Authors *)
 
 (** The requests and the results of calls of the specification [adapters] of the
-    design [packs=v1], read directly from the terms [adapter-request] and
-    [call-result], in the forms of the members of the groups [requests] and
-    [responses]. *)
+    design [packs=v1], read directly from the schemas [adapter-request] and
+    [adapter-response] and the atom [call-result], in the forms of the members
+    of the groups [requests] and [responses]. *)
 
 val request : Yojson.Basic.t -> string
 (** [request input] is the request of the call that [input] gives, where [input]

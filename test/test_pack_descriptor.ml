@@ -590,7 +590,7 @@ let read_holds bytes =
   | Ok _, None | Error _, Some _ -> false
 
 (* @verifies packs#{
-       read-descriptor=v1, give-descriptor-values=v1,
+       valid-descriptor=v1, read-descriptor=v1, give-descriptor-values=v1,
        omit-invalid-descriptor-values=v1, omit-absent-adapter-values=v1,
        omit-absent-match-tables=v1,
    }

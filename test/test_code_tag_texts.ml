@@ -1369,11 +1369,12 @@ let with_small_stack run =
   Gc.set { before with stack_limit = 1 lsl 16 };
   Fun.protect ~finally:(fun () -> Gc.set before) run
 
-(* @verifies packs#{parse-tree=v1, node-run=v1}
+(* @verifies documents#{give-declared-items=v1, give-tests=v1}
    Under parse-tree order, a comment node is enclosed when an earlier comment
-   node ends at or after its end. These cases check nested chains, equal runs,
-   empty comment nodes at start and end boundaries, and siblings after enclosed
-   comment nodes. *)
+   node ends at or after its end. An enclosed comment node forms no comment
+   run, so it gives no tag text, no declared item, and no comment on a test.
+   These cases check nested chains, equal runs, empty comment nodes at start
+   and end boundaries, and siblings after enclosed comment nodes. *)
 let outer_comment_node_cases () =
   let file =
     code_file c_sigils "/* a /* b /* c */ */ */\n"

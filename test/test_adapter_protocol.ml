@@ -291,12 +291,12 @@ let request_input_gen =
                 (Gen.list_size (Gen.int_bound 5) tricky_text_gen))
              (fun ids -> Gen.flatten_list (List.map entry_gen ids))))
 
-(* @verifies packs#give-requests=v1
+(* @verifies packs#{give-requests=v1, adapter-request=v1}
    For generated runners, settings, report names, roots, and test entries
    with texts that need escapes, characters outside the Basic Multilingual
    Plane, and labels out of order, a request that differs from the canonical
    byte sequence of the request object fails the comparison. *)
-let requests_follow_the_term =
+let requests_follow_the_schema =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick
     (QCheck2.Test.make ~count:2000
        ~name:"a request is the canonical byte sequence of the request object"
@@ -484,7 +484,12 @@ let print_binding binding =
          ^ Yojson.Basic.to_string (Descriptor_reference.form_of_toml value))
        binding)
 
-let bindings_follow_the_term =
+(* @verifies packs#runner-settings=v1
+   For generated bindings of runner-settings, Setting_values.bind accepts each
+   binding that meets the three conditions of the schema runner-settings, gives
+   each setting its bound value or default value under runner-setting-value,
+   and reports the first pair that breaks a rule. *)
+let bindings_follow_the_schema =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick
     (QCheck2.Test.make ~count:2000
        ~name:
@@ -798,20 +803,21 @@ let print_response (function_, bytes) =
   ^ ": " ^ String.escaped bytes
 
 (* @verifies packs#{
-       give-call-results=v1, give-call-values=v1, omit-call-values=v1,
-       omit-adapter-error-texts=v1,
+       adapter-response=v1, give-call-results=v1, give-call-values=v1,
+       omit-call-values=v1, omit-adapter-error-texts=v1,
    }
    For generated responses of recognise and bind, written with spaces,
    escapes, and members in any order, with a byte changed or a byte order
    mark in front, a result, a test result, a binding object, a warning, or an
-   error text that differs from a direct reading of the term call-result fails
-   the comparison, as does a value given with a result that does not carry
-   it. *)
-let responses_follow_the_term =
+   error text that differs from a direct reading of the schema adapter-response
+   and the atom call-result fails the comparison, as does a value given with a
+   result that does not carry it. *)
+let responses_follow_the_atom =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick
     (QCheck2.Test.make ~count:5000
        ~name:
-         "a response gives the result and the values of the term call-result"
+         "a response gives the result and the values of the schema \
+          adapter-response and the atom call-result"
        ~print:print_response response_gen (fun (function_, bytes) ->
          let result, values = response_answer function_ bytes in
          let expected_result, expected_values =
@@ -921,17 +927,17 @@ let many_bindings_need_no_deep_stack () =
 let tests =
   Vectors.tests "packs.adapters" [ request_vectors; response_vectors ]
   @ [
-      requests_follow_the_term;
+      requests_follow_the_schema;
       Alcotest.test_case "two test entries with one id give no request" `Quick
         repeated_id_gives_no_request;
       Alcotest.test_case "a line out of range gives no test entry" `Quick
         lines_out_of_range;
       Alcotest.test_case "the test labels are a set in code point order" `Quick
         labels_are_a_set_in_code_point_order;
-      bindings_follow_the_term;
+      bindings_follow_the_schema;
       Alcotest.test_case "a list of setting values follows its names" `Quick
         of_list_follows_the_names;
-      responses_follow_the_term;
+      responses_follow_the_atom;
       bound_share;
       Alcotest.test_case "a deep response needs no deep stack" `Quick
         deep_responses_need_no_deep_stack;
