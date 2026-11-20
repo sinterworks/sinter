@@ -408,14 +408,14 @@ text with the language of the usable grammar, and it runs the code of
 that language in an instance of the WebAssembly module of the grammar.
 The text has no parse tree when the parsing of tree-sitter gives no
 result, such as when the instantiation or an invocation in that instance
-fails or a trap occurs in any WebAssembly instance during the parsing,
-or when the tree of nodes that the parsing gives breaks the conditions
-of a parse tree. The
-program ends each reading. The text has a parse failure when it has no
-parse tree, or when the root node of the parse tree has an error: when
-the root node, or a node inside it, nodes of hidden symbols included, is
-an `ERROR` node or a `MISSING` node. A reading of a text with a parse
-failure gives the result "parse failure", and no node of the text.
+fails or a trap occurs in a WebAssembly instance whose code runs for
+that parsing, or when the tree of nodes that the parsing gives breaks
+the conditions of a parse tree. The program ends each reading. The text
+has a parse failure when it has no parse tree, or when the root node of
+the parse tree has an error: when the root node, or a node inside it,
+nodes of hidden symbols included, is an `ERROR` node or a `MISSING`
+node. A reading of a text with a parse failure gives the result "parse
+failure", and no node of the text.
 
 Each other reading gives the result "parsed". The program runs each
 query file of the grammar over the parse tree. The query language of
@@ -976,17 +976,18 @@ tree of nodes or no result. This parsing runs the code of the language
 in the instance of the WebAssembly module in which that module gave that
 language. The parsing gives no result when the instantiation of that
 module fails, when an invocation in that instance fails, or when a trap
-occurs in any WebAssembly instance during the parsing, whether the
-instance of the grammar or tree-sitter's core instance. Each tree of
-nodes that this parsing gives has a root node, and the children of each
-node of that tree of nodes are its named and its anonymous child nodes,
-in their order. A node of a hidden symbol is no node of that tree of
-nodes, and its children stand in its place. Each node has a symbol, and
-each symbol has a name. Each node has a start byte and an end byte,
-which are whole numbers. A node has an error when it, or a node that the
-parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
-node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
-parsing inserts for a token that the text lacks.
+occurs in a WebAssembly instance whose code runs for that parsing, such
+as the instance of the grammar or an instance that runs parsing code of
+tree-sitter. Each tree of nodes that this parsing gives has a root node,
+and the children of each node of that tree of nodes are its named and
+its anonymous child nodes, in their order. A node of a hidden symbol is
+no node of that tree of nodes, and its children stand in its place. Each
+node has a symbol, and each symbol has a name. Each node has a start
+byte and an end byte, which are whole numbers. A node has an error when
+it, or a node that the parsing gives inside it, nodes of hidden symbols
+included, is an `ERROR` node, a node of the symbol `ERROR`, or a
+`MISSING` node, a node that the parsing inserts for a token that the
+text lacks.
 
 The parse text of a text is that text, followed by a line feed when the
 text does not end with a line feed. So the parse text of the empty text
@@ -1017,14 +1018,14 @@ conditions:
    the run of the first in the text ends at or before the boundary where
    the run of the second in the text starts.
 
-In conditions 3 and 4, for a node that meets conditions 1 and 2, the run
-of that node in the text is the run of the text that starts at the
-greater of b and the lesser of s and l, and that ends at the greater of
-b and the lesser of e and l, where s and e are the boundaries of the
-parse text that condition 1 gives for the start byte and the end byte of
-that node. When this parsing gives no result, or gives a tree of nodes
-that breaks any of these four conditions, the text has no parse tree
-with that usable grammar.
+For a node that meets conditions 1 and 2, the run of that node in the
+text is the run of the text that starts at the greater of b and the
+lesser of s and l, and that ends at the greater of b and the lesser of
+e and l, where s and e are the boundaries of the parse text that
+condition 1 gives for the start byte and the end byte of that node.
+When this parsing gives no result, or gives a tree of nodes that breaks
+any of these four conditions, the text has no parse tree with that
+usable grammar.
 
 ### 4.13 The order of the parse tree
 
@@ -1042,30 +1043,20 @@ second of them.
 
 @term node-run=v1
 @cites {
-    text#{
-        text=v1, character=v1, boundary=v1, run=v1, body=v1,
-        utf-8-encoding=v1, byte=v1, code-span=v1,
-    },
+    text#{text=v1, boundary=v1, run=v1, code-span=v1},
     #{parse-tree=v1, parse-tree-order=v1},
 }
 
-For each node of the parse tree of a text, s is the boundary of the
-parse text such that the UTF-8 encoding of the characters of the parse
-text before s has as many bytes as the start byte of the node, and e is
-the boundary of the parse text such that the UTF-8 encoding of the
-characters of the parse text before e has as many bytes as the end byte
-of the node. For a text, b is the boundary where the body of the text
-starts, and l is the last boundary of the text. The run of a node of the
-parse tree of a text is the run of that text that starts at the greater
-of b and the lesser of s and l, and that ends at the greater of b and
-the lesser of e and l. So, for two nodes of a parse tree, when the first
-comes before the second in the order of the parse tree, one of two
-things holds: the run of the second starts at or after the boundary
-where the run of the first starts and ends at or before the boundary
-where the run of the first ends; or the run of the first ends at or
-before the boundary where the run of the second starts. Two nodes can
-have the same run, such as a node and its only child, and two nodes can
-each have a run that starts and ends at one boundary, the same for both.
+The run of a node of the parse tree of a text is the run of that node
+in the text that `parse-tree` gives. So, for two nodes of a parse tree,
+when the first comes before the second in the order of the parse tree,
+one of two things holds: the run of the second starts at or after the
+boundary where the run of the first starts and ends at or before the
+boundary where the run of the first ends; or the run of the first ends
+at or before the boundary where the run of the second starts. Two nodes
+can have the same run, such as a node and its only child, and two nodes
+can each have a run that starts and ends at one boundary, the same for
+both.
 
 ### 4.15 Node types
 
