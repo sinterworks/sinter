@@ -3,6 +3,7 @@ sinter-spec = "1.0"
 [scan]
 packs.markdown.files = ["**/*.md", "!test/**"]
 namespaces.gh = "[1-9][0-9]*"
+namespaces.rfc = "[1-9][0-9]*"
 
 [paths]
 exempt = [
@@ -24,4 +25,4 @@ exempt = [
 decision = ["docs/decisions/"]
 
 [check]
-warn-only = false
+warn-only = true
