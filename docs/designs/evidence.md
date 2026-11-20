@@ -71,10 +71,10 @@ of the parse tree, and the names of test nodes; test entries, the
 requests of the function bind, calls, valid adapters, instances of
 adapters, and the results of calls with their test results and binding
 objects. From Findings, it takes spots. From Documents, it takes the
-bindings of `file-readers`, read files and code files, files that cannot
-be read, the tests of a read file, vector files, the edges of a tree,
-origins and origin positions, position subjects, the spots of runs, and
-tree findings.
+bindings of `file-readers`, read files and code files, sets of stopped
+files and files that cannot be read, the tests of a read file, vector
+files, the edges of a tree, origins and origin positions, position
+subjects, the spots of runs, and tree findings.
 
 From XML 1.0 (Fifth Edition), the W3C Recommendation of 26 November
 2008, the design takes well-formed XML documents, their encodings,
@@ -120,7 +120,8 @@ literal names `true` and `false`.
 | [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence and a given set of declared items of the tree, of a group of conformance vectors of a declared item in that set, when that group has at least one conformance vector that says a vector, and that group is not verified |
+| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, a set of stopped files of that tree, and a given set of declared items of the tree, of a group of conformance vectors of a declared item in that set, when that group has at least one conformance vector that says a vector, and that group is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -1139,23 +1140,25 @@ that run.
         conformance-vector=v1, conformance-vector-group=v1,
         vector-set=v1, declared-item=v1, item-name=v1, tree=v1,
     },
-    documents#{vector-file=v1, tree-finding=v1},
+    documents#{vector-file=v1, tree-finding=v1, unreadable-file=v1},
     findings#{spot=v1},
     files#{path=v1},
     text#{span=v1, code-span=v1},
     #{tree-evidence=v1, verified-vector=v1},
 }
 
-A tree T that has evidence has, for a set S of declared items of T, one
-tree finding of the class `unverified-vector` for each group of
-conformance vectors of the vector set of a declared item in S, when that
-group has at least one conformance vector that says a vector, and that
-group is not verified in the evidence for T. A tree that has no evidence
-has no tree finding of the class `unverified-vector` for any set of its
-declared items. The subject of the finding is the name of the item of
-its vector set, then `[`, then the name of the group of conformance
-vectors, then `]`. Its spot is the valid path of the vector file of that
-item alone, with no span.
+Under a set of stopped files of a tree T, when T has evidence, T has,
+for a set S of declared items of T, one tree finding of the class
+`unverified-vector` for each group of conformance vectors of the vector
+set that a declared item in S has in T under that set of stopped files,
+when that group has at least one conformance vector that says a vector,
+and that group is not verified in the evidence for T. A tree that has
+no evidence has no tree finding of the class `unverified-vector` for
+any set of its declared items and any set of stopped files of the tree.
+The subject of the finding is the name of the item of its vector set,
+then `[`, then the name of the group of conformance vectors, then `]`.
+Its spot is the valid path of the vector file of that item alone, with
+no span.
 
 ## 4. Requirements
 
@@ -1425,7 +1428,7 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 @req give-evidence-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, tree-finding=v1},
+    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
@@ -1438,16 +1441,17 @@ Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the findings of a tree of one of the classes `never-ran`, `failed`, and
-`ambiguous-result`, which rest on the evidence for that tree, it must
-give each tree finding of that class that the tree has once, and no
-other finding of that class.
+`ambiguous-result`, which rest on the evidence for that tree, under
+these bindings and a set of stopped files of that tree, it must give
+each tree finding of that class that the tree has under these bindings
+and this set once, and no other finding of that class.
 
 ### 4.17 Findings of the class `unverified-vector`
 
 @req give-unverified-vector-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, tree-finding=v1},
+    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
     ontology#{declared-item=v1, finding-class=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
     #{tree-evidence=v1, unverified-vector-finding=v1},
@@ -1457,9 +1461,11 @@ Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
 the findings of a tree of the class `unverified-vector`, which rest on
-the evidence for that tree, it must take a set S of declared items of
-that tree as an input, and it must give each tree finding of that class
-that the tree has for S once, and no other finding of that class.
+the evidence for that tree, under these bindings and a set of stopped
+files of that tree, it must take a set S of declared items of that tree
+as an input, and it must give each tree finding of that class that the
+tree has for S under these bindings and this set once, and no other
+finding of that class.
 
 ## 5. Conformance
 
@@ -1775,7 +1781,7 @@ class `ambiguous-result` of the tree, it gives one for that test when
     },
     documents#{
         file-readers=v1, tree-edge=v1, origin-position=v1,
-        position-subject=v1,
+        position-subject=v1, unreadable-file=v1, vector-file=v1,
     },
     ontology#{
         tree=v1, test=v1, edge=v1, verifies-edge=v1, edge-source=v1,
@@ -1795,22 +1801,23 @@ class `ambiguous-result` of the tree, it gives one for that test when
 The group `findings` has the vectors of the requirement
 `give-evidence-findings` for the classes `never-ran` and `failed`, and
 of the requirement `give-unverified-vector-findings` for the class
-`unverified-vector`. Each vector gives, as its input, the outcomes of tests in the evidence
-for a tree, the edges of the kind `verifies` of the tree, the
-conformance vectors of vector sets of the tree, and, for a set S of
-declared items of the tree, whether the item of each vector set is in S.
-For that input, the vector gives the findings of the classes `never-ran`
-and `failed` that the tree has and the findings of the class
+`unverified-vector`. Each vector gives, as its input, the outcomes of
+tests in the evidence for a tree, the edges of the kind `verifies` of
+the tree, the conformance vectors of vector sets of the tree, and, for a
+set S of declared items of the tree, whether the item of each vector set
+is in S. For that input, the vector gives the findings of the classes
+`never-ran` and `failed` that the tree has and the findings of the class
 `unverified-vector` that the tree has for S. The outcome of each test is
 given as an input. The tree of each vector has no other edge of the kind
 `verifies` and no other vector set. The binding of `file-readers` is
 valid, a conforming program of the design Identifiers gives the result
 "valid" for the binding of `external-namespaces`, the binding of
 `runner-settings` for each test runner is valid, and no reading of a
-report file of the evidence has the result "stopped". Each vector of the
-group has the member `values`, and no vector has the member `result`;
-these forms name no question for `result`. The group uses no need, so
-these forms give no need names.
+report file of the evidence has the result "stopped". Each vector is for
+the empty set of stopped files of the tree. Each vector of the group has
+the member `values`, and no vector has the member `result`; these forms
+name no question for `result`. The group uses no need, so these forms
+give no need names.
 
 The JSON values, objects, members, arrays, strings, numbers, and the
 literal names `true` and `false` of this schema are as RFC 8259 defines
@@ -1851,10 +1858,10 @@ The members of a vector line have these forms:
   subject.
 
 When a conforming program gives the findings of one of these classes of
-the tree, taking the set S of the input as its input when the class is
-`unverified-vector`, it gives one finding of that class for each element
-of `findings` with that class, with that subject, and no other finding
-of that class.
+the tree under the empty set of stopped files of the tree, taking the
+set S of the input as its input when the class is `unverified-vector`,
+it gives one finding of that class for each element of `findings` with
+that class, with that subject, and no other finding of that class.
 
 ```
 {"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; the group keys has a vector that says a vector, and no passing test cites it, so it gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
