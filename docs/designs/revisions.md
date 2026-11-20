@@ -5,7 +5,7 @@
 @design revisions=v2
 @cites text=v2
 @cites identifiers=v2
-@cites files=v1
+@cites files=v2
 @cites data-forms=v2
 @cites ontology=v2
 @cites changes=v2
