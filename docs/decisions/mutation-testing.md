@@ -2,11 +2,11 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Measure the tests with mutation testing, through a fork of mutaml
-@decision mutation-testing v2
+@decision mutation-testing v3
 @cites test-rigor
 @cites gh/25
 @cites gh/27
-Sinter runs mutation testing over `lib/` and `bin/` with a fork of `mutaml` that the project maintains; the score gates a merge and only rises; timeouts count as killed; an equivalent mutant is marked in the source with a reason.
+Sinter runs mutation testing over `lib/` and `bin/` with a fork of `mutaml` that the project maintains; the CI job fails below a minimum score that only rises; timeouts count as killed; an equivalent mutant is marked in the source with a reason.
 
 ## Context
 
@@ -36,14 +36,16 @@ for the choices below.
   original, is marked in the source on the expression, with a reason
   that the report prints. The marked mutant is not generated. No list
   of mutants lives outside the source.
-- The runner passes fixed seeds to the property tests, several per
-  mutant, and a mutant is killed when any seed kills it. The baseline
-  runs twice with different seeds, and a disagreement stops the run.
+- The runner passes seeds to the property tests, more than one for
+  each mutant, and a mutant is killed when any seed kills it. The
+  baseline runs twice with different seeds, and a disagreement stops
+  the run.
 - The gate is a minimum score in the CI job. It starts at the measured
   score rounded down to a whole percent and only rises. A score equal
   to the minimum passes.
-- Every pull request runs the full set of mutants while a pass takes a
-  few minutes.
+- The record `mutation-job-scope` decides which mutants each run tests,
+  how many seeds each mutant runs under, and how the runner draws the
+  seeds.
 - A mutant is named by its file, its enclosing top-level binding, the
   kind of mutation, the original and replacement text, and an ordinal
   among identical mutants in that binding, so that the name survives

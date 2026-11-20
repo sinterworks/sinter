@@ -70,11 +70,7 @@ not kill the mutant.
   author runs the pass on the branch with `--changed-since` and reads
   every survivor. `docs/contributing/mutation-testing.md` gives the
   command.
-- Three statements of `mutation-testing` no longer apply: that every
-  pull request runs the full set, that each mutant runs under three
-  seeds, and that `mutaml-runner` passes fixed seeds. The rest of that
-  record stands, and the gate of `mutation-gate` applies to whichever
-  set ran.
+- The gate of `mutation-gate` applies to whichever set ran.
 - The number of parts follows the count of mutants that the run
   tests, so that each part has about 3 hours of work, half of the time
   limit of a GitHub job. The workflow names the largest number of
