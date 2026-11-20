@@ -1196,8 +1196,8 @@ was not kept. For each `verifies` promise of each such definition, it
 also records one of three values: that the promise was kept, that the
 promise was not kept, or no result. It records no result for a
 `verifies` promise when, and only when, the job gives no result for
-whether that promise is kept. A promise for which a record of the job
-records no result counts as not kept.
+whether that promise is kept. In a record of the job, a promise for
+which that record records no result counts as not kept.
 
 ### 3.49 The states of work items
 
@@ -1444,9 +1444,8 @@ task is under at that point is met at that point.
 @cites #{
     declared-item=v1, containment=v1, task=v1, plan=v1, promise=v1,
     carried-out-item=v1, work-item-definition=v1, work-item-state=v1,
-    ledger=v1, ledger-entry=v1, person=v1, job=v1, delivery-line=v1,
-    item-revision=v1, revised-content=v1, item-name=v1, tree=v1,
-    judgment=v1, job-record=v1,
+    ledger=v1, ledger-entry=v1, item-revision=v1, revised-content=v1,
+    item-name=v1, tree=v1, judgment=v1, job-record=v1,
 }
 
 An item of the kind requirement is accounted for in a tree, at a point
@@ -1457,21 +1456,14 @@ of a ledger, when, and only when, one of these is true at that point:
 - the current definition of an open plan names, as carried out, the
   name that the item, the item of the kind specification that holds it,
   or the item of the kind design that holds it has in that tree;
-- for a task that is done at that point, an accepted `done` ledger
-  entry before that point, at whose point that task was not abandoned,
-  records that a person judged the work of that task finished and
-  records, for that item, both the current revision of the item in
-  that tree and the same revised content as the revised content of the
-  item in that tree;
-- for a task that is done at that point, an accepted `delivered`
-  ledger entry before that point, at whose point that task was not
-  abandoned, records that the job observed that a delivery line of
-  that task named the definition of that task that was current at the
-  point of that `delivered` ledger entry, that each promise of that
-  definition was kept, and, for a promise of that definition whose
-  name is the name of the item in that tree, both the current revision
+- for a task that is done at that point, an accepted ledger entry
+  before that point meets, for that task, the condition of the state
+  done of `work-item-state`, and it records both the current revision
   of the item in that tree and the same revised content as the revised
-  content of the item in that tree.
+  content of the item in that tree: for a `done` ledger entry, for that
+  item; and for a `delivered` ledger entry, for a promise, whose name
+  is the name of the item in that tree, of the definition of that task
+  that was current at the point of that ledger entry.
 
 ### 3.62 Parameters
 
