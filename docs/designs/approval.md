@@ -32,12 +32,12 @@ and the requirement `record-seen-judgments` limit (section 2.2).
 
 From the Ontology (`ontology`), the design takes subjects of approval,
 their seven kinds, their declared items, and when two of them are the
-same subject of approval; revised content; persons, ledger entries, the
-ledger, points of a ledger, and repairs; states, the states approved and
-declined, and in force; trees, the default branch, edges with their
-kinds and cited items, and when an edge says what its kind of edge says;
-findings, finding classes, and parameters with their bindings; and the
-requirement `ontology#treat-ledger-entries-alike`.
+same subject of approval; schemas and atoms; revised content; persons,
+ledger entries, the ledger, points of a ledger, and repairs; states, the
+states approved and declined, and in force; trees, the default branch,
+edges with their kinds and cited items, and when an edge says what its
+kind of edge says; findings, finding classes, and parameters with their
+bindings; and the requirement `ontology#treat-ledger-entries-alike`.
 
 From the Ledger (`ledger`), the design takes the fields of a kind of
 ledger entry and the common fields, acceptance rules, and when a ledger
@@ -57,20 +57,20 @@ positions, position subjects, the order of positions, the spots of runs,
 and tree findings. From Changes (`changes`), it takes commits and their
 parents, the files of the tree of a commit, the parameter
 `default-branch-name` with its bindings, the commit of the default
-branch, and first-parent lines. From Findings
-(`findings`), it takes the subjects of findings. From Identifiers
-(`identifiers`), it takes slugs, full names, kind words, citation
-entries, inline citations, status tags, the texts of tag lines, the form
-of `@ack` lines with its production `subject`, the parameter
-`external-namespaces` with its bindings, and the results that a
-conforming program of Identifiers gives. From Files and paths (`files`),
-it takes valid paths. From Data forms (`data-forms`), it takes JSON
-values with their objects, members, and strings; the index of an
-element of a finite sequence; the hash form;
-and test-vector sets: the file that holds the conformance vectors of the
-design is one. From Text and notation (`text`), it takes texts, code
-point order, the notation of productions, and what a conforming program,
-an input, and a result are.
+branch, and first-parent lines. From Findings (`findings`), it takes the
+subjects of findings. From Identifiers (`identifiers`), it takes slugs,
+full names, kind words, citation entries, inline citations, status tags,
+the texts of tag lines, the form of `@ack` lines with its production
+`subject`, the parameter `external-namespaces` with its bindings, and
+the results that a conforming program of Identifiers gives. From Files
+and paths (`files`), it takes valid paths. From Data forms
+(`data-forms`), it takes JSON values with their objects, members, and
+strings; the index of an element of a finite sequence; the hash form;
+the forms of a group and the meaning of a vector; and test-vector sets:
+the file that holds the conformance vectors of the design is one. From
+Text and notation (`text`), it takes texts, code point order, the
+notation of productions, and what a conforming program, an input, and a
+result are.
 
 The production `subject-text` is written in ABNF, the notation of RFC
 5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
@@ -120,11 +120,11 @@ strings, numbers, and the literal names `true` and `false`.
 
 The parameter `approval-kinds` gives the kinds of subject of approval
 that need approval by a person (schema `approval-kinds` and term
-`approval-need`). For example,
-under the binding of the two kinds of subject of approval whose kind
-words are `spec` and `req`, the subject of approval `req:billing#limit`
-needs approval, and the subject of approval `design:billing` does not.
-Under the empty binding, no subject of approval needs approval.
+`approval-need`). For example, under the binding of the two kinds of
+subject of approval whose kind words are `spec` and `req`, the subject
+of approval `req:billing#limit` needs approval, and the subject of
+approval `design:billing` does not. Under the empty binding, no subject
+of approval needs approval.
 
 A subject of approval has a subject text (term `subject-text`). For
 example, the item of the kind requirement
@@ -591,7 +591,9 @@ and `ontology#retired-item` read the state approved of the source of
 each `supersedes` edge; that state follows, by the term
 `ontology#approval-state`, from the states that the atom
 `subject-state` gives for R under A, D, F, and N. Each status tag and
-each edge that these atoms read is read under F and N.
+each edge that the atoms `ontology#in-force-item`,
+`ontology#effective-supersedes-edge`, and `ontology#retired-item` read
+is read under F and N.
 
 ### 4.10 The subject order
 
@@ -938,11 +940,12 @@ program of Identifiers gives the result "valid"; and for one binding of
 `default-branch-name` (the input does not depend on that binding). No
 other process changes these inputs while the program reads them.
 
-The JSON values, objects, arrays, strings, and the literal names `true`
-and `false` of this schema are as RFC 8259 defines them. Inside the
-members `input` and `values`, a text, such as a subject text or a hash,
-is a JSON string whose characters are the characters of the text, in
-order, and a sequence is a JSON array of its elements, in order.
+The JSON values, objects, arrays, strings, numbers, and the literal
+names `true` and `false` of this schema are as RFC 8259 defines them.
+Inside the members `input` and `values`, a text, such as a subject text
+or a hash, is a JSON string whose characters are the characters of the
+text, in order, and a sequence is a JSON array of its elements, in
+order.
 
 - `input`: a JSON object with one member, `ledger`: the ledger entries
   of the kinds `approval` and `decline` of the ledger, as a sequence in
@@ -1115,12 +1118,13 @@ git repository has the commit whose first-parent line the member `line`
 of the input gives, or no commit when the input has no member `line`. No
 other process changes these inputs while the program reads them.
 
-The JSON values, objects, arrays, and strings of this schema are as RFC
-8259 defines them. Inside the members `input` and `result`, a text, such
-as a subject text or a hash, is a JSON string whose characters are the
-characters of the text, in order; a sequence is a JSON array of its
-elements, in order; and a valid binding of `approval-kinds` has the form
-that the schema `findings-vector` gives for it.
+The JSON values, objects, arrays, strings, and numbers of this schema
+are as RFC 8259 defines them. Inside the members `input` and `result`, a
+text, such as a subject text or a hash, is a JSON string whose
+characters are the characters of the text, in order; a sequence is a
+JSON array of its elements, in order; and a valid binding of
+`approval-kinds` has the form that the schema `findings-vector` gives
+for it.
 
 - `input`: a JSON object with four or five members. `binding` is a valid
   binding of `approval-kinds`. `subject` is the subject text of the
