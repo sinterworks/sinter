@@ -94,7 +94,7 @@ and newer ledgers. From Approval (`approval`), it takes the parameter
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
 | [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges that say what their kind of edge says, whose source counts, whose cited item counts as retired, and whose file is not a historical file |
 | [`cycle`](sinter:#cycle-finding=v1) | the finding class of cycles of `supersedes` and `refines` edges whose anchor member is not in a historical file |
-| [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree that are the base item of no declared item of a tree |
+| [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree that are the base item of no declared item of a tree and whose file's valid path is not the valid path of a stopped file of that tree |
 | [`reused-label`](sinter:#reused-label-finding=v1) | the finding class of items with a new label whose label already appeared on the first-parent line of the default branch for a different kind or a different extent hash |
 
 ## 2. Retirement, cycles, and guarantees over time
@@ -290,9 +290,13 @@ For example, when a change deletes the file of `@decision rust-bridge=v1`,
 or renames `@decision parser-bridge=v1` to `@decision wasm-bridge=v1`,
 the tree has one `deleted-decision` finding (`rust-bridge` or
 `parser-bridge`). Moving the file of a decision record to another folder
-with the same name keeps its base item and gives no finding. Changing
-`@decision x=v1` to `@req x=v1` in the shared set keeps `x` as the base
-item of that requirement and gives no `deleted-decision` finding.
+with the same name keeps its base item and gives no finding. Changing `@decision x=v1` to `@req x=v1` in the shared set keeps `x` as
+the base item of that requirement and gives no `deleted-decision`
+finding. When the file of `@decision rust-bridge=v1` stays at the same
+valid path in the tree and is in the set of stopped files of the tree,
+the tree has no `deleted-decision` finding for `rust-bridge`. When that
+file stays at the same valid path with content that is not valid UTF-8,
+the tree still has the `deleted-decision` finding `rust-bridge`.
 
 A `deleted-decision` finding has no spot, because the finding names a
 record that is the base item of no declared item of the tree. Therefore,
@@ -346,7 +350,8 @@ limits of its own.
 ### 2.7 Bindings, ledgers, concurrent changes, and program limits
 
 All trees compared in one check are read under one binding of each
-parameter. The requirements
+parameter. Within one run, each tree has one set of stopped files
+wherever that run reads that tree. The requirements
 `omit-results-under-invalid-reading-bindings` and
 `omit-findings-under-invalid-historical-paths` cover bindings of
 `file-readers`, `external-namespaces`, and `historical-paths` that are
@@ -445,10 +450,12 @@ of that file is in the set of H.
 This term is for a git repository R, a valid binding A of
 `approval-kinds`, a binding D of `default-branch-name`, a valid binding
 F of `file-readers`, a binding N of `external-namespaces`, a tree T, a
-point P of the ledger of R, and sets S of stopped files: a set U of
-stopped files of T and, when the default branch of R has a commit under
-D, a set of stopped files of the tree of each commit of the first-parent
-line of that commit.
+point P of the ledger of R, and sets S of stopped files: one set of
+stopped files for each distinct tree among T and, when the default
+branch of R has a commit under D, the trees of the commits of the
+first-parent line of that commit (let U be the set of stopped files of
+T; whenever two of these places hold the same tree, they share one set
+of stopped files).
 
 In this term, in force in T at P under A, D, F, N, and S is as the term
 `approval#bound-in-force-item` gives it, and a declared item of T is
@@ -519,9 +526,11 @@ This atom is for a git repository R, a valid binding A of
 `approval-kinds`, a binding D of `default-branch-name`, a valid binding
 F of `file-readers`, a binding N of `external-namespaces`, a valid
 binding H of `historical-paths`, a point P of the ledger of R, a tree T,
-and sets S of stopped files: a set U of stopped files of T and, when the
-default branch of R has a commit under D, a set of stopped files of the
-tree of each commit of the first-parent line of that commit.
+and sets S of stopped files: one set of stopped files for each distinct
+tree among T and, when the default branch of R has a commit under D, the
+trees of the commits of the first-parent line of that commit (let U be
+the set of stopped files of T; whenever two of these places hold the
+same tree, they share one set of stopped files).
 
 A source of an edge of T under F, N, and U counts in T at P under A, D,
 F, N, and S when, and only when, one of these three conditions holds:
@@ -665,26 +674,34 @@ line of the declaration of d in the text of the file of d in T.
 
 @atom deleted-decision-finding=v1
 @cites {
+    files#{path=v1},
     identifiers#{external-namespaces=v1},
     ontology#{
         declared-item=v1, decision-record=v1, item-name=v1, tree=v1,
         parameter=v1,
     },
-    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
+    documents#{
+        file-readers=v1, item-file=v1, tree-finding=v1,
+        unreadable-file=v1,
+    },
     revisions#{base-item=v1},
     text#{text=v1, code-span=v1},
 }
 
 For a tree T and a base tree B, under a valid binding F of
 `file-readers`, a binding N of `external-namespaces`, a set UT of
-stopped files of T, and a set UB of stopped files of B, the declared
-items, their kinds, and their names of T and of B, and the base items in
-B of the declared items of T, are those that T and B have under F, N,
-UT, and UB. Under F, N, UT, and UB, T has one tree finding of the class
+stopped files of T, and a set UB of stopped files of B (when T and B are
+the same tree, UT and UB are the same set), the declared items, their
+kinds, and their names of T and of B, and the base items in B of the
+declared items of T, are those that T and B have under F, N, UT, and UB.
+Under F, N, UT, and UB, T has one tree finding of the class
 `deleted-decision` against B for each text t that is the name in B of a
-decision record e of B such that e is the base item in B of no declared
-item of T. The subject of that tree finding is t. That tree finding has
-no spot.
+decision record e of B that meets both of these conditions:
+
+1. e is the base item in B of no declared item of T.
+2. No file in UT has the valid path of the file of e in B.
+
+The subject of that tree finding is t. That tree finding has no spot.
 
 ### 4.7 Items with new labels
 
@@ -703,9 +720,10 @@ no spot.
 For a tree T and a base tree B, under a valid binding F of
 `file-readers`, a binding N of `external-namespaces`, a valid binding H
 of `historical-paths`, a set UT of stopped files of T, and a set UB of
-stopped files of B, a declared item d of T (under F, N, and UT) is an
-item with a new label against B under F, N, H, UT, and UB when, and only
-when, all three of these conditions hold:
+stopped files of B (when T and B are the same tree, UT and UB are the
+same set), a declared item d of T (under F, N, and UT) is an item with a
+new label against B under F, N, H, UT, and UB when, and only when, all
+three of these conditions hold:
 
 1. d has a current revision in T.
 2. The file of d in T is not a historical file of T under H.
@@ -738,9 +756,10 @@ For a tree T, a base tree B, and a finite sequence L of trees, under a
 valid binding F of `file-readers`, a binding N of `external-namespaces`,
 a valid binding H of `historical-paths`, a set UT of stopped files of T,
 a set UB of stopped files of B, and a set of stopped files of each
-element of L, T has one tree finding of the class `reused-label` against
-B and L for each declared item d of T that meets both of these
-conditions:
+element of L (whenever any two of T, B, and the elements of L are the
+same tree, they have the same set of stopped files), T has one tree
+finding of the class `reused-label` against B and L for each declared
+item d of T that meets both of these conditions:
 
 1. d is an item with a new label against B under F, N, H, UT, and UB.
 2. For at least one element K of L, with its set UK of stopped files, d
@@ -773,8 +792,9 @@ program takes the first-parent line of the commit of the default branch
 and the files of the trees of its commits, a binding D of
 `default-branch-name` under which the default branch of R has a commit
 d, a valid binding F of `file-readers`, and, for each commit c of the
-first-parent line of d, a set Uc of stopped files of the tree of c. In
-this term, R holds a git object when R holds that git object at the end
+first-parent line of d, a set Uc of stopped files of the tree of c
+(whenever two commits of that line have the same tree, they have the
+same set of stopped files). In this term, R holds a git object when R holds that git object at the end
 of those repository reads. The history of the default branch of R under
 D, F, and these sets is cut for those repository reads when, and only
 when, one or more of these four conditions holds:
@@ -821,11 +841,12 @@ for which a conforming program of the design Identifiers gives the
 result "valid". Under these bindings, this requirement applies when a
 conforming program gives the successors of a declared item x of a tree T
 at a point P of the ledger of R under A, D, F, N, and sets S of stopped
-files (a set of stopped files of T and, when the default branch of R has
-a commit under D, a set of stopped files of the tree of each commit of
-the first-parent line of that commit), and each repository read from
-which that program takes the ledger and the trees of the first-parent
-line is undisturbed.
+files (one set of stopped files for each distinct tree among T and, when
+the default branch of R has a commit under D, the trees of the commits
+of the first-parent line of that commit, so that whenever two of these
+places hold the same tree they share one set of stopped files), and each
+repository read from which that program takes the ledger and the trees
+of the first-parent line is undisturbed.
 
 When R lacks git objects that a tree of the first-parent line of the
 commit of the default branch needs for `approval#bound-in-force-item`,
@@ -868,11 +889,13 @@ which a conforming program of the design Identifiers gives the result
 "valid", and a valid binding H of `historical-paths`. Under these
 bindings, this requirement applies when a conforming program gives the
 findings of the class `retired` of a tree T at a point P of the ledger
-of R under A, D, F, N, H, and sets S of stopped files (a set of stopped
-files of T and, when the default branch of R has a commit under D, a set
-of stopped files of the tree of each commit of the first-parent line of
-that commit), and each repository read from which that program takes the
-ledger and the trees of the first-parent line is undisturbed.
+of R under A, D, F, N, H, and sets S of stopped files (one set of
+stopped files for each distinct tree among T and, when the default
+branch of R has a commit under D, the trees of the commits of the
+first-parent line of that commit, so that whenever two of these places
+hold the same tree they share one set of stopped files), and each
+repository read from which that program takes the ledger and the trees
+of the first-parent line is undisturbed.
 
 When R lacks git objects that a tree of the first-parent line of the
 commit of the default branch needs for `approval#bound-in-force-item`,
@@ -929,11 +952,13 @@ R, a valid binding A of `approval-kinds`, a binding D of
 `default-branch-name`, a valid binding F of `file-readers`, a binding N
 of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid binding H of
-`historical-paths`, and sets S of stopped files (a set U of stopped
-files of T and, when the default branch of R has a commit under D, a set
-of stopped files of the tree of each commit of the first-parent line of
-that commit), when each repository read from which that program takes
-the ledger and the trees of the first-parent line is undisturbed.
+`historical-paths`, and sets S of stopped files (one set of stopped files
+for each distinct tree among T and, when the default branch of R has a
+commit under D, the trees of the commits of the first-parent line of
+that commit; let U be the set of stopped files of T, and whenever two of
+these places hold the same tree they share one set of stopped files),
+when each repository read from which that program takes the ledger and
+the trees of the first-parent line is undisturbed.
 
 Let E be the edge of a tree finding f of the class `retired` that T has
 at P under A, D, F, N, H, and S, and let c be the cited item of E. When
@@ -1036,10 +1061,11 @@ binding N of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid", and a valid binding H of
 `historical-paths`. When a conforming program gives the findings of the
 class `deleted-decision` of a tree T against a base tree B under F, N,
-H, a set UT of stopped files of T, and a set UB of stopped files of B,
-that program must give each tree finding of that class that T has
-against B under F, N, UT, and UB once, and must give no other finding of
-that class.
+H, a set UT of stopped files of T, and a set UB of stopped files of B
+(when T and B are the same tree, UT and UB are the same set), that
+program must give each tree finding of that class that T has against B
+under F, N, UT, and UB once, and must give no other finding of that
+class.
 
 ### 5.6 Findings of the class `reused-label`
 
@@ -1061,10 +1087,11 @@ program gives the findings of the class `reused-label` of the change of
 a commit. When a conforming program gives the findings of the class
 `reused-label` of a tree T against a base tree B and a finite sequence L
 of trees under F, N, H, a set UT of stopped files of T, a set UB of
-stopped files of B, and a set of stopped files of each element of L,
-that program must give each tree finding of that class that T has
-against B and L under F, N, H, and these sets once, and must give no
-other finding of that class.
+stopped files of B, and a set of stopped files of each element of L
+(whenever any two of T, B, and the elements of L are the same tree, they
+have the same set of stopped files), that program must give each tree
+finding of that class that T has against B and L under F, N, H, and
+these sets once, and must give no other finding of that class.
 
 ### 5.7 No result under bindings of reading that are not valid
 
@@ -1146,7 +1173,8 @@ bindings, this requirement applies when a conforming program meets two
 conditions. First, that program gives the findings of the class
 `deleted-decision` of the change of h under these bindings, a set UT of
 stopped files of the tree of h, and a set UB of stopped files of the
-tree of the base of the change of h. Second, each repository read from
+tree of the base of the change of h (when those two trees are the same
+tree, UT and UB are the same set). Second, each repository read from
 which that program takes the base of the change of h and the files of
 the tree of h and of the tree of that base is undisturbed. Under these
 bindings and when both conditions hold, that program must give each tree
@@ -1184,8 +1212,10 @@ result "valid", and a valid binding H of `historical-paths`. Under these
 bindings, let UT be a set of stopped files of the tree of h, let UB be a
 set of stopped files of the tree of the base of the change of h, and for
 each commit c of the first-parent line of d, let Uc be a set of stopped
-files of the tree of c. Let L be the sequence of the trees of the
-commits of the first-parent line of d, in the order of that line.
+files of the tree of c, such that whenever two of these trees are the
+same tree, their sets of stopped files are the same set. Let L be the
+sequence of the trees of the commits of the first-parent line of d, in
+the order of that line.
 
 This requirement applies when a conforming program meets three
 conditions. First, that program gives the findings of the class
@@ -1279,7 +1309,8 @@ result "valid", and a valid binding H of `historical-paths`. Under these
 bindings, let UT be a set of stopped files of the tree of h, let UB be a
 set of stopped files of the tree of the base of the change of h, and for
 each commit c of the first-parent line of d, let Uc be a set of stopped
-files of the tree of c.
+files of the tree of c, such that whenever two of these trees are the
+same tree, their sets of stopped files are the same set.
 
 This requirement applies when a conforming program meets four
 conditions. First, that program gives the findings of the class
@@ -1322,7 +1353,8 @@ result "valid", and a valid binding H of `historical-paths`. Under these
 bindings, let UT be a set of stopped files of the tree of h, let UB be a
 set of stopped files of the tree of the base of the change of h, and for
 each commit c of the first-parent line of d, let Uc be a set of stopped
-files of the tree of c.
+files of the tree of c, such that whenever two of these trees are the
+same tree, their sets of stopped files are the same set.
 
 This requirement applies when a conforming program meets three
 conditions. First, that program gives the findings of the class
