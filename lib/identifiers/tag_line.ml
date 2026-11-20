@@ -85,7 +85,7 @@ let declaration binding word s k =
     in
     let* inline_description = rest s q in
     match (word, part_name) with
-    | (Tag_word.Decision | Design | Finding_class), Some _ -> None
+    | (Tag_word.Decision | Design), Some _ -> None
     | _ ->
         Some
           (Declaration
@@ -237,11 +237,11 @@ let ack s k =
 
 let parse binding word s k =
   match word with
-  | Tag_word.Decision | Design | Finding_class | Req | Spec | Term ->
+  | Tag_word.Atom | Decision | Design | Req | Schema | Spec | Term ->
       declaration binding word s k
   | Cites | Refines | Satisfies | Supersedes | Verifies ->
       citation binding word s k
-  | Deferred | Deprecated | Rejected -> status word s k
+  | Deprecated -> status word s k
   | Extern -> extern s k
   | Ack -> ack s k
 

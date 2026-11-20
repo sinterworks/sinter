@@ -2,10 +2,11 @@
 (* Copyright 2026 The Sinter Authors *)
 
 type t =
+  | Atom
   | Decision
   | Design
-  | Finding_class
   | Req
+  | Schema
   | Spec
   | Term
   | Cites
@@ -13,18 +14,21 @@ type t =
   | Satisfies
   | Supersedes
   | Verifies
-  | Deferred
   | Deprecated
-  | Rejected
   | Ack
   | Extern
 
+(* @satisfies identifiers#give-line-results=v1
+   A line gets the result "other tag word" unless its tag word is the same
+   text as one of the fifteen Sinter tag words, and each of those words sets
+   the schema of its kind of tag line. *)
 let all =
   [
+    Atom;
     Decision;
     Design;
-    Finding_class;
     Req;
+    Schema;
     Spec;
     Term;
     Cites;
@@ -32,18 +36,17 @@ let all =
     Satisfies;
     Supersedes;
     Verifies;
-    Deferred;
     Deprecated;
-    Rejected;
     Ack;
     Extern;
   ]
 
 let to_string = function
+  | Atom -> "@atom"
   | Decision -> "@decision"
   | Design -> "@design"
-  | Finding_class -> "@finding-class"
   | Req -> "@req"
+  | Schema -> "@schema"
   | Spec -> "@spec"
   | Term -> "@term"
   | Cites -> "@cites"
@@ -51,9 +54,7 @@ let to_string = function
   | Satisfies -> "@satisfies"
   | Supersedes -> "@supersedes"
   | Verifies -> "@verifies"
-  | Deferred -> "@deferred"
   | Deprecated -> "@deprecated"
-  | Rejected -> "@rejected"
   | Ack -> "@ack"
   | Extern -> "@extern"
 

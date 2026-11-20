@@ -1,13 +1,14 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** The sixteen Sinter tag words of the design [identifiers=v1]. *)
+(** The fifteen Sinter tag words of the design [identifiers=v1]. *)
 
 type t =
+  | Atom  (** [@atom] *)
   | Decision  (** [@decision] *)
   | Design  (** [@design] *)
-  | Finding_class  (** [@finding-class] *)
   | Req  (** [@req] *)
+  | Schema  (** [@schema] *)
   | Spec  (** [@spec] *)
   | Term  (** [@term] *)
   | Cites  (** [@cites] *)
@@ -15,14 +16,12 @@ type t =
   | Satisfies  (** [@satisfies] *)
   | Supersedes  (** [@supersedes] *)
   | Verifies  (** [@verifies] *)
-  | Deferred  (** [@deferred] *)
   | Deprecated  (** [@deprecated] *)
-  | Rejected  (** [@rejected] *)
   | Ack  (** [@ack] *)
   | Extern  (** [@extern] *)
 
 val all : t list
-(** [all] is the sixteen Sinter tag words, each once. *)
+(** [all] is the fifteen Sinter tag words, each once. *)
 
 val to_string : t -> string
 (** [to_string word] is the text of [word], with its [@], such as ["@req"]. *)

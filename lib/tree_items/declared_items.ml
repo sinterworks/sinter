@@ -87,9 +87,8 @@ let kind_of_word = function
   | Req -> Some Requirement
   | Term -> Some Term
   | Decision -> Some Decision_record
-  | Finding_class -> Some Declared_finding_class
-  | Cites | Refines | Satisfies | Supersedes | Verifies | Deferred | Deprecated
-  | Rejected | Ack | Extern ->
+  | Atom | Schema | Cites | Refines | Satisfies | Supersedes | Verifies
+  | Deprecated | Ack | Extern ->
       None
 
 type declaration = {

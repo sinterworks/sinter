@@ -299,7 +299,7 @@ let forms_grow_with_their_length () =
   Counted_work.check_growth ~margin:2. ~sizes:(10_000, 40_000)
     ~input:long_targets
     (List.map (fun (slug, target) ->
-         Canonical.entry ~slug ~kind_word:Kind_word.Finding_class target))
+         Canonical.entry ~slug ~kind_word:Kind_word.Schema target))
 
 let vector_groups = [ canonical_entry_vectors ]
 

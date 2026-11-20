@@ -78,7 +78,6 @@ let kind_of_word = function
   | Req -> Some Requirement
   | Term -> Some Term
   | Decision -> Some Decision_record
-  | Finding_class -> Some Declared_finding_class
   | _ -> None
 
 let index_of file run =

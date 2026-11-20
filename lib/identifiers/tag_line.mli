@@ -18,9 +18,9 @@ type tag =
       revision : string option;
       inline_description : string;
     }
-      (** A declaration. [word] is [@decision], [@design], [@finding-class],
-          [@req], [@spec], or [@term]. [slug] is the slug of the target, or, for
-          [@spec] with no [#], the segment of the target. [part_name] is the
+      (** A declaration. [word] is [@atom], [@decision], [@design], [@req],
+          [@schema], [@spec], or [@term]. [slug] is the slug of the target, or,
+          for [@spec] with no [#], the segment of the target. [part_name] is the
           part name after the [#] of a full name. [revision] is the label; it is
           [None] only for [@term]. *)
   | Citation of {
@@ -33,7 +33,7 @@ type tag =
           citation entry, in the order of the citation entries; it is never
           empty. *)
   | Status_tag of { word : Tag_word.t; inline_description : string }
-      (** A status tag. [word] is [@deferred], [@deprecated], or [@rejected]. *)
+      (** A status tag. [word] is [@deprecated]. *)
   | Extern of {
       kind_word : Kind_word.t;
       part_name : string;
