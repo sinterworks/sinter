@@ -9,10 +9,9 @@ let canonical_id kind_word name =
 let part = function None -> "" | Some part_name -> "#" ^ part_name
 
 let selection = function
-  | None -> ""
-  | Some (Target.Vector_number number) -> "[" ^ number ^ "]"
-  | Some (Target.Group group) -> "[" ^ group ^ "][*]"
-  | Some Target.Every_vector -> "[*]"
+  | Target.Revision _ -> ""
+  | Target.Vector_selection (Target.Group group) -> "[" ^ group ^ "]"
+  | Target.Vector_selection Target.Every_vector -> "[*]"
 
 (* @satisfies identifiers#give-canonical-entries=v1
    The slug goes before an entry name that starts with `#`, the kind word
@@ -22,9 +21,8 @@ let selection = function
 let entry ?slug ?kind_word target =
   let name, suffix =
     match target with
-    | Target.Internal { slug; part_name; vector_selection; _ } ->
-        ( Option.value slug ~default:"" ^ part part_name,
-          selection vector_selection )
+    | Target.Internal { slug; part_name; suffix; _ } ->
+        (Option.value slug ~default:"" ^ part part_name, selection suffix)
     | Target.Every_part { slug; _ } -> (slug, "#*")
     | Target.External { namespace_name; id; part_name; _ } ->
         (namespace_name ^ "/" ^ id ^ part part_name, "")

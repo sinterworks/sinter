@@ -30,20 +30,18 @@ let kind_values = function
   | Some word -> [ ("kind-word", str (Kind_word.to_string word)) ]
   | None -> []
 
-let selection_values = function
-  | None -> []
-  | Some (Target.Vector_number number) -> [ ("vector-number", str number) ]
-  | Some (Target.Group name) ->
+let suffix_values = function
+  | Target.Revision revision -> [ ("revision", str revision) ]
+  | Target.Vector_selection (Target.Group name) ->
       [ ("group-name", str name); ("every-vector", `Bool true) ]
-  | Some Target.Every_vector -> [ ("every-vector", `Bool true) ]
+  | Target.Vector_selection Target.Every_vector ->
+      [ ("every-vector", `Bool true) ]
 
 let target_values = function
-  | Target.Internal { kind_word; slug; part_name; vector_selection; revision }
-    ->
+  | Target.Internal { kind_word; slug; part_name; suffix } ->
       kind_values kind_word @ optional_slug slug
       @ optional "part-name" part_name
-      @ selection_values vector_selection
-      @ [ ("revision", str revision) ]
+      @ suffix_values suffix
   | Target.Every_part { slug; revision } ->
       slug_values slug
       @ [ ("every-part", `Bool true); ("revision", str revision) ]
@@ -880,16 +878,14 @@ let tag_texts = function
       inline_description
       :: List.concat_map
            (function
-             | Target.Internal
-                 { slug; part_name; vector_selection; revision; _ } -> (
-                 (revision :: Option.to_list slug)
-                 @ Option.to_list part_name
+             | Target.Internal { slug; part_name; suffix; _ } -> (
+                 Option.to_list slug @ Option.to_list part_name
                  @
-                 match vector_selection with
-                 | Some (Target.Vector_number text) | Some (Target.Group text)
-                   ->
+                 match suffix with
+                 | Target.Revision text
+                 | Target.Vector_selection (Target.Group text) ->
                      [ text ]
-                 | _ -> [])
+                 | Target.Vector_selection Target.Every_vector -> [])
              | Target.Every_part { slug; revision } -> [ slug; revision ]
              | Target.External { namespace_name; id; part_name; _ } ->
                  namespace_name :: id :: Option.to_list part_name)

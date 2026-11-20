@@ -20,8 +20,9 @@ type link_result =
           has a plain string content of blank characters only *)
   | Valid of { target : Target.t; link_text : string }
       (** a valid inline citation. [target] is the values of its target; it is
-          never [Target.Every_part], and its vector selection is [None].
-          [link_text] is the UTF-8 encoding of its link text. *)
+          never [Target.Every_part], and when it is [Target.Internal], its
+          suffix is a [Target.Revision]. [link_text] is the UTF-8 encoding of
+          its link text. *)
 
 type link = { run : Sinter_text.Text.run; result : link_result }
 (** A link or an image. [run] is the run of the text that it covers, from the

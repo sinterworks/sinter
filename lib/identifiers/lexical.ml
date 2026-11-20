@@ -82,11 +82,6 @@ let lower_name s i =
 
 let group_name = lower_name
 
-let vector_number s i =
-  if at s i (function '1' .. '9' -> true | _ -> false) then
-    Some (run s i (function '0' .. '9' -> true | _ -> false))
-  else None
-
 (* @satisfies identifiers#give-tag-words=v1 *)
 let tag_word s i = run s (i + 1) (fun c -> is_alnum c || c = '-')
 

@@ -76,53 +76,63 @@ let name r =
         | None -> None)
     | Some i -> Some (Some (sub r 0 i), None, i)
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+   A vector selection is `[`, a group name, and `]`, or `[*]`; it gives the
+   group name or every vector. *)
 let vector_selection r i =
   if peek r i <> Some '[' then None
   else if peek r (i + 1) = Some '*' && peek r (i + 2) = Some ']' then
     Some (Target.Every_vector, i + 3)
   else
-    match Lexical.vector_number r (i + 1) with
+    match Lexical.group_name r (i + 1) with
     | Some j when peek r j = Some ']' ->
-        Some (Target.Vector_number (sub r (i + 1) j), j + 1)
-    | Some _ -> None
-    | None -> (
-        match Lexical.group_name r (i + 1) with
-        | Some j when sub r j (min (String.length r) (j + 4)) = "][*]" ->
-            Some (Target.Group (sub r (i + 1) j), j + 4)
-        | _ -> None)
+        Some (Target.Group (sub r (i + 1) j), j + 1)
+    | _ -> None
 
-(* @satisfies identifiers#{reject-unmatched-inputs=v1, accept-inputs=v1, reject-repeated-entries=v1, give-values=v1} *)
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1, give-values=v1}
+   After the name comes `=` and a revision that the rules allow, or, where
+   the rules allow one, a vector selection in place of `=` and a revision,
+   or, for an every-part target, `=`, a label, and `#*`. The key is the entry
+   name and the text of the vector selection, which `citation-line` compares
+   between entries. *)
 let finish rules kind_word slug part_name r i =
-  let selection =
-    if rules.vector_selection then vector_selection r i else None
-  in
-  let j = match selection with Some (_, j) -> j | None -> i in
-  let revision =
-    if peek r j <> Some '=' then None
-    else if rules.any_revision && peek r (j + 1) = Some '*' then Some (j + 2)
-    else Lexical.label r (j + 1)
-  in
-  let selection_text = Option.map (fun _ -> sub r i j) selection in
-  match (revision, slug, part_name) with
-  | Some k, _, _ when ends r k ->
-      Some
-        ( Target.Internal
-            {
-              kind_word;
-              slug;
-              part_name;
-              vector_selection = Option.map fst selection;
-              revision = sub r (j + 1) k;
-            },
-          (slug, part_name, selection_text) )
-  | Some k, Some slug, None
-    when rules.every_part && kind_word = None
-         && sub r k (String.length r) = "#*" ->
-      Some
-        ( Target.Every_part { slug; revision = sub r (j + 1) k },
-          (Some slug, None, None) )
-  | _ -> None
+  match if rules.vector_selection then vector_selection r i else None with
+  | Some (selection, j) ->
+      if ends r j then
+        Some
+          ( Target.Internal
+              {
+                kind_word;
+                slug;
+                part_name;
+                suffix = Target.Vector_selection selection;
+              },
+            (slug, part_name, Some (sub r i j)) )
+      else None
+  | None -> (
+      let revision =
+        if peek r i <> Some '=' then None
+        else if rules.any_revision && peek r (i + 1) = Some '*' then Some (i + 2)
+        else Lexical.label r (i + 1)
+      in
+      match (revision, slug, part_name) with
+      | Some k, _, _ when ends r k ->
+          Some
+            ( Target.Internal
+                {
+                  kind_word;
+                  slug;
+                  part_name;
+                  suffix = Target.Revision (sub r (i + 1) k);
+                },
+              (slug, part_name, None) )
+      | Some k, Some slug, None
+        when rules.every_part && kind_word = None
+             && sub r k (String.length r) = "#*" ->
+          Some
+            ( Target.Every_part { slug; revision = sub r (i + 1) k },
+              (Some slug, None, None) )
+      | _ -> None)
 
 let internal rules kind_word r =
   match name r with

@@ -1,18 +1,15 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-type vector_selection =
-  | Vector_number of string
-  | Group of string
-  | Every_vector
+type vector_selection = Group of string | Every_vector
+type suffix = Revision of string | Vector_selection of vector_selection
 
 type t =
   | Internal of {
       kind_word : Kind_word.t option;
       slug : string option;
       part_name : string option;
-      vector_selection : vector_selection option;
-      revision : string;
+      suffix : suffix;
     }
   | Every_part of { slug : string; revision : string }
   | External of {

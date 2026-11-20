@@ -29,9 +29,6 @@ val id_text : string -> int -> int option
 val group_name : string -> int -> int option
 (** The production [group-name]. *)
 
-val vector_number : string -> int -> int option
-(** The production [vector-number]. *)
-
 val tag_word : string -> int -> int
 (** [tag_word s i] is the index right after the [@] at [i] and the longest run
     of ASCII letters, ASCII digits, and [-] after it. *)

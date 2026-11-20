@@ -6,29 +6,32 @@
     UTF-8 encoding of a run of the text of the tag line, or of the destination
     of the inline citation. *)
 
-(* @satisfies identifiers#give-no-other-values=v1 *)
+(* @satisfies identifiers#give-no-other-values=v1
+   A vector selection gives a group name or every vector, and nothing else. *)
 
 (** A vector selection. *)
 type vector_selection =
-  | Vector_number of string  (** the vector number, such as ["12"] in [[12]] *)
-  | Group of string
-      (** the group name and every vector, such as ["offsets"] in [[offsets][*]]
-      *)
+  | Group of string  (** the group name, such as ["offsets"] in [[offsets]] *)
   | Every_vector  (** every vector: [[*]] *)
 
-(* @satisfies identifiers#give-no-other-values=v1 *)
+(** What follows the name of a single target that is not external. *)
+type suffix =
+  | Revision of string  (** [=] and the revision: a label, or ["*"] *)
+  | Vector_selection of vector_selection
+      (** a vector selection, in place of [=] and a revision *)
+
+(* @satisfies identifiers#give-no-other-values=v1
+   Each case holds only the values that the match of its form gives. *)
 type t =
   | Internal of {
       kind_word : Kind_word.t option;
       slug : string option;
       part_name : string option;
-      vector_selection : vector_selection option;
-      revision : string;
+      suffix : suffix;
     }
-      (** A name with its revision. [slug] and [part_name] are the slug and the
-          part name of the name: a slug alone, a full name, or [#] and a part
-          name, so at least one of them is present. [revision] is a label or
-          ["*"]. *)
+      (** A name with a revision or a vector selection. [slug] and [part_name]
+          are the slug and the part name of the name: a slug alone, a full name,
+          or [#] and a part name, so at least one of them is present. *)
   | Every_part of { slug : string; revision : string }
       (** An every-part target, such as [docs=v3#*]: every part of the slug, at
           the revision, which is a label. *)

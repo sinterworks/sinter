@@ -540,7 +540,11 @@ let link_invariants string =
          match link.result with
          | Inline_citation.Valid { target = Target.Every_part _; _ } -> false
          | Inline_citation.Valid
-             { target = Target.Internal { vector_selection = Some _; _ }; _ } ->
+             {
+               target =
+                 Target.Internal { suffix = Target.Vector_selection _; _ };
+               _;
+             } ->
              false
          | _ -> true)
        links

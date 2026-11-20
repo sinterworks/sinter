@@ -5,7 +5,8 @@
     entries of each citation word and for the target of an inline citation. *)
 
 type rules = {
-  vector_selection : bool;  (** a vector selection can follow the name *)
+  vector_selection : bool;
+      (** a vector selection can stand in place of [=] and a revision *)
   any_revision : bool;  (** the revision can be [*] as well as a label *)
   every_part : bool;  (** the target can be an every-part target *)
 }
@@ -48,5 +49,5 @@ val scope : Binding.t -> string -> scope option
 val part : rules -> scope -> string -> (Target.t * key) option
 (** [part rules scope text] is the values and the key of the single target for
     which the part [text] of a scoped list with [scope] stands, when the whole
-    of [text] is a part name, then a vector selection when [rules] allow one,
-    then [=] and a revision that [rules] allow. It is [None] otherwise. *)
+    of [text] is a part name, then [=] and a revision that [rules] allow, or a
+    vector selection when [rules] allow one. It is [None] otherwise. *)

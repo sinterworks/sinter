@@ -273,16 +273,14 @@ let long_targets n =
         kind_word = Some Kind_word.Req;
         slug = None;
         part_name = Some (long 'p');
-        vector_selection = Some (Target.Group (long 'g'));
-        revision = long 'r';
+        suffix = Target.Vector_selection (Target.Group (long 'g'));
       };
     Target.Internal
       {
         kind_word = None;
         slug = Some (long 's');
         part_name = Some (long 'p');
-        vector_selection = Some (Target.Vector_number (long '1'));
-        revision = "v1";
+        suffix = Target.Revision (long 'r');
       };
     Target.Every_part { slug = long 's'; revision = long 'r' };
     Target.External
