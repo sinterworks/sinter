@@ -141,13 +141,14 @@ case-sensitive strings of RFC 7405.
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
-| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside its specifications, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group, when the definition that the specification declares under the schema part name of its form, or that the design declares under that name outside its specifications, gives the forms of that group, and the value of `input`, and the value of `values` when the object has that member, have the fixed forms that these forms give (a value of `values` has no fixed form when these forms give none); otherwise it states no vector |
+| [schema](sinter:text#design=v1) | a definition that a design declares under a name that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines |
+| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside its specifications, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group, when the schema that the specification declares under the schema part name of its form, or that the design declares under that name outside its specifications, gives the forms of that group, and the value of `input`, and the value of `values` when the object has that member, have the fixed forms that these forms give (a value of `values` has no fixed form when these forms give none); otherwise it states no vector |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
-| [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names the definition that gives the forms of a group and a label of it |
+| [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names the schema that gives the forms of a group and a label of it |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
 | [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line holds, such as `offsets` |
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
-| [forms of a group](sinter:#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [forms of a group](sinter:#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
@@ -532,7 +533,7 @@ specification. No group of this specification uses a need, so the forms
 of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
-nothing to them. Each subsection below gives the forms of one group, as
+nothing to them. Each schema below gives the forms of one group, as
 the term `group-form-list` gives them.
 
 #### 4.8.1 Canonical byte sequences
@@ -623,7 +624,7 @@ the canonical line of the input.
         write-json-vector=v1, read-canonical-line=v1,
         give-only-line-objects=v1, json-value=v1, line-object=v1,
         canonical-line=v1, hex-text=v1, vector-line=v1,
-        vector-meaning=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -665,7 +666,7 @@ gives no line object as the line object of the byte sequence.
         write-json-vector=v1, read-json-text=v1,
         give-only-json-values=v1, json-value=v1,
         json-value-of-a-byte-sequence=v1, hex-text=v1, vector-line=v1,
-        vector-meaning=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -1273,7 +1274,7 @@ specification. No group of this specification uses a need, so the forms
 of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
-nothing to them. Each subsection below gives the forms of one or more
+nothing to them. Each schema below gives the forms of one or more
 groups, as the term `group-form-list` gives them.
 
 #### 5.5.1 TOML documents
@@ -1290,7 +1291,7 @@ groups, as the term `group-form-list` gives them.
         root-table=v1, toml-value=v1, toml-value-equality=v1,
         toml-key=v1, toml-key-text=v1, toml-offset=v1,
         toml-second-fraction=v1, json-value=v1, hex-text=v1,
-        index=v1, vector-line=v1, vector-meaning=v1,
+        index=v1, vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -1407,7 +1408,7 @@ table of the byte sequence.
         toml-document=v1, root-table=v1, toml-key=v1, toml-key-text=v1,
         toml-value=v1, toml-location=v1, toml-span=v1,
         toml-span-pair=v1, json-value=v1, hex-text=v1, index=v1,
-        vector-line=v1, vector-meaning=v1,
+        vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -1547,7 +1548,7 @@ specification. No group of this specification uses a need, so the forms
 of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
-nothing to them. Each subsection below gives the forms of one group, as
+nothing to them. Each schema below gives the forms of one group, as
 the term `group-form-list` gives them.
 
 #### 6.4.1 Hashes
@@ -1713,7 +1714,7 @@ specification. No group of this specification uses a need, so the forms
 of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
-nothing to them. Each subsection below gives the forms of one group, as
+nothing to them. Each schema below gives the forms of one group, as
 the term `group-form-list` gives them.
 
 #### 7.4.1 Hash ids
@@ -1806,13 +1807,13 @@ A test-vector set holds zero or more vector lines, as the schema
 sequence of a vector object, such as
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","result":"valid"}`,
 as the terms `vector-line` and `vector-object` give. The schema
-`test-vector-set` also says which forms the vector lines of one group
-can have.
+`test-vector-set` also says which form pins the vector lines of one
+group can have.
 
 The forms of a group are as the term `group-form-list` gives them: a
-definition that a specification declares under a name, or that a design
+schema that a specification declares under a name, or that a design
 declares under a name outside its specifications, gives the forms of the
-group, and each vector line names that definition in its member `form`.
+group, and each vector line names that schema in its member `form`.
 
 A vector object can also have the member `needs`, as in
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","needs":["no-privilege"],"result":"valid"}`,
@@ -1931,8 +1932,8 @@ group is that group.
     #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
 
-For a specification S of a design, a definition Q that S declares under
-a name, and a group name g, Q gives the forms of the group g of S when Q
+For a specification S of a design, a schema Q that S declares under a
+name, and a group name g, Q gives the forms of the group g of S when Q
 gives these five things for g, and these five things are then the forms
 of the group g of S that Q gives:
 
@@ -1970,10 +1971,10 @@ of the group g of S that Q gives:
    unable to make hold, such as that the file system stores a given
    entry name. A condition on what a conforming program gives, such as
    that it gives a result, is never a need. A need name stands for the
-   same need in every definition that S declares and that gives the
-   forms of a group of S. When the group g uses no need, Q gives no need
-   names for g. When Q gives no need name for g, the forms of the group
-   g that Q gives have no need names.
+   same need in every schema that S declares and that gives the forms of
+   a group of S. When the group g uses no need, Q gives no need names
+   for g. When Q gives no need name for g, the forms of the group g that
+   Q gives have no need names.
 
 A fixed form, in the second and the fourth thing, is a shape of JSON
 values: which of a string, an integer, a boolean, an array, or an object
@@ -1985,15 +1986,15 @@ is any of these shapes. Whether a value has a fixed form depends on that
 value alone: not on what it stands for, and not on the value of another
 member, such as `input` or `result`.
 
-For a design D, a definition Q that D declares under a name outside its
+For a design D, a schema Q that D declares under a name outside its
 specifications, and a group name g, Q gives the forms of the group g of
 D when Q gives the same five things for g, and these five things are
 then the forms of the group g of D that Q gives: with the requirements
 that D holds outside its specifications in place of the requirements
-that S declares, with the definitions that D declares under a name
-outside its specifications in place of the definitions that S declares,
-with a group of D in place of a group of S, and with a conforming
-program of D in place of a conforming program of S.
+that S declares, with the schemas that D declares under a name outside
+its specifications in place of the schemas that S declares, with a group
+of D in place of a group of S, and with a conforming program of D in
+place of a conforming program of S.
 
 #### 8.1.8 The meaning of a vector
 
@@ -2017,10 +2018,10 @@ conforming program of D to give for that input.
 
 For a specification S, or a design D, and a vector line whose group is
 g and whose form has the schema part name p, the object of the vector
-line states one vector of S, or of D, when the definition that S
-declares under the name p, or that D declares under the name p outside
-its specifications, gives the forms of the group g of S, or of D, and
-the value of `input`, and the value of `values` when the object has that
+line states one vector of S, or of D, when the schema that S declares
+under the name p, or that D declares under the name p outside its
+specifications, gives the forms of the group g of S, or of D, and the
+value of `input`, and the value of `values` when the object has that
 member, have the fixed forms that these forms give; a value of `values`
 has no fixed form when these forms give none. It then states that vector
 by these forms, whatever other vector lines a test-vector set that holds
@@ -2120,7 +2121,7 @@ specification uses a need, so the forms of each group give no need
 names.
 
 The vectors follow from the requirements of this specification and add
-nothing to them. Each subsection below gives the forms of one group, as
+nothing to them. Each schema below gives the forms of one group, as
 the term `group-form-list` gives them.
 
 #### 8.4.1 Test-vector sets
@@ -2133,8 +2134,8 @@ the term `group-form-list` gives them.
     },
     #{
         read-test-vector-set=v1, give-objects-of-test-vector-sets=v1,
-        test-vector-set=v1, vector-line=v1, vector-meaning=v1,
-        json-value=v1, hex-text=v1,
+        test-vector-set=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, json-value=v1, hex-text=v1,
     },
 }
 
