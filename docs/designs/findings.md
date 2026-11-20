@@ -2,12 +2,12 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Findings
-@design findings=v2
-@cites text=v2
-@cites identifiers=v2
-@cites files=v2
-@cites data-forms=v2
-@cites ontology=v2
+@design findings=v1
+@cites text=v1
+@cites identifiers=v1
+@cites files=v1
+@cites data-forms=v1
+@cites ontology=v1
 Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
 
 A finding reports one condition at one part of a repository, such as an
@@ -45,7 +45,7 @@ what a vector line states.
 |---|---|
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
-| [item](sinter:ontology#item=v2) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
+| [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
 | [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, which is a byte sequence, in which no two files have the same valid path, such as the files at a commit or the files in a working tree |
@@ -69,12 +69,12 @@ what a vector line states.
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [input](sinter:text#input=v1) | a thing that a conforming program takes |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input |
-| [forms of a group](sinter:data-forms#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
-| [need](sinter:data-forms#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
+| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
-| [`@ack` line](sinter:identifiers#ack-line=v2) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
-| [subject of a finding](sinter:#finding-subject=v2) | the text that names what a finding is about; it matches the production `subject` of the schema `ack-line` of Identifiers and holds no line feed |
+| [`@ack` line](sinter:identifiers#ack-line=v1) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
+| [subject of a finding](sinter:#finding-subject=v1) | the text that names what a finding is about; it matches the production `subject` of the schema `ack-line` of Identifiers and holds no line feed |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
 | [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of the text of that content that starts and ends at no boundary inside a line ending |
@@ -89,7 +89,7 @@ what a vector line states.
 | [edited text](sinter:#edited-text=v1) | for an edit set and the valid path of one of its edits, the text of the content of the file at that valid path, with the text of the span of each edit at that valid path replaced by its new text |
 | [edited tree](sinter:#edited-tree=v1) | the tree with the same valid paths as the tree of an edit set, in which the content of the file at each valid path of an edit of the set is the UTF-8 encoding of its edited text, and each other file has the content that it has in the tree of the edit set |
 | [make the edits of an edit set](sinter:#fix=v1) | change the files of the tree of the edit set into the files of the edited tree, with no file added or removed |
-| [edit description](sinter:#edit-description=v2) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
+| [edit description](sinter:#edit-description=v1) | a text, its path, a first position, a second position, and a text, its new text, which can describe the edit of the spot from the first position to the second at the path, with that new text |
 | [describe an edit set](sinter:#edit-set-description=v1) | a finite sequence of edit descriptions describes an edit set in a tree when it has one or more edit descriptions, each edit description of the sequence describes an edit in that tree, no two edit descriptions of the sequence describe the same edit, and these edits are the edits of an edit set in that tree |
 | [fix](sinter:#fix=v1) | a message and one or more edit sets in one tree, no two the same, which have numbers from 1; to make a fix is to make the edits of exactly one of its edit sets |
 | [acknowledge](sinter:#acknowledgment=v1) | a person acknowledges a finding when the person says that they know of the finding and that it may stay |
@@ -328,9 +328,9 @@ its words.
 
 ### 3.2 Subjects of findings
 
-@term finding-subject=v2
+@term finding-subject=v1
 @cites {
-    identifiers#{ack-line=v2},
+    identifiers#{ack-line=v1},
     text#{text=v1, line-feed=v1, production=v1, code-span=v1},
     ontology#{finding-class=v1},
 }
@@ -346,7 +346,7 @@ finding is about, that matches the production `subject` of the schema
     identifiers#{slug=v1},
     text#{text=v1, code-span=v1},
     ontology#{finding-class=v1},
-    #{finding-subject=v2},
+    #{finding-subject=v1},
 }
 
 The finding id of a finding is the text `finding:`, then the slug that
@@ -360,7 +360,7 @@ the finding.
     identifiers#{slug=v1},
     text#{text=v1},
     ontology#{finding-class=v1, tree=v1},
-    #{finding-subject=v2},
+    #{finding-subject=v1},
 }
 
 Two findings are the same finding when, and only when, the slugs that
@@ -512,7 +512,7 @@ content of each other file is its content in that tree.
 
 ### 3.15 Edit descriptions
 
-@term edit-description=v2
+@term edit-description=v1
 @cites {
     text#{text=v1, position=v1},
     ontology#{tree=v1},
@@ -530,7 +530,7 @@ spot, with the new text of the edit description as its new text.
 @atom edit-set-description=v1
 @cites {
     ontology#{tree=v1},
-    #{edit-description=v2, edit=v1, edit-set=v1},
+    #{edit-description=v1, edit=v1, edit-set=v1},
 }
 
 A finite sequence of edit descriptions describes an edit set in a tree
@@ -597,7 +597,7 @@ finding by a person can have effect.
     text#{span=v1, run=v1},
     ontology#{finding-class=v1, tree=v1, ledger=v1},
     #{
-        finding-subject=v2, message=v1, spot=v1, mark=v1,
+        finding-subject=v1, message=v1, spot=v1, mark=v1,
         related-message=v1, fix=v1, edit-set=v1, edit=v1,
         ackable-finding=v1,
     },
@@ -742,11 +742,11 @@ spot.
 
 ### 4.8 The validation of edit sets
 
-@req validate-edit-sets=v2
+@req validate-edit-sets=v1
 @cites {
     text#{conforming-program=v1, result=v1},
     ontology#{tree=v1},
-    #{edit-description=v2, edit-set-description=v1, edit-set=v1},
+    #{edit-description=v1, edit-set-description=v1, edit-set=v1},
 }
 
 For each tree and each finite sequence of edit descriptions, a
@@ -757,13 +757,13 @@ it does not.
 
 ### 4.9 The edited texts of edit sets
 
-@req give-edited-texts=v2
+@req give-edited-texts=v1
 @cites {
     files#{path=v1},
     text#{conforming-program=v1, text=v1},
     ontology#{tree=v1},
     #{
-        edit-description=v2, edit-set-description=v1, edit-set=v1,
+        edit-description=v1, edit-set-description=v1, edit-set=v1,
         edited-text=v1,
     },
 }
@@ -775,13 +775,13 @@ edited text of that valid path for that edit set, and no other text.
 
 ### 4.10 No other edited text
 
-@req omit-edited-texts=v2
+@req omit-edited-texts=v1
 @cites {
     files#{path=v1},
     text#{conforming-program=v1, text=v1},
     ontology#{tree=v1},
     #{
-        edit-description=v2, edit-set-description=v1, edit=v1,
+        edit-description=v1, edit-set-description=v1, edit=v1,
         edit-set=v1, edited-text=v1,
     },
 }
@@ -818,7 +818,7 @@ section 4.
 The vectors of this design are in the file
 [`findings.test-vectors.jsonl`](findings.test-vectors.jsonl), in the
 same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
+specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
 to them. The vectors are in groups. Each group has a name, such as
@@ -843,13 +843,13 @@ vectors: `give-finding-parts`, `omit-absent-finding-parts`,
     files#{path=v1},
     ontology#{tree=v1},
     data-forms#{
-        json-value=v1, hex-text=v1, vector-line=v2,
-        group-form-list=v2, vector-meaning=v2,
+        json-value=v1, hex-text=v1, vector-line=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
     #{
-        edit-description=v2, edit-set-description=v1, edit-set=v1,
-        edited-text=v1, validate-edit-sets=v2, give-edited-texts=v2,
-        omit-edited-texts=v2,
+        edit-description=v1, edit-set-description=v1, edit-set=v1,
+        edited-text=v1, validate-edit-sets=v1, give-edited-texts=v1,
+        omit-edited-texts=v1,
     },
 }
 
@@ -914,11 +914,11 @@ text as an edited text for the sequence.
     identifiers#{slug=v1},
     ontology#{finding-class=v1},
     data-forms#{
-        json-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     #{
-        edit-set-vector=v1, finding-subject=v2, finding-id=v1,
+        edit-set-vector=v1, finding-subject=v1, finding-id=v1,
         give-finding-ids=v1,
     },
 }
@@ -952,8 +952,8 @@ it gives the text that `finding-id` holds, and no other text.
         boundary=v1, span=v1, position=v1, line-number=v1, code-span=v1,
     },
     data-forms#{
-        json-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     #{
         edit-set-vector=v1, spot=v1, start-position=v1,
