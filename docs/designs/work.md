@@ -118,7 +118,6 @@ an environment and git configuration.
 | [class promise outcome](sinter:#class-promise-outcome=v1) | the outcome that the finding classes of Work read for a promise of a task definition in a tree: `"known kept"`, `"known not kept"`, or `"not known"` |
 | [known to keep a promise outside the paths](sinter:#outside-promise-edge=v1) | an edge outside a task definition's paths that keeps a promise of that definition in a tree under the rules of findings |
 | [range of a run](sinter:#job-range=v1), [run status](sinter:#job-range=v1) | the status of a run of the job for a repository and the commit of the default branch: already recorded, ready to record (with a commit range to the commit of the default branch), or cut when missing commits or shallow commits keep the clone from deciding the range |
-| [landing commit of a delivery line](sinter:#delivery-merge-commit=v1) | the landing commit of a commit in the range of a run on the first-parent line of the commit of the default branch (a merge commit, or the commit itself) |
 | [git identity](sinter:#git-identity=v1) | the configured committer identity `Name <email>` that git's environment variables and configuration give, excluding any guessed default |
 | [tasks of a change](sinter:#change-task=v1) | the existing tasks named by delivery lines or task lines in the commits of the change of a commit |
 | [only re-pins](sinter:#repin-only-file=v1) | a read file that can be read in both trees, with the same number of line texts, whose differing lines each hold at least one citation pin and differ only in citation pins, with each changed new pin equal to the current revision of its cited item |
@@ -1113,10 +1112,6 @@ these two conditions is true:
     },
 }
 
-This term is for a git repository R whose ledger is valid and that holds
-its ledger objects, and for the commit H of the default branch of R
-under a binding of `default-branch-name`.
-
 For a run of the job on a git repository R, the read repository of the
 run is R after any fetches that the program makes as part of the
 repository reads of the run, or R itself when the program makes no
@@ -1124,6 +1119,10 @@ fetch. A git repository holds the tree objects of a commit c of that
 git repository when, and only when, it holds the git tree object of c
 and every git tree object and blob named by an entry of the git tree
 object of c.
+
+The rest of this term is for a git repository R whose ledger is valid
+and that holds its ledger objects, and for the commit H of the default
+branch of R under a binding of `default-branch-name`.
 
 The latest accepted `delivered` entry of R is the accepted `delivered`
 ledger entry at the greatest index in the stored ledger of R, or none
@@ -1166,19 +1165,7 @@ to record (with a commit range), and cut:
      run status is ready to record with range C, and otherwise the run
      status is cut.
 
-### 4.24 Landing commits of delivery lines
-
-@term delivery-merge-commit=v1
-@cites {
-    changes#{commit=v1, first-parent-line=v1, landing-commit=v1},
-    #{job-range=v1},
-}
-
-For a commit H and a commit c in the range of a run for H, the landing
-commit of c for H is the landing commit of c on the first-parent line of
-H.
-
-### 4.25 Git identity
+### 4.24 Git identity
 
 @term git-identity=v1
 @cites {
@@ -1207,7 +1194,7 @@ identity is that configured committer name, then a space, then `<`,
 then that configured committer email, then `>`. Otherwise, git has no
 identity for R in that environment.
 
-### 4.26 The tasks of a change
+### 4.25 The tasks of a change
 
 @term change-task=v1
 @cites {
@@ -1227,7 +1214,7 @@ under D are each task t that exists at P and whose task id is the task
 id of a line that meets `delivery-line-form` or `task-line-form` in the
 text of the message of a commit of the change of h under D.
 
-### 4.27 Files whose change only re-pins
+### 4.26 Files whose change only re-pins
 
 @term repin-only-file=v1
 @cites {
@@ -1295,7 +1282,7 @@ when, and only when, all three of these conditions are true:
      has a cited item in T under F, N, and ST, and the text of that
      pin run in T is the current revision of that cited item in T.
 
-### 4.28 Subjects for changed file paths
+### 4.27 Subjects for changed file paths
 
 @term path-finding-subject=v1
 @cites {
@@ -1325,7 +1312,7 @@ steps give.
    6. Append *out* to *s*.
 4. Give *s*.
 
-### 4.29 Findings of the class `malformed-delivery`
+### 4.28 Findings of the class `malformed-delivery`
 
 @atom malformed-delivery-finding=v1
 @cites {
@@ -1354,7 +1341,7 @@ For a git repository R, a commit h of R, and a binding D of
   object name of c, then `@L`, then the decimal numeral of k. That
   finding has no spot.
 
-### 4.30 Findings of the class `stale-delivery`
+### 4.29 Findings of the class `stale-delivery`
 
 @atom stale-delivery-finding=v1
 @cites {
@@ -1386,7 +1373,7 @@ For a git repository R, a commit h of R, a binding D of
   finding is the commit object name of c, then `@L`, then the decimal
   numeral of k. That finding has no spot.
 
-### 4.31 Findings of the class `delivery-on-unmet-task`
+### 4.30 Findings of the class `delivery-on-unmet-task`
 
 @atom delivery-on-unmet-task-finding=v1
 @cites {
@@ -1435,7 +1422,7 @@ and a point P of the ledger of R:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.32 Findings of the class `missing-delivery`
+### 4.31 Findings of the class `missing-delivery`
 
 @atom missing-delivery-finding=v1
 @cites {
@@ -1485,7 +1472,7 @@ five of these conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.33 Findings of the class `delivery-without-change`
+### 4.32 Findings of the class `delivery-without-change`
 
 @atom delivery-without-change-finding=v1
 @cites {
@@ -1524,7 +1511,7 @@ exists at P and meets both of these conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.34 Findings of the class `unplanned-change`
+### 4.33 Findings of the class `unplanned-change`
 
 @atom unplanned-change-finding=v1
 @cites {
@@ -1571,7 +1558,7 @@ The subject of that finding is the path-finding subject of p. When the
 tree of h has a file at p, the spot of that finding is p alone, with no
 span. When the tree of h has no file at p, that finding has no spot.
 
-### 4.35 Findings of the class `promise-outside-paths`
+### 4.34 Findings of the class `promise-outside-paths`
 
 @atom promise-outside-paths-finding=v1
 @cites {
@@ -1633,7 +1620,7 @@ the citation entry of the first edge of T in outside-edge order that is
 known to keep q outside the paths of the current definition of t at P
 in T, in the text of the file of that edge.
 
-### 4.36 Findings of the class `unmet-promise`
+### 4.35 Findings of the class `unmet-promise`
 
 @atom unmet-promise-finding=v1
 @cites {
@@ -1762,7 +1749,7 @@ commit.
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{
-        work-graph-cycle=v1, definition-acceptance-rule=v1,
+        task-hash=v1, work-graph-cycle=v1, definition-acceptance-rule=v1,
         work-judgment-acceptance-rule=v1, delivered-acceptance-rule=v1,
         delivered-task-completion=v1,
     },
@@ -1772,12 +1759,12 @@ When a conforming program gives whether a ledger entry E of one of the
 kinds `task`, `plan`, `done`, `abandoned`, and `delivered` is accepted
 at a point P of a valid ledger of a git repository that holds its ledger
 objects, and no other process changes that git repository while the
-program reads it: when the program stops the check of work-graph cycles
-of an entry at or before P for limits of its own, it must give no
-result; otherwise, it must give exactly one result, and only "accepted"
-or "not accepted": "accepted" when the acceptance rule of the kind of E
-holds for E at P, and "not accepted" when that acceptance rule does not
-hold for E at P.
+program reads it: when the program stops, for limits of its own, the
+check of work-graph cycles or the computation of a task hash of an entry
+at or before P, it must give no result; otherwise, it must give exactly
+one result, and only "accepted" or "not accepted": "accepted" when the
+acceptance rule of the kind of E holds for E at P, and "not accepted"
+when that acceptance rule does not hold for E at P.
 
 ### 5.7 The states of tasks
 
@@ -1786,15 +1773,19 @@ hold for E at P.
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     ontology#{ledger=v1, task=v1, work-item-state=v1},
     text#{conforming-program=v1, result=v1},
-    #{work-item-id=v1, work-graph-cycle=v1, delivered-task-completion=v1},
+    #{
+        work-item-id=v1, task-hash=v1, work-graph-cycle=v1,
+        delivered-task-completion=v1,
+    },
 }
 
 When a conforming program gives the state of a task id t at a point P of
 a valid ledger of a git repository that holds its ledger objects, and no
 other process changes that git repository while the program reads it:
 
-- When the program stops the check of work-graph cycles of an entry
-  before P for limits of its own, it must give no result.
+- When the program stops, for limits of its own, the check of work-graph
+  cycles or the computation of a task hash of an entry before P, it must
+  give no result.
 - Otherwise, when t names a task that exists at P, the program must give
   exactly one result, and only "open", "delivered", "done", or
   "abandoned": the state that `ontology#work-item-state` and
@@ -1809,15 +1800,19 @@ other process changes that git repository while the program reads it:
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     ontology#{ledger=v1, plan=v1, work-item-state=v1},
     text#{conforming-program=v1, result=v1},
-    #{work-item-id=v1, work-graph-cycle=v1, delivered-task-completion=v1},
+    #{
+        work-item-id=v1, task-hash=v1, work-graph-cycle=v1,
+        delivered-task-completion=v1,
+    },
 }
 
 When a conforming program gives the state of a plan id p at a point P of
 a valid ledger of a git repository that holds its ledger objects, and no
 other process changes that git repository while the program reads it:
 
-- When the program stops the check of work-graph cycles of an entry
-  before P for limits of its own, it must give no result.
+- When the program stops, for limits of its own, the check of work-graph
+  cycles or the computation of a task hash of an entry before P, it must
+  give no result.
 - Otherwise, when p names a plan that exists at P, the program must give
   exactly one result, and only "open", "done", or "abandoned": the state
   that `ontology#work-item-state` and `delivered-task-completion` give
@@ -1835,7 +1830,10 @@ other process changes that git repository while the program reads it:
         ready-task=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{work-item-id=v1, work-graph-cycle=v1, delivered-task-completion=v1},
+    #{
+        work-item-id=v1, task-hash=v1, work-graph-cycle=v1,
+        delivered-task-completion=v1,
+    },
 }
 
 When a conforming program gives whether a task id t is ready at a point
@@ -1843,8 +1841,9 @@ P of a valid ledger of a git repository that holds its ledger objects,
 and no other process changes that git repository while the program reads
 it:
 
-- When the program stops the check of work-graph cycles of an entry
-  before P for limits of its own, it must give no result.
+- When the program stops, for limits of its own, the check of work-graph
+  cycles or the computation of a task hash of an entry before P, it must
+  give no result.
 - Otherwise, when t names a task that exists at P, the program must give
   exactly one result, and only "ready" or "not ready": "ready" when t is
   ready at P by `ontology#ready-task` and `delivered-task-completion`,
@@ -1865,25 +1864,26 @@ it:
     },
     text#{conforming-program=v1, result=v1},
     #{
-        work-graph-cycle=v1, delivered-task-completion=v1,
-        recorded-requirement-content=v1,
+        task-hash=v1, work-graph-cycle=v1, delivered-task-completion=v1,
+        recorded-requirement-content=v1, use-one-stopped-set-per-tree=v1,
     },
 }
 
 This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of the
-design Identifiers gives the result "valid", and a set S of stopped
-files of a tree T. When a conforming program gives, under F, N, and S,
-whether an item r of the kind requirement of T is accounted for in T at
-a point P of a valid ledger of a git repository that holds its ledger
-objects, and no other process changes that git repository while the
-program reads it: when the program stops the check of work-graph cycles
-of an entry before P for limits of its own, it must give no result;
-otherwise, the program must give exactly one result, and only
-"accounted for" or "not accounted for": "accounted for" when r is
-accounted for in T at P by `ontology#requirement-accounted-for`,
-`delivered-task-completion`, and `recorded-requirement-content`, and
-"not accounted for" otherwise.
+design Identifiers gives the result "valid", and the set S of stopped
+files of a tree T for the execution (requirement
+`use-one-stopped-set-per-tree`). When a conforming program gives, under
+F, N, and S, whether an item r of the kind requirement of T is accounted
+for in T at a point P of a valid ledger of a git repository that holds
+its ledger objects, and no other process changes that git repository
+while the program reads it: when the program stops, for limits of its
+own, the check of work-graph cycles or the computation of a task hash of
+an entry before P, it must give no result; otherwise, the program must
+give exactly one result, and only "accounted for" or "not accounted
+for": "accounted for" when r is accounted for in T at P by
+`ontology#requirement-accounted-for`, `delivered-task-completion`, and
+`recorded-requirement-content`, and "not accounted for" otherwise.
 
 ### 5.11 What a `done` ledger entry records
 
@@ -1897,16 +1897,17 @@ accounted for in T at P by `ontology#requirement-accounted-for`,
         work-item-state=v1, tree=v1, parameter=v1,
     },
     text#{conforming-program=v1, result=v1, code-point-order=v1, code-span=v1},
-    #{work-item-id=v1, done-field=v1},
+    #{work-item-id=v1, done-field=v1, use-one-stopped-set-per-tree=v1},
 }
 
 This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of the
-design Identifiers gives the result "valid", and a set S of stopped
-files of a tree T. When a conforming program appends a `done` ledger
-entry E at a point P of a ledger to record that a person judged the work
-of a task t finished in T under F, N, and S, all four of these rules
-apply:
+design Identifiers gives the result "valid", and the set S of stopped
+files of a tree T for the execution (requirement
+`use-one-stopped-set-per-tree`). When a conforming program appends a
+`done` ledger entry E at a point P of a ledger to record that a person
+judged the work of a task t finished in T under F, N, and S, all four of
+these rules apply:
 
 1. The program must set `work-item` of E to the task id of t.
 2. The program must set `requirements` of E to an array holding one
@@ -1925,7 +1926,7 @@ apply:
    such declared item, the program must write neither `label` nor
    `extent-hash` in that requirement record.
 
-### 5.12 Promise outcomes in the job
+### 5.12 Results for `verifies` promises in the job
 
 @req give-job-promise-outcomes=v1
 @cites {
@@ -1933,7 +1934,8 @@ apply:
     documents#{file-readers=v1, unreadable-file=v1},
     packs#{runner-settings=v1},
     evidence#{
-        tree-evidence=v1, give-nothing-for-stopped-readings=v1,
+        tree-evidence=v1, give-promise-sources=v1,
+        give-nothing-for-stopped-readings=v1,
         give-nothing-under-invalid-runner-settings=v1,
     },
     ledger#{job-marker=v1},
@@ -1942,23 +1944,28 @@ apply:
         work-item-definition=v1, tree=v1, parameter=v1,
     },
     text#{conforming-program=v1, input=v1, result=v1, code-span=v1},
-    #{job-promise-outcome=v1},
+    #{job-promise-outcome=v1, use-one-stopped-set-per-tree=v1},
 }
 
 This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
-Identifiers gives the result "valid", a set S of stopped files of a
-tree T, the evidence E for T, and the bindings of `runner-settings`.
-When a conforming program runs the job in an execution whose input says
-that the execution is the job and appends a `delivered` ledger entry
-that records a `verifies` promise q of a task definition D in T under F,
-N, S, E, and those bindings of `runner-settings`:
+Identifiers gives the result "valid", the set S of stopped files of a
+tree T for the execution (requirement `use-one-stopped-set-per-tree`),
+the evidence E for T, and the bindings of `runner-settings`. When a
+conforming program runs the job in an execution whose input says that
+the execution is the job and appends a `delivered` ledger entry that
+records a `verifies` promise q of a task definition D in T under F, N,
+S, E, and those bindings of `runner-settings`:
 
 - When E does not forbid a verifies result in T, the program must give
-  exactly one result for whether q is kept in T, and only "kept" or
-  "not-kept": the job promise outcome of q for D in T.
+  exactly one result for whether q is kept in T for D, and only "kept"
+  or "not-kept": the job promise outcome of q for D in T. When T has
+  evidence and E does not forbid a verifies result in T, the program
+  must give with that result the test outcomes and sources that
+  `evidence#give-promise-sources` requires for q in T, taking the paths
+  of D as the paths of the task in `ontology#promise`.
 - When E forbids a verifies result in T, the program must give no
-  result for whether q is kept in T.
+  result for whether q is kept in T for D.
 
 ### 5.13 Appending `delivered` ledger entries
 
@@ -1970,9 +1977,9 @@ N, S, E, and those bindings of `runner-settings`:
     evidence#{tree-evidence=v1},
     changes#{
         commit=v1, commit-file=v1, message-text=v1,
-        parents-first-order=v1, default-branch-name=v1,
-        default-branch-commit=v1, repository-read=v1,
-        undisturbed-read=v1,
+        parents-first-order=v1, first-parent-line=v1, landing-commit=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     ledger#{
         accepted-entry=v1, job-marker=v1, ledger-validity=v1,
@@ -1993,29 +2000,28 @@ N, S, E, and those bindings of `runner-settings`:
         task-hash=v1, delivered-field=v1, work-graph-cycle=v1,
         definition-acceptance-rule=v1, delivered-acceptance-rule=v1,
         delivery-line-form=v1, job-promise-outcome=v1, job-range=v1,
-        delivery-merge-commit=v1, git-identity=v1,
+        git-identity=v1, use-one-stopped-set-per-tree=v1,
     },
 }
 
-This requirement applies for a git repository R and an execution of a
-conforming program that runs the job on R and whose input says that the
-execution is the job, when all of these conditions hold: R holds its
-ledger objects and its ledger is valid; F is a valid binding of
-`file-readers`; N is a binding of `external-namespaces` for which a
-conforming program of Identifiers gives the result "valid"; the default
-branch of R has a commit H under a binding D of `default-branch-name`;
-git has an identity in the execution's environment for R; and each
-repository read of the run is undisturbed. The job reads the stored
-ledger of R. The program may fetch git objects into R as part of the
-repository reads of the run; the run status and whether the repository
-holds the tree objects of H are judged on the read repository R′ of the
-run (term `job-range`), and this requirement applies when the run
-status for R′ and H is ready to record with range C and R′ holds the
-tree objects of H.
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). This requirement
+applies for an execution of a conforming program that runs the job on R
+and whose input says that the execution is the job, when all of these
+conditions hold: F is a valid binding of `file-readers`; N is a binding
+of `external-namespaces` for which a conforming program of Identifiers
+gives the result "valid"; R′ holds its ledger objects and its ledger is
+valid; the default branch of R′ has a commit H under a binding D of
+`default-branch-name`; git has an identity in the execution's
+environment for R; each repository read of the run is undisturbed; the
+run status that `job-range` gives from the stored ledger of R′ and H is
+ready to record with range C; and R′ holds the tree objects of H.
 
-When the program finishes the run under these conditions, with a set S
-of stopped files of the tree of H, the evidence E for the tree of H,
-and the bindings of `runner-settings`, the program must give none of
+When the program finishes the run under these conditions, with the set S
+of stopped files of the tree of H for the execution (requirement
+`use-one-stopped-set-per-tree`), the evidence E for the tree of H, and
+the bindings of `runner-settings`, the program must give none of
 "already recorded", "cannot see range", "invalid bindings", "invalid
 ledger", "no default branch commit", and "no git identity", must end
 without an error, and, taking each commit c of C in parents-first order
@@ -2032,7 +2038,8 @@ order:
    - `by`: the git identity for R in the execution's environment;
    - `work-item`: t;
    - `commit`: the commit object name of c;
-   - `merge`: the commit object name of the landing commit of c for H;
+   - `merge`: the commit object name of the landing commit of c on the
+     first-parent line of H;
    - `head`: the commit object name of H;
    - `hash`: the short task hash of l;
    - `definitions`: one definition observation for each distinct task
@@ -2063,10 +2070,10 @@ order:
    ledger entry.
 
 When the program stops the run for limits of its own before finishing
-(such as on the length of C or while checking ancestry or work-graph
-cycles of the ledger), it must append no `delivered` ledger entry, must
-give exactly one result, and only "cannot see range", and must end with
-an error.
+(such as on the length of C or while checking ancestry, work-graph
+cycles, or task hashes of the ledger), it must append no `delivered`
+ledger entry, must give exactly one result, and only "cannot see range",
+and must end with an error.
 
 ### 5.14 The job on an already-recorded head
 
@@ -2084,25 +2091,27 @@ an error.
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
-    #{work-graph-cycle=v1, job-range=v1, git-identity=v1},
+    #{task-hash=v1, work-graph-cycle=v1, job-range=v1, git-identity=v1},
 }
 
-When a conforming program runs the job on a git repository R, in an
-execution whose input says that the execution is the job, under a valid
-binding of `file-readers`, a binding of `external-namespaces` for which
-a conforming program of Identifiers gives the result "valid", a binding
-of `default-branch-name` under which the default branch of R has a
-commit H, a git identity in the execution's environment for R, a valid
-ledger whose ledger objects R holds, and undisturbed repository reads,
-the job reads the stored ledger of R and the program may fetch git
-objects into R as part of those repository reads; when the run status
-for the read repository R′ of the run and H is already recorded:
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). When a conforming
+program runs the job on R in an execution whose input says that the
+execution is the job, under a valid binding of `file-readers`, a binding
+of `external-namespaces` for which a conforming program of Identifiers
+gives the result "valid", a binding of `default-branch-name` under which
+the default branch of R′ has a commit H, a git identity in the
+execution's environment for R, undisturbed repository reads, a valid
+ledger of R′ whose ledger objects R′ holds, and a run status (given by
+`job-range` from the stored ledger of R′ and H) that is already
+recorded:
 
 - When the program stops the run for limits of its own before deciding
-  the run status (such as while checking ancestry or work-graph cycles
-  of the ledger), it must append no `delivered` ledger entry, must give
-  exactly one result, and only "cannot see range", and must end with an
-  error.
+  the run status (such as while checking ancestry, work-graph cycles, or
+  task hashes of the ledger), it must append no `delivered` ledger
+  entry, must give exactly one result, and only "cannot see range", and
+  must end with an error.
 - Otherwise, the program must append no `delivered` ledger entry, must
   give exactly one result, and only "already recorded", and must end
   without an error.
@@ -2127,20 +2136,21 @@ for the read repository R′ of the run and H is already recorded:
     #{job-range=v1, git-identity=v1},
 }
 
-When a conforming program runs the job on a git repository R, in an
-execution whose input says that the execution is the job, under a valid
-binding of `file-readers`, a binding of `external-namespaces` for which
-a conforming program of Identifiers gives the result "valid", a binding
-of `default-branch-name` under which the default branch of R has a
-commit H, a git identity in the execution's environment for R, a valid
-ledger whose ledger objects R holds, and undisturbed repository reads,
-the job reads the stored ledger of R and the program may fetch git
-objects into R as part of those repository reads; when, for the read
-repository R′ of the run, either the run status for R′ and H is cut, or
-the run status for R′ and H is ready to record and R′ does not hold the
-tree objects of H, the program must append no `delivered` ledger entry,
-must give exactly one result, and only "cannot see range", and must end
-with an error.
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). When a conforming
+program runs the job on R in an execution whose input says that the
+execution is the job, under a valid binding of `file-readers`, a binding
+of `external-namespaces` for which a conforming program of Identifiers
+gives the result "valid", a binding of `default-branch-name` under which
+the default branch of R′ has a commit H, a git identity in the
+execution's environment for R, undisturbed repository reads, and a valid
+ledger of R′ whose ledger objects R′ holds, and either the run status
+that `job-range` gives from the stored ledger of R′ and H is cut, or
+that run status is ready to record and R′ does not hold the tree objects
+of H, the program must append no `delivered` ledger entry, must give
+exactly one result, and only "cannot see range", and must end with an
+error.
 
 ### 5.16 The job under bindings that are not valid
 
@@ -2173,16 +2183,20 @@ no `delivered` ledger entry, must give exactly one result, and only
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
+    #{job-range=v1},
 }
 
-Under a valid binding of `file-readers` and a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", when a conforming program runs the job on a
-git repository R in an execution whose input says that the execution is
-the job, each repository read is undisturbed, and either the ledger of R
-is broken or newer or R does not hold its ledger objects, the program
-must append no `delivered` ledger entry, must give exactly one result,
-and only "invalid ledger", and must end with an error.
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). Under a valid binding
+of `file-readers` and a binding of `external-namespaces` for which a
+conforming program of Identifiers gives the result "valid", when a
+conforming program runs the job on R in an execution whose input says
+that the execution is the job, each repository read is undisturbed, and
+either the ledger of R′ is broken or newer or R′ does not hold its
+ledger objects, the program must append no `delivered` ledger entry,
+must give exactly one result, and only "invalid ledger", and must end
+with an error.
 
 ### 5.18 The job when the default branch has no commit
 
@@ -2200,17 +2214,21 @@ and only "invalid ledger", and must end with an error.
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
+    #{job-range=v1},
 }
 
-Under a valid binding of `file-readers`, a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", a valid ledger whose ledger objects a git
-repository R holds, and a binding of `default-branch-name` under which
-the default branch of R has no commit, when a conforming program runs
-the job on R in an execution whose input says that the execution is the
-job and each repository read is undisturbed, it must append no
-`delivered` ledger entry, must give exactly one result, and only "no
-default branch commit", and must end with an error.
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). Under a valid binding
+of `file-readers`, a binding of `external-namespaces` for which a
+conforming program of Identifiers gives the result "valid", a valid
+ledger of R′ whose ledger objects R′ holds, and a binding of
+`default-branch-name` under which the default branch of R′ has no
+commit, when a conforming program runs the job on R in an execution
+whose input says that the execution is the job and each repository read
+is undisturbed, it must append no `delivered` ledger entry, must give
+exactly one result, and only "no default branch commit", and must end
+with an error.
 
 ### 5.19 The job without a git identity
 
@@ -2228,19 +2246,21 @@ default branch commit", and must end with an error.
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
-    #{git-identity=v1},
+    #{job-range=v1, git-identity=v1},
 }
 
-Under a valid binding of `file-readers`, a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", a valid ledger whose ledger objects a git
-repository R holds, and a binding of `default-branch-name` under which
-the default branch of R has a commit, when git has no identity in the
-execution's environment for R and each repository read is undisturbed,
-a conforming program that runs the job on R in an execution whose input
-says that the execution is the job must append no `delivered` ledger
-entry, must give exactly one result, and only "no git identity", and
-must end with an error.
+In a run of the job on a git repository R, the program may fetch git
+objects into R as part of the repository reads of the run, giving the
+read repository R′ of the run (term `job-range`). Under a valid binding
+of `file-readers`, a binding of `external-namespaces` for which a
+conforming program of Identifiers gives the result "valid", a valid
+ledger of R′ whose ledger objects R′ holds, and a binding of
+`default-branch-name` under which the default branch of R′ has a commit,
+when git has no identity in the execution's environment for R and each
+repository read is undisturbed, a conforming program that runs the job
+on R in an execution whose input says that the execution is the job must
+append no `delivered` ledger entry, must give exactly one result, and
+only "no git identity", and must end with an error.
 
 ### 5.20 Findings of the classes `promise-outside-paths` and `unmet-promise`
 
@@ -2254,24 +2274,26 @@ must end with an error.
     ontology#{finding-class=v1, tree=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        work-graph-cycle=v1, promise-outside-paths-finding=v1,
-        unmet-promise-finding=v1,
+        task-hash=v1, work-graph-cycle=v1,
+        promise-outside-paths-finding=v1, unmet-promise-finding=v1,
+        use-one-stopped-set-per-tree=v1,
     },
 }
 
 This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of
-Identifiers gives the result "valid", a set S of stopped files of a
-tree T, the evidence E for T, and the bindings of `runner-settings`.
-When a conforming program gives the findings of one of the classes
-`promise-outside-paths` and `unmet-promise` of T at a point P of a
-valid ledger of a git repository that holds its ledger objects, and no
-other process changes that git repository while the program reads it:
-when the program stops the check of work-graph cycles of an entry before
-P for limits of its own, it must give no finding of that class;
-otherwise, the program must give each tree finding of that class that T
-has at P under these bindings and inputs once, and must give no other
-finding of that class.
+Identifiers gives the result "valid", the set S of stopped files of a
+tree T for the execution (requirement `use-one-stopped-set-per-tree`),
+the evidence E for T, and the bindings of `runner-settings`. When a
+conforming program gives the findings of one of the classes
+`promise-outside-paths` and `unmet-promise` of T at a point P of a valid
+ledger of a git repository that holds its ledger objects, and no other
+process changes that git repository while the program reads it: when the
+program stops, for limits of its own, the check of work-graph cycles or
+the computation of a task hash of an entry before P, it must give no
+finding of that class; otherwise, the program must give each tree
+finding of that class that T has at P under these bindings and inputs
+once, and must give no other finding of that class.
 
 ### 5.21 Findings of the classes `malformed-delivery`, `stale-delivery`, and `delivery-on-unmet-task`
 
@@ -2290,27 +2312,34 @@ finding of that class.
     ontology#{finding-class=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        work-graph-cycle=v1, malformed-delivery-finding=v1,
-        stale-delivery-finding=v1, delivery-on-unmet-task-finding=v1,
+        task-hash=v1, work-graph-cycle=v1,
+        malformed-delivery-finding=v1, stale-delivery-finding=v1,
+        delivery-on-unmet-task-finding=v1,
+        use-one-stopped-set-per-tree=v1,
     },
 }
 
 This requirement applies for a commit h of a git repository R under a
 binding D of `default-branch-name`, a valid binding F of
 `file-readers`, a binding N of `external-namespaces` for which a
-conforming program of Identifiers gives the result "valid", a set SH of
-stopped files of the tree of h, the evidence EH for the tree of h, and
+conforming program of Identifiers gives the result "valid", the set SH
+of stopped files of the tree of h for the execution (requirement
+`use-one-stopped-set-per-tree`), the evidence EH for the tree of h, and
 the bindings of `runner-settings`. When a conforming program gives the
-findings of one of the classes `malformed-delivery`, `stale-delivery`,
-and `delivery-on-unmet-task` of the tree of h at a point P of a valid
-ledger of R (where R holds its ledger objects) under these bindings and
-inputs, and each repository read is undisturbed: when the program stops
-the check of work-graph cycles of an entry before P for limits of its
-own, it must give no finding of that class; otherwise, the program must
-give each tree finding of that class that the tree of h has under these
-bindings and inputs (at P, for `stale-delivery` and
-`delivery-on-unmet-task`) once, and must give no other finding of that
-class.
+findings of the class `malformed-delivery` of the tree of h at a point P
+of a valid ledger of R (where R holds its ledger objects) under these
+bindings and inputs, and each repository read is undisturbed, the
+program must give each tree finding of that class that the tree of h has
+under D once, and must give no other finding of that class. When a
+conforming program gives the findings of one of the classes
+`stale-delivery` and `delivery-on-unmet-task` of the tree of h at a
+point P of a valid ledger of R (where R holds its ledger objects) under
+these bindings and inputs, and each repository read is undisturbed: when
+the program stops, for limits of its own, the check of work-graph cycles
+or the computation of a task hash of an entry before P, it must give no
+finding of that class; otherwise, the program must give each tree
+finding of that class that the tree of h has at P under these bindings
+and inputs once, and must give no other finding of that class.
 
 ### 5.22 Findings of the classes `missing-delivery`, `delivery-without-change`, and `unplanned-change`
 
@@ -2329,9 +2358,9 @@ class.
     ontology#{finding-class=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        exempt-paths=v1, work-graph-cycle=v1,
+        exempt-paths=v1, task-hash=v1, work-graph-cycle=v1,
         missing-delivery-finding=v1, delivery-without-change-finding=v1,
-        unplanned-change-finding=v1,
+        unplanned-change-finding=v1, use-one-stopped-set-per-tree=v1,
     },
 }
 
@@ -2339,19 +2368,19 @@ This requirement applies for a commit h of a git repository R under a
 binding D of `default-branch-name` under which the change of h has a
 base b, a valid binding F of `file-readers`, a binding N of
 `external-namespaces` for which a conforming program of Identifiers
-gives the result "valid", sets SB and SH of stopped files of the trees
-of b and of h, the evidence EB and EH for the trees of b and of h, and
-the bindings of `runner-settings`; for the class `unplanned-change`,
-this requirement applies only under a valid binding X of `exempt-paths`
-as well. Within one execution, each tree has one set of stopped files
-wherever the execution reads that tree, so when the tree of b and the
-tree of h are the same tree, SB and SH are the same set. When a
-conforming program gives the findings of one of the classes
-`missing-delivery`, `delivery-without-change`, and `unplanned-change`
-of the tree of h at a point P of a valid ledger of R (where R holds its
-ledger objects) under these bindings and inputs, and each repository
-read is undisturbed: when the program stops the check of work-graph
-cycles of an entry before P for limits of its own, it must give no
+gives the result "valid", the sets SB and SH of stopped files of the
+trees of b and of h for the execution (requirement
+`use-one-stopped-set-per-tree`, where SB and SH are the same set when
+the tree of b and the tree of h are the same tree), the evidence EB and
+EH for the trees of b and of h, and the bindings of `runner-settings`;
+for the class `unplanned-change`, this requirement applies only under a
+valid binding X of `exempt-paths` as well. When a conforming program
+gives the findings of one of the classes `missing-delivery`,
+`delivery-without-change`, and `unplanned-change` of the tree of h at a
+point P of a valid ledger of R (where R holds its ledger objects) under
+these bindings and inputs, and each repository read is undisturbed: when
+the program stops, for limits of its own, the check of work-graph cycles
+or the computation of a task hash of an entry before P, it must give no
 finding of that class; otherwise, the program must give each tree
 finding of that class that the tree of h has at P under these bindings
 and inputs once, and must give no other finding of that class.
@@ -2455,6 +2484,20 @@ of a git repository that no other process changes while the program
 reads it, when that ledger is broken or newer, or when that git
 repository does not hold its ledger objects.
 
+### 5.27 One set of stopped files for each tree
+
+@req use-one-stopped-set-per-tree=v1
+@cites {
+    documents#{unreadable-file=v1},
+    ontology#{tree=v1},
+    text#{conforming-program=v1},
+}
+
+Within one execution, for each tree T that a conforming program reads
+under the requirements of this design, the program must use one set of
+stopped files of T wherever the execution reads T under the requirements
+of this design.
+
 ## 6. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
@@ -2478,8 +2521,9 @@ forms of a group. No vector follows from the requirements
 `reject-job-under-invalid-bindings`, `reject-job-on-invalid-ledger`,
 `reject-job-without-default-branch`, `reject-job-without-git-identity`,
 `omit-work-missing-base-report`, `report-work-missing-base`,
-`omit-work-findings-under-invalid-bindings`, and
-`omit-work-findings-from-invalid-ledgers`.
+`omit-work-findings-under-invalid-bindings`,
+`omit-work-findings-from-invalid-ledgers`, and
+`use-one-stopped-set-per-tree`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that the requirement names, such as whether a ledger
@@ -2600,8 +2644,8 @@ of the matching member of `values` once, in order, and no other line.
     ontology#{ledger=v1, ledger-entry=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     #{
-        task-field=v1, plan-field=v1, done-field=v1,
-        abandoned-field=v1, delivered-field=v1,
+        task-hash=v1, work-graph-cycle=v1, task-field=v1, plan-field=v1,
+        done-field=v1, abandoned-field=v1, delivered-field=v1,
         definition-acceptance-rule=v1, work-judgment-acceptance-rule=v1,
         delivered-acceptance-rule=v1, give-work-entry-acceptance=v1,
     },
@@ -2642,9 +2686,10 @@ JSON array of its elements, in order.
 When a conforming program gives whether one of these ledger entries is
 accepted at its point, the program gives "accepted" when the element of
 `accepted` for that ledger entry is `true`, and gives "not accepted"
-when that element is `false` (unless the program stops the check of
-work-graph cycles of an entry at or before that point for limits of its
-own, in which case the program gives no result).
+when that element is `false` (unless the program stops, for limits of
+its own, the check of work-graph cycles or the computation of a task
+hash of an entry at or before that point, in which case the program
+gives no result).
 
 ```
 {"form":"#acceptance-vector=v1","group":"acceptance","input":{"ledger":[{"def":1,"kind":"task","name":"Initial","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"Renamed","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"Stale","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":4,"kind":"task","name":"Skipped","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"task definition sequence: def 1, def 2, stale def 2, skipped def 4","values":{"accepted":[true,true,false,false]}}
@@ -2676,10 +2721,11 @@ own, in which case the program gives no result).
         requirement-accounted-for=v1, parameter=v1,
     },
     #{
-        work-item-id=v1, delivered-task-completion=v1,
-        recorded-requirement-content=v1, give-task-states=v1,
-        give-plan-states=v1, give-task-readiness=v1,
-        give-requirement-accounting=v1, acceptance-vector=v1,
+        work-item-id=v1, task-hash=v1, work-graph-cycle=v1,
+        delivered-task-completion=v1, recorded-requirement-content=v1,
+        give-task-states=v1, give-plan-states=v1,
+        give-task-readiness=v1, give-requirement-accounting=v1,
+        acceptance-vector=v1,
     },
 }
 
@@ -2734,8 +2780,9 @@ For each queried task id, plan id, or requirement, a conforming program
 gives the result that the matching member of `values` gives, and gives
 no state or readiness result for a task id or plan id that does not
 appear in `task-states`, `plan-states`, or `ready` (unless the program
-stops the check of work-graph cycles of an entry before that point for
-limits of its own, in which case the program gives no result).
+stops, for limits of its own, the check of work-graph cycles or the
+computation of a task hash of an entry before that point, in which case
+the program gives no result).
 
 ```
 {"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":[{"promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit"}],"task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
@@ -2774,12 +2821,12 @@ limits of its own, in which case the program gives no result).
         ledger=v1, tree=v1, edge=v1, finding-class=v1, parameter=v1,
     },
     #{
-        job-promise-outcome=v1, class-promise-outcome=v1,
-        outside-promise-edge=v1, delivery-on-unmet-task-finding=v1,
-        missing-delivery-finding=v1, promise-outside-paths-finding=v1,
-        unmet-promise-finding=v1, give-work-tree-findings=v1,
-        give-work-commit-findings=v1, give-work-change-findings=v1,
-        acceptance-vector=v1,
+        task-hash=v1, work-graph-cycle=v1, job-promise-outcome=v1,
+        class-promise-outcome=v1, outside-promise-edge=v1,
+        delivery-on-unmet-task-finding=v1, missing-delivery-finding=v1,
+        promise-outside-paths-finding=v1, unmet-promise-finding=v1,
+        give-work-tree-findings=v1, give-work-commit-findings=v1,
+        give-work-change-findings=v1, acceptance-vector=v1,
     },
 }
 
@@ -2848,9 +2895,10 @@ that edge.
 When a conforming program gives the findings of any class named in
 `findings`, it gives one finding for each element of that member (with
 that spot for `promise-outside-paths`, and no spot for the other three
-classes), and no other finding of that class (unless the program stops
-the check of work-graph cycles of an entry before that point for limits
-of its own, in which case the program gives no finding of that class).
+classes), and no other finding of that class (unless the program stops,
+for limits of its own, the check of work-graph cycles or the computation
+of a task hash of an entry before that point, in which case the program
+gives no finding of that class).
 
 ```
 {"form":"#promise-findings-vector=v1","group":"promise-findings","input":{"ledger":[{"def":1,"kind":"task","name":"Sat","paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"}],"tree":{"edges":[{"col":1,"end-col":20,"end-line":1,"fits":true,"kind":"satisfies","line":1,"path":"src/billing/a.ml","req":"billing#limit"}],"forbids-verifies":false,"has-evidence":true}},"note":"satisfies kept inside paths gives no finding","values":{"findings":{"promise-outside-paths":[],"unmet-promise":[]}}}
@@ -2883,12 +2931,12 @@ of its own, in which case the program gives no finding of that class).
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     ontology#{ledger=v1, finding-class=v1, parameter=v1},
     #{
-        exempt-paths=v1, commit-object-name=v1, change-task=v1,
-        repin-only-file=v1, path-finding-subject=v1,
-        malformed-delivery-finding=v1, stale-delivery-finding=v1,
-        delivery-without-change-finding=v1, unplanned-change-finding=v1,
-        give-work-commit-findings=v1, give-work-change-findings=v1,
-        acceptance-vector=v1,
+        exempt-paths=v1, commit-object-name=v1, task-hash=v1,
+        work-graph-cycle=v1, change-task=v1, repin-only-file=v1,
+        path-finding-subject=v1, malformed-delivery-finding=v1,
+        stale-delivery-finding=v1, delivery-without-change-finding=v1,
+        unplanned-change-finding=v1, give-work-commit-findings=v1,
+        give-work-change-findings=v1, acceptance-vector=v1,
     },
 }
 
@@ -2907,8 +2955,8 @@ that holds its ledger objects, a valid binding of `file-readers`, a
 binding of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", a binding of `default-branch-name`
 (under which the default branch has a commit when `commits` is present,
-and has no commit when `commits` is absent), and undisturbed repository
-reads.
+has no commit when `commits` is absent, and the change has a base when
+`changed-files` is present), and undisturbed repository reads.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
@@ -2935,12 +2983,12 @@ run's text (the same as `false`).
   - optional `commits`: a JSON array of JSON objects, each with `id` (a
     commit object name) and optional `text` (the commit message text,
     omitted when the message has no text);
-  - optional `changed-files` (present when the change has a base): a
-    JSON array of objects for each valid path with a hunk in a diff of
-    the change, each holding `path`, optional `base` (a file summary in
-    the base tree, omitted when the file was added), and optional `head`
-    (a file summary in the commit tree, omitted when the file was
-    deleted).
+  - optional `changed-files` (present only when `commits` is present,
+    and only when the change has a base): a JSON array of objects for
+    each valid path with a hunk in a diff of the change, each holding
+    `path`, optional `base` (a file summary in the base tree, omitted
+    when the file was added), and optional `head` (a file summary in the
+    commit tree, omitted when the file was deleted).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with one member, `findings`, a JSON object
@@ -2961,10 +3009,11 @@ When a conforming program gives the findings of any class named in
 `findings`, it gives one finding for each element of that member (with
 no spot for `malformed-delivery`, `stale-delivery`, and
 `delivery-without-change`, and with or without a spot as `has-spot` says
-for `unplanned-change`), and no other finding of that class (unless the
-program stops the check of work-graph cycles of an entry before that
-point for limits of its own, in which case the program gives no finding
-of that class).
+for `unplanned-change`), and no other finding of that class (for
+`stale-delivery`, `delivery-without-change`, and `unplanned-change`,
+unless the program stops, for limits of its own, the check of work-graph
+cycles or the computation of a task hash of an entry before that point,
+in which case the program gives no finding of that class).
 
 ```
 {"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"malformed-delivery for malformed line and stale-delivery for stale hash and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"malformed-delivery":["1111111111111111111111111111111111111111@L3"],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
