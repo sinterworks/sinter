@@ -1,0 +1,12 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(test
+ (name test_scripts)
+ (deps
+  (glob_files ../*.sh)
+  ../test_sinter.exe
+  ../../bin/main.exe
+  ../../bench/generate.exe
+  ../../bench/run.exe)
+ (libraries alcotest unix))
