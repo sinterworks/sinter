@@ -15,7 +15,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the subjects of approval that need approval by a person; the fields of the ledger entries of the kinds `approval` and `decline`, and their acceptance rule; the latest judgment of a subject of approval; the rule for merges; the states approved and declined of subjects of approval; the finding classes `declined`, `awaiting-approval`, and `unapproved-req`; and requirements for conforming programs that give these states, acceptance, and findings, and that append `approval` and `decline` ledger entries.
+Specifies the subjects of approval that need approval by a person; the fields of the ledger entries of the kinds `approval` and `decline`, and their acceptance rule; the latest judgment of a subject of approval; the rule for merges; incomplete first-parent lines; the states approved and declined of subjects of approval; the finding classes `declined`, `awaiting-approval`, and `unapproved-req`; and requirements for conforming programs that give these states, acceptance, and findings, and that append `approval` and `decline` ledger entries.
 
 A person approves or declines the revised content of a subject of
 approval, such as the text of an item of the kind requirement. A binding
@@ -53,27 +53,26 @@ the requirements `ledger#append-only-accepted-entries`,
 
 From Documents (`documents`), the design takes the declared items of a
 tree with their files and declarations, the bindings of the parameter
-`file-readers`, sets of stopped files, extent hashes, the edges of a
-tree, origins and origin positions, position subjects, the order of
-positions, the spots of runs, and tree findings. From Changes
+`file-readers`, read files, sets of stopped files, extent hashes, the
+edges of a tree, origins and origin positions, position subjects, the
+order of positions, the spots of runs, and tree findings. From Changes
 (`changes`), the design takes commits and their parents, the files of
 the tree of a commit, the parameter `default-branch-name` with its
-bindings, the commit of the default branch, first-parent lines, and
-shallow commits. From Findings (`findings`), the design takes the
-subjects of findings. From Identifiers (`identifiers`), the design takes
-slugs, full names, kind words, citation entries, inline citations,
-status tags, the texts of tag
-lines, the form of `@ack` lines with its production `subject`, the
-parameter `external-namespaces` with its bindings, and the results that
-a conforming program of Identifiers gives. From Files and paths
-(`files`), the design takes valid paths. From Data forms (`data-forms`),
-the design takes JSON values with their objects, members, and strings;
-the index of an element of a finite sequence; the hash form; the forms
-of a group and the meaning of a vector; and test-vector sets. The file
-that holds the conformance vectors of the design is a test-vector set.
-From Text and notation (`text`), the design takes texts, code point
-order, the notation of productions, and what a conforming program, an
-input, and a result are.
+bindings, the commit of the default branch, first-parent lines, shallow
+commits, and repository reads. From Findings (`findings`), the design
+takes the subjects of findings. From Identifiers (`identifiers`), the
+design takes slugs, full names, kind words, citation entries, inline
+citations, status tags, the texts of tag lines, the form of `@ack` lines
+with its production `subject`, the parameter `external-namespaces` with
+its bindings, and the results that a conforming program of Identifiers
+gives. From Files and paths (`files`), the design takes valid paths.
+From Data forms (`data-forms`), the design takes JSON values with their
+objects, members, and strings; the index of an element of a finite
+sequence; the hash form; the forms of a group and the meaning of a
+vector; and test-vector sets. The file that holds the conformance
+vectors of the design is a test-vector set. From Text and notation
+(`text`), the design takes texts, code point order, the notation of
+productions, and what a conforming program, an input, and a result are.
 
 The production `subject-text` is written in ABNF, the notation of RFC
 5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
@@ -105,11 +104,14 @@ strings, numbers, and the literal names `true` and `false`.
 | [count at an index](sinter:#judgment-acceptance-rule=v1) | the ledger entry at an index counts at that index when it is of the kind `approval` or `decline` and is accepted at the point of that index |
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none; none when E lacks `subject` or `hash` |
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | the acceptance rule holds for a ledger entry E of the kind `approval` or `decline` at a point P when the `saw` of E is the kind of the judgment before E at P, or `none` when there is no judgment before E at P, and, when E is an approval, the `saw` of E is not `approval` |
+| [read file](sinter:documents#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and has no space and no tab as its first character or as its last character |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading the program stops for limits of its own, the code files for whose reading the program gives the result "parse failure" for limits of its own, and the files of the tree whose content the program stops reading as a test-vector set for limits of its own; any set of files of a tree can be a set of stopped files |
 | [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers`, a binding of `external-namespaces`, and a set of stopped files of the tree: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree under those bindings and that set, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
 | [shallow commit](sinter:changes#shallow-commit=v1) | a commit of a git repository that the file `shallow` of its git folder names |
+| [repository read](sinter:changes#repository-read=v1) | an operation in which a program takes things from a git repository or from a working tree of that git repository, with each fetch into that git repository that the program makes during that operation as part of it |
 | [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a binding of `default-branch-name` |
+| [incomplete first-parent line](sinter:#incomplete-first-parent-line=v1) | the first-parent line of the commit of the default branch of a git repository under a valid binding of `file-readers`, for the repository reads from which a program takes that first-parent line and the files of the trees of the commits of that first-parent line, when a commit of that first-parent line is a shallow commit, when a commit of that first-parent line is not a shallow commit and the commit object of that commit names as the first parent of that commit a git object that is not a commit of the git repository at the end of those repository reads, or when at the end of those repository reads the git repository does not hold the git tree object of a commit of that first-parent line, does not hold a git tree object that a tree entry of the git tree object of that commit names, or does not hold the blob that a regular-file entry of the git tree object of that commit names when that regular-file entry gives a read file of the tree of that commit under that binding |
 | [has merged](sinter:#merged-content=v1) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, and one set of stopped files of each tree that is a tree T or, when the default branch of a git repository has a commit, is the tree of a commit of the first-parent line of that commit, the revised content of a subject of approval in T has merged into the default branch of that git repository when the default branch of that git repository has a commit, and the tree of a commit of that first-parent line gives the same subject of approval the same extent hash under those bindings and those sets |
 | [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree T, at a point of the ledger of a git repository, under the bindings of the parameters and one set of stopped files of each tree that is T or, when the default branch of that git repository has a commit, is the tree of a commit of the first-parent line of that commit |
 | [in force](sinter:ontology#in-force-item=v1) | a declared item is in force in a tree, at a point of a ledger, when it is not retired there: when it still applies |
@@ -307,15 +309,15 @@ requirement `ledger#give-states-only-from-valid-ledgers` covers a ledger
 that is broken or newer and a git repository that does not hold its
 ledger objects, also for a kind that does not need approval. The
 requirement `give-no-findings-from-invalid-ledgers` covers the findings
-for such a ledger and such a git repository. When a git repository lacks
-the git objects that a tree of the first-parent line needs, or when a
-commit of the first-parent line is a shallow commit, by the requirement
-`give-subject-states`, a program gives the state that the atom
-`subject-state` gives, or gives no state. When a git repository lacks
-the git objects that a tree of the first-parent line needs, or when a
-commit of the first-parent line is a shallow commit, by the requirement
-`give-approval-findings`, a program gives the findings of a class that
-the atom of that class gives, or does not give the findings of that
+for such a ledger and such a git repository. When the first-parent line
+of the commit of the default branch is incomplete for the repository
+reads from which a program takes that first-parent line and the files of
+the trees of its commits (term `incomplete-first-parent-line`), by the
+requirement `give-subject-states`, that program gives the state that the
+atom `subject-state` gives, or gives no state. When that first-parent
+line is incomplete for those repository reads, by the requirement
+`give-approval-findings`, that program gives the findings of a class
+that the atom of that class gives, or does not give the findings of that
 class.
 
 What a program gives while another process changes a file, a ref, or
@@ -848,6 +850,42 @@ position of the citation entry of the edge. The spot of that tree
 finding is the spot of the run of that citation entry in the text of the
 file of the edge.
 
+### 4.14 Incomplete first-parent lines
+
+@term incomplete-first-parent-line=v1
+@cites {
+    ontology#{default-branch=v1, tree=v1, parameter=v1},
+    changes#{
+        commit=v1, commit-file=v1, shallow-commit=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1, repository-read=v1,
+    },
+    documents#{file-readers=v1, read-file=v1},
+    text#{code-span=v1},
+}
+
+This term is for a git repository R, a binding D of `default-branch-name`
+under which the default branch of R has a commit H, a valid binding F of
+`file-readers`, and the repository reads from which a program takes the
+first-parent line of H and the files of the trees of the commits of that
+first-parent line. In this term, R holds a git object when R holds that
+git object at the end of those repository reads.
+
+The first-parent line of H under F is incomplete for those repository
+reads when, and only when, one or more of these three conditions is
+true:
+
+1. A commit of the first-parent line of H is a shallow commit of R.
+2. For some commit C of the first-parent line of H, C is not a shallow
+   commit of R, and the commit object of C names as the first parent of
+   C a git object that is not a commit of R.
+3. For some commit C of the first-parent line of H, R does not hold the
+   git tree object of C, does not hold a git tree object that a tree
+   entry of the git tree object of C names, or does not hold the blob
+   that a regular-file entry of the git tree object of C names when that
+   regular-file entry gives a file of the tree of C that is a read file
+   of the tree of C under F.
+
 ## 5. Requirements
 
 ### 5.1 The states of subjects of approval
@@ -861,12 +899,15 @@ file of the edge.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
         commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1, shallow-commit=v1,
+        first-parent-line=v1, repository-read=v1,
     },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1, unreadable-file=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{approval-kinds=v1, subject-state=v1},
+    #{
+        approval-kinds=v1, subject-state=v1,
+        incomplete-first-parent-line=v1,
+    },
 }
 
 This requirement applies under a valid binding A of `approval-kinds`, a
@@ -895,12 +936,14 @@ exactly one result, and only "approved", "declined", or "neither":
 - That conforming program must give "neither" when S is neither in T at
   P under A, D, F, N, and these sets of stopped files.
 
-When the default branch of R has a commit H under D, and either R lacks
-the git objects that the tree of a commit of the first-parent line of H
-needs or a commit of that first-parent line is a shallow commit, for
-such a subject of approval S, a conforming program must either give
-exactly the one result that this requirement states for S and no other
-result, or give no state for S.
+When the default branch of R has a commit H under D, and the
+first-parent line of H under F is incomplete (term
+`incomplete-first-parent-line`) for the repository reads from which a
+conforming program takes the first-parent line of H and the files of the
+trees of the commits of that first-parent line, for such a subject of
+approval S, that conforming program must either give exactly the one
+result that this requirement states for S and no other result, or give
+no state for S.
 
 ### 5.2 The acceptance of `approval` and `decline` ledger entries
 
@@ -1016,7 +1059,7 @@ repository does not hold its ledger objects.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
         commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1, shallow-commit=v1,
+        first-parent-line=v1, repository-read=v1,
     },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
@@ -1024,6 +1067,7 @@ repository does not hold its ledger objects.
     #{
         approval-kinds=v1, declined-finding=v1,
         awaiting-approval-finding=v1, unapproved-req-finding=v1,
+        incomplete-first-parent-line=v1,
     },
 }
 
@@ -1046,13 +1090,14 @@ gives the findings of one of those three classes of T at P under A, D,
 F, and N, that conforming program must give each tree finding of that
 class that T has at P under A, D, F, N, and these sets of stopped files
 once, and must give no other finding of that class. When the default
-branch of R has a commit H under D, and either R lacks the git objects
-that the tree of a commit of the first-parent line of H needs or a
-commit of that first-parent line is a shallow commit, for each of those
-three classes, a conforming program must either give each tree finding
-of that class that T has at P under A, D, F, N, and these sets of
-stopped files once and no other finding of that class, or not give the
-findings of that class.
+branch of R has a commit H under D, and the first-parent line of H under
+F is incomplete (term `incomplete-first-parent-line`) for the repository
+reads from which a conforming program takes the first-parent line of H
+and the files of the trees of the commits of that first-parent line, for
+each of those three classes, that conforming program must either give
+each tree finding of that class that T has at P under A, D, F, N, and
+these sets of stopped files once and no other finding of that class, or
+not give the findings of that class.
 
 ## 6. Conformance
 
