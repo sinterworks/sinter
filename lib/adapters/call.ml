@@ -23,8 +23,8 @@ let memory = "memory"
    bytes or more. *)
 let too_long length = length >= 4_294_967_296
 
-let check_length part bytes =
-  if too_long (String.length bytes) then Error (Too_long part) else Ok ()
+let check_length part length =
+  if too_long length then Error (Too_long part) else Ok ()
 
 let unsigned bits = Int32.to_int bits land 0xFFFF_FFFF
 let step result = Result.map_error (fun failure -> Failed failure) result
@@ -34,8 +34,7 @@ let step result = Result.map_error (fun failure -> Failed failure) result
    i32; the call fails when the address that it gives is 0, or when the bytes
    from that address do not lie inside the memory, and otherwise the bytes go
    into the memory from that address on, unchanged. *)
-let place instance part bytes =
-  let length = String.length bytes in
+let place instance part bytes length =
   let* bits =
     step
       (Instance.invoke instance "sinter_alloc"
@@ -54,18 +53,13 @@ let place instance part bytes =
    Step 4: the function gets the two addresses and the two lengths; of
    the i64 that it gives, the high 32 bits are the address and the low 32 bits
    the length of the response, which must lie inside the memory. *)
-let respond instance export ~request ~content =
-  let* request_address = place instance Request request in
-  let* content_address = place instance Report_content content in
+let respond instance export ~request ~request_length ~content ~content_length =
+  let* request_address = place instance Request request request_length in
+  let* content_address = place instance Report_content content content_length in
   let arguments =
     List.map
       (fun number -> Instance.Value.I32 (Int32.of_int number))
-      [
-        request_address;
-        String.length request;
-        content_address;
-        String.length content;
-      ]
+      [ request_address; request_length; content_address; content_length ]
   in
   let* bits =
     step (Instance.invoke instance export arguments Instance.Result_type.I64)
@@ -81,13 +75,16 @@ let respond instance export ~request ~content =
    which is not the instance of the decision; the instance is released on
    every path. *)
 let run limits decision export ~request ~content =
-  let* () = check_length Request request in
-  let* () = check_length Report_content content in
+  let request_length = String.length request
+  and content_length = String.length content in
+  let* () = check_length Request request_length in
+  let* () = check_length Report_content content_length in
   let* adapter = Result.map_error (fun invalid -> Not_valid invalid) decision in
   let* instance = step (Instance.create (Adapter.compiled adapter) limits) in
   Fun.protect
     ~finally:(fun () -> Instance.release instance)
-    (fun () -> respond instance export ~request ~content)
+    (fun () ->
+      respond instance export ~request ~request_length ~content ~content_length)
 
 (* @satisfies packs#{give-call-results=v1, give-call-values=v1, omit-call-values=v1, omit-adapter-error-texts=v1}
    A failure before a response gives "failed" with no error text and no
