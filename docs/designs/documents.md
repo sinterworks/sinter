@@ -5,7 +5,7 @@
 @design documents=v2
 @cites text=v2
 @cites identifiers=v2
-@cites files=v1
+@cites files=v2
 @cites data-forms=v2
 @cites ontology=v2
 @cites packs=v2
@@ -89,7 +89,7 @@ names `true` and `false`.
 | [tree](sinter:ontology#tree=v1), [file of a tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, which is a byte sequence; no two files of a tree have the same valid path |
 | [text of a file](sinter:ontology#tree=v1) | the text of the content of a file of a tree, when that content is valid UTF-8 |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
-| [path set](sinter:files#path-set=v1), [set of a path set](sinter:files#path-set-membership=v1) | a finite sequence of texts, such as `docs/` followed by `!docs/old/`; its set is the valid paths that it gives, such as `docs/a.md` and not `docs/old/a.md` |
+| [path set](sinter:files#path-set=v1), [set of a path set](sinter:files#path-set-membership=v2) | a finite sequence of texts, such as `docs/` followed by `!docs/old/`; its set is the valid paths that it gives, such as `docs/a.md` and not `docs/old/a.md` |
 | [pack](sinter:packs#pack=v1), [valid pack](sinter:packs#valid-pack=v2) | a language pack: a folder tree that has the support for one language, such as its grammars and query files; it is valid when it has all its required files, each with the right content |
 | [reading of a text](sinter:packs#reading-of-a-text=v2) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed", and, with "parsed", the nodes that the pack finds in the text |
 | [comment node](sinter:packs#comment-node=v2), [tagged](sinter:packs#comment-node=v2) | a node of a reading that the pack finds as a comment; it is tagged when it can carry tags |
@@ -533,7 +533,7 @@ pack.
 
 @term file-reader=v1
 @cites {
-    files#{path=v1, path-set=v1, path-set-membership=v1},
+    files#{path=v1, path-set=v1, path-set-membership=v2},
     ontology#{parameter=v2},
     #{file-readers=v1},
 }
@@ -3137,7 +3137,7 @@ of the vector is empty.
         position=v1, byte-order-mark=v1, valid-utf-8=v1, result=v1,
         code-point-order=v1, code-span=v1,
     },
-    files#{path=v1, path-set=v1, path-set-membership=v1},
+    files#{path=v1, path-set=v1, path-set-membership=v2},
     data-forms#{
         index=v1, hex-text=v1, vector-line=v2, group-form-list=v2,
         vector-meaning=v2,
@@ -3347,7 +3347,7 @@ These lines of the file are vectors of the group:
         boundary=v1, position=v1, valid-utf-8=v1, code-point-order=v1,
         code-span=v1,
     },
-    files#{path=v1, path-set=v1, path-set-membership=v1},
+    files#{path=v1, path-set=v1, path-set-membership=v2},
     data-forms#{index=v1, group-form-list=v2, vector-meaning=v2},
     identifiers#{external-namespaces=v1},
     ontology#{tree=v1, test=v1, parameter=v2},
