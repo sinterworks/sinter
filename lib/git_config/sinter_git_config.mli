@@ -264,7 +264,11 @@ val of_working_tree :
 
 type upstream_error =
   | No_value_of of key
-      (** the first or last value that the term needs is [None] *)
+      (** the first or last value that the term needs is [None], or a value of a
+          setting [remote.<name>.fetch] is [None] *)
+  | Invalid_refspec of string
+      (** this value of a setting [remote.<name>.fetch] is not a fetch refspec
+      *)
 
 val upstream :
   t ->
@@ -272,18 +276,30 @@ val upstream :
   (string option, upstream_error) result
 (** [upstream configuration b] is the name of the upstream of the branch name
     [b], as the term [default-branch-commit] gives it, or [None] when [b] has no
-    upstream. With M the first value of [branch.<b>.merge] and r the last value
-    of [branch.<b>.remote]: no upstream when one of the two has no value; M when
-    r is [.]; otherwise the ref name to which the first of the values of
-    [remote.<r>.fetch] that maps M maps it, or no upstream when none of them
-    maps M.
+    upstream. First, each value of each setting [remote.<name>.fetch], for any
+    [<name>], must be a fetch refspec: the first value, by the order of the keys
+    by {!String.compare} and then of the values, that is [None] gives
+    [No_value_of], and that is not a fetch refspec gives [Invalid_refspec].
+    Then, with M the first value of [branch.<b>.merge] and r the last value of
+    [branch.<b>.remote]: no upstream when one of the two has no value; M when r
+    is [.]; otherwise the first value of [remote.<r>.fetch] that maps M gives
+    the upstream, or no upstream when none maps M. The name is the bytes of a
+    destination, and it can be a name that is no ref name, such as [up/main].
 
-    A fetch refspec is an optional [+], a source, one [:], and a destination; a
-    refspec that starts with [^] is negative and maps nothing. A refspec maps M,
-    when M is a ref name by {!Sinter_ref_names.Ref_name.is_ref_name}, to the ref
-    name D when its source is M and its destination is D; or when its source and
-    its destination each hold exactly one [*], and, for a byte sequence s, which
-    can be empty and can hold [/], the source with s in place of its [*] is M
-    and the destination with s in place of its [*] is D. A refspec that gives no
-    ref name D maps nothing: one with no [:] or more than one, one whose
-    destination is not a ref name, or one with a [*] on one side only. *)
+    A fetch refspec is one of: [^] and a source that is not empty, a negative
+    refspec; or an optional [+], then a source, or a source, [:], and a
+    destination, a positive refspec. A source is empty, [@], or a name; a
+    destination is empty or a name. A name, by the rules of the page
+    git-check-ref-format with one level allowed, is not empty and not [@]; it
+    does not start or end with [/] and holds no [//]; no part between [/] starts
+    with [.] or ends with [.lock]; it does not end with [.]; it holds no [..]
+    and no [@\{]; and it holds no byte 0x00 to 0x20 or 0x7F, none of [~], [^],
+    [:], [?], [\[], and [\ ], and at most one [*]. In a positive refspec, when
+    the source holds a [*], there is a destination with a [*]; when the source
+    holds none, the destination holds none.
+
+    A refspec maps M when it is positive, it has a [:], and its source, with [@]
+    read as [HEAD], is M, or holds a [*] and is M with a byte sequence s, which
+    can be empty and can hold [/], in place of the [*]. It maps M to its
+    destination, with s in place of the [*]. An empty destination gives no
+    upstream. *)

@@ -683,10 +683,59 @@ let of_working_tree ~limits ~environment ~read ~git_folder ~git_directories
     ~extra:(worktree_config ~working_tree_folder)
     ~git_directories
 
-type upstream_error = No_value_of of key
+type upstream_error = No_value_of of key | Invalid_refspec of string
 
 let count_stars text =
   String.fold_left (fun count c -> if c = '*' then count + 1 else count) 0 text
+
+let contains text part =
+  let n = String.length text and m = String.length part in
+  let rec from k = k + m <= n && (String.sub text k m = part || from (k + 1)) in
+  from 0
+
+let is_refspec_name name =
+  name <> "@"
+  && (not (String.starts_with ~prefix:"/" name))
+  && (not (String.ends_with ~suffix:"/" name))
+  && (not (String.starts_with ~prefix:"." name))
+  && (not (String.ends_with ~suffix:"." name))
+  && (not (String.ends_with ~suffix:".lock" name))
+  && (not (List.exists (contains name) [ "//"; "/."; ".lock/"; ".."; "@{" ]))
+  && String.for_all
+       (fun c -> c > ' ' && c <> '\127' && not (String.contains "~^:?[\\" c))
+       name
+  && count_stars name <= 1
+
+let is_source source = source = "" || source = "@" || is_refspec_name source
+
+type refspec = Negative | Positive of { source : string; map : string option }
+
+let refspec value =
+  match String.split_on_char ':' value with
+  | [ negative ] when String.starts_with ~prefix:"^" negative ->
+      let source = String.sub negative 1 (String.length negative - 1) in
+      if source <> "" && is_source source then Some Negative else None
+  | parts -> (
+      let positive part =
+        if String.starts_with ~prefix:"+" part then
+          String.sub part 1 (String.length part - 1)
+        else part
+      in
+      match parts with
+      | [ source ] ->
+          let source = positive source in
+          if is_source source && count_stars source = 0 then
+            Some (Positive { source; map = None })
+          else None
+      | [ source; destination ] ->
+          let source = positive source in
+          if
+            is_source source
+            && (destination = "" || is_refspec_name destination)
+            && count_stars source = count_stars destination
+          then Some (Positive { source; map = Some destination })
+          else None
+      | _ -> None)
 
 let fill text bytes =
   match String.index_opt text '*' with
@@ -697,7 +746,7 @@ let fill text bytes =
 
 let fit source merge =
   match String.index_opt source '*' with
-  | None -> None
+  | None -> if String.equal source merge then Some "" else None
   | Some star ->
       let prefix = String.sub source 0 star in
       let suffix =
@@ -714,35 +763,52 @@ let fit source merge =
       else None
 
 (* @satisfies changes#give-default-branch-commits=v1
-   A fetch refspec maps a ref name M to the ref name D when its source and its
-   destination are M and D, or when each holds one asterisk and the same
-   bytes in place of both asterisks give M and D; a negative refspec, and a
-   refspec that gives no ref name D, map nothing. *)
-let mapping merge refspec =
-  let spec =
-    if String.starts_with ~prefix:"+" refspec then
-      String.sub refspec 1 (String.length refspec - 1)
-    else refspec
-  in
-  let destination =
-    match String.split_on_char ':' spec with
-    | [ source; destination ]
-      when Sinter_ref_names.Ref_name.is_ref_name merge
-           && not (String.starts_with ~prefix:"^" refspec) ->
-        if String.equal source merge then Some destination
-        else if count_stars source = 1 && count_stars destination = 1 then
-          Option.map (fill destination) (fit source merge)
-        else None
-    | _ -> None
-  in
-  Option.bind destination (fun name ->
-      if Sinter_ref_names.Ref_name.is_ref_name name then Some name else None)
+   A fetch refspec maps the merge ref M when it is positive, has a
+   destination, and its source, with `@` as `HEAD`, is M or, with the bytes
+   s in place of its one asterisk, is M; it maps M to the destination with s
+   in place of its asterisk. *)
+let mapping merge = function
+  | Negative | Positive { map = None; _ } -> None
+  | Positive { source; map = Some destination } ->
+      let source = if source = "@" then "HEAD" else source in
+      Option.map (fill destination) (fit source merge)
+
+let is_remote_fetch key =
+  String.length key >= String.length "remote..fetch"
+  && String.starts_with ~prefix:"remote." key
+  && String.ends_with ~suffix:".fetch" key
 
 (* @satisfies changes#give-default-branch-commits=v1
-   The upstream of b is M when r is ".", and otherwise the ref name to which
-   the first fetch refspec of r, in the order of its values, that maps M maps
-   it; with no value of either setting, b has no upstream. *)
+   Each value of a setting `remote.<name>.fetch` is a fetch refspec, or the
+   upstream is an error and gives no commit of the default branch. *)
+let refspecs configuration =
+  Keys.fold
+    (fun key values found ->
+      let* found = found in
+      if not (is_remote_fetch key) then Ok found
+      else
+        let* parsed =
+          List.fold_left
+            (fun parsed value ->
+              let* parsed = parsed in
+              match value with
+              | None -> Error (No_value_of key)
+              | Some text -> (
+                  match refspec text with
+                  | Some spec -> Ok (spec :: parsed)
+                  | None -> Error (Invalid_refspec text)))
+            (Ok []) values
+        in
+        Ok (Keys.add key (List.rev parsed) found))
+    configuration (Ok Keys.empty)
+
+(* @satisfies changes#give-default-branch-commits=v1
+   The upstream of b is M when r is ".", and otherwise the destination to
+   which the first fetch refspec of r, in the order of its values, that maps
+   M maps it, with no upstream for an empty destination; with no value of
+   either setting, b has no upstream. *)
 let upstream configuration branch =
+  let* specs = refspecs configuration in
   let name =
     Sinter_text.Text.encode (Sinter_branch_names.Branch_name.to_text branch)
   in
@@ -753,14 +819,11 @@ let upstream configuration branch =
   | None :: _, _ -> Error (No_value_of merge_key)
   | _, Some None -> Error (No_value_of remote_key)
   | Some merge :: _, Some (Some ".") -> Ok (Some merge)
-  | Some merge :: _, Some (Some remote) ->
+  | Some merge :: _, Some (Some remote) -> (
       let fetch_key = key ~section:"remote" ~subsection:remote "fetch" in
-      let rec first = function
-        | [] -> Ok None
-        | None :: _ -> Error (No_value_of fetch_key)
-        | Some refspec :: rest -> (
-            match mapping merge refspec with
-            | Some name -> Ok (Some name)
-            | None -> first rest)
-      in
-      first (values configuration fetch_key)
+      match
+        List.find_map (mapping merge)
+          (Option.value ~default:[] (Keys.find_opt fetch_key specs))
+      with
+      | Some "" | None -> Ok None
+      | Some destination -> Ok (Some destination))

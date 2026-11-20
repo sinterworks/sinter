@@ -4,11 +4,7 @@
 (library
  (name sinter_git_config)
  (public_name sinter.git_config)
- (libraries
-  sinter_text
-  sinter_branch_names
-  sinter_ref_names
-  sinter_wildmatch)
+ (libraries sinter_text sinter_branch_names sinter_wildmatch)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation

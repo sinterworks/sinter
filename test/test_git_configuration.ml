@@ -1570,6 +1570,7 @@ let upstream_of text b =
   | Ok (Some name) -> name
   | Ok None -> "no upstream"
   | Error (Config.No_value_of _) -> "no value"
+  | Error (Config.Invalid_refspec value) -> "invalid refspec " ^ value
 
 let remote fetches =
   "[remote \"up\"]\nurl = /nowhere\n"
@@ -1580,14 +1581,126 @@ let main_branch = "[branch \"main\"]\nremote = up\nmerge = refs/heads/main\n"
 let upstream_tests =
   [
     (* @verifies changes#give-default-branch-commits=v1
-       The upstream of the default branch comes from the fetch refspecs of its
-       remote, used as a mapping by the page git-fetch. A refspec whose source
-       or destination is not a ref name, that has more than one `:` or none, or
-       that has a `*` on one side only must map nothing, and the next refspec
-       that maps the merge ref must give the upstream. *)
-    case
-      "a refspec that gives no ref name maps nothing, and the next one counts"
-      (fun () ->
+       The upstream of the default branch comes from the fetch refspecs of the
+       remotes, as git 2.54.0 reads them. A value of `remote.<name>.fetch` of
+       any remote that is not a fetch refspec must make the upstream an error,
+       before or after the refspec that maps the merge ref, for another remote,
+       for the remote `.`, and with no merge ref. *)
+    case "a value of a fetch setting that is no refspec is an error" (fun () ->
+        List.iter
+          (fun refspec ->
+            Alcotest.(check string)
+              refspec
+              ("invalid refspec " ^ refspec)
+              (upstream_of
+                 (main_branch
+                 ^ remote [ refspec; "refs/heads/*:refs/remotes/up/*" ])
+                 "main");
+            Alcotest.(check string)
+              ("after the one that maps: " ^ refspec)
+              ("invalid refspec " ^ refspec)
+              (upstream_of
+                 (main_branch
+                 ^ remote [ "refs/heads/*:refs/remotes/up/*"; refspec ])
+                 "main"))
+          [
+            "a:b:c";
+            "refs/heads/*";
+            "refs/heads/*:";
+            ":refs/remotes/up/*";
+            "*:refs/remotes/up/x";
+            "refs/heads/*:refs/remotes/up/x";
+            "refs/heads/main:refs/remotes/up/*";
+            "refs/heads/**:refs/remotes/up/**";
+            "refs/heads/*/*:refs/remotes/up/*/*";
+            "^";
+            "^refs/heads/main:refs/remotes/up/x";
+            "+^refs/heads/main";
+            "refs/heads/main:../x";
+            "refs/heads/main:refs/remotes/up/a..b";
+            "refs/heads/main:refs/remotes/up/x.lock";
+            "refs/heads/main:refs/remotes/up.lock/main";
+            "refs/heads/main:refs/remotes/up/a\127b";
+            "refs/heads/main:refs/remotes/up/a@{";
+            "refs/heads/*:refs/remotes/up/*.lock";
+            "refs/heads/*:refs/remotes/up/.*";
+            "refs/heads/main:refs/remotes/.up/a";
+            "refs/heads/main:refs/remotes/up/a.";
+            "refs/heads/main:refs/remotes/up/a@{b";
+            "refs/heads/main:@{a";
+            "refs/heads/main:@";
+            "refs/heads/main:/refs/remotes/up/main";
+            "refs/heads/main:refs/remotes/up/main/";
+            "refs/heads/main:refs/remotes//up/a";
+            "refs/heads/main:refs/remotes/up/x y";
+            "refs/heads/main:refs/remotes/up/a\tb";
+            "refs/heads/main:refs/remotes/up/a?";
+            "refs/heads/main:refs/remotes/up/a[";
+            "refs/heads/main:refs/remotes/up/a~";
+            "refs/heads/main:refs/remotes/up/a^";
+            "refs/heads/a..b:refs/remotes/up/x";
+            "../x:refs/remotes/up/x";
+            ".a:refs/remotes/up/x";
+            "a@{b:refs/remotes/up/x";
+            "@{a:refs/remotes/up/x";
+            "/a:refs/remotes/up/x";
+            "a//b:refs/remotes/up/x";
+            "a/:refs/remotes/up/x";
+            "a.:refs/remotes/up/x";
+            "refs/heads/main.lock:refs/remotes/up/x";
+            "a*b*:refs/remotes/up/x*";
+          ];
+        Alcotest.(check string)
+          "a space at the start"
+          "invalid refspec  refs/heads/*:refs/remotes/up/*"
+          (upstream_of
+             (main_branch ^ remote [ "\" refs/heads/*:refs/remotes/up/*\"" ])
+             "main");
+        Alcotest.(check string)
+          "a backslash" "invalid refspec refs/heads/main:refs/remotes/up/a\\b"
+          (upstream_of
+             (main_branch ^ remote [ "refs/heads/main:refs/remotes/up/a\\\\b" ])
+             "main");
+        let other = "[remote \"other\"]\nurl = /x\nfetch = a:b:c\n" in
+        Alcotest.(check string)
+          "another remote" "invalid refspec a:b:c"
+          (upstream_of
+             (main_branch ^ remote [ "refs/heads/*:refs/remotes/up/*" ] ^ other)
+             "main");
+        Alcotest.(check string)
+          "the remote ." "invalid refspec a:b:c"
+          (upstream_of
+             ("[branch \"main\"]\nremote = .\nmerge = refs/heads/main\n" ^ other)
+             "main");
+        Alcotest.(check string)
+          "no merge ref" "invalid refspec a:b:c"
+          (upstream_of ("[branch \"main\"]\nremote = up\n" ^ other) "main");
+        Alcotest.(check string)
+          "a remote with an empty name" "invalid refspec a:b:c"
+          (upstream_of
+             (main_branch
+             ^ remote [ "refs/heads/*:refs/remotes/up/*" ]
+             ^ "[remote \"\"]\nfetch = a:b:c\n")
+             "main");
+        Alcotest.(check string)
+          "a section remote with no subsection" "refs/remotes/up/main"
+          (upstream_of
+             (main_branch
+             ^ remote [ "refs/heads/*:refs/remotes/up/*" ]
+             ^ "[remote]\nfetch = a:b:c\n")
+             "main");
+        Alcotest.(check string)
+          "a push refspec" "refs/remotes/up/main"
+          (upstream_of
+             (main_branch
+             ^ remote [ "refs/heads/*:refs/remotes/up/*" ]
+             ^ "[remote \"other\"]\npush = a:b:c\n")
+             "main"));
+    (* @verifies changes#give-default-branch-commits=v1
+       A negative refspec, a refspec with no `:`, and a refspec whose source
+       does not give the merge ref must map nothing, and the next refspec that
+       maps the merge ref must give the upstream. *)
+    case "a refspec that maps nothing lets the next one count" (fun () ->
         List.iter
           (fun refspec ->
             Alcotest.(check string)
@@ -1597,36 +1710,100 @@ let upstream_tests =
                  ^ remote [ refspec; "refs/heads/*:refs/remotes/up/*" ])
                  "main"))
           [
-            "a:b:c";
-            "refs/heads/main:refs/remotes/x:y";
-            "refs/heads/*:refs/remotes/up/x";
-            "refs/heads/x:refs/remotes/up/*";
-            "refs/heads/*/*:refs/remotes/up/*";
+            "\"\"";
+            "+";
+            ":";
+            "+:";
             "refs/heads/main";
-            "refs/heads/main:";
-            "refs/heads/main:up/main";
-            "refs/heads/main:refs/remotes/a..b";
-            "refs/heads/*:refs/remotes/*/x.lock";
-            "refs/heads/main*:refs/remotes/up/*";
+            ":refs/remotes/up/x";
+            "++refs/heads/*:refs/remotes/up/*";
             "main:refs/remotes/up/main";
-          ];
+            "heads/main:refs/remotes/up/main";
+            "@:refs/remotes/up/x";
+            "@*:refs/remotes/up/*";
+            "x@:refs/remotes/up/x";
+            "^refs/heads/main";
+            "^refs/heads/m*";
+            "^refs/heads/*";
+            "^*";
+            "^main";
+            "^@";
+            "^+refs/heads/main";
+            "0123456789abcdef0123456789abcdef01234567:refs/remotes/up/x";
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The first refspec that maps the merge ref must give the upstream, and an
+       empty destination must give no upstream, with no later refspec. *)
+    case "an empty destination gives no upstream" (fun () ->
         Alcotest.(check string)
-          "a merge ref that is no ref name" "no upstream"
+          "an empty destination" "no upstream"
           (upstream_of
-             ("[branch \"main\"]\nremote = up\nmerge = main\n"
-             ^ remote [ "*:refs/remotes/up/*"; "main:refs/remotes/up/main" ])
-             "main");
-        Alcotest.(check string)
-          "a root name" "refs/remotes/up/HEAD"
-          (upstream_of
-             ("[branch \"main\"]\nremote = up\nmerge = HEAD\n"
-             ^ remote [ "HEAD:refs/remotes/up/HEAD" ])
-             "main");
-        Alcotest.(check string)
-          "after the one that maps" "refs/remotes/up/main"
-          (upstream_of
-             (main_branch ^ remote [ "refs/heads/*:refs/remotes/up/*"; "a:b:c" ])
+             (main_branch
+             ^ remote [ "refs/heads/main:"; "refs/heads/*:refs/remotes/up/*" ])
              "main"));
+    (* @verifies changes#give-default-branch-commits=v1
+       The upstream must be the destination of the refspec as written, with
+       the bytes that the `*` takes, also when it is no ref name; the source
+       must give the merge ref by its bytes, and `@` must stand for `HEAD`. *)
+    case "the upstream is the destination as written" (fun () ->
+        List.iter
+          (fun (merge, refspecs, expected) ->
+            Alcotest.(check string)
+              (merge ^ " " ^ String.concat " " refspecs)
+              expected
+              (upstream_of
+                 ("[branch \"main\"]\nremote = up\nmerge = " ^ merge ^ "\n"
+                ^ remote refspecs)
+                 "main"))
+          [
+            ("refs/heads/main", [ "refs/heads/main:up/main" ], "up/main");
+            ( "refs/heads/main",
+              [ "refs/heads/main:up/main"; "refs/heads/*:refs/remotes/up/*" ],
+              "up/main" );
+            ("refs/heads/main", [ "refs/heads/main:main" ], "main");
+            ( "refs/heads/main",
+              [ "refs/heads/main:refs/remotes/up/\xff" ],
+              "refs/remotes/up/\xff" );
+            ("refs/heads/main", [ "refs/heads/main:HEAD" ], "HEAD");
+            ("refs/heads/main", [ "refs/heads/*:up/*" ], "up/main");
+            ( "refs/heads/main",
+              [
+                "refs/heads/main*:refs/remotes/up/*";
+                "refs/heads/*:refs/remotes/up/*";
+              ],
+              "refs/remotes/up/" );
+            ( "refs/heads/main",
+              [ "refs/heads/*n:refs/remotes/up/*" ],
+              "refs/remotes/up/mai" );
+            ( "refs/heads/main",
+              [ "refs/heads/*main:refs/remotes/up/x*" ],
+              "refs/remotes/up/x" );
+            ( "refs/heads/main",
+              [ "refs/heads/*:refs/remotes/up/a*b" ],
+              "refs/remotes/up/amainb" );
+            ( "refs/heads/main",
+              [ "*:refs/remotes/up/*" ],
+              "refs/remotes/up/refs/heads/main" );
+            ( "refs/heads/team/main",
+              [ "refs/heads/team/*:refs/remotes/up*" ],
+              "refs/remotes/upmain" );
+            ("main", [ "main:refs/remotes/up/main" ], "refs/remotes/up/main");
+            ("main", [ "*:refs/remotes/up/*" ], "refs/remotes/up/main");
+            ("main", [ "refs/heads/*:refs/remotes/up/*" ], "no upstream");
+            ("HEAD", [ "@:refs/remotes/up/x" ], "refs/remotes/up/x");
+            ("@", [ "@:refs/remotes/up/x" ], "no upstream");
+            ("@", [ "HEAD:refs/remotes/up/x" ], "no upstream");
+            ("HEAD", [ "HEAD:refs/remotes/up/HEAD" ], "refs/remotes/up/HEAD");
+            ( "refs/heads/a..b",
+              [ "refs/heads/*:refs/remotes/up/*" ],
+              "refs/remotes/up/a..b" );
+            ( "refs/heads/../../x",
+              [ "refs/heads/*:refs/remotes/up/*" ],
+              "refs/remotes/up/../../x" );
+            ( "refs/heads/a b",
+              [ "refs/heads/*:refs/remotes/up/*" ],
+              "refs/remotes/up/a b" );
+          ]);
     case "a value with no = for merge or remote is an error" (fun () ->
         Alcotest.(check string)
           "merge" "no value"
@@ -1683,8 +1860,8 @@ let upstream_tests =
              "main"));
     (* @verifies changes#give-default-branch-commits=v1
        The source of a fetch refspec must map only the merge ref with the same
-       full name, never a short name such as `main`, and a `*` must take bytes
-       that hold `/`. *)
+       bytes, so that `main` does not map `refs/heads/main`, and a `*` must take
+       bytes that hold `/`. *)
     case "a refspec maps by full names, and its * takes any bytes" (fun () ->
         Alcotest.(check string)
           "a short source" "no upstream"
@@ -1699,11 +1876,12 @@ let upstream_tests =
              "main"));
     (* @verifies changes#give-default-branch-commits=v1
        Over generated merge refs and lists of fetch refspecs, with negative
-       refspecs, refspecs that map nothing, and refspecs with no destination,
-       the upstream must be the destination of the first refspec that maps the
-       merge ref, by the rule of the page git-fetch. Under a binding of
-       `default-branch-name`, the result gives that upstream and no other, or no
-       upstream, never both. *)
+       refspecs, refspecs that map nothing, refspecs with no destination or an
+       empty one, and refspecs that are not valid, the upstream must be the
+       destination of the first refspec that maps the merge ref, as git 2.54.0
+       gives it, or an error for a value that is not a refspec. Under a binding
+       of `default-branch-name`, the result gives that upstream and no other, or
+       no upstream, never both. *)
     property ~name:"the upstream is the map of the first refspec that maps M"
       ~print:(fun (m, refspecs) -> m ^ " " ^ String.concat " " refspecs)
       Gen.(
@@ -1722,6 +1900,8 @@ let upstream_tests =
                   "refs/heads/ab";
                   "refs/heads/*b:refs/remotes/r/*";
                   "refs/heads/a";
+                  "refs/heads/a:";
+                  "a:b:c";
                 ])))
       (fun (m, refspecs) ->
         let maps refspec =
@@ -1769,17 +1949,13 @@ let upstream_tests =
                     else None)
         in
         let expected =
-          List.fold_left
-            (fun found refspec ->
-              match found with
-              | Some _ -> found
-              | None -> (
-                  match maps refspec with
-                  | Some (Some destination)
-                    when Sinter_ref_names.Ref_name.is_ref_name destination ->
-                      Some destination
-                  | Some _ | None -> None))
-            None refspecs
+          if List.mem "a:b:c" refspecs then Some "<error>"
+          else
+            match
+              List.find_map (fun refspec -> Option.join (maps refspec)) refspecs
+            with
+            | Some "" | None -> None
+            | Some destination -> Some destination
         in
         let text =
           "[branch \"main\"]\nremote = up\nmerge = " ^ m ^ "\n"
