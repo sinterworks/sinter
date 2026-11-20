@@ -111,8 +111,8 @@ file that holds the conformance vectors of the design is a JSON text.
 | [input](sinter:#input=v2) | a line of a text that a conforming program reads, other than a continuation line, because a citation and its continuation lines are one input; a link or an image of the markdown document of such a text; an id pattern that the program takes on its own or in a pair of an id pattern and an id; a binding of `external-namespaces` that the program takes or under which it reads; a pair of an id pattern and an id that the program takes, when the program accepts the id pattern of that pair; the id patterns of a binding belong to the binding and are not inputs of their own |
 | [match](sinter:#match=v1) | one way in which a production matches the whole of a text, by one set of its choices, such as one alternative at each `/` and one number of repetitions at each repetition; in a match, each use of a rule through a rule name matches a run of the text, and the match uses that rule |
 | [match of an input](sinter:#input-match=v2) | a match of the text of a tag line or of the destination of an inline citation by the production for its kind of tag line or by `inline-destination`, in which the target of a declaration is not an external target; each other external target, without its kind word and the `:` after it, matches `external-ref`; and in each run that `external-id` matches, the text that `namespace-name` matches is the namespace name of an external namespace, and the text that `id-text` matches fits the id pattern of that external namespace |
-| [line result](sinter:#line-result=v1) | the outcome for a line that is an input under a binding of `external-namespaces` that meets the schema `external-namespaces`: "not a tag line", "other tag word", "valid", or "invalid" |
-| [link result](sinter:#link-result=v1) | the outcome for a link or an image that is an input under a binding of `external-namespaces` that meets the schema `external-namespaces`: "not an inline citation", "valid", or "invalid" |
+| [line result](sinter:#line-result=v1) | the result for a line that is an input under a binding of `external-namespaces` that meets the schema `external-namespaces`: "not a tag line", "other tag word", "valid", or "invalid" |
+| [link result](sinter:#link-result=v1) | the result for a link or an image that is an input under a binding of `external-namespaces` that meets the schema `external-namespaces`: "not an inline citation", "valid", or "invalid" |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", "not a tag line", or "fits", as one of the cases of what a conforming program gives for an input |
 | accept, reject | to give the result "valid" for an input, and to give the result "invalid" for an input |
 | [value](sinter:#value=v1) | a text or a fact that a conforming program gives for an input together with its result, under a value name, which tells what the value is, such as the tag word of a tag line under the value name the tag word; the program gives a value under a value name when it gives the value together with something that stands for that value name and for no other value name, and it gives a fact when it gives something that stands for that fact and for no other fact |
@@ -1172,9 +1172,9 @@ be the whole id or an empty run, fits an element of the id pattern:
 - A run fits a `pattern` when, and only when, it fits one of the
   branches of the `pattern`.
 
-For a pair of an id pattern that matches `pattern` and an id, the
-outcome is "fits" when the id fits the id pattern, and "does not fit"
-when it does not.
+For a pair of an id pattern that matches `pattern` and an id, the result
+is "fits" when the id fits the id pattern, and "does not fit" when it
+does not.
 
 ### 4.30 Valid id patterns
 
@@ -1711,7 +1711,7 @@ word *k* is the text that these steps give.
 
 Under a binding of `external-namespaces` that meets the schema
 `external-namespaces`, the line result of a line that is an input is one
-of four outcomes:
+of four results:
 
 - "not a tag line", when the line is not a tag line;
 - "other tag word", when the line is a tag line whose tag word is not a
@@ -1742,7 +1742,7 @@ of four outcomes:
 
 Under a binding of `external-namespaces` that meets the schema
 `external-namespaces`, the link result of a link or an image that is an
-input is one of three outcomes:
+input is one of three results:
 
 - "not an inline citation", when it is not an inline citation;
 - "valid", when it is an inline citation whose destination meets the
@@ -2006,14 +2006,14 @@ and notation.
     rfc/8259,
     #{
         part-name=v1, label=v1, vector-selection=v2, input=v2,
-        external-namespaces=v1, id-pattern=v2, citation=v1,
-        citation-entry=v2, value=v1,
+        external-namespaces=v1, namespace-name=v1, id-pattern=v2,
+        citation=v1, citation-entry=v2, value=v1,
     },
     text#{
-        valid-utf-8=v1, text=v1, character=v1, carriage-return=v1,
-        line=v1, line-feed=v1, tab=v1, whole-number=v1,
-        code-point-order=v1, hex-digit=v1, u-numeral=v1, code-span=v1,
-        production=v1, conforming-program=v1, result=v1, sequence=v1,
+        canonical-vector-line=v1, valid-utf-8=v1, text=v1, character=v1,
+        carriage-return=v1, line=v1, line-feed=v1, tab=v1,
+        code-point-order=v1, u-numeral=v1, code-span=v1, production=v1,
+        conforming-program=v1, result=v1, sequence=v1,
     },
 }
 
@@ -2022,46 +2022,32 @@ no carriage return, it has no empty line, and when it is not empty it
 ends with a line feed. Only a line feed ends a line of the file. A JSON
 string of the file can hold U+0085, U+2028, or U+2029, and these
 characters do not end a line. The file holds zero or more vector lines.
-Each line of the file is a JSON text, as RFC 8259 defines it, that holds
-one JSON object in canonical form:
+Each line of the file is a JSON text, as RFC 8259 defines it, that meets
+the schema `canonical-vector-line` of Text and notation.
 
-- No JSON object has two members with the same name.
-- No JSON value is `null`, a number with a fraction or exponent, or a
-  whole number outside the range from −9,007,199,254,740,991 to
-  9,007,199,254,740,991. A JSON number that writes 0 has no leading `-`.
-- No JSON string holds an escape sequence `\u` of a number from D800 to
-  DFFF that is not one of two that write one character.
-- There is no whitespace outside strings.
-- The members of each JSON object stand in code point order of their
-  keys.
-- In each JSON string, `"` is written `\"`, `\` is written `\\`, the
-  characters U+0008, U+0009, U+000A, U+000C, and U+000D are written
-  `\b`, `\t`, `\n`, `\f`, and `\r`, each other character from U+0000 to
-  U+001F is written `\u00` and two lower-case hex digits, and every
-  other character stands as itself.
+The JSON object of each vector line holds the required members `form`,
+`group`, and `input`, at least one of `result` and `values`, and the
+optional member `note`, and no other member, in code point order of
+their names:
 
-The JSON object of each vector line holds the required members `"form"`,
-`"group"`, and `"input"`, at least one of `"result"` and `"values"`, and
-the optional member `"note"`, and no other member, in code point order
-of their keys:
-
-- `"form"`: a JSON string of `#`, a part name, `=`, and a label, such as
+- `form`: a JSON string of `#`, a part name, `=`, and a label, such as
   `"#tag-line-vector=v1"`, pinning the schema of this section that
   defines the vector's form. Every vector line in the file with the same
-  `"group"` value names the same `#` and part name in `"form"`.
-- `"group"`: the name of the group of the vector, as a JSON string
+  `group` value names the same `#` and part name in `form`.
+- `group`: the name of the group of the vector, as a JSON string
   matching `group-name`.
-- `"input"`: the input of the vector, which holds one or more inputs of
-  a conforming program (such as a binding of `external-namespaces` and a
+- `input`: the input of the vector, which holds one or more inputs of a
+  conforming program (such as a binding of `external-namespaces` and a
   text whose lines are inputs too).
-- `"note"`: an optional JSON string that explains the vector, which a
+- `note`: an optional JSON string that explains the vector, which a
   conforming program does not give.
-- `"result"`: a JSON string holding a result that a conforming program
+- `result`: a JSON string holding a result that a conforming program
   gives for one input, without its double quotes.
-- `"values"`: a JSON object holding what a conforming program gives
-  other than `"result"`, or all results and values for a vector without
-  `"result"`. In `"values"`, or in the `"values"` member of an element
-  of `"inputs"` or `"links"`, an empty JSON object, `{}`, says that a
+- `values`: a JSON object that holds what a conforming program gives
+  other than `result` when the vector has `result`, and all results and
+  values that a conforming program gives when the vector has no
+  `result`. In `values`, or in the `values` member of an element of
+  `inputs` or `links`, an empty JSON object, `{}`, says that a
   conforming program gives no value for that input.
 
 A vector writes each text, binding of `external-namespaces`, and
@@ -2073,8 +2059,8 @@ sequence in one fixed JSON form:
   and the empty text is `""`.
 - A binding of `external-namespaces` is a JSON array with one element
   for each pair of the binding. Each element is a JSON object with two
-  members: `"namespace-name"`, the namespace name of the pair, and
-  `"id-pattern"`, the id pattern of the pair. The order of the elements
+  members: `namespace-name`, the namespace name of the pair, and
+  `id-pattern`, the id pattern of the pair. The order of the elements
   has no meaning. So the binding that holds only the pair of the
   namespace name `gh` and the id pattern `[1-9][0-9]*` is
   `[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"}]`, and the empty
@@ -2089,11 +2075,13 @@ sequence in one fixed JSON form:
     #{
         vector-line=v1, give-line-results=v1, give-tag-words=v2,
         give-values=v2, give-no-other-values=v1, validate-bindings=v1,
-        external-namespaces=v1, input=v2, value=v1, line-result=v1,
-        tag-line=v1, tag-word=v1, sinter-tag-word=v2, declaration=v1,
-        citation=v1, status-tag=v1, directive=v1, inline-description=v1,
-        citation-entry=v2, link=v1, link-text=v1, slug=v1, part-name=v1,
-        kind-word=v2, revision=v1, id=v1, match=v1,
+        external-namespaces=v1, namespace-name=v1, input=v2, value=v1,
+        line-result=v1, tag-line=v1, tag-word=v1, sinter-tag-word=v2,
+        declaration=v1, citation=v1, citation-line=v2, status-tag=v1,
+        directive=v1, ack-line=v2, inline-description=v1,
+        citation-entry=v2, vector-selection=v2, link=v1, link-text=v1,
+        slug=v1, part-name=v1, kind-word=v2, revision=v1, id=v1,
+        match=v1,
     },
     text#{
         conforming-program=v1, line=v1, text=v1, result=v1, space=v1,
@@ -2119,66 +2107,65 @@ binding of `external-namespaces`, and what a conforming program gives
 for that line. Each vector line of these groups meets the schema
 `vector-line`.
 
-- `"input"`: a JSON object with two members: `"binding"`, a binding of
+- `input`: a JSON object with two members: `binding`, a binding of
   `external-namespaces` as a JSON array of
-  `{"id-pattern":...,"namespace-name":...}` objects, and `"text"`, a
-  JSON string whose text has one line and whose markdown document holds
-  no link and no image. The program takes the binding, and it reads the
-  text under that binding. In the file, `"binding"` holds two pairs:
-  `gh` with `[1-9][0-9]*`, and `rfc` with `[1-9][0-9]*`. A conforming
-  program gives the result "valid" for this binding under
-  `validate-bindings`; these vectors do not state that result.
-- `"result"`: the line result of the line: `"not a tag line"` or
+  `{"id-pattern":...,"namespace-name":...}` objects, and `text`, a JSON
+  string whose text has one line and whose markdown document holds no
+  link and no image. The program takes the binding, and it reads the
+  text under that binding. In the file, `binding` holds two pairs: `gh`
+  with `[1-9][0-9]*`, and `rfc` with `[1-9][0-9]*`. A conforming program
+  gives the result "valid" for this binding under `validate-bindings`;
+  these vectors do not state that result.
+- `result`: the line result of the line: `"not a tag line"` or
   `"other tag word"` in the group `other-lines`, and `"valid"` or
   `"invalid"` in the other four groups.
-- `"values"`: a JSON object holding the values of the line:
+- `values`: a JSON object holding the values of the line:
   - For a line that is not a tag line, the empty JSON object, `{}`.
   - For a tag line with the result `"other tag word"` or `"invalid"`, a
-    JSON object with one member, `"tag-word"`.
+    JSON object with one member, `tag-word`.
   - For a tag line with the result `"valid"`, a JSON object with the
-    members `"tag-word"` and `"type-of-tag-line"`, and with each other
-    value that `give-values` states for the line. A declaration, a
-    citation, a status tag, and an `@extern` line have the member
-    `"inline-description"`, which is `""` when the inline description is
-    empty. An `@ack` line has the members `"subject"` and
-    `"hash-prefix"`. The values of the match of a declaration, an
-    `@extern` line, or an `@ack` line are members of the JSON object
-    itself. For a citation, the member `"entries"` is a JSON array with
-    one element for each citation entry, in order; each element is a
-    JSON object holding the values of that citation entry (even when a
-    citation has one citation entry). `"tag-word"`,
-    `"type-of-tag-line"`, and `"inline-description"` stand on the outer
-    JSON object, not inside `"entries"`.
+    members `tag-word` and `type-of-tag-line`, and with each other value
+    that `give-values` states for the line. A declaration, a citation, a
+    status tag, and an `@extern` line have the member
+    `inline-description`, which is `""` when the inline description is
+    empty. An `@ack` line has the members `subject` and `hash-prefix`.
+    The values of the match of a declaration, an `@extern` line, or an
+    `@ack` line are members of the JSON object itself. For a citation,
+    the member `entries` is a JSON array with one element for each
+    citation entry, in order; each element is a JSON object holding the
+    values of that citation entry (even when a citation has one citation
+    entry). `tag-word`, `type-of-tag-line`, and `inline-description`
+    stand on the outer JSON object, not inside `entries`.
 
 Each value member uses the key of this table (the value name without
 leading "the", with hyphens in place of spaces):
 
 | key | value name | JSON value |
 |---|---|---|
-| `"tag-word"` | the tag word | a JSON string |
-| `"type-of-tag-line"` | the type of tag line | `"declaration"`, `"citation"`, `"status tag"`, or `"directive"` |
-| `"inline-description"` | the inline description | a JSON string, which can be empty |
-| `"subject"` | the subject | a JSON string, which can be empty |
-| `"hash-prefix"` | the hash prefix | a JSON string |
-| `"link-text"` | the link text | a JSON string |
-| `"kind-word"` | the kind word | a JSON string |
-| `"slug"` | the slug | a JSON string |
-| `"custom-namespace"` | the custom namespace | a JSON string |
-| `"part-name"` | the part name | a JSON string |
-| `"every-part"` | every part | the JSON literal `true` |
-| `"group-name"` | the group name | a JSON string |
-| `"every-vector"` | every vector | the JSON literal `true` |
-| `"namespace-name"` | the namespace name | a JSON string |
-| `"id"` | the id | a JSON string |
-| `"revision"` | the revision | a JSON string |
+| `tag-word` | the tag word | a JSON string |
+| `type-of-tag-line` | the type of tag line | `"declaration"`, `"citation"`, `"status tag"`, or `"directive"` |
+| `inline-description` | the inline description | a JSON string, which can be empty |
+| `subject` | the subject | a JSON string, which can be empty |
+| `hash-prefix` | the hash prefix | a JSON string |
+| `link-text` | the link text | a JSON string |
+| `kind-word` | the kind word | a JSON string |
+| `slug` | the slug | a JSON string |
+| `custom-namespace` | the custom namespace | a JSON string |
+| `part-name` | the part name | a JSON string |
+| `every-part` | every part | the JSON literal `true` |
+| `group-name` | the group name | a JSON string |
+| `every-vector` | every vector | the JSON literal `true` |
+| `namespace-name` | the namespace name | a JSON string |
+| `id` | the id | a JSON string |
+| `revision` | the revision | a JSON string |
 
-For the line, a conforming program gives each value that `"values"`
-holds, exactly once. For a citation, it also gives one list of values
-for each element of `"entries"`, in the order of the elements, and the
-list of an element holds each value of that element, exactly once. It
-gives each of these values together with its value name, and it gives no
-other value. An empty JSON object, `{}`, says that a conforming program
-gives no value for the line.
+For the line, a conforming program gives each value that `values` holds,
+exactly once. For a citation, it also gives one list of values for each
+element of `entries`, in the order of the elements, and the list of an
+element holds each value of that element, exactly once. It gives each of
+these values together with its value name, and it gives no other value.
+An empty JSON object, `{}`, says that a conforming program gives no
+value for the line.
 
 ```
 {"form":"#tag-line-vector=v1","group":"declarations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@req size-limit=v2 A descriptor has at most 1 MiB."},"result":"valid","values":{"inline-description":"A descriptor has at most 1 MiB.","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}
@@ -2213,24 +2200,24 @@ that the lines of the text make. A citation and its continuation lines
 are one input, and each other line is an input of its own. Each vector
 line of the group meets the schema `vector-line`.
 
-- `"input"`: a JSON object with `"binding"` and `"text"`, the binding
-  and the text as `tag-line-vector` describes them, except that `"text"`
-  can have more than one line; the markdown document of `"text"` holds
-  no link and no image.
-- `"result"`: no vector of the group has this member.
-- `"values"`: a JSON object with one member, `"inputs"`: a JSON array
-  with one element for each input that the lines of the text make, in
-  the order of the first lines of these inputs. Each element is a JSON
-  object with two members: `"result"` and `"values"`, each having the
-  form defined in `tag-line-vector`.
+- `input`: a JSON object with `binding` and `text`, the binding and the
+  text as `tag-line-vector` describes them, except that `text` can have
+  more than one line; the markdown document of `text` holds no link and
+  no image.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `inputs`: a JSON array with
+  one element for each input that the lines of the text make, in the
+  order of the first lines of these inputs. Each element is a JSON
+  object with two members: `result` and `values`, each having the form
+  defined in `tag-line-vector`.
 
 For the k-th input, a conforming program gives the result of the k-th
-element of `"inputs"`, and it gives each value that the `"values"` of
-that element holds, exactly once. For a citation, it also gives one list
-of values for each element of `"entries"`, in the order of the elements,
-and the list of an element holds each value of that element, exactly
-once. It gives each of these values together with its value name, and it
-gives no other value. An empty JSON object, `{}`, says that a conforming
+element of `inputs`, and it gives each value that the `values` of that
+element holds, exactly once. For a citation, it also gives one list of
+values for each element of `entries`, in the order of the elements, and
+the list of an element holds each value of that element, exactly once.
+It gives each of these values together with its value name, and it gives
+no other value. An empty JSON object, `{}`, says that a conforming
 program gives no value for that input. It gives no result for a
 continuation line on its own.
 
@@ -2247,7 +2234,8 @@ continuation line on its own.
         give-values=v2, give-no-other-values=v1,
         give-no-results-for-non-inputs=v1, validate-bindings=v1,
         external-namespaces=v1, input=v2, value=v1, link=v1,
-        inline-citation=v1, link-result=v1, tag-line=v1, match=v1,
+        link-text=v1, inline-citation=v1, link-result=v1, tag-line=v1,
+        match=v1,
     },
     text#{
         conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
@@ -2262,33 +2250,32 @@ conforming program gives for the links and the images of the markdown
 document of the text. Each vector line of the group meets the schema
 `vector-line`.
 
-- `"input"`: a JSON object with `"binding"` and `"text"`, the binding
-  and the text as `tag-line-vector` describes them, except that `"text"`
-  can have any number of lines and its markdown document can hold links
-  and images.
-- `"result"`: no vector of the group has this member.
-- `"values"`: a JSON object with one member, `"links"`: a JSON array
-  with one element for each link and each image of the markdown document
-  of the text, in the order in which they start in the markdown
-  document. When the markdown document holds no link and no image,
-  `"links"` is the empty JSON array. Each element is a JSON object with
-  two members:
-  - `"result"`: the link result of the link or the image: `"valid"`,
-    `"invalid"`, or `"not an inline citation"`.
-  - `"values"`: for an inline citation with the result `"valid"`, a JSON
-    object with the member `"link-text"` and with each value that
+- `input`: a JSON object with `binding` and `text`, the binding and the
+  text as `tag-line-vector` describes them, except that `text` can have
+  any number of lines and its markdown document can hold links and
+  images.
+- `result`: no vector of the group has this member.
+- `values`: a JSON object with one member, `links`: a JSON array with
+  one element for each link and each image of the markdown document of
+  the text, in the order in which they start in the markdown document.
+  When the markdown document holds no link and no image, `links` is the
+  empty JSON array. Each element is a JSON object with two members:
+  - `result`: the link result of the link or the image:
+    `"not an inline citation"`, `"valid"`, or `"invalid"`.
+  - `values`: for an inline citation with the result `"valid"`, a JSON
+    object with the member `link-text` and with each value that
     `give-values` states for the match of the inline citation, using the
     keys of `tag-line-vector`. For each other link and image, the empty
     JSON object, `{}`.
 
 For the k-th link or image, a conforming program gives the result of the
-k-th element of `"links"`, and it gives each value that the `"values"`
-of that element holds, exactly once, together with its value name, and
-it gives no other value. An empty JSON object, `{}`, says that a
-conforming program gives no value for the link or the image. It gives a
-result as the result of a link or an image only for these links and
-images, so it gives no result for a text in an indented code block that
-has the form of a link.
+k-th element of `links`, and it gives each value that the `values` of
+that element holds, exactly once, together with its value name, and it
+gives no other value. An empty JSON object, `{}`, says that a conforming
+program gives no value for the link or the image. It gives a result as
+the result of a link or an image only for these links and images, so it
+gives no result for a text in an indented code block that has the form
+of a link.
 
 No line of these texts is a tag line. So a conforming program gives the
 result "not a tag line" for each line of the text, and the vectors do
@@ -2316,9 +2303,9 @@ own. Its vectors follow from `validate-id-patterns` and
 `give-no-other-values`. Each vector line of the group meets the schema
 `vector-line`.
 
-- `"input"`: the id pattern, as a JSON string.
-- `"result"`: `"valid"` or `"invalid"`.
-- `"values"`: the empty JSON object, `{}`: a conforming program gives no
+- `input`: the id pattern, as a JSON string.
+- `result`: `"valid"` or `"invalid"`.
+- `values`: the empty JSON object, `{}`: a conforming program gives no
   value with the result.
 
 ```
@@ -2347,10 +2334,10 @@ id pattern of a pair is an input too, and the vectors of the group `fit`
 do not state its result. Each vector line of the group meets the schema
 `vector-line`.
 
-- `"input"`: a JSON object with two members: `"id-pattern"`, the id
-  pattern, and `"id"`, the id. Each is a JSON string.
-- `"result"`: the result of the pair: `"fits"` or `"does not fit"`.
-- `"values"`: the empty JSON object, `{}`: a conforming program gives no
+- `input`: a JSON object with two members: `id-pattern`, the id pattern,
+  and `id`, the id. Each is a JSON string.
+- `result`: the result of the pair: `"fits"` or `"does not fit"`.
+- `values`: the empty JSON object, `{}`: a conforming program gives no
   value with the result.
 
 ```
@@ -2374,10 +2361,10 @@ program takes. Its vectors follow from `validate-bindings` and
 `give-no-other-values`. Each vector line of the group meets the schema
 `vector-line`.
 
-- `"input"`: the binding of `external-namespaces`, as a JSON array of
+- `input`: the binding of `external-namespaces`, as a JSON array of
   `{"id-pattern":...,"namespace-name":...}` objects.
-- `"result"`: `"valid"` or `"invalid"`.
-- `"values"`: the empty JSON object, `{}`: a conforming program gives no
+- `result`: `"valid"` or `"invalid"`.
+- `values`: the empty JSON object, `{}`: a conforming program gives no
   value with the result.
 
 ```
@@ -2406,17 +2393,17 @@ binding of `external-namespaces` for which it gives the result
 `give-no-other-values`. Each vector line of the group meets the schema
 `vector-line`.
 
-- `"input"`: a JSON object with two members: `"binding"`, a binding of
+- `input`: a JSON object with two members: `binding`, a binding of
   `external-namespaces` as a JSON array of
-  `{"id-pattern":...,"namespace-name":...}` objects, and `"text"`, the
+  `{"id-pattern":...,"namespace-name":...}` objects, and `text`, the
   text as a JSON string. The program takes the binding, and it reads the
   text under that binding.
-- `"result"`: the result of the binding: `"invalid"`.
-- `"values"`: a JSON object with one member, `"inputs"`: a JSON array
-  with one element for each result that a conforming program gives for a
+- `result`: the result of the binding: `"invalid"`.
+- `values`: a JSON object with one member, `inputs`: a JSON array with
+  one element for each result that a conforming program gives for a
   line, a link, or an image of the text. Under a binding for which a
   conforming program gives the result "invalid", it gives no such
-  result, and no value. So `"inputs"` is the empty JSON array.
+  result, and no value. So `inputs` is the empty JSON array.
 
 ```
 {"form":"#rejected-binding-vector=v1","group":"rejected-bindings","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"GH"}],"text":"@req size-limit=v2"},"result":"invalid","values":{"inputs":[]}}
@@ -2446,34 +2433,34 @@ canonical form of each citation entry of the citation of the text, or of
 the target of the inline citation of the text. Each vector line of the
 group meets the schema `vector-line`.
 
-- `"input"`: a JSON object with these members. `"binding"` and `"text"`
-  are the binding and the text as `tag-line-vector` describes them,
-  except that `"text"` meets one of these two conditions: either the
-  first line of the text is a citation, its other lines are the
-  continuation lines of that citation, and the markdown document of the
-  text holds no link and no image; or no line of the text is a tag line,
-  and the markdown document of the text holds one link and no image, and
-  that link is an inline citation. `"slug"` is the slug, as a JSON
-  string, only when there is a slug. `"entries"` is a JSON array with
+- `input`: a JSON object with these members. `binding` and `text` are
+  the binding and the text as `tag-line-vector` describes them, except
+  that `text` meets one of these two conditions: either the first line
+  of the text is a citation, its other lines are the continuation lines
+  of that citation, and the markdown document of the text holds no link
+  and no image; or no line of the text is a tag line, and the markdown
+  document of the text holds one link and no image, and that link is an
+  inline citation. `slug` is the slug, as a JSON string, only when there
+  is a slug. `entries` is a JSON array with one element for each
+  citation entry of the citation, in their order, or with one element
+  for the target of the inline citation. Each element is a JSON object
+  with the member `kind-word`, the kind word for that citation entry or
+  target, as a JSON string, when there is one, and with no member when
+  there is no kind word.
+- `result`: no vector of the group has this member. A conforming program
+  gives the result "valid" for the citation or the inline citation, and
+  the vectors do not state this result or its values.
+- `values`: a JSON object with one member, `forms`: a JSON array with
   one element for each citation entry of the citation, in their order,
-  or with one element for the target of the inline citation. Each
-  element is a JSON object with the member `"kind-word"`, the kind word
-  for that citation entry or target, as a JSON string, when there is
-  one, and with no member when there is no kind word.
-- `"result"`: no vector of the group has this member. A conforming
-  program gives the result "valid" for the citation or the inline
-  citation, and the vectors do not state this result or its values.
-- `"values"`: a JSON object with one member, `"forms"`: a JSON array
-  with one element for each citation entry of the citation, in their
-  order, or with one element for the target of the inline citation: its
+  or with one element for the target of the inline citation: its
   canonical form, as a JSON string.
 
-When a conforming program gives the canonical form of the k-th
-citation entry of the citation, or of the target of the inline
-citation, together with the slug of `"input"`, or no slug when `"input"`
-has no member `"slug"`, and with the kind word of the k-th element of
-`"entries"`, or no kind word when that element has no member, it gives
-the k-th element of `"forms"`.
+When a conforming program gives the canonical form of the k-th citation
+entry of the citation, or of the target of the inline citation, together
+with the slug of `input`, or no slug when `input` has no member `slug`,
+and with the kind word of the k-th element of `entries`, or no kind word
+when that element has no member, it gives the k-th element of `forms`,
+and no other text as that canonical form.
 
 ```
 {"form":"#canonical-entry-vector=v1","group":"canonical-entries","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"entries":[{"kind-word":"req"},{"kind-word":"spec"}],"text":"@cites catalog#{size=v1, descriptor=v2}"},"note":"each part of a scoped list gives the canonical form of the single target for which it stands","values":{"forms":["req:catalog#size","spec:catalog#descriptor"]}}
