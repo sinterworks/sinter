@@ -56,9 +56,10 @@ let any_text_gen =
           ]))
 
 (* @verifies changes#validate-branch-names=v1
-   A text that meets the eight conditions, read one by one from the term, must
-   give "valid", and every other text "invalid"; the test fails on any text of
-   the edge pieces where the two differ. *)
+   A text that meets the eight conditions, read one by one from the term
+   `branch-name` (and the schema `default-branch-name`), must give "valid", and
+   every other text must give "invalid". The test fails on any text of the edge
+   pieces where the two differ. *)
 let validation_follows_the_conditions =
   property ~name:"a text is a branch name when it meets the eight conditions"
     Model.branch_name_gen (fun text ->

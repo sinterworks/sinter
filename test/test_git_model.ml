@@ -360,10 +360,10 @@ let library_refs refs =
 
 (* @verifies changes#give-ref-commits=v1
    For generated refs, with symbolic refs that name each other in turn, in a
-   cycle, or nothing, the commit must be the commit to which the ref resolves,
-   and none when it resolves to no commit, as through a broken loose ref; a
-   stop at a symbolic ref, a commit through a cycle, or a commit for another
-   object fails. *)
+   cycle, or nothing, the function must give the commit to which the ref
+   resolves and no other commit, or no commit when the ref resolves to no
+   commit, never both. A stop at a symbolic ref, a commit through a cycle, or a
+   commit for another object fails. *)
 let ref_commits_follow_the_term =
   property ~name:"the commit of a ref is the commit to which it resolves"
     ~print:print_refs refs_gen (fun refs ->
@@ -374,10 +374,9 @@ let ref_commits_follow_the_term =
         ("missing" :: ref_names))
 
 (* @verifies changes#give-head-commits=v1
-   For generated refs and each form of HEAD, the head commit must be the
-   commit of HEAD: the commit of the ref that it names, or the commit that a
-   detached HEAD points to, and none for a HEAD that points to another
-   object; another commit fails. *)
+   For generated refs and each form of HEAD, the function must give the head
+   commit and no other commit when HEAD resolves to a commit, and no head commit
+   when HEAD does not, never both. Another commit fails. *)
 let head_commits_follow_the_term =
   property ~name:"the head commit is the commit of HEAD" ~print:print_refs
     refs_gen (fun refs ->
@@ -456,10 +455,12 @@ let print_default (binding, upstream, local, remote) =
     (show local) (show remote)
 
 (* @verifies changes#give-default-branch-commits=v1
-   For generated bindings, branch names or not, and each way in which each of
-   the three refs exists or not, the commit must be the commit of the first
-   that exists, and none for a binding that is not a branch name; another
-   order of the refs, or a skip of a ref with no commit, fails. *)
+   For generated bindings of `default-branch-name`, whether they meet the
+   schema `default-branch-name` or not, and each way in which the three refs
+   exist or not, the function must give the commit of the first ref that exists
+   and no other commit, or no commit when none exists or the binding does not
+   meet the schema, never both. Another order of the refs, or a skip of a ref
+   with no commit, fails. *)
 let default_branch_follows_the_term =
   property ~name:"the commit of the default branch is that of the first ref"
     ~print:print_default default_gen (fun (binding, upstream, local, remote) ->
@@ -528,10 +529,11 @@ let content_gen =
     ]
 
 (* @verifies changes#give-message-texts=v1
-   For generated commit objects, the text must be the bytes after the first
-   two line feeds that follow one another when they are valid UTF-8, and none
-   otherwise; a later empty line, a dropped byte order mark or carriage
-   return, or a text for bytes that are not UTF-8 fails. *)
+   For generated commit objects, the function must give the text of the bytes
+   after the first two line feeds that follow one another and no other text
+   when those bytes are valid UTF-8, and no text otherwise, never both. A later
+   empty line, a dropped byte order mark or carriage return, or a text for
+   bytes that are not UTF-8 fails. *)
 let message_texts_follow_the_term =
   property ~name:"the text of a message is its bytes when they are UTF-8"
     ~print:(Printf.sprintf "%S") content_gen (fun content ->
@@ -626,10 +628,11 @@ let candidate_paths =
 (* @verifies changes#give-commit-file-at-path=v1
    For generated nested entries and each valid path of up to three file names
    over their names, with each byte path of the entries, the lookup must give
-   the file, with its own blob, when the tree has a file with that valid path,
-   and none when it has none; a file for a repeated byte path, for another
-   type, or for a path under a regular-file entry fails, and so does a missed
-   file whose name holds `/`. *)
+   that file, with its own blob and no other file for that valid path, when the
+   tree has a file with that valid path, and no file when the tree has none,
+   never both. A file for a repeated byte path, for another type, or for a path
+   under a regular-file entry fails, and so does a missed file whose name holds
+   `/`. *)
 let file_at_a_path_follows_the_term =
   property
     ~name:"the file at a valid path is the file of the tree with that path"
@@ -747,9 +750,10 @@ let print_trees (base, last) =
   Printf.sprintf "base: %s; last: %s" (show base) (show last)
 
 (* @verifies changes#give-change-diffs=v1
-   For generated base and last trees, the diff must hold each valid path that
-   has a hunk between them, with a line map of its two contents, in code point
-   order, and no other path; and no diff without a base. A missed added or
+   For generated base and last trees, the function must give one diff with
+   exactly the hunks of that diff and no other hunk (each valid path that has a
+   hunk between the two trees, with a line map of its two contents, in code
+   point order), or no diff without a base, never both. A missed added or
    removed file, a path with no hunk, or a map that is not longest fails. *)
 let change_diffs_follow_the_term =
   property ~name:"the diff holds each valid path that has a hunk"

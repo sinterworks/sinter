@@ -716,10 +716,11 @@ let entries_tests =
         | Error _ -> false);
     (* @verifies changes#give-commit-file-at-path=v1
        For each byte path of the generated trees that is a valid path, the
-       lookup with `~path` must find a file exactly when the term
-       `commit-file` gives a file with that path, and the same blob as the
-       lookup over all the entries; a program that reads too few trees, or
-       keeps an entry of the same byte path out, gives another answer. *)
+       lookup with `~path` must find that file and no other file, with the same
+       blob as the lookup over all the entries, when the term `commit-file`
+       gives a file with that path, and no file otherwise, never both. A
+       program that reads too few trees, or keeps an entry of the same byte
+       path out, gives another answer. *)
     property
       ~name:"the lookup at a path gives the file of the term at that path"
       ~print:(fun (format, entries) ->
@@ -1078,8 +1079,9 @@ let entries_tests =
 
 (* @verifies changes#give-commit-parents=v1
    The proposed vectors of `parent-lines` give the bytes of commit objects and
-   whether the file `shallow` names them; the parents from the parse and the
-   shallow rule must be those of each vector, or the test fails. *)
+   whether each commit is a shallow commit (by the term `shallow-commit`). The
+   parents from the parse and the shallow rule must match those of each vector,
+   or the test fails. *)
 let parent_lines_vectors =
   Proposed_vectors.test "parent-lines" (fun input ->
       let format = format_of_json (required "format" input) in

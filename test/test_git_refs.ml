@@ -900,8 +900,8 @@ let compare_with_git ?(object_format = "sha1") () =
 (* @verifies changes#give-ref-commits=v1
    In repositories that git writes, in both object formats, with packed refs,
    peeled tags, loose refs that hide packed ones, and a symbolic ref, the
-   reader must give for each ref what git gives (`git symbolic-ref` or
-   `git rev-parse`), or the test fails. *)
+   reader must give for each ref the exact target that git gives (`git
+   symbolic-ref` or `git rev-parse`) and no other, or none, never both. *)
 let git_tests =
   [
     case "the refs agree with git in sha1" (fun () -> compare_with_git ());
@@ -909,9 +909,9 @@ let git_tests =
         compare_with_git ~object_format:"sha256" ());
     (* @verifies changes#give-head-commits=v1
        In a linked working tree that `git worktree add` makes, the HEAD from
-       the folder of that working tree must be the commit that git gives for
-       HEAD there, and the main HEAD must stay that of the main working tree,
-       or the test fails. *)
+       the folder of that working tree must give the exact commit that git
+       gives for HEAD there and no other commit, or no commit, never both, and
+       the main HEAD must stay that of the main working tree. *)
     case "the HEAD of a linked working tree agrees with git" (fun () ->
         let repo = Git_fixture.init () in
         Git_fixture.import repo

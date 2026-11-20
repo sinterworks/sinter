@@ -15,6 +15,10 @@
   %{workspace_root}/lib/markdown/tree-sitter-markdown.wasm
   (glob_files ../spec/*.md)
   (glob_files ../docs/designs/*.test-vectors.jsonl)
+  (glob_files ../lib/branch_names/*)
+  (glob_files ../lib/commit_graphs/*)
+  (glob_files ../lib/git_model/*)
+  (glob_files ../lib/line_maps/*)
   (glob_files ../lib/repository_files/*)
   (glob_files ../lib/git_objects/*)
   (glob_files ../lib/wildmatch/*)

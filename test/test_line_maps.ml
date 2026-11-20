@@ -144,9 +144,10 @@ let hunks_follow_a_line_map =
       && lines_of_hunks_hold old_content new_content map)
 
 (* @verifies changes#give-new-line-numbers=v1
-   Each old line must get the new line number of its pair in a line map, and
-   no number when no pair holds it; a number for a removed line, a wrong
-   number, or a map that is not longest fails. *)
+   Each old line must get the new line number of its pair in a line map and no
+   other new line number, or no new line number when no pair holds that old
+   line, never both. A number for a removed line, a wrong number, or a map that
+   is not longest fails. *)
 let new_line_numbers_follow_a_line_map =
   property ~name:"the new line numbers are those of a line map" contents_gen
     (fun (old_content, new_content) ->

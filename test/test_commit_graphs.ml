@@ -152,9 +152,10 @@ let both_gen =
   Gen.oneof_weighted [ (3, Model.graph_gen); (1, Model.cyclic_graph_gen) ]
 
 (* @verifies changes#decide-reach=v1
-   For every two commits of generated graphs, cycles included, the result must
-   be "reaches" exactly when the second is in the ancestry of the first, as the
-   smallest set closed under parents; a missed parent or a missed commit
+   For every two commits of generated graphs, cycles included, the function
+   must give exactly one result as the atom `reach` defines it: `true`
+   ("reaches") when the second commit is in the ancestry of the first, and
+   `false` ("does not reach") otherwise. A missed parent or a missed commit
    itself fails. *)
 let reach_follows_the_ancestry =
   property ~name:"a commit reaches exactly the commits of its ancestry" both_gen
@@ -233,9 +234,10 @@ let merge_bases_are_each_once =
           List.length bases = List.length (List.sort_uniq String.compare bases)))
 
 (* @verifies changes#give-changes-of-commits=v1
-   For every commit as the commit of the default branch, the change of each
-   commit must be the range from it, and with no commit of the default branch
-   the change must be none; a change without a default commit fails. *)
+   For every commit as the commit of the default branch under a binding of
+   `default-branch-name`, the change of each commit must be exactly the commits
+   of the range from that default commit. With no commit of the default branch,
+   the function must give no change, never both commits and no change. *)
 let changes_follow_the_term =
   property ~name:"the change of a commit is the range from the default commit"
     both_gen (fun model ->
@@ -254,9 +256,10 @@ let change_keeps_the_order_of_the_range =
           = Some (ok (Graph.range graph ~from:(Some d) h))))
 
 (* @verifies changes#give-change-bases=v1
-   For every two commits, the base must be the merge base when there is exactly
-   one, and none when there are none or several or no default commit; a base
-   picked from several merge bases fails. *)
+   For every two commits under a binding of `default-branch-name`, the base
+   must be the single merge base and no other commit when there is exactly one
+   merge base. When there are none, several, or no default commit, the function
+   must give no base, never both a base and no base. *)
 let change_bases_follow_the_term =
   property ~name:"the base is the one merge base, or none" both_gen
     (fun model ->
@@ -300,9 +303,10 @@ let first_parent_cycles_are_errors =
 
 (* @verifies changes#give-landing-commits=v1
    For every two commits, the landing commit must be the commit of the
-   first-parent line that reaches the commit and whose first parent does not,
-   and none when the line's commit does not reach it; another commit of the
-   line fails. *)
+   first-parent line that reaches the commit (by the atom `reach`) and whose
+   first parent does not, and no other commit. When the line's commit does not
+   reach the target commit, the function must give no landing commit, never
+   both a landing commit and no landing commit. *)
 let landing_commits_follow_the_term =
   property ~name:"the landing commit is where the commit joins the line"
     Model.graph_gen (fun model ->
@@ -329,8 +333,8 @@ let landing_on_a_cycle_is_an_error =
 
 (* @verifies changes#give-commit-parents=v1
    For generated named parents, repeats included, the parents must be the named
-   commits in their order, and none for a commit that the file `shallow`
-   names; a dropped repeat, a new order, or a kept parent fails. *)
+   commits in their order, and none for a shallow commit (by the term
+   `shallow-commit`). A dropped repeat, a new order, or a kept parent fails. *)
 let parents_follow_the_term =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick
     (QCheck2.Test.make ~count:500

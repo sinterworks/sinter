@@ -3,6 +3,10 @@
 
 let folders =
   [
+    "branch_names";
+    "commit_graphs";
+    "git_model";
+    "line_maps";
     "repository_files";
     "wildmatch";
     "git_config";
@@ -214,8 +218,11 @@ let allowed_libraries =
     "unix";
     "sinter_text";
     "sinter_paths";
-    "sinter_git_model";
+    "sinter_tree";
     "sinter_branch_names";
+    "sinter_commit_graphs";
+    "sinter_line_maps";
+    "sinter_git_model";
     "sinter_wildmatch";
     "sinter_repository_files";
     "sinter_git_objects";
