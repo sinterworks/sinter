@@ -104,7 +104,7 @@ names `true` and `false`.
 | [binding of `file-readers`](sinter:#file-readers=v1), [reader](sinter:#file-reader=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
-| [set of stopped files](sinter:#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose reading as a test-vector set it stops for limits of its own; any set of files of a tree can be one |
+| [set of stopped files](sinter:#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
@@ -146,7 +146,7 @@ names `true` and `false`.
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, schemas, atoms, and terms that belong to no design and whose names are slugs; or the set of the specifications, requirements, schemas, atoms, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
 | [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree, for a home design |
-| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1), [vector set](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the vector file is the file of the tree at that valid path, when no other item has that vector path; the vector set is the content of that vector file, when that vector file is not in the set of stopped files and that content is a test-vector set |
+| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1), [vector set](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the vector file is the file of the tree at that valid path, when no other item has that vector path; under a set of stopped files, the vector set is the content of that vector file when that vector file is not in that set of stopped files and that content is a test-vector set |
 | [selected item](sinter:#selected-item=v1) | the group of conformance vectors or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of the item |
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
@@ -178,9 +178,7 @@ names `true` and `false`.
 | [line](sinter:text#line=v1), [line ending](sinter:text#line-ending=v1) | one of the runs into which the line endings of a text divide its body; a line ending is a line feed, with the carriage return right before it when there is one |
 | [position](sinter:text#position=v1) | a pair of a line number and a column, such as line 3, column 7 |
 | [hash](sinter:data-forms#hash=v1) | the SHA-256 digest of a byte sequence, as 64 hex digits |
-| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
-| [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
+| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 
 ## 2. Files, tag texts, items, and edges
 
@@ -583,9 +581,9 @@ markdown files whose reading the program stops for limits of its own,
 the code files for whose reading the program gives the result "parse
 failure" by the exception for limits of the requirement
 `give-reading-results` of Language packs, and the files of the tree
-whose reading as a test-vector set the program stops for limits of its
-own. Any set of files of a tree can be a set of stopped files of the
-tree.
+whose content the program stops reading as a test-vector set for limits
+of its own. Any set of files of a tree can be a set of stopped files of
+the tree.
 
 A read file of the tree cannot be read when, and only when, it is in the
 set of stopped files, its content is not valid UTF-8, or it is a code
@@ -1557,7 +1555,8 @@ the same text.
     #{item-file=v1, tree-containment=v1, unreadable-file=v1},
 }
 
-The vector path of an item of the kind design D of a tree is the text of
+This term is for a tree and a set of stopped files of the tree. The
+vector path of an item of the kind design D of the tree is the text of
 the valid path of the file of D up to its last `/`, that `/` included,
 or the empty text when that valid path has no `/`, followed by the
 test-vector file name of the name of D alone. The vector path of an item
@@ -1567,10 +1566,11 @@ name of D and the part name of the name of the specification. An item
 of the kind specification that belongs to no item of the kind design
 has no vector path. The vector file of an item is the file of the tree
 whose valid path is its vector path, when the tree has that file and
-that valid path is the vector path of no other item. The vector set of
-an item, in that tree, is the content of its vector file, when it has a
-vector file, that vector file is not in the set of stopped files of that
-tree, and that content is a test-vector set.
+that valid path is the vector path of no other item. Under that set of
+stopped files, the vector set of an item in the tree is the content of
+its vector file when the item has a vector file, that vector file is not
+in that set of stopped files, and that content is a test-vector set.
+Otherwise, under that set of stopped files, the item has no vector set.
 
 ### 4.37 Selected items
 
@@ -3175,8 +3175,7 @@ Its vectors follow from the requirements
 `give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
 `give-tree-findings`. Each vector is for the empty set of stopped files.
 Each vector of the group has the member `values`, and no vector has the
-member `result`. The group uses no need, so these forms give no need
-names.
+member `result`.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
@@ -3371,8 +3370,7 @@ Its vectors follow from the requirements of the group `markdown`, and
 from the requirements `give-tests`, `give-code-hashes`, and
 `give-code-texts`. Each vector is for the empty set of stopped files.
 Each vector of the group has the member `values`, and no vector has the
-member `result`. The group uses no need, so these forms give no need
-names.
+member `result`.
 
 Inside the members `input` and `values`, each JSON value that this
 schema names as a text, a whole number, a run, a position, a path set, a
