@@ -21,7 +21,7 @@ val glob_segments : Uchar.t list -> Uchar.t list list
 
 val fits : path:Uchar.t list -> glob:Uchar.t list -> bool
 (** [fits ~path ~glob] holds when the valid path [path] fits the valid glob
-    [glob], as the term [glob-fit] defines it. *)
+    [glob], as the atom [glob-fit] defines it. *)
 
 val glob_text : Uchar.t list -> Uchar.t list
 (** [glob_text member] is the glob text of the path set member [member]. *)

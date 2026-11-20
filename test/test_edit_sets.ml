@@ -229,11 +229,11 @@ let rec first_without_edit model number = function
 (* @verifies findings#{validate-edit-sets=v1, give-edited-texts=v1, omit-edited-texts=v1}
    For generated trees and sequences of edit descriptions, the test fails when
    the validation gives "valid" for a sequence that describes no edit set in
-   the tree, or "invalid" for one that does, as a direct reading of the terms
-   decides; when an edited text differs from that reading of the term
-   edited-text; or when a valid path that no edit description names gets an
-   edited text. *)
-let edit_descriptions_follow_the_terms =
+   the tree, or "invalid" for one that does, as a direct reading of the atom
+   edit-set-description and the term edit-description decides; when an edited
+   text differs from that reading of the term edited-text; or when a valid
+   path that no edit description names gets an edited text. *)
+let edit_descriptions_follow_the_design =
   property ~count:2000
     ~name:"edit_set gives the edit set that the descriptions describe"
     ~print:print_case case_gen (fun (model, descriptions) ->
@@ -522,7 +522,7 @@ let vector_groups = [ edit_set_vectors ]
 let tests =
   S.tests "findings" vector_groups
   @ [
-      edit_descriptions_follow_the_terms;
+      edit_descriptions_follow_the_design;
       order_of_descriptions_changes_nothing;
       edit_description_answers_any_positions;
       edit_sets_of_edits_follow_the_terms;

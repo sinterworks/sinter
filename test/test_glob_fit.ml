@@ -84,8 +84,8 @@ let print_pair (path, glob) =
 
 (* @verifies files#decide-glob-fit=v1
    A decision that differed from glob-fit for a generated valid path and valid
-   glob fails the comparison with a direct reading of the term. *)
-let fit_follows_the_term =
+   glob fails the comparison with a direct reading of the atom. *)
+let fit_follows_the_atom =
   property ~count:2000 ~name:"a valid path fits a valid glob as glob-fit says"
     ~print:print_pair (Gen.pair path_gen glob_gen) (fun (path, glob) ->
       Bool.equal
@@ -98,8 +98,8 @@ let letters alphabet length =
 (* @verifies files#decide-glob-fit=v1
    A decision that differed from glob-fit for a generated file name and glob
    segment with `*`, over few letters so that pieces repeat and overlap,
-   fails the comparison with a direct reading of the term. *)
-let name_fit_follows_the_term =
+   fails the comparison with a direct reading of the atom. *)
+let name_fit_follows_the_atom =
   property ~count:5000 ~name:"a file name fits a glob segment as glob-fit says"
     ~print:print_pair
     (Gen.pair
@@ -193,8 +193,8 @@ let tests =
   Vectors.tests "files" vector_groups
   @ [
       validation_of_globs_follows_the_production;
-      fit_follows_the_term;
-      name_fit_follows_the_term;
+      fit_follows_the_atom;
+      name_fit_follows_the_atom;
       slash_is_double_star;
       Alcotest.test_case "a text that is no valid glob names its first bad part"
         `Quick glob_names_the_first_part_with_a_fault;

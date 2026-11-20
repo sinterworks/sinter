@@ -52,7 +52,6 @@ let tree_of (vector : Vectors.vector) =
 
 let need_holds =
   [
-    ("long-names", true);
     ("names-kept", true);
     ("no-privilege", true);
     ("non-utf-8-names", not (String.equal (Files_tree.system ()) "macos"));

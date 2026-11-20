@@ -82,8 +82,8 @@ let print_membership (path, members) =
 
 (* @verifies files#decide-path-set-membership=v1
    A decision that differed from path-set-membership for a generated valid
-   path and path set fails the comparison with a direct reading of the term. *)
-let membership_follows_the_term =
+   path and path set fails the comparison with a direct reading of the atom. *)
+let membership_follows_the_atom =
   property ~count:1000
     ~name:"a valid path is in the set as path-set-membership says"
     ~print:print_membership (Gen.pair path_gen path_set_gen)
@@ -164,7 +164,7 @@ let tests =
   Vectors.tests "files" vector_groups
   @ [
       validation_of_path_sets_follows_the_term;
-      membership_follows_the_term;
+      membership_follows_the_atom;
       order_does_not_change_the_set;
       empty_set_holds_no_path;
       path_set_names_its_first_fault;
