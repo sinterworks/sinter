@@ -147,6 +147,11 @@ let value_cases : (string * M.value option) list =
     ("a = 2026-06-31", None);
     ("a = 2026-09-31", None);
     ("a = 2026-11-31", None);
+    ( "[a.b.c]\n[a]\nb.d = 1",
+      Some
+        (M.Table [ ("b", M.Table [ ("c", M.Table []); ("d", M.Integer 1L) ]) ])
+    );
+    ("[a.b.c]\n[a]\nb.d = 1\n[a.b]", None);
   ]
 
 let value_of_a = function
@@ -407,6 +412,7 @@ let fault_cases =
     ("[a.b.c]\n[a]\nb = 1", "Duplicate_key at 12");
     ("[a]\n[a]", "Table_defined_twice at 5");
     ("[a]\n[ a ]", "Table_defined_twice at 6");
+    ("[a.b.c]\n[a]\nb.d = 1\n[a.b]", "Table_defined_twice at 21");
     ("a = 1\na.b = 2", "Not_a_table at 6");
     ("a = 1\n[a]", "Not_a_table at 7");
     ("a = [1]\n[a.b.c]", "Not_a_table at 9");
