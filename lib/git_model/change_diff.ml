@@ -35,6 +35,7 @@ let rec join found olds news =
    With no base, the change has no diff. With a base, each valid path of
    either tree gives the hunks of one line map of it between the tree of the
    base and the tree of the last commit, and a valid path whose file is the
-   same in both trees gives none. *)
+   same in both trees gives none. The result is one option of one list, so
+   it gives one diff with exactly its hunks, or no diff, never both. *)
 let of_trees ~base last =
   Option.map (fun base -> join [] (Tree.files base) (Tree.files last)) base

@@ -210,7 +210,9 @@ let hunks map =
 
 (* @satisfies changes#give-new-line-numbers=v1
    An old line has the new line number of the pair that holds it, and none
-   when no pair holds it. *)
+   when no pair holds it. The pairs are one line map, and no two pairs hold
+   the same old line, so the result is one option: one new line number or
+   none, never both. *)
 let new_line_number map i =
   if i < 1 || i > Array.length map.targets then None
   else match map.targets.(i - 1) with 0 -> None | j -> Some j

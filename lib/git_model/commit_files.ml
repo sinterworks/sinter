@@ -123,7 +123,9 @@ let name_at bytes at name =
    found through the tree entries whose byte path, with the byte `/` after
    it, starts that encoding. The tree has a file with the valid path only
    when exactly one entry has that byte path and it is a regular-file entry,
-   and the file then has the blob of that entry. *)
+   and the file then has the blob of that entry. The result is one option,
+   so it gives one file for the valid path or that the tree has none, never
+   both. *)
 let file entries path =
   let bytes = Text.encode (Path.to_text path) in
   let found = ref [] in

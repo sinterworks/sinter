@@ -9,7 +9,9 @@ module Names = Set.Make (String)
 (* @satisfies changes#give-ref-commits=v1
    A ref resolves through the refs that it names in turn: a commit is its
    commit, and another git object, a broken loose ref, a name of no ref, or
-   a name met before on the way gives no commit. *)
+   a name met before on the way gives no commit. The result is one option,
+   so it gives one commit of the ref or that the ref has no commit, never
+   both. *)
 let resolve refs target =
   let rec follow seen = function
     | Commit c -> Ok (Some c)
@@ -28,5 +30,6 @@ let commit refs name = resolve refs (Ref name)
 
 (* @satisfies changes#give-head-commits=v1
    The head commit is the commit to which HEAD resolves, from what HEAD
-   points to or names, as any ref resolves. *)
+   points to or names, as any ref resolves. The result is one option, so it
+   gives one head commit or that the working tree has none, never both. *)
 let head_commit refs head = resolve refs head

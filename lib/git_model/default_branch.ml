@@ -7,7 +7,9 @@ open Sinter_branch_names
 (* @satisfies changes#give-default-branch-commits=v1
    A binding that is not a branch name gives no commit. Otherwise the first
    of the upstream, the branch, and the remote-tracking branch of `origin`
-   that exists decides, and its commit, or its lack of one, is the result. *)
+   that exists decides, and its commit, or its lack of one, is the result.
+   The result is one option, so it gives one commit of the default branch
+   or that the default branch has no commit, never both. *)
 let commit ~upstream ~refs binding =
   match Branch_name.of_text binding with
   | Error _ -> Ok None

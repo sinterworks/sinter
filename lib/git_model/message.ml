@@ -18,5 +18,6 @@ let message content =
 
 (* @satisfies changes#give-message-texts=v1
    The message has a text only when its bytes are valid UTF-8, whatever the
-   header `encoding` names. *)
+   header `encoding` names. The result is one option, so it gives one text
+   of the message or that the message has no text, never both. *)
 let text content = Result.to_option (Text.decode (message content))

@@ -50,7 +50,8 @@ module Make (Id : Hashtbl.HashedType) = struct
 
   (* @satisfies changes#decide-reach=v1
      The walk takes the parents of each commit that it reaches, from [c], and
-     answers that [c] reaches [c'] when, and only when, it meets [c']. *)
+     answers that [c] reaches [c'] when, and only when, it meets [c']: one
+     boolean, true for the result "reaches" and false for "does not reach". *)
   let reaches graph c c' =
     run graph (fun read ->
         let _, pending, visit = walker () in
@@ -124,7 +125,9 @@ module Make (Id : Hashtbl.HashedType) = struct
 
   (* @satisfies changes#give-changes-of-commits=v1
      With a commit of the default branch, the change of [h] is the range from
-     that commit to [h]; with none, [h] has no change. *)
+     that commit to [h]; with none, [h] has no change. The result is one
+     option, so it gives the commits of the change or no change, never
+     both. *)
   let change graph ~default h =
     match default with
     | None -> Ok None
@@ -133,7 +136,8 @@ module Make (Id : Hashtbl.HashedType) = struct
   (* @satisfies changes#give-change-bases=v1
      The change of [h] has a base only when the default branch has a commit
      and [h] and that commit have exactly one merge base, and then that merge
-     base is the base. *)
+     base is the base. The result is one option, so it gives one base or no
+     base, never both. *)
   let change_base graph ~default h =
     match default with
     | None -> Ok None
@@ -167,7 +171,8 @@ module Make (Id : Hashtbl.HashedType) = struct
      marks the commits that it reaches and that no later commit of the line
      reaches. The commit of the line that marks [c] is the last commit of the
      line that reaches [c], and no commit marks [c] when [d] does not reach
-     it. *)
+     it. The result is one option, so it gives one landing commit or none,
+     never both. *)
   let landing_commit graph ~line_of c =
     match line graph line_of with
     | Error e -> Error e
