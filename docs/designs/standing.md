@@ -807,7 +807,7 @@ when, one or more of these four conditions holds:
         first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-    documents#{file-readers=v1, unreadable-file=v1},
+    documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     approval#{approval-kinds=v1, bound-in-force-item=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{successor=v1},
@@ -832,8 +832,9 @@ commit of the default branch needs for `approval#bound-in-force-item`,
 the program must give each successor of x in T at P under A, D, F, N,
 and S once and no other item, or must give no successor of x. Otherwise,
 the program must give each successor of x in T at P under A, D, F, N,
-and S once and no other item, except that when the program refuses a
-graph of edges of T for limits of its own, the program must give no
+and S once and no other item, except that when, in giving those
+successors, the program refuses the edges of T (term
+`documents#tree-edge`) for limits of its own, the program must give no
 successor for T.
 
 ### 5.2 Findings of the class `retired`
@@ -850,7 +851,10 @@ successor for T.
         first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
+    documents#{
+        file-readers=v1, tree-edge=v1, tree-finding=v1,
+        unreadable-file=v1,
+    },
     approval#{approval-kinds=v1, bound-in-force-item=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{historical-paths=v1, retired-finding=v1},
@@ -877,8 +881,9 @@ has at P under A, D, F, N, H, and S once and no other finding of that
 class, or must give no finding of that class for T. Otherwise, the
 program must give each tree finding of the class `retired` that T has at
 P under A, D, F, N, H, and S once and no other finding of that class,
-except that when the program refuses a graph of edges of T for limits of
-its own, the program must give no finding of that class for T.
+except that when, in giving those findings, the program refuses the
+edges of T (term `documents#tree-edge`) for limits of its own, the
+program must give no finding of that class for T.
 
 ### 5.3 Offered fixes of `retired` findings
 
@@ -886,14 +891,15 @@ its own, the program must give no finding of that class for T.
 @cites {
     files#{path=v1},
     identifiers#{
-        external-namespaces=v1, validate-bindings=v1, citation=v1,
-        citation-entry=v1, inline-citation=v1, tag-line-text=v1,
+        external-namespaces=v1, validate-bindings=v1, tag-line=v1,
+        citation=v1, citation-entry=v1, inline-citation=v1,
+        tag-line-text=v1,
     },
     data-forms#{vector-line=v1, test-vector-set=v1},
     ontology#{
         declared-item=v1, item-name=v1, item-revision=v1, same-item=v1,
-        edge=v1, pinned-edge=v1, site=v1, default-branch=v1, tree=v1,
-        ledger=v1, parameter=v1,
+        external-item=v1, edge=v1, pinned-edge=v1, site=v1,
+        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
     },
     changes#{
         commit=v1, default-branch-name=v1, default-branch-commit=v1,
@@ -901,16 +907,17 @@ its own, the program must give no finding of that class for T.
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     findings#{
-        spot=v1, edit=v1, edit-set=v1, edited-tree=v1, fix=v1,
-        finding-part=v1, limit-fix-edit-sets=v1,
+        spot=v1, edit=v1, edit-set=v1, edited-text=v1, edited-tree=v1,
+        fix=v1, finding-part=v1, limit-fix-edit-sets=v1,
     },
     documents#{
-        file-readers=v1, tree-edge=v1, origin=v1, tree-finding=v1,
-        unreadable-file=v1, vector-file=v1,
+        file-readers=v1, tag-text=v1, accepted-input=v1, tree-edge=v1,
+        origin=v1, tree-finding=v1, unreadable-file=v1, vector-file=v1,
     },
     approval#{approval-kinds=v1},
     text#{
-        conforming-program=v1, result=v1, boundary=v1, span=v1, run=v1,
+        conforming-program=v1, result=v1, character=v1, space=v1,
+        tab=v1, place=v1, whole-number=v1, boundary=v1, span=v1, run=v1,
         code-point-order=v1, text=v1, code-span=v1,
     },
     #{historical-paths=v1, successor=v1, retired-finding=v1},
@@ -922,10 +929,11 @@ R, a valid binding A of `approval-kinds`, a binding D of
 `default-branch-name`, a valid binding F of `file-readers`, a binding N
 of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid binding H of
-`historical-paths`, sets S of stopped files (a set U of stopped files of
-T and, when the default branch of R has a commit under D, a set of
-stopped files of the tree of each commit of the first-parent line of
-that commit), and undisturbed repository reads.
+`historical-paths`, and sets S of stopped files (a set U of stopped
+files of T and, when the default branch of R has a commit under D, a set
+of stopped files of the tree of each commit of the first-parent line of
+that commit), when each repository read from which that program takes
+the ledger and the trees of the first-parent line is undisturbed.
 
 Let E be the edge of a tree finding f of the class `retired` that T has
 at P under A, D, F, N, H, and S, and let c be the cited item of E. When
@@ -936,9 +944,7 @@ these conditions:
 1. The fix has exactly one edit set for each successor of c in T at P
    under A, D, F, N, and S, in the code point order of the names of
    those successors in T.
-2. For each edit set of the fix, every edit of that edit set has a spot
-   whose valid path is the valid path of the file of E in T, and whose
-   span starts and ends at boundaries of:
+2. Let r be this run of the text of the file of E in T:
    - when a citation entry gives E, the run of the text of the tag line
      of the citation of E in the text of that file (term
      `documents#origin`);
@@ -946,13 +952,33 @@ these conditions:
      the text of that file;
    - when a vector line gives E, the form run of E in the text of that
      vector file.
+
+   For each edit set of the fix, every edit of that edit set has a spot
+   whose valid path is the valid path of the file of E in T, and whose
+   span starts and ends at boundaries of r.
 3. For each successor s of c, let T′ be the edited tree of the edit set
    for s, read under F, N, and the set U′ of stopped files of T′ that
    holds every file of T′ whose valid path is the valid path of a file
-   in U (the file of E is not in U). In T′ under F, N, and U′:
-   - when a citation entry or an inline citation gives E, the file of E
-     in T′ can be read; when a vector line gives E, the content of the
-     vector file of E in T′ is a test-vector set;
+   in U (the file of E is not in U). Let t be the text of the file of E
+   in T (with n characters), let b0 and b1 be the boundaries where r
+   starts and ends in t, and let t′ be the edited text of the valid path
+   of that file for the edit set (with n′ characters); let r′ be the run
+   of t′ that starts at boundary b0 and ends at boundary n′ − (n − b1).
+   In T′ under F, N, and U′:
+   - when a citation entry gives E, the file of E in T′ can be read,
+     there is an accepted input of that file that is a citation (the
+     edited citation) such that the run of the text of the tag line of
+     that citation in t′ (term `documents#origin`) starts and ends at
+     boundaries of r′, every character of r′ at a place outside that run
+     is a space or a tab, and no other tag line of any tag text of that
+     file has a place of its origin in r′;
+   - when an inline citation gives E, the file of E in T′ can be read,
+     and r′ is the run in t′ (term `documents#origin`) of an accepted
+     input of that file that is an inline citation (the edited inline
+     citation);
+   - when a vector line gives E, the content of the vector file of E in
+     T′ is a test-vector set, and r′ is the form run of an edge that a
+     vector line of that vector file gives (the edited vector line);
    - the edited citation, edited inline citation, or edited vector line
      in that file gives an edge E′ of the same kind of edge as E, whose
      source is the same item as the source of E (or is a site when the
@@ -961,12 +987,13 @@ these conditions:
      when E is pinned, and is not pinned when E is not pinned;
    - when a citation entry gives E, each edge that a citation gives is
      represented by three properties: its kind of edge; its pinned
-     label, or that it is not pinned; and its target, which is its cited
-     item (as the same item) when the edge has a cited item, and the
-     entry name of its citation entry when the edge has no cited item.
-     Taken by these three properties, the set of edges that the edited
-     citation gives in T′ is the set of edges that the citation of E
-     gave in T with E replaced by E′.
+     label, or that it is not pinned; and its target, which is its
+     cited item (as the same item) when the edge has a cited item that
+     is not an external item, and is the entry name of its citation
+     entry when its cited item is an external item or when the edge has
+     no cited item. Taken by these three properties, the set of edges
+     that the edited citation gives in T′ is the set of edges that the
+     citation of E gave in T with E replaced by E′.
 
 ### 5.4 Findings of the class `cycle`
 
@@ -974,7 +1001,10 @@ these conditions:
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
-    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
+    documents#{
+        file-readers=v1, tree-edge=v1, tree-finding=v1,
+        unreadable-file=v1,
+    },
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{historical-paths=v1, cycle-finding=v1},
 }
@@ -986,8 +1016,9 @@ design Identifiers gives the result "valid", and a valid binding H of
 class `cycle` of a tree T under F, N, H, and a set U of stopped files of
 T, that program must give each tree finding of that class that T has
 under F, N, H, and U once, and must give no other finding of that class,
-except that when the program refuses a graph of edges of T for limits of
-its own, the program must give no finding of that class for T.
+except that when, in giving those findings, the program refuses the
+edges of T (term `documents#tree-edge`) for limits of its own, the
+program must give no finding of that class for T.
 
 ### 5.5 Findings of the class `deleted-decision`
 
@@ -1016,6 +1047,7 @@ that class.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
+    changes#{commit=v1, change-of-a-commit=v1},
     documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
     text#{conforming-program=v1, result=v1, sequence=v1, code-span=v1},
     #{historical-paths=v1, reused-label-finding=v1},
@@ -1024,11 +1056,13 @@ that class.
 This requirement applies under a valid binding F of `file-readers`, a
 binding N of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid", and a valid binding H of
-`historical-paths`. When a conforming program gives the findings of the
-class `reused-label` of a tree T against a base tree B and a finite
-sequence L of trees under F, N, H, a set UT of stopped files of T, a set
-UB of stopped files of B, and a set of stopped files of each element of
-L, that program must give each tree finding of that class that T has
+`historical-paths`. This requirement does not apply when a conforming
+program gives the findings of the class `reused-label` of the change of
+a commit. When a conforming program gives the findings of the class
+`reused-label` of a tree T against a base tree B and a finite sequence L
+of trees under F, N, H, a set UT of stopped files of T, a set UB of
+stopped files of B, and a set of stopped files of each element of L,
+that program must give each tree finding of that class that T has
 against B and L under F, N, H, and these sets once, and must give no
 other finding of that class.
 
@@ -1038,6 +1072,7 @@ other finding of that class.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, declared-item=v1, tree=v1, parameter=v1},
+    changes#{commit=v1, change-of-a-commit=v1},
     documents#{file-readers=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{successor=v1},
@@ -1046,22 +1081,25 @@ other finding of that class.
 Under a binding of `file-readers` that is not valid, or under a binding
 of `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "invalid", a conforming program must give
-no successor of any declared item of any tree, and must give no finding
-of the classes `retired`, `cycle`, `deleted-decision`, and
-`reused-label` of any tree.
+no successor of any declared item of any tree, must give no finding of
+the classes `retired`, `cycle`, `deleted-decision`, and `reused-label`
+of any tree, and must not give that it cannot see the whole history for
+the change of any commit.
 
 ### 5.8 No finding under a binding of `historical-paths` that is not valid
 
 @req omit-findings-under-invalid-historical-paths=v1
 @cites {
     ontology#{finding-class=v1, tree=v1, parameter=v1},
+    changes#{commit=v1, change-of-a-commit=v1},
     text#{conforming-program=v1, code-span=v1},
     #{historical-paths=v1},
 }
 
 Under a binding of `historical-paths` that is not valid, a conforming
 program must give no finding of the classes `retired`, `cycle`,
-`deleted-decision`, and `reused-label` of any tree.
+`deleted-decision`, and `reused-label` of any tree, and must not give
+that it cannot see the whole history for the change of any commit.
 
 ### 5.9 No result from a ledger that is not valid
 
@@ -1188,9 +1226,9 @@ conforming program meets two conditions. First, that program gives the
 findings of the class `deleted-decision` or of the class `reused-label`
 of the change of h under that binding. Second, each repository read from
 which that program takes that the change of h has no base is
-undisturbed. Under that binding and when both conditions hold, that
-program must give that the change of h has no base, and must give no
-finding of that class.
+undisturbed. Under that binding and when both conditions hold, that program must give
+that the change of h has no base, and must give no finding of the class
+or classes whose findings it gives.
 
 ### 5.13 The change of a commit with a base
 
@@ -1327,7 +1365,7 @@ gives the forms of a group. These requirements have no vectors:
 By the schemas below, each vector checks a program only when the set of
 [stopped files](sinter:documents#unreadable-file=v1) of the program for
 each tree of the vector is empty, when the program does not refuse the
-graph of edges for limits of its own, and when no other process changes
+edges of a tree for limits of its own, and when no other process changes
 the inputs while the program runs.
 
 ### 6.1 Successors
@@ -1363,10 +1401,10 @@ the inputs while the program runs.
 
 The group `successors` holds the vectors of the requirement
 `give-successors`. Each vector gives the declared items of a tree (with
-their kinds, owning designs, and whether each is in force), the
-`supersedes` edges of the tree (with whether each edge is effective and
-whether `every-part` matches its citation entry), and one declared item
-of that tree. The vector gives the successors of that declared item in
+their kinds, the items of the kind design that hold them, and whether
+each is in force), the `supersedes` edges of the tree (with whether each
+edge is effective and whether `every-part` matches its citation entry),
+and one declared item of that tree. The vector gives the successors of that declared item in
 the tree at a point of a ledger. The group uses no need, so these forms
 give no need names.
 
@@ -1483,15 +1521,16 @@ elements in order.
     otherwise), `source-kind` (one of `"declared"`, `"group"`, and
     `"other"`), `source-in-force` (present when `source-kind` is
     `"declared"` or `"group"`: `true` when that declared item, or the
-    owning design or specification of that group's vector set, is in
-    force in the tree at the point under the bindings, and `false`
-    otherwise), `cited-kind` (one of `"declared"`, `"group"`,
+    item of the kind design or of the kind specification of that group's
+    vector set, is in force in the tree at the point under the bindings,
+    and `false` otherwise), `cited-kind` (one of `"declared"`, `"group"`,
     `"vector-set"`, and `"external"`), `cited-in-force` (present when
     `cited-kind` is `"declared"`, `"group"`, or `"vector-set"`: `true`
-    when that declared item, or the owning design or specification of
-    that vector set, is in force in the tree at the point under the
-    bindings, and `false` otherwise), `path` (the valid path of the file
-    of the edge), and `at` (the position subject of the edge).
+    when that declared item, or the item of the kind design or of the
+    kind specification of that vector set, is in force in the tree at
+    the point under the bindings, and `false` otherwise), `path` (the
+    valid path of the file of the edge), and `at` (the position subject
+    of the edge).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: `{}` when `historical-paths` is not a valid path set;
@@ -1604,22 +1643,22 @@ elements in order.
   `limit-retired-fix-edit-sets` exists, and `false` otherwise) and, when
   `fix-allowed` is `true`, `edit-sets`: a JSON array with one JSON
   object for each successor in the code point order of successor names,
-  holding `successor` (the successor's name), `pinned` (whether the
-  replacement edge is pinned), optional `label` (when `pinned` is
-  `true`, the current revision that the replacement edge pins), `path`
-  (the valid path within which every edit of that edit set has its
-  spot), and `run` (a JSON object with `from` and `to`, the start and
-  end boundaries in `text` of the run within which every edit of that
-  edit set has its spot).
+  holding `successor` (the successor's name), `pinned` (whether the edge
+  `E′` to that successor is pinned), optional `label` (when `pinned` is
+  `true`, the current revision that the edge `E′` pins), `path` (the
+  valid path within which every edit of that edit set has its spot), and
+  `run` (a JSON object with `from` and `to`, the start and end
+  boundaries in `text` of the run within which every edit of that edit
+  set has its spot).
 
 When `fix-allowed` is `false`, a conforming program gives no fix for the
 `retired` finding. When `fix-allowed` is `true`, a conforming program
 need not give a fix; when that program gives a fix for the `retired`
 finding, that fix has as many edit sets as `edit-sets` has elements, in
 the same order, where each edit set edits only `path` within `run`,
-gives in its edited tree the replacement edge to that element's
-`successor` (with `label` when `pinned` is `true`, and unpinned when
-`pinned` is `false`), and keeps any other edges of the citation.
+gives in its edited tree the edge `E′` to that element's `successor`
+(with `label` when `pinned` is `true`, and unpinned when `pinned` is
+`false`), and keeps any other edges of the citation.
 
 ### 6.4 Findings of the class `cycle`
 
@@ -1659,8 +1698,9 @@ The group `cycles` holds the vectors of the requirements
 `give-cycle-findings` and
 `omit-findings-under-invalid-historical-paths`. Each vector gives a
 binding of `historical-paths`, the declared items of a tree (with their
-kinds, owning designs, file paths, and declaration origin positions),
-and the `supersedes` and `refines` edges of the tree. The vector gives
+kinds, the items of the kind design that hold them, file paths, and
+declaration origin positions), and the `supersedes` and `refines` edges
+of the tree. The vector gives
 the `cycle` findings of the tree by subject and declaration origin
 position, or `{}` when the binding of `historical-paths` is not valid.
 The group uses no need, so these forms give no need names.
@@ -1824,11 +1864,10 @@ The group `reused-labels` holds the vectors of the requirements
 `give-reused-label-findings` and
 `omit-findings-under-invalid-historical-paths`. Each vector gives a
 binding of `historical-paths`, the declared items of a base tree, the
-declared items of a tree, and a finite sequence of history trees. The
-vector gives the subjects of the `reused-label` findings of the tree
-against the base tree and that sequence, or `{}` when the binding of
-`historical-paths` is not valid. The group uses no need, so these forms
-give no need names.
+declared items of a tree, and a finite sequence L of trees. The vector
+gives the subjects of the `reused-label` findings of the tree against
+the base tree and L, or `{}` when the binding of `historical-paths` is
+not valid. The group uses no need, so these forms give no need names.
 
 The input of each vector stands for a valid binding of `file-readers`, a
 binding of `external-namespaces` for which a conforming program of
@@ -1846,9 +1885,8 @@ elements in order.
     of the path set members of that path set, each a text, in order.
   - `base`: the declared items of the base tree, as a sequence.
   - `tree`: the declared items of the tree, as a sequence.
-  - `history`: the finite sequence of history trees, as a JSON array in
-    which each element is the sequence of declared items of that history
-    tree.
+  - `history`: the finite sequence L of trees, as a JSON array in which
+    each element is the sequence of declared items of that element of L.
   Each declared item in `base`, in `tree`, and in each element of
   `history` is a JSON object with `name` (the name of the item), `kind`
   (one of `"design"`, `"spec"`, `"schema"`, `"req"`, `"atom"`, `"term"`,
