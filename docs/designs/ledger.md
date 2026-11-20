@@ -365,8 +365,7 @@ took from a tracker, such as the title or the state of an issue
 @cites {ontology#{parameter=v2}, text#{text=v1, code-span=v1}}
 
 The parameter `agent-markers` gives the names of the agent markers. A
-binding of it is a finite set of texts, each the name of an environment
-variable.
+binding of it is a finite set of texts.
 
 ### 3.2 `job-markers`
 
@@ -374,8 +373,7 @@ variable.
 @cites {ontology#{parameter=v2}, text#{text=v1, code-span=v1}}
 
 The parameter `job-markers` gives the names of the job markers. A
-binding of it is a finite set of texts, each the name of an environment
-variable.
+binding of it is a finite set of texts.
 
 ### 3.3 `ledger-remote`
 
@@ -387,8 +385,7 @@ variable.
 }
 
 The parameter `ledger-remote` gives the remote by which a clone names
-its shared clone. A binding of it is a text: the name of a remote, such
-as `origin`.
+its shared clone. A binding of it is a text, such as `origin`.
 
 ## 4. Definitions
 
