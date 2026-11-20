@@ -184,14 +184,73 @@ module Make (R : Files.READER) = struct
             { folder; packs = None; lines = None };
           Ok ())
 
-  let lines text =
-    match List.rev (String.split_on_char '\n' text) with
-    | "" :: rest -> List.rev rest
-    | all -> List.rev all
+  let before_nul text =
+    match String.index_opt text '\000' with
+    | Some nul -> String.sub text 0 nul
+    | None -> text
+
+  let escape at j =
+    match at j with
+    | '\\' -> Some ('\\', 1)
+    | '"' -> Some ('"', 1)
+    | 'a' -> Some ('\007', 1)
+    | 'b' -> Some ('\b', 1)
+    | 'f' -> Some ('\012', 1)
+    | 'n' -> Some ('\n', 1)
+    | 'r' -> Some ('\r', 1)
+    | 't' -> Some ('\t', 1)
+    | 'v' -> Some ('\011', 1)
+    | '0' .. '3' as high -> (
+        match (at (j + 1), at (j + 2)) with
+        | ('0' .. '7' as middle), ('0' .. '7' as low) ->
+            let digit c = Char.code c - Char.code '0' in
+            Some
+              (Char.chr ((digit high * 64) + (digit middle * 8) + digit low), 3)
+        | _ -> None)
+    | _ -> None
+
+  let unquote text start =
+    let length = String.length text in
+    let at k = if k < length then text.[k] else '\000' in
+    let bytes = Buffer.create length in
+    let rec from j =
+      match at j with
+      | '\000' -> None
+      | '"' -> Some (Buffer.contents bytes, j + 1)
+      | '\\' -> (
+          match escape at (j + 1) with
+          | Some (c, used) ->
+              Buffer.add_char bytes c;
+              from (j + 1 + used)
+          | None -> None)
+      | c ->
+          Buffer.add_char bytes c;
+          from (j + 1)
+    in
+    from (start + 1)
+
+  let entries text =
+    let text = before_nul text in
+    let length = String.length text in
+    let line_end k =
+      Option.value ~default:length (String.index_from_opt text k '\n')
+    in
+    let rec from k found =
+      if k >= length then List.rev found
+      else
+        let pathname, next =
+          match if text.[k] = '"' then unquote text k else None with
+          | Some (bytes, after) -> (before_nul bytes, after + 1)
+          | None -> (String.sub text k (line_end k - k), line_end k + 1)
+        in
+        from next
+          (if text.[k] = '#' || pathname = "" then found else pathname :: found)
+    in
+    from 0 []
 
   (* @satisfies changes#read-only-repository-files=v1
      The object databases are the folder [objects] of the git folder and the
-     folders that the lines of the files [info/alternates] name, relative to
+     folders that the entries of the files [info/alternates] name, relative to
      the object database that holds the file: no other folder is read. *)
   let expand store database =
     let pathname = join database.folder "info/alternates" in
@@ -214,7 +273,7 @@ module Make (R : Files.READER) = struct
         match R.read ~max_size:store.limits.max_alternates_size pathname with
         | Error Files.No_file -> add []
         | Error failure -> Error (unread pathname failure)
-        | Ok text -> add (lines text))
+        | Ok text -> add (entries text))
 
   let rec database store number =
     if number < Dynarray.length store.databases then

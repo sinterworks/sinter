@@ -9,22 +9,34 @@
 
     The object databases of a git repository are the folder [objects] of its git
     folder and each folder that a file [info/alternates] of an object database
-    names, in turn. Each line of such a file, the bytes up to each byte 0x0A and
-    the bytes after the last one when there are any, is a pathname as it is
-    written: a pathname that does not start with [/] is relative to the folder
-    of the object database that holds the file. A line that names no folder
-    names no object database. Two pathnames of one folder, by
+    names, in turn. Such a file, up to its first byte 0x00, is a sequence of
+    entries, each from the end of the one before it. An entry that starts with
+    [#] is a comment, up to the next byte 0x0A or the end, and names no
+    pathname. An entry that starts with a double quote, then a C-quoted byte
+    sequence, then a double quote, names that byte sequence, and the byte after
+    the closing double quote, when there is one, is the end of the entry. Each
+    other entry, a double quote with no valid end included, names its bytes up
+    to the next byte 0x0A, and that byte 0x0A, or the end of the file, is the
+    end of the entry. A C-quoted byte sequence holds any byte except a double
+    quote and [\ ]; [\ ] and one of [\ ], a double quote, [a], [b], [f], [n],
+    [r], [t], and [v] stand for 0x5C, 0x22, 0x07, 0x08, 0x0C, 0x0A, 0x0D, 0x09,
+    and 0x0B; and [\ ], a digit [0] to [3], and two digits [0] to [7] stand for
+    the byte of that octal number. The pathname of an entry ends before its
+    first byte 0x00. An empty pathname names no object database. A pathname that
+    does not start with [/] is relative to the folder of the object database
+    that holds the file. A pathname that names no folder names no object
+    database. Two pathnames of one folder, by
     {!Sinter_repository_files.READER.folder_identity}, are one object database.
 
     The pathnames that the store reads are these, made by the joining of byte
     sequences with no other change, where [<database>] is the pathname of an
     object database: [<git_folder>/objects] for the folder [objects] of the git
-    folder at the pathname [<git_folder>]; [<database>/<line>] for a line that
-    does not start with [/] of the file [<database>/info/alternates], and the
-    line itself for a line that starts with [/]; and [<database>/<h>/<rest>],
-    [<database>/pack], [<database>/pack/<name>.idx], and
-    [<database>/pack/<name>.pack] below. Each damage and each failure names its
-    file by such a pathname.
+    folder at the pathname [<git_folder>]; [<database>/<p>] for a pathname [p]
+    of an entry of the file [<database>/info/alternates] that does not start
+    with [/], and [p] itself when it starts with [/]; and
+    [<database>/<h>/<rest>], [<database>/pack], [<database>/pack/<name>.idx],
+    and [<database>/pack/<name>.pack] below. Each damage and each failure names
+    its file by such a pathname.
 
     The places of an object id X are these, in this order: for each object
     database, in the order of the object databases, the file of the loose object
@@ -36,7 +48,7 @@
     [pack-], with a file [pack/<name>.pack] beside it in the listing of the
     folder [pack]. The order of the object databases is the folder [objects] of
     the git folder first, then the object databases that each object database
-    names, in the order of the object databases and of the lines, each at its
+    names, in the order of the object databases and of the entries, each at its
     first place.
 
     A place gives the object X when its bytes are in the form of the page for

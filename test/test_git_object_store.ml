@@ -865,25 +865,105 @@ let alternate_tests =
               [
                 alternates "/l\n"; ("/l", M.Link "/a/objects"); at "/a/objects";
               ] );
-            ("a line that starts with #", [ alternates "#x\n"; at (db ^ "/#x") ]);
-            ( "a line in double quotes",
-              [ alternates "\"q\"\n"; at (db ^ "/\"q\"") ] );
+            ( "a line that starts with a space and #",
+              [ alternates " #x\n"; at (db ^ "/ #x") ] );
+            ( "a line in double quotes, unquoted",
+              [ alternates "\"q\"\n"; at (db ^ "/q") ] );
             ( "a line that ends with a carriage return",
               [ alternates "/a\r\n"; at "/a\r" ] );
             ("a line with a space", [ alternates " /a\n"; at (db ^ "/ /a") ]);
           ]);
-    case "an alternates line is a pathname as it is written" (fun () ->
+    case "a line that does not start with # or a double quote is as written"
+      (fun () ->
         List.iter
           (fun (label, nodes) ->
             check label (not_held ()) (finder (M.create nodes) x))
           [
-            ("a comment is a pathname", [ alternates "#/a\n"; at "/a" ]);
-            ( "quotes are part of the pathname",
-              [ alternates "\"/a\"\n"; at "/a" ] );
             ("a carriage return is part of it", [ alternates "/a\r\n"; at "/a" ]);
             ("a leading space is part of it", [ alternates " /a\n"; at "/a" ]);
             ( "relative to the object database, not to the git folder",
               [ alternates "../a\n"; at "/a" ] );
+          ]);
+    case "an entry names the folder that git 2.54.0 reads from it" (fun () ->
+        List.iter
+          (fun (label, text, place) ->
+            check label (held O.Blob content)
+              (finder (M.create [ alternates text; at place ]) x))
+          [
+            ("a line after a comment", "#c\n/a\n", "/a");
+            ("a line after a comment of #", "#\n/a\n", "/a");
+            ("quotes", "\"/a\"\n", "/a");
+            ("a quoted name that starts with #", "\"#foo\"\n", db ^ "/#foo");
+            ("an escaped backslash", "\"/a\\\\b\"\n", "/a\\b");
+            ("an escaped double quote", "\"/a\\\"b\"\n", "/a\"b");
+            ("an escaped tab", "\"/a\\tb\"\n", "/a\tb");
+            ("an escaped line feed", "\"/a\\nb\"\n", "/a\nb");
+            ("an escaped bell", "\"/a\\ab\"\n", "/a\007b");
+            ("an escaped backspace", "\"/a\\bb\"\n", "/a\bb");
+            ("an escaped form feed", "\"/a\\fb\"\n", "/a\012b");
+            ("an escaped carriage return", "\"/a\\rb\"\n", "/a\rb");
+            ("an escaped vertical tab", "\"/a\\vb\"\n", "/a\011b");
+            ("an octal escape", "\"/a\\141\"\n", "/aa");
+            ("an octal escape of 0x01", "\"/a\\001\"\n", "/a\001");
+            ("an octal escape of 0xFF", "\"/a\\377\"\n", "/a\255");
+            ("an octal escape then a digit", "\"/a\\1411\"\n", "/aa1");
+            ( "an unknown escape keeps the line",
+              "\"/a\\qb\"\n",
+              db ^ "/\"/a\\qb\"" );
+            ("\\x keeps the line", "\"/a\\x41\"\n", db ^ "/\"/a\\x41\"");
+            ( "two octal digits keep the line",
+              "\"/a\\11\"\n",
+              db ^ "/\"/a\\11\"" );
+            ("an octal 400 keeps the line", "\"/a\\400\"\n", db ^ "/\"/a\\400\"");
+            ("no closing quote keeps the line", "\"/a\n", db ^ "/\"/a");
+            ( "an octal escape with an 8 keeps the line",
+              "\"/a\\080\"\n",
+              db ^ "/\"/a\\080\"" );
+            ( "an octal escape with an 8 at its end keeps the line",
+              "\"/a\\008\"\n",
+              db ^ "/\"/a\\008\"" );
+            ( "an octal escape with a byte below 0 keeps the line",
+              "\"/a\\0!1\"\n",
+              db ^ "/\"/a\\0!1\"" );
+            ( "an octal escape with a byte below 0 at its end keeps the line",
+              "\"/a\\11!\"\n",
+              db ^ "/\"/a\\11!\"" );
+            ("a backslash at the end of the file", "\"/a\\", db ^ "/\"/a\\");
+            ("a short octal escape at the end", "\"\\0", db ^ "/\"\\0");
+            ("a two-digit octal escape at the end", "\"\\01", db ^ "/\"\\01");
+            ( "a three-digit octal escape at the end with no quote",
+              "\"\\141",
+              db ^ "/\"\\141" );
+            ("the line after no closing quote", "\"/a\n/b\n", "/b");
+            ("a quote at the end of the file", "\"/a\"", "/a");
+            ("the byte after a quote", "\"/a\"X/b\n", "/b");
+            ("a space after a quote", "\"/a\" /b\n", "/b");
+            ("a quote over a line feed", "\"/a\n\"/b\n", "/a\n");
+            ( "the rest after a quote over a line feed",
+              "\"/a\n\"/b\n",
+              db ^ "/b" );
+            ("a line after an empty quote", "\"\"\n/a\n", "/a");
+            ("quotes inside a line", "m\"1\"\n", db ^ "/m\"1\"");
+            ("a byte 0x00 ends the pathname", "\"/a\\000b\"\n", "/a");
+            ("a line after a quoted byte 0x00", "\"/a\\000b\"\n/c\n", "/c");
+            ("a byte 0x00 ends the file", "/a\000/b\n/c\n", "/a");
+            ("a trailing space", "/a \n", "/a ");
+          ];
+        List.iter
+          (fun (label, text, place) ->
+            check label (not_held ())
+              (finder (M.create [ alternates text; at place ]) x))
+          [
+            ("a comment", "#x\n", db ^ "/#x");
+            ("a comment with no line feed", "#x", db ^ "/#x");
+            ("a comment of a pathname", "#/a\n", "/a");
+            ("the quotes of a line", "\"q\"\n", db ^ "/\"q\"");
+            ("the byte after a quote", "\"/a\"X/b\n", db ^ "/X/b");
+            ("a comment after the byte after a quote", "\"/a\"X#c\n", db ^ "/#c");
+            ("a line after a quote over a line feed", "\"/a\n\"/b\n", "/b");
+            ("the bytes after a quoted byte 0x00", "\"/a\\000b\"\n", "/a\000b");
+            ("a line after a byte 0x00", "/a\000/b\n/c\n", "/c");
+            ("an unknown escape", "\"/a\\qb\"\n", "/aqb");
           ]);
     case "a line that names no folder names no object database" (fun () ->
         List.iter
