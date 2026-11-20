@@ -2,8 +2,8 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Data forms
-@design data-forms=v2
-@cites text=v2
+@design data-forms=v1
+@cites text=v1
 @cites rfc/3339
 @cites rfc/5234
 @cites rfc/7405
@@ -117,9 +117,9 @@ case-sensitive strings of RFC 7405.
 | [scalar](sinter:#line-object=v1) | a string, an integer, or a boolean |
 | [flat object](sinter:#line-object=v1) | an object in which the value of each member is a scalar |
 | [line object](sinter:#line-object=v1) | an object in which the value of each member is a scalar, an array of scalars, or an array of flat objects |
-| [canonical line](sinter:#canonical-line=v2) | the canonical byte sequence of a line object, then the byte 0x0A |
+| [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
 | [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when the byte sequence is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text has no value `null`, no number with a fraction or an exponent or outside the range of an integer, no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two that write the UTF-16 code units of one character, and no object with two names that stand for the same text |
-| [TOML document](sinter:#toml-document=v2) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, that has no value error, and whose keys, tables, and strings break no statement of TOML 1.1.0 |
+| [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, that has no value error, and whose keys, tables, and strings break no statement of TOML 1.1.0 |
 | key/value pair, table header, inline table, array of tables, quoted key, basic string, multi-line basic string, literal string, multi-line literal string, escape sequence, newline; integer, float, string, array, and value of TOML 1.1.0 | the things that TOML 1.1.0 calls by these names; in a JSON text, an escape sequence is what RFC 8259 calls by that name |
 | [TOML key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"` |
 | [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; these are the TOML keys of the dotted key |
@@ -130,10 +130,10 @@ case-sensitive strings of RFC 7405.
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
 | [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
 | [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the byte order mark and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
-| [root table](sinter:#root-table=v2) | the top-level table of a TOML document |
-| [location](sinter:#toml-location=v2) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
-| [span of a key](sinter:#toml-span=v2), [span of a value](sinter:#toml-span=v2) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
-| [span pair](sinter:#toml-span-pair=v2) | a span of the text of a TOML document together with what it is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
+| [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
+| [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
+| [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
+| [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what it is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
 | [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
@@ -141,20 +141,20 @@ case-sensitive strings of RFC 7405.
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
-| [vector](sinter:#vector-meaning=v2) | an input and what the requirements of a specification, or the requirements that a design holds outside its specifications, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group, when the definition that the specification declares under the schema part name of its form, or that the design declares under that name outside its specifications, gives the forms of that group, and the value of `input`, and the value of `values` when the object has that member, have the fixed forms that these forms give (a value of `values` has no fixed form when these forms give none); otherwise it states no vector |
+| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside its specifications, oblige a conforming program to give for that input; the object of a vector line states one vector by the forms of its group, when the definition that the specification declares under the schema part name of its form, or that the design declares under that name outside its specifications, gives the forms of that group, and the value of `input`, and the value of `values` when the object has that member, have the fixed forms that these forms give (a value of `values` has no fixed form when these forms give none); otherwise it states no vector |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names the definition that gives the forms of a group and a label of it |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
-| [group](sinter:#vector-line=v2) | the group name that the member `group` of the object of a vector line holds, such as `offsets` |
-| [the vector lines of a group](sinter:#test-vector-set=v2) | the vector lines of a test-vector set whose group is that group |
-| [forms of a group](sinter:#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
-| [fixed form](sinter:#group-form-list=v2) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
-| [need](sinter:#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
-| [check of the vectors](sinter:#vector-meaning=v2) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
-| [vector object](sinter:#vector-object=v2) | an object with fixed members: it always has the members `form`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `needs` and `note` |
-| [vector line](sinter:#vector-line=v2) | the canonical byte sequence of a vector object, then the byte 0x0A |
-| [test-vector set](sinter:#test-vector-set=v2) | a byte sequence of zero or more vector lines in which all vector lines with the same group have the same schema part name in their form |
+| [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line holds, such as `offsets` |
+| [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
+| [forms of a group](sinter:#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
+| [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
+| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
+| [vector object](sinter:#vector-object=v1) | an object with fixed members: it always has the members `form`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `needs` and `note` |
+| [vector line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, then the byte 0x0A |
+| [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of zero or more vector lines in which all vector lines with the same group have the same schema part name in their form |
 
 ## 2. Results, JSON values, and canonical forms
 
@@ -313,7 +313,7 @@ The hash of a byte sequence is the hex text of the digest, as 32 bytes,
 that SHA-256 of FIPS 180-4 gives for it.
 
 ## 4. JSON lines
-@spec json-lines=v2
+@spec json-lines=v1
 
 When a conforming program gives a byte sequence as the canonical byte
 sequence of a JSON value, it gives the canonical byte sequence of that
@@ -381,7 +381,7 @@ an object in which the value of each member is one of these three:
 
 #### 4.1.2 Canonical lines
 
-@schema canonical-line=v2
+@schema canonical-line=v1
 @cites {
     text#{byte=v1, byte-sequence=v1, 0x-numeral=v1},
     #{line-object=v1, canonical-byte-sequence=v1},
@@ -454,10 +454,10 @@ thing, only the canonical byte sequence of that thing.
 
 ### 4.3 Canonical lines as output
 
-@req write-canonical-line=v2
+@req write-canonical-line=v1
 @cites {
     text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
-    #{line-object=v1, canonical-line=v2},
+    #{line-object=v1, canonical-line=v1},
 }
 
 A conforming program must give, as the canonical line of a thing, only
@@ -465,13 +465,13 @@ the canonical line of that thing.
 
 ### 4.4 Canonical lines as input
 
-@req read-canonical-line=v2
+@req read-canonical-line=v1
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{line-object=v1, canonical-line=v2},
+    #{line-object=v1, canonical-line=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -481,10 +481,10 @@ and "invalid" when it is not.
 
 ### 4.5 Only the line objects of canonical lines
 
-@req give-only-line-objects=v2
+@req give-only-line-objects=v1
 @cites {
     text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
-    #{line-object=v1, canonical-line=v2},
+    #{line-object=v1, canonical-line=v1},
 }
 
 A conforming program must give, as the line object of a byte sequence,
@@ -546,8 +546,8 @@ the term `group-form-list` gives them.
     #{
         write-canonical-json=v1, json-value=v1,
         json-value-of-a-byte-sequence=v1, canonical-byte-sequence=v1,
-        hex-text=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        hex-text=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
 }
 
@@ -582,9 +582,9 @@ sequence of the input, it gives the byte sequence of
         character=v1, code-span=v1,
     },
     #{
-        write-json-vector=v1, write-canonical-line=v2, json-value=v1,
-        line-object=v1, canonical-line=v2, hex-text=v1, vector-line=v2,
-        group-form-list=v2, vector-meaning=v2,
+        write-json-vector=v1, write-canonical-line=v1, json-value=v1,
+        line-object=v1, canonical-line=v1, hex-text=v1, vector-line=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -620,10 +620,10 @@ the canonical line of the input.
         code-span=v1,
     },
     #{
-        write-json-vector=v1, read-canonical-line=v2,
-        give-only-line-objects=v2, json-value=v1, line-object=v1,
-        canonical-line=v2, hex-text=v1, vector-line=v2,
-        vector-meaning=v2,
+        write-json-vector=v1, read-canonical-line=v1,
+        give-only-line-objects=v1, json-value=v1, line-object=v1,
+        canonical-line=v1, hex-text=v1, vector-line=v1,
+        vector-meaning=v1,
     },
 }
 
@@ -664,8 +664,8 @@ gives no line object as the line object of the byte sequence.
     #{
         write-json-vector=v1, read-json-text=v1,
         give-only-json-values=v1, json-value=v1,
-        json-value-of-a-byte-sequence=v1, hex-text=v1, vector-line=v2,
-        vector-meaning=v2,
+        json-value-of-a-byte-sequence=v1, hex-text=v1, vector-line=v1,
+        vector-meaning=v1,
     },
 }
 
@@ -695,7 +695,7 @@ value of the byte sequence.
 ```
 
 ## 5. TOML
-@spec toml=v2
+@spec toml=v1
 
 A conforming program can read a byte sequence as a TOML document. When
 it gives a result for whether the byte sequence is a TOML document, it
@@ -1027,10 +1027,10 @@ The reading rules of TOML are the rules of `toml-byte-order-mark`,
 
 #### 5.1.12 The locations of TOML values
 
-@term toml-location=v2
+@term toml-location=v1
 @cites #{
     toml-value=v1, toml-key-text=v1, toml-key=v1, index=v1,
-    toml-document=v2, root-table=v2,
+    toml-document=v1, root-table=v1,
 }
 
 - The location of a TOML value of a TOML document is the sequence of
@@ -1073,7 +1073,7 @@ date-time that the document gives before the offset.
 
 #### 5.1.15 Spans in a TOML document
 
-@term toml-span=v2
+@term toml-span=v1
 @cites {
     toml-lang/1.1.0,
     text#{
@@ -1082,7 +1082,7 @@ date-time that the document gives before the offset.
     },
     #{
         toml-key=v1, toml-value=v1, toml-byte-order-mark=v1,
-        toml-document=v2,
+        toml-document=v1,
     },
 }
 
@@ -1133,7 +1133,7 @@ seconds.
 
 #### 5.1.17 TOML documents
 
-@schema toml-document=v2
+@schema toml-document=v1
 @cites {
     toml-lang/1.1.0,
     text#{byte-sequence=v1, valid-utf-8=v1, text=v1, code-span=v1},
@@ -1153,12 +1153,12 @@ document is a byte sequence that meets each of these conditions:
 
 #### 5.1.18 Root tables
 
-@term root-table=v2
+@term root-table=v1
 @cites {
     toml-lang/1.1.0,
     text#{code-span=v1},
     #{
-        toml-document=v2, toml-reading-rule-list=v1,
+        toml-document=v1, toml-reading-rule-list=v1,
         toml-string-text=v1, toml-offset-date-time=v1, toml-value=v1,
     },
 }
@@ -1176,13 +1176,13 @@ kind TOML array.
 
 #### 5.1.19 Span pairs
 
-@term toml-span-pair=v2
+@term toml-span-pair=v1
 @cites {
     toml-lang/1.1.0,
     text#{span=v1},
     #{
-        toml-document=v2, toml-key=v1, toml-span=v2, toml-value=v1,
-        toml-location=v2, index=v1,
+        toml-document=v1, toml-key=v1, toml-span=v1, toml-value=v1,
+        toml-location=v1, index=v1,
     },
 }
 
@@ -1211,13 +1211,13 @@ other TOML value, key, TOML key, or location.
 
 ### 5.2 TOML documents as input
 
-@req read-toml=v2
+@req read-toml=v1
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{toml-document=v2},
+    #{toml-document=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -1226,12 +1226,12 @@ sequence is a TOML document, and "invalid" when it is not.
 
 ### 5.3 Only the root tables of TOML documents
 
-@req give-only-root-tables=v2
+@req give-only-root-tables=v1
 @cites {
     text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
     #{
-        toml-value=v1, toml-value-equality=v1, root-table=v2,
-        toml-document=v2,
+        toml-value=v1, toml-value-equality=v1, root-table=v1,
+        toml-document=v1,
     },
 }
 
@@ -1240,13 +1240,13 @@ only the root table of the TOML document that the byte sequence is.
 
 ### 5.4 Only the span pairs of TOML documents
 
-@req give-only-toml-spans=v2
+@req give-only-toml-spans=v1
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         text-of-a-byte-sequence=v1, result=v1, span=v1, position=v1,
     },
-    #{toml-document=v2, toml-span-pair=v2},
+    #{toml-document=v1, toml-span-pair=v1},
 }
 
 When a conforming program does not give the result "invalid" for
@@ -1286,11 +1286,11 @@ groups, as the term `group-form-list` gives them.
         result=v1, code-span=v1,
     },
     #{
-        read-toml=v2, give-only-root-tables=v2, toml-document=v2,
-        root-table=v2, toml-value=v1, toml-value-equality=v1,
+        read-toml=v1, give-only-root-tables=v1, toml-document=v1,
+        root-table=v1, toml-value=v1, toml-value-equality=v1,
         toml-key=v1, toml-key-text=v1, toml-offset=v1,
         toml-second-fraction=v1, json-value=v1, hex-text=v1,
-        index=v1, vector-line=v2, vector-meaning=v2,
+        index=v1, vector-line=v1, vector-meaning=v1,
     },
 }
 
@@ -1403,11 +1403,11 @@ table of the byte sequence.
         position=v1, line-number=v1, result=v1, code-span=v1,
     },
     #{
-        toml-document-vector=v1, read-toml=v2, give-only-toml-spans=v2,
-        toml-document=v2, root-table=v2, toml-key=v1, toml-key-text=v1,
-        toml-value=v1, toml-location=v2, toml-span=v2,
-        toml-span-pair=v2, json-value=v1, hex-text=v1, index=v1,
-        vector-line=v2, vector-meaning=v2,
+        toml-document-vector=v1, read-toml=v1, give-only-toml-spans=v1,
+        toml-document=v1, root-table=v1, toml-key=v1, toml-key-text=v1,
+        toml-value=v1, toml-location=v1, toml-span=v1,
+        toml-span-pair=v1, json-value=v1, hex-text=v1, index=v1,
+        vector-line=v1, vector-meaning=v1,
     },
 }
 
@@ -1479,7 +1479,7 @@ location of `no-span-at`.
 ```
 
 ## 6. Hashes
-@spec hashes=v2
+@spec hashes=v1
 
 A conforming program can give the hash of a byte sequence, as the term
 `hash` gives it. When it gives a result for whether a text fits the hash
@@ -1560,7 +1560,7 @@ the term `group-form-list` gives them.
     },
     #{
         compute-hash=v1, hash=v1, json-value=v1, hex-text=v1,
-        vector-line=v2, group-form-list=v2, vector-meaning=v2,
+        vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -1592,8 +1592,8 @@ sequence, it gives the text of `hash`, and no other text.
     },
     #{
         compute-hash-vector=v1, validate-hash=v1, hash-form=v1,
-        json-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
 }
 
@@ -1614,7 +1614,7 @@ text, as `compute-hash-vector` gives.
 ```
 
 ## 7. Hash ids
-@spec hash-ids=v2
+@spec hash-ids=v1
 
 A conforming program can give the hash id of a byte sequence with an id
 prefix and a number of hex digits from 1 to 64. When it gives a result
@@ -1726,8 +1726,8 @@ the term `group-form-list` gives them.
     },
     #{
         compute-hash-id=v1, id-prefix=v1, hash-id=v1, json-value=v1,
-        hex-text=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        hex-text=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
 }
 
@@ -1764,8 +1764,8 @@ text of `hash-id`, and no other text.
     },
     #{
         compute-hash-id-vector=v1, validate-hash-id=v1, id-prefix=v1,
-        hash-id-form=v1, json-value=v1, vector-line=v2,
-        group-form-list=v2, vector-meaning=v2,
+        hash-id-form=v1, json-value=v1, vector-line=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
 }
 
@@ -1790,7 +1790,7 @@ and a whole number is an integer, as `compute-hash-id-vector` gives.
 ```
 
 ## 8. Test vectors
-@spec test-vectors=v2
+@spec test-vectors=v1
 
 A vector is as the term `vector-meaning` gives it, and the object of a
 vector line can state a vector. A conforming program can read a byte
@@ -1868,7 +1868,7 @@ group-name  = %x61-7A *( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 
 #### 8.1.4 Vector objects
 
-@term vector-object=v2
+@term vector-object=v1
 @cites {
     text#{text=v1, code-span=v1},
     #{json-value=v1, form-pin=v1, group-name=v1, key-order=v1},
@@ -1891,10 +1891,10 @@ key order.
 
 #### 8.1.5 Vector lines
 
-@term vector-line=v2
+@term vector-line=v1
 @cites {
     text#{byte=v1, 0x-numeral=v1, code-span=v1},
-    #{json-value=v1, canonical-byte-sequence=v1, vector-object=v2},
+    #{json-value=v1, canonical-byte-sequence=v1, vector-object=v1},
 }
 
 A vector line is the canonical byte sequence of a vector object, then
@@ -1905,10 +1905,10 @@ of `group` of its object.
 
 #### 8.1.6 Test-vector sets
 
-@schema test-vector-set=v2
+@schema test-vector-set=v1
 @cites {
     text#{byte-sequence=v1, byte=v1, text=v1},
-    #{form-pin=v1, vector-line=v2},
+    #{form-pin=v1, vector-line=v1},
 }
 
 A test-vector set is a byte sequence that holds zero or more vector
@@ -1921,14 +1921,14 @@ group is that group.
 
 #### 8.1.7 The forms of a group
 
-@term group-form-list=v2
+@term group-form-list=v1
 @cites {
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
         byte-sequence=v1, line=v1, code-span=v1,
     },
-    #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v2},
+    #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
 
 For a specification S of a design, a definition Q that S declares under
@@ -1997,15 +1997,15 @@ program of D in place of a conforming program of S.
 
 #### 8.1.8 The meaning of a vector
 
-@term vector-meaning=v2
+@term vector-meaning=v1
 @cites {
     text#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1, result=v1, code-span=v1,
     },
     #{
-        json-value=v1, form-pin=v1, vector-object=v2, vector-line=v2,
-        test-vector-set=v2, group-form-list=v2,
+        json-value=v1, form-pin=v1, vector-object=v1, vector-line=v1,
+        test-vector-set=v1, group-form-list=v1,
     },
 }
 
@@ -2075,13 +2075,13 @@ states a vector states this:
 
 ### 8.2 Test-vector sets as input
 
-@req read-test-vector-set=v2
+@req read-test-vector-set=v1
 @cites {
     text#{
         requirement=v1, conforming-program=v1, byte-sequence=v1,
         result=v1,
     },
-    #{test-vector-set=v2},
+    #{test-vector-set=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -2090,10 +2090,10 @@ byte sequence is a test-vector set, and "invalid" when it is not.
 
 ### 8.3 The objects of test-vector sets
 
-@req give-objects-of-test-vector-sets=v2
+@req give-objects-of-test-vector-sets=v1
 @cites {
     text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
-    #{json-value=v1, vector-line=v2, test-vector-set=v2},
+    #{json-value=v1, vector-line=v1, test-vector-set=v1},
 }
 
 When a conforming program gives objects as the objects of a byte
@@ -2132,8 +2132,8 @@ the term `group-form-list` gives them.
         utf-8-encoding=v1, 0x-numeral=v1, result=v1, code-span=v1,
     },
     #{
-        read-test-vector-set=v2, give-objects-of-test-vector-sets=v2,
-        test-vector-set=v2, vector-line=v2, vector-meaning=v2,
+        read-test-vector-set=v1, give-objects-of-test-vector-sets=v1,
+        test-vector-set=v1, vector-line=v1, vector-meaning=v1,
         json-value=v1, hex-text=v1,
     },
 }
