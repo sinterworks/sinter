@@ -29,15 +29,16 @@ suspect edges, findings, finding classes, and parameters. From Documents
 (`documents`), it takes the declared items of a tree and their files,
 the origins of the runs of the text of a file, the origin positions of
 citation entries and inline citations, extent hashes as the measure of
-revised content, sets of names, vector files, the edges of a tree with
-the form runs and form positions of vector lines, position subjects, the
-spots of runs, tree findings, bindings of the parameter `file-readers`
-with their readers, and sets of stopped files. From Changes (`changes`),
-it takes commits, the files of the tree of a commit, the change of a
-commit, the base of the change of a commit under a binding of the
-parameter `default-branch-name`, and undisturbed repository reads. From
-Data forms (`data-forms`), it takes test-vector sets, vector lines, the
-forms of a group, the meaning of a vector, and hex texts.
+revised content, sets of names, vector files, the edges of a tree, the
+form runs and form positions of the edges that vector lines give,
+position subjects, the spots of runs, tree findings, bindings of the
+parameter `file-readers` with their readers, and sets of stopped files.
+From Changes (`changes`), it takes commits, the files of the tree of a
+commit, the change of a commit, the base of the change of a commit under
+a binding of the parameter `default-branch-name`, and undisturbed
+repository reads. From Data forms (`data-forms`), it takes test-vector
+sets, vector lines, the forms of a group, the meaning of a vector, and
+hex texts.
 From Findings (`findings`), it takes the subjects, spots, messages,
 marks, related messages, and fixes of findings, and ackable findings.
 From Identifiers (`identifiers`), it takes declarations, the production
@@ -58,12 +59,13 @@ numbers.
 | [tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
 | base tree | the tree with which a conforming program compares a tree, such as the tree of the base of the change of a commit |
 | [label](sinter:ontology#revised-content=v2) | for a declared item, the text that `label` of Identifiers matches in its declaration, such as `v2` in `@req size=v2` |
+| [label of an edge](sinter:ontology#pinned-edge=v2) | for a pinned edge, the revision of its citation entry or inline citation, such as `v2` in `@cites billing#size=v2`, or the schema label of the form of its vector line, such as `v1` in `"form":"#g-vector=v1"` |
 | [current revision](sinter:ontology#item-revision=v2) | the label that an item has in a tree; a term with no label has no current revision |
 | [revised content](sinter:ontology#revised-content=v2) | the part of an item that its label covers, or would cover for a term with no label |
 | [extent hash](sinter:documents#extent-hash=v2) | the hash of the hash text that Documents gives for a declared item from its revised content; two revised contents of the same declared item, in two trees under one binding of each parameter, are the same when, and only when, the extent hashes of that item in the two trees are equal |
 | [set of names](sinter:documents#name-set=v2) | one of the sets of declared items of a tree in which names are looked up: the shared set and the set of each item of the kind design |
 | [base item](sinter:#base-item=v2) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
-| [form run](sinter:documents#tree-edge=v2), [form position](sinter:documents#tree-edge=v2) | for an edge that a vector line gives, the run of the text of its vector file that holds the value of its `form` without the quotes, and the position where that run starts |
+| [form run](sinter:documents#tree-edge=v2), [form position](sinter:documents#tree-edge=v2) | for an edge that a vector line gives, the run of the text of its vector file between the opening and closing quotes of the JSON string of the value of `form`, and the position where that run starts |
 | [suspect edge](sinter:ontology#suspect-edge=v2) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the label of the edge |
 | [set of stopped files](sinter:documents#unreadable-file=v2) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files to whose reading it gives the result "parse failure" for limits of its own; a file in it cannot be read |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot, that is not ackable |
@@ -119,11 +121,14 @@ A tree has one finding of the class `suspect` for each suspect edge of
 the tree, such as the edge of `@cites billing#size=v2` when
 `billing#size` has the current revision `v3`. A finding of the class
 `suspect` needs no base tree. A pinned edge whose cited item is a term
-with no label is always suspect. The edge that a vector line gives is
-pinned by its `form`, so it is suspect when its cited item has no
-current revision or has a current revision other than the label of
-`form`, with its subject and its spot at the form position and the form
-run that the term `documents#tree-edge` gives.
+with no label is always suspect. For example, in the vector file of a
+design, the edge that the vector line
+`{"form":"#g-vector=v1","group":"g","input":1,"values":{}}` gives is
+suspect by the atom `ontology#suspect-edge` when the schema `g-vector`
+that the design holds directly has the current revision `v2`, and the
+finding for that edge takes its subject from the form position and its
+spot from the form run `#g-vector=v1` that the term
+`documents#tree-edge` gives.
 
 ### 2.4 The base tree of the change of a commit
 
