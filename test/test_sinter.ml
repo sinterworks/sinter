@@ -101,6 +101,7 @@ let () =
       ("git configuration", Test_git_configuration.tests);
       ("git refs", Test_git_refs.tests);
       ("chunk sources", Test_chunk_sources.tests);
+      ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);
       ("toml reader", Test_toml_reader.tests);
       ("data forms toml", Test_data_forms_toml.tests);
