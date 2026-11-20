@@ -407,6 +407,35 @@
     implementations. A gap is fixed in the design.
   - Which features count as the core, and which language the new
     implementation uses, are not decided.
+- **Reference models of states, and mutation testing mapped to
+  requirements** — how executable models and mutation testing check
+  Sinter's code. Not designed.
+  - A reference model is a short program, written from a design alone,
+    that computes what the design says. A property test gives the same
+    generated inputs to the product and to the model, and compares
+    their outputs.
+  - Models are written only for the computation of states, such as the
+    states of items and the pins that become suspect. There a naive
+    program recomputes the result from scratch, with no cache, no
+    incremental update, and no error messages, so the model stays much
+    smaller than the product.
+  - No models are written for parsers, hashes, or file formats. There
+    the design gives the algorithm itself, so a model is a second
+    implementation of it, and both implementations tend to share the
+    same misreadings of the design. The conformance vectors and the
+    test suites of the cited standards check these parts.
+  - Mutation testing changes the product's code. Each mutant that no
+    test kills maps, through the `@satisfies` tag of the changed code,
+    to a requirement whose tests or vectors are weak. A requirement
+    that no code satisfies needs no mutant: the traceability check
+    already reports it.
+  - A model is mutated only where a small model already exists. A
+    mutant of the model that no vector kills shows a part of the design
+    that the vectors do not fix.
+  - The executable models that check each design while the design is
+    written stay. They have another aim: they check that the
+    conformance vectors of a draft agree with its text. They do not
+    test the product.
 - **Tags in Python docstrings** — in Python, a docstring is a statement
   that consists of one string literal, not an f-string, and that is
   the first statement of a module, a class, or a function. Python
