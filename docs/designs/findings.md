@@ -3,7 +3,7 @@
 
 # Findings
 @design findings=v2
-@cites text=v1
+@cites text=v2
 @cites identifiers=v2
 @cites files=v1
 @cites data-forms=v2
