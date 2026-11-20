@@ -124,7 +124,7 @@ case-sensitive strings of RFC 7405.
 | [line object](sinter:#line-object=v1) | an object in which the value of each member is a scalar, an array of scalars, or an array of flat objects |
 | [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
 | [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when all of these hold: the byte sequence is valid UTF-8; the text of the byte sequence is a JSON text of RFC 8259; that JSON text has no value `null`; that JSON text has no number with a fraction or an exponent or outside the range of an integer; that JSON text has no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two escape sequences `\u` that write the UTF-16 code units of one character; and that JSON text has no object with two names that stand for the same text |
-| [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, that has no value error, and whose keys, tables, and strings break no statement of TOML 1.1.0 |
+| [TOML document](sinter:#toml-document=v1) | a byte sequence that meets three conditions: the text of the byte sequence, as TOML 1.1.0 reads that text with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0; the byte sequence has no value error; and the keys, tables, and strings of the byte sequence break no statement of TOML 1.1.0 |
 | key/value pair, table header, inline table, array of tables, quoted key, basic string, multi-line basic string, literal string, multi-line literal string, escape sequence, newline; integer, float, string, array, and value of TOML 1.1.0 | the things that TOML 1.1.0 calls by these names; in a JSON text, an escape sequence is what RFC 8259 calls by that name |
 | [TOML key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"` |
 | [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; the TOML keys that the dotted key joins are the TOML keys of the dotted key |
@@ -147,13 +147,13 @@ case-sensitive strings of RFC 7405.
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | schema | a definition that a design declares under a name, such as `test-vector-set`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
-| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside its specifications, oblige a conforming program to give for that input, as `vector-meaning` states |
+| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
-| [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names the schema that gives the forms of a group and a label of it |
+| [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`; a form pin names the schema that gives the forms of a group and a label of that schema |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
 | [group](sinter:#vector-line=v1) | the group name that the member `group` of the object of a vector line holds, such as `offsets` |
 | [the vector lines of a group](sinter:#test-vector-set=v1) | the vector lines of a test-vector set whose group is that group |
-| [forms of a group](sinter:#group-form-list=v1) | the five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group, as `group-form-list` states |
+| [forms of a group](sinter:#group-form-list=v1) | the five things that a schema that a specification declares under a name, or that a design declares under a name outside the specifications of the design, gives for a group, as `group-form-list` states |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of those texts stands for, if any |
@@ -1313,7 +1313,7 @@ need, so the forms of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each schema below gives the forms of one or more
-groups, as the term `group-form-list` gives them.
+groups, as the term `group-form-list` gives those forms.
 
 #### 5.5.1 TOML documents
 
@@ -1485,17 +1485,19 @@ span is the span of. The requirements of the group are `read-toml` and
   - `end`: the end of the span, as a position.
 
 When a conforming program gives a line number as the line number of the
-start of the span of what `of`, `location`, and `index` name, it gives
-the line number of `start`, and no other line number. When it gives a
-column as the column of the start of that span, it gives the column of
-`start`, and no other column. When it gives a line number as the line
-number of the end of that span, it gives the line number of `end`, and
-no other line number. When it gives a column as the column of the end of
-that span, it gives the column of `end`, and no other column. The object
-of a vector line of the group states nothing about the other spans that
-a conforming program gives for the TOML document. For each vector line
-of the group, when the object of that vector line states a vector, the
-note of that vector line gives the text of the span.
+start of the span of what `of`, `location`, and `index` name, the
+conforming program gives the line number of `start`, and no other line
+number. When a conforming program gives a column as the column of the
+start of that span, the conforming program gives the column of `start`,
+and no other column. When a conforming program gives a line number as
+the line number of the end of that span, the conforming program gives
+the line number of `end`, and no other line number. When a conforming
+program gives a column as the column of the end of that span, the
+conforming program gives the column of `end`, and no other column. The
+object of a vector line of the group states nothing about the other
+spans that a conforming program gives for the TOML document. For each
+vector line of the group, when the object of that vector line states a
+vector, the note of that vector line gives the text of the span.
 
 ```
 {"form":"#toml-span-vector=v1","group":"give-span","input":"61203d20310a","note":"the text of the span is `a`","result":"valid","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
@@ -1860,10 +1862,11 @@ as the terms `vector-line` and `vector-object` give. The schema
 `test-vector-set` also says which form pins the vector lines of one
 group can have.
 
-The forms of a group are as the term `group-form-list` gives them: a
+The forms of a group are as the term `group-form-list` gives them. A
 schema that a specification declares under a name, or that a design
-declares under a name outside its specifications, gives the forms of the
-group, and each vector line names that schema in its member `form`.
+declares under a name outside the specifications of that design, gives
+the forms of the group. Each vector line names that schema in the member
+`form` of the vector line.
 
 A vector object can also have the member `needs`, as in
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","needs":["no-privilege"],"result":"valid"}`,
