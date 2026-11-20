@@ -74,8 +74,6 @@ let code_file ?(path = "lib/a.rs") sigils source nodes =
 let of_case (case : Code_gen.case) =
   code_file case.sigils case.source case.nodes
 
-(* Nodes of hand-written cases, found by the first occurrence of a text at or
-   after a boundary. *)
 let find source ?(after = 0) sub =
   let n = String.length sub in
   let rec go k =
@@ -107,8 +105,6 @@ let test_node ?(name = [ [ R.Text_piece "t" ] ]) r =
 
 let reference_case (case : Code_gen.case) = (text_of case.source, case.nodes)
 let shaped_or_mixed = Gen.oneof [ Code_gen.shaped; Code_gen.mixed ]
-
-(* Code characters. *)
 
 let code_characters_follow_the_term =
   property ~name:"the code characters are those of the term"
@@ -149,8 +145,6 @@ let code_character_cases () =
     (fun (p, value, what) ->
       Alcotest.(check bool) what value (Code_file.is_code_character file p))
     expected
-
-(* The lines of a run. *)
 
 let lines_of_runs_follow_the_term =
   property ~name:"the lines of a run are those of the term"
@@ -196,8 +190,6 @@ let run_line_cases () =
        (Comment_line.run_lines
           (Lines.of_text (text_of "\xef\xbb\xbfab\ncd"))
           (run 0 5)))
-
-(* Comment lines. *)
 
 let comment_lines_follow_the_term =
   property ~name:"the comment lines of a comment node are those of the term"
@@ -310,8 +302,6 @@ let comment_line_cases () =
           (Lines.of_text (text_of "/* a */"))
           (run 3 3)))
 
-(* Runs of comments, tag texts, and attachment. *)
-
 let reference_runs (case : Code_gen.case) =
   let text, nodes = reference_case case in
   List.map
@@ -422,10 +412,6 @@ let a_file_keeps_its_path_and_reading () =
   Alcotest.(check int)
     "the nodes" 1
     (List.length (Reading.nodes (Code_file.reading file)))
-
-(* Hand-written cases of runs of comments and attachment. Each gives the runs
-   of comments as their runs, and for each, its target as the run of that
-   node. *)
 
 let summary file =
   List.map
@@ -902,8 +888,6 @@ let a_link_over_two_comment_lines () =
       | _ -> Alcotest.fail "one accepted link")
   | _ -> Alcotest.fail "one tag text"
 
-(* Blocks. *)
-
 let tag_line_contents =
   [
     "@req a=v1";
@@ -1035,8 +1019,6 @@ let block_cases () =
   check "a tag line with spaces before its @" [ "  @req a=v1"; "Text." ]
     [ (1, 2) ];
   check "no block in an empty tag text" [] []
-
-(* Files that can be read, and the tests of a read file. *)
 
 let read_one ?(path = "lib/a.rs") ?(markdown = false) bytes pack =
   let calls = ref [] in
