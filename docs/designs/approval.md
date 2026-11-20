@@ -318,9 +318,10 @@ the production `subject` of the schema `identifiers#ack-line`, and it
 holds no line feed, so it is a subject of a finding (term
 `findings#finding-subject`). Each of the three classes reports only a
 subject of approval whose declared item is in force under the bindings,
-or an edge whose cited item is an item of the kind requirement or a
-schema that has a subject of approval and is in force under the bindings
-(term `bound-in-force-item`), so a retired item gives no
+or an edge whose cited item is an item of the kind requirement that has
+a subject of approval, or a schema that has a subject of approval, and
+whose cited item is in force under the bindings (term
+`bound-in-force-item`), so a retired item gives no
 finding of these classes. A subject of approval that is declined gives
 no finding of the class `awaiting-approval`. Two subjects of approval of
 one tree whose declared items have the same kind of item and the same
@@ -719,11 +720,12 @@ D of `default-branch-name`, a binding F of `file-readers`, a binding N
 of `external-namespaces`, and a point P of the ledger of R, a tree T
 has, at P under A, D, F, and N, one tree finding of the class
 `unapproved-req` for each edge that T has under F and N, of the kind
-`satisfies` or `verifies`, that says what its kind of edge says, and
-whose cited item is an item of the kind requirement or a schema that has
-a subject of approval and that is in force in T at P under A, D, F, and
-N, such that the subject of approval of that cited item needs approval
-under A and is not approved in T at P under A, D, F, and N. Its subject
+`satisfies` or `verifies`, that says what its kind of edge says, whose
+cited item is an item of the kind requirement that has a subject of
+approval, or a schema that has a subject of approval, and whose cited
+item is in force in T at P under A, D, F, and N, such that the subject
+of approval of that cited item needs approval under A and is not
+approved in T at P under A, D, F, and N. Its subject
 is the position subject of the origin position of the citation entry of
 the edge. Its spot is the spot of the run of that citation entry in the
 text of the file of the edge.
@@ -1048,12 +1050,12 @@ directly, each once, in code point order.
   entry or of its inline citation, or of the form position of its vector
   line (an inline citation and a vector line give only edges of the kind
   `cites`); and, when its cited item is an item of the kind requirement
-  or a schema that has a subject of approval, two more members: `cited`,
-  the index of that subject of approval in `subjects`, a JSON number
-  written as the decimal numeral of a whole number of 1 or more, counted
-  from 1; and `in-force`, `true` when that cited item is in force in the
-  tree at the point under the bindings (term `bound-in-force-item`), and
-  `false` when it is not.
+  that has a subject of approval, or a schema that has a subject of
+  approval, two more members: `cited`, the index of that subject of
+  approval in `subjects`, a JSON number written as the decimal numeral
+  of a whole number of 1 or more, counted from 1; and `in-force`, `true`
+  when that cited item is in force in the tree at the point under the
+  bindings (term `bound-in-force-item`), and `false` when it is not.
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with one member, `findings`: a JSON object
