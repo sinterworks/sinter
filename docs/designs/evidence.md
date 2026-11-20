@@ -30,51 +30,52 @@ and writes report files: files that say which tests ran, and whether
 each passed, failed, or was skipped. A person or continuous integration
 gives a conforming program the report files of one execution of test
 runners together, for one tree: that is an import. The imports that are
-given for a tree are the evidence for that tree, and each of them counts
-alone.
+given for a tree are the evidence for that tree. Each of those imports
+counts alone.
 
 A program reads each report file of an import with the test runner of
 the report file. A test runner of a language pack has an adapter of its
-own, or a match table. The report files of a test runner with a match
-table are read by the default reader, which reads JUnit XML. A reading
-gives test results, and result links that join a test result to test
-entries, each of which stands for a test of the tree. From the test
-results that name a test, the program gives the outcome of the test:
-passed, failed, or not run. With each outcome, it gives its sources, so
-that a person can see where the outcome came from. Some conditions of
-the evidence for a tree are findings, such as a `verifies` edge whose
-test did not run.
+own, or a match table. The default reader reads the report files of a
+test runner with a match table. The default reader reads JUnit XML. A
+reading gives test results, and result links that join a test result to
+test entries. Each test entry stands for a test of the tree. From the
+test results that name a test, the program gives the outcome of the
+test: passed, failed, or not run. With each outcome, the program gives
+the sources of the outcome, so that a person can see where the outcome
+came from. Some conditions of the evidence for a tree are findings, such
+as a `verifies` edge whose test did not run.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
 
 From Text and notation, the design takes texts, characters, spaces,
-places, runs, positions, and spans; whole numbers and
-decimal numerals; bytes and byte sequences; the notation of productions;
-and conforming programs, inputs, and results. From Identifiers, it takes
+places, runs, positions, and spans; whole numbers and decimal numerals;
+bytes and byte sequences; the notation of productions; and conforming
+programs, inputs, and results. From Identifiers, the design takes
 citation entries, id patterns, the fit of a text to an id pattern, and
 the bindings of `external-namespaces` with the results that a conforming
-program of Identifiers gives for them. From Files and paths, it takes
-valid paths and their file names. From Data forms, it takes hashes; TOML
-values; hex texts; and, from its specification `test-vectors`, vector
-lines, the forms of groups, and the meaning of vectors. From the
-Ontology, it takes trees, tests, test results and test evidence, edges
-with their sources and cited items, the edges of the kind `verifies`,
-declared items and schemas, parameters, the names of items, conformance
-vectors, groups of conformance vectors, vector sets, promises, and
-finding classes. From Language packs, it takes valid packs and valid
-descriptors, test runners with their adapter hashes, match tables, and
-runner settings; the bindings of `runner-settings` and the values of
-runner settings; the readings of texts, test nodes with their kinds
-test case and test suite, the runs of nodes, enclosed nodes, the order
-of the parse tree, and the names of test nodes; test entries, the
-requests of the function bind, calls, valid adapters, instances of
-adapters, and the results of calls with their test results and binding
-objects. From Findings, it takes spots. From Documents, it takes the
-bindings of `file-readers`, read files and code files, sets of stopped
-files and files that cannot be read, the tests of a read file, vector
-files, the edges of a tree, origins and origin positions, position
-subjects, the spots of runs, and tree findings.
+program of Identifiers gives for those bindings. From Files and paths,
+it takes valid paths and their file names. From Data forms, the design
+takes hashes; TOML values; hex texts; and, from the specification
+`test-vectors` of Data forms, vector lines, the forms of groups, and the
+meaning of vectors. From the Ontology, it takes trees, tests, test
+results and test evidence, edges with their sources and cited items, the
+edges of the kind `verifies`, declared items and schemas, parameters,
+the names of items, conformance vectors, groups of conformance vectors,
+vector sets, promises, and finding classes. From Language packs, it
+takes valid packs and valid descriptors, test runners with their adapter
+hashes, match tables, and runner settings; the bindings of
+`runner-settings` and the values of runner settings; the readings of
+texts, test nodes with their kinds test case and test suite, the runs of
+nodes, enclosed nodes, the order of the parse tree, and the names of
+test nodes; test entries, the requests of the function bind, calls,
+valid adapters, instances of adapters, and the results of calls with
+their test results and binding objects. From Findings, it takes spots.
+From Documents, it takes the bindings of `file-readers`, read files and
+code files, sets of stopped files and files that cannot be read, the
+tests of a read file, vector files, the edges of a tree, origins and
+origin positions, position subjects, the spots of runs, and tree
+findings.
 
 From XML 1.0 (Fifth Edition), the W3C Recommendation of 26 November
 2008, the design takes well-formed XML documents, their encodings,
@@ -90,36 +91,36 @@ literal names `true` and `false`.
 | word or phrase | meaning |
 |---|---|
 | [test runner](sinter:packs#test-runner=v1) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
-| [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
-| [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which it is given, a root, one or more report files, and a narrowing |
+| [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that the test runner ran; as an input, a report file is its report content, which is the bytes of the file, its report name, its pack, and its test runner |
+| [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which the import is given, a root, one or more report files, and a narrowing |
 | [execution of test runners](sinter:#import=v1) | the runs of test runners whose report files are given together in one import, such as one job of continuous integration, or three jobs that each run a third of the tests |
-| [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for it; a tree has evidence when it has at least one |
+| [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for that tree; a tree has evidence when that tree has at least one import |
 | [JUnit XML report](sinter:#junit-report=v1) | a report content that is a well-formed XML document in UTF-8 or UTF-16, with no document type declaration, whose root element is `testsuites` or `testsuite` |
 | [suite element](sinter:#junit-report=v1), [case element](sinter:#junit-report=v1) | in a JUnit XML report, a `testsuite` element that is the root, a child of the root `testsuites`, or a child of a suite element; a `testcase` element whose parent is a suite element |
-| [data of a runner](sinter:#runner-data=v1), [value of a key](sinter:#runner-data-value=v1) | the values of a closed set of keys for a test runner with a match table, from its runner settings, from its match table, or from defaults; it can be valid or not |
-| default reader | the reader of JUnit XML reports that a conforming program uses for the report files of a test runner with a match table: what it gives is the default recognition and the default reading |
-| [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
+| [data of a runner](sinter:#runner-data=v1), [value of a key](sinter:#runner-data-value=v1) | the values of a closed set of keys for a test runner with a match table, from the runner settings of the test runner, from the match table of the test runner, or from defaults; the data of a runner can be valid or not |
+| default reader | the reader of JUnit XML reports that a conforming program uses for the report files of a test runner with a match table: what the default reader gives is the default recognition and the default reading |
+| [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with the name parts, the name, and the status of the test result, and, when the case element gives them, the file, the line, and the duration of the test result |
 | [name part of a test result](sinter:#case-result=v1) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
-| [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when it has path parts, and the shorter of its path parts and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the shorter |
-| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
-| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
+| [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when the text has path parts, and the shorter of the path parts of the text and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the texts of the shorter |
+| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of the name path of the test entry, separators, placeholders, and affix slots |
+| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when the name parts are as many as the pattern parts of the pattern, and texts for the placeholders of the pattern, and, for the affix slots of the pattern, texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
 | [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
 | [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
 | [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
 | [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
-| [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
-| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
-| [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
-| [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
-| [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
-| [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
-| [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
+| [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of the test runner of the report file, or the default reading |
+| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of the report files of the import with the result "bound"; a test result is linked to a test of the tree when a result link joins the test result to a test entry with the path, the name, and the kind of the test, and the test result has no file or has a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
+| [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; a narrowing is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs that test result; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
+| [a test result names a test](sinter:#named-test=v1) | a test result names a test when the test result is linked to that test, and the narrowing, when the narrowing is valid, has no triple for the pair of the test result and a test alike to that test |
+| [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that the test result names passed; a test result with the status `fail` or `error` says that the tests that the test result names failed; a test result with the status `skip` says neither |
+| [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of the file of T when the test node of T is a test suite that encloses the test node of U |
+| [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test T that holds other tests passed: T holds at least one test case, each test case that T holds has a test result that names that test case and says passed, and no test result that names T or a test that T holds says failed |
 | [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
-| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
-| [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
+| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when the outcome in one or more imports of the evidence is "failed"; otherwise "not run" |
+| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence: for each report file of that import, the hash of the report content of that report file and the result of the reading of that report file; the outcome in that import; the triples of the narrowing that remove a pair of the test, of a test that the test holds, or of a test alike to one of these; and the test results that made that outcome (for "not run", the test results with the status `skip`), each test result with the number and the hash of the report content of the report file of that test result, the number of that test result, the name of that test result, and the status of that test result |
+| [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when that group has at least one conformance vector that says a vector, and a test with a `verifies` edge to that group or to the vector set of that group has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
-| [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
+| [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test T that a test result names, when the test result also names a test that is not alike to T |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
 | [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, under a set of stopped files of that tree, and for a given set S of declared items of the tree, of a group of conformance vectors of a declared item in S, when that group has at least one conformance vector that says a vector, and that group is not verified |
 
@@ -134,32 +135,34 @@ of `out/junit.xml`, the name `out/junit.xml`, a TypeScript pack, and
 its test runner vitest.
 
 An import (term `import`) has the report files that one execution of
-test runners wrote, given together. It is given for one tree: the tree
-of a commit, such as in continuous integration, or the tree of a working
-tree. It also has a root, which the request of a call of bind gives an
-adapter, and a narrowing (section 2.7). For example, three machines of
-continuous integration each run one third of the tests of a commit, and
-a person gives the three report files to the program in one import. The
-import is then one execution of test runners. When the person gives each
-report file in an import of its own, the program has three imports, and
-each is one execution. When one run of a test runner covers the tests of
-two packs, such as `*.test.js` and `*.test.ts`, and the descriptors of
-both packs have a test runner with its name, each reading of that report
-file takes the test entries of both packs (term `reading-entry`). So the
-default reader links a test result whose name parts match tests of both
-packs to each. The default reader builds the patterns of every test
+test runners wrote, given together. An import is given for one tree: the
+tree of a commit, such as in continuous integration, or the tree of a
+working tree. An import also has a root, which the request of a call of
+bind gives an adapter, and a narrowing (section 2.7). For example, three
+machines of continuous integration each run one third of the tests of a
+commit, and a person gives the three report files to the program in one
+import. The import is then one execution of test runners. When the
+person gives each report file in an import of its own, the program has
+three imports, and each is one execution. When one run of a test runner
+covers the tests of two packs, such as `*.test.js` and `*.test.ts`, and
+the descriptors of both packs have a test runner with the name of the
+test runner of that run, each reading of that report file takes the test
+entries of both packs (term `reading-entry`). So the default reader
+links a test result whose name parts match tests of both packs to each
+of those tests. The default reader builds the patterns of every test
 entry of the reading from the data of the test runner of the report
-file. A person can give the report content once with a test runner
-that has a match table, when one of the packs has one, and once with
-each test runner that has an adapter, because the code of each adapter
-is its own.
+file. When one of the packs has a test runner that has a match table, a
+person can give the report content once with a test runner that has a
+match table. A person can also give the report content once with each
+test runner that has an adapter, because the code of each adapter is its
+own.
 
 The evidence for a tree (term `tree-evidence`) is the imports that are
 given for that tree. A program can keep imports from one of its runs to
-the next, in a form of its own; the requirement
-`take-evidence-for-own-tree` limits where it counts them. When a person
-edits a comment after an import, the tree changes, and the import is not
-in the evidence for the new tree.
+the next, in a form of its own. The requirement
+`take-evidence-for-own-tree` limits where the program counts those
+imports. When a person edits a comment after an import, the tree
+changes, and the import is not in the evidence for the new tree.
 
 A report file or a tree that changes while a program reads it is a
 matter of the quality of the implementation.
@@ -189,15 +192,14 @@ reader from files and networks that a report content names.
 
 ### 2.3 The data of a runner
 
-A test runner of a language pack that has no adapter of its own has a
-match table in the descriptor of its pack. The default reader reads the
+In a language pack, a test runner that has no adapter of its own has a
+match table in the descriptor of that pack. The default reader reads the
 report files of such a test runner with the data of the runner (schema
 `runner-data` and term `runner-data-value`). The schema gives the keys
-of the data and when the data is valid, and the term gives the value of
-each key. A pack can make a key a runner setting,
-such as `recognise`, so that a binding of `runner-settings` in a project
-can change it. For example, this is the data of vitest in a TypeScript
-pack:
+of the data and when the data is valid. The term gives the value of each
+key. A pack can make a key a runner setting, such as `recognise`, so
+that a binding of `runner-settings` in a project can change that key.
+For example, this is the data of vitest in a TypeScript pack:
 
 ```toml
 [runner.vitest.match]
@@ -217,23 +219,23 @@ The default reader gives one test result for each case element, in the
 order of the document (term `case-result`). The term gives the status of
 a test result from the children and the attributes of its case element.
 For example, a case element that has both a `failure` child and a
-`skipped` child has the status `fail`, and a case element with a
-`skipped` child and no `error` or `failure` child, such as a case
-element whose only child is `<skipped type="pytest.xfail"/>`, has the
-status `skip` whatever the data of the runner is.
+`skipped` child has the status `fail`. A case element with a `skipped`
+child and no `error` or `failure` child, such as a case element whose
+only child is `<skipped type="pytest.xfail"/>`, has the status `skip`
+whatever the data of the runner is.
 
 The name parts of a test result are the texts that the default reader
-reads for it by the members of `path`. With `path = ["classname",
-"name"]`, the second case element of the report of section 2.2 has the
-two name parts `tests.test_math.TestAdd` and `test_two`, and its name is
-`tests.test_math.TestAdd test_two`. A test result with no name parts,
-such as for a case element that lacks an attribute that `path` names, is
-linked to no test.
+reads for that test result by the members of `path`. With
+`path = ["classname", "name"]`, the second case element of the report of
+section 2.2 has the two name parts `tests.test_math.TestAdd` and
+`test_two`, and its name is `tests.test_math.TestAdd test_two`. A test
+result with no name parts, such as for a case element that lacks an
+attribute that `path` names, is linked to no test.
 
 The term also gives the file, the line, and the duration of a test
 result, when the case element gives them. For example, `time="0.0019"`
-gives a duration of 1 millisecond, and a value such as `1,203.5` or
-`4e-7` gives no duration.
+gives a duration of 1 millisecond. A value such as `1,203.5` or `4e-7`
+gives no duration.
 
 ### 2.5 The result links of the default reader
 
@@ -243,29 +245,29 @@ result links only to test entries whose path the file matches (term
 `report-path-match`). For example, the files `src/math.test.ts`,
 `./src/math.test.ts`, `math.test.ts`, and
 `/home/ci/work/src/math.test.ts` all match the valid path
-`src/math.test.ts`, and `test/math.test.ts` does not. When the file
-`pkg/tests/test_utils.py` matches both `pkg/tests/test_utils.py` and
-`tests/test_utils.py`, only the first counts, because it matches every
-path part of the file. When the file `/home/ci/work/src/math.test.ts`
-matches both `src/math.test.ts` and `work/src/math.test.ts`, neither
-matches every path part, so both count.
+`src/math.test.ts`. The file `test/math.test.ts` does not match
+`src/math.test.ts`. When the file `pkg/tests/test_utils.py` matches both
+`pkg/tests/test_utils.py` and `tests/test_utils.py`, only the first
+counts, because it matches every path part of the file. When the file
+`/home/ci/work/src/math.test.ts` matches both `src/math.test.ts` and
+`work/src/math.test.ts`, neither matches every path part, so both count.
 
-The name parts of the test result then decide: it has a result link to
-each of these test entries that has a pattern that its name parts match
-(terms `name-pattern` and `pattern-match`). When the name parts match
-test entries of two files, the test result has a result link to each. So
-when pytest writes `file="tests/test_api.py"`, and the files
-`packages/a/tests/test_api.py` and `packages/b/tests/test_api.py` each
-have a test `test_list`, the test result is linked to both, and, unless
-a narrowing removes one of these pairs, each of them gets a finding of
-the class `ambiguous-result`. The line of a test result chooses no
-result link; a person can use the line, or anything else that the person
-knows, to give a narrowing (section 2.7). A
-pattern is built from the name path of the test entry, and, when the
-data asks for one, from a prefix that comes from its path. The
-separators of the data join the names. A separator that the data does
-not give is a part break: the names on its two sides stand in two
-pattern parts.
+The name parts of the test result then decide: the test result has a
+result link to each of these test entries that has a pattern that those
+name parts match (terms `name-pattern` and `pattern-match`). When the
+name parts match test entries of two files, the test result has a result
+link to each of those test entries. So when pytest writes
+`file="tests/test_api.py"`, and the files `packages/a/tests/test_api.py`
+and `packages/b/tests/test_api.py` each have a test `test_list`, the
+test result is linked to both, and, unless a narrowing removes one of
+these pairs, each of them gets a finding of the class
+`ambiguous-result`. The line of a test result chooses no result link. A
+person can use the line, or anything else that the person knows, to give
+a narrowing (section 2.7). A pattern is built from the name path of the
+test entry, and, when the data asks for a prefix, from a prefix that
+comes from the path of the test entry. The separators of the data join
+the names. A separator that the data does not give is a part break: the
+names on its two sides stand in two pattern parts.
 
 For example, vitest writes this case element for a test in the file
 `src/math.test.ts`:
@@ -285,26 +287,28 @@ entry.
 
 A test result can also have a result link to a test suite. For example,
 a Go test `TestFoo` runs the subtest `x`; `x` passes, and then `TestFoo`
-fails. The test node of `TestFoo` encloses the test node of `x`, so it
-is a test suite. The report has one case element with the name
-`TestFoo` and a `failure` child, and one with the name `TestFoo/x`. With
-`path` set to `name` and both separators set to `/`, the one name part
-`TestFoo` matches the pattern of the test suite, so its failure counts.
+fails. The test node of `TestFoo` encloses the test node of `x`, so the
+test node of `TestFoo` is a test suite. The report has one case element
+with the name `TestFoo` and a `failure` child, and one case element with
+the name `TestFoo/x`. With `path` set to `name` and both separators set
+to `/`, the one name part `TestFoo` matches the pattern of the test
+suite, so its failure counts.
 
 ### 2.6 Readings of report files
 
 The reading of a report file of an import (atom
 `reading-of-a-report-file`) is the call of the function bind of the
-adapter of its test runner, as Language packs defines it, or the default
-reading, for a test runner with a match table. The atom gives its
-result: "bound", with test results and result links; "unreadable", with
-no test result, such as for a report file that a job of continuous
-integration cut short when it ended early; or "stopped". A program may
-stop a reading of a report file for limits of its own, such as a reading
-of a very large report file, and that reading then has the result
-"stopped". After a reading with the result "stopped", the program gives
-nothing from the evidence for that tree that the requirement
-`give-nothing-for-stopped-readings` names.
+adapter of the test runner of the report file, as Language packs defines
+that call, or the default reading, for a test runner with a match table.
+The atom gives the result of the reading: "bound", with test results and
+result links; "unreadable", with no test result, such as for a report
+file that a job of continuous integration cut short when that job ended
+early; or "stopped". A program may stop a reading of a report file for
+limits of the program, such as a reading of a very large report file.
+When the program stops a reading for limits of the program, that reading
+has the result "stopped". After a reading with the result "stopped", the
+program gives nothing from the evidence for that tree that the
+requirement `give-nothing-for-stopped-readings` names.
 
 The term `reading-entry` gives the test entries of a reading, with their
 test entry ids, such as `src/math.test.ts#3` for the third test node of
@@ -315,15 +319,15 @@ the same request for the same report file.
 
 The term `linked-test` says when a test result is linked to a test of
 the tree. Two test cases of one file with equal names, such as two
-top-level `it("adds")`, are alike, and a result link to the test entry
-of one of them links the test result to both. A test case `it("parse")`
-and a test suite `describe("parse")` that holds `it("x")`, in one file,
-are not alike, so a result link to the test entry of one does not link
-the test result to the other. The default reader gives the two test
-entries equal patterns, so it gives the test result `parse` a result
-link to the test entry of each, and each of the two tests gets a finding
-of the class `ambiguous-result`, unless a narrowing removes one of the
-pairs.
+top-level `it("adds")`, are alike. A result link to the test entry of
+one of those two test cases links the test result to both of them. A
+test case `it("parse")` and a test suite `describe("parse")` that holds
+`it("x")`, in one file, are not alike, so a result link to the test
+entry of one does not link the test result to the other. The default
+reader gives the two test entries equal patterns, so it gives the test
+result `parse` a result link to the test entry of each, and each of the
+two tests gets a finding of the class `ambiguous-result`, unless a
+narrowing removes one of the pairs.
 
 One test result can be linked to two tests with different files. For
 example, `src/a.test.ts` and `lib/a.test.ts` each have `it("adds")`, and
@@ -338,9 +342,9 @@ leaves each test result that it pairs naming at least one test, so no
 failure can disappear. A narrowing that is not valid removes no pair.
 When no narrowing is given, the import has the empty narrowing.
 
-A test result names a test when it is linked to the test, and a valid
-narrowing does not remove that pair (term `named-test`). A test result
-that names no test counts for no test.
+A test result names a test when the test result is linked to the test,
+and a valid narrowing does not remove that pair (term `named-test`). A
+test result that names no test counts for no test.
 
 ### 2.8 Outcomes
 
@@ -349,41 +353,41 @@ say failed. A test result with the status `skip` says neither.
 
 A test can hold other tests (term `held-test`), as a `describe` block
 holds the tests whose code is in it. A `verifies` edge on a test that
-holds other tests stands for every test case that it holds, by the suite
-rule
-(term `suite-rule`). For example, `describe("limits")` holds
+holds other tests stands for every test case that the test holds, by the
+suite rule (term `suite-rule`). For example, `describe("limits")` holds
 `it("small")` and `it("large")`. In an import, the test `limits` passed
 when `small` and `large` each have a test result that names that test
 and says passed, and no test result that names one of the three says
-failed. It did not run when no test result names `large` and says
-passed, and no test result that names one of the three says failed. It
-failed when a test result that names `limits` itself, or `small`, or
-`large`, says failed. A test suite that holds no test case, such as a
-`describe` block that holds only an empty `describe` block, never
-passes.
+failed. The test `limits` did not run when no test result names `large`
+and says passed, and no test result that names one of the three says
+failed. The test `limits` failed when a test result that names `limits`
+itself, or `small`, or `large`, says failed. A test suite that holds no
+test case, such as a `describe` block that holds only an empty
+`describe` block, never passes.
 
 The outcome of a test in an import (atom `import-outcome`) is "passed",
-"failed", or "not run". Each import counts alone: by the atom
-`tree-outcome`, a test passed in the evidence for a tree when it passed
-in one or more imports, even when it failed in another. A test with two
-test results that say passed and one with the status `skip` passed. A
-test whose test results all have the status `skip` did not run.
+"failed", or "not run". Each import counts alone. By the atom
+`tree-outcome`, a test passed in the evidence for a tree when that test
+passed in one or more imports, even when that test failed in another
+import. A test with two test results that say passed and one test result
+with the status `skip` passed. A test whose test results all have the
+status `skip` did not run.
 
 ### 2.9 Sources
 
 With the outcome of a test in the evidence for a tree, a conforming
-program gives its sources (term `outcome-source`), so that a person can
-see where the outcome came from. So a report file whose reading has the
-result "unreadable" is visible. When a test passed in one import and
-failed in another, the sources show both, and a person sees a test that
-passes on one system and fails on another. When a narrowing removes the
-pair of a test result that says failed and `it("adds")` in
-`lib/a.test.ts`, the source, for that import, of the outcome of the
-suite `describe("math")` that holds `it("adds")` has the triple of the
-narrowing that stands for that pair. When the program gives whether a
-`verifies` promise is kept, it gives, for each test whose outcome the
-promise takes, that outcome and its sources (requirement
-`give-promise-sources`).
+program gives the sources of that outcome (term `outcome-source`), so
+that a person can see where the outcome came from. So a report file
+whose reading has the result "unreadable" is visible. When a test passed
+in one import and failed in another, the sources show both, and a person
+sees a test that passes on one system and fails on another. When a
+narrowing removes the pair of a test result that says failed and
+`it("adds")` in `lib/a.test.ts`, the source, for that import, of the
+outcome of the suite `describe("math")` that holds `it("adds")` has the
+triple of the narrowing that stands for that pair. When the program
+gives whether a `verifies` promise is kept, the program gives, for each
+test whose outcome the promise takes, that outcome and the sources of
+that outcome (requirement `give-promise-sources`).
 
 ### 2.10 Verified groups of conformance vectors
 
@@ -393,8 +397,8 @@ make each group of that vector set verified (term `verified-vector`).
 Skips of vectors inside such a test are not visible in a report file:
 the pass counts for each of these groups. For example, the test
 `test_offsets` with `@verifies data-forms#toml[offsets]` has the outcome
-"passed", so the group `offsets` is verified when it has at least one
-conformance vector that says a vector.
+"passed", so the group `offsets` is verified when that group has at
+least one conformance vector that says a vector.
 
 ### 2.11 Findings
 
@@ -415,10 +419,11 @@ of the class `unverified-vector` can be `data-forms#toml[keys]`.
 
 A report file is a file that a test runner writes about the tests that
 it ran, such as a JUnit XML file. As an input, a report file is four
-things: its report content, which is a byte sequence, the bytes of the
-file; its report name, which is a text, such as the path of the file as
-a person gave it; its pack, which is a valid pack; and its test runner,
-which is a test runner of the descriptor of its pack.
+things: its report content, its report name, its pack, and its test
+runner. The report content is a byte sequence, the bytes of the file.
+The report name is a text, such as the path of the file as a person gave
+it. The pack is a valid pack. The test runner is a test runner of the
+descriptor of that pack.
 
 ### 3.2 Imports
 
@@ -432,17 +437,18 @@ which is a test runner of the descriptor of its pack.
 An import is an input that stands for one execution of test runners: the
 runs of test runners whose report files are given together in the
 import. That execution is on the code of one tree, the tree of the
-import, for which the import is given. It has a root, which is a text,
-such as the absolute path of the folder of the files of that tree; a
-sequence of one or more report files, the report files that the
-execution wrote, in which one report content can stand more than once,
-such as with two test runners; and a narrowing. The number of a report
-file of the import is 1 more than the number of the report files before
-it in that sequence. The narrowing is a finite set of triples, each of
-the number of a report file of the import, a whole number of 1 or more,
-and a test of that tree. The narrowing is given to the program with the
-report files, such as by a person, and it is the empty set when none is
-given. The narrowing is only what is given with the import: a program
+import, for which the import is given. The import has a root, a sequence
+of one or more report files, and a narrowing. The root is a text, such
+as the absolute path of the folder of the files of that tree. The report
+files in that sequence are the report files that the execution wrote.
+One report content can stand more than once in that sequence, such as
+with two test runners. The number of a report file of the import is 1
+more than the number of the report files before it in that sequence. The
+narrowing is a finite set of triples, each of the number of a report
+file of the import, a whole number of 1 or more, and a test of that
+tree. The narrowing is given to the program with the report files, such
+as by a person. When no narrowing is given, the narrowing is the empty
+set. The narrowing is only what is given with the import: a program
 derives no narrowing from the report files or from the tree.
 
 ### 3.3 The evidence for a tree
@@ -451,9 +457,9 @@ derives no narrowing from the report files or from the tree.
 @cites {ontology#{tree=v1}, #{import=v1}}
 
 The evidence for a tree is the imports that are given for that tree, one
-for each time that an import is given for it, so one import can stand in
-it more than once. A tree has evidence when, and only when, the evidence
-for it has at least one import.
+for each time that an import is given for that tree. So one import can
+stand in that evidence more than once. A tree has evidence when, and
+only when, the evidence for it has at least one import.
 
 ### 3.4 JUnit XML reports
 
@@ -464,17 +470,21 @@ for it has at least one import.
     packs#{adapter-call=v1},
 }
 
-A report content is a JUnit XML report when, and only when, it is a
-well-formed XML document, as XML 1.0 (Fifth Edition) defines one, in the
-encoding UTF-8 or UTF-16, as XML 1.0 (Fifth Edition) gives the encodings
-of entities, that has no document type declaration, and whose root
-element has the name `testsuites` or the name `testsuite`. The name in
+A report content is a JUnit XML report when, and only when, all four of
+these conditions are true. First, the report content is a well-formed
+XML document, as XML 1.0 (Fifth Edition) defines one. Second, the report
+content is in the encoding UTF-8 or UTF-16, as XML 1.0 (Fifth Edition)
+gives the encodings of entities. Third, the report content has no
+document type declaration. Fourth, the root element of the report
+content has the name `testsuites` or the name `testsuite`. The name in
 an encoding declaration is compared with no regard to the case of ASCII
 letters. These definitions apply to a JUnit XML report:
 
-- A suite element is an element with the name `testsuite` that is the
-  root element, or whose parent is the root element and the root element
-  has the name `testsuites`, or whose parent is a suite element.
+- A suite element is an element with the name `testsuite` that meets one
+  of these three conditions. First, the element is the root element.
+  Second, the parent of the element is the root element, and the root
+  element has the name `testsuites`. Third, the parent of the element is
+  a suite element.
 - A case element is an element with the name `testcase` whose parent is
   a suite element.
 - The outer suite elements of an element are the suite elements of which
@@ -482,12 +492,13 @@ letters. These definitions apply to a JUnit XML report:
 - An element has an attribute with a name when its start tag or its
   empty-element tag has an attribute specification with that name. The
   value of that attribute is its normalized value, as XML 1.0 (Fifth
-  Edition) gives it for an attribute of the type CDATA.
+  Edition) gives the normalized value for an attribute of the type
+  CDATA.
 - An element has a child with a name when one of the child elements of
   the element has that name.
-- The name of an element or of an attribute is the text that its start
-  tag, its empty-element tag, or its attribute specification writes for
-  it.
+- The name of an element is the text that its start tag or its
+  empty-element tag writes for it. The name of an attribute is the text
+  that its attribute specification writes for it.
 
 ### 3.5 The data of a runner
 
@@ -531,13 +542,15 @@ of its value and its default:
   the empty array.
 
 The data of the test runner meets the schema `runner-data`, and is
-valid, when, and only when, no text is both a key of its match table and
-the name of one of its runner settings, each key of its match table and
-each name of its runner settings is one of these keys, the value of each
-of its runner settings under the binding has the kind of the key that is
-the name of that runner setting, the TOML value of each key of its match
-table has the kind of that key, and `path` is a key of its match table
-or the name of one of its runner settings.
+valid, when, and only when, all five of these conditions are true.
+First, no text is both a key of the match table of the test runner and
+the name of one of the runner settings of the test runner. Second, each
+key of that match table and each name of those runner settings is one of
+the keys of the data of a runner. Third, the value of each of those
+runner settings under the binding has the kind of the key that is the
+name of that runner setting. Fourth, the TOML value of each key of that
+match table has the kind of that key. Fifth, `path` is a key of that
+match table or the name of one of those runner settings.
 
 ### 3.6 The values of the data of a runner
 
@@ -553,13 +566,14 @@ or the name of one of its runner settings.
     #{runner-data=v1},
 }
 
-For a test runner of a valid descriptor that has a match table, under a
-valid binding of `runner-settings` for that test runner, the value of a
-key of the data of the runner is the value of the runner setting whose
-name is that key, under the binding, when the test runner has one;
-otherwise, the TOML value of that key in the match table, when the match
-table has that key; otherwise, its default; and a key with no default
-has no value.
+This term is for a test runner of a valid descriptor that has a match
+table, under a valid binding of `runner-settings` for that test runner.
+For a key of the data of the runner, when the test runner has a runner
+setting whose name is that key, the value of that key is the value of
+that runner setting under the binding. Otherwise, when the match table
+has that key, the value of that key is the TOML value of that key in the
+match table. Otherwise, when that key has a default, the value of that
+key is the default of that key. Otherwise, that key has no value.
 
 ### 3.7 The test results of a JUnit XML report
 
@@ -582,21 +596,23 @@ the document, with these values:
 
 - Its name parts: the texts that the members of `path` give, in their
   order. The member `suites` gives, for each outer suite element of the
-  case element, the value of its attribute `name`. Each other member
-  gives the value of the attribute of the case element whose name is
-  that member. When an outer suite element has no attribute `name` and
-  `path` has the member `suites`, or when the case element has no
-  attribute whose name is another member of `path`, the test result has
-  no name parts.
+  case element, the value of the attribute `name` of that outer suite
+  element. Each other member gives the value of the attribute of the
+  case element whose name is that member. When an outer suite element
+  has no attribute `name` and `path` has the member `suites`, or when
+  the case element has no attribute whose name is another member of
+  `path`, the test result has no name parts.
 - Its name: its name parts, with one space between each two, or the
   empty text when it has no name parts.
-- Its status: `error` when the case element has a child with the name
-  `error`; otherwise, `fail` when it has a child with the name
-  `failure`; otherwise, `skip` when it has a child with the name
-  `skipped`, or when a member of `not-run` applies to it; otherwise,
-  `pass`. A member of `not-run` applies to the case element when the
-  case element has the attribute whose name is the text before the first
-  `=` of the member, with the value that is the text after that `=`.
+- Its status: when the case element has a child with the name `error`,
+  the status is `error`. Otherwise, when the case element has a child
+  with the name `failure`, the status is `fail`. Otherwise, when the
+  case element has a child with the name `skipped`, or when a member of
+  `not-run` applies to the case element, the status is `skip`.
+  Otherwise, the status is `pass`. A member of `not-run` applies to the
+  case element when the case element has the attribute whose name is the
+  text before the first `=` of the member, with the value that is the
+  text after that `=`.
 - Its file: the first text, in the order of the members of `file`, that
   a member gives and that has at least one path part, or no file when no
   member gives such a text. A member that is `suite:` followed by a text
@@ -607,15 +623,17 @@ the document, with these values:
   in the order of the document, that has that attribute. Each other
   member gives the value of the attribute of the case element whose name
   is that member.
-- Its line: when `line` has a value, and the case element has the
-  attribute whose name is that value, and the value of that attribute
-  matches the production `line-text`, and k is the whole number that it
-  writes in base 10, the whole number k + 1 − b, where b is the value of
-  `line-base`, when that number is 1 or more; otherwise, no line.
-- Its duration: when the case element has the attribute `time`, and its
-  value matches the production `duration-text` and writes the number x
-  of seconds in base 10, the greatest whole number of milliseconds that
-  is not more than 1000 × x; otherwise, no duration.
+- Its line: when `line` has a value, the case element has the attribute
+  whose name is that value, and the value of that attribute matches the
+  production `line-text`, k is the whole number that the value of that
+  attribute writes in base 10, and b is the value of `line-base`. Under
+  those conditions, when k + 1 − b is 1 or more, the line is the whole
+  number k + 1 − b. In every other case, the test result has no line.
+- Its duration: when the case element has the attribute `time`, and the
+  value of that attribute matches the production `duration-text` and
+  writes the number x of seconds in base 10, the duration is the
+  greatest whole number of milliseconds that is not more than 1000 × x.
+  Otherwise, the test result has no duration.
 
 ```abnf
 line-text      = 1*DIGIT
@@ -711,14 +729,16 @@ separates two pattern parts. These steps give the patterns:
     },
 }
 
-A text is an instance of an affix pattern, which is a text, when the
-text is the affix pattern with each character `*` replaced by some text,
-the empty text included. The name parts of a test result match a pattern
-when, and only when, they are as many as the pattern parts of the
-pattern, and some choice of a text for each placeholder, and, for each
-affix slot, of the empty text or an instance of a member of the key of
-the slot, makes each pattern part, with each element replaced by its
-text, equal to the name part of the test result at the same index.
+An affix pattern is a text. A text is an instance of an affix pattern
+when that text is the affix pattern with each character `*` replaced by
+some text, the empty text included. The name parts of a test result
+match a pattern when, and only when, both of these conditions are true.
+First, the name parts of the test result are as many as the pattern
+parts of the pattern. Second, some choice of texts makes each pattern
+part, with each element replaced by its text, equal to the name part of
+the test result at the same index: the choice picks a text for each
+placeholder, and, for each affix slot, the choice picks the empty text
+or an instance of a member of the key of the slot.
 
 ### 3.11 Default recognitions
 
@@ -733,18 +753,20 @@ text, equal to the name part of the test result at the same index.
     #{junit-report=v1, runner-data=v1, runner-data-value=v1},
 }
 
-For a report content and a test runner of a valid descriptor that has a
-match table, under a valid binding of `runner-settings` for that test
-runner, the default recognition is "failed" when the data of the runner
-is not valid; "recognised" when it is valid, the report content is a
-JUnit XML report, and `recognise` is the empty array or one of its
-members applies to the root element; and "not recognised" otherwise. A
-member with no character `@` applies to the root element when the root
-element has the name that is the member. Another member applies to the
-root element when the root element has the name that is the text before
-the first `@` of the member, and has the attribute whose name is the
-text between that `@` and the first `=` after it, with the value that is
-the text after that `=`.
+This atom is for a report content and a test runner of a valid
+descriptor that has a match table, under a valid binding of
+`runner-settings` for that test runner. When the data of the runner is
+not valid, the default recognition is "failed". When the data of the
+runner is valid, the report content is a JUnit XML report, and either
+`recognise` is the empty array or one of the members of `recognise`
+applies to the root element, the default recognition is "recognised". In
+every other case, the default recognition is "not recognised". A member
+with no character `@` applies to the root element when the root element
+has the name that is the member. Another member applies to the root
+element when the root element has the name that is the text before the
+first `@` of the member, and has the attribute whose name is the text
+between that `@` and the first `=` after it, with the value that is the
+text after that `=`.
 
 ### 3.12 Default readings
 
@@ -763,15 +785,16 @@ the text after that `=`.
     },
 }
 
-For a report content, test entries whose test entry ids are each a
-different text, and a test runner of a valid descriptor that has a match
-table, under a valid binding of `runner-settings` for that test runner,
-the default reading is "unreadable" when the data of the runner is not
-valid or the report content is not a JUnit XML report. Otherwise, it is
-"bound", and it gives the test results of the report, in their order,
-and its result links: pairs of a test result and a test entry. A test
-result with no name parts has no result link. A test result with name
-parts has a result link to each test entry that these rules give:
+This term is for a report content, test entries whose test entry ids are
+each a different text, and a test runner of a valid descriptor that has
+a match table, under a valid binding of `runner-settings` for that test
+runner. When the data of the runner is not valid or the report content
+is not a JUnit XML report, the default reading is "unreadable".
+Otherwise, the default reading is "bound", and it gives the test results
+of the report, in their order, and the result links of the default
+reading. Each result link is a pair of a test result and a test entry. A
+test result with no name parts has no result link. A test result with
+name parts has a result link to each test entry that these rules give:
 
 1. The candidates are the test entries. When the test result has a file,
    the candidates are only those whose path the file matches; and when
@@ -828,26 +851,37 @@ runner of a report file of that import, the reading of that report file
 has one of the results "bound", "unreadable", and "stopped":
 
 - When the test runner has an adapter hash, the reading is the call of
-  the function bind of the content of the file `adapters/<r>.wasm` of
-  the pack of the report file, where `<r>` is the name of the test
-  runner, as the adapter, with the request of the function bind for that
-  test runner, that binding, the report name of the report file, the
-  root of the import, and the test entries of the reading, with the
-  report content of the report file, and with the test entry ids of the
-  test entries of the reading as its test entry ids. Its result is
-  "stopped" when the program stops that call, or the decision whether
-  the adapter is a valid adapter that the call uses, for limits of its
-  own; otherwise, it is "bound" when the result of the call is "bound",
-  and "unreadable" when it is "failed". With "bound", its test
-  results are the test results of the call, and its result links are,
-  for each binding object of the call, the pair of the test result of
-  the binding object and the test entry whose test entry id it gives.
+  the function bind of the adapter, with the request, with the report
+  content of the report file, and with the test entry ids of the test
+  entries of the reading as the test entry ids of the call. When the
+  test runner has an adapter hash, the adapter of that call is the
+  content of the file `adapters/<r>.wasm` of the pack of the report
+  file, where `<r>` is the name of the test runner. When the test runner
+  has an adapter hash, the request of that call is the request of the
+  function bind for that test runner, that valid binding of
+  `runner-settings`, the report name of the report file, the root of the
+  import, and the test entries of the reading. The result of the reading
+  is "stopped" when the program stops that call, or stops the decision
+  whether the adapter is a valid adapter that the call uses, for limits
+  of its own. When the program stops neither that call nor that decision
+  for limits of its own, and the result of the call is "bound", the
+  result of the reading is "bound". When the program stops neither that
+  call nor that decision for limits of its own, and the result of the
+  call is "failed", the result of the reading is "unreadable". When the
+  result of the reading is "bound", the test results of the reading are
+  the test results of the call. When the result of the reading is
+  "bound", the result links of the reading are, for each binding object
+  of the call, the pair of the test result of the binding object and the
+  test entry whose test entry id that binding object gives.
 - When the test runner has a match table, the reading is the default
   reading of the report content with the test entries of the reading,
-  for that test runner, under that binding. Its result is "stopped" when
-  the program stops that reading for limits of its own; otherwise, it is
-  the result of the default reading. With "bound", its test results and
-  its result links are those of the default reading.
+  for that test runner, under that valid binding of `runner-settings`.
+  The result of the reading is "stopped" when the program stops that
+  reading for limits of its own. When the program does not stop that
+  reading for limits of its own, the result of the reading is the result
+  of the default reading. When the result of the reading is "bound", the
+  test results and the result links of the reading are the test results
+  and the result links of the default reading.
 
 A result link of a reading is one of the pairs of a test result and a
 test entry that the reading gives with the result "bound".
@@ -870,20 +904,17 @@ test entry that the reading gives with the result "bound".
 Under a valid binding of `file-readers` and a set of stopped files of
 the tree of an import, the test results of that import are the test
 results of the readings of its report files under that binding and that
-set of stopped files that have the result "bound". They are the test
-results, as the Ontology means them, of the execution of test runners
-for which the import stands. The number of a test result is 1 more than
-the number of the test results before it in its reading. A test result
-of an import is linked to a test of the tree of the import when, and
-only when, its reading has a result link of that test result and a test
-entry whose path is the valid path of the file of that test, whose name
-path is equal to the name of that test, and whose kind is the kind of
-the test node of that test, and both of these conditions are true:
+set of stopped files that have the result "bound". The test results of
+an import are the test results, as the Ontology means them, of the
+execution of test runners for which the import stands. The number of a
+test result is 1 more than the number of the test results before it in
+its reading. A test result of an import is linked to a test of the tree
+of the import when, and only when, all three of these conditions are
+true:
 
-- the test result has no file, or has a file that matches that valid
-  path;
-- when the test node of that test is a test suite, that test holds a
-  test.
+- the reading of the test result has a result link of that test result and a test entry whose path is the valid path of the file of that test, whose name path is equal to the name of that test, and whose kind is the kind of the test node of that test;
+- the test result has no file, or has a file that matches the valid path of the file of that test;
+- when the test node of that test is a test suite, that test holds a test.
 
 ### 3.16 Valid narrowings
 
@@ -896,16 +927,18 @@ the test node of that test, and both of these conditions are true:
     #{import=v1, linked-test=v1},
 }
 
-A triple of the narrowing of an import stands for the pair of the test
-result of the import whose report file has the number that is the first
-whole number of the triple, and whose number is the second whole number
-of the triple, and the test of the triple, when the import has that test
-result. Two tests are alike when they have one file, equal names, and
-test nodes of one kind, and a test is alike to itself. The narrowing of
-an import is valid when, and only when, each of its triples stands for a
-pair, and, for each of these pairs, the test result is linked to that
-test, and is linked to a test that is alike to the test of no pair of
-that test result.
+For a triple of the narrowing of an import, when the import has a test
+result whose report file has the number that is the first whole number
+of the triple and whose number is the second whole number of the triple,
+that triple stands for the pair of that test result and the test of the
+triple. Two tests are alike when they have one file, equal names, and
+test nodes of one kind. A test is alike to itself. The narrowing of an
+import is valid when, and only when, all three of these conditions are
+true:
+
+- each triple of the narrowing stands for a pair of a test result and a test;
+- for each of these pairs, the test result of the pair is linked to the test of the pair;
+- for each of these pairs, the test result of the pair is linked to a test that is not alike to the test of any of these pairs whose test result is that test result.
 
 ### 3.17 The tests that a test result names
 
@@ -916,10 +949,11 @@ that test result.
 }
 
 A test result of an import names a test of the tree of the import, as
-the Ontology means it, when, and only when, it is linked to that test,
-and, when the narrowing of the import is valid, the narrowing has no
-triple that stands for the pair of that test result and a test that is
-alike to that test. A test result names no other test.
+the Ontology means it, when, and only when, both of these conditions are
+true:
+
+- the test result is linked to that test;
+- when the narrowing of the import is valid, the narrowing has no triple that stands for the pair of that test result and a test that is alike to that test. A test result names no other test.
 
 ### 3.18 What statuses say
 
@@ -931,9 +965,10 @@ alike to that test. A test result names no other test.
 }
 
 As the Ontology means it, a test result with the status `pass` says that
-the tests that it names passed, and a test result with the status `fail`
-or the status `error` says that the tests that it names failed. A test
-result with the status `skip` says neither.
+the tests that the test result names passed. As the Ontology means it, a
+test result with the status `fail` or the status `error` says that the
+tests that the test result names failed. A test result with the status
+`skip` says neither.
 
 ### 3.19 Held tests
 
@@ -966,11 +1001,12 @@ The suite rule is the rule, for a test of which one or more other tests
 are a part, that the term `promise` of the Ontology leaves to a design.
 By the suite rule, the test evidence of the execution for which an
 import stands shows that a test T of the tree of the import that holds
-one or more tests passed when, and only when, T holds at least one test
-whose test node is a test case, each test that T holds and whose test
-node is a test case has a test result of the import that names it and
-says that it passed, and no test result of the import names T, or a test
-that T holds, and says that the tests that it names failed.
+one or more tests passed when, and only when, all three of these
+conditions are true:
+
+- T holds at least one test whose test node is a test case;
+- each test U that T holds and whose test node is a test case has a test result of the import that names U and says that U passed;
+- no test result of the import names T, or a test that T holds, and says that the tests that the test result names failed.
 
 ### 3.21 The outcomes of tests in an import
 
@@ -991,7 +1027,8 @@ of these:
   stands shows that T passed: by the term `promise` of the Ontology when
   T holds no test, and by the suite rule when T holds one or more tests;
 - otherwise, "failed" when a test result of the import names T, or a
-  test that T holds, and says that the tests that it names failed;
+  test that T holds, and says that the tests that the test result names
+  failed;
 - otherwise, "not run".
 
 ### 3.22 The outcomes of tests in the evidence for a tree
@@ -999,10 +1036,12 @@ of these:
 @atom tree-outcome=v1
 @cites {ontology#{test=v1, tree=v1}, #{tree-evidence=v1, import=v1, import-outcome=v1}}
 
-The outcome of a test of a tree in the evidence for that tree is
-"passed" when its outcome in one or more imports of the evidence is
-"passed"; otherwise, "failed" when its outcome in one or more imports of
-the evidence is "failed"; otherwise, "not run".
+The outcome of a test of a tree in the evidence for that tree is one of
+these:
+
+- "passed" when the outcome of that test in one or more imports of the evidence is "passed";
+- otherwise, "failed" when the outcome of that test in one or more imports of the evidence is "failed";
+- otherwise, "not run".
 
 ### 3.23 The sources of outcomes
 
@@ -1019,27 +1058,31 @@ the evidence is "failed"; otherwise, "not run".
 }
 
 The sources of the outcome of a test T of a tree in the evidence for
-that tree are one source for each import of the evidence, each time that
-it stands in the evidence, with these values:
+that tree are one source for each import of the evidence, each time the
+import stands in the evidence, with these values:
 
 - for each report file of the import, in their order, the hash of its
   report content and the result of its reading;
 - the outcome of T in that import;
-- each triple of the narrowing of the import, when that narrowing is
-  valid, that stands for the pair of a test result and a test that is
-  T, a test that T holds, or a test alike to one of these;
-- when that outcome is "passed", each test result of the import that
-  names T, or a test that T holds, and says that the tests that it names
-  passed; when it is "failed", each test result of the import that names
-  T, or a test that T holds, and says that the tests that it names
-  failed; and when it is "not run", each test result of the import that
-  names T, or a test that T holds, and has the status `skip`. These test
-  results stand in the order of the numbers of their report files, and
-  then of their numbers.
+- when the narrowing of the import is valid, each triple of that
+  narrowing that stands for the pair of a test result and a test that is
+  T, a test that T holds, or a test alike to T or to a test that T
+  holds;
+- these test results of the import:
+  - when the outcome of T in that import is "passed", each test result
+    of the import that names T, or a test that T holds, and says that
+    the tests that the test result names passed;
+  - when the outcome of T in that import is "failed", each test result
+    of the import that names T, or a test that T holds, and says that
+    the tests that the test result names failed;
+  - when the outcome of T in that import is "not run", each test result
+    of the import that names T, or a test that T holds, and has the
+    status `skip`. These test results stand in the order of the numbers
+    of their report files, and then of the numbers of the test results.
 
 Each of these test results is given with the number of its report file,
-the hash of the report content of that report file, its number, its
-name, and its status.
+the hash of the report content of that report file, and the number, the
+name, and the status of the test result.
 
 ### 3.24 Verified groups of conformance vectors
 
@@ -1054,11 +1097,11 @@ name, and its status.
 }
 
 A group of conformance vectors of a vector set of a tree is verified in
-the evidence for that tree when, and only when, it has at least one
-conformance vector that says a vector, and a test of the tree that is
-the source of an edge of the tree of the kind `verifies` whose cited
-item is that group of conformance vectors or that vector set has the
-outcome "passed" in the evidence for the tree.
+the evidence for that tree when, and only when, both of these conditions
+are true:
+
+- that group of conformance vectors has at least one conformance vector that says a vector;
+- the tree has an edge of the kind `verifies` whose cited item is that group of conformance vectors or that vector set, and whose source is a test of the tree with the outcome "passed" in the evidence for the tree.
 
 ### 3.25 Findings of the class `never-ran`
 
@@ -1131,8 +1174,8 @@ import of the evidence names, when that test result also names a test of
 the tree that is not alike to T. A tree that has no evidence has no tree
 finding of the class `ambiguous-result`. The subject of the finding is
 the position subject of the position of the start of the code of T,
-which is the run of its test node, in its file. Its spot is the spot of
-that run.
+which is the run of the test node of T, in the file of T. The spot of
+the finding is the spot of that run.
 
 ### 3.28 Findings of the class `unverified-vector`
 
@@ -1154,13 +1197,13 @@ for a set S of declared items of T, one tree finding of the class
 `unverified-vector` for each group of conformance vectors of the vector
 set that a declared item in S has in T under that set of stopped files,
 when that group has at least one conformance vector that says a vector,
-and that group is not verified in the evidence for T. A tree that has
-no evidence has no tree finding of the class `unverified-vector` for
-any set of its declared items and any set of stopped files of the tree.
-The subject of the finding is the name of the item of its vector set,
-then `[`, then the name of the group of conformance vectors, then `]`.
-Its spot is the valid path of the vector file of that item alone, with
-no span.
+and that group is not verified in the evidence for T. A tree that has no
+evidence has no tree finding of the class `unverified-vector` for any
+set of its declared items and any set of stopped files of the tree. The
+subject of the finding is the name of the item of the vector set of the
+group of conformance vectors, then `[`, then the name of the group of
+conformance vectors, then `]`. The spot of the finding is the valid path
+of the vector file of that item alone, with no span.
 
 ## 4. Requirements
 
@@ -1179,10 +1222,10 @@ no span.
 
 When a conforming program gives the default recognition of a report
 content for a test runner of a valid descriptor that has a match table,
-under a valid binding of `runner-settings` for that test runner, it must
-give exactly one result, and only "recognised", "not recognised", or
-"failed": the default recognition of that report content for that test
-runner under that binding.
+under a valid binding of `runner-settings` for that test runner, the
+conforming program must give exactly one result, and only "recognised",
+"not recognised", or "failed": the default recognition of that report
+content for that test runner under that binding.
 
 ### 4.2 The results of readings
 
@@ -1284,8 +1327,9 @@ entry ids of these test entries as the test entry ids of the call.
 
 For a default recognition or a default reading of a report content, a
 conforming program must take the XML document only from the bytes of
-that report content, and it must take nothing from a file or from a
-resource of a network that the report content names.
+that report content. For a default recognition or a default reading of a
+report content, a conforming program must take nothing from a file or
+from a resource of a network that the report content names.
 
 ### 4.8 Readings that end
 
@@ -1386,9 +1430,9 @@ another test with it.
 When the reading of a report file of an import of the evidence for a
 tree has the result "stopped", a conforming program must give, from that
 evidence, no outcome of a test of that tree in that evidence or in an
-import of it, no source of such an outcome, no result for whether a
-`verifies` promise is kept in that tree, and no finding of that tree of
-the classes `never-ran`, `failed`, `ambiguous-result`, and
+import of that evidence, no source of such an outcome, no result for
+whether a `verifies` promise is kept in that tree, and no finding of
+that tree of the classes `never-ran`, `failed`, `ambiguous-result`, and
 `unverified-vector`.
 
 ### 4.14 Nothing under bindings that are not valid
@@ -1436,10 +1480,11 @@ When the binding of `runner-settings` for the test runner of a report
 file of an import of the evidence for a tree is not valid, a conforming
 program must give, from that evidence, no result of a reading of a
 report file, no test result or result link of such a reading, no outcome
-of a test of that tree in that evidence or in an import of it, no source
-of such an outcome, no result for whether a `verifies` promise is kept
-in that tree, and no finding of that tree of the classes `never-ran`,
-`failed`, `ambiguous-result`, and `unverified-vector`.
+of a test of that tree in that evidence or in an import of that
+evidence, no source of such an outcome, no result for whether a
+`verifies` promise is kept in that tree, and no finding of that tree of
+the classes `never-ran`, `failed`, `ambiguous-result`, and
+`unverified-vector`.
 
 ### 4.16 Findings of the classes `never-ran`, `failed`, and `ambiguous-result`
 
@@ -1497,11 +1542,11 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them. The vectors are in four groups, `recognitions`, `readings`,
-`outcomes`, and `findings`, and each subsection below gives the forms of
-one group, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v1) gives them. No
-vector follows from the requirements `give-reading-requests`,
+to them. The vectors are in four groups: `recognitions`, `readings`,
+`outcomes`, and `findings`. Each subsection below gives the forms of one
+group, as the term
+[`group-form-list`](sinter:data-forms#group-form-list=v1) gives those
+forms. No vector follows from the requirements `give-reading-requests`,
 `read-only-report-content`, `end-report-readings`,
 `take-evidence-for-own-tree`, `give-promise-sources`,
 `give-nothing-for-stopped-readings`,
@@ -1509,8 +1554,9 @@ vector follows from the requirements `give-reading-requests`,
 `give-nothing-under-invalid-runner-settings`.
 
 Each requirement from which vectors follow applies only when a program
-gives the thing that it names, such as the result of a reading. So a
-vector binds a program only to what the program gives for the input.
+gives the thing that the requirement names, such as the result of a
+reading. So a vector binds a program only to what the program gives for
+the input.
 
 ### 5.1 Recognitions
 
@@ -1550,11 +1596,11 @@ values have these forms:
 
 - A text, such as a result, a name, or a test entry id, is a JSON string
   whose characters are the characters of the text, in order.
-- A byte sequence, such as a report content, is a JSON string when it is
-  the UTF-8 encoding of a text: the JSON string of that text. Otherwise,
-  it is a JSON object with one member, `bytes`, whose value is the
-  [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
-  JSON string.
+- A byte sequence, such as a report content, is a JSON string when the
+  byte sequence is the UTF-8 encoding of a text: the JSON string of that
+  text. Otherwise, the byte sequence is a JSON object with one member,
+  `bytes`, whose value is the [hex text](sinter:data-forms#hex-text=v1)
+  of the byte sequence, as a JSON string.
 - A TOML value is a JSON value of the same kind: a TOML string is a JSON
   string, a TOML boolean is the literal name `true` for true or `false`
   for false, a TOML integer is a JSON number of the same integer, a TOML
@@ -1564,19 +1610,21 @@ values have these forms:
 
 The members of a vector line have these forms:
 
-- `input`: a JSON object with the members `match`, the match table of
-  the test runner, a TOML table; `settings`, a JSON object with one
-  member for each runner setting of the test runner, whose key is its
-  name and whose value is its value under the binding of
-  `runner-settings`, a TOML value; and `report`, the report content, a
-  byte sequence.
+- `input`: a JSON object with the members `match`, `settings`, and
+  `report`. The member `match` is the match table of the test runner, a
+  TOML table. The member `settings` is a JSON object with one member for
+  each runner setting of the test runner. For each runner setting of the
+  test runner, the key of the member for that runner setting is the name
+  of that runner setting, and the value of that member is the value of
+  that runner setting under the binding of `runner-settings`, a TOML
+  value. The member `report` is the report content, a byte sequence.
 - `result`: "recognised", "not recognised", or "failed": the default
   recognition of the report content for the test runner.
 - `values`: the empty JSON object, `{}`.
 
 When a conforming program gives the default recognition of the report
-content of the input for its test runner, it gives the result that
-`result` gives, and no other result.
+content of the input for the test runner of the input, the conforming
+program gives the result that `result` gives, and no other result.
 
 ```
 {"form":"#recognition-vector=v1","group":"recognitions","input":{"match":{"path":["name"]},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"a\"/></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]}},"note":"the attribute name of the root element has the value that the member gives","result":"recognised","values":{}}
@@ -1617,8 +1665,8 @@ The group `readings` has the vectors of the requirements
 with a match table. Each vector gives a report content, the data of a
 test runner, and test entries, and the default reading: its result, its
 test results, and its result links. The binding of `file-readers` is
-valid, a conforming program of the design Identifiers gives the result
-"valid" for the binding of `external-namespaces`, and the binding of
+valid. A conforming program of the design Identifiers gives the result
+"valid" for the binding of `external-namespaces`. The binding of
 `runner-settings` is valid: each runner setting has the type of its
 value in `settings`. The group uses no need, so these forms give no need
 names.
@@ -1627,23 +1675,30 @@ The JSON values, objects, members, arrays, strings, numbers, and the
 literal names `true` and `false` of this schema are as RFC 8259 defines
 them. Inside the members `input`, `result`, and `values`, a text, a byte
 sequence, and a TOML value have the forms that `recognition-vector`
-gives, and a name path and a test entry have these forms:
+gives. Inside the members `input`, `result`, and `values`, a name path
+and a test entry have these forms:
 
 - A name path is a JSON array with one JSON array for each name, in
   their order. The array of a name has one JSON object for each piece,
-  in their order: `{"text": ...}` for a text piece and `{"placeholder":
-  ...}` for a placeholder, with the text of the piece as a JSON string.
+  in their order: `{"text": ...}` for a text piece and
+  `{"placeholder": ...}` for a placeholder, with the text of the piece
+  as a JSON string.
 - A test entry is a JSON object with the members `id`, `path`, `line`,
-  `eline`, `suite`, and `names`: its test entry id, its path, its first
-  line, its last line, true for the kind test suite and false for the
-  kind test case, and its name path. Its test labels are empty.
+  `eline`, `suite`, and `names`. The member `id` is the test entry id of
+  the test entry. The member `path` is the path of the test entry. The
+  member `line` is the first line of the test entry. The member `eline`
+  is the last line of the test entry. The member `suite` is true for the
+  kind test suite and false for the kind test case. The member `names`
+  is the name path of the test entry. The test labels of the test entry
+  are empty.
 
 The members of a vector line have these forms:
 
-- `input`: a JSON object with the members `match`, `settings`, and
-  `report`, as in `recognition-vector`, and `tests`, a JSON array of
-  the test entries, each a test entry, in the code point order of their
-  test entry ids.
+- `input`: a JSON object with the members `match`, `settings`, `report`,
+  and `tests`. The members `match`, `settings`, and `report` are as in
+  `recognition-vector`. The member `tests` is a JSON array of the test
+  entries, each a test entry, in the code point order of their test
+  entry ids.
 - `result`: "bound" or "unreadable": the result of the reading of a
   report file with that report content, whose test runner has that match
   table and those runner settings, when its test entries, under the
@@ -1651,23 +1706,33 @@ The members of a vector line have these forms:
   its import, are those of `tests` and the program does not stop it.
 - `values`: with "bound", a JSON object with the members `results` and
   `links`. `results` is a JSON array with one JSON object for each test
-  result, in their order, with the members `name`, the name of the test
-  result, and `status`, its status, and with the members `file`, its
-  file, `line`, its line, and `ms`, its duration in whole milliseconds,
-  each only when the test result has it. `links` is a JSON array with
-  one JSON array for each result link, of two members: the number of the
-  test result, which is 1 more than the number of the test results
-  before it, and the test entry id of the test entry, in increasing
-  order of the number, then in the code point order of the test entry
-  id. With "unreadable", the empty JSON object, `{}`.
+  result, in their order. Each JSON object in `results` has the member
+  `name`, which is the name of the test result, and the member `status`,
+  which is the status of the test result. Each JSON object in `results`
+  also has the member `file`, which is the file of the test result, only
+  when the test result has a file. Each JSON object in `results` also
+  has the member `line`, which is the line of the test result, only when
+  the test result has a line. Each JSON object in `results` also has the
+  member `ms`, which is the duration of the test result in whole
+  milliseconds, only when the test result has a duration. `links` is a
+  JSON array with one JSON array of two members for each result link.
+  The two members of each JSON array in `links` are the number of the
+  test result and the test entry id of the test entry. The number of a
+  test result is 1 more than the number of the test results before that
+  test result. The JSON arrays in `links` stand in increasing order of
+  the number of the test result, then in the code point order of the
+  test entry id. With "unreadable", `values` is the empty JSON object,
+  `{}`.
 
-When a conforming program gives the result of that reading, it gives the
-result that `result` gives, and no other result. When it gives the test
-results of the reading, it gives the test results that `results` gives,
-in their order, with the values that `results` gives, and no other test
-result. When it gives the result links of the reading, it gives the
-result links that `links` gives, and no other result link. When `values`
-is `{}`, it gives no test result and no result link.
+When a conforming program gives the result of that reading, the
+conforming program gives the result that `result` gives, and no other
+result. When a conforming program gives the test results of the reading,
+the conforming program gives the test results that `results` gives, in
+their order, with the values that `results` gives, and no other test
+result. When a conforming program gives the result links of the reading,
+the conforming program gives the result links that `links` gives, and no
+other result link. When `values` is `{}`, a conforming program gives no
+test result and no result link.
 
 ```
 {"form":"#reading-vector=v1","group":"readings","input":{"match":{"file":["classname"],"path":["name"],"placeholders":["%[sdifjoOc]","[$][A-Za-z_][A-Za-z0-9_.]*"],"suite-separator":" > ","test-separator":" > "},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"src/math.test.ts\"><testcase classname=\"src/math.test.ts\" name=\"outer &gt; each 1 + 2 = 3\" time=\"0.001\"/></testsuite></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]},"tests":[{"eline":9,"id":"src/math.test.ts#1","line":1,"names":[[{"text":"outer"}]],"path":"src/math.test.ts","suite":true},{"eline":4,"id":"src/math.test.ts#2","line":2,"names":[[{"text":"outer"}],[{"text":"each %i + %i = %i"}]],"path":"src/math.test.ts","suite":false}]},"note":"each %i becomes a placeholder, and the file matches the path","result":"bound","values":{"links":[[1,"src/math.test.ts#2"]],"results":[{"file":"src/math.test.ts","ms":1,"name":"outer > each 1 + 2 = 3","status":"pass"}]}}
@@ -1709,18 +1774,19 @@ is `{}`, it gives no test result and no result link.
 The group `outcomes` has the vectors of the requirements
 `give-test-outcomes` and `give-outcome-sources`, and, for the class
 `ambiguous-result`, of the requirement `give-evidence-findings`. Each
-vector gives tests of a tree, the evidence for that tree, and one test,
-and the outcome of that test in the evidence, with its sources, and
-whether the tree has a finding of the class `ambiguous-result` for that
-test. The readings of the report files are given by their results, their
-test results, and their result links, and the tests are given by their
-valid paths, their names, their kinds, and the tests that hold them. The
-tree of each vector has no other test that a test result names, the
-binding of `file-readers` is valid, a conforming program of the design
-Identifiers gives the result "valid" for the binding of
-`external-namespaces`, and the binding of `runner-settings` for each
-test runner is valid. Each vector is for the empty set of stopped files
-of the tree. The group uses no need, so these forms give no need names.
+vector gives tests of a tree, the evidence for that tree, and one test.
+Each vector also gives the outcome of that test in the evidence, with
+the sources of that outcome, and whether the tree has a finding of the
+class `ambiguous-result` for that test. The readings of the report files
+are given by the results, the test results, and the result links of
+those readings. The tests are given by their valid paths, their names,
+their kinds, and the tests that hold them. The tree of each vector has
+no other test that a test result names. The binding of `file-readers` is
+valid. A conforming program of the design Identifiers gives the result
+"valid" for the binding of `external-namespaces`. The binding of
+`runner-settings` for each test runner is valid. Each vector is for the
+empty set of stopped files of the tree. The group uses no need, so these
+forms give no need names.
 
 The JSON values, objects, members, arrays, strings, numbers, and the
 literal names `true` and `false` of this schema are as RFC 8259 defines
@@ -1732,56 +1798,75 @@ The members of a vector line have these forms:
 - `input`: a JSON object with the members `tests`, `imports`, and
   `test`.
   - `tests` is a JSON array of tests of the tree. A test is a JSON
-    object with the members `path`, the valid path of its file; `name`,
-    its name, a JSON array with a JSON string for each of its names, in
-    their order, for a name of one text piece with that text; `suite`,
-    true when its test node is a test suite, and false when it is a test
-    case; and `suites`, a JSON array of the indexes in `tests`, from 0,
-    of the tests that hold it.
+    object with the members `path`, `name`, `suite`, and `suites`. The
+    member `path` is the valid path of the file of that test. The member
+    `name` is the name of that test: a JSON array with a JSON string for
+    each of the names in the name of that test, in their order. Each
+    JSON string in the member `name` is for a name of one text piece
+    with the text of that JSON string. The member `suite` is true when
+    the test node of that test is a test suite, and false when that test
+    node is a test case. The member `suites` is a JSON array of the
+    indexes in `tests`, from 0, of the tests that hold that test.
   - `imports` is a JSON array of the imports of the evidence for the
-    tree. An import is a JSON object with the member `files`, a JSON
-    array of its report files, in their order, and, when its narrowing
-    is not empty, the member `narrowing`, a JSON array of its triples,
-    each a JSON array of the number of a report file, the number of a
-    test result, and the index in `tests` of a test. A report file is a
-    JSON object with the members `hash`, the hash of its report content,
-    a text; `reading`, the result of its reading, "bound" or
-    "unreadable"; and, with "bound", `results`, a JSON array of the test
-    results of its reading, in their order. A test result is a JSON
-    object with the members `name`, its name; `status`, its status;
-    `file`, its file, only when it has one; and `links`, a JSON array
-    with, for each of its result links, the index in `tests` of one test
-    whose path, name, and kind are those of the test entry of that
-    result link.
+    tree. An import is a JSON object with the member `files` and, when
+    the narrowing of that import is not empty, the member `narrowing`.
+    The member `files` is a JSON array of the report files of that
+    import, in their order. When the narrowing of that import is not
+    empty, the member `narrowing` is a JSON array of the triples of that
+    narrowing. Each triple in the member `narrowing` is a JSON array of
+    the number of a report file, the number of a test result, and the
+    index in `tests` of a test. A report file is a JSON object with the
+    members `hash` and `reading`, and, when the result of the reading of
+    that report file is "bound", the member `results`. The member `hash`
+    is the hash of the report content of that report file, a text. The
+    member `reading` is the result of the reading of that report file,
+    "bound" or "unreadable". When the result of the reading of that
+    report file is "bound", the member `results` is a JSON array of the
+    test results of that reading, in their order. A test result is a
+    JSON object with the members `name` and `status`, the member `file`
+    only when that test result has a file, and the member `links`. The
+    member `name` is the name of that test result. The member `status`
+    is the status of that test result. When that test result has a file,
+    the member `file` is that file. The member `links` is a JSON array
+    with, for each result link of that test result, the index in `tests`
+    of one test whose path, name, and kind are the path, name, and kind
+    of the test entry of that result link.
   - `test` is the index in `tests` of the test whose outcome the vector
     gives.
 - `result`: "passed", "failed", or "not run": the outcome of that test
   in the evidence for the tree.
-- `values`: a JSON object with the members `ambiguous`, true when the
-  tree has a finding of the class `ambiguous-result` for that test, and
-  false when it has none; and `sources`, a JSON array of the sources of
-  the outcome, one for each import, in the vector in the order of
-  `imports`. A source is a JSON object with the members `files`, a JSON
-  array with a JSON object for each report file of the import, in their
-  order, with the members `hash` and `reading`; `narrowing`, a JSON
-  array of the triples of the source, each in the form of the input, in
-  increasing order of the number of the report file, then of the number
-  of the test result, then of the index in `tests`; `outcome`, the
-  outcome of the test in that import; and `results`, a JSON array of the
-  test results of the source, in their order, each a JSON object with
-  the members `report-number`, the number of its report file, `report`,
-  the hash of the report content of that report file, `n`, its number,
-  `name`, and `status`.
+- `values`: a JSON object with the members `ambiguous` and `sources`.
+  The member `ambiguous` is true when the tree has a finding of the
+  class `ambiguous-result` for that test, and false when the tree has
+  none. The member `sources` is a JSON array of the sources of the
+  outcome, with one source for each import. In the vector, the elements
+  of `sources` stand in the order of `imports`. A source is a JSON
+  object with the members `files`, `narrowing`, `outcome`, and
+  `results`. The member `files` is a JSON array with a JSON object for
+  each report file of the import, in the order of the report files of
+  the import. Each JSON object in the member `files` has the members
+  `hash` and `reading`. The member `narrowing` is a JSON array of the
+  triples of the source, in increasing order of the number of the report
+  file, then of the number of the test result, then of the index in
+  `tests`. Each triple in the member `narrowing` is in the form of the
+  input. The member `outcome` is the outcome of the test in that import.
+  The member `results` is a JSON array of the test results of the
+  source, in their order. Each test result in the member `results` is a
+  JSON object with the members `report-number`, `report`, `n`, `name`,
+  and `status`. The member `report-number` is the number of the report
+  file of that test result. The member `report` is the hash of the
+  report content of that report file. The member `n` is the number of
+  that test result.
 
 When a conforming program gives the outcome of that test in the evidence
 for the tree under the empty set of stopped files of the tree, it gives
 the outcome that `result` gives, and no other outcome. With that
-outcome, it gives the sources that `sources` gives, and no other source;
-the order of the sources, and of the triples of a source, is not part of
-what it gives. When it gives the findings of the class
-`ambiguous-result` of the tree under the empty set of stopped files of
-the tree, it gives one for that test when `ambiguous` is true, and none
-for that test when it is false.
+outcome, that conforming program gives the sources that `sources` gives,
+and no other source. The order of the sources, and of the triples of a
+source, is not part of what that conforming program gives. When it gives
+the findings of the class `ambiguous-result` of the tree under the empty
+set of stopped files of the tree, it gives one for that test when
+`ambiguous` is true, and none for that test when it is false.
 
 ```
 {"form":"#outcome-vector=v1","group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"note":"a test that holds tests passed: each test that it holds passed","result":"passed","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
@@ -1831,14 +1916,14 @@ is in S. For that input, the vector gives the findings of the classes
 `unverified-vector` that the tree has for S. The outcome of each test is
 given as an input. The tree of each vector has no other edge of the kind
 `verifies` and no other vector set. The binding of `file-readers` is
-valid, a conforming program of the design Identifiers gives the result
-"valid" for the binding of `external-namespaces`, the binding of
-`runner-settings` for each test runner is valid, and no reading of a
-report file of the evidence has the result "stopped". Each vector is for
-the empty set of stopped files of the tree. Each vector of the group has
-the member `values`, and no vector has the member `result`; these forms
-name no question for `result`. The group uses no need, so these forms
-give no need names.
+valid. A conforming program of the design Identifiers gives the result
+"valid" for the binding of `external-namespaces`. The binding of
+`runner-settings` for each test runner is valid. No reading of a report
+file of the evidence has the result "stopped". Each vector is for the
+empty set of stopped files of the tree. Each vector of the group has the
+member `values`. No vector of the group has the member `result`. These
+forms name no question for `result`. The group uses no need, so these
+forms give no need names.
 
 The JSON values, objects, members, arrays, strings, numbers, and the
 literal names `true` and `false` of this schema are as RFC 8259 defines
@@ -1849,21 +1934,28 @@ The members of a vector line have these forms:
 
 - `input`: a JSON object with the members `evidence`, `tests`, `edges`,
   and `sets`.
-  - `evidence` is true when the tree has evidence, and false when it has
-    none.
-  - `tests` is a JSON array of tests of the tree, each a JSON object
-    with one member, `outcome`, its outcome in the evidence for the
-    tree.
+  - `evidence` is true when the tree has evidence, and false when the
+    tree has none.
+  - `tests` is a JSON array of tests of the tree. Each test in `tests`
+    is a JSON object with one member, `outcome`. The member `outcome` is
+    the outcome of that test in the evidence for the tree.
   - `edges` is a JSON array of the edges of the kind `verifies` of the
-    tree. An edge is a JSON object with the members `source`, the index
-    in `tests`, from 0, of its source, a test; `subject`, the position
-    subject of the origin position of its citation entry, a text; and
-    `cited`, its cited item: a JSON object whose member `kind` is
-    `requirement` for an item of the kind requirement; `schema` for a
-    schema; `group`, with the members `set`, the name of the item of its
-    vector set, and `group`, its name, for a group of conformance
-    vectors; `set`, with the member `set`, for a vector set; `other` for
-    an item of another kind; and `none` when the edge has no cited item.
+    tree. An edge is a JSON object with the members `source`, `subject`,
+    and `cited`. The member `source` is the index in `tests`, from 0, of
+    the source of that edge, a test. The member `subject` is the
+    position subject of the origin position of the citation entry of
+    that edge, a text. The member `cited` is the cited item of that
+    edge: a JSON object with the member `kind`. For an item of the kind
+    requirement, the member `kind` is `requirement`. For a schema, the
+    member `kind` is `schema`. For a group of conformance vectors, the
+    member `kind` is `group`, and `cited` has the members `set` and
+    `group`. For that group of conformance vectors, the member `set` is
+    the name of the item of the vector set of that group. For that group
+    of conformance vectors, the member `group` is the name of that
+    group. For a vector set, the member `kind` is `set`, and `cited` has
+    the member `set`. For an item of another kind, the member `kind` is
+    `other`. When that edge has no cited item, the member `kind` is
+    `none`.
   - `sets` is a JSON array of the vector sets of the tree. A vector set
     is a JSON object with the members `name`, the name of its item;
     `in-force`, true when that item is in the set S of the input, and
