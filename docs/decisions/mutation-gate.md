@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Fix the mutation gate at 95 percent, and aim for 100
-@decision mutation-gate
+@decision mutation-gate v2
 @cites mutation-testing
 The CI job that measures the mutation score fails below 95 percent; the number does not rise with the measurement and does not fall; 100 is the aim, not the gate.
 
@@ -23,9 +23,6 @@ author writes the test or marks the place.
   that survived, and each one is a test to write or a place to mark
   with a reason. Review reads the survivors as it reads the rest of a
   change.
-- The rule in `mutation-testing` that the gate starts at the measured
-  score and only rises no longer applies. The rest of that record
-  stands.
 
 ## Alternatives considered
 

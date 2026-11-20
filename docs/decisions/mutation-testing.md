@@ -6,7 +6,7 @@
 @cites test-rigor
 @cites gh/25
 @cites gh/27
-Sinter runs mutation testing over `lib/` and `bin/` with a fork of `mutaml` that the project maintains; the CI job fails below a minimum score that only rises; timeouts count as killed; an equivalent mutant is marked in the source with a reason.
+Sinter runs mutation testing over `lib/` and `bin/` with a fork of `mutaml` that the project maintains; the CI job fails below a minimum score; timeouts count as killed; an equivalent mutant is marked in the source with a reason.
 
 ## Context
 
@@ -40,9 +40,8 @@ for the choices below.
   each mutant, and a mutant is killed when any seed kills it. The
   baseline runs twice with different seeds, and a disagreement stops
   the run.
-- The gate is a minimum score in the CI job. It starts at the measured
-  score rounded down to a whole percent and only rises. A score equal
-  to the minimum passes.
+- The gate is a minimum score in the CI job, and a score equal to the
+  minimum passes. The record `mutation-gate` sets the minimum.
 - The record `mutation-job-scope` decides which mutants each run tests,
   how many seeds each mutant runs under, and how the runner draws the
   seeds.
@@ -92,4 +91,4 @@ upstream takes its changes or forever. A pull request that adds
 untested behaviour fails until a test kills the mutants it creates.
 Some survivors need a person's judgment, and each judgment is recorded
 in the source as a marker with its reason. The known gaps are a chunk
-of work of their own, after which the minimum rises.
+of work of their own.
