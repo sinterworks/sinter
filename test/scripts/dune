@@ -5,6 +5,8 @@
  (name test_scripts)
  (deps
   (glob_files ../*.sh)
+  ../../lib/cargo-build.sh
+  ../../lib/bridge/build.sh
   ../test_sinter.exe
   ../../bin/main.exe
   ../../bench/generate.exe

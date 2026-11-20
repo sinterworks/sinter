@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Hold trees, queries, and adapters as handles of the Rust bridge
-@decision rust-bridge
+@decision rust-bridge v2
 @supersedes parser-bridge v2
 @cites implementation-language
 @cites runner-adapters
@@ -45,10 +45,11 @@ stays valid without the parser that made it.
 - Tests build adapters as WebAssembly bytes in OCaml.
 - The other choices of `parser-bridge` stay: the crate in `bridge/`,
   linked statically; C stubs written by hand that copy each result
-  into OCaml; one build directory for each checkout, outside
-  `_build`; wasmtime's cache of compiled modules; the pinned Rust
-  toolchain; and no Sinter vocabulary in the bridge. That record gives
-  their alternatives and their measurements.
+  into OCaml; a build folder outside `_build`; wasmtime's cache of
+  compiled modules; the pinned Rust toolchain; and no Sinter vocabulary
+  in the bridge. That record gives their alternatives and their
+  measurements. The record `bridge-build-folders` says how checkouts
+  share the build folders and when a build removes them.
 
 ## Alternatives considered
 
