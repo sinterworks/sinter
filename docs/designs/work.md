@@ -678,12 +678,14 @@ gives.
 
 @term work-graph-cycle=v1
 @cites {
+    ledger#{accepted-entry=v1},
     ontology#{
         work-item=v1, task=v1, plan=v1, wait=v1,
         work-item-definition=v1, work-item-state=v1, ledger=v1,
         ledger-entry=v1,
     },
     text#{whole-number=v1, code-span=v1},
+    #{delivered-task-completion=v1},
 }
 
 For a point P of a ledger, a task or plan w, and a candidate definition
@@ -731,7 +733,7 @@ from 1 to k − 1 and vk is u1.
     text#{whole-number=v1, code-span=v1},
     #{
         ledger-index=v1, task-field=v1, plan-field=v1,
-        work-graph-cycle=v1,
+        work-graph-cycle=v1, delivered-task-completion=v1,
     },
 }
 
@@ -769,7 +771,10 @@ conditions is true:
     },
     data-forms#{json-value=v1},
     text#{code-span=v1},
-    #{work-item-id=v1, done-field=v1, abandoned-field=v1},
+    #{
+        work-item-id=v1, done-field=v1, abandoned-field=v1,
+        delivered-task-completion=v1,
+    },
 }
 
 The acceptance rule of the kinds `done` and `abandoned` reads only the
@@ -825,43 +830,55 @@ when, each of these four conditions is true:
    elements of `promises` of D is the set of pairs of `kind` and `req`
    of the promises of that definition.
 
-### 4.15 Task completion and requirement accounting
+### 4.15 Task completion by `delivered` ledger entries
 
 @atom delivered-task-completion=v1
 @refines ontology#work-item-state=v1
 @cites {
+    ledger#{accepted-entry=v1},
     ontology#{
         ledger=v1, ledger-entry=v1, task=v1, work-item-definition=v1,
-        judgment=v1, job-record=v1, requirement-accounted-for=v1,
-        declared-item=v1, item-name=v1, item-revision=v1,
-        revised-content=v1, tree=v1, parameter=v1,
+        job-record=v1,
     },
-    identifiers#{external-namespaces=v1},
-    documents#{file-readers=v1, extent-hash=v1, unreadable-file=v1},
     data-forms#{json-value=v1},
     text#{text=v1, code-span=v1},
-    #{
-        done-field=v1, delivered-field=v1, task-hash=v1,
-        definition-acceptance-rule=v1, work-judgment-acceptance-rule=v1,
-        delivered-acceptance-rule=v1,
-    },
+    #{delivered-field=v1, task-hash=v1},
 }
 
 In the atom `ontology#work-item-state`, an accepted `delivered` ledger
 entry E of a task t at its point P records that the job observed that a
 delivery line of t named the definition of t that was current at P and
-that each promise of that definition was kept when, and only when, all
-three of these conditions are true:
+that each promise of that definition was kept when, and only when, both
+of these conditions are true:
 
-1. The task hash H of the definition of t that was current at P has, as
-   its first six characters, the value of `hash` of E.
-2. The member `definitions` of E holds an element D whose value of
-   `task-hash` is H.
-3. Every element of `promises` of D has the value `kept` for `outcome`.
+1. The member `definitions` of E holds an element D whose value of
+   `task-hash` is the task hash of the definition of t that was current
+   at P.
+2. Every element of `promises` of D has the value `kept` for `outcome`.
+
+### 4.16 Recorded requirement content for requirement accounting
+
+@atom recorded-requirement-content=v1
+@refines ontology#requirement-accounted-for=v1
+@cites {
+    ledger#{accepted-entry=v1},
+    ontology#{
+        ledger=v1, ledger-entry=v1, task=v1, work-item-definition=v1,
+        work-item-state=v1, judgment=v1, job-record=v1,
+        declared-item=v1, item-name=v1, item-revision=v1,
+        revised-content=v1, tree=v1, parameter=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1, extent-hash=v1, unreadable-file=v1},
+    data-forms#{json-value=v1},
+    text#{conforming-program=v1, result=v1, text=v1, code-span=v1},
+    #{done-field=v1, delivered-field=v1, task-hash=v1},
+}
 
 In the atom `ontology#requirement-accounted-for`, for a tree T, a valid
-binding F of `file-readers`, a binding N of `external-namespaces`, a set
-S of stopped files of T, and an item r of the kind requirement of T
+binding F of `file-readers`, a binding N of `external-namespaces` for
+which a conforming program of Identifiers gives the result "valid", a
+set S of stopped files of T, and an item r of the kind requirement of T
 under F, N, and S:
 
 - An accepted `done` ledger entry E records both the current revision of
@@ -882,7 +899,7 @@ under F, N, and S:
   `extent-hash` of that element is the extent hash of r in T under F, N,
   and S.
 
-### 4.16 The form of delivery lines
+### 4.17 The form of delivery lines
 
 @schema delivery-line-form=v1
 @cites {
@@ -912,7 +929,7 @@ A line is a malformed delivery line when, and only when, the text of
 that line starts with `Delivers: ` and the line does not meet the schema
 `delivery-line-form`.
 
-### 4.17 The form of task lines
+### 4.18 The form of task lines
 
 @schema task-line-form=v1
 @cites {
@@ -936,7 +953,7 @@ of that line matches the production `task-line`. For a line that meets
 `task-line-form`, the task id of that task line is the text that
 `%s"t-" 12hex-digit` matches.
 
-### 4.18 Delivery lines that count
+### 4.19 Delivery lines that count
 
 @term counting-delivery-line=v1
 @cites {
@@ -951,7 +968,7 @@ exists at P and the short task hash of that delivery line is the first
 six characters of the task hash of the current definition of that task
 at P. This holds whatever the state of that task at P.
 
-### 4.19 Promise outcomes in the job
+### 4.20 Promise outcomes in the job
 
 @atom job-promise-outcome=v1
 @cites {
@@ -992,16 +1009,17 @@ of q for D in T under F, N, S, E, and those bindings of
 `runner-settings` is one of "kept", "not-kept", and "no-result":
 
 - When q has the kind `satisfies`, the job promise outcome is "kept"
-  when q is kept in T under F, N, and S by `ontology#promise`, and
-  "not-kept" otherwise.
+  when q is kept in T under F, N, and S by `ontology#promise`, with the
+  paths of D as the paths of the task, and "not-kept" otherwise.
 - When q has the kind `verifies` and E forbids a verifies result in T,
   the job promise outcome is "no-result".
 - When q has the kind `verifies` and E does not forbid a verifies
   result in T, the job promise outcome is "kept" when T has evidence
   and q is kept in T under F, N, S, and E by `ontology#promise` and
-  `evidence#tree-outcome`, and "not-kept" otherwise.
+  `evidence#tree-outcome`, with the paths of D as the paths of the task,
+  and "not-kept" otherwise.
 
-### 4.20 Promise outcomes in findings
+### 4.21 Promise outcomes in findings
 
 @term class-promise-outcome=v1
 @cites {
@@ -1012,6 +1030,7 @@ of q for D in T under F, N, S, E, and those bindings of
         conformance-vector-group=v1, vector-set=v1, parameter=v1,
     },
     files#{path=v1, path-set-membership=v1},
+    data-forms#{group-form-list=v1},
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, read-file=v1, tree-edge=v1, unreadable-file=v1},
     packs#{runner-settings=v1, test-runner=v1},
@@ -1035,7 +1054,8 @@ conditions is true:
 2. The cited item of e is either the item of the kind requirement whose
    name is the `req` of q, or a group of conformance vectors or a vector
    set that holds a conformance vector saying a vector whose group
-   includes the requirement that that item declares.
+   includes the requirement that the item of the kind requirement whose
+   name is the `req` of q declares.
 3. The edge e is not suspect in T.
 4. The file of e is a read file of T.
 
@@ -1046,18 +1066,20 @@ known":
 
 - When q has the kind `satisfies`, the class promise outcome is "known
   kept" when q is kept in T under F, N, and S by `ontology#promise`,
-  and "known not kept" otherwise.
+  with the paths of D as the paths of the task, and "known not kept"
+  otherwise.
 - When q has the kind `verifies`, T has evidence, and E does not forbid
   a verifies result in T, the class promise outcome is "known kept"
   when q is kept in T under F, N, S, and E by `ontology#promise` and
-  `evidence#tree-outcome`, and "known not kept" otherwise.
+  `evidence#tree-outcome`, with the paths of D as the paths of the task,
+  and "known not kept" otherwise.
 - When q has the kind `verifies` and either T has no evidence or E
   forbids a verifies result in T, the class promise outcome is "not
   known" when T has at least one qualifying `verifies` edge for q whose
   file has a valid path in the set of the paths of D, and "known not
   kept" otherwise.
 
-### 4.21 Edges that keep a promise outside a task's paths
+### 4.22 Edges that keep a promise outside a task's paths
 
 @term outside-promise-edge=v1
 @cites {
@@ -1095,15 +1117,15 @@ these two conditions is true:
   q in T, and the test that is the source of e has the outcome "passed"
   in E under F and S.
 
-### 4.22 The range of a run of the job
+### 4.23 The range of a run of the job
 
 @term job-range=v1
 @cites {
     gitdoc/gitglossary,
     changes#{
-        commit=v1, shallow-commit=v1, ancestry=v1, reach=v1,
-        commit-range=v1, default-branch-commit=v1,
-        default-branch-name=v1,
+        commit=v1, commit-file=v1, shallow-commit=v1, ancestry=v1,
+        reach=v1, commit-range=v1, default-branch-commit=v1,
+        default-branch-name=v1, repository-read=v1,
     },
     ontology#{ledger=v1, ledger-entry=v1, job=v1, parameter=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
@@ -1117,6 +1139,14 @@ these two conditions is true:
 This term is for a git repository R whose ledger is valid and that holds
 its ledger objects, and for the commit H of the default branch of R
 under a binding of `default-branch-name`.
+
+For a run of the job on a git repository R, the read repository of the
+run is R after any fetches that the program makes as part of the
+repository reads of the run, or R itself when the program makes no
+fetch. A git repository holds the tree objects of a commit c of that
+git repository when, and only when, it holds the git tree object of c
+and every git tree object and blob named by an entry of the git tree
+object of c.
 
 The latest accepted `delivered` entry of R is the accepted `delivered`
 ledger entry at the greatest index in the stored ledger of R, or none
@@ -1139,13 +1169,17 @@ to record (with a commit range), and cut:
 2. When the run has a start object name s and s is the commit object
    name of H: the run status is already recorded.
 3. When the run has a start object name s, s is not the commit object
-   name of H, and either R holds no commit whose commit object name is
-   s or that commit is a shallow commit of R or has a missing parent:
-   the run status is cut.
+   name of H, and R holds no commit whose commit object name is s:
+   - When R has no shallow commit: the run has no start; let C be the
+     commit range from no commit to H. When C is complete in R, the run
+     status is ready to record with range C. Otherwise, the run status
+     is cut.
+   - When R has at least one shallow commit: the run status is cut.
 4. When the run has a start object name s, s is not the commit object
-   name of H, and R holds a commit J whose commit object name is s that
-   is not a shallow commit of R and has no missing parent:
-   - When J reaches H, the run status is already recorded.
+   name of H, and R holds a commit J whose commit object name is s:
+   - When J is a shallow commit of R or has a missing parent: the run
+     status is cut.
+   - Otherwise, when J reaches H: the run status is already recorded.
    - Otherwise, when H reaches J: let C be the commit range from J to
      H. When C is complete in R, the run status is ready to record with
      range C. Otherwise, the run status is cut.
@@ -1155,7 +1189,7 @@ to record (with a commit range), and cut:
      run status is ready to record with range C, and otherwise the run
      status is cut.
 
-### 4.23 Merge commits of delivery lines
+### 4.24 Landing commits of delivery lines
 
 @term delivery-merge-commit=v1
 @cites {
@@ -1163,11 +1197,11 @@ to record (with a commit range), and cut:
     #{job-range=v1},
 }
 
-For a commit H and a commit c in the range of a run for H, the merge
+For a commit H and a commit c in the range of a run for H, the landing
 commit of c for H is the landing commit of c on the first-parent line of
 H.
 
-### 4.24 Git identity
+### 4.25 Git identity
 
 @term git-identity=v1
 @cites {
@@ -1185,7 +1219,7 @@ has an identity, the git identity is that committer name, then a space,
 then `<`, then that committer email, then `>`. Otherwise, git has no
 identity in that environment.
 
-### 4.25 The tasks of a change
+### 4.26 The tasks of a change
 
 @term change-task=v1
 @cites {
@@ -1205,7 +1239,7 @@ under D are each task t that exists at P and whose task id is the task
 id of a line that meets `delivery-line-form` or `task-line-form` in the
 text of the message of a commit of the change of h under D.
 
-### 4.26 Files whose change only re-pins
+### 4.27 Files whose change only re-pins
 
 @term repin-only-file=v1
 @cites {
@@ -1272,7 +1306,7 @@ when, and only when, all three of these conditions are true:
      has a cited item in T under F, N, and ST, and the text of that
      pin run in T is the current revision of that cited item in T.
 
-### 4.27 Subjects for changed file paths
+### 4.28 Subjects for changed file paths
 
 @term path-finding-subject=v1
 @cites {
@@ -1302,7 +1336,7 @@ steps give.
    6. Append *out* to *s*.
 4. Give *s*.
 
-### 4.28 Findings of the class `stale-delivery`
+### 4.29 Findings of the class `stale-delivery`
 
 @atom stale-delivery-finding=v1
 @cites {
@@ -1334,7 +1368,7 @@ For a git repository R, a commit h of R, a binding D of
   count at P. The subject of that finding is the commit object name of
   c, then `@L`, then the decimal numeral of k. That finding has no spot.
 
-### 4.29 Findings of the class `delivery-on-unmet-task`
+### 4.30 Findings of the class `delivery-on-unmet-task`
 
 @atom delivery-on-unmet-task-finding=v1
 @cites {
@@ -1383,7 +1417,7 @@ and a point P of the ledger of R:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.30 Findings of the class `missing-delivery`
+### 4.31 Findings of the class `missing-delivery`
 
 @atom missing-delivery-finding=v1
 @cites {
@@ -1432,7 +1466,7 @@ conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.31 Findings of the class `delivery-without-change`
+### 4.32 Findings of the class `delivery-without-change`
 
 @atom delivery-without-change-finding=v1
 @cites {
@@ -1471,13 +1505,13 @@ exists at P and meets both of these conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.32 Findings of the class `unplanned-change`
+### 4.33 Findings of the class `unplanned-change`
 
 @atom unplanned-change-finding=v1
 @cites {
     ontology#{
-        ledger=v1, task=v1, work-item-definition=v1, finding-class=v1,
-        parameter=v1,
+        ledger=v1, task=v1, work-item-definition=v1,
+        work-item-state=v1, finding-class=v1, parameter=v1,
     },
     files#{path=v1, path-set-membership=v1},
     changes#{
@@ -1517,14 +1551,14 @@ The subject of that finding is the path-finding subject of p. When the
 tree of h has a file at p, the spot of that finding is p alone, with no
 span. When the tree of h has no file at p, that finding has no spot.
 
-### 4.33 Findings of the class `promise-outside-paths`
+### 4.34 Findings of the class `promise-outside-paths`
 
 @atom promise-outside-paths-finding=v1
-@refines ontology#promise=v1
 @cites {
     ontology#{
-        ledger=v1, tree=v1, task=v1, work-item-definition=v1,
-        work-item-state=v1, finding-class=v1, parameter=v1,
+        ledger=v1, tree=v1, task=v1, promise=v1,
+        work-item-definition=v1, work-item-state=v1, finding-class=v1,
+        parameter=v1,
     },
     files#{path=v1},
     identifiers#{
@@ -1579,14 +1613,14 @@ the citation entry of the first edge of T in outside-edge order that is
 known to keep q outside the paths of the current definition of t at P
 in T, in the text of the file of that edge.
 
-### 4.34 Findings of the class `unmet-promise`
+### 4.35 Findings of the class `unmet-promise`
 
 @atom unmet-promise-finding=v1
-@refines ontology#promise=v1
 @cites {
     ontology#{
-        ledger=v1, tree=v1, task=v1, work-item-definition=v1,
-        work-item-state=v1, finding-class=v1, parameter=v1,
+        ledger=v1, tree=v1, task=v1, promise=v1,
+        work-item-definition=v1, work-item-state=v1, finding-class=v1,
+        parameter=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
@@ -1709,7 +1743,7 @@ commit.
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{
         definition-acceptance-rule=v1, work-judgment-acceptance-rule=v1,
-        delivered-acceptance-rule=v1,
+        delivered-acceptance-rule=v1, delivered-task-completion=v1,
     },
 }
 
@@ -1810,7 +1844,7 @@ it:
         requirement-accounted-for=v1, parameter=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{delivered-task-completion=v1},
+    #{delivered-task-completion=v1, recorded-requirement-content=v1},
 }
 
 This requirement applies under a valid binding F of `file-readers`, a
@@ -1822,8 +1856,9 @@ a point P of a valid ledger of a git repository that holds its ledger
 objects, and no other process changes that git repository while the
 program reads it, the program must give exactly one result, and only
 "accounted for" or "not accounted for": "accounted for" when r is
-accounted for in T at P by `ontology#requirement-accounted-for` and
-`delivered-task-completion`, and "not accounted for" otherwise.
+accounted for in T at P by `ontology#requirement-accounted-for`,
+`delivered-task-completion`, and `recorded-requirement-content`, and
+"not accounted for" otherwise.
 
 ### 5.11 What a `done` ledger entry records
 
@@ -2544,9 +2579,9 @@ no result).
     },
     #{
         work-item-id=v1, delivered-task-completion=v1,
-        give-task-states=v1, give-plan-states=v1,
-        give-task-readiness=v1, give-requirement-accounting=v1,
-        acceptance-vector=v1,
+        recorded-requirement-content=v1, give-task-states=v1,
+        give-plan-states=v1, give-task-readiness=v1,
+        give-requirement-accounting=v1, acceptance-vector=v1,
     },
 }
 
