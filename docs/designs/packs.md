@@ -1048,15 +1048,15 @@ second of them.
 }
 
 The run of a node of the parse tree of a text is the run of that node
-in the text that `parse-tree` gives. So, for two nodes of a parse tree,
-when the first comes before the second in the order of the parse tree,
-one of two things holds: the run of the second starts at or after the
-boundary where the run of the first starts and ends at or before the
-boundary where the run of the first ends; or the run of the first ends
-at or before the boundary where the run of the second starts. Two nodes
-can have the same run, such as a node and its only child, and two nodes
-can each have a run that starts and ends at one boundary, the same for
-both.
+in the text, as `parse-tree` gives that run. So, for two nodes of a
+parse tree, when the first comes before the second in the order of the
+parse tree, one of two things holds: the run of the second starts at or
+after the boundary where the run of the first starts and ends at or
+before the boundary where the run of the first ends; or the run of the
+first ends at or before the boundary where the run of the second starts.
+Two nodes can have the same run, such as a node and its only child, and
+two nodes can each have a run that starts and ends at one boundary, the
+same for both.
 
 ### 4.15 Node types
 
