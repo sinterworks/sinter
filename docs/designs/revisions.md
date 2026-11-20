@@ -3,13 +3,13 @@
 
 # Revisions
 @design revisions=v2
-@cites text=v1
+@cites text=v2
 @cites identifiers=v2
 @cites files=v1
 @cites data-forms=v2
 @cites ontology=v2
-@cites changes=v1
-@cites findings=v1
+@cites changes=v2
+@cites findings=v2
 @cites documents=v2
 @cites rfc/8259
 Specifies the base items of declared items, the finding classes `needs-revision` and `suspect`, the base tree of the change of a commit, and requirements for conforming programs that give the findings of these classes and whether the change of a commit has a base.
@@ -311,8 +311,8 @@ tree, and no finding of the class `suspect` of any tree.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v2},
     changes#{
-        commit=v1, commit-file=v1, change-of-a-commit=v1,
-        change-base=v1, repository-read=v1, undisturbed-read=v1,
+        commit=v1, commit-file=v1, change-of-a-commit=v2,
+        change-base=v2, repository-read=v1, undisturbed-read=v2,
     },
     documents#{
         file-readers=v1, tree-finding=v1, unreadable-file=v2,
@@ -339,8 +339,8 @@ bindings and these sets once, and no other finding of that class.
 @cites {
     ontology#{finding-class=v1, parameter=v2},
     changes#{
-        commit=v1, change-of-a-commit=v1, change-base=v1,
-        repository-read=v1, undisturbed-read=v1,
+        commit=v1, change-of-a-commit=v2, change-base=v2,
+        repository-read=v1, undisturbed-read=v2,
     },
     text#{conforming-program=v1},
 }
@@ -358,8 +358,8 @@ is undisturbed, it must not give that the change of h has no base.
 @cites {
     ontology#{finding-class=v1, parameter=v2},
     changes#{
-        commit=v1, change-of-a-commit=v1, change-base=v1,
-        repository-read=v1, undisturbed-read=v1,
+        commit=v1, change-of-a-commit=v2, change-base=v2,
+        repository-read=v1, undisturbed-read=v2,
     },
     text#{conforming-program=v1},
 }
