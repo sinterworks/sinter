@@ -21,7 +21,7 @@
 @cites gitdoc/git
 @cites gitdoc/git-commit
 @cites gitdoc/git-config
-Specifies the parameter `exempt-paths`; work item ids, commit object names, task promises, and task hashes; the fields and acceptance rules of `task`, `plan`, `done`, `abandoned`, and `delivered` ledger entries; the forms of delivery lines and task lines; promise outcomes in the job and in findings; the job on the default branch; the path check and files whose change only re-pins; the finding classes `stale-delivery`, `delivery-on-unmet-task`, `missing-delivery`, `delivery-without-change`, `unplanned-change`, `promise-outside-paths`, and `unmet-promise`; and requirements for conforming programs that assign ids, compute task hashes, read message lines, decide acceptance, compute task states, plan states, readiness, and requirement accounting, append `done` and `delivered` ledger entries, and give these findings.
+Specifies the parameter `exempt-paths`; work item ids, commit object names, task promises, and task hashes; the fields and acceptance rules of `task`, `plan`, `done`, `abandoned`, and `delivered` ledger entries; the forms of delivery lines and task lines; promise outcomes in the job and in findings; the job on the default branch; the path check and files whose change only re-pins; the finding classes `malformed-delivery`, `stale-delivery`, `delivery-on-unmet-task`, `missing-delivery`, `delivery-without-change`, `unplanned-change`, `promise-outside-paths`, and `unmet-promise`; and requirements for conforming programs that assign ids, compute task hashes, read message lines, decide acceptance, compute task states, plan states, readiness, and requirement accounting, append `done` and `delivered` ledger entries, and give these findings.
 
 Tasks and plans record planned work in the ledger of a git repository,
 and commits name the tasks whose work they advance or finish in task
@@ -35,7 +35,7 @@ requirements work accounts for. On the default branch, the job records
 each qualifying delivery line of an existing task that no earlier
 accepted entry records in a `delivered` ledger entry with the labels,
 extent hashes, and promise outcomes of the commit of the default branch. On
-branches and trees, seven finding classes check delivery lines,
+branches and trees, eight finding classes check delivery lines,
 promises, and whether changed files lie inside the paths of the tasks of
 the change or the exempt paths.
 
@@ -110,7 +110,7 @@ an environment and git configuration.
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of a given kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [delivered task completion](sinter:#delivered-task-completion=v1) | the condition under which an accepted `delivered` ledger entry records that a delivery line named the current definition of its task and that every promise of that definition was kept |
 | [recorded requirement content](sinter:#recorded-requirement-content=v1) | the condition under which an accepted `done` or `delivered` ledger entry records both the current revision and the same revised content of a requirement in a tree |
-| [delivery line](sinter:#delivery-line-form=v1), [malformed delivery line](sinter:#delivery-line-form=v1) | a line matching `Delivers: t-<12 hex> <6 hex>` with optional trailing spaces, tabs, or carriage returns; a line that starts with `Delivers: ` and does not match that form |
+| [delivery line](sinter:#delivery-line-form=v1), [malformed delivery line](sinter:#delivery-line-form=v1) | a line matching `Delivers: t-<12 hex> <6 hex>` with optional trailing spaces, tabs, or carriage returns; a line that starts with `Delivers:` after optional spaces or tabs and does not match that form |
 | [task line](sinter:#task-line-form=v1) | a line matching `Task: t-<12 hex>` with optional trailing spaces, tabs, or carriage returns |
 | [counts at a point](sinter:#counting-delivery-line=v1) | a delivery line counts at a point of a ledger when its task exists at that point and its six hex digits are the first six characters of the task hash of the current definition of that task at that point |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own, such as the files whose reading it stops for limits of its own |
@@ -124,7 +124,8 @@ an environment and git configuration.
 | [only re-pins](sinter:#repin-only-file=v1) | a read file that can be read in both trees, with the same number of line texts, whose differing lines each hold at least one citation pin and differ only in citation pins, with each changed new pin equal to the current revision of its cited item |
 | [path-finding subject](sinter:#path-finding-subject=v1) | the valid path of a changed file, or `/` followed by the valid path with `%`, line feed, space, and tab percent-encoded when the valid path holds a line feed or starts or ends with a space or a tab |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
-| [`stale-delivery`](sinter:#stale-delivery-finding=v1) | the class of the findings for a malformed delivery line or a delivery line that does not count |
+| [`malformed-delivery`](sinter:#malformed-delivery-finding=v1) | the class of the findings for a malformed delivery line |
+| [`stale-delivery`](sinter:#stale-delivery-finding=v1) | the class of the findings for a delivery line that does not count |
 | [`delivery-on-unmet-task`](sinter:#delivery-on-unmet-task-finding=v1) | the class of the findings for a task with a counting delivery line in the change and a promise known not kept in the tree |
 | [`missing-delivery`](sinter:#missing-delivery-finding=v1) | the class of the findings for an unfinished task with promises, no counting delivery line in the change, every promise known kept in the tree, and some promise known not kept in the base tree |
 | [`delivery-without-change`](sinter:#delivery-without-change-finding=v1) | the class of the findings for a task with a counting delivery line in the change when no changed file with a hunk lies in its paths |
@@ -300,11 +301,12 @@ spot.
 
 ### 2.8 Findings, missing bases, and bindings
 
-Each of these seven classes gives [tree findings](sinter:documents#tree-finding=v1).
+Each of these eight classes gives [tree findings](sinter:documents#tree-finding=v1).
 No finding of these classes is ackable.
 
 | class | atom |
 |---|---|
+| `malformed-delivery` | [`malformed-delivery-finding`](sinter:#malformed-delivery-finding=v1) |
 | `stale-delivery` | [`stale-delivery-finding`](sinter:#stale-delivery-finding=v1) |
 | `delivery-on-unmet-task` | [`delivery-on-unmet-task-finding`](sinter:#delivery-on-unmet-task-finding=v1) |
 | `missing-delivery` | [`missing-delivery-finding`](sinter:#missing-delivery-finding=v1) |
@@ -314,12 +316,12 @@ No finding of these classes is ackable.
 | `unmet-promise` | [`unmet-promise-finding`](sinter:#unmet-promise-finding=v1) |
 
 Requirements `give-work-tree-findings`, `give-work-commit-findings`,
-and `give-work-change-findings` govern the findings of these seven
+and `give-work-change-findings` govern the findings of these eight
 classes: `promise-outside-paths` and `unmet-promise` read one tree;
-`stale-delivery` reads the commits of the change of `h`;
-`delivery-on-unmet-task` reads those commits and the tree of `h`; and
-`missing-delivery`, `delivery-without-change`, and `unplanned-change`
-also read the base of the change of `h`. Requirements
+`malformed-delivery` and `stale-delivery` read the commits of the change
+of `h`; `delivery-on-unmet-task` reads those commits and the tree of
+`h`; and `missing-delivery`, `delivery-without-change`, and
+`unplanned-change` also read the base of the change of `h`. Requirements
 `omit-work-missing-base-report`, `report-work-missing-base`,
 `omit-work-findings-under-invalid-bindings`, and
 `omit-work-findings-from-invalid-ledgers` govern changes with no base,
@@ -881,8 +883,8 @@ under F, N, and S:
     rfc/7405,
     ontology#{delivery-line=v1},
     text#{
-        text=v1, line=v1, hex-digit=v1, production=v1, rule-name=v1,
-        code-span=v1,
+        text=v1, line=v1, space=v1, tab=v1, hex-digit=v1,
+        production=v1, rule-name=v1, code-span=v1,
     },
 }
 
@@ -900,8 +902,8 @@ the text that `%s"t-" 12hex-digit` matches, and the short task hash of
 that delivery line is the text that `6hex-digit` matches.
 
 A line is a malformed delivery line when, and only when, the text of
-that line starts with `Delivers: ` and the line does not meet the schema
-`delivery-line-form`.
+that line starts with zero or more spaces or tabs followed by
+`Delivers:` and the line does not meet the schema `delivery-line-form`.
 
 ### 4.18 The form of task lines
 
@@ -1322,7 +1324,36 @@ steps give.
    6. Append *out* to *s*.
 4. Give *s*.
 
-### 4.29 Findings of the class `stale-delivery`
+### 4.29 Findings of the class `malformed-delivery`
+
+@atom malformed-delivery-finding=v1
+@cites {
+    ontology#{finding-class=v1, parameter=v1},
+    changes#{
+        commit=v1, commit-file=v1, message-text=v1,
+        change-of-a-commit=v1, default-branch-name=v1,
+        default-branch-commit=v1,
+    },
+    documents#{tree-finding=v1},
+    findings#{finding-subject=v1},
+    text#{line=v1, line-number=v1, decimal-numeral=v1, code-span=v1},
+    #{commit-object-name=v1, delivery-line-form=v1},
+}
+
+For a git repository R, a commit h of R, and a binding D of
+`default-branch-name`:
+
+- When the default branch of R has no commit under D, the tree of h has
+  no tree finding of the class `malformed-delivery` under D.
+- When the default branch of R has a commit under D, the tree of h has,
+  under D, one tree finding of the class `malformed-delivery` for each
+  pair of a commit c of the change of h under D whose message has a text
+  and a line l (with line number k) of that text such that l is a
+  malformed delivery line. The subject of that finding is the commit
+  object name of c, then `@L`, then the decimal numeral of k. That
+  finding has no spot.
+
+### 4.30 Findings of the class `stale-delivery`
 
 @atom stale-delivery-finding=v1
 @cites {
@@ -1349,12 +1380,12 @@ For a git repository R, a commit h of R, a binding D of
 - When the default branch of R has a commit under D, the tree of h has,
   at P under D, one tree finding of the class `stale-delivery` for each
   pair of a commit c of the change of h under D whose message has a text
-  and a line l (with line number k) of that text such that either l is a
-  malformed delivery line, or l meets `delivery-line-form` and does not
-  count at P. The subject of that finding is the commit object name of
-  c, then `@L`, then the decimal numeral of k. That finding has no spot.
+  and a line l (with line number k) of that text such that l meets
+  `delivery-line-form` and does not count at P. The subject of that
+  finding is the commit object name of c, then `@L`, then the decimal
+  numeral of k. That finding has no spot.
 
-### 4.30 Findings of the class `delivery-on-unmet-task`
+### 4.31 Findings of the class `delivery-on-unmet-task`
 
 @atom delivery-on-unmet-task-finding=v1
 @cites {
@@ -1403,7 +1434,7 @@ and a point P of the ledger of R:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.31 Findings of the class `missing-delivery`
+### 4.32 Findings of the class `missing-delivery`
 
 @atom missing-delivery-finding=v1
 @cites {
@@ -1453,7 +1484,7 @@ five of these conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.32 Findings of the class `delivery-without-change`
+### 4.33 Findings of the class `delivery-without-change`
 
 @atom delivery-without-change-finding=v1
 @cites {
@@ -1492,7 +1523,7 @@ exists at P and meets both of these conditions:
 The subject of that finding is the task id of t. That finding has no
 spot.
 
-### 4.33 Findings of the class `unplanned-change`
+### 4.34 Findings of the class `unplanned-change`
 
 @atom unplanned-change-finding=v1
 @cites {
@@ -1539,7 +1570,7 @@ The subject of that finding is the path-finding subject of p. When the
 tree of h has a file at p, the spot of that finding is p alone, with no
 span. When the tree of h has no file at p, that finding has no spot.
 
-### 4.34 Findings of the class `promise-outside-paths`
+### 4.35 Findings of the class `promise-outside-paths`
 
 @atom promise-outside-paths-finding=v1
 @cites {
@@ -1601,7 +1632,7 @@ the citation entry of the first edge of T in outside-edge order that is
 known to keep q outside the paths of the current definition of t at P
 in T, in the text of the file of that edge.
 
-### 4.35 Findings of the class `unmet-promise`
+### 4.36 Findings of the class `unmet-promise`
 
 @atom unmet-promise-finding=v1
 @cites {
@@ -2241,7 +2272,7 @@ otherwise, the program must give each tree finding of that class that T
 has at P under these bindings and inputs once, and must give no other
 finding of that class.
 
-### 5.21 Findings of the classes `stale-delivery` and `delivery-on-unmet-task`
+### 5.21 Findings of the classes `malformed-delivery`, `stale-delivery`, and `delivery-on-unmet-task`
 
 @req give-work-commit-findings=v1
 @cites {
@@ -2258,8 +2289,8 @@ finding of that class.
     ontology#{finding-class=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        work-graph-cycle=v1, stale-delivery-finding=v1,
-        delivery-on-unmet-task-finding=v1,
+        work-graph-cycle=v1, malformed-delivery-finding=v1,
+        stale-delivery-finding=v1, delivery-on-unmet-task-finding=v1,
     },
 }
 
@@ -2269,14 +2300,16 @@ binding D of `default-branch-name`, a valid binding F of
 conforming program of Identifiers gives the result "valid", a set SH of
 stopped files of the tree of h, the evidence EH for the tree of h, and
 the bindings of `runner-settings`. When a conforming program gives the
-findings of one of the classes `stale-delivery` and
-`delivery-on-unmet-task` of the tree of h at a point P of a valid ledger
-of R (where R holds its ledger objects) under these bindings and inputs,
-and each repository read is undisturbed: when the program stops the
-check of work-graph cycles of an entry before P for limits of its own,
-it must give no finding of that class; otherwise, the program must give
-each tree finding of that class that the tree of h has at P under these
-bindings and inputs once, and must give no other finding of that class.
+findings of one of the classes `malformed-delivery`, `stale-delivery`,
+and `delivery-on-unmet-task` of the tree of h at a point P of a valid
+ledger of R (where R holds its ledger objects) under these bindings and
+inputs, and each repository read is undisturbed: when the program stops
+the check of work-graph cycles of an entry before P for limits of its
+own, it must give no finding of that class; otherwise, the program must
+give each tree finding of that class that the tree of h has under these
+bindings and inputs (at P, for `stale-delivery` and
+`delivery-on-unmet-task`) once, and must give no other finding of that
+class.
 
 ### 5.22 Findings of the classes `missing-delivery`, `delivery-without-change`, and `unplanned-change`
 
@@ -2377,9 +2410,9 @@ these conditions, that program must give exactly one result, and only
     },
     text#{conforming-program=v1, result=v1},
     #{
-        exempt-paths=v1, stale-delivery-finding=v1,
-        delivery-on-unmet-task-finding=v1, missing-delivery-finding=v1,
-        delivery-without-change-finding=v1,
+        exempt-paths=v1, malformed-delivery-finding=v1,
+        stale-delivery-finding=v1, delivery-on-unmet-task-finding=v1,
+        missing-delivery-finding=v1, delivery-without-change-finding=v1,
         unplanned-change-finding=v1, promise-outside-paths-finding=v1,
         unmet-promise-finding=v1,
     },
@@ -2389,8 +2422,8 @@ Under a binding of `file-readers` that is not valid, or under a binding
 of `external-namespaces` for which a conforming program of Identifiers
 gives the result "invalid", a conforming program must give no result
 for whether any item of the kind requirement is accounted for in any
-tree, and must give no finding of the classes `stale-delivery`,
-`delivery-on-unmet-task`, `missing-delivery`,
+tree, and must give no finding of the classes `malformed-delivery`,
+`stale-delivery`, `delivery-on-unmet-task`, `missing-delivery`,
 `delivery-without-change`, `unplanned-change`, `promise-outside-paths`,
 and `unmet-promise`.
 
@@ -2405,8 +2438,8 @@ program must give no finding of the class `unplanned-change`.
     ontology#{tree=v1, ledger=v1, finding-class=v1},
     text#{conforming-program=v1},
     #{
-        stale-delivery-finding=v1, delivery-on-unmet-task-finding=v1,
-        missing-delivery-finding=v1,
+        malformed-delivery-finding=v1, stale-delivery-finding=v1,
+        delivery-on-unmet-task-finding=v1, missing-delivery-finding=v1,
         delivery-without-change-finding=v1,
         unplanned-change-finding=v1, promise-outside-paths-finding=v1,
         unmet-promise-finding=v1,
@@ -2414,12 +2447,12 @@ program must give no finding of the class `unplanned-change`.
 }
 
 A conforming program must give no finding of the classes
-`stale-delivery`, `delivery-on-unmet-task`, `missing-delivery`,
-`delivery-without-change`, `unplanned-change`, `promise-outside-paths`,
-and `unmet-promise` at a point of the ledger of a git repository that
-no other process changes while the program reads it, when that ledger
-is broken or newer, or when that git repository does not hold its
-ledger objects.
+`malformed-delivery`, `stale-delivery`, `delivery-on-unmet-task`,
+`missing-delivery`, `delivery-without-change`, `unplanned-change`,
+`promise-outside-paths`, and `unmet-promise` at a point of the ledger
+of a git repository that no other process changes while the program
+reads it, when that ledger is broken or newer, or when that git
+repository does not hold its ledger objects.
 
 ## 6. Conformance
 
@@ -2851,21 +2884,22 @@ of its own, in which case the program gives no finding of that class).
     #{
         exempt-paths=v1, commit-object-name=v1, change-task=v1,
         repin-only-file=v1, path-finding-subject=v1,
-        stale-delivery-finding=v1, delivery-without-change-finding=v1,
-        unplanned-change-finding=v1, give-work-commit-findings=v1,
-        give-work-change-findings=v1, acceptance-vector=v1,
+        malformed-delivery-finding=v1, stale-delivery-finding=v1,
+        delivery-without-change-finding=v1, unplanned-change-finding=v1,
+        give-work-commit-findings=v1, give-work-change-findings=v1,
+        acceptance-vector=v1,
     },
 }
 
 The group `change-findings` holds the vectors of the requirements
-`give-work-commit-findings` (for the class `stale-delivery`) and
-`give-work-change-findings` (for the classes `delivery-without-change`
-and `unplanned-change`). Each vector gives a ledger, a valid binding of
-`exempt-paths`, optional commits of the change of a commit, and optional
-changed files with hunks between the base tree and the tree of that
-commit, and gives the resulting findings at the point after the last
-ledger entry of that ledger. The group uses no need, so these forms give
-no need names.
+`give-work-commit-findings` (for the classes `malformed-delivery` and
+`stale-delivery`) and `give-work-change-findings` (for the classes
+`delivery-without-change` and `unplanned-change`). Each vector gives a
+ledger, a valid binding of `exempt-paths`, optional commits of the
+change of a commit, and optional changed files with hunks between the
+base tree and the tree of that commit, and gives the resulting findings
+at the point after the last ledger entry of that ledger. The group uses
+no need, so these forms give no need names.
 
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects, a valid binding of `file-readers`, a
@@ -2910,6 +2944,8 @@ run's text (the same as `false`).
   question for `result`.
 - `values`: a JSON object with one member, `findings`, a JSON object
   holding:
+  - `malformed-delivery`: a JSON array of finding subjects in code point
+    order;
   - `stale-delivery`: a JSON array of finding subjects in code point
     order;
   - when `commits` and `changed-files` are present,
@@ -2922,12 +2958,13 @@ run's text (the same as `false`).
 
 When a conforming program gives the findings of any class named in
 `findings`, it gives one finding for each element of that member (with
-no spot for `stale-delivery` and `delivery-without-change`, and with or
-without a spot as `has-spot` says for `unplanned-change`), and no other
-finding of that class (unless the program stops the check of work-graph
-cycles of an entry before that point for limits of its own, in which
-case the program gives no finding of that class).
+no spot for `malformed-delivery`, `stale-delivery`, and
+`delivery-without-change`, and with or without a spot as `has-spot` says
+for `unplanned-change`), and no other finding of that class (unless the
+program stops the check of work-graph cycles of an entry before that
+point for limits of its own, in which case the program gives no finding
+of that class).
 
 ```
-{"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"stale-delivery for malformed line, stale hash, and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2","1111111111111111111111111111111111111111@L3"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
+{"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"malformed-delivery for malformed line and stale-delivery for stale hash and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"malformed-delivery":["1111111111111111111111111111111111111111@L3"],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
 ```
