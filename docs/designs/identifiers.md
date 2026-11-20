@@ -29,8 +29,8 @@ RFC 7405.
 
 From Text and notation (`text`), the design takes the basics of
 characters, texts, runs, lines, numerals, and productions; sequences and
-algorithms; and what a conforming program and a result are, and it
-narrows what an input is.
+algorithms; canonical vector lines for its vector file; and what a
+conforming program and a result are, and it narrows what an input is.
 From CommonMark 0.31.2, the design takes its links and images, their
 link destinations, and the block and inline elements that hold them.
 From RFC 8259, the design takes JSON texts, with their objects, members,
@@ -1994,7 +1994,7 @@ group has a name, such as `citations`. The schema `vector-line` in
 subsection 6.1 defines the shared layout of the file and its vector
 lines. The other schemas in the subsections below name the requirements
 that the vectors of each group follow from, and they define the JSON
-forms of the vector objects of these groups. Where a definition of
+forms of the vector lines of these groups. Where a definition of
 section 4 cites a term of Text and notation, such as the lines or the
 body of a text, the vectors follow the definition of that term in Text
 and notation.
@@ -2010,30 +2010,36 @@ and notation.
         citation=v1, citation-entry=v1, value=v1,
     },
     text#{
-        canonical-vector-line=v1, valid-utf-8=v1, text=v1, character=v1,
-        carriage-return=v1, line=v1, line-feed=v1, tab=v1,
-        code-point-order=v1, u-numeral=v1, code-span=v1, production=v1,
+        canonical-vector-line=v1, design=v1, byte-sequence=v1,
+        valid-utf-8=v1, text-of-a-byte-sequence=v1, text=v1,
+        character=v1, carriage-return=v1, line=v1, line-feed=v1, tab=v1,
+        u-numeral=v1, code-span=v1, production=v1,
         conforming-program=v1, result=v1, sequence=v1,
     },
 }
 
-The file is valid UTF-8. Its text does not start with U+FEFF, it holds
-no carriage return, it has no empty line, and when it is not empty it
-ends with a line feed. Only a line feed ends a line of the file. A JSON
-string of the file can hold U+0085, U+2028, or U+2029, and these
-characters do not end a line. The file holds zero or more vector lines.
-Each line of the file is a JSON text, as RFC 8259 defines it, that meets
-the schema `canonical-vector-line` of Text and notation.
+A vector gives an input of the vector, which holds one or more inputs of
+a conforming program, and what a conforming program gives for them. The
+vectors are in groups, and each group has a name, such as `citations`.
+The vector file, `identifiers.test-vectors.jsonl` in the same directory
+as this design, is a byte sequence that is valid UTF-8. Its text does
+not start with U+FEFF, it holds no carriage return, it has no empty
+line, and when it is not empty it ends with a line feed. Only a line
+feed ends a line of the vector file. A JSON string of the vector file
+can hold U+0085, U+2028, or U+2029, and these characters do not end a
+line. The vector file holds zero or more vector lines. Every vector line
+in the vector file with the same `group` value names the same `#` and
+part name in `form`.
 
-The JSON object of each vector line holds the required members `form`,
+The text of each line of the vector file is a vector line: a JSON text,
+as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
+Text and notation. Its JSON object holds the required members `form`,
 `group`, and `input`, at least one of `result` and `values`, and the
-optional member `note`, and no other member, in code point order of
-their names:
+optional member `note`, and no other member:
 
-- `form`: a JSON string of `#`, a part name, `=`, and a label, such as
-  `"#tag-line-vector=v1"`, pinning the schema of this section that
-  defines the vector's form. Every vector line in the file with the same
-  `group` value names the same `#` and part name in `form`.
+- `form`: a JSON string of `#`, the part name of the schema of this
+  design for the group of the vector, `=`, and a label, such as
+  `"#tag-line-vector=v1"`.
 - `group`: the name of the group of the vector, as a JSON string
   matching `group-name`.
 - `input`: the input of the vector, which holds one or more inputs of a
@@ -2042,13 +2048,17 @@ their names:
 - `note`: an optional JSON string that explains the vector, which a
   conforming program does not give.
 - `result`: a JSON string holding a result that a conforming program
-  gives for one input, without its double quotes.
-- `values`: a JSON object that holds what a conforming program gives
-  other than `result` when the vector has `result`, and all results and
-  values that a conforming program gives when the vector has no
-  `result`. In `values`, or in the `values` member of an element of
-  `inputs` or `links`, an empty JSON object, `{}`, says that a
-  conforming program gives no value for that input.
+  gives for one input, without its double quotes. For that input, a
+  conforming program gives the result that `result` holds, once, and no
+  other result.
+- `values`: a JSON object that holds what a conforming program gives for
+  the inputs that the schema of the group names, other than the result
+  that `result` holds when the vector has `result`. The schema of each
+  group gives the members of this JSON object, and it names each result
+  and each value that a conforming program gives and that the vectors of
+  the group do not state. In `values`, or in the `values` member of an
+  element of an array that a group schema names, an empty JSON object,
+  `{}`, says that a conforming program gives no value for that input.
 
 A vector writes each text, binding of `external-namespaces`, and
 sequence in one fixed JSON form:
@@ -2067,6 +2077,9 @@ sequence in one fixed JSON form:
   set is `[]`.
 - A sequence, such as the citation entries of a citation, is a JSON
   array of its elements, in order.
+
+A vector line meets the schema `vector-line` when, and only when, it
+meets the rules of this schema for a vector line.
 
 ### 6.2 Tag lines
 
@@ -2212,14 +2225,14 @@ line of the group meets the schema `vector-line`.
   defined in `tag-line-vector`.
 
 For the k-th input, a conforming program gives the result of the k-th
-element of `inputs`, and it gives each value that the `values` of that
-element holds, exactly once. For a citation, it also gives one list of
-values for each element of `entries`, in the order of the elements, and
-the list of an element holds each value of that element, exactly once.
-It gives each of these values together with its value name, and it gives
-no other value. An empty JSON object, `{}`, says that a conforming
-program gives no value for that input. It gives no result for a
-continuation line on its own.
+element of `inputs`, once, and no other result, and it gives each value
+that the `values` of that element holds, exactly once. For a citation,
+it also gives one list of values for each element of `entries`, in the
+order of the elements, and the list of an element holds each value of
+that element, exactly once. It gives each of these values together with
+its value name, and it gives no other value. An empty JSON object, `{}`,
+says that a conforming program gives no value for that input. It gives
+no result for a continuation line on its own.
 
 ```
 {"form":"#continuation-line-vector=v1","group":"continuation-lines","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"@cites {docs=v1,\n@req size-limit=v2"},"note":"the target list is not closed, and the next line is a tag line; the line `@req size-limit=v2` is an input of its own","values":{"inputs":[{"result":"invalid","values":{"tag-word":"@cites"}},{"result":"valid","values":{"inline-description":"","revision":"v2","slug":"size-limit","tag-word":"@req","type-of-tag-line":"declaration"}}]}}
@@ -2269,13 +2282,13 @@ document of the text. Each vector line of the group meets the schema
     JSON object, `{}`.
 
 For the k-th link or image, a conforming program gives the result of the
-k-th element of `links`, and it gives each value that the `values` of
-that element holds, exactly once, together with its value name, and it
-gives no other value. An empty JSON object, `{}`, says that a conforming
-program gives no value for the link or the image. It gives a result as
-the result of a link or an image only for these links and images, so it
-gives no result for a text in an indented code block that has the form
-of a link.
+k-th element of `links`, once, and no other result, and it gives each
+value that the `values` of that element holds, exactly once, together
+with its value name, and it gives no other value. An empty JSON object,
+`{}`, says that a conforming program gives no value for the link or the
+image. It gives a result as the result of a link or an image only for
+these links and images, so it gives no result for a text in an indented
+code block that has the form of a link.
 
 No line of these texts is a tag line. So a conforming program gives the
 result "not a tag line" for each line of the text, and the vectors do
