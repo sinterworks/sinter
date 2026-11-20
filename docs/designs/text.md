@@ -255,15 +255,15 @@ before that carriage return. Otherwise, the line ending starts at the
 boundary right before that line feed. So in the text `ab`, a carriage
 return, a line feed, `c`, the line ending starts at boundary 2 and ends
 at boundary 4. A line starts at the boundary where the body starts, or
-at the boundary where a line ending ends. It ends at the first boundary,
-at or after the boundary where it starts, where a line ending starts.
-When no line ending starts at or after the boundary where the line
-starts, the line ends at the boundary where the body ends. A run that
-ends at the boundary where the body ends is a line only when the run is
-not empty. So the line endings divide the body into runs, and the lines
-are these runs, except the last run when it is empty. The first line has
-the line number 1, and the line number of each other line is 1 more than
-the line number of the line before it.
+at the boundary where a line ending ends. The line ends at the first
+boundary, at or after the boundary where the line starts, where a line
+ending starts. When no line ending starts at or after the boundary where
+the line starts, the line ends at the boundary where the body ends. A
+run that ends at the boundary where the body ends is a line only when
+the run is not empty. So the line endings divide the body into runs, and
+the lines are these runs, except the last run when it is empty. The
+first line has the line number 1, and the line number of each other line
+is 1 more than the line number of the line before it.
 
 A line never holds a line feed. A body whose last character is a line
 feed has no empty line after that line feed. The empty body has no line.
@@ -1333,8 +1333,8 @@ each case.
     },
 }
 
-A canonical vector line is a JSON text, as RFC 8259 defines it, that
-holds one JSON object and meets all of these rules:
+A canonical vector line is a JSON text, as RFC 8259 defines a JSON text,
+that holds one JSON object and meets all of these rules:
 
 - No JSON object has two members with the same name.
 - No JSON value is `null`, a number with a fraction or an exponent, or a
@@ -1355,7 +1355,7 @@ holds one JSON object and meets all of these rules:
   `\`, and the characters from U+0000 to U+001F stands as itself.
 
 A JSON text meets the schema `canonical-vector-line` when, and only
-when, it is a canonical vector line.
+when, the JSON text is a canonical vector line.
 
 ### 5.2 Vector lines
 
@@ -1372,15 +1372,15 @@ when, it is a canonical vector line.
 }
 
 A vector of this design is an input and what a conforming program gives
-for it. The vectors are in groups, and each group has a name, such as
-`decode`. The vector file of this design, `text.test-vectors.jsonl` in
-the same directory as this design, is a byte sequence that is valid
-UTF-8. The text of the file has no byte order mark and no carriage
-return. The text of the file has no empty line. When the text of the
-file is not empty, that text ends with a line feed. So only a line feed
-ends a line of the vector file. A JSON string of the vector file can
-hold U+0085, U+2028, or U+2029, and these characters do not end a line.
-The vector file holds zero or more vector lines.
+for that input. The vectors are in groups, and each group has a name,
+such as `decode`. The vector file of this design,
+`text.test-vectors.jsonl` in the same directory as this design, is a
+byte sequence that is valid UTF-8. The text of the file has no byte
+order mark and no carriage return. The text of the file has no empty
+line. When the text of the file is not empty, that text ends with a line
+feed. So only a line feed ends a line of the vector file. A JSON string
+of the vector file can hold U+0085, U+2028, or U+2029. These characters
+do not end a line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line. A vector line
 meets the schema `canonical-vector-line`, and its JSON object has the
@@ -1389,9 +1389,9 @@ that order, and no other member, with `note` and `result` only where
 these rules state:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
-  for the group of the vector, `=`, and a label: `v`, then the decimal
-  numeral of a whole number of 1 or more, such as `v1` (for example,
-  `"#decode-vector=v1"`).
+  for the group of the vector, `=`, and a label. That label is `v`, then
+  the decimal numeral of a whole number of 1 or more, such as `v1`. An
+  example of `form` is `"#decode-vector=v1"`.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
 - `note`: an explanation of the vector, as a JSON string. A conforming
@@ -1436,8 +1436,8 @@ line of the vector file is a vector line that meets the schema
 The group `decode` holds the vectors of the requirements
 `validate-utf-8`, `give-texts-of-byte-sequences`, and
 `omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
-sequence and what a conforming program gives for it by these
-requirements. Each vector line of the group meets the schema
+sequence and what a conforming program gives for that byte sequence by
+these requirements. Each vector line of the group meets the schema
 `vector-line`.
 
 Inside `input`, `result`, and `values`, a text and a byte sequence have
@@ -1464,11 +1464,11 @@ vector line hold these things:
   JSON object, `{}`.
 
 When a conforming program gives a result for whether the byte sequence
-is valid UTF-8, it gives the result that `result` holds, once, and no
-other result. When a conforming program gives a text as the text of the
-byte sequence, the conforming program gives the text that `text` holds,
-and no other text. When `values` is `{}`, a conforming program gives no
-text as the text of the byte sequence.
+is valid UTF-8, the conforming program gives the result that `result`
+holds, once, and no other result. When a conforming program gives a text
+as the text of the byte sequence, the conforming program gives the text
+that `text` holds, and no other text. When `values` is `{}`, a
+conforming program gives no text as the text of the byte sequence.
 
 ```
 {"form":"#decode-vector=v1","group":"decode","input":"6869","result":"valid","values":{"text":"hi"}}
