@@ -2,11 +2,11 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Changes
-@design changes=v2
-@cites text=v2
-@cites files=v2
-@cites ontology=v2
-@cites data-forms=v2
+@design changes=v1
+@cites text=v1
+@cites files=v1
+@cites ontology=v1
+@cites data-forms=v1
 @cites gitdoc/git
 @cites gitdoc/gitrepository-layout
 @cites gitdoc/git-worktree
@@ -138,13 +138,13 @@ of its Conformance section name.
 | [tree entry, regular-file entry, symbolic-link entry, submodule entry](sinter:#commit-file=v1) | the four kinds of an entry of a git tree object, by the file type that the page gitdatamodel gives for its mode, with the mode 100664 as a regular file |
 | blob | a git object that holds a content, which is a byte sequence |
 | [reach](sinter:#reach=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on, and no other commit |
-| [ancestry](sinter:#ancestry=v2) | the set of the commits that a commit reaches |
+| [ancestry](sinter:#ancestry=v1) | the set of the commits that a commit reaches |
 | [ref name](sinter:#ref-name=v1) | a text that can be the name of a ref, such as `refs/heads/main` or `HEAD`: it meets the rules of the page git-check-ref-format other than its rule that a ref name holds `/`, and it starts with `refs/` or is a root name of the page gitglossary, such as `ORIG_HEAD`, or one of the irregular refs that it lists |
 | [ref](sinter:#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref, as the page gitglossary defines them |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of the git repository at an address of a remote pointed |
-| [upstream](sinter:#default-branch-commit=v2) | the ref that a branch tracks, as the pages gitglossary, git-config, and git-fetch define the upstream branch of a branch |
+| [upstream](sinter:#default-branch-commit=v1) | the ref that a branch tracks, as the pages gitglossary, git-config, and git-fetch define the upstream branch of a branch |
 | [remote, address of a remote](sinter:#remote-transfer=v1) | a remote of a git repository is a name for which its git configuration gives a value of the setting `remote.<name>.url` with that name for `<name>`; its addresses for a fetch and for a push are those that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after the rewrite that `url.<base>.insteadOf` and `url.<base>.pushInsteadOf` give |
 | [fetch, push](sinter:#remote-transfer=v1) | a transfer of git objects, refs, or both into a git repository from the git repository at an address of a remote for a fetch, or from the git repository into the git repository at an address of a remote for a push |
 | [HEAD](sinter:#head-commit=v1) | the ref of a working tree that names a ref, usually a branch, or, when it is detached, points to a git object, usually a commit |
@@ -163,23 +163,23 @@ of its Conformance section name.
 | [branch name](sinter:#branch-name=v1) | a text, such as `main` or `release/2.0`, such that `refs/heads/` followed by it meets the rules of the page git-check-ref-format, other than `HEAD`, a text that starts with `-`, and a text that starts with `refs/` |
 | [default branch](sinter:ontology#default-branch=v1) | the branch into which the people who work on a repository bring their work |
 | [`default-branch-name`](sinter:#default-branch-name=v1) | the parameter whose bindings give the name of the default branch; the schema `default-branch-name` gives the form of a binding |
-| [commit of the default branch](sinter:#default-branch-commit=v2) | under a binding of `default-branch-name` that is a branch name, the commit of the first of the three refs of the default branch, in their order, that exists |
-| [parameter](sinter:ontology#parameter=v2), binding | a parameter is a word, such as `default-branch-name`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for it |
+| [commit of the default branch](sinter:#default-branch-commit=v1) | under a binding of `default-branch-name` that is a branch name, the commit of the first of the three refs of the default branch, in their order, that exists |
+| [parameter](sinter:ontology#parameter=v1), binding | a parameter is a word, such as `default-branch-name`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for it |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or in a working tree |
 | [file of the tree of a commit](sinter:#commit-file=v1) | a file that a regular-file entry gives, through the git tree object of the commit, when its path is a valid path |
 | [file of the tree of a working tree](sinter:#working-tree-file=v1) | a regular file that a valid path names from the root folder of a working tree, outside each folder entry `.git`, the folder entry `.jj` of the root folder, and the folders of other git repositories, that git tracks or does not ignore |
-| [range](sinter:#commit-range=v2) | the set of the commits that one commit reaches and that another commit does not reach |
+| [range](sinter:#commit-range=v1) | the set of the commits that one commit reaches and that another commit does not reach |
 | [parents-first order](sinter:#parents-first-order=v1) | the order in which a walk from the commit h of a range from s to h, which takes the parents of each commit in their order, finishes the commits of the range; each commit comes after each of its parents in the range |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
-| [change of a commit](sinter:#change-of-a-commit=v2) | under a binding under which the default branch has a commit, for each commit h: the commits that h reaches and that the commit of the default branch does not reach; h is its last commit |
-| [last commit of the change of a commit](sinter:#change-of-a-commit=v2) | the commit h of the change of h, such as the commit to which the branch of a pull request points |
-| [common ancestor](sinter:#merge-base=v2) | a commit that each of two commits reaches |
-| [merge base](sinter:#merge-base=v2) | a common ancestor of two commits that no other common ancestor of the two reaches |
-| [base of the change of a commit](sinter:#change-base=v2) | the merge base of a commit h and the commit of the default branch, when there is exactly one |
+| [change of a commit](sinter:#change-of-a-commit=v1) | under a binding under which the default branch has a commit, for each commit h: the commits that h reaches and that the commit of the default branch does not reach; h is its last commit |
+| [last commit of the change of a commit](sinter:#change-of-a-commit=v1) | the commit h of the change of h, such as the commit to which the branch of a pull request points |
+| [common ancestor](sinter:#merge-base=v1) | a commit that each of two commits reaches |
+| [merge base](sinter:#merge-base=v1) | a common ancestor of two commits that no other common ancestor of the two reaches |
+| [base of the change of a commit](sinter:#change-base=v1) | the merge base of a commit h and the commit of the default branch, when there is exactly one |
 | squash commit | a commit with one parent that holds the work of the commits of a change |
 | fast-forward | a move of a branch to a commit that reaches the commit to which the branch pointed |
 | [first-parent line](sinter:#first-parent-line=v1) | a commit, its first parent, the first parent of that commit, and so on, up to a commit that has no parent |
-| [landing commit](sinter:#landing-commit=v2) | of a commit c on the first-parent line of a commit d, such as the commit of the default branch: the commit of that first-parent line through which c joined it, which reaches c, and which has no parent or whose first parent does not reach c |
+| [landing commit](sinter:#landing-commit=v1) | of a commit c on the first-parent line of a commit d, such as the commit of the default branch: the commit of that first-parent line through which c joined it, which reaches c, and which has no parent or whose first parent does not reach c |
 | [line texts](sinter:#line-text=v1) | the texts of the lines of the file of a tree with a valid path, in order; none when the tree has no such file or its content is not valid UTF-8 |
 | [line map](sinter:#line-map=v1) | a longest set of pairs of the line numbers of the lines of a file in an old tree and in a new tree that have the same text, in the same order; there can be several |
 | [new line number](sinter:#new-line-number=v1) | for a line map, the line number in the new tree of an old line that a pair of the line map holds; an old line that no pair holds has none |
@@ -195,13 +195,13 @@ of its Conformance section name.
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
 | [repository read](sinter:#repository-read=v1) | an operation in which a program takes, from a git repository or from a working tree of it, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give them or to use them; a fetch, a push, and a change of a ref that the program makes are not one, and each fetch into the git repository that the program makes, itself or through any program that it uses, during a read is part of that read; no push, and no other change of a ref, is part of one; a read lasts from the first time that the program takes bytes, or uses a pathname to reach or look for a repository file, for it until the last time that it does one of these; a program gives a thing in a read when it gives what that read took |
-| [undisturbed repository read](sinter:#undisturbed-read=v2) | a repository read during which no process, the program that makes it included, other than in an own change of the read when the file of that change is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
-| [own change of a repository read](sinter:#undisturbed-read=v2) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a loose object or a pack that the program creates in the read, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; a file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give none, not even as such a temporary file; an own change keeps a read undisturbed only when its file is not a file of a working tree |
+| [undisturbed repository read](sinter:#undisturbed-read=v1) | a repository read during which no process, the program that makes it included, other than in an own change of the read when the file of that change is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
+| [own change of a repository read](sinter:#undisturbed-read=v1) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a loose object or a pack that the program creates in the read, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; a file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give none, not even as such a temporary file; an own change keeps a read undisturbed only when its file is not a file of a working tree |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
-| [forms of a group](sinter:data-forms#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
-| [need](sinter:data-forms#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
+| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 
 ## 2. Git repositories, changes, and hunks
 
@@ -435,7 +435,7 @@ specified, and these requirements still bind it.
 
 @schema default-branch-name=v1
 @cites {
-    ontology#{default-branch=v1, parameter=v2},
+    ontology#{default-branch=v1, parameter=v1},
     text#{text=v1, code-span=v1},
     #{branch-name=v1},
 }
@@ -592,7 +592,7 @@ has no effect on the text of its message.
 
 ### 4.6 Ancestry
 
-@term ancestry=v2
+@term ancestry=v1
 @cites #{commit=v1}
 
 The ancestry of a commit c is the smallest set of commits that holds c
@@ -601,7 +601,7 @@ and that holds each parent of each commit that it holds.
 ### 4.7 Reach
 
 @atom reach=v1
-@cites #{commit=v1, ancestry=v2}
+@cites #{commit=v1, ancestry=v1}
 
 A commit c reaches each commit of its ancestry, c included, and no other
 commit.
@@ -689,12 +689,12 @@ A branch name is a text b that meets each of these conditions:
 
 ### 4.12 The commit of the default branch
 
-@term default-branch-commit=v2
+@term default-branch-commit=v1
 @cites {
     gitdoc/gitglossary,
     gitdoc/git-config,
     gitdoc/git-fetch,
-    ontology#{default-branch=v1, parameter=v2},
+    ontology#{default-branch=v1, parameter=v1},
     text#{code-span=v1, text=v1},
     #{
         git-configuration=v1, ref-commit=v1, branch-name=v1,
@@ -855,7 +855,7 @@ tree, and with which valid path, is not specified.
 
 ### 4.16 Ranges
 
-@term commit-range=v2
+@term commit-range=v1
 @cites #{commit=v1, reach=v1}
 
 For two commits s and h of a git repository, the range from s to h is
@@ -865,7 +865,7 @@ range from no commit to h is the set of the commits that h reaches.
 ### 4.17 Parents-first orders
 
 @term parents-first-order=v1
-@cites #{commit=v1, commit-range=v2}
+@cites #{commit=v1, commit-range=v1}
 
 Let R be the range from a commit s, or from no commit, to a commit h. To
 walk a commit c of R is to start c; then to take each parent of c in
@@ -878,13 +878,13 @@ parents that is in R.
 
 ### 4.18 The change of a commit
 
-@term change-of-a-commit=v2
+@term change-of-a-commit=v1
 @cites {
-    ontology#{default-branch=v1, parameter=v2},
+    ontology#{default-branch=v1, parameter=v1},
     text#{code-span=v1},
     #{
-        commit=v1, commit-range=v2, default-branch-name=v1,
-        default-branch-commit=v2,
+        commit=v1, commit-range=v1, default-branch-name=v1,
+        default-branch-commit=v1,
     },
 }
 
@@ -896,7 +896,7 @@ holds no commit.
 
 ### 4.19 Merge bases
 
-@term merge-base=v2
+@term merge-base=v1
 @cites #{commit=v1, reach=v1}
 
 A common ancestor of two commits is a commit that each of the two
@@ -905,13 +905,13 @@ that no other common ancestor of the two reaches.
 
 ### 4.20 The base of the change of a commit
 
-@term change-base=v2
+@term change-base=v1
 @cites {
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     text#{code-span=v1},
     #{
-        commit=v1, change-of-a-commit=v2, merge-base=v2,
-        default-branch-name=v1, default-branch-commit=v2,
+        commit=v1, change-of-a-commit=v1, merge-base=v1,
+        default-branch-name=v1, default-branch-commit=v1,
     },
 }
 
@@ -933,7 +933,7 @@ commit right before it, and whose last commit has no parent.
 
 ### 4.22 Landing commits
 
-@term landing-commit=v2
+@term landing-commit=v1
 @cites #{commit=v1, reach=v1, first-parent-line=v1}
 
 For a commit d and a commit c that d reaches, the landing commit of c on
@@ -1053,7 +1053,7 @@ line map, and add the same number of lines, n less that number.
     ontology#{tree=v1},
     files#{path=v1},
     #{
-        change-of-a-commit=v2, change-base=v2, commit-file=v1,
+        change-of-a-commit=v1, change-base=v1, commit-file=v1,
         line-map=v1, hunk=v1,
     },
 }
@@ -1097,7 +1097,7 @@ read when it gives what that repository read took, whenever it gives it.
 
 ### 4.29 Undisturbed repository reads
 
-@term undisturbed-read=v2
+@term undisturbed-read=v1
 @cites {
     posix/2024,
     gitdoc/gitrepository-layout,
@@ -1268,9 +1268,9 @@ name, and "invalid" when the text is not a branch name.
 
 ### 5.2 Reach
 
-@req decide-reach=v2
+@req decide-reach=v1
 @cites {
-    #{commit=v1, reach=v1, repository-read=v1, undisturbed-read=v2},
+    #{commit=v1, reach=v1, repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1, result=v1},
 }
 
@@ -1283,7 +1283,7 @@ it, it must give exactly one result: "reaches" when c reaches c′, and
 
 @req give-commit-parents=v1
 @cites {
-    #{commit=v1, repository-read=v1, undisturbed-read=v2},
+    #{commit=v1, repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
 
@@ -1297,7 +1297,7 @@ parents of that commit, in their order.
 @cites {
     #{
         commit=v1, message-text=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     text#{conforming-program=v1, text=v1},
 }
@@ -1312,7 +1312,7 @@ has none.
 
 @req give-ref-commits=v1
 @cites {
-    #{ref-commit=v1, repository-read=v1, undisturbed-read=v2},
+    #{ref-commit=v1, repository-read=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
 
@@ -1323,13 +1323,13 @@ that it has none when it has none.
 
 ### 5.6 The commit of the default branch
 
-@req give-default-branch-commits=v2
+@req give-default-branch-commits=v1
 @cites {
     #{
         commit=v1, git-configuration=v1, default-branch-name=v1,
-        default-branch-commit=v2, repository-read=v1, undisturbed-read=v2,
+        default-branch-commit=v1, repository-read=v1, undisturbed-read=v1,
     },
-    ontology#{default-branch=v1, parameter=v2},
+    ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
@@ -1346,7 +1346,7 @@ none.
 @cites {
     #{
         commit=v1, working-tree=v1, head-commit=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1363,7 +1363,7 @@ none.
 @cites {
     #{
         commit=v1, commit-file=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1382,7 +1382,7 @@ gives, exactly the content of that file.
 @cites {
     #{
         commit=v1, commit-file=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1402,7 +1402,7 @@ with the valid path p when it has none.
 @cites {
     #{
         working-tree=v1, working-tree-file=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1421,7 +1421,7 @@ content it gives, exactly the content of that file.
 @cites {
     #{
         working-tree=v1, working-tree-file=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1440,8 +1440,8 @@ no file with the valid path p when it has none.
 @req give-ranges=v1
 @cites {
     #{
-        commit=v1, commit-range=v2, repository-read=v1,
-        undisturbed-read=v2,
+        commit=v1, commit-range=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1455,8 +1455,8 @@ conforming program must give exactly the commits of that range.
 @req give-parents-first-orders=v1
 @cites {
     #{
-        commit=v1, commit-range=v2, parents-first-order=v1,
-        repository-read=v1, undisturbed-read=v2,
+        commit=v1, commit-range=v1, parents-first-order=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1468,14 +1468,14 @@ parents-first order of that range.
 
 ### 5.14 The change of a commit
 
-@req give-changes-of-commits=v2
+@req give-changes-of-commits=v1
 @cites {
     #{
         commit=v1, git-configuration=v1, default-branch-name=v1,
-        change-of-a-commit=v2, default-branch-commit=v2,
-        repository-read=v1, undisturbed-read=v2,
+        change-of-a-commit=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
-    ontology#{default-branch=v1, parameter=v2},
+    ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
@@ -1492,8 +1492,8 @@ binding.
 @req give-merge-bases=v1
 @cites {
     #{
-        commit=v1, merge-base=v2, repository-read=v1,
-        undisturbed-read=v2,
+        commit=v1, merge-base=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1504,14 +1504,14 @@ merge bases of those two commits.
 
 ### 5.16 The base of the change of a commit
 
-@req give-change-bases=v2
+@req give-change-bases=v1
 @cites {
     #{
         commit=v1, git-configuration=v1, default-branch-name=v1,
-        change-of-a-commit=v2, change-base=v2, repository-read=v1,
-        undisturbed-read=v2,
+        change-of-a-commit=v1, change-base=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
@@ -1528,7 +1528,7 @@ none.
 @cites {
     #{
         commit=v1, first-parent-line=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1540,11 +1540,11 @@ line.
 
 ### 5.18 Landing commits
 
-@req give-landing-commits=v2
+@req give-landing-commits=v1
 @cites {
     #{
-        commit=v1, reach=v1, first-parent-line=v1, landing-commit=v2,
-        repository-read=v1, undisturbed-read=v2,
+        commit=v1, reach=v1, first-parent-line=v1, landing-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -1563,7 +1563,7 @@ not reach c.
     #{
         line-map=v1, hunk=v1, repository-read=v1, working-tree=v1,
         git-configuration=v1, ignored-path=v1, commit=v1,
-        commit-file=v1, working-tree-file=v1, undisturbed-read=v2},
+        commit-file=v1, working-tree-file=v1, undisturbed-read=v1},
     ontology#{tree=v1},
     files#{path=v1},
     text#{conforming-program=v1},
@@ -1586,7 +1586,7 @@ obligation holds only in an undisturbed repository read.
         line-map=v1, repository-read=v1, working-tree=v1,
         git-configuration=v1, ignored-path=v1, new-line-number=v1,
         commit=v1, commit-file=v1, working-tree-file=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
     ontology#{tree=v1},
     files#{path=v1},
@@ -1623,14 +1623,14 @@ of p between those trees.
 
 ### 5.22 The diff of the change of a commit
 
-@req give-change-diffs=v2
+@req give-change-diffs=v1
 @cites {
     #{
         git-configuration=v1, default-branch-name=v1,
-        change-of-a-commit=v2, change-diff=v1, line-map=v1, hunk=v1,
-        repository-read=v1, change-base=v2, undisturbed-read=v2,
+        change-of-a-commit=v1, change-diff=v1, line-map=v1, hunk=v1,
+        repository-read=v1, change-base=v1, undisturbed-read=v1,
     },
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     files#{path=v1},
     text#{conforming-program=v1, code-span=v1},
 }
@@ -1647,7 +1647,7 @@ when the change of h has no base under that binding.
 @req leave-repositories-unchanged=v1
 @cites {
     posix/2024,
-    #{repository-read=v1, repository-file=v1, undisturbed-read=v2},
+    #{repository-read=v1, repository-file=v1, undisturbed-read=v1},
     text#{conforming-program=v1},
 }
 
@@ -1806,14 +1806,14 @@ section 5.
 The vectors of this design are in the file
 [`changes.test-vectors.jsonl`](changes.test-vectors.jsonl), in the same
 folder as this design. The file is a
-[test-vector set](sinter:data-forms#test-vector-set=v2), in the format
+[test-vector set](sinter:data-forms#test-vector-set=v1), in the format
 that the specification
-[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v2) gives. A
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives. A
 vector is an input and what a conforming program gives for it. Each
 vector follows from the requirements and adds nothing to them. The
 vectors are in groups. Each group has a name, such as `hunks`, and a
 schema below gives the forms of that group, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v2) of Data forms
+[`group-form-list`](sinter:data-forms#group-form-list=v1) of Data forms
 gives them. Each vector of a group follows from one or more of the
 requirements that its schema names. No vector follows from the
 requirements `use-one-line-map`, `leave-repositories-unchanged`,
@@ -1830,7 +1830,7 @@ the input.
 @schema branch-name-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{
         conforming-program=v1, text=v1, character=v1, result=v1,
         code-span=v1,
@@ -1863,13 +1863,13 @@ result.
 @schema default-branch-commit-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
-    ontology#{default-branch=v1, parameter=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
+    ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, text=v1, code-span=v1},
     #{
-        branch-name-vector=v1, give-default-branch-commits=v2,
-        default-branch-name=v1, default-branch-commit=v2, commit=v1,
-        ref-commit=v1, repository-read=v1, undisturbed-read=v2,
+        branch-name-vector=v1, give-default-branch-commits=v1,
+        default-branch-name=v1, default-branch-commit=v1, commit=v1,
+        ref-commit=v1, repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -1920,13 +1920,13 @@ binding.
 @schema head-commit-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         give-head-commits=v1, head-commit=v1, working-tree=v1,
         commit=v1, ref-commit=v1, repository-read=v1,
-        undisturbed-read=v2,
+        undisturbed-read=v1,
     },
 }
 
@@ -1967,7 +1967,7 @@ commit of the working tree and that the working tree has no head commit.
 @cites {
     rfc/8259,
     gitdoc/gitdatamodel,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{path=v1},
     text#{
@@ -1978,7 +1978,7 @@ commit of the working tree and that the working tree has no head commit.
     #{
         branch-name-vector=v1, give-commit-files=v1,
         give-commit-file-at-path=v1, commit=v1, commit-file=v1,
-        repository-read=v1, undisturbed-read=v2,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2034,7 +2034,7 @@ its entry, which the vectors do not give.
 @cites {
     rfc/8259,
     gitdoc/git-config,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{
         folder-tree=v1, folder=v1, regular-file=v1, file-system=v1,
@@ -2050,7 +2050,7 @@ its entry, which the vectors do not give.
         give-working-tree-files=v1, give-working-tree-file-at-path=v1,
         git-folder=v1, working-tree=v1, git-configuration=v1,
         commit=v1, ignored-path=v1, working-tree-file=v1,
-        repository-read=v1, undisturbed-read=v2,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2126,12 +2126,12 @@ each need is, and when a vector has it.
 @cites {
     rfc/8259,
     gitdoc/gitrepository-layout,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, text=v1, result=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
-        decide-reach=v2, commit=v1, reach=v1, repository-read=v1,
-        undisturbed-read=v2,
+        decide-reach=v1, commit=v1, reach=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
 }
 
@@ -2169,11 +2169,11 @@ gives the result that `result` holds, and no other result.
 @cites {
     rfc/8259,
     gitdoc/gitrepository-layout,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
         default-branch-commit-vector=v1, give-commit-parents=v1,
-        commit=v1, repository-read=v1, undisturbed-read=v2,
+        commit=v1, repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2209,12 +2209,12 @@ elements of `parents`, in their order, and no other commit.
 @schema ref-commit-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         give-ref-commits=v1, commit=v1, ref-commit=v1,
-        repository-read=v1, undisturbed-read=v2,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2253,13 +2253,13 @@ not give both a commit of the ref and that the ref has no commit.
 @schema range-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
         parent-vector=v1, give-ranges=v1, give-parents-first-orders=v1,
-        commit=v1, commit-range=v2, parents-first-order=v1,
-        repository-read=v1, undisturbed-read=v2,
+        commit=v1, commit-range=v1, parents-first-order=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2294,16 +2294,16 @@ in no other order as their parents-first order.
 @schema change-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
-    ontology#{default-branch=v1, parameter=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
+    ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-point-order=v1, code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
-        give-changes-of-commits=v2, give-merge-bases=v1,
-        give-change-bases=v2, default-branch-name=v1,
-        default-branch-commit=v2, commit=v1, change-of-a-commit=v2,
-        merge-base=v2, change-base=v2, repository-read=v1,
-        undisturbed-read=v2,
+        give-changes-of-commits=v1, give-merge-bases=v1,
+        give-change-bases=v1, default-branch-name=v1,
+        default-branch-commit=v1, commit=v1, change-of-a-commit=v1,
+        merge-base=v1, change-base=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
 }
 
@@ -2350,14 +2350,14 @@ h and that the change of h has no base.
 @schema landing-commit-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
         parent-vector=v1, give-first-parent-lines=v1,
-        give-landing-commits=v2, commit=v1, reach=v1,
-        first-parent-line=v1, landing-commit=v2, repository-read=v1,
-        undisturbed-read=v2,
+        give-landing-commits=v1, commit=v1, reach=v1,
+        first-parent-line=v1, landing-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
 }
 
@@ -2400,12 +2400,12 @@ has no landing commit.
 @cites {
     rfc/8259,
     gitdoc/git-commit-tree,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     text#{conforming-program=v1, text=v1, byte-sequence=v1, code-span=v1},
     #{
         branch-name-vector=v1, commit-file-vector=v1,
         give-message-texts=v1, commit=v1, message-text=v1,
-        repository-read=v1, undisturbed-read=v2,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2443,7 +2443,7 @@ of the commit and that the message has no text.
 @schema hunk-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{path=v1},
     text#{
@@ -2513,8 +2513,8 @@ line i and that the old line i has no new line number.
 @schema change-diff-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
-    ontology#{tree=v1, default-branch=v1, parameter=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
+    ontology#{tree=v1, default-branch=v1, parameter=v1},
     files#{path=v1},
     text#{
         conforming-program=v1, byte-sequence=v1, code-point-order=v1,
@@ -2523,10 +2523,10 @@ line i and that the old line i has no new line number.
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         commit-file-vector=v1, reach-vector=v1, hunk-vector=v1,
-        give-change-diffs=v2, default-branch-name=v1,
-        default-branch-commit=v2, commit=v1, change-of-a-commit=v2,
-        change-base=v2, line-map=v1, hunk=v1, change-diff=v1,
-        repository-read=v1, undisturbed-read=v2,
+        give-change-diffs=v1, default-branch-name=v1,
+        default-branch-commit=v1, commit=v1, change-of-a-commit=v1,
+        change-base=v1, line-map=v1, hunk=v1, change-diff=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2579,15 +2579,15 @@ that the change of h has no diff.
 @schema upstream-vector=v1
 @cites {
     rfc/8259,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
-    ontology#{default-branch=v1, parameter=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
+    ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
-        give-default-branch-commits=v2, default-branch-name=v1,
+        give-default-branch-commits=v1, default-branch-name=v1,
         branch-name=v1, git-configuration=v1, commit=v1, ref-commit=v1,
-        default-branch-commit=v2, repository-read=v1,
-        undisturbed-read=v2,
+        default-branch-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
 }
 
@@ -2635,7 +2635,7 @@ binding.
 @cites {
     rfc/8259,
     gitdoc/git-config,
-    data-forms#{group-form-list=v2, vector-line=v2, vector-meaning=v2},
+    data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{folder=v1, regular-file=v1, path=v1},
     text#{
@@ -2647,7 +2647,7 @@ binding.
         give-working-tree-files=v1, give-working-tree-file-at-path=v1,
         git-folder=v1, working-tree=v1, git-configuration=v1,
         commit=v1, ignored-path=v1, working-tree-file=v1,
-        repository-read=v1, undisturbed-read=v2,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
