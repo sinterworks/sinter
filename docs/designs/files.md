@@ -1073,11 +1073,15 @@ and list the need names that the group uses, if any.
 @schema vector-line=v1
 @cites {
     rfc/8259,
-    #{folder-tree=v1, path=v1, file-read=v1, glob=v1, path-set=v1},
+    #{
+        regular-file=v1, folder-tree=v1, path=v1, file-read=v1,
+        glob=v1, path-set=v1,
+    },
     text#{
-        conforming-program=v1, input=v1, text=v1, character=v1, run=v1,
-        line=v1, line-feed=v1, carriage-return=v1, valid-utf-8=v1,
-        whole-number=v1, code-point-order=v1, hex-digit=v1,
+        design=v1, conforming-program=v1, input=v1, text=v1,
+        character=v1, run=v1, line=v1, line-feed=v1,
+        carriage-return=v1, valid-utf-8=v1, whole-number=v1,
+        decimal-numeral=v1, code-point-order=v1, hex-digit=v1,
         u-numeral=v1, sequence=v1, result=v1, code-span=v1,
     },
 }
@@ -1116,10 +1120,11 @@ The JSON object of each vector line holds the required members `form`,
 optional members `needs` and `note`, in code point order of their keys,
 and no other member:
 
-- `form`: a JSON string of `#`, the name of a schema of this design that
-  gives the forms of a vector group, `=`, and a revision of that schema,
-  such as `"#path-vector=v1"`. Every vector line in the vector file with
-  the same `group` value names the same `#` and schema name in `form`.
+- `form`: a JSON string of `#`, the name of the schema of this design
+  for the group of the vector, `=`, and a label of that schema: `v`,
+  then the decimal numeral of a whole number of 1 or more, such as `v1`
+  (for example, `"#path-vector=v1"`). Every vector line of one group in
+  the vector file names the same schema in `form`.
 - `group`: the name of the group of the vector, as a JSON string, such
   as `"paths"`.
 - `input`: the inputs of the vector: what a conforming program takes or
@@ -1152,14 +1157,15 @@ and no other member:
   does not give, for the inputs of the vector, other than the result.
   Only the vectors of the group `file-reads` have this member, and the
   schema of that group gives the members of this JSON object. An empty
-  JSON object, `{}`, says that a conforming program gives no value other
-  than the result. A vector without the member `values` says nothing
-  about what a conforming program gives for its inputs, other than the
-  result.
+  JSON object, `{}`, says that a conforming program gives none of the
+  things that the schema of the group names for `values`. A vector
+  without the member `values` says nothing about what a conforming
+  program gives for its inputs, other than the result.
 
 A vector writes each input and each value in a fixed form. Each text and
-sequence, other than a folder tree or pieces of a text, has this fixed
-form:
+sequence has this fixed form, except a folder tree and the text of the
+content in `values`, whose forms the schema of the group `file-reads`
+gives:
 
 - A text, such as a valid path, a valid glob, or a path set member, is a
   JSON string whose characters are the characters of the text, in order.
