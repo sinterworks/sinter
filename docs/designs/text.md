@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Text and notation
-@design text=v2
+@design text=v1
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
