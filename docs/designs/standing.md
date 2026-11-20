@@ -20,58 +20,56 @@ Specifies the parameter `historical-paths` and historical files; the successors 
 Declared items change over time: authors replace them with `supersedes`
 edges, withdraw them with `@deprecated`, and give them new labels when
 their revised content changes. When a declared item is retired, other
-items that cite that declared item can still name it, and effective
-`supersedes` edges can point to in-force items that replace it. A
-conforming program finds those successors, reports edges to retired
-items, reports cycles of `supersedes` and `refines` edges, reports
-decision records that a change deletes, and reports items that reuse a
-label from the history of the default branch for other content. A
-repository can also name historical paths so that historical files keep
-their citations without giving findings of these classes.
+items that cite that declared item can still name it, and in-force items
+can replace it through effective `supersedes` edges. A conforming
+program finds those successors, reports edges to retired items, reports
+cycles of `supersedes` and `refines` edges, reports decision records
+that a change deletes, and reports items that reuse a label from the
+history of the default branch for other content. A repository can also
+name historical paths so that historical files give no findings of these
+classes at spots in those files.
 
 From Text and notation (`text`), the design takes texts, characters,
-spaces, tabs, line feeds, whole numbers, decimal numerals, boundaries,
-runs, spans, positions, code point order, code spans, sequences, byte
-sequences, UTF-8 encodings, and what a conforming program, an input, and
-a result are. From Identifiers (`identifiers`), it takes declarations,
-citations, citation lines with the production `every-part`, citation
-entries, inline citations, tag line texts, the parameter
-`external-namespaces` with its bindings, and the results that a
-conforming program of Identifiers gives. From Files and paths (`files`),
-it takes valid paths, path sets, valid path sets, and membership in the
-set of a path set. From Data forms (`data-forms`), it takes JSON values,
-indexes, hash forms, vector lines, test-vector sets, the forms of a
-group, and the meaning of a vector. The file that holds the conformance
-vectors of the design is a test-vector set. From RFC 8259, the design
-takes JSON values, with their objects, members, arrays, strings,
-numbers, and the literal names `true` and `false`.
+spaces, tabs, places, whole numbers, decimal numerals, boundaries, runs,
+spans, positions, code point order, code spans, sequences, and what a
+conforming program and a result are. From Identifiers (`identifiers`),
+it takes tag lines, declarations, citations, citation lines with the
+production `every-part`, citation entries, inline citations, tag line
+texts, the parameter `external-namespaces` with its bindings, and the
+results that a conforming program of Identifiers gives. From Files and
+paths (`files`), it takes valid paths, path sets, valid path sets, and
+membership in the set of a path set. From Data forms (`data-forms`), it
+takes JSON values, indexes, hash forms, vector lines, test-vector sets,
+the forms of a group, and the meaning of a vector. The file that holds
+the conformance vectors of the design is a test-vector set. From RFC
+8259, the design takes JSON values, with their objects, members, arrays,
+strings, numbers, and the literal names `true` and `false`.
 
-From the Ontology (`ontology`), the design takes trees, declared items
-and their kinds, decision records, containment, names, current
-revisions, revised contents, same items across trees, vector sets,
-groups of conformance vectors, external items, edges of all five kinds
-and when an edge says what its kind of edge says, pinned edges,
-effective `supersedes` edges, cycles of `supersedes` edges, retired
-items, items in force, the default branch, the ledger, finding classes,
-and parameters. From Changes (`changes`), it takes commits, the files of
-the tree of a commit, shallow commits, the parameter
-`default-branch-name` with its bindings, the commit of the default
-branch, the change of a commit, the base of the change of a commit,
-first-parent lines, repository reads, and undisturbed repository reads.
-From Findings (`findings`), it takes spots, edits, edit sets, edited
-trees, fixes, corrections, finding parts, same findings, and the
-requirement `findings#limit-fix-edit-sets`.
+From the Ontology (`ontology`), the design takes trees, items, declared
+items and their kinds, decision records, containment, names, current
+revisions, same items across trees, vector sets, groups of conformance
+vectors, sites, external items, edges of all five kinds and when an edge
+says what its kind of edge says, pinned edges, effective `supersedes`
+edges, retired items, items in force, the default branch, the ledger,
+finding classes, and parameters. From Changes (`changes`), it takes
+commits, the files of the tree of a commit, shallow commits, the
+parameter `default-branch-name` with its bindings, the commit of the
+default branch, the change of a commit, the base of the change of a
+commit, first-parent lines, repository reads, and undisturbed repository
+reads. From Findings (`findings`), it takes spots, edits, edit sets,
+edited texts, edited trees, fixes, finding parts, and the requirement
+`findings#limit-fix-edit-sets`.
 
 From Documents (`documents`), the design takes the parameter
-`file-readers` with its bindings, readers of valid paths, read files,
-sets of stopped files, files of declared items, origins, origin
-positions, extent hashes, vector files, the edges of a tree with their
-form runs and form positions, position subjects, the order of positions,
-the spots of runs, and tree findings. From Revisions (`revisions`), it
-takes base items. From the Ledger (`ledger`), it takes stored ledgers,
-ledger objects, and valid, broken, and newer ledgers. From Approval
-(`approval`), it takes the parameter `approval-kinds` with its bindings
-and in force under the bindings.
+`file-readers` with its bindings, read files, sets of stopped files, tag
+texts, accepted inputs, files of declared items, sets of names, named
+items, origins, origin positions, extent hashes, vector files, the edges
+of a tree with their form runs and form positions, position subjects,
+the order of positions, the spots of runs, and tree findings. From
+Revisions (`revisions`), it takes base items. From the Ledger
+(`ledger`), it takes stored ledgers, ledger objects, and valid, broken,
+and newer ledgers. From Approval (`approval`), it takes the parameter
+`approval-kinds` with its bindings and in force under the bindings.
 
 ## 1. Glossary
 
@@ -80,10 +78,10 @@ and in force under the bindings.
 | [tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
 | base tree | the earlier tree with which a conforming program compares a tree, such as the tree of the base of the change of a commit |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives the result "parse failure" for limits of its own, and the files of the tree whose content it stops reading as a test-vector set for limits of its own |
-| [binding of `historical-paths`](sinter:#historical-paths=v1) | a path set; the files whose valid paths are in its set are the historical files |
+| [binding of `historical-paths`](sinter:#historical-paths=v1) | a path set; when that path set is valid, the files whose valid paths are in its set are the historical files |
 | [historical file](sinter:#historical-file=v1) | a file of a tree whose valid path is in the set of a valid binding of `historical-paths` |
 | [retired](sinter:ontology#retired-item=v1), [in force](sinter:ontology#in-force-item=v1) | a declared item is retired in a tree at a point of a ledger when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired design or specification; a declared item is in force when it is not retired |
-| [in force under the bindings](sinter:approval#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, under the bindings of `approval-kinds`, `default-branch-name`, `file-readers`, and `external-namespaces` and the sets of stopped files of the trees that it reads |
+| [in force under the bindings](sinter:approval#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, under the bindings of `approval-kinds`, `default-branch-name`, `file-readers`, and `external-namespaces` and the sets of stopped files of the tree and of each tree of the first-parent line of the commit of the default branch |
 | [effective `supersedes` edge](sinter:ontology#effective-supersedes-edge=v1) | a `supersedes` edge that says what `supersedes` says, whose source and every item that holds its source are not deprecated, and whose source is approved |
 | [direct replacement](sinter:#successor=v1) | a declared item y directly replaces a declared item x when an effective `supersedes` edge has y as its source and x as its cited item, or matches `every-part` and replaces x by y by part name |
 | [successor](sinter:#successor=v1) | a declared item in force that replaces a retired declared item through one or more direct replacements, with every intermediate item retired |
@@ -94,7 +92,7 @@ and in force under the bindings.
 | [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
 | [cut history](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a needed git object is missing from the repository and not fetched, or a read file of a tree on the line is in that tree's set of stopped files |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
-| [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges whose source counts, whose cited item counts as retired, and whose file is not a historical file |
+| [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges that say what their kind of edge says, whose source counts, whose cited item counts as retired, and whose file is not a historical file |
 | [`cycle`](sinter:#cycle-finding=v1) | the finding class of cycles of `supersedes` and `refines` edges whose anchor member is not in a historical file |
 | [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree that are the base item of no declared item of a tree |
 | [`reused-label`](sinter:#reused-label-finding=v1) | the finding class of items with a new label whose label already appeared on the first-parent line of the default branch for a different kind or a different extent hash |
@@ -110,26 +108,20 @@ historical file when its valid path is in the set of that binding (term
 `historical-file`), whatever reads that file: a markdown file, a code
 file, a vector file, or a file with no reader.
 
-A historical file is still read as Documents specifies. Its declared
-items still exist, and its citations still give edges. For example, when
-`docs/devlog.md` is a historical file and holds `@cites d1=v1` where
-`d2` supersedes `d1`, the edge still exists, and the tree has no
+The declared items and edges of a historical file are those that the
+terms `documents#item-file` and `documents#tree-edge` give. For example,
+when `docs/devlog.md` is a historical file and holds `@cites d1=v1`
+where `d2` supersedes `d1`, the edge still exists, and the tree has no
 `retired` finding for that edge because its spot lies in a historical
 file.
 
 ### 2.2 Successors of a retired item
 
-A retired declared item can have zero, one, or several successors (term
-`successor`). Only a retired declared item can have a successor. A
-declared item that is in force has no successor, and an item that is not
-a declared item, such as a group of conformance vectors or a vector set,
-has no successor.
-
-Each direct replacement follows an effective `supersedes` edge or one of
-its `every-part` part replacements, and a chain of direct replacements
-to a successor ends at a declared item that is in force. These examples
-show how the rule works when every item is approved and no item carries
-`@deprecated` unless stated:
+The term `successor` defines the successors of a declared item in a tree
+at a point of a ledger. A retired declared item can have zero, one, or
+several successors. These examples show how the term `successor` works
+when every item is approved and no item carries `@deprecated` unless
+stated:
 
 1. **A chain.** Decision record `d2` has `@supersedes d1=v1`, and `d3`
    has `@supersedes d2=v1`. Both `d1` and `d2` are retired, and `d3` is
@@ -139,11 +131,12 @@ show how the rule works when every item is approved and no item carries
    in force. The successors of `d1` are `d2` and `d3`.
 3. **A diamond.** `d2` and `d3` both supersede `d1`, and `d4` supersedes
    both `d2` and `d3`. The only successor of `d1` is `d4`, given once.
-4. **Every-part supersession and the cascade.** Design `billing-2` has
-   `@supersedes billing=v1#*`. Design `billing` holds `billing#limit`
-   and `billing#legacy`. Design `billing-2` holds `billing-2#limit` and
-   no part named `legacy`. Both `billing#limit` and `billing#legacy` are
-   retired by the cascade. The only successor of `billing#limit` is
+4. **Every-part supersession and retirement of parts.** Design
+   `billing-2` has `@supersedes billing=v1#*`. Design `billing` holds
+   `billing#limit` and `billing#legacy`. Design `billing-2` holds
+   `billing-2#limit` and no part named `legacy`. Both `billing#limit`
+   and `billing#legacy` are retired because they belong to the retired
+   design `billing`. The only successor of `billing#limit` is
    `billing-2#limit`. Because `billing-2` holds no part named `legacy`,
    `billing#legacy` has no successor.
 5. **Deprecation.** Decision record `d1` carries `@deprecated`, and no
@@ -152,20 +145,19 @@ show how the rule works when every item is approved and no item carries
    `@deprecated`, the edge from `d3` is not effective, so `d2` is in
    force and has no successor.
 6. **A cycle inside a retired design.** Design `old` is superseded by
-   `new`, so `old#p` and `old#q` are retired by the cascade. Inside
-   `old`, `old#p` has `@supersedes old#q=v1` and `old#q` has
-   `@supersedes old#p=v1`. Both edges stay effective because neither
-   source nor `old` is deprecated. No chain of direct replacements from
-   `old#p` or `old#q` reaches an item in force, so neither `old#p` nor
-   `old#q` has a successor. If `new#q` also has an effective
-   `@supersedes old#q=v1` and is in force, the only successor of both
-   `old#p` and `old#q` is `new#q`.
+   `new`, so `old#p` and `old#q` are retired because they belong to the
+   retired design `old`. Inside `old`, `old#p` has `@supersedes
+   old#q=v1` and `old#q` has `@supersedes old#p=v1`. Both edges stay
+   effective because neither source nor `old` is deprecated. No chain of
+   direct replacements from `old#p` or `old#q` reaches an item in force,
+   so neither `old#p` nor `old#q` has a successor. If `new#q` also has
+   an effective `@supersedes old#q=v1` and is in force, the only
+   successor of both `old#p` and `old#q` is `new#q`.
 7. **An edge into an in-force cycle.** Items `y` and `z` supersede each
    other and are neither deprecated nor in a retired design, so both `y`
    and `z` are in force. Item `y` also has an effective
-   `@supersedes x=v1`, so `x` is retired. Because every intermediate
-   item on a chain of direct replacements to a successor is retired, the
-   only successor of `x` is `y`, and not `z`.
+   `@supersedes x=v1`, so `x` is retired. Because `y` is in force, the
+   only successor of `x` is `y`, and not `z` (term `successor`).
 
 ### 2.3 Findings of the class `retired` and offered fixes
 
@@ -195,34 +187,40 @@ By contrast, each of these gives no `retired` finding:
 - the `supersedes` edge from `billing-2` to `billing`;
 - `@cites billing#window=v1` inside `billing#limit`, because the source
   `billing#limit` is retired;
-- a vector line in `billing.test-vectors.jsonl`, because the owning
-  design `billing` is retired;
+- a vector line in `billing.test-vectors.jsonl`, because the item of the
+  kind design `billing` of that vector set is retired;
 - a `@cites` edge to an external item such as `rfc/8259`, because an
-  external item never counts as retired;
+  external item meets neither condition for counting as retired
+  (`retired-finding`);
 - an edge that does not say what its kind of edge says, such as
   `@satisfies d1=v1` to a retired decision record.
 
 No requirement obliges a conforming program to offer a fix for a
 `retired` finding. When a program does offer a fix for a `retired`
 finding whose cited item has successors, the requirement
-`limit-retired-fix-edit-sets` fixes its edit sets. For example, when
-`docs/guide.md` holds `@cites billing#{limit=v1, window=v1}`,
-`billing#limit` has the single successor `billing-2#limit` at `v1`, and
-`billing#window` is in force, the offered fix has one edit set. That
-edit set edits only that tag line so that it cites `billing-2#limit=v1`
-and `billing#window=v1`, for example
-`@cites {billing-2#limit=v1, billing#window=v1}`. When a citation has
-two successors `d3` and `d4`, the fix has two edit sets, first for `d3`
-and then for `d4`, in code point order of their names. When the original
-edge is unpinned (`@cites billing#limit=*`), the replacement edge stays
-unpinned (`@cites billing-2#limit=*`). When the cited item has no
+`limit-retired-fix-edit-sets` limits its edit sets. For example, suppose
+that `billing-2#limit` has an effective `@supersedes billing#limit=v1`,
+that `billing-2#limit` is in force at `v1`, and that `billing#window` is
+in force. When `docs/guide.md` holds
+`@cites billing#{limit=v1, window=v1}`, `billing#limit` has the single
+successor `billing-2#limit`, so a fix that meets
+`limit-retired-fix-edit-sets` has one edit set. That edit set edits only
+that tag line so that it cites `billing-2#limit=v1` and
+`billing#window=v1`, for example
+`@cites {billing-2#limit=v1, billing#window=v1}`. When the cited item
+has two successors `d3` and `d4`, a fix that meets
+`limit-retired-fix-edit-sets` has two edit sets, first for `d3` and then
+for `d4`, in code point order of their names. When the original edge is
+unpinned (`@cites billing#limit=*`), the edge in the edited citation
+stays unpinned (`@cites billing-2#limit=*`). When the cited item has no
 successor (for example a `@deprecated` record or a retired vector
 group), `limit-retired-fix-edit-sets` adds no condition beyond
 `findings#limit-fix-edit-sets`.
 
-In three cases, a successor of a retired item cannot be named by an edit
-of the citation, so no edit set meets `limit-retired-fix-edit-sets` for
-that successor, and a conforming program offers no fix for that finding:
+For example, in these cases, a successor of a retired item cannot be
+named by an edit of the citation, so no edit set meets
+`limit-retired-fix-edit-sets` for that successor, and a conforming
+program offers no fix for that finding:
 
 1. **An unwritable form pin.** A vector line in
    `billing.test-vectors.jsonl` has `"form":"#row=v1"`, and schema
@@ -240,6 +238,12 @@ that successor, and a conforming program offers no fix for that finding:
    names share the name `d2`, and one or both supersede `d1`. Because a
    duplicated name names none of those items (`documents#named-item`),
    no edit of the citation can cite that successor.
+4. **A citation that already names the successor with another pin.** A
+   citation is `@cites {d1=v1, d2=v1}`, where `d2` is the only successor
+   of `d1` and the current revision of `d2` is `v2`. Because two entries
+   with the same entry name make a citation invalid
+   (`identifiers#citation-line`), no single citation can cite both
+   `d2=v2` and `d2=v1`.
 
 The same consequence holds when a retired item has two successors and
 only one of them fails one of these conditions: because a fix that meets
@@ -250,19 +254,15 @@ conforming program offers no fix for that finding.
 
 The term `edge-cycle` defines a cycle of `supersedes` and `refines`
 edges in a tree, and the atom `cycle-finding` gives the findings of the
-class `cycle`. A `supersedes` edge counts in a cycle whether or not it
-is effective, and an `every-part` `supersedes` edge contributes each of
-its part replacements. An edge that does not say what its kind of edge
-says takes no part in a cycle. Two declared items belong to one cycle
-when each reaches the other along these steps, and a declared item with
-a step to itself is a cycle by itself.
+class `cycle`.
 
 For example, each of these gives one `cycle` finding when its anchor
 member is not in a historical file:
 
 - `d1` has `@supersedes d2=v1` and `d2` has `@supersedes d1=v1` (subject
   `d1`);
-- requirement `r` has `@supersedes r=v1` (subject `r`);
+- requirement `r` has `@supersedes r=v1` and reaches no other item that
+  reaches it (subject `r`);
 - atom `x` has `@refines y=v1` and atom `y` has `@refines x=v1`
   (subject `x`);
 - requirement `r1` has `@supersedes r2=v1` and `r2` has
@@ -282,9 +282,9 @@ chooses the spot.
 
 ### 2.5 Deleted decision records
 
-The atom `deleted-decision-finding` compares a tree against a base tree
-and reports each decision record of the base tree that is the base item
-of no declared item of the tree (term `revisions#base-item`).
+The atom `deleted-decision-finding` gives the findings of the class
+`deleted-decision` for a tree against a base tree, using
+`revisions#base-item`.
 
 For example, when a change deletes the file of `@decision rust-bridge=v1`,
 or renames `@decision parser-bridge=v1` to `@decision wasm-bridge=v1`,
@@ -294,20 +294,20 @@ with the same name keeps its base item and gives no finding. Changing
 `@decision x=v1` to `@req x=v1` in the shared set keeps `x` as the base
 item of that requirement and gives no `deleted-decision` finding.
 
-A `deleted-decision` finding has no spot, because the deleted record is
-no longer in the tree. Therefore, no binding of `historical-paths`
-removes a `deleted-decision` finding. For the change of a commit, the
-base tree is the tree of the base of the change; when the change has no
-base, a conforming program gives that the change has no base and gives
-no `deleted-decision` finding.
+A `deleted-decision` finding has no spot, because the finding names a
+record that is the base item of no declared item of the tree. Therefore,
+no binding of `historical-paths` removes a `deleted-decision` finding.
+The requirements `compare-change-for-deleted-decisions`,
+`report-missing-base`, and `omit-missing-base-report` cover the change
+of a commit.
 
 ### 2.6 Reused labels
 
 The term `new-label-item` selects the declared items of a tree that the
 atom `reused-label-finding` compares. That atom compares each such item
-against a sequence of earlier trees by `revisions#base-item`. For the
-change of a commit, that sequence is the trees of the commits of the
-first-parent line of the commit of the default branch.
+against a sequence of trees by `revisions#base-item`. For the change of
+a commit, that sequence is the trees of the commits of the first-parent
+line of the commit of the default branch.
 
 For example, on the default branch, `@req billing#size` had label `v2`
 with text T1, and later moved to label `v3` with text T2. The base tree
@@ -334,57 +334,52 @@ of a branch holds `billing#size=v3`.
   only prevents findings whose spot lies in a historical file of the
   checked tree.
 
-When the change of a commit has no base, a conforming program gives that
-the change has no base and gives no `reused-label` finding. When the
-change has a base and has no item with a new label, the program needs no
-history and gives no `reused-label` finding, even in a shallow clone.
-When the change has a base and has at least one item with a new label,
-and the history of the default branch is cut (term `cut-history`) or the
-program stops reading the first-parent line for limits of its own, the
-program gives that it cannot see the whole history and gives no
-`reused-label` finding.
+For the change of a commit, the requirements
+`compare-change-for-reused-labels`, `report-missing-base`,
+`omit-missing-base-report`, `report-cut-history`, and
+`omit-cut-history-report` state what a conforming program gives when the
+change has no base, when the tree of the commit has no item with a new
+label, or when the history of the default branch is cut (term
+`cut-history`) or the program stops reading the first-parent line for
+limits of its own.
 
 ### 2.7 Bindings, ledgers, concurrent changes, and program limits
 
 All trees compared in one check are read under one binding of each
-parameter. Under a binding of `file-readers` or `external-namespaces`
-that is not valid, a conforming program gives no successors and no
-findings of Standing's classes (requirement
-`omit-results-under-invalid-reading-bindings`). Under a binding of
-`historical-paths` that is not valid, a conforming program gives no
-findings of Standing's classes (requirement
-`omit-findings-under-invalid-historical-paths`), while successors do not
-depend on `historical-paths`. Under a binding of `default-branch-name`
-that is not a branch name, the default branch has no commit
-(`changes#default-branch-commit`), so the change of a commit has no
-base.
+parameter. The requirements
+`omit-results-under-invalid-reading-bindings` and
+`omit-findings-under-invalid-historical-paths` cover bindings of
+`file-readers`, `external-namespaces`, and `historical-paths` that are
+not valid. Successors do not depend on `historical-paths`. Under a
+binding of `default-branch-name` that is not a branch name, the default
+branch has no commit (`changes#default-branch-commit`), so the change of
+a commit has no base.
 
 Successors and the class `retired` read in force under the bindings,
-which reads the ledger. When the ledger of a git repository is broken or
-newer, or when the git repository does not hold its ledger objects, a
-conforming program gives no successors and no `retired` findings
-(requirement `omit-results-from-invalid-ledgers`). When a git repository
-lacks git objects that a tree of the first-parent line needs for
-`approval#bound-in-force-item`, a conforming program gives the
+which reads the ledger. The requirement
+`omit-results-from-invalid-ledgers` covers a ledger that is broken or
+newer and a git repository that does not hold its ledger objects. When a
+git repository lacks git objects that a tree of the first-parent line
+needs for `approval#bound-in-force-item`, a conforming program gives the
 successors or `retired` findings, or gives none. The classes `cycle`,
 `deleted-decision`, and `reused-label` read no ledger.
 
-A conforming program that refuses a graph of edges of a tree for limits
-of its own gives no successors and no `retired` or `cycle` findings for
-that tree. A conforming program that stops reading the first-parent line
-for limits of its own, or puts a read file of a tree of that line in the
-set of stopped files of that tree, gives that it cannot see the whole
-history and no `reused-label` finding when at least one item with a new
-label exists.
+The requirements `give-successors`, `give-retired-findings`, and
+`give-cycle-findings` state what a conforming program gives when it
+refuses the edges of a tree for limits of its own. The requirements
+`report-cut-history` and `omit-cut-history-report` state what a
+conforming program gives when it stops reading the first-parent line for
+limits of its own or puts a read file of a tree of that line in the set
+of stopped files of that tree.
 
 What a program gives while another process changes a file, a ref, or the
 ledger is a matter of the quality of an implementation.
 
 ### 2.8 Findings
 
-Each finding of Standing's four classes is a
-[tree finding](sinter:documents#tree-finding=v1). No finding of any of
-these classes is ackable.
+Each finding of the classes `retired`, `cycle`, `deleted-decision`, and
+`reused-label` is a [tree finding](sinter:documents#tree-finding=v1). No
+finding of any of these classes is ackable.
 
 | class | atom |
 |---|---|
