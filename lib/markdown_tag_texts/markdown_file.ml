@@ -199,15 +199,14 @@ let list_items ctx blocks =
    ends before the next such heading of the same level or less, and so ends the
    claims of the declarations of the sections before it. *)
 let sections ctx blocks =
+  let section_paragraph = first_paragraph ctx ~in_list_item:false in
   let rec openers acc = function
     | [] -> List.rev acc
     | B.Heading (h, meta) :: rest ->
         let heading =
           { line = meta_first_line ctx meta; level = B.Heading.level h }
         in
-        openers
-          ((heading, first_paragraph ctx ~in_list_item:false rest) :: acc)
-          rest
+        openers ((heading, section_paragraph rest) :: acc) rest
     | _ :: rest -> openers acc rest
   in
   let headings = Array.of_list (openers [] blocks) in
@@ -237,7 +236,7 @@ let sections ctx blocks =
         (if level_0_last >= ctx.first_text_line then
            Some { first = ctx.first_text_line; last = level_0_last }
          else None);
-      first_paragraph = first_paragraph ctx ~in_list_item:false blocks;
+      first_paragraph = section_paragraph blocks;
     }
   in
   level_0
