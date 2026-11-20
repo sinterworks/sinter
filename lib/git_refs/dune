@@ -8,7 +8,8 @@
   sinter_repository_files
   sinter_ref_names
   sinter_git_objects
-  sinter_git_model)
+  sinter_git_model
+  sinter_git_config)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation

@@ -60,7 +60,13 @@ let () =
   | [ _; "refs"; git_folder; name ] ->
       let refs =
         Refs.create
-          { Refs.max_loose_size = 1 lsl 20; max_packed_size = 1 lsl 30 }
+          {
+            Refs.max_loose_size = 1 lsl 20;
+            max_packed_size = 1 lsl 30;
+            max_tables_list_size = 1 lsl 20;
+            max_stack_size = 1 lsl 30;
+            max_names_size = 1 lsl 30;
+          }
           Refs.Files Id.Sha1 ~git_folder Refs.Main
       in
       List.iter

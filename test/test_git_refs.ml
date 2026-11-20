@@ -18,7 +18,16 @@ let property ?(count = 500) ~name ~print generator check =
     (QCheck2.Test.make ~count ~name ~print generator check)
 
 let case name f = Alcotest.test_case name `Quick f
-let limits = { Refs.max_loose_size = 1 lsl 16; max_packed_size = 1 lsl 30 }
+
+let limits =
+  {
+    Refs.max_loose_size = 1 lsl 16;
+    max_packed_size = 1 lsl 30;
+    max_tables_list_size = 1 lsl 16;
+    max_stack_size = 1 lsl 30;
+    max_names_size = 1 lsl 30;
+  }
+
 let ( / ) = Filename.concat
 let h1 = String.make 40 '1'
 let h2 = String.make 40 '2'
@@ -32,7 +41,6 @@ let show_target = function
 let failure_name = Test_repository_files.failure_name
 
 let error_name = function
-  | Refs.Reftable_not_read -> "reftable not read"
   | Refs.Unread { pathname; failure } ->
       Printf.sprintf "unread %s: %s"
         (Filename.basename pathname)
@@ -41,6 +49,8 @@ let error_name = function
       "packed-refs has no final line feed"
   | Refs.Malformed_packed_refs { error = Packed_refs.Repeated_name name; _ } ->
       "packed-refs repeats " ^ name
+  | Refs.Malformed_tables_list _ -> "malformed tables.list"
+  | Refs.Malformed_table _ -> "malformed table"
 
 let show_lookup = function
   | Ok (Some target) -> show_target target
@@ -456,15 +466,6 @@ let files_tests =
             "";
             "refs/heads/\xff";
           ]);
-    case "the format reftable is not read" (fun () ->
-        let root =
-          git_folder [ ("refs/heads/main", h1 ^ "\n"); ("HEAD", h1 ^ "\n") ]
-        in
-        let refs = refs_of ~storage:Refs.Reftable root in
-        Alcotest.(check string)
-          "lookup" "reftable not read"
-          (lookup refs "refs/heads/main");
-        Alcotest.(check string) "head" "reftable not read" (head refs));
     case "a file larger than its limit gives no target, one inside gives it"
       (fun () ->
         let content = h1 ^ "\n" in
@@ -481,7 +482,7 @@ let files_tests =
         in
         let refs max_loose_size max_packed_size =
           Refs.create
-            { Refs.max_loose_size; max_packed_size }
+            { limits with Refs.max_loose_size; max_packed_size }
             Refs.Files Id.Sha1 ~git_folder:root Refs.Main
         in
         Alcotest.(check string)
@@ -712,15 +713,6 @@ let adapter_tests =
           "an error of the objects" true
           (match Refs.refs refs ~is_commit:failing "refs/heads/main" with
           | Error (Refs.Objects "the store") -> true
-          | _ -> false);
-        Alcotest.(check bool)
-          "an error of the refs" true
-          (match
-             Refs.refs
-               (refs_of ~storage:Refs.Reftable root)
-               ~is_commit "refs/heads/main"
-           with
-          | Error (Refs.Refs Refs.Reftable_not_read) -> true
           | _ -> false));
   ]
 

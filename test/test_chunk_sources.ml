@@ -227,6 +227,7 @@ let allowed_libraries =
     "sinter_repository_files";
     "sinter_git_objects";
     "sinter_ref_names";
+    "sinter_git_config";
     "sinter_git_object_store";
     "decompress.de";
     "decompress.zl";

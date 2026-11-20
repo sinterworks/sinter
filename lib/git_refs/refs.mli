@@ -10,6 +10,26 @@ type storage =
   | Files  (** the files format, also when the file gives no format *)
   | Reftable  (** the reftable format *)
 
+type storage_error =
+  | Not_version_1
+      (** the file gives a ref storage format, and the last value of
+          [core.repositoryformatversion] is not [1] *)
+  | Unknown_format of string option
+      (** the last value of [extensions.refStorage] is not one of [files],
+          [files://], [reftable], and [reftable://] *)
+  | Payload of string
+      (** the last value of [extensions.refStorage] is [files://] or
+          [reftable://] followed by this payload, which is not empty *)
+
+val storage :
+  (Sinter_git_config.key * Sinter_git_config.value) list ->
+  (storage, storage_error) result
+(** [storage settings] is the ref storage format of a git repository whose file
+    [config] of the git folder holds the settings [settings], as
+    {!Sinter_git_config.parse} gives them, with no include applied: [Files] when
+    no setting is [extensions.refStorage], and otherwise the format that the
+    last value of [extensions.refStorage] names. *)
+
 (** The working tree whose refs are read. *)
 type working_tree =
   | Main
@@ -23,18 +43,29 @@ type limits = {
       (** the maximum size in bytes of the file of a loose ref *)
   max_packed_size : int;
       (** the maximum size in bytes of the file [packed-refs] *)
+  max_tables_list_size : int;
+      (** the maximum size in bytes of the file [tables.list] of a stack *)
+  max_stack_size : int;
+      (** the maximum sum of the sizes in bytes of the tables of a stack *)
+  max_names_size : int;
+      (** the maximum sum of the lengths in bytes of the names of the ref
+          records of the tables of a stack *)
 }
 (** The limits of the reads of refs. A file larger than its limit gives [Unread]
-    with [Too_large]: no target, and no part of one. *)
+    with [Too_large]: no target, and no part of one. A table larger than what
+    [max_stack_size] leaves after the tables of its stack that are newer than it
+    is such a file. Names larger than what [max_names_size] leaves give
+    [Malformed_table] with {!Reftable.Names_too_large}. *)
 
 type error =
-  | Reftable_not_read
-      (** the ref storage format is [Reftable], which this interface does not
-          read yet *)
   | Unread of { pathname : string; failure : Sinter_repository_files.failure }
       (** the read of the file at [pathname] failed *)
   | Malformed_packed_refs of { pathname : string; error : Packed_refs.error }
       (** the file [packed-refs] at [pathname] is not in its form *)
+  | Malformed_tables_list of { pathname : string; error : Reftable.list_error }
+      (** the file [tables.list] at [pathname] is not in its form *)
+  | Malformed_table of { pathname : string; error : Reftable.error }
+      (** the table at [pathname] is not in its form *)
 
 type 'e failure =
   | Refs of error  (** the refs gave this error *)
@@ -45,8 +76,10 @@ type 'e failure =
 module Make (_ : Sinter_repository_files.READER) : sig
   type t
   (** The refs of a working tree of a git repository. A value reads the file
-      [packed-refs] at most once, at the first lookup that needs it, and keeps
-      what it read for as long as the value lives. *)
+      [packed-refs], and each stack with its file [tables.list] and its tables,
+      at most once, at the first lookup that needs it, and keeps what it read,
+      or the error of that read, for as long as the value lives. A lookup reads
+      only the stack from which its ref is read. *)
 
   val create :
     limits ->
@@ -84,6 +117,22 @@ module Make (_ : Sinter_repository_files.READER) : sig
       - with no loose ref, the ref is the ref of that name in the file
         [packed-refs] of the git folder, when the folder is the git folder and
         that file holds one, or none.
+
+      In the reftable format:
+
+      - the own refs of the working tree are those of the files format; an own
+        ref of a [Linked] working tree is read from the stack of the folder of
+        that working tree, and each other ref from the stack of the git folder;
+      - the stack of a folder is the folder [reftable] in it: its file
+        [tables.list] names the tables of the stack by {!Reftable.table_names},
+        each the file of that name in the folder [reftable], and each table
+        gives its ref records by {!Reftable.parse};
+      - the ref of a name is the ref record of that name in the newest table
+        that holds one, and none when that record is a [Deletion] or when no
+        table holds one: an [Object id] record gives [Object id], and a
+        [Symbolic name] record gives [Symbolic name] when [name] is a ref name
+        by {!Sinter_ref_names.Ref_name.is_ref_name} and [Broken] otherwise;
+      - no other file of the folder, such as the file [HEAD], is read.
 
       A folder on the pathname before its last name may be a symbolic link, and
       it is followed. *)
