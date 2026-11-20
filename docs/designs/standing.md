@@ -25,9 +25,8 @@ items that cite that declared item can still name it, and effective
 conforming program finds those successors, reports edges to retired
 items, reports cycles of `supersedes` and `refines` edges, reports
 decision records that a change deletes, and reports items that reuse a
-label from the history of the default branch for other content. A
-repository can also name historical paths so that historical files keep
-their citations without producing findings of these classes.
+label from the history of the default branch for other content. A repository can also name historical paths so that historical files
+keep their citations without giving findings of these classes.
 
 From Text and notation (`text`), the design takes texts, characters,
 spaces, tabs, line feeds, whole numbers, decimal numerals, boundaries,
@@ -959,9 +958,10 @@ must meet all three of these conditions:
      when E is pinned, and is not pinned when E is not pinned;
    - when a citation entry gives E, the set of edges that the edited
      citation gives in T′ (each taken by its kind of edge, its cited
-     item as the same item, and its pinned label or that it is not
-     pinned) is the set of edges that the citation of E gave in T with
-     the entry of E replaced by E′.
+     item as the same item or no cited item with the same entry name,
+     and its pinned label or that it is not pinned) is the set of edges
+     that the citation of E gave in T with the entry of E replaced by
+     E′.
 
 When no edit set meets conditions 2 and 3 for some successor of c, no
 fix meets this requirement, so a conforming program must give no fix for
@@ -1303,10 +1303,11 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for that input. Each vector follows from the requirements and adds
-nothing to them. Each group has a subsection below that gives the forms
-of that group, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v1) gives the
-forms of a group. No group of this design uses a need, so the forms of
+nothing to them. The vectors are in six groups: `successors`, `retired`,
+`retired-fixes`, `cycles`, `deleted-decisions`, and `reused-labels`.
+Each group has a subsection below that gives the forms of that group,
+as the term [`group-form-list`](sinter:data-forms#group-form-list=v1)
+gives the forms of a group. No group of this design uses a need, so the forms of
 each group give no need names. These requirements have no vectors:
 `omit-results-under-invalid-reading-bindings`,
 `omit-results-from-invalid-ledgers`,
@@ -1590,7 +1591,258 @@ When `fix-allowed` is `false`, a conforming program gives no fix for the
 `retired` finding. When `fix-allowed` is `true`, a conforming program
 need not give a fix; when that program gives a fix for the `retired`
 finding, that fix has as many edit sets as `edit-sets` has elements, in
-the same order, where each edit set edits only `path` within `run` and
-produces in its edited tree the replacement edge to that element's
+the same order, where each edit set edits only `path` within `run`,
+gives in its edited tree the replacement edge to that element's
 `successor` (with `label` when `pinned` is `true`, and unpinned when
-`pinned` is `false`) while preserving any other edges of the citation.
+`pinned` is `false`), and keeps any other edges of the citation.
+
+### 6.4 Findings of the class `cycle`
+
+@schema cycles-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, whole-number=v1,
+        decimal-numeral=v1, position=v1, code-point-order=v1, result=v1,
+        code-span=v1,
+    },
+    files#{path=v1, path-set=v1, valid-path-set=v1},
+    data-forms#{
+        index=v1, group-form-list=v1, vector-meaning=v1, json-value=v1,
+    },
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
+        citation-line=v1, declaration=v1, tag-line-text=v1,
+    },
+    ontology#{
+        declared-item=v1, containment=v1, item-name=v1, edge=v1,
+        supersedes-edge=v1, refines-edge=v1, tree=v1, finding-class=v1,
+        parameter=v1,
+    },
+    documents#{
+        file-readers=v1, item-file=v1, tree-edge=v1, origin-position=v1,
+        position-order=v1, tree-finding=v1, unreadable-file=v1,
+    },
+    #{
+        historical-paths=v1, historical-file=v1, edge-cycle=v1,
+        cycle-finding=v1, give-cycle-findings=v1,
+        omit-findings-under-invalid-historical-paths=v1,
+    },
+}
+
+The group `cycles` holds the vectors of the requirements
+`give-cycle-findings` and
+`omit-findings-under-invalid-historical-paths`. Each vector gives a
+binding of `historical-paths`, the declared items of a tree (with their
+kinds, owning designs, file paths, and declaration origin positions),
+and the `supersedes` and `refines` edges of the tree. The vector gives
+the `cycle` findings of the tree by subject and declaration origin
+position, or `{}` when the binding of `historical-paths` is not valid.
+The group uses no need, so these forms give no need names.
+
+The input of each vector stands for a valid binding of `file-readers`, a
+binding of `external-namespaces` for which a conforming program of
+Identifiers gives the result "valid", and the empty set of stopped
+files. No other process changes these inputs while the program runs.
+
+The JSON values, objects, arrays, strings, numbers, and the literal
+names `true` and `false` of this schema are as RFC 8259 defines them.
+Inside `input` and `values`, a text is a JSON string whose characters
+are the characters of the text in order, a whole number of 1 or more is
+a JSON number written as its decimal numeral, and a sequence is a JSON
+array of its elements in order.
+
+- `input`: a JSON object with three members:
+  - `historical-paths`: a binding of `historical-paths`, as a JSON array
+    of the path set members of that path set, each a text, in order.
+  - `items`: the declared items of the tree, as a sequence. Each element
+    is a JSON object with `name` (the name of the item), `kind` (one of
+    `"design"`, `"spec"`, `"schema"`, `"req"`, `"atom"`, `"term"`, and
+    `"decision"`), `path` (the valid path of the file of the item),
+    `line` (the line number of the origin position of the text of the
+    tag line of the declaration of the item), `column` (the column of
+    that origin position), and, when an item of the kind design holds
+    the item, `design` (the name of that item of the kind design).
+  - `edges`: the `supersedes` and `refines` edges of the tree, as a
+    sequence. Each element is a JSON object with `kind` (`"supersedes"`
+    or `"refines"`), `fits` (`true` when the edge says what its kind of
+    edge says in the tree, and `false` otherwise), `source` (the 1-based
+    index of the source in `items`), `cited` (the 1-based index of the
+    cited item in `items`), and, for a `supersedes` edge, `every-part`
+    (`true` when `every-part` matches its citation entry, and `false`
+    otherwise).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: `{}` when `historical-paths` is not a valid path set;
+  otherwise, a JSON object with one member, `findings`, a JSON array
+  with one element for each `cycle` tree finding of the tree, in code
+  point order of `subject`. Each element is a JSON object with `subject`
+  (the subject of the finding), `path` (the valid path of the spot of
+  the finding), `line` (the line number of the start of the spot of the
+  finding), and `column` (the column of the start of the spot of the
+  finding).
+
+When `values` is `{}`, a conforming program gives no finding of the
+class `cycle` for the tree. When `values` is not `{}` and a conforming
+program gives the findings of the class `cycle` of the tree under the
+bindings and the empty set of stopped files, that program gives one
+finding of that class for each element of `findings`, with the subject
+that the element states, and gives no other finding of that class; when
+that program gives the spot of such a finding, the spot has the valid
+path and start position that the element states.
+
+### 6.5 Findings of the class `deleted-decision`
+
+@schema deleted-decisions-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1,
+        code-point-order=v1, result=v1, code-span=v1,
+    },
+    files#{path-set=v1, valid-path-set=v1},
+    data-forms#{group-form-list=v1, vector-meaning=v1, json-value=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{
+        declared-item=v1, decision-record=v1, item-name=v1, tree=v1,
+        finding-class=v1, parameter=v1,
+    },
+    documents#{
+        file-readers=v1, name-set=v1, tree-finding=v1,
+        unreadable-file=v1,
+    },
+    revisions#{base-item=v1},
+    #{
+        historical-paths=v1, deleted-decision-finding=v1,
+        give-deleted-decision-findings=v1,
+        omit-findings-under-invalid-historical-paths=v1,
+    },
+}
+
+The group `deleted-decisions` holds the vectors of the requirements
+`give-deleted-decision-findings` and
+`omit-findings-under-invalid-historical-paths`. Each vector gives a
+binding of `historical-paths`, the declared items of a base tree, and
+the declared items of a tree. The vector gives the subjects of the
+`deleted-decision` findings of the tree against the base tree, or `{}`
+when the binding of `historical-paths` is not valid. The group uses no
+need, so these forms give no need names.
+
+The input of each vector stands for a valid binding of `file-readers`, a
+binding of `external-namespaces` for which a conforming program of
+Identifiers gives the result "valid", and empty sets of stopped files.
+No other process changes these inputs while the program runs.
+
+The JSON values, objects, arrays, strings, and the literal names `true`
+and `false` of this schema are as RFC 8259 defines them. Inside `input`
+and `values`, a text is a JSON string whose characters are the
+characters of the text in order, and a sequence is a JSON array of its
+elements in order.
+
+- `input`: a JSON object with three members:
+  - `historical-paths`: a binding of `historical-paths`, as a JSON array
+    of the path set members of that path set, each a text, in order.
+  - `base`: the declared items of the base tree, as a sequence.
+  - `tree`: the declared items of the tree, as a sequence.
+  Each element of `base` and of `tree` is a JSON object with `name` (the
+  name of the item), `kind` (one of `"design"`, `"spec"`, `"schema"`,
+  `"req"`, `"atom"`, `"term"`, and `"decision"`), and, when the item is
+  in a set of names, `set` (`"shared"` for the shared set, or
+  `"design:"` followed by the name of the item of the kind design for
+  the set of that design).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: `{}` when `historical-paths` is not a valid path set;
+  otherwise, a JSON object with one member, `findings`, a JSON array of
+  the subjects of the `deleted-decision` tree findings of the tree
+  against the base tree, each once, in code point order.
+
+When `values` is `{}`, a conforming program gives no finding of the
+class `deleted-decision` for the tree. When `values` is not `{}` and a
+conforming program gives the findings of the class `deleted-decision` of
+the tree against the base tree under the bindings and empty sets of
+stopped files, that program gives one finding of that class with no spot
+for each subject in `findings` and gives no other finding of that class.
+
+### 6.6 Findings of the class `reused-label`
+
+@schema reused-labels-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1,
+        code-point-order=v1, sequence=v1, result=v1, code-span=v1,
+    },
+    files#{path=v1, path-set=v1, valid-path-set=v1},
+    data-forms#{
+        group-form-list=v1, vector-meaning=v1, json-value=v1,
+        hash-form=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    ontology#{
+        declared-item=v1, item-name=v1, item-revision=v1, tree=v1,
+        finding-class=v1, parameter=v1,
+    },
+    documents#{
+        file-readers=v1, name-set=v1, extent-hash=v1, item-file=v1,
+        tree-finding=v1, unreadable-file=v1,
+    },
+    revisions#{base-item=v1},
+    #{
+        historical-paths=v1, historical-file=v1, new-label-item=v1,
+        reused-label-finding=v1, give-reused-label-findings=v1,
+        omit-findings-under-invalid-historical-paths=v1,
+    },
+}
+
+The group `reused-labels` holds the vectors of the requirements
+`give-reused-label-findings` and
+`omit-findings-under-invalid-historical-paths`. Each vector gives a
+binding of `historical-paths`, the declared items of a base tree, the
+declared items of a tree, and a finite sequence of history trees. The
+vector gives the subjects of the `reused-label` findings of the tree
+against the base tree and that sequence, or `{}` when the binding of
+`historical-paths` is not valid. The group uses no need, so these forms
+give no need names.
+
+The input of each vector stands for a valid binding of `file-readers`, a
+binding of `external-namespaces` for which a conforming program of
+Identifiers gives the result "valid", and empty sets of stopped files.
+No other process changes these inputs while the program runs.
+
+The JSON values, objects, arrays, strings, and the literal names `true`
+and `false` of this schema are as RFC 8259 defines them. Inside `input`
+and `values`, a text is a JSON string whose characters are the
+characters of the text in order, and a sequence is a JSON array of its
+elements in order.
+
+- `input`: a JSON object with four members:
+  - `historical-paths`: a binding of `historical-paths`, as a JSON array
+    of the path set members of that path set, each a text, in order.
+  - `base`: the declared items of the base tree, as a sequence.
+  - `tree`: the declared items of the tree, as a sequence.
+  - `history`: the finite sequence of history trees, as a JSON array in
+    which each element is the sequence of declared items of that history
+    tree.
+  Each declared item in `base`, in `tree`, and in each element of
+  `history` is a JSON object with `name` (the name of the item), `kind`
+  (one of `"design"`, `"spec"`, `"schema"`, `"req"`, `"atom"`, `"term"`,
+  and `"decision"`), `hash` (the extent hash of the item, a text that
+  fits the hash form), `path` (the valid path of the file of the item),
+  optional `label` (the current revision of the item, omitted when it is
+  a term with no label), and, when the item is in a set of names, `set`
+  (`"shared"` for the shared set, or `"design:"` followed by the name of
+  the item of the kind design for the set of that design).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: `{}` when `historical-paths` is not a valid path set;
+  otherwise, a JSON object with one member, `findings`, a JSON array of
+  the subjects of the `reused-label` tree findings of the tree against
+  the base tree and `history`, each once, in code point order.
+
+When `values` is `{}`, a conforming program gives no finding of the
+class `reused-label` for the tree. When `values` is not `{}` and a
+conforming program gives the findings of the class `reused-label` of the
+tree against the base tree and `history` under the bindings and empty
+sets of stopped files, that program gives one finding of that class with
+each subject in `findings` and gives no other finding of that class.
