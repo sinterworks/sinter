@@ -1191,7 +1191,7 @@ members that the schema names for it, and no other member.
 }
 
 The group `paths` holds the vectors of the requirement `validate-paths`.
-Each vector line of the group follows the schema `vector-line`. Each
+Each vector line of the group meets the schema `vector-line`. Each
 vector gives a text and the result that a conforming program gives when
 it validates the text as a path.
 
@@ -1234,7 +1234,7 @@ program gives the result that `result` holds, and no other result.
 The group `file-reads` holds the vectors of the requirements
 `give-invalid-for-non-paths`, `give-file-read-results`,
 `give-file-text`, and `omit-texts-of-other-results`. Each vector line of
-the group follows the schema `vector-line`. Each vector gives a text and
+the group meets the schema `vector-line`. Each vector gives a text and
 a folder tree, and what a conforming program gives when it reads the
 text as a path in the folder tree.
 
@@ -1328,8 +1328,7 @@ skip.
   privilege, as POSIX.1-2024 defines it, that gives it a permission that
   a file object of the folder tree takes away. A vector has this need
   when a file object of its folder tree has the member `read`, `search`,
-  or `write` with the value `false`, as in the vectors whose file
-  objects take away a permission.
+  or `write` with the value `false`.
 - `non-utf-8-names`: the folder tree is on a file system that keeps each
   entry name of the folder tree that is not valid UTF-8 as the runner
   makes it, byte for byte. A vector has this need when an entry name of
@@ -1338,8 +1337,7 @@ skip.
   member `owned-by-other` with the value `true` has an owner whose user
   ID differs from the effective user ID of the process of the program. A
   vector has this need when a file object of its folder tree has the
-  member `owned-by-other` with the value `true`, as in the vector whose
-  regular file has `owned-by-other` set to `true`.
+  member `owned-by-other` with the value `true`.
 
 A vector of the group `file-reads` has the member `needs` when, and only
 when, it has one or more of these needs, and the member is a JSON array
@@ -1370,7 +1368,7 @@ fail, as when the program does not give the result of a vector.
 }
 
 The group `globs` holds the vectors of the requirement `validate-globs`.
-Each vector line of the group follows the schema `vector-line`. Each
+Each vector line of the group meets the schema `vector-line`. Each
 vector gives a text and the result that a conforming program gives when
 it validates the text as a glob.
 
@@ -1405,7 +1403,7 @@ program gives the result that `result` holds, and no other result.
 }
 
 The group `fits` holds the vectors of the requirement `decide-glob-fit`.
-Each vector line of the group follows the schema `vector-line`. Each
+Each vector line of the group meets the schema `vector-line`. Each
 vector gives a valid glob and a valid path, and the result that a
 conforming program gives when it decides whether the valid path fits the
 valid glob. The group `globs` holds a vector of each valid glob of the
@@ -1442,7 +1440,7 @@ result.
 }
 
 The group `path-sets` holds the vectors of the requirement
-`validate-path-sets`. Each vector line of the group follows the schema
+`validate-path-sets`. Each vector line of the group meets the schema
 `vector-line`. Each vector gives a path set and the result that a
 conforming program gives when it validates the path set.
 
@@ -1477,7 +1475,7 @@ gives the result that `result` holds, and no other result.
 }
 
 The group `memberships` holds the vectors of the requirement
-`decide-path-set-membership`. Each vector line of the group follows the
+`decide-path-set-membership`. Each vector line of the group meets the
 schema `vector-line`. Each vector gives a path set in which the glob
 text of each path set member is a valid glob, a valid path, and the
 result that a conforming program gives when it decides whether the valid
