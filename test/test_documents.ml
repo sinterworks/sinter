@@ -193,7 +193,7 @@ let tests_member given =
            ])
        given.tests)
 
-let not_given_members = [ "extent-hash"; "hash-text"; "forms-text" ]
+let not_given_members = [ "extent-hash"; "hash-text" ]
 
 let with_stated_members stated given =
   let stated =
@@ -285,8 +285,8 @@ let set = Vectors.read "documents"
    specification, and vector file, in the order of the member, with the
    members read-files and items of each vector of the group, and checks that
    the program gives none of them under bindings that are not valid, by the
-   values {}. The program gives no extent hash, hash text, or forms text, so
-   the test checks it on no member of these. *)
+   values {}. The program gives no extent hash or hash text, so the test
+   checks it on no member of these. *)
 let markdown_vectors =
   Vectors.group set ~name:"markdown" ~form:"#markdown-vector=v1" give
 
@@ -296,8 +296,8 @@ let markdown_vectors =
    code, and comments, and the declared items, each with its kind, name, file,
    origin position, extent, design, specification, and vector file, in the
    order of each member, with the members read-files, tests, and items of each
-   vector of the group. The program gives no extent hash, hash text, forms
-   text, or code hash, so the test checks it on no member of these. *)
+   vector of the group. The program gives no extent hash, hash text, or code
+   hash, so the test checks it on no member of these. *)
 let code_vectors = Vectors.group set ~name:"code" ~form:"#code-vector=v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
 
@@ -437,7 +437,8 @@ let tree_of files =
    For generated trees and bindings, a read file given twice, a read file
    missing, a file given that is not a read file, or a reader other than that
    of the first pair whose path set has the path, differs from a direct
-   reading of the terms read-file and file-reader-binding. *)
+   reading of the schema file-readers and the terms file-reader and
+   read-file. *)
 let read_files_follow_the_terms =
   property ~count:1000 ~name:"the read files are those of the terms"
     ~print:print_case (Gen.pair binding_gen files_gen) (fun (binding, files) ->
@@ -470,10 +471,11 @@ let read_files_follow_the_terms =
                  = reader_of (fst (List.nth binding (k - 1))))
                given)
 
-(* @verifies documents#give-nothing-under-invalid-bindings=v1
-   A binding of file-readers with a path set that is not valid would give a
-   value from which read files follow, and the test would see Ok where the
-   term file-reader-binding gives no valid binding. *)
+(* @verifies documents#{file-readers=v1, give-nothing-under-invalid-bindings=v1}
+   A binding of file-readers with a path set that is not valid does not meet
+   the schema file-readers and would give a value from which read files follow;
+   the test checks that File_readers.make refuses every such binding at its
+   first invalid pair. *)
 let no_binding_from_invalid_path_sets =
   property ~count:1000
     ~name:"a binding with a path set that is not valid is refused"

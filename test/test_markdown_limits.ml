@@ -759,11 +759,12 @@ let check_stopped what expected_limit result =
   | Error (Readable_file.Invalid_reading _) ->
       Alcotest.failf "%s: expected Stopped, got Invalid_reading" what
 
-(* @verifies documents#unreadable-file=v1
+(* @verifies documents#give-declared-items=v1
    Each markdown file whose size, bracket depth, or container depth exceeds its
    limit goes into the set of stopped files and gives Cannot_be_read (Stopped)
-   with that limit; a file at the limit can be read; invalid UTF-8 is reported
-   before limits; code files are unaffected by markdown limits. *)
+   with that limit, so it gives no declared items; a file at the limit can be
+   read; invalid UTF-8 is reported before limits; code files are unaffected by
+   markdown limits. *)
 let readable_file_limits_cases () =
   let pack_called = ref 0 in
   let fail_pack () _path _text =
@@ -829,10 +830,10 @@ let readable_file_limits_cases () =
   | _ -> Alcotest.fail "markdown limits must not stop a code file");
   Alcotest.(check int) "pack was called once for the code file" 1 !pack_called
 
-(* @verifies documents#unreadable-file=v1
-   A stopped markdown file cannot be read and contributes no declared items,
-   while every other readable markdown file and code file in the tree is read
-   and gives its declared items. *)
+(* @verifies documents#give-declared-items=v1
+   A stopped markdown file cannot be read and gives no declared items, while
+   every other readable markdown file and code file in the tree is read and
+   gives its declared items. *)
 let stopped_files_do_not_prevent_reading_the_rest_of_the_tree () =
   let files =
     [
@@ -1012,11 +1013,12 @@ let stopped_file_costs_at_most_linear_time () =
   Time_growth.check ~bound:10. ~size:2_000 ~input:over_containers (fun file ->
       Readable_file.read container_limits no_pack file)
 
-(* @verifies documents#unreadable-file=v1
+(* @verifies documents#give-declared-items=v1
    For generated markdown and code files, valid or invalid UTF-8, and varied
    limits, Readable_file.read checks UTF-8 first, stops markdown files past a
-   limit with the limit that stopped them, never stops code files for markdown
-   limits, and calls the pack only for valid-UTF-8 code files. *)
+   limit with the limit that stopped them so they give no declared items,
+   never stops code files for markdown limits, and calls the pack only for
+   valid-UTF-8 code files. *)
 let readable_file_read_with_limits_property =
   let content_gen =
     Gen.oneof_weighted

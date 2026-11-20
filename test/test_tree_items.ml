@@ -132,13 +132,15 @@ let containment_of_the_ontology b =
       (match design with
         | Some d ->
             Declared_items.kind d = Declared_items.Design
-            && List.mem kind Declared_items.[ Specification; Requirement; Term ]
+            && List.mem kind
+                 Declared_items.
+                   [ Specification; Schema; Requirement; Atom; Term ]
         | None -> true)
       &&
       match specification with
       | Some s -> (
           Declared_items.kind s = Declared_items.Specification
-          && List.mem kind Declared_items.[ Requirement; Term ]
+          && List.mem kind Declared_items.[ Schema; Requirement; Atom; Term ]
           &&
           match (Declared_items.design s, design) with
           | Some a, Some b -> Declared_items.equal a b
@@ -303,9 +305,8 @@ let name_sets_follow_the_term =
         where (fun r ->
             match r.kind with
             | Items_reference.Design | Decision_record -> true
-            | Specification | Requirement | Term ->
-                r.design = None && not (String.contains r.name '#')
-            | Declared_finding_class -> false)
+            | Specification | Schema | Requirement | Atom | Term ->
+                r.design = None && not (String.contains r.name '#'))
       in
       let check set expected =
         List.map Declared_items.number (Declared_items.members b.declared set)
@@ -750,7 +751,372 @@ let queries_grow_as_logarithms () =
            Declared_items.extent_holders declared path lines,
            Declared_items.slug_design declared "big",
            Declared_items.named declared Declared_items.Shared name,
-           Declared_items.file_items declared path )))
+           Declared_items.file_items declared path,
+           Declared_items.members declared Declared_items.Shared )))
+
+let find_span source sub =
+  let n = String.length sub in
+  let rec go k =
+    if k + n > String.length source then invalid_arg ("find_span " ^ sub)
+    else if String.sub source k n = sub then (k, k + n)
+    else go (k + 1)
+  in
+  go 0
+
+(* @verifies documents#{give-declared-items=v1, give-containment=v1, give-extents=v1, give-vector-files=v1}
+   The test checks markdown schema and atom declarations for kinds, scopes,
+   containment in designs and specifications, names, sets of names, slug_design
+   non-shadowing, extents of held and unheld items, level-0 claims after front
+   matter, and the absence of vector paths and vector files. *)
+let schemas_and_atoms_in_markdown () =
+  let d_md =
+    "# D\n\
+     @design d=v1\n\n\
+     ## S1\n\
+     @schema s1=v1\n\
+     Schema text.\n\n\
+     ## A1\n\
+     @atom a1=v1\n\
+     Atom text.\n\n\
+     ## Spec\n\
+     @spec sp=v1\n\n\
+     ### S2\n\
+     @schema s2=v1\n\n\
+     ### A2\n\
+     @atom a2=v1\n\n\
+     ## Slash\n\
+     @schema a/b=v1\n\n\
+     ## Unknown\n\
+     @atom none#a=v1\n"
+  in
+  let other_md =
+    "---\n\
+     title: x\n\
+     ---\n\
+     @schema orphan-s=v1\n\n\
+     # A\n\
+     @atom d=v1\n\n\
+     ## External\n\
+     @schema d#s3=v1\n\n\
+     ## External Atom\n\
+     @atom d#a3=v1\n"
+  in
+  let files =
+    [ read_one "docs/d.md" d_md; read_one "docs/other.md" other_md ]
+  in
+  let tree =
+    tree_of
+      [
+        ("docs/d.md", d_md);
+        ("docs/other.md", other_md);
+        ("docs/d.s1.test-vectors.jsonl", "");
+        ("docs/d.a1.test-vectors.jsonl", "");
+      ]
+  in
+  let declared = make_all (tree, files) in
+  let by_name name =
+    List.find
+      (fun item -> Declared_items.name item = name)
+      (Declared_items.items declared)
+  in
+  let d = by_name "d" in
+  let s1 = by_name "d#s1" in
+  let a1 = by_name "d#a1" in
+  let sp = by_name "d#sp" in
+  let s2 = by_name "d#s2" in
+  let a2 = by_name "d#a2" in
+  let slash = by_name "a/b" in
+  let unknown = by_name "none#a" in
+  let orphan_s = by_name "orphan-s" in
+  let atom_d =
+    List.find
+      (fun item ->
+        Declared_items.name item = "d"
+        && Declared_items.kind item = Declared_items.Atom)
+      (Declared_items.items declared)
+  in
+  let s3 = by_name "d#s3" in
+  let a3 = by_name "d#a3" in
+  Alcotest.(check bool)
+    "s1 is a schema" true
+    (Declared_items.kind s1 = Declared_items.Schema);
+  Alcotest.(check bool)
+    "a1 is an atom" true
+    (Declared_items.kind a1 = Declared_items.Atom);
+  Alcotest.(check bool) "s1 has no scope" true (Declared_items.scope s1 = None);
+  Alcotest.(check bool) "a1 has no scope" true (Declared_items.scope a1 = None);
+  Alcotest.(check (option int))
+    "s1 belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design s1));
+  Alcotest.(check (option int))
+    "s1 belongs to no spec" None
+    (number_of (Declared_items.specification s1));
+  Alcotest.(check (option int))
+    "a1 belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design a1));
+  Alcotest.(check (option int))
+    "s2 belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design s2));
+  Alcotest.(check (option int))
+    "s2 belongs to sp"
+    (Some (Declared_items.number sp))
+    (number_of (Declared_items.specification s2));
+  Alcotest.(check (option int))
+    "a2 belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design a2));
+  Alcotest.(check (option int))
+    "a2 belongs to sp"
+    (Some (Declared_items.number sp))
+    (number_of (Declared_items.specification a2));
+  Alcotest.(check (option int))
+    "a slash-slug schema belongs to no design" None
+    (number_of (Declared_items.design slash));
+  Alcotest.(check (option int))
+    "a full-name atom with unknown slug belongs to no design" None
+    (number_of (Declared_items.design unknown));
+  Alcotest.(check (option int))
+    "s3 in another file belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design s3));
+  Alcotest.(check (option int))
+    "a3 in another file belongs to d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.design a3));
+  Alcotest.(check (option string))
+    "a schema has no vector path" None
+    (Option.map path_text (Declared_items.vector_path s1));
+  Alcotest.(check (option string))
+    "a schema has no vector file" None
+    (Option.map path_text (Declared_items.vector_file s1));
+  Alcotest.(check (option string))
+    "an atom has no vector path" None
+    (Option.map path_text (Declared_items.vector_path a1));
+  Alcotest.(check (option string))
+    "an atom has no vector file" None
+    (Option.map path_text (Declared_items.vector_file a1));
+  let subset a b = List.for_all (fun line -> List.mem line b) a in
+  Alcotest.(check bool)
+    "d holds the extents of s1, a1, s2, and a2" true
+    (subset (Declared_items.extent s1) (Declared_items.extent d)
+    && subset (Declared_items.extent a1) (Declared_items.extent d)
+    && subset (Declared_items.extent s2) (Declared_items.extent d)
+    && subset (Declared_items.extent a2) (Declared_items.extent d));
+  Alcotest.(check bool)
+    "sp holds the extents of s2 and a2" true
+    (subset (Declared_items.extent s2) (Declared_items.extent sp)
+    && subset (Declared_items.extent a2) (Declared_items.extent sp));
+  Alcotest.(check bool)
+    "d does not hold the claim of an unheld slash-slug schema" true
+    (List.for_all
+       (fun line -> not (List.mem line (Declared_items.extent d)))
+       (Declared_items.claim slash));
+  Alcotest.(check int)
+    "a level-0 schema claim after front matter does not include front matter" 1
+    (List.length (Declared_items.claim orphan_s));
+  Alcotest.(check (option int))
+    "an atom named d does not shadow slug_design d"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.slug_design declared "d"));
+  Alcotest.(check (option int))
+    "the atom named d belongs to no design" None
+    (number_of (Declared_items.design atom_d));
+  let shared_names =
+    List.map Declared_items.name
+      (Declared_items.members declared Declared_items.Shared)
+  in
+  Alcotest.(check (list string))
+    "Shared contains designs and unowned slug schemas and atoms, not full names"
+    [ "d"; "a/b"; "orphan-s"; "d" ]
+    shared_names;
+  let design_names =
+    List.map Declared_items.name
+      (Declared_items.members declared (Declared_items.Of_design d))
+  in
+  Alcotest.(check (list string))
+    "Of_design d contains its specs, schemas, and atoms"
+    [ "d#s1"; "d#a1"; "d#sp"; "d#s2"; "d#a2"; "d#s3"; "d#a3" ]
+    design_names;
+  let other_file =
+    List.find
+      (fun f -> path_text (Tree_file.path f) = "docs/other.md")
+      (Declared_items.files declared)
+  in
+  let s3_line =
+    match Declared_items.claim s3 with l :: _ -> [ l ] | [] -> []
+  in
+  Alcotest.(check (option int))
+    "home_design rule 2 does not apply to a schema in a markdown file" None
+    (number_of
+       (Declared_items.home_design declared (Tree_file.path other_file) s3_line))
+
+(* @verifies documents#{give-containment=v1, give-extents=v1}
+   The test checks code-file schema and atom declarations for home-design rule
+   2, including priority over an enclosing specification and slugs with no
+   design, for specification containment, and for specification extents of held
+   and unheld items. *)
+let schemas_and_atoms_home_design_in_code () =
+  let source =
+    "// @schema d#sc=v1\n\
+     // @cites #at=v1\n\
+     fn sc() {}\n\n\
+     // @atom d#at=v1\n\
+     // @cites #sc=v1\n\
+     fn at() {}\n\n\
+     // @spec e#sp=v1\n\
+     fn outer() {\n\
+    \  // @schema d#override-s=v1\n\
+    \  // @cites #sc=v1\n\
+    \  fn s() {}\n\
+    \  // @atom d#override-a=v1\n\
+    \  // @cites #at=v1\n\
+    \  fn a() {}\n\
+    \  // @schema seg-s=v1\n\
+    \  // @atom seg-a=v1\n\
+    \  fn inner() {}\n\
+     }\n\n\
+     // @schema missing#ms=v1\n\
+     // @cites #x=v1\n\
+     fn ms() {}\n"
+  in
+  let c s =
+    let from, until = find_span source s in
+    comment from until
+  in
+  let def_fn name =
+    let from, until = find_span source name in
+    definition from until
+      { Text.from = String.index_from source from '{'; until }
+  in
+  let outer_from, _ = find_span source "fn outer() {" in
+  let outer_body_from = String.index_from source outer_from '{' in
+  let outer_until = snd (find_span source "  fn inner() {}\n}") in
+  let nodes =
+    [
+      c "// @schema d#sc=v1\n// @cites #at=v1";
+      def_fn "fn sc() {}";
+      c "// @atom d#at=v1\n// @cites #sc=v1";
+      def_fn "fn at() {}";
+      c "// @spec e#sp=v1";
+      definition outer_from outer_until
+        { Text.from = outer_body_from; until = outer_until };
+      c "// @schema d#override-s=v1\n  // @cites #sc=v1";
+      def_fn "fn s() {}";
+      c "// @atom d#override-a=v1\n  // @cites #at=v1";
+      def_fn "fn a() {}";
+      c "// @schema seg-s=v1\n  // @atom seg-a=v1";
+      def_fn "fn inner() {}";
+      c "// @schema missing#ms=v1\n// @cites #x=v1";
+      def_fn "fn ms() {}";
+    ]
+  in
+  let case =
+    {
+      Tree_gen.files =
+        [
+          ("docs/d.md", "# D\n@design d=v1\n");
+          ("docs/e.md", "# E\n@design e=v1\n");
+          ("lib/w.rs", source);
+        ];
+      code =
+        [
+          ( "lib/w.rs",
+            {
+              Tree_gen.sigils =
+                { Code_reference.line = [ "//" ]; block = []; inner = [] };
+              nodes;
+            } );
+        ];
+    }
+  in
+  let tree, readables = Tree_gen.read case in
+  let files =
+    List.map
+      (fun (path, readable) ->
+        Tree_file.make Tree_gen.namespaces (path_of path) readable)
+      readables
+  in
+  let declared = make_all (tree, files) in
+  let by_name name =
+    List.find
+      (fun item -> Declared_items.name item = name)
+      (Declared_items.items declared)
+  in
+  let d = by_name "d" in
+  let e = by_name "e" in
+  let sp = by_name "e#sp" in
+  let sc = by_name "d#sc" in
+  let at = by_name "d#at" in
+  let ov_s = by_name "d#override-s" in
+  let ov_a = by_name "d#override-a" in
+  let seg_s = by_name "e#seg-s" in
+  let seg_a = by_name "e#seg-a" in
+  let ms = by_name "missing#ms" in
+  let code_path = path_of "lib/w.rs" in
+  let second_line item =
+    match Declared_items.claim item with
+    | _ :: line :: _ -> [ line ]
+    | _ ->
+        Alcotest.fail ("expected two-line claim for " ^ Declared_items.name item)
+  in
+  Alcotest.(check (option int))
+    "home_design rule 2 uses full-name schema in code"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.home_design declared code_path (second_line sc)));
+  Alcotest.(check (option int))
+    "home_design rule 2 uses full-name atom in code"
+    (Some (Declared_items.number d))
+    (number_of (Declared_items.home_design declared code_path (second_line at)));
+  Alcotest.(check (option int))
+    "home_design rule 2 on schema beats rule 3 on enclosing spec"
+    (Some (Declared_items.number d))
+    (number_of
+       (Declared_items.home_design declared code_path (second_line ov_s)));
+  Alcotest.(check (option int))
+    "home_design rule 2 on atom beats rule 3 on enclosing spec"
+    (Some (Declared_items.number d))
+    (number_of
+       (Declared_items.home_design declared code_path (second_line ov_a)));
+  Alcotest.(check (option int))
+    "home_design rule 2 gives None when full-name schema slug has no design"
+    None
+    (number_of (Declared_items.home_design declared code_path (second_line ms)));
+  Alcotest.(check (option int))
+    "segment schema in spec scope inherits spec design"
+    (Some (Declared_items.number e))
+    (number_of (Declared_items.design seg_s));
+  Alcotest.(check (option int))
+    "segment schema in spec scope belongs to spec"
+    (Some (Declared_items.number sp))
+    (number_of (Declared_items.specification seg_s));
+  Alcotest.(check (option int))
+    "segment atom in spec scope inherits spec design"
+    (Some (Declared_items.number e))
+    (number_of (Declared_items.design seg_a));
+  Alcotest.(check (option int))
+    "segment atom in spec scope belongs to spec"
+    (Some (Declared_items.number sp))
+    (number_of (Declared_items.specification seg_a));
+  Alcotest.(check (option int))
+    "schema of another design inside spec scope does not belong to that spec"
+    None
+    (number_of (Declared_items.specification ov_s));
+  Alcotest.(check (option int))
+    "atom of another design inside spec scope does not belong to that spec" None
+    (number_of (Declared_items.specification ov_a));
+  let subset a b = List.for_all (fun line -> List.mem line b) a in
+  Alcotest.(check bool)
+    "sp holds the extents of seg_s and seg_a in code" true
+    (subset (Declared_items.extent seg_s) (Declared_items.extent sp)
+    && subset (Declared_items.extent seg_a) (Declared_items.extent sp));
+  Alcotest.(check bool)
+    "sp does not hold the extents of ov_s or ov_a" true
+    (List.for_all
+       (fun line -> not (List.mem line (Declared_items.extent sp)))
+       (Declared_items.extent ov_s @ Declared_items.extent ov_a))
 
 let tests =
   [
@@ -782,6 +1148,13 @@ let tests =
       `Quick each_file_gives_the_declarations_of_its_own_inputs;
     Alcotest.test_case "a vector file is a file of the tree given to make"
       `Quick vector_files_are_files_of_the_tree;
+    Alcotest.test_case
+      "schemas and atoms follow containment, extent, name-set, and vector-file \
+       rules in markdown"
+      `Quick schemas_and_atoms_in_markdown;
+    Alcotest.test_case
+      "schemas and atoms follow home-design rule 2 and spec containment in code"
+      `Quick schemas_and_atoms_home_design_in_code;
     items_follow_the_terms;
     extents_follow_the_terms;
     containment_follows_the_terms;

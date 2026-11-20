@@ -13,18 +13,20 @@ open Sinter_tag_inputs
 type kind =
   | Design
   | Specification
+  | Schema
   | Requirement
+  | Atom
   | Term
   | Decision_record
-  | Declared_finding_class
 
 let kind_text = function
   | Design -> "design"
   | Specification -> "specification"
+  | Schema -> "schema"
   | Requirement -> "requirement"
+  | Atom -> "atom"
   | Term -> "term"
   | Decision_record -> "decision record"
-  | Declared_finding_class -> "declared finding class"
 
 type item = {
   kind : kind;
@@ -58,7 +60,6 @@ type unit_ = {
   tag_text : Tag_text.t;
   inputs : Input.t list;
   section : Ints.t option;
-  level_0 : bool;
   comment_run : Code_file.comment_run option;
 }
 
@@ -75,7 +76,9 @@ type declaration = {
 let kind_of_word = function
   | Tag_word.Design -> Some Design
   | Spec -> Some Specification
+  | Schema -> Some Schema
   | Req -> Some Requirement
+  | Atom -> Some Atom
   | Term -> Some Term
   | Decision -> Some Decision_record
   | _ -> None
@@ -120,7 +123,7 @@ let units binding file readable =
              (fun k -> index_of file markdown.(k - 1))
              (Ints.elements (range_set range.first range.last)))
       in
-      let of_paragraph section level_0 = function
+      let of_paragraph section = function
         | None -> []
         | Some (p : Markdown_file.paragraph) ->
             [
@@ -128,19 +131,17 @@ let units binding file readable =
                 tag_text = p.tag_text;
                 inputs = Input.of_tag_text binding p.tag_text;
                 section;
-                level_0;
                 comment_run = None;
               };
             ]
       in
       List.concat_map
         (fun (s : Markdown_file.section) ->
-          of_paragraph (Option.map set s.lines) (s.heading = None)
-            s.first_paragraph)
+          of_paragraph (Option.map set s.lines) s.first_paragraph)
         (Markdown_file.sections md)
       @ List.concat_map
           (fun (i : Markdown_file.list_item) ->
-            of_paragraph (Some (set i.lines)) false i.first_paragraph)
+            of_paragraph (Some (set i.lines)) i.first_paragraph)
           (Markdown_file.list_items md)
   | Readable_file.Code_file code ->
       List.filter_map
@@ -151,7 +152,6 @@ let units binding file readable =
                 tag_text;
                 inputs = Input.of_tag_text binding tag_text;
                 section = None;
-                level_0 = false;
                 comment_run = Some run;
               })
             run.tag_text)
@@ -211,27 +211,21 @@ let claim binding (d : declaration) =
   match file.code with
   | None ->
       let section = Option.value d.unit_.section ~default:Ints.empty in
-      if
-        d.kind = Declared_finding_class
-        && d.unit_.level_0
-        && List.length decls = 1
-      then trim file (range_set 0 (Array.length file.all - 1))
-      else
-        let line_of decl =
-          match Ints.elements (thing_lines file decl.input) with
-          | k :: _ -> k
-          | [] -> 0
-        in
-        let start =
-          if is_first then Option.value (Ints.min_elt_opt section) ~default:0
-          else line_of d
-        in
-        let finish =
-          match after d decls with
-          | Some next -> line_of next - 1
-          | None -> Option.value (Ints.max_elt_opt section) ~default:(-1)
-        in
-        trim file (range_set start finish)
+      let line_of decl =
+        match Ints.elements (thing_lines file decl.input) with
+        | k :: _ -> k
+        | [] -> 0
+      in
+      let start =
+        if is_first then Option.value (Ints.min_elt_opt section) ~default:0
+        else line_of d
+      in
+      let finish =
+        match after d decls with
+        | Some next -> line_of next - 1
+        | None -> Option.value (Ints.max_elt_opt section) ~default:(-1)
+      in
+      trim file (range_set start finish)
   | Some _ -> (
       let tag_text = d.unit_.tag_text in
       let k = first_line d.input in
@@ -377,7 +371,10 @@ let model binding files paths =
           | Some _ -> (
               match
                 innermost
-                  (among file [ Requirement; Term ] (fun k -> claims.(k)) lines)
+                  (among file
+                     [ Requirement; Schema; Atom; Term ]
+                     (fun k -> claims.(k))
+                     lines)
               with
               | Some k -> full_design k
               | None -> None)
@@ -396,19 +393,19 @@ let model binding files paths =
     Array.map
       (fun d ->
         match d.kind with
-        | Specification | Requirement | Term -> (
+        | Specification | Schema | Requirement | Atom | Term -> (
             match d.part_name with
             | Some _ -> slug_design d.slug
             | None ->
                 if has_slash d.slug then None else home_design d.file d.input)
-        | _ -> None)
+        | Design | Decision_record -> None)
       decls
   in
   let spec_of =
     Array.mapi
       (fun k d ->
         match d.kind with
-        | Requirement | Term -> (
+        | Schema | Requirement | Atom | Term -> (
             let lines = thing_lines d.file d.input in
             match
               innermost
@@ -416,18 +413,19 @@ let model binding files paths =
             with
             | Some s when design_of.(s) = design_of.(k) -> Some s
             | _ -> None)
-        | _ -> None)
+        | Design | Specification | Decision_record -> None)
       decls
   in
   let rec name k =
     let d = decls.(k) in
     match (d.kind, d.part_name) with
-    | (Specification | Requirement | Term), Some p -> d.slug ^ "#" ^ p
-    | (Specification | Requirement | Term), None -> (
+    | (Specification | Schema | Requirement | Atom | Term), Some p ->
+        d.slug ^ "#" ^ p
+    | (Specification | Schema | Requirement | Atom | Term), None -> (
         match design_of.(k) with
         | Some design when not (has_slash d.slug) -> name design ^ "#" ^ d.slug
         | _ -> d.slug)
-    | _ -> d.slug
+    | (Design | Decision_record), _ -> d.slug
   in
   let holds k e = design_of.(e) = Some k || spec_of.(e) = Some k in
   let extents = Array.make n None in

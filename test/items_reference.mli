@@ -16,10 +16,11 @@ open Sinter_tag_inputs
 type kind =
   | Design
   | Specification
+  | Schema
   | Requirement
+  | Atom
   | Term
-  | Decision_record
-  | Declared_finding_class  (** The kind of a declared item. *)
+  | Decision_record  (** The kind of a declared item. *)
 
 val kind_text : kind -> string
 (** [kind_text kind] is the text of [kind] in the member [items] of the vectors,

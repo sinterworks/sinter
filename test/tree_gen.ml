@@ -54,9 +54,16 @@ let declarations =
     "@term t";
     "@term a#t=v1";
     "@term u=v1";
+    "@schema sc=v1";
+    "@schema a#sc=v1";
+    "@schema a/b=v1";
+    "@schema d#sc=v1";
+    "@atom at=v1";
+    "@atom a#at=v1";
+    "@atom a/b=v1";
+    "@atom d#at=v1";
     "@decision a=v1";
     "@decision e=v1";
-    "@finding-class fc=v1";
   ]
 
 let other_tag_lines =
@@ -138,6 +145,8 @@ let vector_paths =
   [
     "docs/a.test-vectors.jsonl";
     "docs/a.x.test-vectors.jsonl";
+    "docs/a.sc.test-vectors.jsonl";
+    "docs/a.at.test-vectors.jsonl";
     "docs/a/b.test-vectors.jsonl";
     "docs/b.y.test-vectors.jsonl";
     "docs/x/a.test-vectors.jsonl";
@@ -153,13 +162,15 @@ let substitutions =
     ( "@req a=v1",
       [
         "@req a=v1";
+        "@atom a=1";
         "@term a#b";
         "@spec s=x";
         "@req r=v1";
         "@term t=1";
         "@design q";
       ] );
-    ("@req b=v1", [ "@req b=v1"; "@spec x=1"; "@term t=1"; "@req a#r1" ]);
+    ( "@req b=v1",
+      [ "@req b=v1"; "@atom b=1"; "@spec x=1"; "@term t=1"; "@req a#r1" ] );
     ( "@spec d#s=v1",
       [
         "@spec d#s=v1";
@@ -167,6 +178,8 @@ let substitutions =
         "@spec d#s=v1";
         "@req d#r=v12";
         "@req d#r=v12";
+        "@schema sc=1";
+        "@atom d#a=v1";
         "@term d#t=v1";
         "@spec seg=v1";
         "@spec a#x=v1";
@@ -176,6 +189,7 @@ let substitutions =
       [
         "@cites c=v1";
         "@req e#r=v1";
+        "@atom a#x=1";
         "@spec s2=v1";
         "@design e=1";
         "@req a#r=v1";
@@ -184,6 +198,8 @@ let substitutions =
     ( "@verifies x#y=v2",
       [
         "@verifies x#y=v2";
+        "@schema d#sc=v1 ";
+        "@atom d#at=v1 Tx";
         "@spec a#x=v1 Txt";
         "@req a#r=v1 Text";
         "@design a=v1 Txt";
@@ -239,6 +255,12 @@ let comment_contents =
     "@req d#r=v1";
     "@req r=v1";
     "@req q=v1 Text.";
+    "@schema d#sc=v1";
+    "@schema sc=v1";
+    "@schema a/b=v1";
+    "@atom d#at=v1";
+    "@atom at=v1";
+    "@atom a/b=v1";
     "@term d#t=v1";
     "@term t";
     "@design d=v1";
