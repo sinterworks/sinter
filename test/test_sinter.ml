@@ -113,6 +113,7 @@ let () =
       ("tree inputs", Test_tree_inputs.tests);
       ("tree items", Test_tree_items.tests);
       ("origins", Test_origins.tests);
+      ("markdown limits", Test_markdown_limits.tests);
       ("markdown tag texts", Test_markdown_tag_texts.tests);
       ("tag inputs", Test_tag_inputs.tests);
       ("readings", Test_readings.tests);
