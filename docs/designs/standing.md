@@ -25,8 +25,9 @@ items that cite that declared item can still name it, and effective
 conforming program finds those successors, reports edges to retired
 items, reports cycles of `supersedes` and `refines` edges, reports
 decision records that a change deletes, and reports items that reuse a
-label from the history of the default branch for other content. A repository can also name historical paths so that historical files
-keep their citations without giving findings of these classes.
+label from the history of the default branch for other content. A
+repository can also name historical paths so that historical files keep
+their citations without giving findings of these classes.
 
 From Text and notation (`text`), the design takes texts, characters,
 spaces, tabs, line feeds, whole numbers, decimal numerals, boundaries,
@@ -79,15 +80,16 @@ and in force under the bindings.
 | [tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
 | base tree | the earlier tree with which a conforming program compares a tree, such as the tree of the base of the change of a commit |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives the result "parse failure" for limits of its own, and the files of the tree whose content it stops reading as a test-vector set for limits of its own |
-| [binding of `historical-paths`](sinter:#historical-paths=v1) | a path set whose valid paths name historical files |
+| [binding of `historical-paths`](sinter:#historical-paths=v1) | a path set; the files whose valid paths are in its set are the historical files |
 | [historical file](sinter:#historical-file=v1) | a file of a tree whose valid path is in the set of a valid binding of `historical-paths` |
 | [retired](sinter:ontology#retired-item=v1), [in force](sinter:ontology#in-force-item=v1) | a declared item is retired in a tree at a point of a ledger when it is deprecated, when it is the cited item of an effective `supersedes` edge and is on no cycle of `supersedes` edges, or when it belongs to a retired design or specification; a declared item is in force when it is not retired |
 | [in force under the bindings](sinter:approval#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, under the bindings of `approval-kinds`, `default-branch-name`, `file-readers`, and `external-namespaces` and the sets of stopped files of the trees that it reads |
 | [effective `supersedes` edge](sinter:ontology#effective-supersedes-edge=v1) | a `supersedes` edge that says what `supersedes` says, whose source and every item that holds its source are not deprecated, and whose source is approved |
 | [direct replacement](sinter:#successor=v1) | a declared item y directly replaces a declared item x when an effective `supersedes` edge has y as its source and x as its cited item, or matches `every-part` and replaces x by y by part name |
 | [successor](sinter:#successor=v1) | a declared item in force that replaces a retired declared item through one or more direct replacements, with every intermediate item retired |
-| [cycle of `supersedes` and `refines` edges](sinter:#edge-cycle=v1) | a maximal non-empty set of declared items of a tree in which each member reaches each member (itself included) along one or more valid `supersedes` edges (including `every-part` part replacements, effective or not) and valid `refines` edges |
+| [cycle of `supersedes` and `refines` edges](sinter:#edge-cycle=v1) | a maximal non-empty set of declared items of a tree in which each member reaches each member (itself included) along one or more `supersedes` edges (including `every-part` part replacements, effective or not) and `refines` edges that say what their kind of edge says |
 | [declaration order](sinter:#cycle-finding=v1) | the order of declared items of a tree by the valid path of each item's file in code point order, and then by the origin position of the text of the tag line of each item's declaration in the order of positions |
+| [anchor member](sinter:#cycle-finding=v1) | among the members of a cycle of `supersedes` and `refines` edges whose name comes first in code point order, the member that comes first in declaration order |
 | [base item](sinter:revisions#base-item=v1) | the one declared item of a base tree with the same name in the corresponding set of names, of any kind, when the declared item of the tree is also the one declared item with its name in its set of names |
 | [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
 | [cut history](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a needed git object is missing from the repository, or a read file of a tree on the line is in that tree's set of stopped files |
@@ -123,10 +125,11 @@ declared item that is in force has no successor, and an item that is not
 a declared item, such as a group of conformance vectors or a vector set,
 has no successor.
 
-The search follows effective `supersedes` edges and their `every-part`
-part replacements, and it ends at declared items that are in force.
-These examples show how the rule works when every item is approved and
-no item carries `@deprecated` unless stated:
+Each direct replacement follows an effective `supersedes` edge or one of
+its `every-part` part replacements, and a chain of direct replacements
+to a successor ends at a declared item that is in force. These examples
+show how the rule works when every item is approved and no item carries
+`@deprecated` unless stated:
 
 1. **A chain.** Decision record `d2` has `@supersedes d1=v1`, and `d3`
    has `@supersedes d2=v1`. Both `d1` and `d2` are retired, and `d3` is
@@ -145,22 +148,24 @@ no item carries `@deprecated` unless stated:
    `billing#legacy` has no successor.
 5. **Deprecation.** Decision record `d1` carries `@deprecated`, and no
    effective `supersedes` edge cites `d1`. Then `d1` is retired and has
-   no successor. When `d2` has `@supersedes d1=v1` and `d2` carries
-   `@deprecated`, the edge from `d2` is not effective, so `d1` is in
+   no successor. When `d3` has `@supersedes d2=v1` and `d3` carries
+   `@deprecated`, the edge from `d3` is not effective, so `d2` is in
    force and has no successor.
 6. **A cycle inside a retired design.** Design `old` is superseded by
    `new`, so `old#p` and `old#q` are retired by the cascade. Inside
    `old`, `old#p` has `@supersedes old#q=v1` and `old#q` has
    `@supersedes old#p=v1`. Both edges stay effective because neither
-   source nor `old` is deprecated. Visiting each item at most once stops
-   the search: `old#p` and `old#q` have no successor. If `new#q` also
-   has an effective `@supersedes old#q=v1` and is in force, the only
-   successor of both `old#p` and `old#q` is `new#q`.
+   source nor `old` is deprecated. No chain of direct replacements from
+   `old#p` or `old#q` reaches an item in force, so neither `old#p` nor
+   `old#q` has a successor. If `new#q` also has an effective
+   `@supersedes old#q=v1` and is in force, the only successor of both
+   `old#p` and `old#q` is `new#q`.
 7. **An edge into an in-force cycle.** Items `y` and `z` supersede each
    other and are neither deprecated nor in a retired design, so both `y`
    and `z` are in force. Item `y` also has an effective
-   `@supersedes x=v1`, so `x` is retired. Because the search ends at
-   items in force, the only successor of `x` is `y`, and not `z`.
+   `@supersedes x=v1`, so `x` is retired. Because every intermediate
+   item on a chain of direct replacements to a successor is retired, the
+   only successor of `x` is `y`, and not `z`.
 
 ### 2.3 Findings of the class `retired` and offered fixes
 
@@ -237,9 +242,9 @@ that successor, and a conforming program offers no fix for that finding:
    no edit of the citation can cite that successor.
 
 The same consequence holds when a retired item has two successors and
-only one of them fails one of these conditions: because a fix must have
-one valid edit set for each successor, a conforming program offers no
-fix for that finding.
+only one of them fails one of these conditions: because a fix that meets
+`limit-retired-fix-edit-sets` has one edit set for each successor, a
+conforming program offers no fix for that finding.
 
 ### 2.4 Findings of the class `cycle`
 
@@ -298,14 +303,11 @@ no `deleted-decision` finding.
 
 ### 2.6 Reused labels
 
-The term `new-label-item` selects the declared items of a tree that have
-a current revision, do not stand in a historical file, and either have a
-label other than the current revision of their base item in the base
-tree or have no base item in the base tree. The atom
-`reused-label-finding` compares each such item against a sequence of
-earlier trees by `revisions#base-item`. For the change of a commit, that
-sequence is the trees of the commits of the first-parent line of the
-commit of the default branch.
+The term `new-label-item` selects the declared items of a tree that the
+atom `reused-label-finding` compares. That atom compares each such item
+against a sequence of earlier trees by `revisions#base-item`. For the
+change of a commit, that sequence is the trees of the commits of the
+first-parent line of the commit of the default branch.
 
 For example, on the default branch, `@req billing#size` had label `v2`
 with text T1, and later moved to label `v3` with text T2. The base tree
@@ -432,14 +434,17 @@ of that file is in the set of H.
     ontology#{
         declared-item=v1, item=v1, edge=v1, supersedes-edge=v1,
         effective-supersedes-edge=v1, retired-item=v1, in-force-item=v1,
-        vector-set=v1, conformance-vector-group=v1, tree=v1, ledger=v1,
-        parameter=v1,
+        vector-set=v1, conformance-vector-group=v1, default-branch=v1,
+        tree=v1, ledger=v1, parameter=v1,
     },
-    changes#{default-branch-commit=v1, first-parent-line=v1},
+    changes#{
+        commit=v1, default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
+    },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     approval#{approval-kinds=v1, bound-in-force-item=v1},
-    text#{code-span=v1},
+    text#{sequence=v1, code-span=v1},
 }
 
 This term is for a git repository R, a valid binding A of
@@ -499,10 +504,13 @@ group of conformance vectors or a vector set, has no successor.
     ontology#{
         declared-item=v1, edge=v1, cites-edge=v1, satisfies-edge=v1,
         verifies-edge=v1, refines-edge=v1, vector-set=v1,
-        conformance-vector-group=v1, external-item=v1, tree=v1,
-        ledger=v1, parameter=v1,
+        conformance-vector-group=v1, external-item=v1,
+        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
     },
-    changes#{default-branch-commit=v1, first-parent-line=v1},
+    changes#{
+        commit=v1, default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
+    },
     ledger#{stored-ledger=v1},
     documents#{
         file-readers=v1, tree-edge=v1, origin=v1, origin-position=v1,
@@ -580,7 +588,7 @@ of the file of the edge.
         tree=v1, parameter=v1,
     },
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
-    text#{code-span=v1},
+    text#{sequence=v1, code-span=v1},
 }
 
 This term is for a tree T, a valid binding F of `file-readers`, a
@@ -659,8 +667,8 @@ H. The subject of that tree finding is s. Among all anchor members of
 cycles of `supersedes` and `refines` edges in T under F, N, and U whose
 name in T is s and whose file in T is not a historical file of T under
 H, let d be the declared item that comes first in declaration order; the
-spot of that tree finding is the spot of the run of the text of the
-declaration of d in the text of the file of d in T.
+spot of that tree finding is the spot of the run of the text of the tag
+line of the declaration of d in the text of the file of d in T.
 
 ### 4.6 Findings of the class `deleted-decision`
 
@@ -752,8 +760,8 @@ conditions:
    (under F, N, and UK).
 
 The subject of that tree finding is the name of d in T. The spot of that
-tree finding is the spot of the run of the text of the declaration of d
-in the text of the file of d in T.
+tree finding is the spot of the run of the text of the tag line of the
+declaration of d in the text of the file of d in T.
 
 ### 4.9 Cut histories
 
