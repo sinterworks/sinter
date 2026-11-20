@@ -63,8 +63,6 @@ let within_seconds seconds what action =
     Alcotest.failf "%s took %.1f s, more than %.0f s" what spent seconds;
   value
 
-(* The forms of the vectors *)
-
 let recognition_form = function
   | Response.Recognised -> ("recognised", `Assoc [])
   | Not_recognised -> ("not recognised", `Assoc [])
@@ -151,8 +149,6 @@ let give_call (vector : Vectors.vector) =
    result and the values with those of the vector; the call whose function
    loops must end. *)
 let call_vectors = Vectors.group adapters_set ~name:"calls" ~rev:"v1" give_call
-
-(* Modules for the decision *)
 
 let import_of_each_kind =
   [
@@ -486,8 +482,6 @@ let decision_cases =
       (fun bytes ->
         match decide ~limits:small bytes with Ok _ | Error _ -> true);
   ]
-
-(* Adapters for the calls *)
 
 let truth = {|{"recognised":true}|}
 let falsity = {|{"recognised":false}|}
@@ -838,8 +832,6 @@ let step_cases =
                 (answer_if "(i32.eq (memory.grow (i32.const 5)) (i32.const -1))"))));
   ]
 
-(* Responses and their values through calls *)
-
 let error_response = {|{"error":"the report is broken"}|}
 
 (* @verifies packs#{omit-adapter-error-texts=v1, omit-call-values=v1}
@@ -950,8 +942,6 @@ let value_cases =
         in
         echo_matches function_ ~request ~content);
   ]
-
-(* The instances and the steps of a call *)
 
 let counting =
   lazy
@@ -1072,8 +1062,6 @@ let step_order_cases =
              (recognition_text outcome.result)
              (cause_text outcome.cause));
   ]
-
-(* The requests of calls *)
 
 let request_of_vector input =
   let runner = P.runner_of (P.string (P.required "runner" input)) in

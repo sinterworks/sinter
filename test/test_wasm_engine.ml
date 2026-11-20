@@ -84,8 +84,6 @@ let traps what = function
 
 let case name action = Alcotest.test_case name `Quick action
 
-(* Engine *)
-
 let engine_cases =
   [
     case "an engine with a stack of 0 bytes is not made" (fun () ->
@@ -134,8 +132,6 @@ let engine_cases =
             | Ok 10l -> ()
             | _ -> Alcotest.fail "a depth of 10 gives 10"));
   ]
-
-(* Wasm_module *)
 
 let not_compiled what bytes =
   match Wasm_module.compile (Lazy.force engine) bytes with
@@ -239,8 +235,6 @@ let module_cases =
            in
            compiled = (W.reference bytes = W.Accepted)));
   ]
-
-(* Instance *)
 
 let counter =
   lazy
