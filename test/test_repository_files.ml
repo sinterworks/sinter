@@ -619,6 +619,17 @@ let with_file_tests =
             Alcotest.(check bool) "length" true length;
             check_all_closed ()
         | Error failure -> Alcotest.failf "with_file: %s" (failure_name failure));
+    case "a ranged read of no bytes gives no bytes" (fun () ->
+        fresh ();
+        check_result "the range"
+          (fun result ->
+            match result with
+            | Ok range -> quoted range
+            | Error failure -> failure_name failure)
+          (Ok (Ok ""))
+          (Reader.with_file "f" (fun handle ->
+               Reader.read_range handle ~offset:1 ~length:0));
+        check_all_closed ());
   ]
 
 let list_tests =
