@@ -90,13 +90,13 @@ incomplete first-parent lines.
 | [declaration order](sinter:#cycle-finding=v1) | the order of declared items of a tree by the valid path of each item's file in code point order, and then by the origin position of the text of the tag line of each item's declaration in the order of positions |
 | [anchor member](sinter:#cycle-finding=v1) | among the members of a cycle of `supersedes` and `refines` edges whose name comes first in code point order, the member that comes first in declaration order |
 | [base item](sinter:revisions#base-item=v1) | the one declared item of a base tree with the same name in the corresponding set of names, of any kind, when the declared item of the tree is also the one declared item with its name in its set of names |
-| [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
+| [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, that is in no set of names of that tree with another declared item of the same name, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
 | [incomplete first-parent line](sinter:approval#incomplete-first-parent-line=v1) | a first-parent line of the commit of the default branch of a git repository that is incomplete for the repository reads from which a program takes that first-parent line and the files of the trees of the commits of that first-parent line, under a valid binding of `file-readers`, as the term `approval#incomplete-first-parent-line` gives it |
 | [cut history](sinter:#cut-history=v1) | a history of the default branch whose first-parent line is incomplete, or in which a read file of a tree of that line is in the set of stopped files of that tree |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
 | [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges that say what their kind of edge says, whose source counts, whose cited item counts as retired, and whose file is not a historical file |
 | [`cycle`](sinter:#cycle-finding=v1) | the finding class of the names of the anchor members of cycles of `supersedes` and `refines` edges, when the anchor member is not in a historical file |
-| [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree that are the base item of no declared item of a tree and whose file's valid path is not the valid path of a stopped file of that tree |
+| [`deleted-decision`](sinter:#deleted-decision-finding=v1) | the finding class of decision records of a base tree whose name no declared item in the shared set of a tree has and whose file's valid path is not the valid path of a stopped file of that tree |
 | [`reused-label`](sinter:#reused-label-finding=v1) | the finding class of items with a new label whose base item in a tree of the first-parent line of the default branch had the same label with a different kind or a different extent hash |
 
 ## 2. Retirement, cycles, and guarantees over time
@@ -290,28 +290,28 @@ chooses the anchor member (atom `cycle-finding`).
 ### 2.5 Deleted decision records
 
 The atom `deleted-decision-finding` gives the findings of the class
-`deleted-decision` for a tree against a base tree, using
-`revisions#base-item`.
+`deleted-decision` for a tree against a base tree, using the shared set
+(`documents#name-set`).
 
 For example, when a change deletes the file of `@decision rust-bridge=v1`,
 or renames `@decision parser-bridge=v1` to `@decision wasm-bridge=v1`,
 the tree has one `deleted-decision` finding (`rust-bridge` or
 `parser-bridge`). Moving the file of a decision record to another folder
-with the same name keeps its base item and gives no finding. Changing
-`@decision x=v1` to `@req x=v1` in the shared set keeps `x` as the base
-item of that requirement and gives no `deleted-decision` finding. When
-the file of `@decision rust-bridge=v1` stays at the same valid path in
-the tree and is in the set of stopped files of the tree, the tree has no
-`deleted-decision` finding for `rust-bridge`. When that file stays at
-the same valid path with content that is not valid UTF-8, the tree still
-has the `deleted-decision` finding `rust-bridge`.
+with the same name keeps that name in the shared set and gives no
+finding. Changing `@decision x=v1` to `@req x=v1` in the shared set
+keeps the name `x` in the shared set and gives no `deleted-decision`
+finding. When the file of `@decision rust-bridge=v1` stays at the same
+valid path in the tree and is in the set of stopped files of the tree,
+the tree has no `deleted-decision` finding for `rust-bridge`. When that
+file stays at the same valid path with content that is not valid UTF-8,
+the tree still has the `deleted-decision` finding `rust-bridge`.
 
 A `deleted-decision` finding has no spot, because the finding names a
-record that is the base item of no declared item of the tree. Therefore,
-no valid binding of `historical-paths` removes a `deleted-decision`
-finding. The requirements `compare-change-for-deleted-decisions`,
-`report-missing-base`, and `omit-missing-base-report` cover the change
-of a commit.
+decision record whose name no declared item in the shared set of the
+tree has. Therefore, no valid binding of `historical-paths` removes a
+`deleted-decision` finding. The requirements
+`compare-change-for-deleted-decisions`, `report-missing-base`, and
+`omit-missing-base-report` cover the change of a commit.
 
 ### 2.6 Reused labels
 
@@ -690,10 +690,9 @@ line of the declaration of d in the text of the file of d in T.
         parameter=v1,
     },
     documents#{
-        file-readers=v1, item-file=v1, tree-finding=v1,
+        file-readers=v1, item-file=v1, name-set=v1, tree-finding=v1,
         unreadable-file=v1,
     },
-    revisions#{base-item=v1},
     text#{text=v1, code-span=v1},
 }
 
@@ -701,13 +700,14 @@ For a tree T and a base tree B, under a valid binding F of
 `file-readers`, a binding N of `external-namespaces`, a set UT of
 stopped files of T, and a set UB of stopped files of B (when T and B are
 the same tree, UT and UB are the same set), the declared items, their
-kinds, and their names of T and of B, and the base items in B of the
-declared items of T, are those that T and B have under F, N, UT, and UB.
-Under F, N, UT, and UB, T has one tree finding of the class
-`deleted-decision` against B for each text t that is the name in B of a
-decision record e of B that meets both of these conditions:
+kinds, their names, their files, and the sets of names of T and of B are
+those that T and B have under F, N, UT, and UB. Under F, N, UT, and UB,
+T has one tree finding of the class `deleted-decision` against B for
+each text t that is the name in B of a decision record e of B that meets
+both of these conditions:
 
-1. e is the base item in B of no declared item of T.
+1. No declared item in the shared set of T has a name in T that is the
+   same text as t.
 2. No file in UT has the valid path of the file of e in B.
 
 The subject of that tree finding is t. That tree finding has no spot.
@@ -718,9 +718,12 @@ The subject of that tree finding is t. That tree finding has no spot.
 @cites {
     identifiers#{external-namespaces=v1},
     ontology#{
-        declared-item=v1, item-revision=v1, tree=v1, parameter=v1,
+        declared-item=v1, item-name=v1, item-revision=v1, tree=v1,
+        parameter=v1,
     },
-    documents#{file-readers=v1, item-file=v1, unreadable-file=v1},
+    documents#{
+        file-readers=v1, item-file=v1, name-set=v1, unreadable-file=v1,
+    },
     revisions#{base-item=v1},
     text#{text=v1, code-span=v1},
     #{historical-paths=v1, historical-file=v1},
@@ -732,11 +735,14 @@ of `historical-paths`, a set UT of stopped files of T, and a set UB of
 stopped files of B (when T and B are the same tree, UT and UB are the
 same set), a declared item d of T (under F, N, and UT) is an item with a
 new label against B under F, N, H, UT, and UB when, and only when, all
-three of these conditions hold:
+four of these conditions hold:
 
 1. d has a current revision in T.
 2. The file of d in T is not a historical file of T under H.
-3. Either d has no base item in B (under F, N, UT, and UB), or the base
+3. For each set of names of T (under F, N, and UT) in which d is, no
+   other declared item in that set of names has a name in T that is the
+   same text as the name of d in T.
+4. Either d has no base item in B (under F, N, UT, and UB), or the base
    item e of d in B has no current revision in B or has a current
    revision in B that is not the same text as the current revision of d
    in T.
@@ -1888,7 +1894,6 @@ the valid path and start position that the element states.
         file-readers=v1, name-set=v1, tree-finding=v1,
         unreadable-file=v1,
     },
-    revisions#{base-item=v1},
     #{
         historical-paths=v1, deleted-decision-finding=v1,
         give-deleted-decision-findings=v1,
