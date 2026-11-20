@@ -60,12 +60,12 @@ values; hex texts; and, from its specification `test-vectors`, vector
 lines, the forms of groups, and the meaning of vectors. From the
 Ontology, it takes trees, tests, test results and test evidence, edges
 with their sources and cited items, the edges of the kind `verifies`,
-declared items and schemas, parameters, the names of items, items in
-force, the ledger, conformance vectors, groups of conformance vectors,
-vector sets, promises, and finding classes. From Language
-packs, it takes valid packs and valid descriptors, test runners with
-their adapter hashes, match tables, and runner settings; the bindings of
-`runner-settings`; the readings of texts, test nodes with their kinds
+declared items and schemas, parameters, the names of items, conformance
+vectors, groups of conformance vectors, vector sets, promises, and
+finding classes. From Language packs, it takes valid packs and valid
+descriptors, test runners with their adapter hashes, match tables, and
+runner settings; the bindings of `runner-settings` and the values of
+runner settings; the readings of texts, test nodes with their kinds
 test case and test suite, the runs of nodes, enclosed nodes, the order
 of the parse tree, and the names of test nodes; test entries, the
 requests of the function bind, calls, valid adapters, instances of
@@ -120,7 +120,7 @@ literal names `true` and `false`.
 | [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, of a group of conformance vectors of an item that is in force in the tree at the end of the ledger, when the group has at least one conformance vector that says a vector and is not verified |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence and a given set of in-force items of the tree, of a group of conformance vectors of a declared item in that set, when that group has at least one conformance vector that says a vector, and that group is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -400,9 +400,9 @@ conformance vector that says a vector.
 The atoms `never-ran-finding`, `failed-finding`,
 `ambiguous-result-finding`, and `unverified-vector-finding` give the
 findings of four finding classes. For example, the subject of a finding
-of the class `unverified-vector` can be `data-forms#toml[keys]`, and the
-groups of conformance vectors of a design that an effective `supersedes`
-edge replaces give no such finding.
+of the class `unverified-vector` can be `data-forms#toml[keys]`. The
+groups of conformance vectors of a declared item that is not in the
+given set of in-force items give no such finding.
 
 ## 3. Definitions
 
@@ -496,8 +496,9 @@ letters. These definitions apply to a JUnit XML report:
 @cites {
     packs#{
         test-runner=v1, runner-setting=v1, runner-settings=v1,
-        valid-descriptor=v1,
+        runner-setting-value=v1, valid-descriptor=v1,
     },
+    ontology#{parameter=v1},
     identifiers#{id-pattern=v1},
     data-forms#{toml-value=v1},
     text#{text=v1, character=v1, code-span=v1},
@@ -545,8 +546,9 @@ or the name of one of its runner settings.
 @cites {
     packs#{
         test-runner=v1, runner-setting=v1, runner-settings=v1,
-        valid-descriptor=v1,
+        runner-setting-value=v1, valid-descriptor=v1,
     },
+    ontology#{parameter=v1},
     data-forms#{toml-value=v1},
     text#{code-span=v1},
     #{runner-data=v1},
@@ -727,6 +729,7 @@ text, equal to the name part of the test result at the same index.
         valid-descriptor=v1, test-runner=v1, runner-settings=v1,
         adapter-call=v1,
     },
+    ontology#{parameter=v1},
     text#{text=v1, character=v1, code-span=v1},
     #{junit-report=v1, runner-data=v1, runner-data-value=v1},
 }
@@ -748,7 +751,7 @@ the text after that `=`.
 
 @term default-reader-result=v1
 @cites {
-    ontology#{test-evidence=v1},
+    ontology#{test-evidence=v1, parameter=v1},
     files#{path=v1},
     packs#{
         valid-descriptor=v1, test-runner=v1, runner-settings=v1,
@@ -1136,8 +1139,7 @@ that run.
 @cites {
     ontology#{
         conformance-vector=v1, conformance-vector-group=v1,
-        vector-set=v1, item-name=v1, tree=v1, in-force-item=v1,
-        ledger=v1,
+        vector-set=v1, declared-item=v1, item-name=v1, tree=v1,
     },
     documents#{vector-file=v1, tree-finding=v1},
     findings#{spot=v1},
@@ -1146,16 +1148,16 @@ that run.
     #{tree-evidence=v1, verified-vector=v1},
 }
 
-A tree that has evidence has one tree finding of the class
+For a set S of declared items of a tree, the set of in-force items, a
+tree that has evidence has, for S, one tree finding of the class
 `unverified-vector` for each group of conformance vectors of the vector
-set of an item that is in force in the tree at the end of the ledger of
-the repository, when that group has at least one conformance vector that
-says a vector and is not verified in the evidence for the tree. A tree
-that has no evidence has no tree finding of the class
-`unverified-vector`. The subject of the finding is the name of the item
-of its vector set, then `[`, then the name of the group of conformance
-vectors, then `]`. Its spot is the valid path of the vector file of that
-item alone, with no span.
+set of a declared item in S, when that group has at least one
+conformance vector that says a vector, and that group is not verified in
+the evidence for the tree. A tree that has no evidence has no tree
+finding of the class `unverified-vector`. The subject of the finding is
+the name of the item of its vector set, then `[`, then the name of the
+group of conformance vectors, then `]`. Its spot is the valid path of
+the vector file of that item alone, with no span.
 
 ## 4. Requirements
 
@@ -1167,6 +1169,7 @@ item alone, with no span.
         valid-descriptor=v1, test-runner=v1, runner-settings=v1,
         adapter-call=v1,
     },
+    ontology#{parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{default-recognition=v1},
 }
@@ -1400,7 +1403,7 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
 @req give-nothing-under-invalid-runner-settings=v1
 @cites {
     packs#{runner-settings=v1, test-runner=v1},
-    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
+    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
         report-file=v1, import=v1, tree-evidence=v1,
@@ -1425,8 +1428,8 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, tree-finding=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    ontology#{declared-item=v1, finding-class=v1, tree=v1, parameter=v1},
+    text#{conforming-program=v1, input=v1, result=v1},
     #{
         tree-evidence=v1, never-ran-finding=v1, failed-finding=v1,
         ambiguous-result-finding=v1, unverified-vector-finding=v1,
@@ -1436,10 +1439,15 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives
-the findings of a tree of one of the classes `never-ran`, `failed`,
-`ambiguous-result`, and `unverified-vector`, which rest on the evidence
-for that tree, it must give each tree finding of that class that the
-tree has once, and no other finding of that class.
+the findings of a tree of one of the classes `never-ran`, `failed`, and
+`ambiguous-result`, which rest on the evidence for that tree, it must
+give each tree finding of that class that the tree has once, and no
+other finding of that class. Under these bindings, when a conforming
+program takes a set S of declared items of a tree, the set of in-force
+items, as an input and gives the findings of that tree of the class
+`unverified-vector` for S, which rest on the evidence for that tree, it
+must give each tree finding of that class that the tree has for S once,
+and no other finding of that class.
 
 ## 5. Conformance
 
@@ -1453,10 +1461,9 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them. No group of this design uses a need, so the forms of each group
-give no need names. The vectors are in four groups, `recognitions`,
-`readings`, `outcomes`, and `findings`, and each subsection below gives
-the forms of one group, as the term
+to them. The vectors are in four groups, `recognitions`, `readings`,
+`outcomes`, and `findings`, and each subsection below gives the forms of
+one group, as the term
 [`group-form-list`](sinter:data-forms#group-form-list=v1) gives them. No
 vector follows from the requirements `give-reading-requests`,
 `read-only-report-content`, `end-report-readings`,
@@ -1484,8 +1491,9 @@ vector binds a program only to what the program gives for the input.
     },
     packs#{
         test-runner=v1, runner-setting=v1, runner-settings=v1,
-        adapter-call=v1,
+        runner-setting-value=v1, adapter-call=v1,
     },
+    ontology#{parameter=v1},
     #{
         report-file=v1, runner-data=v1, default-recognition=v1,
         recognise-junit-reports=v1,
@@ -1499,9 +1507,10 @@ data of a test runner, and the default recognition. The binding of
 type of its value in `settings`. The group uses no need, so these forms
 give no need names.
 
-The JSON values, objects, members, arrays, strings, numbers, and
-booleans of this schema are as RFC 8259 defines them. Inside the members
-`input`, `result`, and `values`, the JSON values have these forms:
+The JSON values, objects, members, arrays, strings, numbers, and the
+literal names `true` and `false` of this schema are as RFC 8259 defines
+them. Inside the members `input`, `result`, and `values`, the JSON
+values have these forms:
 
 - A text, such as a result, a name, or a test entry id, is a JSON string
   whose characters are the characters of the text, in order.
@@ -1511,10 +1520,11 @@ booleans of this schema are as RFC 8259 defines them. Inside the members
   [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
   JSON string.
 - A TOML value is a JSON value of the same kind: a TOML string is a JSON
-  string, a TOML boolean is a JSON boolean, a TOML integer is a JSON
-  number of the same integer, a TOML array is a JSON array of the JSON
-  values of its elements, in order, and a TOML table is a JSON object
-  with one member for each of its keys.
+  string, a TOML boolean is the literal name `true` for true or `false`
+  for false, a TOML integer is a JSON number of the same integer, a TOML
+  array is a JSON array of the JSON values of its elements, in order,
+  and a TOML table is a JSON object with one member for each of its
+  keys.
 
 The members of a vector line have these forms:
 
@@ -1577,11 +1587,11 @@ valid, a conforming program of the design Identifiers gives the result
 value in `settings`. The group uses no need, so these forms give no need
 names.
 
-The JSON values, objects, members, arrays, strings, numbers, and
-booleans of this schema are as RFC 8259 defines them. Inside the members
-`input`, `result`, and `values`, a text, a byte sequence, and a TOML
-value have the forms that `recognition-vector` gives, and a name path
-and a test entry have these forms:
+The JSON values, objects, members, arrays, strings, numbers, and the
+literal names `true` and `false` of this schema are as RFC 8259 defines
+them. Inside the members `input`, `result`, and `values`, a text, a byte
+sequence, and a TOML value have the forms that `recognition-vector`
+gives, and a name path and a test entry have these forms:
 
 - A name path is a JSON array with one JSON array for each name, in
   their order. The array of a name has one JSON object for each piece,
@@ -1675,10 +1685,10 @@ Identifiers gives the result "valid" for the binding of
 test runner is valid. The group uses no need, so these forms give no
 need names.
 
-The JSON values, objects, members, arrays, strings, numbers, and
-booleans of this schema are as RFC 8259 defines them. Inside the members
-`input`, `result`, and `values`, a text has the form that
-`recognition-vector` gives.
+The JSON values, objects, members, arrays, strings, numbers, and the
+literal names `true` and `false` of this schema are as RFC 8259 defines
+them. Inside the members `input`, `result`, and `values`, a text has the
+form that `recognition-vector` gives.
 
 The members of a vector line have these forms:
 
@@ -1744,8 +1754,8 @@ class `ambiguous-result` of the tree, it gives one for that test when
 @cites {
     rfc/8259,
     text#{
-        conforming-program=v1, text=v1, code-point-order=v1, result=v1,
-        requirement=v1, code-span=v1,
+        conforming-program=v1, text=v1, code-point-order=v1, input=v1,
+        result=v1, requirement=v1, code-span=v1,
     },
     data-forms#{vector-line=v1, group-form-list=v1, vector-meaning=v1},
     identifiers#{
@@ -1759,7 +1769,7 @@ class `ambiguous-result` of the tree, it gives one for that test when
         tree=v1, test=v1, edge=v1, verifies-edge=v1, edge-source=v1,
         schema=v1, declared-item=v1, conformance-vector=v1,
         conformance-vector-group=v1, vector-set=v1, item-name=v1,
-        in-force-item=v1, ledger=v1, finding-class=v1, parameter=v1,
+        finding-class=v1, parameter=v1,
     },
     packs#{runner-settings=v1, test-runner=v1},
     #{
@@ -1773,23 +1783,24 @@ class `ambiguous-result` of the tree, it gives one for that test when
 The group `findings` has the vectors of the requirement
 `give-evidence-findings` for the classes `never-ran`, `failed`, and
 `unverified-vector`. Each vector gives the outcomes of tests in the
-evidence for a tree, the edges of the kind `verifies` of the tree, and
-the conformance vectors of vector sets of the tree, and the findings of
-these classes that the tree has. The outcome of each test is given as an
-input. The tree of each vector has no other edge of the kind `verifies`
-and no other vector set. The binding of `file-readers` is valid, a
-conforming program of the design Identifiers gives the result "valid"
-for the binding of `external-namespaces`, the binding of
+evidence for a tree, the edges of the kind `verifies` of the tree, the
+conformance vectors of vector sets of the tree, and which of their
+declared items are in the set of in-force items, and it gives the
+findings of these classes that the tree has. The outcome of each test is
+given as an input. The tree of each vector has no other edge of the kind
+`verifies` and no other vector set. The binding of `file-readers` is
+valid, a conforming program of the design Identifiers gives the result
+"valid" for the binding of `external-namespaces`, the binding of
 `runner-settings` for each test runner is valid, and no reading of a
 report file of the evidence has the result "stopped". Each vector of the
 group has the member `values`, and no vector has the member `result`;
 these forms name no question for `result`. The group uses no need, so
 these forms give no need names.
 
-The JSON values, objects, members, arrays, strings, numbers, and
-booleans of this schema are as RFC 8259 defines them. Inside the members
-`input` and `values`, a text has the form that `recognition-vector`
-gives.
+The JSON values, objects, members, arrays, strings, numbers, and the
+literal names `true` and `false` of this schema are as RFC 8259 defines
+them. Inside the members `input` and `values`, a text has the form that
+`recognition-vector` gives.
 
 The members of a vector line have these forms:
 
@@ -1812,11 +1823,11 @@ The members of a vector line have these forms:
     an item of another kind; and `none` when the edge has no cited item.
   - `sets` is a JSON array of the vector sets of the tree. A vector set
     is a JSON object with the members `name`, the name of its item;
-    `in-force`, true when that item is in force in the tree at the end
-    of the ledger, and false when it is not; and `vectors`, a JSON array
-    of its conformance vectors, each a JSON object with the members
-    `group`, the name of its group, and `says`, true when it says a
-    vector, and false when it says no vector.
+    `in-force`, true when that item is in the given set of in-force
+    items of the tree, and false when it is not; and `vectors`, a JSON
+    array of its conformance vectors, each a JSON object with the
+    members `group`, the name of its group, and `says`, true when it
+    says a vector, and false when it says no vector.
 - `values`: a JSON object with one member, `findings`: a JSON array of
   the findings of the classes `never-ran`, `failed`, and
   `unverified-vector` that the tree has, each a JSON array of the slug
@@ -1824,9 +1835,10 @@ The members of a vector line have these forms:
   then of the subject.
 
 When a conforming program gives the findings of one of these classes of
-the tree, it gives one finding of that class for each element of
-`findings` with that class, with that subject, and no other finding of
-that class.
+the tree, for the given set of in-force items when the class is
+`unverified-vector`, it gives one finding of that class for each element
+of `findings` with that class, with that subject, and no other finding
+of that class.
 
 ```
 {"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; the group keys has a vector that says a vector, and no passing test cites it, so it gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
