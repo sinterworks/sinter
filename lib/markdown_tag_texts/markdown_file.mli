@@ -19,6 +19,7 @@
 
 open Sinter_text
 open Sinter_origins
+open Sinter_markdown_limits
 
 type t
 (** A markdown file that can be read. *)
@@ -88,13 +89,14 @@ type list_item = {
     at the last markdown line of the last block that it contains: a blank line
     after that block is not one of its markdown lines. *)
 
-val read : Lines.t -> t
-(** [read lines] reads the markdown file whose text is [Lines.text lines]. The
-    time doubles with each level of square brackets nested in one another: this
-    is the nesting defect of [cmarkit] 0.4.0, in the decision record
-    [commonmark-reader]. A text with more than about 20 such levels can take a
-    very long time and much memory. Apart from the parse of CommonMark 0.31.2,
-    the time is linear in the length of the text. *)
+val read : Markdown_limits.text -> t
+(** [read text] reads the markdown file whose text is
+    [Lines.text (Markdown_limits.lines text)]. No limit stopped that text, so
+    its size, its bracket depth, and its container depth are at most the limits
+    that {!Markdown_limits.check} got. The parse of CommonMark 0.31.2 by
+    [cmarkit] 0.4.0 then takes the time and the memory that the decision record
+    [commonmark-reader] states for these limits. Apart from that parse, the time
+    is linear in the length of the text. *)
 
 val lines : t -> Text.run list
 (** [lines file] is the markdown lines of the text of [file], in the order of

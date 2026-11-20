@@ -3,6 +3,7 @@
 
 open Sinter_text
 open Sinter_origins
+open Sinter_markdown_limits
 module C = Cmarkit
 module B = C.Block
 
@@ -248,7 +249,8 @@ let sections ctx blocks =
         first_paragraph;
       })
 
-let read file =
+let read within =
+  let file = Markdown_limits.lines within in
   let text = Lines.text file in
   let markdown_lines = Array.of_list (Markdown_lines.of_text text) in
   let count = Array.length markdown_lines in

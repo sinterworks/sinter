@@ -6,7 +6,14 @@ open Sinter_origins
 open Sinter_identifiers
 open Sinter_inline_citations
 open Sinter_markdown_tag_texts
+open Sinter_markdown_limits
 open Sinter_tag_inputs
+
+let unlimited =
+  Markdown_limits.{ size = max_int; brackets = max_int; containers = max_int }
+
+let within lines = Result.get_ok (Markdown_limits.check unlimited lines)
+
 module Gen = QCheck2.Gen
 
 let property ?(count = 500) ~name ~print generator check =
@@ -24,7 +31,7 @@ let binding =
   | Error _ -> invalid_arg "binding"
 
 let ok what holds = holds || QCheck2.Test.fail_reportf "%s" what
-let read string = Markdown_file.read (Lines.of_text (text_of string))
+let read string = Markdown_file.read (within (Lines.of_text (text_of string)))
 let lf = Uchar.of_int 0x0A
 let is_wsp u = Uchar.to_int u = 0x20 || Uchar.to_int u = 0x09
 

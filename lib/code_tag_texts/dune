@@ -10,7 +10,8 @@
   sinter_identifiers
   sinter_origins
   sinter_file_readers
-  sinter_readings)
+  sinter_readings
+  sinter_markdown_limits)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation

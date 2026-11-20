@@ -7,6 +7,7 @@ open Sinter_inline_citations
 open Sinter_origins
 open Sinter_markdown_tag_texts
 open Sinter_code_tag_texts
+open Sinter_markdown_limits
 open Sinter_tag_inputs
 
 type kind =
@@ -91,8 +92,9 @@ let range_set first last =
 let file_of path readable =
   let text, lines, code =
     match readable with
-    | Readable_file.Markdown_file lines ->
-        let md = Markdown_file.read lines in
+    | Readable_file.Markdown_file within ->
+        let lines = Markdown_limits.lines within in
+        let md = Markdown_file.read within in
         (Lines.text lines, Markdown_file.file_lines md, None)
     | Readable_file.Code_file code ->
         ( Lines.text (Sinter_readings.Reading.lines (Code_file.reading code)),
@@ -110,8 +112,8 @@ let file_of path readable =
 
 let units binding file readable =
   match readable with
-  | Readable_file.Markdown_file lines ->
-      let md = Markdown_file.read lines in
+  | Readable_file.Markdown_file within ->
+      let md = Markdown_file.read within in
       let markdown = Array.of_list (Markdown_file.lines md) in
       let set (range : Markdown_file.range) =
         Ints.of_list
@@ -533,8 +535,8 @@ let model binding files paths =
         in
         let sources =
           match (file.code, List.assoc_opt file files) with
-          | None, Some (Readable_file.Markdown_file lines) ->
-              [ Markdown_file.markdown_text (Markdown_file.read lines) ]
+          | None, Some (Readable_file.Markdown_file within) ->
+              [ Markdown_file.markdown_text (Markdown_file.read within) ]
           | _ -> List.map (fun u -> Tag_text.source u.tag_text) units
         in
         let links =

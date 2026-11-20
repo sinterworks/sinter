@@ -9,6 +9,7 @@ open Sinter_tag_inputs
 open Sinter_markdown_tag_texts
 open Sinter_readings
 open Sinter_code_tag_texts
+open Sinter_markdown_limits
 
 module By_run = Map.Make (struct
   type t = int * int
@@ -100,10 +101,10 @@ let rec fill untils lowest highest lo hi =
 let make binding path readable =
   let content, text, file_lines, pairs, links, first_code_character =
     match readable with
-    | Readable_file.Markdown_file text ->
-        let file = Markdown_file.read text in
+    | Readable_file.Markdown_file within ->
+        let file = Markdown_file.read within in
         ( Markdown file,
-          text,
+          Markdown_limits.lines within,
           Markdown_file.file_lines file,
           markdown_tag_texts file,
           Input.of_links binding (Markdown_file.markdown_text file),

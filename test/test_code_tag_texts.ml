@@ -10,6 +10,11 @@ open Sinter_tag_inputs
 open Sinter_file_readers
 open Sinter_readings
 open Sinter_code_tag_texts
+open Sinter_markdown_limits
+
+let unlimited =
+  Markdown_limits.{ size = max_int; brackets = max_int; containers = max_int }
+
 module Gen = QCheck2.Gen
 module R = Code_reference
 
@@ -1113,7 +1118,7 @@ let read_one ?(path = "lib/a.rs") ?(markdown = false) bytes pack =
   in
   match Read_file.read_files readers Binding.empty tree with
   | [ file ] ->
-      let result = Readable_file.read pack file in
+      let result = Readable_file.read unlimited pack file in
       (result, List.rev !calls)
   | _ -> Alcotest.fail "one read file"
 
@@ -1183,7 +1188,7 @@ let readable_file_cases () =
     "a markdown file can be read, with its lines" true
     (match result with
     | Ok (Readable_file.Markdown_file lines) ->
-        Text.encode (Lines.text lines) = "# A\n"
+        Text.encode (Lines.text (Markdown_limits.lines lines)) = "# A\n"
     | _ -> false);
   Alcotest.(check int)
     "the pack is not called for a markdown file" 0 (List.length calls);

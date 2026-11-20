@@ -48,9 +48,11 @@ type tag_text = {
 val make : Binding.t -> Path.t -> Readable_file.t -> t
 (** [make binding path file] is the read file [file] at the valid path [path],
     read under the binding [binding] of [external-namespaces]. For a markdown
-    file, the time is that of {!Markdown_file.read}. For each file, the time is
-    then linear in the length of the text and in the number of its file lines,
-    and grows as n log n in the number n of its file lines. *)
+    file, the text is within the limits that {!Readable_file.read} got, so the
+    time is that of {!Markdown_file.read} for these limits, as the decision
+    record [commonmark-reader] states it. For each file, the time is then linear
+    in the length of the text and in the number of its file lines, and grows as
+    n log n in the number n of its file lines. *)
 
 val binding : t -> Binding.t
 (** [binding file] is the binding of [external-namespaces] under which [file]

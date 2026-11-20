@@ -4,7 +4,7 @@
 (library
  (name sinter_markdown_tag_texts)
  (public_name sinter.markdown_tag_texts)
- (libraries sinter_text sinter_origins cmarkit)
+ (libraries sinter_text sinter_origins sinter_markdown_limits cmarkit)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation

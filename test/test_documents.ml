@@ -8,8 +8,13 @@ open Sinter_identifiers
 open Sinter_file_readers
 open Sinter_readings
 open Sinter_code_tag_texts
+open Sinter_markdown_limits
 open Sinter_tree_inputs
 open Sinter_tree_items
+
+let unlimited =
+  Markdown_limits.{ size = max_int; brackets = max_int; containers = max_int }
+
 module Gen = QCheck2.Gen
 
 let property ?(count = 300) ~name ~print generator check =
@@ -225,7 +230,7 @@ let members stated =
 let tree_files binding read_files =
   List.filter_map
     (fun file ->
-      match Readable_file.read pack_reading file with
+      match Readable_file.read unlimited pack_reading file with
       | Ok readable ->
           Some (Tree_file.make binding (Read_file.path file) readable)
       | Error _ -> None)
@@ -234,7 +239,7 @@ let tree_files binding read_files =
 let file_tests read_files =
   List.concat_map
     (fun file ->
-      match Readable_file.read pack_reading file with
+      match Readable_file.read unlimited pack_reading file with
       | Ok readable -> File_test.of_file readable
       | Error (Readable_file.Cannot_be_read _) -> []
       | Error (Readable_file.Invalid_reading _) ->

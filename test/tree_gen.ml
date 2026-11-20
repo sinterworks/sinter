@@ -8,6 +8,11 @@ open Sinter_identifiers
 open Sinter_file_readers
 open Sinter_readings
 open Sinter_code_tag_texts
+open Sinter_markdown_limits
+
+let unlimited =
+  Markdown_limits.{ size = max_int; brackets = max_int; containers = max_int }
+
 module Gen = QCheck2.Gen
 module R = Code_reference
 
@@ -451,7 +456,7 @@ let read (case : case) =
   let readables =
     List.filter_map
       (fun file ->
-        match Readable_file.read pack file with
+        match Readable_file.read unlimited pack file with
         | Ok readable -> Some (path_text (Read_file.path file), readable)
         | Error _ -> None)
       (Read_file.read_files readers namespaces tree)

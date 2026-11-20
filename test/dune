@@ -49,6 +49,7 @@
   sinter_file_readers
   sinter_origins
   sinter_tag_inputs
+  sinter_markdown_limits
   sinter_markdown_tag_texts
   sinter_readings
   sinter_code_tag_texts

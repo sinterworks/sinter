@@ -11,6 +11,7 @@
   sinter_identifiers
   sinter_tag_inputs
   sinter_readings
+  sinter_markdown_limits
   sinter_markdown_tag_texts
   sinter_code_tag_texts)
  (instrumentation

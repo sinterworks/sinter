@@ -4,6 +4,13 @@
 open Sinter_text
 open Sinter_origins
 open Sinter_markdown_tag_texts
+open Sinter_markdown_limits
+
+let unlimited =
+  Markdown_limits.{ size = max_int; brackets = max_int; containers = max_int }
+
+let within lines = Result.get_ok (Markdown_limits.check unlimited lines)
+
 module Gen = QCheck2.Gen
 module Reference = Documents_reference
 
@@ -21,7 +28,7 @@ let encode text run =
   | Some sub -> Text.encode sub
   | None -> invalid_arg "encode"
 
-let read string = Markdown_file.read (Lines.of_text (text_of string))
+let read string = Markdown_file.read (within (Lines.of_text (text_of string)))
 
 let line_pieces =
   [
@@ -142,7 +149,7 @@ let front_matter_follows_the_term =
        ])
     (fun file ->
       let text = text_of file in
-      let markdown = Markdown_file.read (Lines.of_text text) in
+      let markdown = Markdown_file.read (within (Lines.of_text text)) in
       let lines = Reference.markdown_lines text in
       let expected =
         Option.map
@@ -170,7 +177,7 @@ let markdown_text_comes_from_the_markdown_run =
       "the k-th character of the markdown text comes from the k-th place of \
        the markdown run" ~print markdown_gen (fun file ->
       let text = text_of file in
-      let markdown = Markdown_file.read (Lines.of_text text) in
+      let markdown = Markdown_file.read (within (Lines.of_text text)) in
       let run = Reference.markdown_run text in
       let source = Markdown_file.markdown_text markdown in
       let length = run.Text.until - run.Text.from in
