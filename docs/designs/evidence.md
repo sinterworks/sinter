@@ -1239,10 +1239,10 @@ content for that test runner under that binding.
 
 Under a valid binding of `file-readers`, when a conforming program
 gives, under that binding and a set of stopped files of the tree of an
-import, the result of the reading of a report file of that import, it
-must give exactly one result, and only "bound", "unreadable", or
-"stopped": the result of that reading under that binding and that set of
-stopped files.
+import, the result of the reading of a report file of that import, the
+conforming program must give exactly one result, and only "bound",
+"unreadable", or "stopped": the result of that reading under that
+binding and that set of stopped files.
 
 ### 4.3 The test results of readings
 
@@ -1272,12 +1272,12 @@ duration when it has them, and no other test result of that reading.
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
-Under a valid binding of `file-readers`, when, with the result "bound"
-of the reading of a report file of an import under that binding and a
-set of stopped files of the tree of that import, a conforming program
-gives the result links of that reading, it must give each result link of
-that reading under that binding and that set of stopped files once, and
-no other result link of that reading.
+Under a valid binding of `file-readers`, when the reading of a report
+file of an import under that binding and a set of stopped files of the
+tree of that import has the result "bound" and a conforming program
+gives the result links of that reading, the conforming program must give
+each result link of that reading under that binding and that set of
+stopped files once, and no other result link of that reading.
 
 ### 4.5 No values of readings that do not bind
 
@@ -1309,11 +1309,12 @@ reading under that binding and that set of stopped files is not "bound".
 Under a valid binding of `file-readers`, when a conforming program makes
 a call of the function bind of an adapter for the reading of a report
 file of an import under that binding and a set of stopped files of the
-tree of that import, it must make that call with the request that the
-atom `reading-of-a-report-file` gives under that binding and that set of
-stopped files, with the test entries of that reading under that binding
-and that set of stopped files and no other test entry, and with the test
-entry ids of these test entries as the test entry ids of the call.
+tree of that import, the conforming program must make that call with the
+request that the atom `reading-of-a-report-file` gives under that
+binding and that set of stopped files, with the test entries of that
+reading under that binding and that set of stopped files and no other
+test entry, and with the test entry ids of these test entries as the
+test entry ids of the call.
 
 ### 4.7 Bytes only from the report content
 
@@ -1363,11 +1364,15 @@ only when that import is given for that tree.
 
 Under a valid binding of `file-readers`, when a conforming program
 gives, under that binding and a set of stopped files of a tree, the
-outcome of a test of that tree in an import of that tree, or in the
-evidence for that tree, it must give exactly one outcome, and only
-"passed", "failed", or "not run": the outcome of that test in that
-import, or in that evidence, under that binding and that set of stopped
-files.
+outcome of a test of that tree in an import of that tree, the conforming
+program must give exactly one outcome, and only "passed", "failed", or
+"not run": the outcome of that test in that import under that binding
+and that set of stopped files. Under a valid binding of `file-readers`,
+when a conforming program gives, under that binding and a set of stopped
+files of a tree, the outcome of a test of that tree in the evidence for
+that tree, the conforming program must give exactly one outcome, and
+only "passed", "failed", or "not run": the outcome of that test in that
+evidence under that binding and that set of stopped files.
 
 ### 4.11 The sources of outcomes
 
@@ -1381,9 +1386,10 @@ files.
 
 Under a valid binding of `file-readers`, when a conforming program
 gives, under that binding and a set of stopped files of a tree, the
-outcome of a test of that tree in the evidence for that tree, it must
-give with that outcome each source of that outcome under that binding
-and that set of stopped files once, and no other source.
+outcome of a test of that tree in the evidence for that tree, the
+conforming program must give with that outcome each source of that
+outcome under that binding and that set of stopped files once, and no
+other source.
 
 ### 4.12 The sources of kept promises
 
@@ -1403,15 +1409,25 @@ Under a valid binding of `file-readers` and a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", when a conforming program gives,
 under these bindings and a set of stopped files of a tree that has
-evidence, whether a `verifies` promise is kept in that tree, it must
-give with it, once for each test that is the source of an edge of that
-tree under these bindings and that set of stopped files that is such an
-edge for that promise as the term `promise` of the Ontology states, the
-outcome of that test in the evidence for that tree under these bindings
-and that set of stopped files, which is "passed", "failed", or "not
-run", and each source of that outcome under these bindings and that set
-of stopped files once, and it must give no outcome and no source for
-another test with it.
+evidence, whether a `verifies` promise is kept in that tree, for each
+test that is the source of an edge of that tree under these bindings and
+that set of stopped files that is such an edge for that promise as the
+term `promise` of the Ontology states, the conforming program must give
+once for that test, with what the conforming program gives for whether
+that promise is kept in that tree, the outcome of that test in the
+evidence for that tree under these bindings and that set of stopped
+files, which is "passed", "failed", or "not run", and each source of
+that outcome under these bindings and that set of stopped files once.
+Under a valid binding of `file-readers` and a binding of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", when a conforming program gives,
+under these bindings and a set of stopped files of a tree that has
+evidence, whether a `verifies` promise is kept in that tree, the
+conforming program must give, with what the conforming program gives for
+whether that promise is kept in that tree, no outcome and no source for
+any test that is not the source of an edge of that tree under these
+bindings and that set of stopped files that is such an edge for that
+promise as the term `promise` of the Ontology states.
 
 ### 4.13 Nothing from evidence with a stopped reading
 
@@ -1601,12 +1617,11 @@ values have these forms:
   text. Otherwise, the byte sequence is a JSON object with one member,
   `bytes`, whose value is the [hex text](sinter:data-forms#hex-text=v1)
   of the byte sequence, as a JSON string.
-- A TOML value is a JSON value of the same kind: a TOML string is a JSON
-  string, a TOML boolean is the literal name `true` for true or `false`
-  for false, a TOML integer is a JSON number of the same integer, a TOML
-  array is a JSON array of the JSON values of its elements, in order,
-  and a TOML table is a JSON object with one member for each of its
-  keys.
+- A TOML value is a JSON value of the same kind. A TOML string is a JSON
+  string. A TOML boolean is the literal name `true` for true or `false`
+  for false. A TOML integer is a JSON number of the same integer. A TOML
+  array is a JSON array of the JSON values of its elements, in order. A
+  TOML table is a JSON object with one member for each of its keys.
 
 The members of a vector line have these forms:
 
@@ -1700,10 +1715,11 @@ The members of a vector line have these forms:
   entries, each a test entry, in the code point order of their test
   entry ids.
 - `result`: "bound" or "unreadable": the result of the reading of a
-  report file with that report content, whose test runner has that match
-  table and those runner settings, when its test entries, under the
-  binding of `file-readers` and a set of stopped files of the tree of
-  its import, are those of `tests` and the program does not stop it.
+  report file that has that report content and whose test runner has
+  that match table and those runner settings, when the test entries of
+  that reading, under the binding of `file-readers` and a set of stopped
+  files of the tree of the import of that report file, are those of
+  `tests` and the program does not stop that reading.
 - `values`: with "bound", a JSON object with the members `results` and
   `links`. `results` is a JSON array with one JSON object for each test
   result, in their order. Each JSON object in `results` has the member
@@ -1863,10 +1879,11 @@ for the tree under the empty set of stopped files of the tree, it gives
 the outcome that `result` gives, and no other outcome. With that
 outcome, that conforming program gives the sources that `sources` gives,
 and no other source. The order of the sources, and of the triples of a
-source, is not part of what that conforming program gives. When it gives
-the findings of the class `ambiguous-result` of the tree under the empty
-set of stopped files of the tree, it gives one for that test when
-`ambiguous` is true, and none for that test when it is false.
+source, is not part of what that conforming program gives. When a
+conforming program gives the findings of the class `ambiguous-result` of
+the tree under the empty set of stopped files of the tree, that
+conforming program gives one finding of that class for that test when
+`ambiguous` is true, and none for that test when `ambiguous` is false.
 
 ```
 {"form":"#outcome-vector=v1","group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"note":"a test that holds tests passed: each test that it holds passed","result":"passed","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
@@ -1957,24 +1974,30 @@ The members of a vector line have these forms:
     `other`. When that edge has no cited item, the member `kind` is
     `none`.
   - `sets` is a JSON array of the vector sets of the tree. A vector set
-    is a JSON object with the members `name`, the name of its item;
-    `in-force`, true when that item is in the set S of the input, and
-    false when it is not; and `vectors`, a JSON array of its conformance
-    vectors, each a JSON object with the members `group`, the name of
-    its group, and `says`, true when it says a vector, and false when it
-    says no vector.
-- `values`: a JSON object with one member, `findings`: a JSON array of
-  the findings of the classes `never-ran` and `failed` that the tree has
-  and the findings of the class `unverified-vector` that the tree has
-  for the set S of the input, each a JSON array of the slug of its class
-  and its subject, in the code point order of the class and then of the
-  subject.
+    is a JSON object with the members `name`, `in-force`, and `vectors`.
+    The member `name` is the name of the item of that vector set. The
+    member `in-force` is true when that item is in the set S of the
+    input, and false when that item is not in the set S of the input.
+    The member `vectors` is a JSON array of the conformance vectors of
+    that vector set. Each conformance vector in the member `vectors` is
+    a JSON object with the members `group` and `says`. The member
+    `group` is the name of the group of that conformance vector. The
+    member `says` is true when that conformance vector says a vector,
+    and false when that conformance vector says no vector.
+- `values`: a JSON object with one member, `findings`. The member
+  `findings` is a JSON array of the findings of the classes `never-ran`
+  and `failed` that the tree has and the findings of the class
+  `unverified-vector` that the tree has for the set S of the input, in
+  the code point order of the class and then of the subject. Each
+  finding in the member `findings` is a JSON array of the slug of the
+  class of that finding and the subject of that finding.
 
 When a conforming program gives the findings of one of these classes of
 the tree under the empty set of stopped files of the tree, taking the
-set S of the input as its input when the class is `unverified-vector`,
-it gives one finding of that class for each element of `findings` with
-that class, with that subject, and no other finding of that class.
+set S of the input as the input of that conforming program when the
+class is `unverified-vector`, that conforming program gives, for each
+element of `findings` with that class, one finding of that class with
+the subject of that element, and no other finding of that class.
 
 ```
 {"form":"#finding-vector=v1","group":"findings","input":{"edges":[{"cited":{"group":"offsets","kind":"group","set":"data-forms#toml"},"source":0,"subject":"t.py@L1C3"}],"evidence":true,"sets":[{"in-force":true,"name":"data-forms#toml","vectors":[{"group":"offsets","says":true},{"group":"offsets","says":true},{"group":"keys","says":true},{"group":"keys","says":false}]}],"tests":[{"outcome":"passed"}]},"note":"a pass of a test that cites a group verifies that group; the group keys has a vector that says a vector, and no passing test cites it, so it gives an unverified-vector finding","values":{"findings":[["unverified-vector","data-forms#toml[keys]"]]}}
