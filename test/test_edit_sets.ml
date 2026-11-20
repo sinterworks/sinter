@@ -86,7 +86,8 @@ let give_edit_sets (vector : Sinter_test_vectors.Test_vector_set.vector) =
    values, or when a file of the tree that the values do not name gets an
    edited text. *)
 let edit_set_vectors =
-  S.group findings_set ~name:"edit-sets" ~rev:"v1" give_edit_sets
+  S.group findings_set ~name:"edit-sets" ~form:"#edit-set-vector=v1"
+    give_edit_sets
 
 let text_pieces =
   [

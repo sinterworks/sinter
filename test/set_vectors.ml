@@ -12,11 +12,18 @@ let path design =
 
 let read design =
   let content = In_channel.with_open_bin (path design) In_channel.input_all in
+  let fail line problem =
+    failwith (Printf.sprintf "%s line %d: %s" (path design) line problem)
+  in
   match Test_vector_set.read content with
-  | Some set -> set
-  | None -> failwith (path design ^ " is not a test-vector set")
-
-let revision (set : t) = (set.revision :> string)
+  | Ok set -> set
+  | Error (Unterminated line) -> fail line "no line feed ends the line"
+  | Error (Not_canonical line) ->
+      fail line "the line is not the canonical byte sequence of a JSON value"
+  | Error (Not_vector_object line) ->
+      fail line "the line is not a vector object"
+  | Error (Other_schema line) ->
+      fail line "the form has another schema than an earlier line of the group"
 
 let vectors (set : t) name =
   List.filter
@@ -80,17 +87,18 @@ let to_int = function
 type answer = { result : string option; values : Json.t }
 type group_test = { name : string; run : unit -> unit }
 
-let mismatch (vector : Test_vector_set.vector) =
+let mismatch line (vector : Test_vector_set.vector) =
   let held =
     Printf.sprintf "result %s, values %s"
       (match vector.result with Some r -> Text.encode r | None -> "-")
       (match vector.values with Some v -> print v | None -> "-")
   in
-  fun gave -> Printf.sprintf "vector %d holds %s; %s" vector.number held gave
+  fun gave -> Printf.sprintf "the vector of line %d holds %s; %s" line held gave
 
-let check_vector give (vector : Test_vector_set.vector) =
+let check_vector give (line, (vector : Test_vector_set.vector)) =
   match give vector with
-  | exception exn -> Some (mismatch vector ("raised " ^ Printexc.to_string exn))
+  | exception exn ->
+      Some (mismatch line vector ("raised " ^ Printexc.to_string exn))
   | answer ->
       let result_ok =
         match vector.result with
@@ -105,25 +113,26 @@ let check_vector give (vector : Test_vector_set.vector) =
       if result_ok && values_ok then None
       else
         Some
-          (mismatch vector
+          (mismatch line vector
              (Printf.sprintf "gave result %s, values %s"
                 (Option.value answer.result ~default:"-")
                 (print answer.values)))
 
-let group (set : t) ~name ~rev give =
+let lines (set : t) name =
+  List.filter
+    (fun (_, (vector : Test_vector_set.vector)) -> vector.group = name)
+    (List.mapi (fun index vector -> (index + 1, vector)) set.vectors)
+
+let group (set : t) ~name ~form give =
   let run () =
-    (match
-       List.find_opt
-         (fun (group : Test_vector_set.group) -> group.name = name)
-         set.groups
-     with
-    | None -> Alcotest.failf "no group line for %s" name
-    | Some group ->
-        if (group.revision :> string) <> rev then
-          Alcotest.failf "group %s has revision %s, not %s" name
-            (group.revision :> string)
-            rev);
-    match vectors set name with
+    let held = lines set name in
+    List.iter
+      (fun (line, (vector : Test_vector_set.vector)) ->
+        if vector.form <> form then
+          Alcotest.failf "the vector of line %d of %s has the form %s, not %s"
+            line name vector.form form)
+      held;
+    match held with
     | [] -> Alcotest.failf "group %s holds no vector" name
     | held -> (
         match List.filter_map (check_vector give) held with
@@ -146,7 +155,8 @@ let covers design (set : t) groups =
     (fun () ->
       Alcotest.(check (list string))
         "the groups"
-        (List.map
-           (fun (group : Test_vector_set.group) -> group.name)
-           set.groups)
-        (List.map (fun group -> group.name) groups))
+        (List.sort_uniq String.compare
+           (List.map
+              (fun (vector : Test_vector_set.vector) -> vector.group)
+              set.vectors))
+        (List.sort String.compare (List.map (fun group -> group.name) groups)))

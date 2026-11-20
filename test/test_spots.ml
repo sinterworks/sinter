@@ -340,7 +340,8 @@ let give_spot_positions (vector : Sinter_test_vectors.Test_vector_set.vector) =
    spot gives a start position or a position after it other than the values,
    or gives one when the values are empty. *)
 let spot_position_vectors =
-  S.group spots_set ~name:"spot-positions" ~rev:"v1" give_spot_positions
+  S.group spots_set ~name:"spot-positions" ~form:"#spot-position-vector=v1"
+    give_spot_positions
 
 let vector_groups = [ spot_position_vectors ]
 

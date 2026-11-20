@@ -57,7 +57,8 @@ let give_finding_ids (vector : Sinter_test_vectors.Test_vector_set.vector) =
    Each vector gives a slug, a subject, and the finding id; the test fails when
    the finding id that the code gives is another text. *)
 let finding_id_vectors =
-  S.group findings_set ~name:"finding-ids" ~rev:"v1" give_finding_ids
+  S.group findings_set ~name:"finding-ids" ~form:"#finding-id-vector=v1"
+    give_finding_ids
 
 let segment_gen =
   Gen.map (String.concat "")

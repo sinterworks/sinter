@@ -14,10 +14,8 @@ type t
 
 val read : string -> t
 (** [read design] reads the sidecar file of [design], such as ["findings"]. It
-    raises [Failure] when the file is not a test-vector set. *)
-
-val revision : t -> string
-(** [revision set] is the revision of the set line of [set]. *)
+    raises [Failure] with the number of the line and the error when the file is
+    not a test-vector set. *)
 
 val vectors : t -> string -> Test_vector_set.vector list
 (** [vectors set name] is the vectors of the group [name], in their order. *)
@@ -79,20 +77,21 @@ type group_test
 val group :
   t ->
   name:string ->
-  rev:string ->
+  form:string ->
   (Test_vector_set.vector -> answer) ->
   group_test
-(** [group set ~name ~rev give] is the test of the group [name] of [set]. The
-    test fails when the group line of [name] has a revision other than [rev],
-    when the group holds no vector, or when, for one or more vectors, [give]
-    gives a result other than the member [result] of the vector, values that are
-    not the JSON value of the member [values], or raises. A member that the
-    vector line lacks is left out of the comparison. The message names each such
-    vector, what it holds, and what [give] gave. *)
+(** [group set ~name ~form give] is the test of the group [name] of [set]. The
+    test fails when a vector of the group has a form other than the form pin
+    [form], when the group holds no vector, or when, for one or more vectors,
+    [give] gives a result other than the member [result] of the vector, values
+    that are not the JSON value of the member [values], or raises. A member that
+    the vector line lacks is left out of the comparison. The message names each
+    such vector by the number of its line, what it holds, and what [give] gave.
+*)
 
 val tests : string -> group_test list -> unit Alcotest.test_case list
 (** [tests design groups] is one test case for each of [groups]. *)
 
 val covers : string -> t -> group_test list -> unit Alcotest.test_case
 (** [covers design set groups] is a test case that fails unless [groups] holds
-    exactly one test for each group line of [set]. *)
+    exactly one test for each group of [set], in any order. *)
