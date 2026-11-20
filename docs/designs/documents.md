@@ -104,7 +104,7 @@ names `true` and `false`.
 | [binding of `file-readers`](sinter:#file-readers=v1), [reader](sinter:#file-reader=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
-| [set of stopped files](sinter:#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files for whose reading it gives "parse failure" by the exception for limits of Language packs; any set of read files can be one |
+| [set of stopped files](sinter:#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose reading as a test-vector set it stops for limits of its own; any set of files of a tree can be one |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
@@ -146,13 +146,13 @@ names `true` and `false`.
 | [set of names](sinter:#name-set=v1) | a set of declared items: the shared set, which has the items of the kind design, the decision records, and the specifications, requirements, schemas, atoms, and terms that belong to no design and whose names are slugs; or the set of the specifications, requirements, schemas, atoms, and terms that belong to one item of the kind design |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a kind word, such as `req`, says that a citation entry or an inline citation names |
 | [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or the external id of an inline citation, names in a tree, for a home design |
-| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the file of the tree at that valid path, when no other item has that vector path |
+| [vector path](sinter:#vector-file=v1), [vector file](sinter:#vector-file=v1), [vector set](sinter:#vector-file=v1) | for an item of the kind design, or for an item of the kind specification that belongs to one, the text of the valid path of the file of the design up to its last `/`, that `/` included, or the empty text when that valid path has no `/`, followed by the test-vector file name of the design, or of the design and the specification; a specification that belongs to no design has none; the vector file is the file of the tree at that valid path, when no other item has that vector path; the vector set is the content of that vector file, when that vector file is not in the set of stopped files and that content is a test-vector set |
 | [selected item](sinter:#selected-item=v1) | the group of conformance vectors or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of the item |
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
 | [extern mark](sinter:#extern-mark=v1), [valid extern mark](sinter:#valid-extern-mark=v1) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement, a schema, an atom, or a term |
-| [edges of a tree](sinter:#tree-edge=v1), [form run](sinter:#tree-edge=v1), [form position](sinter:#tree-edge=v1) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the text of its `form` between its quotes, and its form position is where that run starts |
+| [edges of a tree](sinter:#tree-edge=v1), [form run](sinter:#tree-edge=v1), [form position](sinter:#tree-edge=v1) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the run of that line between the quotes of the JSON string of its `form`, JSON escapes included, and its form position is where that run starts |
 | [position subject](sinter:#position-subject=v1) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
@@ -169,6 +169,8 @@ names `true` and `false`.
 | [link](sinter:identifiers#link=v1), [inline citation](sinter:identifiers#inline-citation=v1) | an inline link, a reference link, or an autolink of the markdown document of a text; an inline citation is a link whose destination starts with `sinter:` |
 | [citation entry](sinter:identifiers#citation-entry=v1), [entry name](sinter:identifiers#citation-entry=v1) | one entry of the target of a citation, such as `billing#limit-amount=v2`; its entry name is its name or its external id, such as `billing#limit-amount` |
 | [declared item](sinter:ontology#declared-item=v1) | what a declaration declares: an item of the kind design, specification, or requirement, a schema, an atom, a term, or a decision record |
+| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [atom](sinter:ontology#atom=v1) | a declared item whose declaration word is `@atom`; it defines a named verdict that a conforming program gives, with the condition under which it gives that name |
 | [name of a declared item](sinter:ontology#item-name=v1) | the name in the target of its declaration, such as `billing` or `billing#limit-amount`; or, for an item of the kind specification, requirement, schema, atom, or term whose declaration names it by one segment and that belongs to an item of the kind design, the name of that design, `#`, and that segment |
 | [test](sinter:ontology#test=v1), [comment on a test](sinter:ontology#test=v1) | a unit of code that a test runner runs, or a set of such units that the code groups under one name; a comment that is attached to the code of a test |
 | [edge](sinter:ontology#edge=v1), [stand in](sinter:ontology#edge-source=v1) | a relation of one kind of edge from its source to its cited item; a line, a citation, or an inline citation stands in the innermost declared item of which it is a part, otherwise in the innermost test such that a comment on that test has it, otherwise in the site that has it, otherwise in no item |
@@ -176,6 +178,9 @@ names `true` and `false`.
 | [line](sinter:text#line=v1), [line ending](sinter:text#line-ending=v1) | one of the runs into which the line endings of a text divide its body; a line ending is a line feed, with the carriage return right before it when there is one |
 | [position](sinter:text#position=v1) | a pair of a line number and a column, such as line 3, column 7 |
 | [hash](sinter:data-forms#hash=v1) | the SHA-256 digest of a byte sequence, as 64 hex digits |
+| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 
 ## 2. Files, tag texts, items, and edges
 
@@ -519,14 +524,11 @@ Each of these classes has an atom that gives its findings, each a
     text#{text=v1, code-span=v1},
 }
 
-The parameter `file-readers` gives the files of a tree that a conforming
-program reads, and the reader of each of them. A binding of
-`file-readers` is a finite sequence of pairs. Each pair has a reader and
-a path set. A reader is the text `markdown` or a pack. A binding of
-`file-readers` meets the schema `file-readers` when, and only when, each
-of its path sets is a valid path set and each of its packs is a valid
-pack. A binding of `file-readers` is valid when, and only when, it meets
-the schema `file-readers`.
+A binding of the parameter `file-readers` is a finite sequence of pairs.
+Each pair has a reader and a path set. A reader is the text `markdown`
+or a pack. A binding of `file-readers` meets the schema `file-readers`
+when, and only when, each of its path sets is a valid path set and each
+of its packs is a valid pack.
 
 ## 4. Definitions
 
@@ -567,6 +569,7 @@ the code file.
 @term unreadable-file=v1
 @cites {
     files#{path=v1},
+    data-forms#{test-vector-set=v1},
     packs#{reading-of-a-text=v1, give-reading-results=v1},
     text#{valid-utf-8=v1, text=v1, result=v1, input=v1},
     ontology#{tree=v1, parameter=v1},
@@ -575,12 +578,14 @@ the code file.
 
 This term is for a tree, a valid binding of `file-readers`, and a set of
 stopped files of the tree. A set of stopped files of a tree is a set of
-read files of the tree that a program takes as an input of its own: the
+files of the tree that a program takes as an input of its own: the
 markdown files whose reading the program stops for limits of its own,
-and the code files for whose reading the program gives the result "parse
+the code files for whose reading the program gives the result "parse
 failure" by the exception for limits of the requirement
-`give-reading-results` of Language packs. Any set of read files of a
-tree can be a set of stopped files of the tree.
+`give-reading-results` of Language packs, and the files of the tree
+whose reading as a test-vector set the program stops for limits of its
+own. Any set of files of a tree can be a set of stopped files of the
+tree.
 
 A read file of the tree cannot be read when, and only when, it is in the
 set of stopped files, its content is not valid UTF-8, or it is a code
@@ -1549,7 +1554,7 @@ the same text.
     data-forms#{test-vector-file-name=v1, test-vector-set=v1},
     ontology#{item-name=v1, vector-set=v1, declared-item=v1},
     text#{text=v1},
-    #{item-file=v1, tree-containment=v1},
+    #{item-file=v1, tree-containment=v1, unreadable-file=v1},
 }
 
 The vector path of an item of the kind design D of a tree is the text of
@@ -1564,7 +1569,8 @@ has no vector path. The vector file of an item is the file of the tree
 whose valid path is its vector path, when the tree has that file and
 that valid path is the vector path of no other item. The vector set of
 an item, in that tree, is the content of its vector file, when it has a
-vector file and that content is a test-vector set.
+vector file, that vector file is not in the set of stopped files of that
+tree, and that content is a test-vector set.
 
 ### 4.37 Selected items
 
@@ -1631,17 +1637,18 @@ these rules give, or none when they give nothing:
   specification S that belongs to an item of the kind design D, or of an
   item of the kind design D: the item x that the full name made of the
   name of D, `#`, and the schema part name of the form of that vector
-  line names by rule 3 of the term `named-item`, when S holds x (for a
-  vector set of S) or when D holds x directly (for a vector set of D),
-  and nothing otherwise.
+  line names, as a citation entry with that entry name names an item for
+  no home design, when S holds x (for a vector set of S) or when D holds
+  x directly (for a vector set of D), and nothing otherwise.
 
 For an edge that a vector line of the vector set of an item gives, the
 form run of that edge is the run of the text of the vector file of that
 item, on the line of that vector line, that starts at the boundary right
-after the opening `"` of the JSON string of the value of `form` and ends
-at the boundary right before the closing `"` of that JSON string. Its
-form position is the position of the boundary where its form run starts
-in the text of that vector file.
+after the opening `"` of the JSON string of the value of the member
+`form` of the object of that vector line and ends at the boundary right
+before the closing `"` of that JSON string. Its form position is the
+position of the boundary where its form run starts in the text of that
+vector file.
 
 ### 4.39 Parts of declared items
 
@@ -3111,21 +3118,14 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them. No group of this design uses a need, so the forms of each group
-give no need names. Each subsection below gives the forms of one group,
-as the term [`group-form-list`](sinter:data-forms#group-form-list=v1)
-gives them.
+to them. Each schema below gives the forms of one group, as the term
+[`group-form-list`](sinter:data-forms#group-form-list=v1) gives them.
 
 Several requirements apply only when a program gives the thing that they
 name, such as the extent of a declared item. So a vector checks a
 program only on what the program gives for the input: a program that
 gives the declared items of a tree, and not their extents, is checked
 only on the declared items.
-
-Each vector is for the empty set of
-[stopped files](sinter:#unreadable-file=v1). So a vector checks a
-program only when the set of stopped files of the program for the tree
-of the vector is empty.
 
 ### 6.1 Markdown files
 
@@ -3175,8 +3175,8 @@ Its vectors follow from the requirements
 `give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
 `give-tree-findings`. Each vector is for the empty set of stopped files.
 Each vector of the group has the member `values`, and no vector has the
-member `result`; these forms name no question for `result`. The group
-uses no need, so these forms give no need names.
+member `result`. The group uses no need, so these forms give no need
+names.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
@@ -3207,8 +3207,7 @@ has this form:
   valid UTF-8, the value is the text of that content. When it is not,
   the value is a JSON object with one member, `bytes`: the
   [hex text](sinter:data-forms#hex-text=v1) of the content, as a JSON
-  string, which has two lower-case hex digits for each byte, in the
-  order of the bytes.
+  string.
 
 The member `input` is a JSON object with three members. `files` is the
 tree. `file-readers` is a JSON array with one element for each pair of a
@@ -3372,8 +3371,8 @@ Its vectors follow from the requirements of the group `markdown`, and
 from the requirements `give-tests`, `give-code-hashes`, and
 `give-code-texts`. Each vector is for the empty set of stopped files.
 Each vector of the group has the member `values`, and no vector has the
-member `result`; these forms name no question for `result`. The group
-uses no need, so these forms give no need names.
+member `result`. The group uses no need, so these forms give no need
+names.
 
 Inside the members `input` and `values`, each JSON value that this
 schema names as a text, a whole number, a run, a position, a path set, a
