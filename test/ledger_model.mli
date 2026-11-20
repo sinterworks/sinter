@@ -89,7 +89,7 @@ val entry_id : Vector_json.t -> string
 
 val is_ledger_line : string -> bool
 (** [is_ledger_line line] holds when [line] is the canonical line of a line
-    object that meets conditions 5 and 6 of the term [ledger-validity]. *)
+    object that meets conditions 3 and 4 of the schema [valid-ledger-tree]. *)
 
 val is_newer_line : string -> bool
 (** [is_newer_line line] holds when the JSON value of [line] is an object whose
@@ -101,8 +101,8 @@ val is_newer : entry list -> bool
 (** [is_newer tree] holds when one of the lines of [tree] is a newer line. *)
 
 val faults : entry list -> int list
-(** [faults tree] is the numbers of the conditions 1 to 9 of the term
-    [ledger-validity] that [tree] does not meet, in increasing order. *)
+(** [faults tree] is the numbers of the conditions 1 to 7 of the schema
+    [valid-ledger-tree] that [tree] does not meet, in increasing order. *)
 
 val is_valid_ledger_tree : entry list -> bool
 (** [is_valid_ledger_tree tree] holds when [tree] is not newer and has no fault.
@@ -181,7 +181,8 @@ val line_object_gen : seq:int -> Vector_json.t QCheck2.Gen.t
 
 val line_gen : string QCheck2.Gen.t
 (** Canonical lines of line objects: ledger lines, and lines one change away
-    from one, at an edge of conditions 5 and 6 of the term [ledger-validity]. *)
+    from one, at an edge of conditions 3 and 4 of the schema
+    [valid-ledger-tree]. *)
 
 val with_id : Vector_json.t -> Vector_json.t
 (** [with_id obj] is [obj] with the member [id] set to its entry id. *)
@@ -200,7 +201,7 @@ val layout_gen : string list -> entry list QCheck2.Gen.t
 
 val damage_gen : entry list -> entry list QCheck2.Gen.t
 (** [damage_gen tree] gives git trees that differ from [tree] by one change at
-    an edge of a condition of the term [ledger-validity]: a mode, a name, an
+    an edge of a condition of the schema [valid-ledger-tree]: a mode, a name, an
     entry more or less, a byte of a line, a member of an object, a [v] or a
     [seq], or a newer line. *)
 

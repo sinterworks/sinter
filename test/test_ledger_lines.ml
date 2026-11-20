@@ -171,10 +171,15 @@ let member_tests =
           (keys (Member.without (Json.boolean true) [ "id" ])));
   ]
 
+(* @verifies ledger#valid-ledger-tree=v1
+   `of_line_object` accepts a generated canonical line object when, and only
+   when, that object meets conditions 3 and 4 of the schema
+   `valid-ledger-tree`: that object has string `id` and `kind`, `v` equal to 1,
+   `seq` equal to 1 or more, and `id` equal to its entry id. *)
 let ledger_line_tests =
   [
     property
-      ~name:"a line object is the object of a ledger line by conditions 5 and 6"
+      ~name:"a line object is the object of a ledger line by conditions 3 and 4"
       ~print:print_line Model.line_gen (fun line ->
         Option.is_some (Ledger_line.of_line_object (line_object line))
         = Model.is_ledger_line line);

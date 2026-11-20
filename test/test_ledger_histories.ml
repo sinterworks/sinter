@@ -140,12 +140,12 @@ let history_tests =
   [
     (* @verifies ledger#validate-histories=v1
        Each generated history, of commits that append lines in any layout, or
-       one change away at an edge of the term intact-history, gives "valid"
+       one change away at an edge of the atom `intact-history`, gives "valid"
        exactly when the history is intact, "invalid" when it is not, and
-       neither when the ledger is newer; the reference checks each commit of
+       neither when the ledger is newer. The reference checks each commit of
        the history alone, so a check along the chain that skips a commit, a
        line, or a git tree object fails. *)
-    property ~count:1000 ~name:"the history is intact as the term gives it"
+    property ~count:1000 ~name:"the history is intact as the atom gives it"
       (fun h ->
         agrees h
           (H.history
@@ -370,13 +370,133 @@ let history_without_seq commits head =
 let line_without_seq = Test_ledger_trees.line_without_seq
 
 (* @verifies ledger#validate-histories=v1
+   By the term `ledger-object`, a git repository does not hold the history
+   objects when a tree entry of any reached commit names a git object that is
+   not a git tree object or when a chunk names a git object that is not a blob.
+   `H.history` gives an error (neither result) in each such case, except when
+   the ledger commit itself is newer and only an earlier commit has a
+   wrong-type object. A non-chunk regular-file entry that names a wrong-type
+   object is no history object and does not fail the read. *)
+let wrong_object_type_tests =
+  let line1 = Model.task_line ~name:"h1" 1 in
+  let id1 = Lv.id_of_line line1 in
+  let hh1 = String.sub id1 2 2 in
+  let newer_id = Lv.id_of_line Model.newer_line in
+  let newer_hh = String.sub newer_id 2 2 in
+  let tree_entry name id = { Ledger_objects.name; mode = "40000"; id } in
+  let file_entry ?(mode = "100644") name id =
+    { Ledger_objects.name; mode; id }
+  in
+  let valid_tree_in s = Store.add_tree s (Model.tree_of_lines [ line1 ]) in
+  let newer_tree_in s =
+    let nb = Store.add_blob s Model.newer_line in
+    let nf = Store.add_tree_object s [ file_entry (newer_id ^ ".jsonl") nb ] in
+    let et = Store.add_tree_object s [ tree_entry newer_hh nf ] in
+    Store.add_tree_object s [ tree_entry "entries" et ]
+  in
+  let tree_entry_is_blob_in s =
+    let blob = Store.add_blob s line1 in
+    Store.add_tree_object s [ tree_entry "entries" blob ]
+  in
+  let chunk_is_tree_in ?(mode = "100644") s =
+    let sub = Store.add_tree_object s [] in
+    let folder =
+      Store.add_tree_object s [ file_entry ~mode (id1 ^ ".jsonl") sub ]
+    in
+    let entries_tree = Store.add_tree_object s [ tree_entry hh1 folder ] in
+    Store.add_tree_object s [ tree_entry "entries" entries_tree ]
+  in
+  [
+    Alcotest.test_case
+      "a ledger commit with a wrong-type tree entry or chunk gives no result"
+      `Quick (fun () ->
+        let s1 = Store.create () in
+        Store.add_commit_object s1 "head" [] (tree_entry_is_blob_in s1);
+        Alcotest.(check bool)
+          "tree entry is blob" true
+          (Result.is_error
+             (H.history (Store.objects s1) (Ledger_objects.Commit "head")));
+        List.iter
+          (fun mode ->
+            let s2 = Store.create () in
+            Store.add_commit_object s2 "head" [] (chunk_is_tree_in ~mode s2);
+            Alcotest.(check bool)
+              ("chunk mode " ^ mode ^ " is tree")
+              true
+              (Result.is_error
+                 (H.history (Store.objects s2) (Ledger_objects.Commit "head"))))
+          [ "100644"; "100755" ];
+        let s3 = Store.create () in
+        let nb = Store.add_blob s3 Model.newer_line in
+        let nf =
+          Store.add_tree_object s3 [ file_entry (newer_id ^ ".jsonl") nb ]
+        in
+        let et =
+          Store.add_tree_object s3
+            [ tree_entry newer_hh nf; tree_entry "ff" nb ]
+        in
+        let root3 = Store.add_tree_object s3 [ tree_entry "entries" et ] in
+        Store.add_commit_object s3 "head" [] root3;
+        Alcotest.(check bool)
+          "wrong-type tree entry alongside newer chunk" true
+          (Result.is_error
+             (H.history (Store.objects s3) (Ledger_objects.Commit "head"))));
+    Alcotest.test_case
+      "an earlier commit with a wrong-type tree entry or chunk gives no result"
+      `Quick (fun () ->
+        let s1 = Store.create () in
+        Store.add_commit_object s1 "a" [] (tree_entry_is_blob_in s1);
+        Store.add_commit_object s1 "b" [ "a" ] (valid_tree_in s1);
+        Alcotest.(check bool)
+          "history tree entry is blob" true
+          (Result.is_error
+             (H.history (Store.objects s1) (Ledger_objects.Commit "b")));
+        Alcotest.(check bool)
+          "extends tree entry is blob" true
+          (Result.is_error (H.extends (Store.objects s1) "b" "a"));
+        let s2 = Store.create () in
+        Store.add_commit_object s2 "a" [] (chunk_is_tree_in s2);
+        Store.add_commit_object s2 "b" [ "a" ] (valid_tree_in s2);
+        Alcotest.(check bool)
+          "history chunk is tree" true
+          (Result.is_error
+             (H.history (Store.objects s2) (Ledger_objects.Commit "b")));
+        Alcotest.(check bool)
+          "extends chunk is tree" true
+          (Result.is_error (H.extends (Store.objects s2) "b" "a")));
+    Alcotest.test_case
+      "a newer ledger commit ignores a wrong-type object in an earlier commit"
+      `Quick (fun () ->
+        let s = Store.create () in
+        Store.add_commit_object s "a" [] (tree_entry_is_blob_in s);
+        Store.add_commit_object s "b" [ "a" ] (newer_tree_in s);
+        Alcotest.(check (option string))
+          "newer gives neither result" None
+          (answer (H.history (Store.objects s) (Ledger_objects.Commit "b"))));
+    Alcotest.test_case
+      "an earlier commit with a non-chunk entry naming a tree is not intact"
+      `Quick (fun () ->
+        let s = Store.create () in
+        let sub = Store.add_tree_object s [] in
+        let parent_root =
+          Store.add_tree_object s [ file_entry "README.md" sub ]
+        in
+        Store.add_commit_object s "a" [] parent_root;
+        Store.add_commit_object s "b" [ "a" ] (valid_tree_in s);
+        Alcotest.(check (option string))
+          "invalid" (Some "invalid")
+          (answer (H.history (Store.objects s) (Ledger_objects.Commit "b"))));
+  ]
+
+(* @verifies ledger#{validate-histories=v1, valid-ledger-tree=v1}
    With an id function that leaves out `seq`, a line that differs from another
-   only in `seq` has its `id`. A history whose first commit holds two such
+   only in `seq` has the same `id`. A history whose first commit holds two such
    lines, or whose second commit adds a line with the `id` of a line of the
-   first, has a commit that is no valid ledger tree by condition 8, so a
-   program that takes it as intact fails; a history that adds a line with
-   another `id` stays intact, so a program that refuses it fails. *)
-let condition_8_tests =
+   first, has a commit that is no valid ledger tree by condition 6 of the
+   schema `valid-ledger-tree`, so a program that takes that history as intact
+   fails. A history that adds a line with another `id` stays intact, so a
+   program that refuses that history fails. *)
+let condition_6_tests =
   let tree lines = Model.tree_of_lines lines in
   let a = line_without_seq ~name:"a" 1 in
   [
@@ -426,4 +546,4 @@ let condition_8_tests =
 
 let tests =
   Vectors.tests "ledger" [ history_vectors ]
-  @ history_tests @ growth_tests @ condition_8_tests
+  @ history_tests @ growth_tests @ wrong_object_type_tests @ condition_6_tests

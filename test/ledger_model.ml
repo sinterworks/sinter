@@ -199,10 +199,10 @@ let faults tree =
   let chunk_paths = List.map fst chunk_list in
   let ls = lines tree in
   let objects = List.map object_of_line ls in
-  let c1 =
+  let dup_path =
     List.length (List.sort_uniq String.compare paths) <> List.length paths
   in
-  let c2 = List.exists (fun (_, e) -> String.contains e.name '/') all in
+  let has_slash = List.exists (fun (_, e) -> String.contains e.name '/') all in
   let is_tree path =
     List.exists
       (fun (p, e) -> String.equal p path && kind_of e = Changes_model.Tree_kind)
@@ -216,31 +216,32 @@ let faults tree =
        && ((path = "entries" && chunk_paths <> [])
           || List.exists (fun c -> String.sub c 0 10 = path) chunk_paths)
   in
-  let c3 =
-    (not (List.for_all allowed all))
+  let c1 =
+    dup_path || has_slash
+    || (not (List.for_all allowed all))
     || (chunk_paths <> [] && not (is_tree "entries"))
     || List.exists (fun c -> not (is_tree (String.sub c 0 10))) chunk_paths
   in
-  let c4 =
+  let c2 =
     List.exists (fun c -> lines_of_content (chunk_content c) = []) chunk_list
     || List.exists Option.is_none objects
   in
-  let good5 o =
+  let good3 o =
     Option.is_some (string_member "id" o)
     && Option.is_some (string_member "kind" o)
     && integer_member "v" o = Some 1
     && match integer_member "seq" o with Some s -> s >= 1 | None -> false
   in
-  let c5 =
-    List.exists (function Some o -> not (good5 o) | None -> true) objects
+  let c3 =
+    List.exists (function Some o -> not (good3 o) | None -> true) objects
   in
-  let c6 =
+  let c4 =
     List.exists
       (function
         | Some o -> string_member "id" o <> Some (entry_id o) | None -> true)
       objects
   in
-  let c7 =
+  let c5 =
     List.exists
       (fun ((path, _) as c) ->
         match lines_of_content (chunk_content c) with
@@ -253,11 +254,11 @@ let faults tree =
       chunk_list
   in
   let ids = List.map (fun o -> Option.bind o (string_member "id")) objects in
-  let c8 =
+  let c6 =
     let some = List.filter_map Fun.id ids in
     List.length (List.sort_uniq String.compare some) <> List.length some
   in
-  let c9 =
+  let c7 =
     let seqs =
       List.map (fun o -> Option.bind o (integer_member "seq")) objects
     in
@@ -265,17 +266,7 @@ let faults tree =
   in
   List.filter_map
     (fun (n, fault) -> if fault then Some n else None)
-    [
-      (1, c1);
-      (2, c2);
-      (3, c3);
-      (4, c4);
-      (5, c5);
-      (6, c6);
-      (7, c7);
-      (8, c8);
-      (9, c9);
-    ]
+    [ (1, c1); (2, c2); (3, c3); (4, c4); (5, c5); (6, c6); (7, c7) ]
 
 let is_valid_ledger_tree tree = (not (is_newer tree)) && faults tree = []
 

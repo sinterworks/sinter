@@ -101,19 +101,25 @@ let sorted_unique lines = List.sort_uniq String.compare lines
 
 let read_tests =
   [
-    (* @verifies ledger#{validate-ledgers=v1, give-stored-ledgers=v1, give-states-only-from-valid-ledgers=v1}
+    (* @verifies ledger#{validate-ledgers=v1, give-stored-ledgers=v1, give-states-only-from-valid-ledgers=v1, valid-ledger-tree=v1}
        Each generated git tree object, valid or one or two changes away from
-       valid at an edge of a condition, gives the condition that the term
-       ledger-validity gives it and, only when it is valid, the ids of the
-       stored ledger in the order of their `seq`; a program that misreads one
-       condition, or gives entries from a broken or newer ledger, fails. *)
+       valid at an edge of a condition of the schema `valid-ledger-tree`, gives
+       the condition that the atom `ledger-validity` gives that git tree object
+       and, only when the ledger is valid, the ids of the stored ledger in the
+       order of their `seq`. A program that misreads one condition, or gives
+       entries from a broken or newer ledger, fails. *)
     property ~count:1000
-      ~name:"the condition and the stored ledger follow the terms" tree_gen
-      (fun tree ->
+      ~name:"the condition and the stored ledger follow the atom and the schema"
+      tree_gen (fun tree ->
         agrees tree
           (T.validity
              (objects (store_of_tree tree))
              (Ledger_objects.Commit commit_id)));
+    (* @verifies ledger#valid-ledger-tree=v1
+       `T.read` classifies each generated git tree object as a newer tree, a
+       valid ledger tree that meets all seven conditions of the schema
+       `valid-ledger-tree`, or another tree, and returns its lines and stored
+       ledger entries. *)
     property
       ~name:"read tells newer trees, valid ledger trees, and others apart"
       tree_gen (fun tree ->
@@ -481,13 +487,184 @@ let line_without_seq ~name seq =
        :: (V.Text "seq", V.Number (string_of_int seq))
        :: members))
 
-(* @verifies ledger#validate-ledgers=v1
+(* @verifies ledger#{validate-ledgers=v1, give-stored-ledgers=v1, give-states-only-from-valid-ledgers=v1}
+   By the term `ledger-object`, a git repository does not hold the ledger
+   objects of a commit when the git object of a tree entry is not a git tree
+   object or when the git object of a chunk is not a blob. In each such case,
+   `T.validity` and `T.read` give an error (no result and no ledger entry),
+   even when another chunk holds a newer line or when a tree entry and a chunk
+   share an id. A non-chunk regular-file entry whose git object is not a blob
+   is no ledger object, so that entry does not prevent a result. *)
+let wrong_object_type_tests =
+  let line1 = Model.task_line ~name:"t1" 1 in
+  let id1 = Lv.id_of_line line1 in
+  let hh1 = String.sub id1 2 2 in
+  let line2 = Model.task_line ~name:"t2" 2 in
+  let id2 = Lv.id_of_line line2 in
+  let hh2 = String.sub id2 2 2 in
+  let newer_id = Lv.id_of_line Model.newer_line in
+  let newer_hh = String.sub newer_id 2 2 in
+  let file_entry ?(mode = "100644") name id =
+    { Ledger_objects.name; mode; id }
+  in
+  let check_error label store =
+    Alcotest.(check bool)
+      (label ^ " validity") true
+      (Result.is_error
+         (T.validity (objects store) (Ledger_objects.Commit commit_id)));
+    Alcotest.(check bool)
+      (label ^ " read") true
+      (Result.is_error (T.read (objects store) store.root_id))
+  in
+  [
+    Alcotest.test_case "a tree entry whose git object is a blob gives no result"
+      `Quick (fun () ->
+        let s = Store.create () in
+        let blob = Store.add_blob s line1 in
+        let root = Store.add_tree_object s [ tree_entry "entries" blob ] in
+        check_error "entries points to blob" (of_root s root);
+        let s2 = Store.create () in
+        let chunk_blob = Store.add_blob s2 line1 in
+        let newer_blob = Store.add_blob s2 Model.newer_line in
+        let valid_folder =
+          Store.add_tree_object s2 [ file_entry (id1 ^ ".jsonl") chunk_blob ]
+        in
+        let newer_folder =
+          Store.add_tree_object s2
+            [ file_entry (newer_id ^ ".jsonl") newer_blob ]
+        in
+        let entries_tree =
+          Store.add_tree_object s2
+            [
+              tree_entry hh1 valid_folder;
+              tree_entry newer_hh newer_folder;
+              tree_entry "ff" chunk_blob;
+            ]
+        in
+        let root2 =
+          Store.add_tree_object s2 [ tree_entry "entries" entries_tree ]
+        in
+        check_error "tree entry shares id with valid chunk and newer chunk"
+          (of_root s2 root2));
+    Alcotest.test_case
+      "a tree entry whose git object is a commit gives no result" `Quick
+      (fun () ->
+        let s = Store.create () in
+        let empty = Store.add_tree_object s [] in
+        Store.add_commit_object s "other-commit" [] empty;
+        let root =
+          Store.add_tree_object s [ tree_entry "entries" "other-commit" ]
+        in
+        check_error "entries points to commit" (of_root s root));
+    Alcotest.test_case
+      "a chunk whose git object is a git tree object gives no result" `Quick
+      (fun () ->
+        List.iter
+          (fun mode ->
+            let s = Store.create () in
+            let sub = Store.add_tree_object s [] in
+            let folder =
+              Store.add_tree_object s [ file_entry ~mode (id1 ^ ".jsonl") sub ]
+            in
+            let entries_tree =
+              Store.add_tree_object s [ tree_entry hh1 folder ]
+            in
+            let root =
+              Store.add_tree_object s [ tree_entry "entries" entries_tree ]
+            in
+            check_error
+              ("chunk mode " ^ mode ^ " points to tree")
+              (of_root s root))
+          [ "100644"; "100755" ];
+        let s2 = Store.create () in
+        let newer_blob = Store.add_blob s2 Model.newer_line in
+        let newer_folder =
+          Store.add_tree_object s2
+            [ file_entry (newer_id ^ ".jsonl") newer_blob ]
+        in
+        let shared_tree =
+          Store.add_tree_object s2 [ file_entry (id2 ^ ".jsonl") newer_folder ]
+        in
+        let entries_tree =
+          Store.add_tree_object s2
+            [ tree_entry newer_hh newer_folder; tree_entry hh2 shared_tree ]
+        in
+        let root2 =
+          Store.add_tree_object s2 [ tree_entry "entries" entries_tree ]
+        in
+        check_error "chunk shares id with tree entry alongside newer chunk"
+          (of_root s2 root2));
+    Alcotest.test_case "a chunk whose git object is a commit gives no result"
+      `Quick (fun () ->
+        let s = Store.create () in
+        let empty = Store.add_tree_object s [] in
+        Store.add_commit_object s "other-commit" [] empty;
+        let folder =
+          Store.add_tree_object s [ file_entry (id1 ^ ".jsonl") "other-commit" ]
+        in
+        let entries_tree = Store.add_tree_object s [ tree_entry hh1 folder ] in
+        let root =
+          Store.add_tree_object s [ tree_entry "entries" entries_tree ]
+        in
+        check_error "chunk points to commit" (of_root s root));
+    Alcotest.test_case
+      "a non-chunk entry whose git object is not a blob does not fail the read"
+      `Quick (fun () ->
+        let s = Store.create () in
+        let blob = Store.add_blob s line1 in
+        let folder =
+          Store.add_tree_object s [ file_entry (id1 ^ ".jsonl") blob ]
+        in
+        let entries_tree = Store.add_tree_object s [ tree_entry hh1 folder ] in
+        Store.add_commit_object s "other-commit" [] folder;
+        let root =
+          Store.add_tree_object s
+            [
+              tree_entry "entries" entries_tree;
+              file_entry "README.md" folder;
+              file_entry "NOTES.md" "other-commit";
+            ]
+        in
+        let store = of_root s root in
+        Alcotest.(check bool)
+          "broken" true
+          (T.validity (objects store) (Ledger_objects.Commit commit_id)
+          = Ok Ledger_tree.Broken);
+        Alcotest.(check bool)
+          "other tree" true
+          (match T.read (objects store) store.root_id with
+          | Ok (Ledger_tree.Other_tree _) -> true
+          | _ -> false);
+        let s2 = Store.create () in
+        let newer_blob = Store.add_blob s2 Model.newer_line in
+        let newer_folder =
+          Store.add_tree_object s2
+            [ file_entry (newer_id ^ ".jsonl") newer_blob ]
+        in
+        let entries_tree2 =
+          Store.add_tree_object s2 [ tree_entry newer_hh newer_folder ]
+        in
+        let root2 =
+          Store.add_tree_object s2
+            [
+              tree_entry "entries" entries_tree2;
+              file_entry "README.md" newer_folder;
+            ]
+        in
+        let store2 = of_root s2 root2 in
+        Alcotest.(check bool)
+          "newer" true
+          (T.validity (objects store2) (Ledger_objects.Commit commit_id)
+          = Ok Ledger_tree.Newer));
+  ]
+
+(* @verifies ledger#{validate-ledgers=v1, valid-ledger-tree=v1}
    With an id function that leaves out `seq`, two lines that differ only in
-   `seq` have one `id` and meet each other condition of a valid ledger tree, so
-   a program that does not check condition 8 takes the ledger as valid and
-   fails; lines with two ids under the same function stay valid, so a program
-   that refuses them for another reason also fails. *)
-let condition_8_tests =
+   `seq` have one `id` and meet each other condition of the schema
+   `valid-ledger-tree`, so a program that does not check condition 6 takes the
+   ledger as valid and fails. Lines with two ids under the same function stay
+   valid, so a program that refuses them for another reason also fails. *)
+let condition_6_tests =
   let condition lines =
     fst
       (answer
@@ -514,4 +691,4 @@ let tests =
   Vectors.tests "ledger" [ ledger_vectors ]
   @ read_tests @ ref_tests
   @ [ newer_test; unknown_members_test ]
-  @ hostile_tests @ growth_tests @ condition_8_tests
+  @ hostile_tests @ growth_tests @ wrong_object_type_tests @ condition_6_tests
