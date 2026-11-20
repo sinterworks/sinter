@@ -40,8 +40,6 @@ type t = {
   numbers : int By_run.t;
   froms : int array;
   untils : int array;
-  lowest : int array;
-  highest : int array;
   not_blank : int array;
   tag_texts : tag_text list;
   links : Input.t list;
@@ -88,16 +86,6 @@ let first_code_character file =
        (Text.length (Lines.text (Reading.lines (Code_file.reading file))))
        succ)
 
-let rec fill untils lowest highest lo hi =
-  if lo >= hi then (max_int, min_int)
-  else
-    let mid = (lo + hi) / 2 in
-    let low_left, high_left = fill untils lowest highest lo mid in
-    let low_right, high_right = fill untils lowest highest (mid + 1) hi in
-    lowest.(mid) <- min untils.(mid) (min low_left low_right);
-    highest.(mid) <- max untils.(mid) (max high_left high_right);
-    (lowest.(mid), highest.(mid))
-
 let make binding path readable =
   let content, text, file_lines, pairs, links, first_code_character =
     match readable with
@@ -131,8 +119,6 @@ let make binding path readable =
   in
   let untils = Array.map (fun (run : Text.run) -> run.until) lines in
   let count = Array.length lines in
-  let lowest = Array.copy untils and highest = Array.copy untils in
-  ignore (fill untils lowest highest 0 count);
   let whole = Lines.text text in
   let not_blank = Array.make (count + 1) 0 in
   Array.iteri
@@ -154,8 +140,6 @@ let make binding path readable =
     numbers;
     froms = Array.map (fun (run : Text.run) -> run.from) lines;
     untils;
-    lowest;
-    highest;
     not_blank;
     tag_texts =
       List.map
@@ -182,46 +166,19 @@ let number file (run : Text.run) =
 
 let all_lines file = Line_set.range 1 (Array.length file.lines)
 
-let first_from froms boundary =
+let first_from values boundary =
   let rec search lo hi =
     if lo >= hi then lo
     else
       let mid = (lo + hi) / 2 in
-      if froms.(mid) < boundary then search (mid + 1) hi else search lo mid
+      if values.(mid) < boundary then search (mid + 1) hi else search lo mid
   in
-  search 0 (Array.length froms)
+  search 0 (Array.length values)
 
 let within file (r : Text.run) =
-  let first = first_from file.froms r.from
-  and stop = first_from file.froms (r.until + 1) in
-  let rec go lo hi found =
-    if
-      lo >= hi
-      || (hi <= first)
-         [@mutaml.skip "one more edge of the search gives the same result"]
-      || (lo >= stop)
-         [@mutaml.skip "one more edge of the search gives the same result"]
-    then found
-    else
-      let mid = (lo + hi) / 2 in
-      if file.lowest.(mid) > r.until then found
-      else if
-        (first <= lo)
-        [@mutaml.skip "one more edge of the search gives the same result"]
-        && (hi <= stop)
-           [@mutaml.skip "one more edge of the search gives the same result"]
-        && file.highest.(mid) <= r.until
-      then Line_set.range (lo + 1) hi :: found
-      else
-        let found = go (mid + 1) hi found in
-        let found =
-          if mid >= first && file.untils.(mid) <= r.until then
-            Line_set.range (mid + 1) (mid + 1) :: found
-          else found
-        in
-        go lo mid found
-  in
-  Line_set.union (go 0 (Array.length file.untils) [])
+  Line_set.range
+    (first_from file.froms r.from + 1)
+    (first_from file.untils (r.until + 1))
 
 let numbers file runs = Line_set.of_list (List.filter_map (number file) runs)
 
