@@ -335,6 +335,24 @@ let comment_line_cases () =
           (Lines.of_text (text_of "/* a */"))
           (run 3 3)))
 
+(* @verifies documents#give-extents=v1
+   @cites documents#comment-line=v1
+   On a single-line block comment, the closing sigil leaves the end of what
+   remains after the opening sigil leaves the start, only when what remains
+   ends with that closing sigil. In each case, the opening sigil and the
+   closing sigil share a character, so what remains is one character that is
+   not the closing sigil. The test fails when the comment line is not that
+   character. *)
+let overlapping_opening_and_closing_sigils () =
+  let check what sigils source sub expected =
+    Alcotest.(check (list string))
+      what expected
+      (comment_line_texts sigils source sub)
+  in
+  check "/*/" c_sigils "/*/\n" "/*/" [ "/" ];
+  check "/*/ after code" c_sigils "x(); /*/\n" "/*/" [ "/" ];
+  check "(*)" ml_sigils "(*)\n" "(*)" [ ")" ]
+
 let block_comment_of_lines lines =
   let source = "(* x\n" ^ String.concat "\n" lines ^ " *)" in
   let text = text_of source in
@@ -1548,6 +1566,9 @@ let tests =
       `Quick comment_lines_grow_linearly;
     Alcotest.test_case "comment lines of each shape of comment" `Quick
       comment_line_cases;
+    Alcotest.test_case
+      "a single-line block comment whose opening and closing sigils overlap"
+      `Quick overlapping_opening_and_closing_sigils;
     runs_of_comments_follow_the_terms;
     tag_texts_are_those_of_the_runs;
     tag_text_is_the_comment_lines_joined;
