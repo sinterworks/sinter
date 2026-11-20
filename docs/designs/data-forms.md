@@ -1443,15 +1443,18 @@ span is the span of. The requirements of the group are `read-toml` and
   - `start`: the start of the span, as a position.
   - `end`: the end of the span, as a position.
 
-When a conforming program gives a line number or a column as the line
-number or the column of the start of the span of what `of`, `location`,
-and `index` name, it gives the line number or the column of `start`.
-When it gives a line number or a column as the line number or the column
-of the end of that span, it gives the line number or the column of
-`end`. The object of a vector line of the group states nothing about the
-other spans that a conforming program gives for the TOML document. The
-note of each vector line of the group whose object states a vector gives
-the text of the span.
+When a conforming program gives a line number as the line number of the
+start of the span of what `of`, `location`, and `index` name, it gives
+the line number of `start`, and no other line number. When it gives a
+column as the column of the start of that span, it gives the column of
+`start`, and no other column. When it gives a line number as the line
+number of the end of that span, it gives the line number of `end`, and
+no other line number. When it gives a column as the column of the end of
+that span, it gives the column of `end`, and no other column. The object
+of a vector line of the group states nothing about the other spans that
+a conforming program gives for the TOML document. The note of each
+vector line of the group whose object states a vector gives the text of
+the span.
 
 ```
 {"form":"#toml-span-vector=v1","group":"give-span","input":"61203d20310a","note":"the text of the span is `a`","result":"valid","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
