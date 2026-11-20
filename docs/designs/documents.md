@@ -115,7 +115,7 @@ names `true` and `false`.
 | [code character](sinter:#code-character=v1) | a character of a code file that is in no comment node and in no line ending, and that is not a space or a tab |
 | [lines of a run](sinter:#run-line=v1) | for each line that has a place of a run of a text, the places of the run on that line, and the empty lines inside the run |
 | [run of comments](sinter:#comment-run=v1) | a sequence of the comment nodes that no other comment node encloses, each of which starts on the last line of the one before it or on the next line, with only spaces, tabs, and line endings between them; a comment node that starts on a line with a code character is a run of comments by itself, and no other comment node joins that run of comments |
-| [comment line](sinter:#comment-line=v1) | a line of a tagged comment node, without its comment sigils and without the indentation of the comment itself |
+| [comment line](sinter:#comment-line=v2) | a line of a tagged comment node, without its comment sigils and without the indentation of the comment itself |
 | [tag text](sinter:#tag-text=v2) | the lines of a first paragraph in a markdown file, or the comment lines of the tagged comment nodes of one run of comments that has a tagged comment node in a code file, joined by line feeds |
 | [origin](sinter:#origin=v2), [origin position](sinter:#origin-position=v1) | the places of the text of a file that a part of a tag text or of a markdown text comes from; the position at which that part starts, which is the position of the `@` for the text of a tag line |
 | [file line](sinter:#file-line=v1) | a markdown line of a markdown file, or a line that a tag text of a code file joins |
@@ -152,7 +152,7 @@ names `true` and `false`.
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
 | [extern mark](sinter:#extern-mark=v2), [valid extern mark](sinter:#valid-extern-mark=v2) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of its kind word, with its part name, in another file; it is valid when the design holds such an item, directly when it is a requirement, a schema, an atom, or a term |
-| [edges of a tree](sinter:#tree-edge=v2), [form run](sinter:#tree-edge=v2), [form position](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the value of its `form` without the quotes, and its form position is where that run starts |
+| [edges of a tree](sinter:#tree-edge=v2), [form run](sinter:#tree-edge=v2), [form position](sinter:#tree-edge=v2) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the text of its `form` between its quotes, and its form position is where that run starts |
 | [position subject](sinter:#position-subject=v2) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v2) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
@@ -260,7 +260,7 @@ and `// b` give two runs of comments, and so do the lines `// a`,
 [code characters](sinter:#code-character=v1).
 
 Each tagged comment node gives its
-[comment lines](sinter:#comment-line=v1): its lines without the
+[comment lines](sinter:#comment-line=v2): its lines without the
 [comment sigils](sinter:packs#comment-sigil=v2) of the descriptor of the
 pack. For example, with the block pair `/*` and `*/` and the inner sigil
 `*`, this comment node gives the comment lines ` @req a=v1`, ` A text.`,
@@ -525,7 +525,8 @@ program reads, and the reader of each of them. A binding of
 a path set. A reader is the text `markdown` or a pack. A binding of
 `file-readers` meets the schema `file-readers` when, and only when, each
 of its path sets is a valid path set and each of its packs is a valid
-pack.
+pack. A binding of `file-readers` is valid when, and only when, it meets
+the schema `file-readers`.
 
 ## 4. Definitions
 
@@ -819,7 +820,7 @@ last line number of its last comment node.
 
 ### 4.12 Comment lines
 
-@term comment-line=v1
+@term comment-line=v2
 @cites {
     packs#{comment-sigil=v2, comment-node=v2, valid-pack=v2},
     text#{
@@ -876,7 +877,7 @@ from each other bare line, remove the spaces and tabs at its start.
     #{
         read-file=v2, unreadable-file=v2, markdown-section=v1,
         markdown-list-item=v1, paragraph-line=v1, comment-run=v1,
-        comment-line=v1, file-readers=v1,
+        comment-line=v2, file-readers=v1,
     },
 }
 
@@ -1414,7 +1415,7 @@ item in the two trees are equal.
     },
     #{
         read-file=v2, run-line=v1, attachment=v1, comment-run=v1,
-        comment-line=v1,
+        comment-line=v2,
     },
 }
 
@@ -2421,7 +2422,7 @@ of each declared item that belongs to d.
         markdown-section=v1, markdown-list-item=v1, tag-text=v2,
         file-line=v1, accepted-input=v2, item-file=v1, section-number=v1,
         paragraph-line=v1, item-canonical-id=v1, tree-form=v1,
-        home-design=v2, comment-line=v1,
+        home-design=v2, comment-line=v2,
     },
 }
 
@@ -3307,7 +3308,8 @@ tree, none of the things that the members that this schema gives for
 names, it gives what that member states for it:
 
 - When it gives the read files, it gives the keys of `read-files`, each
-  with the reader of the pair at its index, and no other read file.
+  once, with the reader of the pair at its index, and no other read
+  file.
 - When it gives the declared items, it gives one for each element of
   `items`, with its kind of item, its name, its file, and the origin
   position of the text of its declaration, and no other declared item.
