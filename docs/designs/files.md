@@ -1170,9 +1170,9 @@ Text and notation. Its JSON object holds the required members `form`,
 member:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
-  for the group of the vector, `=`, and a label: `v`, then the decimal
-  numeral of a whole number of 1 or more, such as `v1` (for example,
-  `"#path-vector=v1"`).
+  for the group of the vector, `=`, and a label (for example,
+  `"#path-vector=v1"`). That label is `v`, then the decimal numeral of a
+  whole number of 1 or more, such as `v1`.
 - `group`: the name of the group of the vector, as a JSON string, such
   as `"paths"`.
 - `input`: the inputs of the vector: what a conforming program takes or
@@ -1336,9 +1336,9 @@ text of the content, and no other text as the text of the content. When
 `values` is `{}`, the conforming program gives no text as the text of a
 content. A conforming program gives exactly one result in each file
 read, also when no process opens a pipe of the folder tree. So when a
-file read has given no result after a time that the runner chooses, the
-run of the vectors fails on that vector, as when the program does not
-give the result that `result` holds.
+file read gives no result within a time that the runner chooses, the run
+of the vectors fails on that vector, as when the program does not give
+the result that `result` holds.
 
 For example, in `tree`, the reference `b.md` of a symbolic link, which
 is the hex byte sequence `"622e6d64"`, leads to the file of the folder
@@ -1413,13 +1413,13 @@ when, the vector has one or more of these needs. When a vector of the
 group `file-reads` has the member `needs`, that member is a JSON array
 that holds each need name of the vector once, in code point order, and
 no other name. For each vector that a run of the vectors does not skip,
-the run uses a file system that stores its folder tree and a process of
-the program for which the conditions of its input hold. A skip of a
-vector decides nothing about that vector when the runner cannot make
-true a need that the member `needs` of the vector names, and the runner
-reports the skipped vector and each such need. Any other skip of a
-vector makes the run of the vectors fail, as when the program does not
-give the result of the vector.
+the run uses a file system that stores the folder tree of that vector
+and a process of the program for which the conditions of the input of
+that vector hold. A skip of a vector decides nothing about that vector
+when the runner cannot make true a need that the member `needs` of the
+vector names, and the runner reports the skipped vector and each such
+need. Any other skip of a vector makes the run of the vectors fail, as
+when the program does not give the result of the vector.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
