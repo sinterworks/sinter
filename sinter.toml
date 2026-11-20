@@ -5,6 +5,7 @@ packs.markdown.files = ["**/*.md", "!test/**"]
 namespaces.gh = "[1-9][0-9]*"
 namespaces.rfc = "[1-9][0-9]*"
 namespaces.commonmark = "[0-9]+([.][0-9]+)*"
+namespaces.posix = "[1-9][0-9]*"
 
 [paths]
 exempt = [
