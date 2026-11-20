@@ -30,12 +30,13 @@ let kind_values = function
   | Some word -> [ ("kind-word", str (Kind_word.to_string word)) ]
   | None -> []
 
+let selection_values = function
+  | Target.Group name -> [ ("group-name", str name) ]
+  | Target.Every_vector -> [ ("every-vector", `Bool true) ]
+
 let suffix_values = function
   | Target.Revision revision -> [ ("revision", str revision) ]
-  | Target.Vector_selection (Target.Group name) ->
-      [ ("group-name", str name); ("every-vector", `Bool true) ]
-  | Target.Vector_selection Target.Every_vector ->
-      [ ("every-vector", `Bool true) ]
+  | Target.Vector_selection selection -> selection_values selection
 
 let target_values = function
   | Target.Internal { kind_word; slug; part_name; suffix } ->
@@ -127,27 +128,45 @@ let give_continuation (vector : Vectors.vector) =
   let binding, text = read_input vector in
   `Assoc [ ("values", `Assoc [ ("inputs", `List (line_inputs binding text)) ]) ]
 
-(* @verifies identifiers[other-lines][*]=v1 *)
+(* @verifies identifiers[other-lines]
+   The test reads the text of each vector under its binding and fails when
+   the line result of a line that is not a tag line, or of a line with
+   another tag word, differs from the result and the values of the vector. *)
 let other_line_vectors =
   Vectors.group set ~name:"other-lines" ~form:"#tag-line-vector=v1" give_line
 
-(* @verifies identifiers[declarations][*]=v1 *)
+(* @verifies identifiers[declarations]
+   The test reads the text of each vector under its binding and fails when
+   the line result of a declaration, or its slug, part name, revision, and
+   inline description, differ from the vector. *)
 let declaration_vectors =
   Vectors.group set ~name:"declarations" ~form:"#tag-line-vector=v1" give_line
 
-(* @verifies identifiers[citations][*]=v1 *)
+(* @verifies identifiers[citations]
+   The test reads the text of each vector under its binding and fails when
+   the line result of a citation, or the values of its citation entries and
+   its inline description, differ from the vector. *)
 let citation_vectors =
   Vectors.group set ~name:"citations" ~form:"#tag-line-vector=v1" give_line
 
-(* @verifies identifiers[status-tags][*]=v1 *)
+(* @verifies identifiers[status-tags]
+   The test reads the text of each vector under its binding and fails when
+   the line result of a status tag, or its inline description, differs from
+   the vector. *)
 let status_tag_vectors =
   Vectors.group set ~name:"status-tags" ~form:"#tag-line-vector=v1" give_line
 
-(* @verifies identifiers[directives][*]=v1 *)
+(* @verifies identifiers[directives]
+   The test reads the text of each vector under its binding and fails when
+   the line result of an `@extern` or an `@ack` line, or its values, differ
+   from the vector. *)
 let directive_vectors =
   Vectors.group set ~name:"directives" ~form:"#tag-line-vector=v1" give_line
 
-(* @verifies identifiers[continuation-lines][*]=v1 *)
+(* @verifies identifiers[continuation-lines]
+   The test reads the text of each vector under its binding and fails when
+   the inputs that its lines make, with the continuation lines of each
+   citation, differ from the inputs of the vector. *)
 let continuation_line_vectors =
   Vectors.group set ~name:"continuation-lines"
     ~form:"#continuation-line-vector=v1" give_continuation
@@ -240,7 +259,27 @@ let line_cases =
     ( "@req a/b#c.d=v1",
       [ decl "@req" [ slug "a/b"; ns "a"; part "c.d"; rev "v1"; desc "" ] ] );
     ("@decision a#b=v1", [ line_invalid "@decision" ]);
-    ("@finding-class a#b=v1", [ line_invalid "@finding-class" ]);
+    ("@finding-class a#b=v1", [ other "@finding-class" ]);
+    ("@atom a=v1", [ decl "@atom" [ slug "a"; rev "v1"; desc "" ] ]);
+    ( "@atom a/b#c=v1 note",
+      [ decl "@atom" [ slug "a/b"; ns "a"; part "c"; rev "v1"; desc "note" ] ]
+    );
+    ("@atom #c=v1", [ line_invalid "@atom" ]);
+    ("@atom a", [ line_invalid "@atom" ]);
+    ("@atom a=*", [ line_invalid "@atom" ]);
+    ("@atom gh/42=v1", [ line_invalid "@atom" ]);
+    ("@atom atom:a=v1", [ line_invalid "@atom" ]);
+    ("@atom a[offsets]", [ line_invalid "@atom" ]);
+    ("@schema a=v1", [ decl "@schema" [ slug "a"; rev "v1"; desc "" ] ]);
+    ( "@schema a/b#c=v1 note",
+      [ decl "@schema" [ slug "a/b"; ns "a"; part "c"; rev "v1"; desc "note" ] ]
+    );
+    ("@schema #c=v1", [ line_invalid "@schema" ]);
+    ("@schema a", [ line_invalid "@schema" ]);
+    ("@schema a=*", [ line_invalid "@schema" ]);
+    ("@schema gh=v1", [ line_invalid "@schema" ]);
+    ("@schema schema:a=v1", [ line_invalid "@schema" ]);
+    ("@schema a[*]", [ line_invalid "@schema" ]);
     ( "@design a.b/c=v1",
       [ decl "@design" [ slug "a.b/c"; ns "a.b"; rev "v1"; desc "" ] ] );
     ( "@spec a/b#c=v1",
@@ -268,7 +307,9 @@ let line_cases =
         not_tag;
         other "@x";
       ] );
-    ("a\r\n@deferred\r\n", [ not_tag; status "@deferred" "" ]);
+    ("a\r\n@deprecated\r\n", [ not_tag; status "@deprecated" "" ]);
+    ("@deferred", [ other "@deferred" ]);
+    ("@rejected reason", [ other "@rejected" ]);
     ("@cites GH/42", [ line_invalid "@cites" ]);
     ("@cites x/gh/42=v1", [ cites [ [ slug "x/gh/42"; ns "x/gh"; rev "v1" ] ] ]);
     ("@cites req:gh/42", [ cites [ kind "req" :: ext "gh" "42" ] ]);
@@ -282,16 +323,35 @@ let line_cases =
     ("@cites gh/42 gh/43", [ cites ~text:"gh/43" [ ext "gh" "42" ] ]);
     ( "@cites {#a=v1, gh/42#a}",
       [ cites [ [ part "a"; rev "v1" ]; ext "gh" "42" @ [ part "a" ] ] ] );
-    ( "@cites {#a=v1,#a[1]=v1,#a[x][*]=v1,#a[*]=v1}",
+    ( "@cites {#a=v1,#a[x],#a[y-1],#a[*]}",
       [
         cites
           [
             [ part "a"; rev "v1" ];
-            [ part "a"; ("vector-number", str "1"); rev "v1" ];
-            [ part "a"; ("group-name", str "x"); every_vector; rev "v1" ];
-            [ part "a"; every_vector; rev "v1" ];
+            [ part "a"; ("group-name", str "x") ];
+            [ part "a"; ("group-name", str "y-1") ];
+            [ part "a"; every_vector ];
           ];
       ] );
+    ("@cites {#a[x], req:#a[x]}", [ line_invalid "@cites" ]);
+    ("@cites {#a[*], spec:#a[*]}", [ line_invalid "@cites" ]);
+    ("@cites {a#{b[x]}, a#b[x]}", [ line_invalid "@cites" ]);
+    ("@cites a#{b[x], b[x]}", [ line_invalid "@cites" ]);
+    ("@cites a#{b[*], b[*]}", [ line_invalid "@cites" ]);
+    ( "@cites {a#{b[x], b[*]}}",
+      [
+        cites
+          [
+            [ slug "a"; part "b"; ("group-name", str "x") ];
+            [ slug "a"; part "b"; every_vector ];
+          ];
+      ] );
+    ("@cites atom:gh/42", [ cites [ kind "atom" :: ext "gh" "42" ] ]);
+    ( "@cites schema:rfc/8259#s",
+      [ cites [ (kind "schema" :: ext "rfc" "8259") @ [ part "s" ] ] ] );
+    ("@cites atom:gh=v1", [ line_invalid "@cites" ]);
+    ("@cites schema:gh=v1", [ line_invalid "@cites" ]);
+    ("@cites finding-class:gh/42", [ line_invalid "@cites" ]);
     ("@cites {#a=v1, #a=*}", [ line_invalid "@cites" ]);
     ("@cites {a=v1, a=v2}", [ line_invalid "@cites" ]);
     ("@cites { docs=v1 , }", [ cites [ [ slug "docs"; rev "v1" ] ] ]);
@@ -311,14 +371,47 @@ let line_cases =
     ("@cites {a#, b=v1}", [ line_invalid "@cites" ]);
     ("@verifies {a=v1, b=*}", [ line_invalid "@verifies" ]);
     ("@satisfies #a[1]=v1", [ line_invalid "@satisfies" ]);
+    ("@satisfies #a[x]", [ line_invalid "@satisfies" ]);
+    ("@satisfies a#{b[*]}", [ line_invalid "@satisfies" ]);
+    ("@refines #a[*]", [ line_invalid "@refines" ]);
+    ("@refines a#{b[x]}", [ line_invalid "@refines" ]);
+    ("@supersedes a#{b[x]}", [ line_invalid "@supersedes" ]);
+    ("@cites atom:a=v1", [ cites [ [ kind "atom"; slug "a"; rev "v1" ] ] ]);
     ( "@cites decision:a=v1",
       [ cites [ [ kind "decision"; slug "a"; rev "v1" ] ] ] );
     ("@cites design:a=v1", [ cites [ [ kind "design"; slug "a"; rev "v1" ] ] ]);
+    ("@cites schema:a=v1", [ cites [ [ kind "schema"; slug "a"; rev "v1" ] ] ]);
     ("@cites term:a=v1", [ cites [ [ kind "term"; slug "a"; rev "v1" ] ] ]);
-    ( "@cites a[1]=v1",
-      [ cites [ [ slug "a"; ("vector-number", str "1"); rev "v1" ] ] ] );
+    ("@cites finding-class:a=v1", [ line_invalid "@cites" ]);
+    ("@cites a[x]", [ cites [ [ slug "a"; ("group-name", str "x") ] ] ]);
+    ("@cites a[*]", [ cites [ [ slug "a"; every_vector ] ] ]);
+    ( "@verifies a#{b[x-1], c[*]}",
+      [
+        cites ~tag:"@verifies"
+          [
+            [ slug "a"; part "b"; ("group-name", str "x-1") ];
+            [ slug "a"; part "c"; every_vector ];
+          ];
+      ] );
+    ("@cites a[1]=v1", [ line_invalid "@cites" ]);
     ("@cites a[1]", [ line_invalid "@cites" ]);
-    ("@cites a[ 1]=v1", [ line_invalid "@cites" ]);
+    ("@cites a[x]=v1", [ line_invalid "@cites" ]);
+    ("@cites a[*]=v1", [ line_invalid "@cites" ]);
+    ("@cites a[x][*]", [ line_invalid "@cites" ]);
+    ("@cites a[x][*]=v1", [ line_invalid "@cites" ]);
+    ("@cites a[ x]", [ line_invalid "@cites" ]);
+    ("@cites a[x-]", [ line_invalid "@cites" ]);
+    ("@cites a[-x]", [ line_invalid "@cites" ]);
+    ("@cites a[X]", [ line_invalid "@cites" ]);
+    ("@cites a[x--y]", [ line_invalid "@cites" ]);
+    ("@cites a#{b[x]=v1}", [ line_invalid "@cites" ]);
+    ("@verifies a#{b[x][*]}", [ line_invalid "@verifies" ]);
+    ( "@extern atom:x",
+      [ line_valid "directive" "@extern" [ kind "atom"; part "x"; desc "" ] ] );
+    ( "@extern schema:x",
+      [ line_valid "directive" "@extern" [ kind "schema"; part "x"; desc "" ] ]
+    );
+    ("@extern finding-class:x", [ line_invalid "@extern" ]);
     ( "@extern decision:x",
       [
         line_valid "directive" "@extern" [ kind "decision"; part "x"; desc "" ];
@@ -335,7 +428,8 @@ let line_cases =
     ("@ack", [ line_invalid "@ack" ]);
     ("@ack\ta\tx\t3f2a9c1d", [ ack "a" "x" "3f2a9c1d" ]);
     ("@ack a 0123456", [ line_invalid "@ack" ]);
-    ("@deferred  ", [ status "@deferred" "" ]);
+    ("@deprecated  ", [ status "@deprecated" "" ]);
+    ("@deferred  ", [ other "@deferred" ]);
     ("@deprecated:", [ line_invalid "@deprecated" ]);
   ]
 
@@ -383,7 +477,9 @@ let line_ranges_of_continued_citations () =
     [ (1, 2); (3, 3) ]
     (ranges "\xef\xbb\xbf@cites {\n#a=v1}\n@req b=v1")
 
-(* @verifies identifiers#reject-unmatched-inputs=v1 *)
+(* @verifies identifiers#give-line-results=v1
+   Each example line gives the line result and values that the five line
+   schemas and input-match define for it. *)
 let line_examples =
   check_cases "the text"
     (fun string -> `List (line_inputs standard_binding string))
@@ -394,7 +490,9 @@ let continuation_examples =
     (fun string -> `List (line_inputs standard_binding string))
     continuation_cases
 
-(* @verifies identifiers#{use-one-binding=v1, reject-repeated-entries=v1} *)
+(* @verifies identifiers#{use-one-binding=v1, give-line-results=v1}
+   Each call reads its text under the single binding that the caller passes,
+   and external targets depend on that binding alone. *)
 let one_binding_reads_each_text () =
   let jira =
     match Binding.make [ ("jira", "[A-Z]+-[1-9][0-9]*") ] with
@@ -441,16 +539,17 @@ let one_binding_reads_each_text () =
 let words () =
   Alcotest.(check (list string))
     "the kind words"
-    [ "decision"; "design"; "finding-class"; "req"; "spec"; "term" ]
+    [ "atom"; "decision"; "design"; "req"; "schema"; "spec"; "term" ]
     (List.sort String.compare (List.map Kind_word.to_string Kind_word.all));
   Alcotest.(check (list string))
     "the Sinter tag words"
     (List.sort String.compare
        [
+         "@atom";
          "@decision";
          "@design";
-         "@finding-class";
          "@req";
+         "@schema";
          "@spec";
          "@term";
          "@cites";
@@ -458,9 +557,7 @@ let words () =
          "@satisfies";
          "@supersedes";
          "@verifies";
-         "@deferred";
          "@deprecated";
-         "@rejected";
          "@ack";
          "@extern";
        ])
@@ -480,17 +577,28 @@ let words () =
   List.iter
     (fun text ->
       Alcotest.(check bool) text true (Kind_word.of_string text = None))
-    [ "Req"; "req "; ""; "plan"; "reqs"; ":req" ];
+    [ "Req"; "req "; ""; "plan"; "reqs"; ":req"; "finding-class" ];
   List.iter
     (fun text ->
       Alcotest.(check bool) text true (Tag_word.of_string text = None))
-    [ "@Req"; "req"; "@"; ""; "@reqs"; "@req " ]
+    [
+      "@Req";
+      "req";
+      "@";
+      "";
+      "@reqs";
+      "@req ";
+      "@finding-class";
+      "@deferred";
+      "@rejected";
+    ]
 
 let custom_namespaces () =
   Alcotest.(check (list (option string)))
     "the custom namespaces"
     [ None; Some "billing"; Some "a/b"; None ]
-    (List.map Target.custom_namespace [ "packs"; "billing/auth"; "a/b/c"; "" ])
+    (List.map Target.custom_namespace
+       [ "catalog"; "billing/auth"; "a/b/c"; "" ])
 
 let large_texts_are_read () =
   let entries = List.init 20000 (fun index -> Printf.sprintf "#p%d=v1" index) in
@@ -572,7 +680,7 @@ let declaration_gen =
   let open Gen in
   let* word =
     one_of
-      [ "@decision"; "@design"; "@finding-class"; "@req"; "@spec"; "@term" ]
+      [ "@atom"; "@decision"; "@design"; "@req"; "@schema"; "@spec"; "@term" ]
   in
   let* indent = indent_gen and* gap = gap_gen and* slug = slug_gen 1 in
   let* part = unique_segment 2 and* label = label_gen and* shape = bool in
@@ -582,7 +690,7 @@ let declaration_gen =
   let name, name_values =
     match word with
     | "@spec" when shape -> (segment, [ ("slug", str segment) ])
-    | ("@spec" | "@req" | "@term") when not shape ->
+    | ("@atom" | "@req" | "@schema" | "@spec" | "@term") when not shape ->
         (slug ^ "#" ^ part, slug_values slug @ [ ("part-name", str part) ])
     | _ -> (slug, slug_values slug)
   in
@@ -605,7 +713,16 @@ let declaration_gen =
 
 let kind_gen =
   one_of
-    [ None; Some "decision"; Some "req"; Some "spec"; Some "finding-class" ]
+    [
+      None;
+      Some "atom";
+      Some "decision";
+      Some "design";
+      Some "req";
+      Some "schema";
+      Some "spec";
+      Some "term";
+    ]
 
 let kind_prefix = function Some word -> word ^ ":" | None -> ""
 
@@ -613,21 +730,23 @@ let kind_text_values = function
   | Some word -> [ ("kind-word", str word) ]
   | None -> []
 
-let selection_gen allowed index =
-  if not allowed then Gen.return ("", [])
-  else
-    one_of
-      [
-        ("", []);
-        ( Printf.sprintf "[%d]" (index + 1),
-          [ ("vector-number", str (string_of_int (index + 1))) ] );
-        ("[*]", [ ("every-vector", `Bool true) ]);
-        ( "[grp-1][*]",
-          [ ("group-name", str "grp-1"); ("every-vector", `Bool true) ] );
-      ]
-
 let revision_gen star =
   if star then Gen.oneof [ label_gen; Gen.return "*" ] else label_gen
+
+let suffix_gen allowed star index =
+  let open Gen in
+  let rev_gen =
+    map (fun rev -> ("=" ^ rev, [ ("revision", str rev) ])) (revision_gen star)
+  in
+  if not allowed then rev_gen
+  else
+    let group = Printf.sprintf "grp-%d" index in
+    oneof
+      [
+        rev_gen;
+        return ("[" ^ group ^ "]", [ ("group-name", str group) ]);
+        return ("[*]", [ ("every-vector", `Bool true) ]);
+      ]
 
 let list_space_gen = one_of [ ""; ""; " "; "\t"; "\n"; "\n  "; " \n\t" ]
 
@@ -644,14 +763,15 @@ let single_gen rules index =
   let* kind = kind_gen
   and* slug = slug_gen index
   and* part = unique_segment index in
-  let* selection, selection_values = selection_gen rules.selections index in
-  let* revision = revision_gen rules.star and* label = label_gen in
+  let* suffix_text, suffix_values =
+    suffix_gen rules.selections rules.star index
+  in
+  let* label = label_gen in
   let* form = int_range 0 (if rules.every_part then 4 else 3) in
   let* external_part = bool in
   let with_kind name values =
-    ( kind_prefix kind ^ name ^ selection ^ "=" ^ revision,
-      kind_text_values kind @ values @ selection_values
-      @ [ ("revision", str revision) ] )
+    ( kind_prefix kind ^ name ^ suffix_text,
+      kind_text_values kind @ values @ suffix_values )
   in
   return
     (match form with
@@ -687,14 +807,10 @@ let scoped_gen rules index =
     flatten_list
       (List.init count (fun k ->
            let* part = unique_segment (1000 + (index * 10) + k) in
-           let* selection, selection_values =
-             selection_gen rules.selections k
+           let* suffix_text, suffix_values =
+             suffix_gen rules.selections rules.star k
            in
-           let* revision = revision_gen rules.star in
-           return
-             ( part ^ selection ^ "=" ^ revision,
-               (("part-name", str part) :: selection_values)
-               @ [ ("revision", str revision) ] )))
+           return (part ^ suffix_text, ("part-name", str part) :: suffix_values)))
   in
   let head = kind_prefix kind ^ if with_slug then slug else "" in
   let prefix =
@@ -768,13 +884,17 @@ let same read (text, want) =
 
 let read_lines text = `List (line_inputs standard_binding text)
 
-(* @verifies identifiers#{give-values=v1, accept-inputs=v1} *)
+(* @verifies identifiers#{give-line-results=v1, give-values=v1, give-no-other-values=v1}
+   Each generated declaration gives the result valid and the exact values of
+   its match with no extra values. *)
 let declarations_give_their_values =
   property ~count:500
     ~name:"a declaration made from the grammar gives its values"
     ~print:print_case declaration_gen (same read_lines)
 
-(* @verifies identifiers#{give-values=v1, accept-inputs=v1} *)
+(* @verifies identifiers#{give-line-results=v1, give-values=v1, give-no-other-values=v1}
+   Each generated citation gives the result valid and the exact per-entry value
+   lists of its citation entries with no extra values. *)
 let citations_give_their_values =
   property ~count:500
     ~name:"a citation made from the grammar gives the values of each entry"
@@ -784,12 +904,17 @@ let line_token_gen =
   one_of
     [
       "@req";
+      "@atom";
+      "@schema";
       "@cites";
       "@ack";
       "@term";
       "@supersedes";
       "@extern";
+      "@deprecated";
       "@deferred";
+      "@rejected";
+      "@finding-class";
       "@";
       "@x-1";
       " ";
@@ -806,10 +931,13 @@ let line_token_gen =
       "v1";
       "a";
       "gh/42";
+      "[g]";
       "[1]";
       "[*]";
       ":";
       "req:";
+      "atom:";
+      "schema:";
       "#*";
       "\xc2\xa0";
       "\xef\xbb\xbf";
@@ -882,9 +1010,8 @@ let tag_texts = function
                  Option.to_list slug @ Option.to_list part_name
                  @
                  match suffix with
-                 | Target.Revision text
-                 | Target.Vector_selection (Target.Group text) ->
-                     [ text ]
+                 | Target.Revision revision -> [ revision ]
+                 | Target.Vector_selection (Target.Group text) -> [ text ]
                  | Target.Vector_selection Target.Every_vector -> [])
              | Target.Every_part { slug; revision } -> [ slug; revision ]
              | Target.External { namespace_name; id; part_name; _ } ->
@@ -978,7 +1105,9 @@ let corrupted source =
     in
     if String.is_valid_utf_8 damaged then damaged else text)
 
-(* @verifies identifiers#{give-results=v1, give-tag-words=v1, give-no-results-for-non-inputs=v1} *)
+(* @verifies identifiers#{give-line-results=v1, give-tag-words=v1, give-no-results-for-non-inputs=v1}
+   Every line of a text belongs to exactly one input, continuation lines get no
+   result of their own, and every tag line gives its exact tag word. *)
 let lines_make_one_input_each =
   property ~count:2000
     ~name:

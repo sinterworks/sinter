@@ -66,21 +66,27 @@ let give_binding (vector : Vectors.vector) =
   in
   `Assoc [ ("result", str result); ("values", `Assoc []) ]
 
-(* @verifies identifiers[id-patterns][*]=v1 *)
+(* @verifies identifiers[id-patterns]
+   The test fails when Id_pattern.of_string gives "valid" for an id pattern
+   that the vector calls invalid, or "invalid" for one that it calls valid. *)
 let id_pattern_vectors =
   Vectors.group set ~name:"id-patterns" ~form:"#id-pattern-vector=v1"
     give_id_pattern
 
-(* @verifies identifiers[fit][*]=v1 *)
+(* @verifies identifiers[fit]
+   The test fails when Id_pattern.fits gives "fits" or "does not fit"
+   other than the vector, or when an id pattern of the vector is not valid. *)
 let fit_vectors = Vectors.group set ~name:"fit" ~form:"#fit-vector=v1" give_fit
 
-(* @verifies identifiers[bindings][*]=v1 *)
+(* @verifies identifiers[bindings]
+   The test fails when Binding.make gives "valid" for a binding that the
+   vector calls invalid, or "invalid" for one that it calls valid. *)
 let binding_vectors =
   Vectors.group set ~name:"bindings" ~form:"#binding-vector=v1" give_binding
 
-(* @verifies identifiers#{reject-unmatched-id-patterns=v1, accept-inputs=v1}
+(* @verifies identifiers#validate-id-patterns=v1
    Each id pattern gives the error that the interface states for it: a text
-   that does not match the production pattern, or a text beyond one of the
+   that is not a valid id pattern, or a valid id pattern beyond one of the
    program's own limits on the length, a count, and the size. *)
 let id_pattern_errors () =
   List.iter
@@ -230,7 +236,7 @@ let fit_takes_no_exponential_time () =
       ("(a{0,255}){0,3}b", String.make 5000 'a');
     ]
 
-(* @verifies identifiers#accept-inputs=v1
+(* @verifies identifiers#validate-id-patterns=v1
    The interface promises that of_string takes time linear in the length of
    the text. In this shape, a quantifier repeats an alternation of elements
    that each repeat 0 times, and the size counts each of those elements as one
@@ -244,6 +250,9 @@ let of_string_grows_linearly_with_empty_copies () =
       ^ "){255}){4}")
     Id_pattern.of_string
 
+(* @verifies identifiers#validate-bindings=v1
+   Each binding gives Ok when it meets the schema external-namespaces within
+   the program's limits, and gives the error of its bad pair otherwise. *)
 let binding_cases () =
   List.iter
     (fun (pairs, want) ->
@@ -449,7 +458,10 @@ let accepts text =
   | Ok pattern -> Some pattern
   | Error _ -> None
 
-(* @verifies identifiers#{accept-inputs=v1, decide-fit=v1} *)
+(* @verifies identifiers#{validate-id-patterns=v1, decide-fit=v1}
+   Each generated id pattern is a valid id pattern within the program's limits,
+   and each id that the generator builds from that id pattern fits it while the
+   empty id does not fit it. *)
 let generated_patterns_are_valid_and_fit_their_ids =
   property ~count:1000
     ~name:
@@ -464,7 +476,9 @@ let generated_patterns_are_valid_and_fit_their_ids =
           && Id_pattern.fits pattern id
           && not (Id_pattern.fits pattern ""))
 
-(* @verifies identifiers#decide-fit=v1 *)
+(* @verifies identifiers#decide-fit=v1
+   Inserting a character that the id pattern never matches makes fits return
+   false for every generated pair. *)
 let ids_with_a_foreign_character_do_not_fit =
   property ~count:500
     ~name:
@@ -520,10 +534,10 @@ let pattern_bytes_gen =
             "~";
           ]))
 
-(* @verifies identifiers#{accept-inputs=v1, reject-empty-id-fit=v1}
-   Every text gives an id pattern or an error. An accepted id pattern keeps
-   its text, holds 1,000 characters at most, which is the program's own limit
-   on the length, and the empty id does not fit it. *)
+(* @verifies identifiers#validate-id-patterns=v1
+   Every text gives an accepted id pattern or an error. An accepted id pattern
+   keeps its text, holds 1,000 characters at most, which is the program's own
+   limit on the length, and the empty id does not fit it. *)
 let id_pattern_answers_every_text =
   property ~count:2000
     ~name:
@@ -588,7 +602,10 @@ let binding_gen =
             "(a|b)+";
           ]))
 
-(* @verifies identifiers#{reject-malformed-namespace-names=v1, reject-repeated-namespace-names=v1, reject-invalid-binding-patterns=v1, accept-inputs=v1} *)
+(* @verifies identifiers#validate-bindings=v1
+   Binding.make accepts a list of pairs when, and only when, every namespace
+   name matches namespace-name, no two pairs share a namespace name, and
+   Id_pattern.of_string accepts every id pattern. *)
 let bindings_follow_their_pairs =
   property ~count:1000
     ~name:

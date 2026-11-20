@@ -64,7 +64,7 @@ let give_forms (vector : Vectors.vector) =
   let forms = forms ?slug (targets_of binding text) kind_words in
   `Assoc [ ("values", `Assoc [ ("forms", `List (List.map str forms)) ]) ]
 
-(* @verifies identifiers[canonical-entries][*]=v1
+(* @verifies identifiers[canonical-entries]
    Each vector reads the citation entries of its citation, or the target of its
    inline citation, and compares the canonical form of each with its slug and
    kind word against the form that the vector gives. *)
@@ -87,20 +87,31 @@ let expected_form ?slug kind_word { name; suffix } =
   in
   kind ^ name ^ suffix
 
-let selection_text_gen allowed index = Gen.map fst (selection_gen allowed index)
+let canonical_suffix_gen allowed star index =
+  let open Gen in
+  if not allowed then
+    map (fun revision -> ("=" ^ revision, "")) (revision_gen star)
+  else
+    oneof
+      [
+        map (fun revision -> ("=" ^ revision, "")) (revision_gen star);
+        return (Printf.sprintf "[grp-%d]" index, Printf.sprintf "[grp-%d]" index);
+        return ("[*]", "[*]");
+      ]
 
 let single_entry_gen rules index =
   let open Gen in
   let* kind = kind_gen
   and* slug = slug_gen index
   and* part = unique_segment index in
-  let* selection = selection_text_gen rules.selections index in
-  let* revision = revision_gen rules.star and* label = label_gen in
+  let* suffix_text, canonical_suffix =
+    canonical_suffix_gen rules.selections rules.star index
+  in
+  let* label = label_gen in
   let* shape = int_range 0 (if rules.every_part then 4 else 3) in
   let* external_part = bool in
   let internal name =
-    ( kind_prefix kind ^ name ^ selection ^ "=" ^ revision,
-      { name; suffix = selection } )
+    (kind_prefix kind ^ name ^ suffix_text, { name; suffix = canonical_suffix })
   in
   return
     (match shape with
@@ -126,11 +137,11 @@ let scoped_entries_gen rules index =
     flatten_list
       (List.init count (fun k ->
            let* part = unique_segment (1000 + (index * 10) + k) in
-           let* selection = selection_text_gen rules.selections k in
-           let* revision = revision_gen rules.star in
+           let* suffix_text, canonical_suffix =
+             canonical_suffix_gen rules.selections rules.star k
+           in
            let name = (if with_slug then slug else "") ^ "#" ^ part in
-           return
-             (part ^ selection ^ "=" ^ revision, { name; suffix = selection })))
+           return (part ^ suffix_text, { name; suffix = canonical_suffix })))
   in
   return
     ( kind_prefix kind
@@ -278,6 +289,13 @@ let long_targets n =
     Target.Internal
       {
         kind_word = None;
+        slug = Some (long 's');
+        part_name = Some (long 'p');
+        suffix = Target.Vector_selection Target.Every_vector;
+      };
+    Target.Internal
+      {
+        kind_word = Some Kind_word.Atom;
         slug = Some (long 's');
         part_name = Some (long 'p');
         suffix = Target.Revision (long 'r');

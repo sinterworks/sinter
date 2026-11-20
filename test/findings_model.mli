@@ -81,7 +81,7 @@ val edited_text : text -> edit list -> text
 
 val is_subject : text -> bool
 (** [is_subject t] holds when [t] is a subject of a finding: it matches the
-    production [subject] of the term [ack-line] and holds no line feed. *)
+    production [subject] of the schema [ack-line] and holds no line feed. *)
 
 val is_message : text -> bool
 (** [is_message t] holds when [t] is a message: not empty, with no line feed and

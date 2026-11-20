@@ -57,12 +57,18 @@ let give_rejected_binding (vector : Vectors.vector) =
               ] );
         ]
 
-(* @verifies identifiers[inline-citations][*]=v1 *)
+(* @verifies identifiers[inline-citations]
+   The test reads the text of each vector under its binding and fails when
+   the link result of a link or an image, or the values of a valid inline
+   citation, differ from the vector. *)
 let inline_citation_vectors =
   Vectors.group set ~name:"inline-citations" ~form:"#inline-citation-vector=v1"
     give_inline
 
-(* @verifies identifiers[rejected-bindings][*]=v1 *)
+(* @verifies identifiers[rejected-bindings]
+   @verifies identifiers#give-no-results-under-rejected-bindings=v1
+   Each vector supplies an invalid binding; Binding.make rejects the binding,
+   and no line, link, or image result is produced under it. *)
 let rejected_binding_vectors =
   Vectors.group set ~name:"rejected-bindings"
     ~form:"#rejected-binding-vector=v1" give_rejected_binding
@@ -162,6 +168,22 @@ let markdown_cases =
     ("|[x](sinter:docs=v1)|", [ docs "x" ]);
     ( "[x](sinter:req:docs=v1)",
       [ markdown_valid "x" ~target:[ kind "req"; slug "docs"; rev "v1" ] ] );
+    ( "[x](sinter:atom:docs=v1)",
+      [ markdown_valid "x" ~target:[ kind "atom"; slug "docs"; rev "v1" ] ] );
+    ( "[x](sinter:schema:docs#a=v1)",
+      [
+        markdown_valid "x"
+          ~target:[ kind "schema"; slug "docs"; part "a"; rev "v1" ];
+      ] );
+    ("[x](sinter:finding-class:docs=v1)", [ invalid_link ]);
+    ("[x](sinter:docs#descriptor[offsets])", [ invalid_link ]);
+    ("[x](sinter:docs#descriptor[*])", [ invalid_link ]);
+    ("<sinter:docs#descriptor[offsets]>", [ invalid_link ]);
+    ("<sinter:docs#descriptor[*]>", [ invalid_link ]);
+    ( "[x](sinter:atom:gh/42)",
+      [ markdown_valid "x" ~target:(kind "atom" :: ext "gh" "42") ] );
+    ("[x](sinter:atom:gh=v1)", [ invalid_link ]);
+    ("[x](sinter:finding-class:gh/42)", [ invalid_link ]);
     ("[x](sinter:docs=v1 'title')", [ docs "x" ]);
     ( "[x](sinter:a/b#c=*)",
       [ markdown_valid "x" ~target:[ slug "a/b"; ns "a"; part "c"; rev "*" ] ]
@@ -172,7 +194,9 @@ let markdown_cases =
     ("[x](sinter:req:)", [ invalid_link ]);
   ]
 
-(* @verifies identifiers#{give-results=v1, give-values=v1} *)
+(* @verifies identifiers#{give-link-results=v1, give-values=v1, give-no-other-values=v1}
+   Each markdown example gives the exact link result and exact set of values
+   that link-result and give-values define for its links and images. *)
 let markdown_examples =
   check_cases "the text"
     (fun string -> `List (link_results standard_binding string))
@@ -211,7 +235,9 @@ let reference character =
   let code = Uchar.to_int (List.hd (uchars_of_string character)) in
   Printf.sprintf "&#x%X;" code
 
-(* @verifies identifiers#reject-blank-link-text=v1 *)
+(* @verifies identifiers#give-link-results=v1
+   An inline citation whose link text holds only blank characters gives the
+   result invalid, and adding a non-blank character makes it valid. *)
 let blank_link_text_is_invalid () =
   List.iter
     (fun character ->
@@ -234,7 +260,9 @@ let blank_link_text_is_invalid () =
         (`List (link_results standard_binding markdown)))
     blank_characters
 
-(* @verifies identifiers#accept-inputs=v1 *)
+(* @verifies identifiers#give-link-results=v1
+   A character outside the blank-character set makes the link text non-blank,
+   so the inline citation gives the result valid. *)
 let other_characters_are_not_blank () =
   List.iter
     (fun code ->
@@ -267,7 +295,7 @@ let other_characters_are_not_blank () =
       0x1F600;
     ]
 
-(* @verifies identifiers#{accept-inputs=v1, reject-blank-link-text=v1}
+(* @verifies identifiers#give-link-results=v1
    The plain string content of an autolink is its text between < and >. The
    text of a URI autolink starts with a scheme of ASCII letters, and the text of
    an email autolink holds an @, so the text holds a character that is not
@@ -322,7 +350,9 @@ let link_runs_cover_the_link_in_the_text () =
     [ (2, 26) ]
     (runs "> [a\r\n> b](sinter:docs=v1)")
 
-(* @verifies identifiers#use-one-binding=v1 *)
+(* @verifies identifiers#use-one-binding=v1
+   Inline_target.read interprets each destination under the single binding
+   that the caller passes. *)
 let inline_targets_read_their_values () =
   let read binding target =
     match Inline_target.read binding target with
@@ -334,8 +364,15 @@ let inline_targets_read_their_values () =
       check_json target want (read binding target))
     [
       ( standard_binding,
-        "req:packs#size=v2",
-        `Assoc [ kind "req"; slug "packs"; part "size"; rev "v2" ] );
+        "req:catalog#size=v2",
+        `Assoc [ kind "req"; slug "catalog"; part "size"; rev "v2" ] );
+      ( standard_binding,
+        "atom:catalog#size=v2",
+        `Assoc [ kind "atom"; slug "catalog"; part "size"; rev "v2" ] );
+      ( standard_binding,
+        "schema:catalog=v1",
+        `Assoc [ kind "schema"; slug "catalog"; rev "v1" ] );
+      (standard_binding, "finding-class:catalog=v1", `Null);
       (standard_binding, "a/b=*", `Assoc [ slug "a/b"; ns "a"; rev "*" ]);
       (standard_binding, "#size=v1", `Assoc [ part "size"; rev "v1" ]);
       ( standard_binding,
@@ -344,6 +381,8 @@ let inline_targets_read_their_values () =
       (standard_binding, "gh/42=v1", `Null);
       (standard_binding, "gh/0", `Null);
       (Binding.empty, "gh/42=v1", `Assoc [ slug "gh/42"; ns "gh"; rev "v1" ]);
+      (standard_binding, "docs[offsets]", `Null);
+      (standard_binding, "docs[*]", `Null);
       (standard_binding, "docs[12]=v1", `Null);
       (standard_binding, "docs=v1#*", `Null);
       (standard_binding, "{docs=v1}", `Null);
@@ -461,7 +500,9 @@ let inline_gen =
 
 let read_links text = `List (link_results standard_binding text)
 
-(* @verifies identifiers#{give-values=v1, accept-inputs=v1} *)
+(* @verifies identifiers#{give-link-results=v1, give-values=v1, give-no-other-values=v1}
+   Each generated inline citation gives the result valid, its exact link text,
+   and the exact values of its destination with no extra values. *)
 let inline_citations_give_their_values =
   property ~count:300
     ~name:"an inline citation made from the grammar gives its values"
@@ -549,6 +590,9 @@ let link_invariants string =
          | _ -> true)
        links
 
+(* @verifies identifiers#{give-link-results=v1, give-no-results-for-non-inputs=v1}
+   Every returned link covers an actual link or image run in the document body,
+   in start order, and never carries a vector selection or every-part target. *)
 let links_cover_runs_in_order =
   property ~count:2000
     ~name:
