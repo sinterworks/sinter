@@ -96,14 +96,14 @@ let give_root_table (vector : Vectors.vector) =
         (`Assoc
            [ ("root-table", M.table_form (model_table document.root_table)) ])
 
-(* @verifies data-forms#toml[give-root-table][*]=v1
+(* @verifies data-forms#toml[give-root-table]
    The test gives the bytes of each vector to the adapter and fails unless it
    gives "valid" and a root table whose form is the form of the vector. *)
 let give_root_table_vectors =
   Vectors.group toml_set ~name:"give-root-table"
     ~form:"#toml-document-vector=v1" give_root_table
 
-(* @verifies data-forms#toml[reject-byte-sequence][*]=v1
+(* @verifies data-forms#toml[reject-byte-sequence]
    The test fails when the adapter gives "valid" and a table for a byte
    sequence that the vector calls invalid. *)
 let reject_byte_sequence_vectors =
@@ -120,7 +120,7 @@ let give_span (vector : Vectors.vector) =
       | spans -> valid (`List spans))
   | D.Valid _, None -> Alcotest.fail "a vector of give-span has no values"
 
-(* @verifies data-forms#toml[give-span][*]=v1
+(* @verifies data-forms#toml[give-span]
    The test fails when the adapter gives, for the subject and the location
    of the vector, a span whose start or end differs from the vector, or a
    result other than "valid". *)
@@ -145,7 +145,7 @@ let give_omit_span (vector : Vectors.vector) =
       | [] -> valid (`Assoc [ ("no-span-at", location) ])
       | spans -> valid (`Assoc [ ("spans", `List spans) ]))
 
-(* @verifies data-forms#toml[omit-span][*]=v1
+(* @verifies data-forms#toml[omit-span]
    The test fails when the adapter gives a span of a TOML value at the
    location of the vector, which has no span. *)
 let omit_span_vectors =

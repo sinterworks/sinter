@@ -99,7 +99,7 @@ let give_descriptor (vector : Vectors.vector) =
   | Some values -> `Assoc [ ("result", `String "valid"); ("values", values) ]
   | None -> `Assoc [ ("result", `String "invalid"); ("values", `Assoc []) ]
 
-(* @verifies packs#descriptor[descriptors][*]=v1
+(* @verifies packs#descriptor[descriptors]
    The test reads each byte sequence of the group and compares the result, and
    each value of a valid descriptor, with those of the vector, so a wrong
    decision on a rule, a wrong or missing value, or a value of an absent
@@ -140,7 +140,7 @@ let give_file_grammar (vector : Vectors.vector) =
             ]
       | None -> `Assoc [ ("values", `Assoc []) ])
 
-(* @verifies packs#descriptor[file-grammars][*]=v1
+(* @verifies packs#descriptor[file-grammars]
    The test gives each valid path of the group with its valid descriptor and
    compares the file grammar, or its absence, with the vector. *)
 let file_grammar_vectors =

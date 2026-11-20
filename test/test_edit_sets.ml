@@ -80,7 +80,7 @@ let give_edit_sets (vector : Sinter_test_vectors.Test_vector_set.vector) =
             ];
       }
 
-(* @verifies findings[edit-sets][*]=v1
+(* @verifies findings[edit-sets]
    Each vector gives a tree and edit descriptions; the test fails when the
    validation gives another result, when an edited text differs from the
    values, or when a file of the tree that the values do not name gets an

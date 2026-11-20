@@ -106,7 +106,7 @@ let give_decision (vector : Vectors.vector) =
           );
         ])
 
-(* @verifies packs#adapters[adapters][*]=v1
+(* @verifies packs#adapters[adapters]
    The test decides each byte sequence of the group, under limits far above
    what its code needs, and compares "valid" or "invalid" with the result of
    the vector; the decision of the module that loops must end. *)
@@ -143,7 +143,7 @@ let give_call (vector : Vectors.vector) =
               ~request:(hex_member "request" input)
               ~content:(hex_member "report-content" input))))
 
-(* @verifies packs#adapters[calls][*]=v1
+(* @verifies packs#adapters[calls]
    The test decides the adapter of each vector, makes the call with the
    function, the request bytes, the report content, and the test entry ids of
    the vector, under limits far above what its code needs, and compares the

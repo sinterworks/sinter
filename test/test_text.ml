@@ -137,25 +137,25 @@ let give_span (vector : Vectors.vector) =
   | Error Lines.Not_a_span -> `Assoc [ ("values", `Assoc []) ]
   | Error Lines.Not_a_run -> `Assoc [ ("values", `String "not a run") ]
 
-(* @verifies text[decode][*]=v1
+(* @verifies text[decode]
    The test passes the byte sequence of each vector to decode and fails when
    decode gives another validity result or another text. *)
 let decode_vectors =
   Vectors.group text_set ~name:"decode" ~form:"#decode-vector=v1" give_decode
 
-(* @verifies text[encode][*]=v1
+(* @verifies text[encode]
    The test passes the text of each vector to encode and fails when encode
    gives another byte sequence. *)
 let encode_vectors =
   Vectors.group text_set ~name:"encode" ~form:"#encode-vector=v1" give_encode
 
-(* @verifies text[lines][*]=v1
+(* @verifies text[lines]
    The test passes the text of each vector to Lines.all and fails when the
    line runs or their texts differ from the vector. *)
 let lines_vectors =
   Vectors.group text_set ~name:"lines" ~form:"#line-vector=v1" give_lines
 
-(* @verifies text[character-positions][*]=v1
+(* @verifies text[character-positions]
    The test passes the text and place of each vector to
    Lines.character_position and fails when the line number or column differs
    from the vector. *)
@@ -163,7 +163,7 @@ let character_position_vectors =
   Vectors.group text_set ~name:"character-positions"
     ~form:"#character-position-vector=v1" give_character_position
 
-(* @verifies text[spans][*]=v1
+(* @verifies text[spans]
    The test passes the text and run of each vector to Lines.span and fails
    when the start or end position differs from the vector. *)
 let span_vectors =

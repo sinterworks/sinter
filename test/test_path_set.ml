@@ -32,13 +32,13 @@ let give_membership (vector : Vectors.vector) =
   let members = json_texts (json_member "path-set" vector.input) in
   either (in_set ~path members) "in the set" "not in the set"
 
-(* @verifies files[path-sets][*]=v1
+(* @verifies files[path-sets]
    The vectors check "valid" and "invalid" for path sets. *)
 let path_set_vectors =
   Vectors.group files_set ~name:"path-sets" ~form:"#path-set-vector=v1"
     give_path_set
 
-(* @verifies files[memberships][*]=v1
+(* @verifies files[memberships]
    The vectors check "in the set" and "not in the set" for a valid path and a
    path set whose glob texts are valid globs. *)
 let membership_vectors =

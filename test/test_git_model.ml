@@ -78,7 +78,7 @@ let give_ref_commit (vector : Vectors.vector) =
        (Ref_commit.commit (refs_of_list refs)
           (name_of (required "ref" vector.input))))
 
-(* @verifies changes[ref-commits][*]=v1
+(* @verifies changes[ref-commits]
    Each vector gives the refs of a repository and a ref, through symbolic refs
    in turn, to a commit, to another git object, to a broken loose ref, or to
    no ref; a program that stops at the first symbolic ref, or takes another
@@ -103,7 +103,7 @@ let give_head_commit (vector : Vectors.vector) =
   in
   commit_or_none (ok (Ref_commit.head_commit (refs_of_list refs) head))
 
-(* @verifies changes[head-commits][*]=v1
+(* @verifies changes[head-commits]
    Each vector gives a HEAD that names a ref or is detached, and the refs; a
    program that reads a detached HEAD as a ref, or gives a commit for a branch
    that does not exist, gives another head commit. *)
@@ -149,7 +149,7 @@ let give_default_branch (vector : Vectors.vector) =
        ~binding:(name_of (required "binding" vector.input))
        ~upstream:(ref_ "upstream") ~local:(ref_ "local") ~remote:(ref_ "remote"))
 
-(* @verifies changes[default-branch-commits][*]=v1
+(* @verifies changes[default-branch-commits]
    Each vector gives a binding and which of the three refs exist, with their
    commits; a program that takes the refs in another order, skips a ref that
    exists with no commit, or takes a binding that is not a branch name, gives
@@ -163,7 +163,7 @@ let give_message (vector : Vectors.vector) =
   | Some text -> values [ ("text", `String (Text.encode text)) ]
   | None -> values []
 
-(* @verifies changes[message-texts][*]=v1
+(* @verifies changes[message-texts]
    Each vector gives the message of a commit and its header `encoding`, if
    any, and the text of the message, or none; a program that drops a carriage
    return or U+FEFF, or follows the header `encoding`, gives another text. *)
@@ -241,7 +241,7 @@ let give_commit_files (vector : Vectors.vector) =
       (String.concat ", " found) (String.concat ", " paths);
   values [ ("paths", names paths) ]
 
-(* @verifies changes[commit-files][*]=v1
+(* @verifies changes[commit-files]
    Each vector gives the entries of the git tree object of a commit, nested,
    and the valid paths of its files; a program that gives a file for a
    symbolic link, a submodule, a mode that is no number in base 8, a name that
@@ -303,7 +303,7 @@ let give_change_diff (vector : Vectors.vector) =
                  diff) );
         ]
 
-(* @verifies changes[change-diffs][*]=v1
+(* @verifies changes[change-diffs]
    Each vector gives a commit graph with the tree of each commit, and the diff
    of the change of a commit from the tree of its base, or no diff when there
    is no base; a diff from the commit of the default branch, or a diff when the

@@ -62,7 +62,7 @@ let give_ledger (vector : Vectors.vector) =
   in
   Lv.ledger_answer ~result ~ledger
 
-(* @verifies ledger[ledgers][*]=v1
+(* @verifies ledger[ledgers]
    Each vector gives a ledger ref, the git tree object of its ledger commit,
    and whether the ledger is valid, broken, or newer, with the ids of the
    stored ledger in their order; a wrong condition, a missed or extra entry, or

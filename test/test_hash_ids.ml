@@ -48,7 +48,7 @@ let give_compute (vector : Vectors.vector) =
   in
   `Assoc [ ("values", `Assoc [ ("hash-id", `String (hash_id :> string)) ]) ]
 
-(* @verifies data-forms#hash-ids[compute][*]=v1
+(* @verifies data-forms#hash-ids[compute]
    The test fails when the text that compute gives for the id prefix, the
    number of hex digits, and the bytes of a vector is not its hash id. *)
 let compute_vectors =
@@ -64,7 +64,7 @@ let give_validate (vector : Vectors.vector) =
   | Some _ -> `Assoc [ ("result", `String "valid") ]
   | None -> `Assoc [ ("result", `String "invalid") ]
 
-(* @verifies data-forms#hash-ids[validate][*]=v1
+(* @verifies data-forms#hash-ids[validate]
    The test fails when validate gives a hash id for a text that the vector
    calls invalid, or no hash id for a text that the vector calls valid. *)
 let validate_vectors =

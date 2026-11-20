@@ -279,7 +279,7 @@ let give (vector : Vectors.vector) =
 
 let set = Vectors.read "documents"
 
-(* @verifies documents[markdown][*]=v1
+(* @verifies documents[markdown]
    The test compares the read files that the program gives, and the declared
    items, each with its kind, name, file, origin position, extent, design,
    specification, and vector file, in the order of the member, with the
@@ -290,7 +290,7 @@ let set = Vectors.read "documents"
 let markdown_vectors =
   Vectors.group set ~name:"markdown" ~form:"#markdown-vector=v1" give
 
-(* @verifies documents[code][*]=v1
+(* @verifies documents[code]
    The test compares the read files that the program gives, each with the pair
    of its reader, and the tests of the read files, each with its file, name,
    code, and comments, and the declared items, each with its kind, name, file,

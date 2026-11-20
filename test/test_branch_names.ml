@@ -32,7 +32,7 @@ let give_branch_name (vector : Vectors.vector) =
           | Error _ -> "invalid") );
     ]
 
-(* @verifies changes[branch-names][*]=v1
+(* @verifies changes[branch-names]
    Each vector gives a text and "valid" or "invalid"; the test fails when
    of_text accepts a text that a condition refuses, or refuses a branch name. *)
 let branch_name_vectors =

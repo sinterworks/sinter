@@ -69,7 +69,7 @@ let give_write_json (vector : Vectors.vector) =
   in
   `Assoc [ ("values", values) ]
 
-(* @verifies data-forms#json-lines[write-json][*]=v1
+(* @verifies data-forms#json-lines[write-json]
    The test fails when a JSON value of a vector gets a byte sequence other
    than its canonical byte sequence, or when a thing that is not a JSON
    value, and so has no canonical byte sequence, gets one. *)
@@ -626,7 +626,7 @@ let give_write_line (vector : Vectors.vector) =
   in
   `Assoc [ ("values", values) ]
 
-(* @verifies data-forms#json-lines[write-line][*]=v1
+(* @verifies data-forms#json-lines[write-line]
    The test fails when a line object of a vector gets a byte sequence other
    than its canonical line, or when a thing that is not a line object, and
    so has no canonical line, gets one. *)
@@ -645,7 +645,7 @@ let give_read_line (vector : Vectors.vector) =
         ]
   | None -> `Assoc [ ("result", `String "invalid"); ("values", `Assoc []) ]
 
-(* @verifies data-forms#json-lines[read-line][*]=v1
+(* @verifies data-forms#json-lines[read-line]
    read gives a result for every byte sequence; the test fails when that
    result, or the line object that read gives, differs from the result
    and the line object of a vector. *)
@@ -762,7 +762,7 @@ let give_read_json (vector : Vectors.vector) =
         ]
   | None -> `Assoc [ ("result", `String "invalid"); ("values", `Assoc []) ]
 
-(* @verifies data-forms#json-lines[read-json][*]=v1
+(* @verifies data-forms#json-lines[read-json]
    read_json_text gives a result for every byte sequence; the test fails
    when that result, or the JSON value that it gives, differs from the
    result and the JSON value of a vector. *)

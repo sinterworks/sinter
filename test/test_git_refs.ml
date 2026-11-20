@@ -817,7 +817,7 @@ let head_commits_on (vector : Vectors.vector) =
   commit_values commits
     (Ref_commit.commit (Refs.refs (refs_of root) ~is_commit) "HEAD")
 
-(* @verifies changes[ref-commits][*]=v1
+(* @verifies changes[ref-commits]
    Each vector is written as loose refs in the files format, once with each
    ref that points to a git object as a loose ref and once in packed-refs, and
    a broken loose ref as an empty file; the commit of the ref from the reader
@@ -831,7 +831,7 @@ let ref_commit_vectors =
       (ref_commits_on ~packed:true);
   ]
 
-(* @verifies changes[head-commits][*]=v1
+(* @verifies changes[head-commits]
    Each vector is written as the file HEAD and loose refs; the head commit
    from the reader of the files format must be that of the vector, or the test
    fails. *)

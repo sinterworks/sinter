@@ -23,13 +23,13 @@ let give_fit (vector : Vectors.vector) =
   let glob = text_of (json_string (json_member "glob" vector.input)) in
   either (fits ~path ~glob) "fits" "does not fit"
 
-(* @verifies files[globs][*]=v1
+(* @verifies files[globs]
    The vectors check "valid" and "invalid" for texts that match `glob` and
    texts that do not. *)
 let glob_vectors =
   Vectors.group files_set ~name:"globs" ~form:"#glob-vector=v1" give_glob
 
-(* @verifies files[fits][*]=v1
+(* @verifies files[fits]
    The vectors check "fits" and "does not fit" for pairs of a valid path and
    a valid glob. *)
 let fit_vectors =

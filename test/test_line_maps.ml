@@ -84,7 +84,7 @@ let give_hunks (vector : Vectors.vector) =
           else []) );
     ]
 
-(* @verifies changes[hunks][*]=v1
+(* @verifies changes[hunks]
    For each pair of contents, the test compares the lines that the hunks remove
    and add together, and, where the line map is the only one, each hunk and the
    new line number of each old line; a wrong map or a wrong hunk changes one of

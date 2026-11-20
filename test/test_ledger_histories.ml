@@ -26,7 +26,7 @@ let give_history (vector : Vectors.vector) =
   Lv.history_answer
     (answer (H.history (Store.objects store) (Ledger_objects.Commit c)))
 
-(* @verifies ledger[histories][*]=v1
+(* @verifies ledger[histories]
    Each vector gives the commits of the history of a ledger, each with its
    parents and its git tree object, and whether the history is intact, or no
    result for a newer ledger; a program that takes a commit that changes or

@@ -111,7 +111,7 @@ let give_file_read (vector : Vectors.vector) =
       Alcotest.failf "the file read changed the folder tree: %s"
         (String.concat "; " changes)
 
-(* @verifies files[file-reads][*]=v1
+(* @verifies files[file-reads]
    The vectors check the result of a file read, and the text of the content
    with "found", for a text in a folder tree that the test makes. *)
 let file_read_vectors =

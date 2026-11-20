@@ -28,7 +28,7 @@ let give_compute (vector : Vectors.vector) =
           ] );
     ]
 
-(* @verifies data-forms#hashes[compute][*]=v1
+(* @verifies data-forms#hashes[compute]
    The test gives the bytes of each vector to compute and fails when the
    text that compute gives is not the hash of the vector. *)
 let compute_vectors =
@@ -40,7 +40,7 @@ let give_validate (vector : Vectors.vector) =
   | Some _ -> `Assoc [ ("result", `String "valid") ]
   | None -> `Assoc [ ("result", `String "invalid") ]
 
-(* @verifies data-forms#hashes[validate][*]=v1
+(* @verifies data-forms#hashes[validate]
    The test fails when validate gives a hash for a text that the vector
    calls invalid, or no hash for a text that the vector calls valid. *)
 let validate_vectors =

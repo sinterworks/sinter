@@ -52,7 +52,7 @@ let give_reach (vector : Vectors.vector) =
       );
     ]
 
-(* @verifies changes[reach][*]=v1
+(* @verifies changes[reach]
    Each vector gives two commits of a commit graph and whether the first
    reaches the second, through second parents too; a walk that misses a parent
    or a commit itself gives the other result. *)
@@ -68,7 +68,7 @@ let give_parents (vector : Vectors.vector) =
   in
   values [ ("parents", names (Graph.parents ~named ~shallow)) ]
 
-(* @verifies changes[parents][*]=v1
+(* @verifies changes[parents]
    Each vector gives the commits that a commit object names and whether the
    file `shallow` names the commit; a program that drops, reorders, or merges
    parents, or keeps them for a shallow commit, gives other parents. *)
@@ -81,7 +81,7 @@ let give_range (vector : Vectors.vector) =
   let h = name_of (required "to" vector.input) in
   values [ ("order", names (ok (Graph.range graph ~from h))) ]
 
-(* @verifies changes[ranges][*]=v1
+(* @verifies changes[ranges]
    Each vector gives the commits of a range in their parents-first order; a
    range with a commit too many or too few, or another order of the walk of
    the parents, gives another sequence. *)
@@ -107,7 +107,7 @@ let give_change (vector : Vectors.vector) =
     | Some base -> [ ("base", `String base) ]
     | None -> [])
 
-(* @verifies changes[changes][*]=v1
+(* @verifies changes[changes]
    Each vector gives the commits of the change of a commit, the merge bases of
    that commit and the commit of the default branch, and the base when there is
    exactly one merge base; a wrong range, a common ancestor that another one
@@ -128,7 +128,7 @@ let give_landing (vector : Vectors.vector) =
     | Some m -> [ ("landing-commit", `String m) ]
     | None -> [])
 
-(* @verifies changes[landing-commits][*]=v1
+(* @verifies changes[landing-commits]
    Each vector gives the first-parent line of a commit and the landing commit
    of another commit on it, or none when the first does not reach the second; a
    line that takes a second parent, or a landing commit that is not the last of

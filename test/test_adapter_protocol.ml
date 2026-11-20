@@ -109,7 +109,7 @@ let give_request (vector : Vectors.vector) =
   | Error (Request.Repeated_id id) ->
       Alcotest.failf "a repeated id: %s" (Text.encode id)
 
-(* @verifies packs#adapters[requests][*]=v1
+(* @verifies packs#adapters[requests]
    The test makes the request of each vector from its runner, its settings,
    its report name, and, for bind, its root and its test entries, and compares
    its bytes with the request of the vector. *)
@@ -187,7 +187,7 @@ let give_response (vector : Vectors.vector) =
   in
   `Assoc [ ("result", `String result); ("values", values) ]
 
-(* @verifies packs#adapters[responses][*]=v1
+(* @verifies packs#adapters[responses]
    The test reads the response of each vector for its function and its test
    entry ids, and compares the result, the test results, the binding objects,
    the warnings, and the error text with those of the vector. *)

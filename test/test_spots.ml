@@ -335,7 +335,7 @@ let give_spot_positions (vector : Sinter_test_vectors.Test_vector_set.vector) =
                ]);
       }
 
-(* @verifies findings[spot-positions][*]=v1
+(* @verifies findings[spot-positions]
    Each vector gives a text and a span, or no span; the test fails when the
    spot gives a start position or a position after it other than the values,
    or gives one when the values are empty. *)

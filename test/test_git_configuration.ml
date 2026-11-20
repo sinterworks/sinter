@@ -1530,7 +1530,7 @@ let give_upstream (vector : Vectors.vector) =
   in
   `Assoc [ ("values", default_branch_commit configuration vector.input) ]
 
-(* @verifies changes[upstreams][*]=v1
+(* @verifies changes[upstreams]
    Each vector gives a binding of `default-branch-name`, the settings of the
    git configuration, and the refs of the git repository. The reader of the git
    configuration and the default-branch resolver must give the commit of the

@@ -91,7 +91,7 @@ let give_well_named vector =
       ("result", `String (if use.named then "well named" else "not well named"));
     ]
 
-(* @verifies packs[well-named-packs][*]=v1
+(* @verifies packs[well-named-packs]
    Each vector makes the folder tree of a pack on the file system, and the test
    compares whether the pack read from it is well named with the result of the
    vector, so a wrong decision on any rule of a well-named pack fails it. *)
@@ -118,7 +118,7 @@ let give_pack_hash vector =
         ]
   | true, _, _ -> Alcotest.fail "the well-named pack gave no pack listing"
 
-(* @verifies packs[pack-hashes][*]=v1
+(* @verifies packs[pack-hashes]
    Each vector makes the folder tree of a pack on the file system, and the test
    compares the valid paths of the files, the pack listing, and the pack hash of
    the pack read from it with those of the vector, or with no listing and no

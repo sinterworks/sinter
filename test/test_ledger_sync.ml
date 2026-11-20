@@ -82,7 +82,7 @@ let give_pull (vector : Vectors.vector) =
             @ List.map Ledger_line.id added,
             left ))
 
-(* @verifies ledger[pulls][*]=v1
+(* @verifies ledger[pulls]
    Each vector gives the lines of a clone and of a commit s of its shared
    clone, and the ids that the acceptance rules refuse; a program that keeps a
    line for which s accounts, gives a moved line the wrong `seq` or `id`,

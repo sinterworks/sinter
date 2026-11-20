@@ -53,7 +53,7 @@ let give_finding_ids (vector : Sinter_test_vectors.Test_vector_set.vector) =
   | None, _ -> Alcotest.fail "the class is a slug"
   | _, Error _ -> Alcotest.fail "the subject is a subject of a finding"
 
-(* @verifies findings[finding-ids][*]=v1
+(* @verifies findings[finding-ids]
    Each vector gives a slug, a subject, and the finding id; the test fails when
    the finding id that the code gives is another text. *)
 let finding_id_vectors =

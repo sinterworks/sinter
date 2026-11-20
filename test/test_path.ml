@@ -54,7 +54,7 @@ let files_set = Vectors.read "files"
 let give_path (vector : Vectors.vector) =
   either (is_valid_path (text_of (json_string vector.input))) "valid" "invalid"
 
-(* @verifies files[paths][*]=v1
+(* @verifies files[paths]
    The vectors check "valid" and "invalid" for texts that match `path` and
    texts that do not. *)
 let path_vectors =
