@@ -810,7 +810,10 @@ conditions holds:
 @req give-successors=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{declared-item=v1, tree=v1, ledger=v1, parameter=v1},
+    ontology#{
+        declared-item=v1, default-branch=v1, tree=v1, ledger=v1,
+        parameter=v1,
+    },
     changes#{
         commit=v1, default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
@@ -850,7 +853,10 @@ successor for T.
 @req give-retired-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, ledger=v1, parameter=v1},
+    ontology#{
+        finding-class=v1, default-branch=v1, tree=v1, ledger=v1,
+        parameter=v1,
+    },
     changes#{
         commit=v1, default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
@@ -898,11 +904,11 @@ its own, the program must give no finding of that class for T.
     data-forms#{vector-line=v1, test-vector-set=v1},
     ontology#{
         declared-item=v1, item-name=v1, item-revision=v1, same-item=v1,
-        edge=v1, pinned-edge=v1, site=v1, tree=v1, ledger=v1,
-        parameter=v1,
+        edge=v1, pinned-edge=v1, site=v1, default-branch=v1, tree=v1,
+        ledger=v1, parameter=v1,
     },
     changes#{
-        default-branch-name=v1, default-branch-commit=v1,
+        commit=v1, default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
@@ -923,20 +929,21 @@ its own, the program must give no finding of that class for T.
 }
 
 This requirement applies for a git repository R whose ledger is valid
-and that holds its ledger objects, under a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a valid binding
-F of `file-readers`, a binding N of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid", a
-valid binding H of `historical-paths`, sets S of stopped files (a set U
-of stopped files of T and, when the default branch of R has a commit
-under D, a set of stopped files of the tree of each commit of the
-first-parent line of that commit), and undisturbed repository reads.
+and that holds its ledger objects, a tree T, a point P of the ledger of
+R, a valid binding A of `approval-kinds`, a binding D of
+`default-branch-name`, a valid binding F of `file-readers`, a binding N
+of `external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a valid binding H of
+`historical-paths`, sets S of stopped files (a set U of stopped files of
+T and, when the default branch of R has a commit under D, a set of
+stopped files of the tree of each commit of the first-parent line of
+that commit), and undisturbed repository reads.
 
 Let E be the edge of a tree finding f of the class `retired` that T has
-at a point P of the ledger of R under A, D, F, N, H, and S, and let c be
-the cited item of E. When c has one or more successors in T at P under
-A, D, F, N, and S, and a conforming program gives a fix for f, that fix
-must meet all three of these conditions:
+at P under A, D, F, N, H, and S, and let c be the cited item of E. When
+c has one or more successors in T at P under A, D, F, N, and S, and a
+conforming program gives a fix for f, that fix must meet all three of
+these conditions:
 
 1. The fix has exactly one edit set for each successor of c in T at P
    under A, D, F, N, and S, in the code point order of the names of
@@ -945,7 +952,8 @@ must meet all three of these conditions:
    whose valid path is the valid path of the file of E in T, and whose
    span starts and ends at boundaries of:
    - when a citation entry gives E, the run of the text of the tag line
-     of the citation of E in the text of that file;
+     of the citation of E in the text of that file (term
+     `documents#origin`);
    - when an inline citation gives E, the run of that inline citation in
      the text of that file;
    - when a vector line gives E, the form run of E in the text of that
@@ -963,16 +971,14 @@ must meet all three of these conditions:
      source of E is a site), whose cited item is the same item as s,
      and that is pinned with the current revision of s in T as its label
      when E is pinned, and is not pinned when E is not pinned;
-   - when a citation entry gives E, the set of edges that the edited
-     citation gives in T′ (each taken by its kind of edge, its cited
-     item as the same item or no cited item with the same entry name,
-     and its pinned label or that it is not pinned) is the set of edges
-     that the citation of E gave in T with the entry of E replaced by
-     E′.
-
-When no edit set meets conditions 2 and 3 for some successor of c, no
-fix meets this requirement, so a conforming program must give no fix for
-f.
+   - when a citation entry gives E, each edge that a citation gives is
+     represented by three properties: its kind of edge; its pinned
+     label, or that it is not pinned; and its target, which is its cited
+     item (as the same item) when the edge has a cited item, and the
+     entry name of its citation entry when the edge has no cited item.
+     Taken by these three properties, the set of edges that the edited
+     citation gives in T′ is the set of edges that the citation of E
+     gave in T with E replaced by E′.
 
 ### 5.4 Findings of the class `cycle`
 
@@ -1322,8 +1328,7 @@ nothing to them. The vectors are in six groups: `successors`, `retired`,
 `retired-fixes`, `cycles`, `deleted-decisions`, and `reused-labels`.
 Each group has a subsection below that gives the forms of that group,
 as the term [`group-form-list`](sinter:data-forms#group-form-list=v1)
-gives the forms of a group. No group of this design uses a need, so the forms of
-each group give no need names. These requirements have no vectors:
+gives the forms of a group. These requirements have no vectors:
 `omit-results-under-invalid-reading-bindings`,
 `omit-results-from-invalid-ledgers`,
 `compare-change-for-deleted-decisions`,
@@ -1344,7 +1349,7 @@ the inputs while the program runs.
     rfc/8259,
     text#{
         conforming-program=v1, text=v1, character=v1, whole-number=v1,
-        decimal-numeral=v1, result=v1, code-span=v1,
+        decimal-numeral=v1, sequence=v1, result=v1, code-span=v1,
     },
     data-forms#{
         index=v1, group-form-list=v1, vector-meaning=v1, json-value=v1,
@@ -1358,7 +1363,10 @@ the inputs while the program runs.
         supersedes-edge=v1, effective-supersedes-edge=v1, tree=v1,
         ledger=v1, parameter=v1,
     },
-    changes#{default-branch-commit=v1, first-parent-line=v1},
+    changes#{
+        default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
+    },
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     approval#{approval-kinds=v1, bound-in-force-item=v1},
@@ -1426,7 +1434,7 @@ gives no other item.
     rfc/8259,
     text#{
         conforming-program=v1, text=v1, character=v1,
-        code-point-order=v1, result=v1, code-span=v1,
+        code-point-order=v1, sequence=v1, result=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, valid-path-set=v1},
     data-forms#{group-form-list=v1, vector-meaning=v1, json-value=v1},
@@ -1436,7 +1444,10 @@ gives no other item.
         conformance-vector-group=v1, external-item=v1, tree=v1,
         ledger=v1, finding-class=v1, parameter=v1,
     },
-    changes#{default-branch-commit=v1, first-parent-line=v1},
+    changes#{
+        default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
+    },
     documents#{
         file-readers=v1, tree-edge=v1, position-subject=v1,
         tree-finding=v1, unreadable-file=v1,
@@ -1515,7 +1526,7 @@ gives no other finding of that class.
     text#{
         conforming-program=v1, text=v1, character=v1, whole-number=v1,
         decimal-numeral=v1, boundary=v1, run=v1, code-point-order=v1,
-        result=v1, code-span=v1,
+        sequence=v1, result=v1, code-span=v1,
     },
     files#{path=v1},
     data-forms#{
@@ -1524,14 +1535,18 @@ gives no other finding of that class.
     },
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, citation=v1,
-        citation-entry=v1, inline-citation=v1,
+        citation-entry=v1, inline-citation=v1, tag-line-text=v1,
     },
     ontology#{
-        declared-item=v1, item-name=v1, item-revision=v1, edge=v1,
-        pinned-edge=v1, tree=v1, ledger=v1, parameter=v1,
+        declared-item=v1, containment=v1, item-name=v1,
+        item-revision=v1, edge=v1, pinned-edge=v1, tree=v1, ledger=v1,
+        parameter=v1,
     },
-    changes#{default-branch-commit=v1, first-parent-line=v1},
-    findings#{fix=v1, edit-set=v1},
+    changes#{
+        default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
+    },
+    findings#{fix=v1, edit=v1, edit-set=v1, spot=v1},
     documents#{
         file-readers=v1, tree-edge=v1, origin=v1, named-item=v1,
         tree-finding=v1, unreadable-file=v1,
@@ -1578,19 +1593,23 @@ elements in order.
   - `pinned`: `true` when `E` is pinned, and `false` when `E` is not
     pinned.
   - `run`: a JSON object with `from` and `to`, the start and end
-    boundaries in `text` of the run of the citation tag line (for
-    `"citation-entry"`), of the inline citation (for
+    boundaries in `text` of the run of the text of the tag line of the
+    citation of `E` in the text of that file (term `documents#origin`;
+    for `"citation-entry"`), of the inline citation (for
     `"inline-citation"`), or of the form run (for `"vector-line"`).
   - `cited`: the name of the retired cited item of `E`.
   - `successors`: a JSON array of one or more JSON objects, one for each
     successor of `cited`, each with `name` (the name of the successor),
-    `kind` (its kind), `duplicate` (`true` when two or more items share
-    its name in its set of names so no citation names it, and `false`
-    otherwise), optional `label` (its current revision, omitted when it
-    is a term with no label), and, when `origin-kind` is
-    `"vector-line"`, `in-vector-owner` (`true` when the successor is a
-    schema held directly by the owning design or held by the owning
-    specification of the vector set, and `false` otherwise).
+    `kind` (one of `"design"`, `"spec"`, `"schema"`, `"req"`, `"atom"`,
+    `"term"`, and `"decision"`), `duplicate` (`true` when two or more
+    items share its name in its set of names so no citation names it,
+    and `false` otherwise), optional `label` (its current revision,
+    omitted when it is a term with no label), and, when `origin-kind` is
+    `"vector-line"`, `in-vector-owner` (when the vector set is of an
+    item of the kind design D, `true` when the successor is a schema
+    that D holds directly and `false` otherwise; when the vector set is
+    of an item of the kind specification S, `true` when the successor is
+    a schema that S holds and `false` otherwise).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with `fix-allowed` (`true` when a fix meeting
@@ -1599,8 +1618,11 @@ elements in order.
   object for each successor in the code point order of successor names,
   holding `successor` (the successor's name), `pinned` (whether the
   replacement edge is pinned), optional `label` (when `pinned` is
-  `true`, the current revision that the replacement edge pins), `path`,
-  and `run`.
+  `true`, the current revision that the replacement edge pins), `path`
+  (the valid path within which every edit of that edit set has its
+  spot), and `run` (a JSON object with `from` and `to`, the start and
+  end boundaries in `text` of the run within which every edit of that
+  edit set has its spot).
 
 When `fix-allowed` is `false`, a conforming program gives no fix for the
 `retired` finding. When `fix-allowed` is `true`, a conforming program
@@ -1618,8 +1640,8 @@ gives in its edited tree the replacement edge to that element's
     rfc/8259,
     text#{
         conforming-program=v1, text=v1, character=v1, whole-number=v1,
-        decimal-numeral=v1, position=v1, code-point-order=v1, result=v1,
-        code-span=v1,
+        decimal-numeral=v1, position=v1, code-point-order=v1,
+        sequence=v1, result=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, valid-path-set=v1},
     data-forms#{
@@ -1713,7 +1735,7 @@ path and start position that the element states.
     rfc/8259,
     text#{
         conforming-program=v1, text=v1, character=v1,
-        code-point-order=v1, result=v1, code-span=v1,
+        code-point-order=v1, sequence=v1, result=v1, code-span=v1,
     },
     files#{path-set=v1, valid-path-set=v1},
     data-forms#{group-form-list=v1, vector-meaning=v1, json-value=v1},
