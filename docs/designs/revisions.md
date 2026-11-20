@@ -386,7 +386,9 @@ gives for it. Each vector follows from the requirements and adds nothing
 to them. No group of this design uses a need, so the forms of each group
 give no need names. Subsection 5.1 gives the forms of the group `trees`,
 as the term [`group-form-list`](sinter:data-forms#group-form-list=v2)
-gives them.
+gives them. No vector follows from the requirements
+`compare-with-change-base`, `omit-missing-base-report`, and
+`report-missing-base`.
 
 Each vector is for the empty set of
 [stopped files](sinter:documents#unreadable-file=v2) of each tree. So a
