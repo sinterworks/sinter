@@ -27,8 +27,8 @@ module Make (Id : Hashtbl.HashedType) = struct
 
   (* @satisfies ledger#validate-ledgers=v1
      A newer git tree object is newer whatever else it holds; otherwise it is a
-     valid ledger tree when all nine conditions hold, and neither when one
-     fails. *)
+     valid ledger tree when the seven conditions of the schema
+     `valid-ledger-tree` hold, and neither when one fails. *)
   let of_analysis (analysis : Read.analysis) =
     if analysis.newer then Newer_tree { lines = analysis.lines }
     else

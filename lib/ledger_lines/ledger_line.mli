@@ -1,8 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** The lines that a valid ledger tree can hold, as conditions 4, 5, and 6 of
-    the term [ledger-validity] of the design [ledger=v1] give them.
+(** The lines that a valid ledger tree can hold, as conditions 2, 3, and 4 of
+    the schema [valid-ledger-tree] of the design [ledger=v1] give them.
 
     A ledger line is the canonical line of a line object, the object of the
     line, that has the member [id] with a string, the member [kind] with a

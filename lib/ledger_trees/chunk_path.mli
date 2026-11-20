@@ -1,8 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** Chunk paths and the modes of chunks, as the terms [chunk-path] and
-    [ledger-validity] of the design [ledger=v1] give them. A byte path and a
+(** Chunk paths and the modes of chunks, as the term [chunk-path] and the schema
+    [valid-ledger-tree] of the design [ledger=v1] give them. A byte path and a
     mode are byte sequences, OCaml [string]s. *)
 
 val chunk_id : string -> string option

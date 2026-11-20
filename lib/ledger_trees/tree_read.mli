@@ -17,8 +17,8 @@ type level =
 
 val fits : level -> 'id Ledger_objects.entry list -> bool
 (** [fits level entries] is [true] when, and only when, a git tree object that
-    lists [entries] meets conditions 1, 2, and 3 of the term [ledger-validity]
-    at [level], given that each git tree object that its tree entries name does
+    lists [entries] meets condition 1 of the schema [valid-ledger-tree] at
+    [level], given that each git tree object that its tree entries name does
     too: no name holds the byte 0x2F; no two entries have the same name; at
     [Folder] and [Hex], [entries] is not empty; and each entry is the tree entry
     [entries] at [Root], a tree entry whose name is two hex digits at [Folder],
@@ -60,7 +60,7 @@ module Make (Id : Hashtbl.HashedType) : sig
             [lines] its lines in increasing order of their [seq]; [None] when it
             is not *)
   }
-  (** A git tree object as the term [ledger-validity] reads it. *)
+  (** A git tree object as the schema [valid-ledger-tree] reads it. *)
 
   val analyse : 'e session -> Id.t -> (analysis, 'e) result
   (** [analyse session id] is the analysis of the git tree object [id]. It reads

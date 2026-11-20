@@ -1,8 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** Ledger entries, as the terms [entry-field] and [stored-ledger] of the design
-    [ledger=v1] give them.
+(** Ledger entries, as the schema [entry-field] and the term [stored-ledger] of
+    the design [ledger=v1] give them.
 
     The ledger entry of a ledger line ({!Ledger_line}) whose [kind] is one of
     the eight texts of {!Entry_kind} is the ledger entry of that kind whose

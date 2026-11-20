@@ -10,9 +10,10 @@ type t = {
   ledger_lines : Ledger_line.t list option;
 }
 
-(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
-   The content is cut right after each byte 0x0A; a last part without 0x0A is
-   a line, and nothing after the last 0x0A is a line. *)
+(* @satisfies ledger#valid-ledger-tree=v1
+   The lines of a chunk, which conditions 2 to 7 read: the content is cut
+   right after each byte 0x0A; a last part without 0x0A is a line, and
+   nothing after the last 0x0A is a line. *)
 let cut content =
   let length = String.length content in
   let rec from start lines =
@@ -25,9 +26,10 @@ let cut content =
   in
   from 0 []
 
-(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
-   A newer line is a line whose JSON value is an object whose `v` is an
-   integer greater than 1, whether or not the line is a canonical line. *)
+(* @satisfies ledger#valid-ledger-tree=v1
+   A git tree object is newer when one of its lines is a newer line: a line
+   whose JSON value is an object whose `v` is an integer greater than 1,
+   whether or not the line is a canonical line. *)
 let is_newer (value : Json.t option) =
   match Option.bind value (fun value -> Member.find value "v") with
   | Some (Integer version) -> version > 1

@@ -36,8 +36,8 @@ let is_regular_file_entry entry =
   | Regular_file_entry -> true
   | Tree_entry | Symbolic_link_entry | Submodule_entry -> false
 
-(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
-   Condition 3 of a valid ledger tree: the root holds only the tree entry
+(* @satisfies ledger#valid-ledger-tree=v1
+   Condition 1 of a valid ledger tree: the root holds only the tree entry
    `entries`, that folder only tree entries of two hex digits, and each such
    folder only chunks with the mode 100644. *)
 let allowed level entry =
@@ -49,11 +49,11 @@ let allowed level entry =
       && Option.is_some
            (Chunk_path.chunk_id ("entries/" ^ hh ^ "/" ^ entry.name))
 
-(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
-   Conditions 1 and 2 of a valid ledger tree: no name holds the byte `/`, and
-   no git tree object lists one name twice; with no `/` in a name, two
-   entries at any depth have one byte path only when a git tree object on the
-   way to them lists one name twice. *)
+(* @satisfies ledger#valid-ledger-tree=v1
+   Condition 1 of a valid ledger tree, for the byte paths: no name holds the
+   byte `/`, and no git tree object lists one name twice; with no `/` in a
+   name, two entries at any depth have one byte path only when a git tree
+   object on the way to them lists one name twice. *)
 let distinct_names (entries : _ entry list) =
   let names = Hashtbl.create size_hint in
   List.for_all
@@ -65,8 +65,8 @@ let distinct_names (entries : _ entry list) =
        true))
     entries
 
-(* @satisfies ledger#{validate-histories=v1, validate-ledgers=v1}
-   Condition 3 for one git tree object: the folders `entries` and
+(* @satisfies ledger#valid-ledger-tree=v1
+   Condition 1 for one git tree object: the folders `entries` and
    `entries/<hh>` hold at least one entry, since a folder with no chunk is not
    allowed; and each entry is allowed at its level. *)
 let fits level entries =
@@ -195,8 +195,8 @@ module Make (Id : Hashtbl.HashedType) = struct
     | At level -> if not (fits level entries) then bad ()
     | Elsewhere -> ()
 
-  (* @satisfies ledger#validate-ledgers=v1
-     Conditions 4 to 7: each chunk has at least one line, each line is a ledger
+  (* @satisfies ledger#valid-ledger-tree=v1
+     Conditions 2 to 5: each chunk has at least one line, each line is a ledger
      line, and the chunk path after its first 11 characters is the `id` of the
      first line of the chunk, then `.jsonl`. *)
   let rec gather lines = function
@@ -210,8 +210,8 @@ module Make (Id : Hashtbl.HashedType) = struct
             gather (List.rev_append ledger_lines lines) chunks
         | Some [] | Some (_ :: _) | None -> None)
 
-  (* @satisfies ledger#{validate-ledgers=v1, give-stored-ledgers=v1}
-     Conditions 8 and 9: no two lines have one `id`, and the values of `seq`
+  (* @satisfies ledger#{valid-ledger-tree=v1, give-stored-ledgers=v1}
+     Conditions 6 and 7: no two lines have one `id`, and the values of `seq`
      are 1 to n, each once; the lines are then put in increasing order of
      their `seq`. *)
   let order lines =

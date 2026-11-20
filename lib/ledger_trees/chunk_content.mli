@@ -1,9 +1,9 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** The lines of the content of a chunk, as the terms [chunk], [newer-line], and
-    [ledger-validity] of the design [ledger=v1] give them. A content and a line
-    are byte sequences, OCaml [string]s. *)
+(** The lines of the content of a chunk, as the terms [chunk] and [newer-line]
+    and the schema [valid-ledger-tree] of the design [ledger=v1] give them. A
+    content and a line are byte sequences, OCaml [string]s. *)
 
 open Sinter_ledger_lines
 

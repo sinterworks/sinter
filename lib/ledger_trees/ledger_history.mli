@@ -1,8 +1,9 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** Extensions and intact histories, as the terms [ledger-extension],
-    [intact-history], and [ledger-object] of the design [ledger=v1] define them.
+(** Extensions and intact histories, as the terms [ledger-extension] and
+    [ledger-object] and the atom [intact-history] of the design [ledger=v1]
+    define them.
 
     A commit d extends a commit c when, and only when, d is c, or d has exactly
     one parent, that parent extends c, and each line of the git tree object of
@@ -39,8 +40,8 @@ module Make (Id : Hashtbl.HashedType) : sig
   (** [history ~entry_id objects ledger_ref] is whether the history of the
       ledger whose ledger ref is [ledger_ref] is intact: [Some Intact] or
       [Some Not_intact] when the ledger is not newer, and [None], neither
-      result, when the ledger is newer. The [id] that condition 6 of the term
-      [ledger-validity] asks of each line is [entry_id] of its object in place
+      result, when the ledger is newer. The [id] that condition 4 of the schema
+      [valid-ledger-tree] asks of each line is [entry_id] of its object in place
       of its entry id; [entry_id] is
       {!Sinter_ledger_lines.Entry_id.of_line_object} when it is not given.
       [Absent] gives [Some Intact], and [No_commit] gives [Some Not_intact]. For
@@ -55,7 +56,7 @@ module Make (Id : Hashtbl.HashedType) : sig
       [Some Not_intact], or the first [Error e] that a reader gives among the
       history objects.
 
-      Its result is the result that the term [intact-history] gives, and it gets
+      Its result is the result that the atom [intact-history] gives, and it gets
       it without the check of each git tree object of the history alone: it
       compares each commit of the chain with its parent, and a git object that
       both name by one ['id] is one git object, as {!Ledger_objects.objects}

@@ -98,8 +98,8 @@ module Make (Id : Hashtbl.HashedType) = struct
                        folder)))
         (Ok (Some Folders.empty)) entries
 
-  (* @satisfies ledger#validate-histories=v1
-     Conditions 1 to 3 of a valid ledger tree for the git objects that a commit
+  (* @satisfies ledger#{validate-histories=v1, valid-ledger-tree=v1}
+     Condition 1 of a valid ledger tree for the git objects that a commit
      does not share with its parent: the root holds nothing or the folder
      `entries`, which holds folders `<hh>` of chunks with the mode 100644; a
      git object that the commit shares with its parent at one byte path was
@@ -158,8 +158,8 @@ module Make (Id : Hashtbl.HashedType) = struct
         : folder Folders.t);
     (!added, !removed)
 
-  (* @satisfies ledger#validate-histories=v1
-     Conditions 4 to 7 for each chunk that the commit does not share with its
+  (* @satisfies ledger#{validate-histories=v1, valid-ledger-tree=v1}
+     Conditions 2 to 5 for each chunk that the commit does not share with its
      parent at one byte path: at least one line, each a ledger line, and the
      name of the chunk is the `id` of its first line. *)
   let added_lines session added =
@@ -188,15 +188,15 @@ module Make (Id : Hashtbl.HashedType) = struct
         Ok (List.rev_append content.Chunk_content.lines lines))
       (Ok []) removed
 
-  (* @satisfies ledger#validate-histories=v1
+  (* @satisfies ledger#{validate-histories=v1, valid-ledger-tree=v1}
      The commit extends its parent when each line of the parent is a line of
      the commit: the lines of the parent's chunks that the commit does not keep
      at their byte paths must stand among the lines of the commit's own new
      chunks; the lines of a valid parent are distinct, so each takes one line
-     there at most once. The lines that remain there are the new lines, and the commit is a
-     valid ledger tree, given a valid parent with n lines, when no new line has
-     the `id` of another line and the `seq` of the k new lines are n + 1 to
-     n + k, each once: conditions 8 and 9. *)
+     there at most once. The lines that remain there are the new lines, and
+     the commit is a valid ledger tree, given a valid parent with n lines,
+     when no new line has the `id` of another line and the `seq` of the k new
+     lines are n + 1 to n + k, each once: conditions 6 and 7. *)
   let new_lines ids count added removed =
     let counts = Hashtbl.create size_hint in
     List.iter
