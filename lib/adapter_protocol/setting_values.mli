@@ -2,17 +2,18 @@
 (* Copyright 2026 The Sinter Authors *)
 
 (** The values of the runner settings of a test runner under a valid binding of
-    the parameter [runner-settings], as the specification [adapters] of the
-    design [packs=v1] defines them.
+    the parameter [runner-settings], as the schema [runner-settings] and the
+    term [runner-setting-value] of the design [packs=v1] define them.
 
     A binding of [runner-settings], for one test runner, is a finite set of
-    pairs, each a name and a TOML value. It is valid when the name of each pair
-    is the name of a runner setting of the test runner, no two pairs have the
-    same name, and the TOML value of each pair is of the type of that runner
-    setting: a TOML string for the type string, a TOML boolean for the type
-    boolean, and a TOML array of TOML strings for the type array of strings.
-    Under a valid binding, the value of a runner setting is the TOML value of
-    the pair with its name, or its default value when no pair has its name. *)
+    pairs, each a name and a TOML value. It is valid when it meets the schema
+    [runner-settings]: the name of each pair is the name of a runner setting of
+    the test runner, no two pairs have the same name, and the TOML value of each
+    pair is of the type of that runner setting: a TOML string for the type
+    string, a TOML boolean for the type boolean, and a TOML array of TOML
+    strings for the type array of strings. Under a valid binding, the value of a
+    runner setting is the TOML value of the pair with its name, or its default
+    value when no pair has its name. *)
 
 type t
 (** For each runner setting of one test runner, its name and its value. *)

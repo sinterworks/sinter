@@ -7,7 +7,7 @@
 
     A valid descriptor is a byte sequence that is a TOML document, as
     {!Sinter_data_forms_toml.Data_forms_toml.read} decides, whose root table
-    meets the ten rules of the term [valid-descriptor]. A text is an OCaml
+    meets the ten rules of the schema [valid-descriptor]. A text is an OCaml
     [string] that holds its UTF-8 encoding. Each list that comes from a TOML
     array is in the order of that array. *)
 

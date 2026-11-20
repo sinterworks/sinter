@@ -3,9 +3,10 @@
 
 (** Readings of texts, as the term [reading-of-a-text] of the design [packs=v1]
     gives them, with the parts of a reading that the design [documents=v1] uses:
-    the result of the reading, and, for the result "parsed", the comment nodes,
-    the definition nodes with their body nodes, the decoration nodes, and the
-    test nodes with their name paths, each with its run.
+    the result of the reading, as the atom [reading-result] gives it, and, for
+    the result "parsed", the comment nodes, the definition nodes with their body
+    nodes, the decoration nodes, and the test nodes with their name paths, each
+    with its run.
 
     The producer of a reading, such as a program that reads a text with a pack,
     gives a value of {!result}. The producer guarantees that the nodes of a
@@ -53,7 +54,7 @@ type node = {
 (** A node of a reading. One node can have any mix of these roles. A node with
     no role is a node of no kind that the design [documents=v1] uses. *)
 
-(** The result of a reading of a text. *)
+(** The result of a reading of a text, as the atom [reading-result] gives it. *)
 type result =
   | No_grammar  (** the result "no grammar" *)
   | Parse_failure  (** the result "parse failure" *)

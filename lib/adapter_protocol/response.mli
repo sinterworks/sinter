@@ -79,12 +79,13 @@ val bind : ids:Text.t list -> string -> binding_result
 (** [bind ~ids response] is the result of a call of bind with the test entry ids
     [ids] that gives the byte sequence [response]. It is [Bound] when the JSON
     value of [response] is an object with exactly the members [results],
-    [bindings], and [warnings], and each rule of the term [call-result] holds:
-    [results] is an array of result objects; [bindings] is an array of binding
-    objects, each with a [result] less than the number of test results and a
-    [test] among [ids]; no two binding objects have the same [result] and the
-    same [test]; and [warnings] is an array of strings. Otherwise it is
-    [Bind_failed] with the error text, as {!recognise} gives it. The function
-    never raises, and its time grows no faster than the length of [response]
-    times the logarithm of that length, and the number of [ids] times its
-    logarithm. *)
+    [bindings], and [warnings], and each rule of a bind response of the schema
+    [adapter-response] holds: [results] is an array of result objects;
+    [bindings] is an array of binding objects, each with a [result] less than
+    the number of test results; no two binding objects have the same [result]
+    and the same [test]; and [warnings] is an array of strings. The atom
+    [call-result] also needs that the [test] of each binding object is among
+    [ids]. Otherwise it is [Bind_failed] with the error text, as {!recognise}
+    gives it. The function never raises, and its time grows no faster than the
+    length of [response] times the logarithm of that length, and the number of
+    [ids] times its logarithm. *)

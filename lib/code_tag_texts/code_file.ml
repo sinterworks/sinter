@@ -171,8 +171,10 @@ let last_line_of facts (node : Reading.node) =
   if p > node.run.from then facts.line_of_place.(p)
   else first_line_of facts node
 
-(* @satisfies packs#node-run=v1
-   In the order of the term node-run, a comment node before a comment node B
+(* @satisfies documents#give-tests=v1
+   An outer comment node is a comment node that no other comment node
+   encloses, as the term comment-run gives it. In the order of the term
+   node-run of the design packs=v1, a comment node before a comment node B
    encloses B when, and only when, its run ends at or after the end of the run
    of B, so the greatest end so far decides each node, in one pass in the order
    of the list. *)

@@ -36,8 +36,9 @@ let rec close (run : Text.run) = function
   | (top : Text.run) :: rest when top.until <= run.from -> close run rest
   | stack -> stack
 
-(* @satisfies packs#node-run=v1
-   Of two nodes of a parse tree, the run of the later lies inside the run of
+(* @satisfies packs#give-reading-node-values=v1
+   A reading gives the run of each node as the term node-run gives it. Of two
+   nodes of a parse tree, the run of the later lies inside the run of
    the earlier, or starts at or after its end. The open runs form a stack, each
    inside the one below it, so a run nests with every run before it when, and
    only when, it lies inside the top that is left after the runs that end at or
@@ -70,9 +71,10 @@ let node_error text number node =
   | None, Some [] -> Some (No_own_name { node = number })
   | None, _ -> None
 
-(* @satisfies packs#parse-tree=v1
-   A list of nodes whose runs break the order of the term node-run is no parse
-   tree, so the check refuses it and gives no reading. *)
+(* @satisfies packs#give-reading-nodes=v1
+   A list of nodes whose runs break the order of the term node-run holds a node
+   that is no node of a parse tree, so the check refuses it and gives no
+   reading. *)
 let check lines nodes =
   let text = Lines.text lines in
   let rec scan number stack = function
