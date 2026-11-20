@@ -143,7 +143,9 @@ bases, a conforming program gives no finding of that class for the
 change and gives that the change has no base.
 
 Both trees of a comparison are read under one binding of each
-parameter. What a program gives from a repository read that is not
+parameter. When the tree and the base tree of a comparison are the same
+tree, a conforming program uses the same set of stopped files for both
+trees. What a program gives from a repository read that is not
 undisturbed, or from a file that changes while the program reads it, is
 a matter of the quality of an implementation.
 
@@ -203,20 +205,22 @@ are the same name when, and only when, they are the same text.
     #{base-item=v1},
 }
 
-For a tree T and a base tree B, under a binding of `file-readers`, a
-binding of `external-namespaces`, and a set of stopped files of each
-tree, the declared items, their kinds, names, current revisions, extent
-hashes, and files of T and of B, and the base items in B of the declared
-items of T, are those that T and B have under these two bindings and the
-sets of stopped files of T and of B. Under these bindings and sets, T
-has one tree finding of the class `needs-revision` against B for each
-declared item d of T that meets three conditions. First, d has a current
-revision in T and a base item e in B. Second, e has a current revision
-in B that is the same text as the current revision of d in T. Third, d
-and e are of different kinds of item, or the extent hash of d in T is
-not the extent hash of e in B. The subject of that finding is the name
-of d. The spot of that finding is the spot of the run of the text of the
-declaration of d in the text of the file of d in T.
+This atom is for a tree T, a base tree B, a binding of `file-readers`,
+a binding of `external-namespaces`, a set of stopped files of T, and a
+set of stopped files of B. When T and B are the same tree, the set of
+stopped files of T and the set of stopped files of B are the same set.
+The declared items, their kinds, names, current revisions, extent
+hashes, and files of T and of B, and the base items in B of the
+declared items of T, are those that T and B have under these two
+bindings and these sets of stopped files. Under these bindings and
+sets, T has one tree finding of the class `needs-revision` against B
+for each declared item d of T that meets three conditions. First, d has
+a current revision in T and a base item e in B. Second, e has a current
+revision in B that is the same text as the current revision of d in T.
+Third, d and e are of different kinds of item, or the extent hash of d
+in T is not the extent hash of e in B. The subject of that finding is
+the name of d. The spot of that finding is the spot of the run of the
+text of the declaration of d in the text of the file of d in T.
 
 ### 3.3 Findings of the class `suspect`
 
@@ -267,11 +271,14 @@ of that edge in the text of the file of the edge.
 This requirement applies under a valid binding of `file-readers` and a
 binding of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid". When a conforming program
-gives the findings of the class `needs-revision` of a tree against a
-base tree under these bindings and a set of stopped files of each tree,
-that program must give each tree finding of that class that the tree has
-against the base tree under these bindings and these sets once, and must
-give no other finding of that class.
+gives the findings of the class `needs-revision` of a tree T against a
+base tree B under these bindings, that program must use a set of
+stopped files of T and a set of stopped files of B that are the same
+set when T and B are the same tree. Under these bindings and these
+sets, when that program gives the findings of the class
+`needs-revision` of T against B, that program must give each tree
+finding of that class that T has against B under these bindings and
+these sets once, and must give no other finding of that class.
 
 ### 4.2 The findings of the class `suspect`
 
@@ -334,14 +341,15 @@ which a conforming program of the design Identifiers gives the result
 "valid". Under these bindings, this requirement applies when a
 conforming program meets two conditions. First, that program gives the
 findings of the class `needs-revision` of the change of h under these
-bindings, a set of stopped files of the tree of h, and a set of stopped
-files of the tree of the base of the change of h. Second, each
-repository read from which that program takes the base of the change of
-h and the files of the tree of h and of the tree of that base is
-undisturbed. Under these bindings and when both conditions hold, that
-program must give each tree finding of that class that the tree of h has
-against the tree of the base of the change of h under these bindings and
-these sets once, and must give no other finding of that class.
+bindings. Second, each repository read from which that program takes
+the base of the change of h and the files of the tree of h and of the
+tree of that base is undisturbed. Under these bindings and when both
+conditions hold, that program must use a set of stopped files of the
+tree of h and a set of stopped files of the tree of the base of the
+change of h that are the same set when those two trees are the same
+tree, must give each tree finding of that class that the tree of h has
+against the tree of the base of the change of h under these bindings
+and these sets once, and must give no other finding of that class.
 
 ### 4.5 The change of a commit with a base
 
