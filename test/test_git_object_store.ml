@@ -698,6 +698,12 @@ let index_damage_tests =
     try_index "an index v2 of the version 3"
       (replace v2 4 (O.be32 3))
       Store.Malformed_index;
+    try_index "an index v2 with a non-zero top byte in its version"
+      (replace v2 4 (O.be32 0x01000002))
+      Store.Malformed_index;
+    try_index "an index v2 with a non-zero second byte in its version"
+      (replace v2 4 (O.be32 0x00010002))
+      Store.Malformed_index;
     try_index "an index v1 whose fan-out falls"
       (replace v1 (4 * 200) (O.be32 1000))
       Store.Malformed_index;
@@ -726,8 +732,16 @@ let index_damage_tests =
       (replace pack.bytes 0 "KCAP");
     try_pack "a pack of the version 4" (replace pack.bytes 4 (O.be32 4));
     try_pack "a pack of the version 1" (replace pack.bytes 4 (O.be32 1));
+    try_pack "a pack with a non-zero top byte in its version"
+      (replace pack.bytes 4 (O.be32 0x01000002));
+    try_pack "a pack with a non-zero second byte in its version"
+      (replace pack.bytes 4 (O.be32 0x00010002));
     try_pack "a pack with another number of objects"
       (replace pack.bytes 8 (O.be32 5));
+    try_pack "a pack with a non-zero top byte in its object count"
+      (replace pack.bytes 8 (O.be32 0x01000004));
+    try_pack "a pack with a non-zero second byte in its object count"
+      (replace pack.bytes 8 (O.be32 0x00010004));
     try_pack "a pack whose trailer is not the copy in the index"
       (let last = String.length pack.bytes - 1 in
        set_byte pack.bytes last (Char.code pack.bytes.[last] lxor 1));
@@ -2362,6 +2376,54 @@ let form_tests =
             ("version 2, 2^32 + 16", (1 lsl 32) + 16, 2);
             ("version 2, 2^40 + 16", (1 lsl 40) + 16, 2);
           ]);
+    (* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+       @cites changes#commit=v1
+       By the term `commit` and the page gitformat-pack, the object count of a
+       pack header and each fan-out entry of a pack index are 4-byte unsigned
+       big-endian integers. A sparse pack and version 2 index with 0x01020304
+       objects puts distinct non-zero values in all four bytes of those
+       integers, so a reader that misreads or mis-shifts either of the two high
+       bytes rejects the valid index or fails to find the object. *)
+    case "an object in a pack and index of 0x01020304 objects is held"
+      (fun () ->
+        let rec find_ff k =
+          let text = Printf.sprintf "object-%d\n" k in
+          let raw = O.id Id.Sha1 O.Blob text in
+          if Char.code raw.[0] = 0xff then (text, raw) else find_ff (k + 1)
+        in
+        let blob_text, blob_id = find_ff 0 in
+        let count = 0x01020304 in
+        let slot = count - 1 in
+        let entry =
+          O.entry_header 3 (String.length blob_text) ^ O.zlib blob_text
+        in
+        let trailer = String.make 20 '\005' in
+        let pack_bytes = raw_pack ~count entry trailer in
+        let fanout =
+          String.concat ""
+            (List.init 256 (fun n -> O.be32 (if n < 255 then slot else count)))
+        in
+        let index_size = 8 + 1024 + (count * (20 + 8)) + 40 in
+        let name_at = 8 + 1024 + (slot * 20) in
+        let offset_at = 8 + 1024 + (count * (20 + 4)) + (slot * 4) in
+        let sparse_index =
+          M.Sparse
+            ( index_size,
+              [
+                (0, "\255tOc" ^ O.be32 2 ^ fanout);
+                (name_at, blob_id);
+                (offset_at, O.be32 12);
+                (index_size - 40, trailer ^ String.make 20 '\000');
+              ] )
+        in
+        check "0x01020304 objects" (held O.Blob blob_text)
+          (finder
+             (M.create
+                [
+                  (pack_pathname "p", M.File pack_bytes);
+                  (index_pathname "p", sparse_index);
+                ])
+             blob_id));
     case "a search reads two equal names: malformed" (fun () ->
         let names = [ name 1; name 1; name 1 ] in
         let trailer = String.make 20 '\003' in
