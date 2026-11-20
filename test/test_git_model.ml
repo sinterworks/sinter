@@ -638,6 +638,18 @@ let file_agrees_with_files =
         (fun (path, blob) -> Commit_files.file library path = Some blob)
         (Commit_files.files library))
 
+(* @verifies changes#give-commit-file-at-path=v1
+   A tree whose only entry is the regular file `ab` has no file with the
+   valid path `a`, though the bytes of `a` start the name of that entry: the
+   lookup must give none. *)
+let no_file_at_a_path_that_an_entry_name_extends () =
+  Alcotest.(check bool)
+    "no file" true
+    (Commit_files.file
+       [ Commit_files.Regular_file { name = "ab"; blob = () } ]
+       (path_of "a")
+    = None)
+
 let deep_entries () =
   let depth = 20_000 in
   let rec build k acc =
@@ -818,6 +830,9 @@ let tests =
       files_follow_the_term;
       file_at_a_path_follows_the_term;
       file_agrees_with_files;
+      Alcotest.test_case
+        "a path that an entry name extends by one byte has no file" `Quick
+        no_file_at_a_path_that_an_entry_name_extends;
       Alcotest.test_case "entries nested 20,000 deep on a stack of 256 KiB"
         `Quick deep_entries;
       Alcotest.test_case
