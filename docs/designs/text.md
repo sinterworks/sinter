@@ -1370,14 +1370,15 @@ these rules state:
 
 A vector line meets the schema `vector-line` when, and only when, it
 meets what this schema states for one vector line: what this schema
-states from "The text of each line of the vector file" to this
-paragraph. All vector lines in the vector file with the same `group`
-have the same `#` and name of a schema in `form`, and their labels in
-`form` may differ. The vector file meets the schema `vector-line` when,
-and only when, the vector file meets what this schema states before "The
-text of each line of the vector file" and what this paragraph states on
-`group` and `form`, and the text of each line of the vector file is a
-vector line that meets the schema `vector-line`.
+states from "The text of each line of the vector file" up to this
+paragraph, this paragraph left out. All vector lines in the vector file
+with the same `group` have the same `#` and name of a schema in `form`,
+and their labels in `form` may differ. The vector file meets the schema
+`vector-line` when, and only when, the vector file meets what this
+schema states before "The text of each line of the vector file" and
+what this paragraph states on `group` and `form`, and the text of each
+line of the vector file is a vector line that meets the schema
+`vector-line`.
 
 ### 5.3 Byte sequences that a program decodes
 
