@@ -30,9 +30,9 @@ name historical paths so that historical files give no findings of these
 classes at spots in those files.
 
 From Text and notation (`text`), the design takes texts, characters,
-spaces, tabs, places, whole numbers, decimal numerals, boundaries, runs,
-spans, positions, code point order, code spans, sequences, and what a
-conforming program and a result are. From Identifiers (`identifiers`),
+spaces, tabs, places, lines, line numbers, whole numbers, decimal
+numerals, boundaries, runs, spans, positions, code point order, code
+spans, sequences, and what a conforming program and a result are. From Identifiers (`identifiers`),
 it takes tag lines, declarations, citations, citation lines with the
 production `every-part`, citation entries, inline citations, tag line
 texts, the parameter `external-namespaces` with its bindings, and the
@@ -212,7 +212,11 @@ has two successors `d3` and `d4`, a fix that meets
 `limit-retired-fix-edit-sets` has two edit sets, first for `d3` and then
 for `d4`, in code point order of their names. When the original edge is
 unpinned (`@cites billing#limit=*`), the edge in the edited citation
-stays unpinned (`@cites billing-2#limit=*`). When the cited item has no
+stays unpinned (`@cites billing-2#limit=*`). When a `retired` finding is
+on a vector line whose group holds several vector lines, each edit set
+of a fix that meets `limit-retired-fix-edit-sets` rewrites the form pin
+of every vector line of that group so that the edited vector file stays
+a test-vector set. When the cited item has no
 successor (for example a `@deprecated` record or a retired vector
 group), `limit-retired-fix-edit-sets` adds no condition beyond
 `findings#limit-fix-edit-sets`.
@@ -928,8 +932,8 @@ of its own, the program must give no finding of that class for T.
     data-forms#{vector-line=v1, test-vector-set=v1},
     ontology#{
         declared-item=v1, item-name=v1, item-revision=v1, same-item=v1,
-        external-item=v1, edge=v1, pinned-edge=v1, site=v1,
-        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
+        external-item=v1, edge=v1, cites-edge=v1, pinned-edge=v1,
+        site=v1, default-branch=v1, tree=v1, ledger=v1, parameter=v1,
     },
     changes#{
         commit=v1, default-branch-name=v1, default-branch-commit=v1,
@@ -947,8 +951,9 @@ of its own, the program must give no finding of that class for T.
     approval#{approval-kinds=v1},
     text#{
         conforming-program=v1, result=v1, character=v1, space=v1,
-        tab=v1, place=v1, whole-number=v1, boundary=v1, span=v1, run=v1,
-        code-point-order=v1, text=v1, code-span=v1,
+        tab=v1, place=v1, line=v1, line-number=v1, whole-number=v1,
+        boundary=v1, span=v1, run=v1, code-point-order=v1, text=v1,
+        code-span=v1,
     },
     #{historical-paths=v1, successor=v1, retired-finding=v1},
 }
@@ -976,47 +981,50 @@ these conditions:
 1. The fix has exactly one edit set for each successor of c in T at P
    under A, D, F, N, and S, in the code point order of the names of
    those successors in T.
-2. Let r be this run of the text of the file of E in T:
-   - when a citation entry gives E, the run of the text of the tag line
-     of the citation of E in the text of that file (term
+2. Let W be this non-empty set of runs of the text of the file of E in
+   T:
+   - when a citation entry gives E, the single run of the text of the
+     tag line of the citation of E in the text of that file (term
      `documents#origin`);
-   - when an inline citation gives E, the run of that inline citation in
-     the text of that file;
-   - when a vector line gives E, the form run of E in the text of that
-     vector file.
+   - when an inline citation gives E, the single run of that inline
+     citation in the text of that file;
+   - when a vector line gives E, the form run of the edge of each vector
+     line of the group of the vector line of E in that vector file
+     (schema `data-forms#test-vector-set`).
 
    For each edit set of the fix, every edit of that edit set has a spot
    whose valid path is the valid path of the file of E in T, and whose
-   span starts and ends at boundaries of r.
+   span starts and ends at boundaries of one run in W.
 3. For each successor s of c, let T′ be the edited tree of the edit set
    for s, read under F, N, and the set U′ of stopped files of T′ that
    holds every file of T′ whose valid path is the valid path of a file
    in U (the file of E is not in U). Let t be the text of the file of E
-   in T (with n characters), let b0 and b1 be the boundaries where r
-   starts and ends in t, and let t′ be the edited text of the valid path
-   of that file for the edit set (with n′ characters); let r′ be the run
-   of t′ that starts at boundary b0 and ends at boundary n′ − (n − b1).
-   In T′ under F, N, and U′:
-   - when a citation entry gives E, the file of E in T′ can be read,
-     there is an accepted input of that file that is a citation (the
-     edited citation) such that the run of the text of the tag line of
-     that citation in t′ (term `documents#origin`) starts and ends at
+   in T (with n characters), and let t′ be the edited text of the valid
+   path of that file for the edit set (with n′ characters). In T′ under
+   F, N, and U′:
+   - when a citation entry gives E, let r be the run in W (starting at
+     boundary b0 and ending at boundary b1 in t), and let r′ be the run
+     of t′ that starts at boundary b0 and ends at boundary
+     n′ − (n − b1): the file of E in T′ can be read, there is an
+     accepted input of that file that is a citation (the edited
+     citation) such that the run of the text of the tag line of that
+     citation in t′ (term `documents#origin`) starts and ends at
      boundaries of r′, every character of r′ at a place outside that run
      is a space or a tab, and no other tag line of any tag text of that
      file has a place of its origin in r′;
-   - when an inline citation gives E, the file of E in T′ can be read,
-     and r′ is the run in t′ (term `documents#origin`) of an accepted
-     input of that file that is an inline citation (the edited inline
-     citation);
-   - when a vector line gives E, the content of the vector file of E in
-     T′ is a test-vector set, and r′ is the form run of an edge that a
-     vector line of that vector file gives (the edited vector line);
-   - the edited citation, edited inline citation, or edited vector line
-     in that file gives an edge E′ of the same kind of edge as E, whose
-     source is the same item as the source of E (or is a site when the
-     source of E is a site), whose cited item is the same item as s,
-     and that is pinned with the current revision of s in T as its label
-     when E is pinned, and is not pinned when E is not pinned;
+   - when an inline citation gives E, let r be the run in W (starting at
+     boundary b0 and ending at boundary b1 in t), and let r′ be the run
+     of t′ that starts at boundary b0 and ends at boundary
+     n′ − (n − b1): the file of E in T′ can be read, and r′ is the run
+     in t′ (term `documents#origin`) of an accepted input of that file
+     that is an inline citation (the edited inline citation);
+   - when a citation entry or an inline citation gives E, the edited
+     citation or edited inline citation in that file gives an edge E′ of
+     the same kind of edge as E, whose source is the same item as the
+     source of E (or is a site when the source of E is a site), whose
+     cited item is the same item as s, and that is pinned with the
+     current revision of s in T as its label when E is pinned, and is
+     not pinned when E is not pinned;
    - when a citation entry gives E, each edge that a citation gives is
      represented by three properties: its kind of edge; its pinned
      label, or that it is not pinned; and its target, which is its
@@ -1025,7 +1033,20 @@ these conditions:
      entry when its cited item is an external item or when the edge has
      no cited item. Taken by these three properties, the set of edges
      that the edited citation gives in T′ is the set of edges that the
-     citation of E gave in T with E replaced by E′.
+     citation of E gave in T with E replaced by E′;
+   - when a vector line gives E, the content of the vector file of E in
+     T′ is a test-vector set, and for each vector line L of the group of
+     the vector line of E in that vector file in T (on line l of t,
+     starting at boundary ls and ending at boundary le, whose edge has
+     form run rL starting at boundary b0 and ending at boundary b1), let
+     l′ be the line of t′ with the same line number as l (starting at
+     boundary ls′ and ending at boundary le′) and let rL′ be the run of
+     t′ that starts at boundary ls′ + (b0 − ls) and ends at boundary
+     le′ − (le − b1): rL′ is the form run of an edge EL′ that a vector
+     line of that vector file gives in T′, and EL′ is of the kind
+     `cites`, its source is the same item as the source of E, its cited
+     item is the same item as s, and EL′ is pinned with the current
+     revision of s in T as its label.
 
 ### 5.4 Findings of the class `cycle`
 
@@ -1598,7 +1619,7 @@ gives no other finding of that class.
     files#{path=v1},
     data-forms#{
         group-form-list=v1, vector-meaning=v1, json-value=v1,
-        vector-line=v1,
+        vector-line=v1, test-vector-set=v1,
     },
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, citation=v1,
@@ -1687,18 +1708,20 @@ elements in order.
   `E′` to that successor is pinned), optional `label` (when `pinned` is
   `true`, the current revision that the edge `E′` pins), `path` (the
   valid path within which every edit of that edit set has its spot), and
-  `run` (a JSON object with `from` and `to`, the start and end
-  boundaries in `text` of the run within which every edit of that edit
-  set has its spot).
+  `runs` (a JSON array of one or more JSON objects, each with `from` and
+  `to`, the start and end boundaries in `text` of each run within which
+  an edit of that edit set may have its spot, in increasing numerical
+  order of `from`).
 
 When `fix-allowed` is `false`, a conforming program gives no fix for the
 `retired` finding. When `fix-allowed` is `true`, a conforming program
 need not give a fix; when that program gives a fix for the `retired`
 finding, that fix has as many edit sets as `edit-sets` has elements, in
-the same order, where each edit set edits only `path` within `run`,
-gives in its edited tree the edge `E′` to that element's `successor`
-(with `label` when `pinned` is `true`, and unpinned when `pinned` is
-`false`), and keeps any other edges of the citation.
+the same order, where each edit set edits only `path` within the runs of
+`runs`, gives in its edited tree the edge `E′` to that element's
+`successor` (for each vector line of the group when `origin-kind` is
+`"vector-line"`, with `label` when `pinned` is `true`, and unpinned when
+`pinned` is `false`), and keeps any other edges of the citation.
 
 ### 6.4 Findings of the class `cycle`
 
