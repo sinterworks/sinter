@@ -47,9 +47,6 @@ let show_lookup = function
   | Ok None -> "none"
   | Error error -> error_name error
 
-(* Loose refs. This section rests on the text of the design on the branch
-   docs/backfill-2 for a name that is no ref name. *)
-
 let loose_tests =
   [
     case "a loose ref is an object id or ref: and a ref name, then a line feed"
@@ -106,9 +103,6 @@ let loose_tests =
             content = "ref: " ^ name ^ "\n" && Ref_name.is_ref_name name
         | Loose_ref.Broken -> true);
   ]
-
-(* The file packed-refs. This section rests on the text of the design on the
-   branch docs/backfill-2: a line in no form gives no ref. *)
 
 let packed_error = function
   | Packed_refs.No_final_line_feed -> "no final line feed"
@@ -243,8 +237,6 @@ let packed_tests =
         match Packed_refs.parse Id.Sha1 content with Ok _ | Error _ -> true);
   ]
 
-(* The refs of a git folder on the system of the process. *)
-
 let write path content =
   let rec parents dir =
     if not (Sys.file_exists dir) then (
@@ -312,8 +304,6 @@ let files_tests =
         Alcotest.(check string)
           "broken" "broken"
           (lookup refs "refs/heads/broken"));
-    (* This test rests on the text of the design on the branch docs/backfill-2:
-       a folder or a file of another kind at the pathname is no loose ref. *)
     case
       "a folder or a file of another kind at the pathname of a ref is no loose \
        ref" (fun () ->
@@ -337,8 +327,6 @@ let files_tests =
         Alcotest.(check string)
           "none" "none"
           (lookup (refs_of root) "refs/heads/team"));
-    (* This test rests on the maintainer's ruling of 2026-11-13 on a symbolic
-       link at the pathname of a ref, as the branch docs/backfill-2 states it. *)
     case "a link at the pathname of a ref names the ref of its text" (fun () ->
         let root = git_folder [ ("refs/heads/main", h1 ^ "\n") ] in
         Unix.symlink "refs/heads/main" (root / "refs" / "heads" / "link");
@@ -370,8 +358,6 @@ let files_tests =
         Alcotest.(check string)
           "main" ("object " ^ h1)
           (lookup (refs_of root) "refs/heads/main"));
-    (* This test rests on the text of the design on the branch docs/backfill-2:
-       the own refs of a working tree. *)
     case "a linked working tree reads its own refs only from its folder"
       (fun () ->
         let root =
@@ -680,8 +666,6 @@ let no_wait_tests =
           (probe root "refs/heads/other"));
   ]
 
-(* The adapter to the refs of part 1. *)
-
 let adapter_tests =
   [
     case "the refs give commits, other objects, names, and broken refs"
@@ -739,9 +723,6 @@ let adapter_tests =
           | Error (Refs.Refs Refs.Reftable_not_read) -> true
           | _ -> false));
   ]
-
-(* The vectors of ref-commits and head-commits, on loose refs and packed refs
-   that the test writes. *)
 
 let set = Vectors.read "changes"
 
@@ -856,8 +837,6 @@ let ref_commit_vectors =
    fails. *)
 let head_commit_vectors =
   [ Vectors.group set ~name:"head-commits" ~rev:"v1" head_commits_on ]
-
-(* Repositories that git writes. *)
 
 let git_lines repo args =
   match Git_fixture.git repo args with

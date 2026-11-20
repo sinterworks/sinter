@@ -50,7 +50,6 @@ let error_name = function
   | Config.Remote_url_without_value -> "remote url without value"
   | Config.Limit_exceeded -> "limit exceeded"
 
-(* A system of files and an environment in memory, which records each read. *)
 type world = {
   files : (string * Config.file) list;
   env : (string * string) list;
@@ -105,8 +104,6 @@ let check_error name expected world =
     | Error error -> error_name error)
 
 let only_config text = { files = [ (config_path, content text) ]; env = [] }
-
-(* The syntax of one file. *)
 
 let parsed text =
   match Config.parse text with
@@ -1091,8 +1088,6 @@ let condition_tests =
                     [remote \"o\"]\n\
                     url\n" );
              ]));
-    (* This test rests on the text of the design on the branch docs/backfill-2:
-       an includeIf with any other condition includes no file. *)
     case "a condition that the page does not give includes no file" (fun () ->
         List.iter
           (fun condition ->
@@ -1232,8 +1227,6 @@ let worktree_tests =
         check_values "values" [ Some "1" ] configuration "s.a");
   ]
 
-(* The upstream of a branch. *)
-
 let branch text =
   match Text.decode text with
   | Ok decoded -> (
@@ -1256,8 +1249,6 @@ let main_branch = "[branch \"main\"]\nremote = up\nmerge = refs/heads/main\n"
 
 let upstream_tests =
   [
-    (* This test rests on the text of the design on the branch docs/backfill-2
-       (ruling F4): a refspec that gives no ref name D maps nothing. *)
     case
       "a refspec that gives no ref name maps nothing, and the next one counts"
       (fun () ->
@@ -1347,9 +1338,6 @@ let upstream_tests =
              ("[branch \"main\"]\nremote = up\nmerge = refs/heads/main\n"
              ^ remote [ "refs/heads/main*:refs/remotes/up/x*" ])
              "main"));
-    (* This test rests on the maintainer's ruling of 2026-11-13 that a refspec
-       maps by full ref names only, and that `*` matches any bytes, `/`
-       included, until the text of the design states it. *)
     case "a refspec maps by full names, and its * takes any bytes" (fun () ->
         Alcotest.(check string)
           "a short source" "no upstream"

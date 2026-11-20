@@ -35,9 +35,6 @@ let check_result name show_ok expected actual =
 let quoted = Printf.sprintf "%S"
 let names list = "[" ^ String.concat "; " (List.map quoted list) ^ "]"
 
-(* A system in memory. Each pathname is a key: a symbolic link leads to the key
-   that it holds, and only the last name of a pathname is a link. Every call is
-   recorded, with its pathname or its descriptor. *)
 module Fake = struct
   type node = File of string | Dir of string list | Link of string | Other
   type descr = int
@@ -194,8 +191,6 @@ let fake_tree =
   ]
 
 let fresh () = Fake.reset fake_tree
-
-(* The reads on a system in memory. *)
 
 let fake_read_tests =
   [
@@ -662,8 +657,6 @@ let link_tests =
           (Reader.link_text "gone");
         Alcotest.(check (list string)) "opens" [] (open_calls ()));
   ]
-
-(* The reads on the system of the process. *)
 
 let ( / ) = Filename.concat
 

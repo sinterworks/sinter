@@ -10,10 +10,6 @@ let property ?(count = 500) ~name ~print generator check =
 
 let case name f = Alcotest.test_case name `Quick f
 
-(* Ref names: the seven rules of the term `ref-name`, read directly. This
-   section rests on the text of the design on the branch docs/backfill-2
-   (the term `ref-name`), until the chunk moves onto that branch. *)
-
 let contains text sub =
   let n = String.length text and m = String.length sub in
   let rec go i = i + m <= n && (String.sub text i m = sub || go (i + 1)) in

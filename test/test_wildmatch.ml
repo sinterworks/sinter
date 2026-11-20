@@ -13,7 +13,6 @@ let case name f = Alcotest.test_case name `Quick f
 let matches ?case_fold pattern pathname =
   Wildmatch.matches (Wildmatch.compile ?case_fold pattern) pathname
 
-(* A direct reading of the rules of the interface, on short inputs. *)
 module Reference = struct
   type member = Byte of char | Range of char * char | Class of (char -> bool)
 
@@ -57,8 +56,6 @@ module Reference = struct
     in
     go start
 
-  (* The bracket expression that starts after the [\[] at [i]; the index after
-     its [\]], or [None] when it has no end or names an unknown class. *)
   let bracket p i =
     let n = String.length p in
     let negated, i =

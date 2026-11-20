@@ -74,8 +74,6 @@ let required name = function
       | None -> Alcotest.failf "no member %s" name)
   | other -> Alcotest.failf "not an object: %s" (Yojson.Basic.to_string other)
 
-(* Object ids. *)
-
 let object_id_tests =
   [
     case "an object id has 20 bytes in sha1 and 32 in sha256" (fun () ->
@@ -146,8 +144,6 @@ let object_id_tests =
         && Id.hash ia >= 0
         && Id.hash ia = Id.hash (id_of_bytes Id.Sha1 a));
   ]
-
-(* Commit objects. *)
 
 type commit_shape = {
   format : Id.format;
@@ -346,14 +342,12 @@ let commit_tests =
           [ Id.Sha1; Id.Sha256 ]);
   ]
 
-(* The vectors of the group message-texts give the message of a commit and its
-   header encoding; the parse of the commit object gives the same result when
-   the message changes. *)
 let message_text_inputs_tests =
   let set = Vectors.read "changes" in
   [
-    case "the commit objects of the vectors message-texts keep their parse"
-      (fun () ->
+    case
+      "the commit objects of the vectors message-texts give the same parse \
+       with another message" (fun () ->
         List.iter
           (fun (vector : Vectors.vector) ->
             let content = Model.commit_object_of_message_input vector.input in
@@ -369,8 +363,6 @@ let message_text_inputs_tests =
               (parse_named Id.Sha1 content = parse_named Id.Sha1 other))
           (Vectors.vectors set "message-texts"));
   ]
-
-(* The file shallow. *)
 
 let shallow_error_name = function
   | Shallow_content.Malformed_line n -> Printf.sprintf "malformed line %d" n
@@ -439,8 +431,6 @@ let shallow_tests =
         match Shallow_content.parse Id.Sha1 content with
         | Ok _ | Error _ -> true);
   ]
-
-(* Git tree objects. *)
 
 type raw = { mode : string; name : string; id : string }
 
@@ -591,8 +581,6 @@ let tree_parse_tests =
           [ Id.Sha1; Id.Sha256 ]);
   ]
 
-(* The entries of the git tree object of a commit. *)
-
 type store = (string * string) list
 
 let reader (store : store) =
@@ -606,9 +594,7 @@ let reader (store : store) =
   in
   (read, fun () -> List.rev !reads)
 
-let tree_id format content =
-  (* The id of a git tree object is a name here, not a hash; any distinct bytes
-     do. *)
+let stand_in_tree_id format content =
   let digest = Digest.string (format_name format ^ content) in
   hex_of (String.sub (digest ^ digest ^ digest) 0 (Id.length format))
 
@@ -617,7 +603,6 @@ let blob format name =
     (Digest.string name ^ Digest.string name ^ Digest.string name)
     0 (Id.length format)
 
-(* A tree of the model, written as git tree objects into a store. *)
 let rec store_of format (entries : Model.entry list) : string * store =
   let parts, stores =
     List.split
@@ -638,7 +623,7 @@ let rec store_of format (entries : Model.entry list) : string * store =
          entries)
   in
   let content = serialize parts in
-  let id = tree_id format content in
+  let id = stand_in_tree_id format content in
   (id, (id, content) :: List.concat stores)
 
 let build_error_name = function
@@ -771,7 +756,7 @@ let entries_tests =
         let sub =
           serialize [ { mode = "100755"; name = "x"; id = blob format "x" } ]
         in
-        let sub_id = tree_id format sub in
+        let sub_id = stand_in_tree_id format sub in
         let root =
           serialize
             [
@@ -782,7 +767,7 @@ let entries_tests =
               { mode = "100644"; name = "z"; id = blob format "z2" };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let entries, _ =
           entries_or_fail format [ (root_id, root); (sub_id, sub) ] root_id
         in
@@ -808,7 +793,7 @@ let entries_tests =
         let sub =
           serialize [ { mode = "100644"; name = "x"; id = blob format "x" } ]
         in
-        let sub_id = tree_id format sub in
+        let sub_id = stand_in_tree_id format sub in
         let mid =
           serialize
             [
@@ -816,7 +801,7 @@ let entries_tests =
               { mode = "40000"; name = "q"; id = bytes_of_hex sub_id };
             ]
         in
-        let mid_id = tree_id format mid in
+        let mid_id = stand_in_tree_id format mid in
         let root =
           serialize
             [
@@ -825,7 +810,7 @@ let entries_tests =
               { mode = "40000"; name = "c"; id = bytes_of_hex sub_id };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let entries, reads =
           entries_or_fail format
             [ (root_id, root); (mid_id, mid); (sub_id, sub) ]
@@ -844,11 +829,11 @@ let entries_tests =
         let x =
           serialize [ { mode = "100644"; name = "f"; id = blob format "f" } ]
         in
-        let x_id = tree_id format x in
+        let x_id = stand_in_tree_id format x in
         let other =
           serialize [ { mode = "100644"; name = "g"; id = blob format "g" } ]
         in
-        let other_id = tree_id format other in
+        let other_id = stand_in_tree_id format other in
         let a =
           serialize
             [
@@ -856,7 +841,7 @@ let entries_tests =
               { mode = "40000"; name = "y"; id = bytes_of_hex other_id };
             ]
         in
-        let a_id = tree_id format a in
+        let a_id = stand_in_tree_id format a in
         let root =
           serialize
             [
@@ -865,7 +850,7 @@ let entries_tests =
               { mode = "40000"; name = "a/x"; id = bytes_of_hex other_id };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let store =
           [ (root_id, root); (a_id, a); (x_id, x); (other_id, other) ]
         in
@@ -898,7 +883,7 @@ let entries_tests =
                (fun name -> { mode = "100644"; name; id = blob format name })
                [ "x"; "y"; "z" ])
         in
-        let sub_id = tree_id format sub in
+        let sub_id = stand_in_tree_id format sub in
         let root =
           serialize
             [
@@ -906,7 +891,7 @@ let entries_tests =
               { mode = "40000"; name = "b"; id = bytes_of_hex sub_id };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let store = [ (root_id, root); (sub_id, sub) ] in
         let run ?path max_entries =
           let read, _ = reader store in
@@ -941,7 +926,7 @@ let entries_tests =
               { mode = "100644"; name = "a"; id = blob format "a" };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let some, reads =
           entries_or_fail ~path:(path_of "a") format [ (root_id, root) ] root_id
         in
@@ -963,7 +948,7 @@ let entries_tests =
               };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let read, _ = reader [ (root_id, root) ] in
         Alcotest.(check string)
           "first missing" ("unread " ^ missing)
@@ -985,7 +970,7 @@ let entries_tests =
     case "a tree whose content is malformed gives its id" (fun () ->
         let format = Id.Sha1 in
         let bad = "100644 x" in
-        let bad_id = tree_id format bad in
+        let bad_id = stand_in_tree_id format bad in
         let root =
           serialize
             [
@@ -993,7 +978,7 @@ let entries_tests =
               { mode = "40000"; name = "a"; id = bytes_of_hex bad_id };
             ]
         in
-        let root_id = tree_id format root in
+        let root_id = stand_in_tree_id format root in
         let read, _ = reader [ (root_id, root); (bad_id, bad) ] in
         Alcotest.(check string)
           "malformed"
@@ -1090,8 +1075,6 @@ let entries_tests =
         in
         Alcotest.(check bool) "found" true found);
   ]
-
-(* The proposed vectors. *)
 
 (* @verifies changes#give-commit-parents=v1
    The proposed vectors of `parent-lines` give the bytes of commit objects and
