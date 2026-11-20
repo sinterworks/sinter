@@ -265,12 +265,12 @@ not account for it (term `accounted-line`); a line that a repair of the
 shared clone replaced with a void is accounted for, so it is not
 provisional.
 
-A clone pushes its ledger entries to its shared clone: to the git
+A clone pushes its ledger entries to its shared clone: to each git
 repository that a push to that remote reaches, which is the one from
 which a fetch takes git objects unless the git configuration gives that
 remote another address for a push. The requirement
 `push-only-extensions` gives the commit that a push sends and what a
-program checks before it. So when the git repository that a push reaches
+program checks before it. So when a git repository that a push reaches
 pulls from no shared clone of its own, each ledger entry of its stored
 ledger keeps its `seq`, and that ledger changes only at its end, other
 than in a repair. A shared clone that pulls from a shared clone of its
@@ -1183,13 +1183,13 @@ a need, so the forms of each group give no need names.
     ontology#{ledger-entry=v1},
     changes#{commit=v1, ref-commit=v1, commit-file=v1},
     data-forms#{
-        json-value=v1, canonical-line=v2, line-object=v1,
+        json-value=v1, canonical-line=v2, line-object=v1, hex-text=v1,
         vector-line=v2, group-form-list=v2, vector-meaning=v2,
     },
     text#{
         conforming-program=v1, input=v1, result=v1, text=v1,
-        character=v1, byte=v1, byte-sequence=v1, utf-8-encoding=v1,
-        hex-digit=v1, whole-number=v1, sequence=v1, code-span=v1,
+        character=v1, byte-sequence=v1, utf-8-encoding=v1, sequence=v1,
+        code-span=v1,
     },
     #{
         give-stored-ledgers=v2, validate-ledgers=v2, ledger-ref=v1,
@@ -1220,9 +1220,9 @@ it.
   newer, the empty JSON object, `{}`.
 
 When a conforming program gives a result for whether the ledger is
-valid, it gives the result that `result` holds, and no other result.
-When it gives the ledger entries of the stored ledger, it gives the
-ledger entries that `ledger` names, in their order, and no other
+valid, it gives the result that `result` holds, once, and no other
+result. When it gives the ledger entries of the stored ledger, it gives
+the ledger entries that `ledger` names, in their order, and no other
 ledger entry, and it gives no ledger entry when `values` is `{}`.
 
 Inside the members `input`, `result`, and `values`, each JSON value that
@@ -1235,10 +1235,9 @@ sequence has this form:
 - A byte sequence, such as the name of an entry of a git tree object or
   the content of a blob, is a JSON string when it is the UTF-8 encoding
   of a text: the JSON string of that text. Otherwise, it is a JSON
-  object with one member, `bytes`, whose value is a JSON string of hex
-  digits: for each byte, in order, the hex digit of the whole-number
-  quotient of the byte divided by 16, then the hex digit of the
-  remainder.
+  object with one member, `bytes`, whose value is the
+  [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
+  JSON string.
 - A git tree object is a JSON array with one JSON object for each entry
   that the git tree object lists, in the order in which it lists them.
   The JSON object of an entry has the member `name`, the name of the
@@ -1304,8 +1303,8 @@ sequence has the form that the schema `ledger-vector` gives.
   empty JSON object, `{}`.
 
 When a conforming program gives a result for whether the history is
-intact, it gives the result that `result` holds, and no other result. It
-gives neither result when `values` is `{}`.
+intact, it gives the result that `result` holds, once, and no other
+result. It gives neither result when `values` is `{}`.
 
 ```
 {"form":"#history-vector=v1","group":"histories","input":{"commit":"b","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":[]},"b":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a428b9073a24ea938e73df882b1f7c3c","kind":"task","seq":2,"v":2}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":["a"]}}},"note":"the ledger is newer, so a program gives no result for its history","values":{}}
