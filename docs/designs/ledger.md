@@ -2,12 +2,12 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # The ledger
-@design ledger=v2
-@cites text=v2
-@cites data-forms=v2
-@cites ontology=v2
-@cites changes=v2
-@cites identifiers=v2
+@design ledger=v1
+@cites text=v1
+@cites data-forms=v1
+@cites ontology=v1
+@cites changes=v1
+@cites identifiers=v1
 @cites gitdoc/git-config
 @cites rfc/3339
 @cites rfc/5234
@@ -78,36 +78,36 @@ text.
 | [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a write to a ledger, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void, a ledger entry of the kind `void`, where each of them was |
 | [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; the execution of a conforming program that continuous integration starts at each push of commits to the default branch, as git means a push |
 | [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
-| [parameter](sinter:ontology#parameter=v2) | a word whose value a design leaves open; configuration gives its binding |
+| [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
 | clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
 | [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which its git configuration gives a value of the setting `remote.<name>.url`; its addresses for a fetch and for a push are those that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after their rewrite, as the term `changes#remote-transfer` gives them |
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
-| [reach](sinter:changes#ancestry=v2) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
+| [reach](sinter:changes#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
 | [ledger ref](sinter:#ledger-ref=v1), [ledger commit](sinter:#ledger-ref=v1) | the ref `refs/sinter/ledger` of a git repository; the commit of that ref |
-| [chunk](sinter:#chunk=v2), [chunk path](sinter:#chunk-path=v1) | a regular-file entry of a git tree object at a byte path of the form `entries/<hh>/<id>.jsonl`, in which `<hh>` is the two hex digits right after the `e-` of `<id>`; it holds lines of ledger entries |
-| [line of a chunk](sinter:#chunk=v2), [object of a line](sinter:#chunk=v2) | a part of the content of a chunk that ends with the byte 0x0A, or the part after the last 0x0A; the line object whose canonical line the line of a chunk is |
-| [canonical line](sinter:data-forms#canonical-line=v2), [line object](sinter:data-forms#line-object=v1) | the canonical byte sequence of a line object, then the byte 0x0A; an object in which the value of each member is a string, an integer, a boolean, an array of these, or an array of objects whose members hold these |
+| [chunk](sinter:#chunk=v1), [chunk path](sinter:#chunk-path=v1) | a regular-file entry of a git tree object at a byte path of the form `entries/<hh>/<id>.jsonl`, in which `<hh>` is the two hex digits right after the `e-` of `<id>`; it holds lines of ledger entries |
+| [line of a chunk](sinter:#chunk=v1), [object of a line](sinter:#chunk=v1) | a part of the content of a chunk that ends with the byte 0x0A, or the part after the last 0x0A; the line object whose canonical line the line of a chunk is |
+| [canonical line](sinter:data-forms#canonical-line=v1), [line object](sinter:data-forms#line-object=v1) | the canonical byte sequence of a line object, then the byte 0x0A; an object in which the value of each member is a string, an integer, a boolean, an array of these, or an array of objects whose members hold these |
 | [member](sinter:data-forms#json-value=v1) | a key and a value of an object, such as the member `seq` with the value 7 |
 | [entry id](sinter:#entry-id=v1) | `e-` and the first 32 hex digits of the SHA-256 hash of the canonical byte sequence of an object without its member `id` |
-| [field](sinter:#entry-field=v2), [common field](sinter:#entry-field=v2), [field of a kind](sinter:#entry-field=v2) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
+| [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
 | [writer that a ledger entry records](sinter:#entry-writer=v1) | the agent that its `agent` names, or else, when it has `by`, the person or the job that its `by` names; with neither, it records no writer |
 | [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
-| [ledger objects](sinter:#ledger-object=v2), [history objects](sinter:#ledger-object=v2) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches |
+| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when it is a commit, its git tree objects and the blobs of its chunks; and these git objects for each commit that the ledger commit reaches |
 | [valid ledger tree](sinter:#valid-ledger-tree=v1) | a git tree object that is not newer and that holds chunks of canonical lines, and nothing else, in the form that the schema gives |
-| [valid](sinter:#ledger-validity=v2), [broken](sinter:#ledger-validity=v2), [newer](sinter:#ledger-validity=v2) | the three conditions of the ledger of a git repository: its ledger ref does not exist, or the git tree object of its ledger commit is a valid ledger tree; it is neither newer nor valid; the git tree object of its ledger commit holds a newer line |
-| [stored ledger](sinter:#stored-ledger=v2) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
+| [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three conditions of the ledger of a git repository: its ledger ref does not exist, or the git tree object of its ledger commit is a valid ledger tree; it is neither newer nor valid; the git tree object of its ledger commit holds a newer line |
+| [stored ledger](sinter:#stored-ledger=v1) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
 | [extend](sinter:#ledger-extension=v1) | a commit extends a commit c when it is c, or when the chain of its single parents leads to c and each commit of the chain before c holds each line of its parent |
-| [intact](sinter:#intact-history=v2) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
+| [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that it reaches is a valid ledger tree |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
-| [shared clone](sinter:#shared-clone=v2), [shared ledger](sinter:#shared-clone=v2) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the address of that remote from which a fetch from that remote takes git objects; in a push of ledger entries, each git repository at an address of that remote for a push instead; the shared ledger is the stored ledger of the shared clone from which a fetch takes git objects |
+| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the address of that remote from which a fetch from that remote takes git objects; in a push of ledger entries, each git repository at an address of that remote for a push instead; the shared ledger is the stored ledger of the shared clone from which a fetch takes git objects |
 | [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when it holds that line, or a void whose `dropped` is the `id` of that line |
 | provisional | a line of the ledger commit of a clone is provisional while the ledger commit of its shared clone does not account for it, such as a line that the clone appended and has not pushed |
 | [pull of ledger entries](sinter:ontology#ledger=v1), [push of ledger entries](sinter:ontology#ledger=v1) | a pull of ledger entries is a write that a clone makes to its own ledger: it takes the ledger entries, voids included, of another clone and puts them first; a push of ledger entries puts ledger entries of a clone after the ledger entries of another clone; neither is appending |
-| [pull commit](sinter:#pull-commit=v2) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`; it is s when no line stays, as in a pull over no commit, when the clone has no ledger commit |
-| [agent marker](sinter:#agent-marker=v2) | an environment variable whose name the parameter `agent-markers` gives; the input of an execution says that an agent runs the execution when a process of that execution has one |
-| [job marker](sinter:#job-marker=v2) | an environment variable whose name the parameter `job-markers` gives; the input of an execution says that the execution is the job when a process of that execution has one |
+| [pull commit](sinter:#pull-commit=v1) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`; it is s when no line stays, as in a pull over no commit, when the clone has no ledger commit |
+| [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives; the input of an execution says that an agent runs the execution when a process of that execution has one |
+| [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives; the input of an execution says that the execution is the job when a process of that execution has one |
 | environment | the environment variables of a process |
 | [external id](sinter:identifiers#external-id=v1) | a namespace name, `/`, and an id, such as `gh/42`, which names an external item |
 | tracker | a service that holds external items, such as the issues of the host of a project |
@@ -361,7 +361,7 @@ took from a tracker, such as the title or the state of an issue
 ### 3.1 `agent-markers`
 
 @schema agent-markers=v1
-@cites {ontology#{parameter=v2}, text#{text=v1, code-span=v1}}
+@cites {ontology#{parameter=v1}, text#{text=v1, code-span=v1}}
 
 The parameter `agent-markers` gives the names of the agent markers. A
 binding of it is a finite set of texts.
@@ -369,7 +369,7 @@ binding of it is a finite set of texts.
 ### 3.2 `job-markers`
 
 @schema job-markers=v1
-@cites {ontology#{parameter=v2}, text#{text=v1, code-span=v1}}
+@cites {ontology#{parameter=v1}, text#{text=v1, code-span=v1}}
 
 The parameter `job-markers` gives the names of the job markers. A
 binding of it is a finite set of texts.
@@ -378,7 +378,7 @@ binding of it is a finite set of texts.
 
 @schema ledger-remote=v1
 @cites {
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     changes#{remote-transfer=v1},
     text#{text=v1, code-span=v1},
 }
@@ -415,10 +415,10 @@ chunk-path  = %s"entries/" 2hex-digit "/" %s"e-" 32hex-digit %s".jsonl"
 
 ### 4.3 Chunks and their lines
 
-@term chunk=v2
+@term chunk=v1
 @cites {
     changes#{commit-file=v1},
-    data-forms#{line-object=v1, canonical-line=v2},
+    data-forms#{line-object=v1, canonical-line=v1},
     text#{byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1},
     #{chunk-path=v1},
 }
@@ -453,14 +453,14 @@ member of that object other than the member `id`, and no other member.
 
 ### 4.5 Fields
 
-@schema entry-field=v2
+@schema entry-field=v1
 @cites {
     rfc/3339,
     ontology#{ledger-entry=v1, person=v1, agent=v1, job=v1, repair=v1},
     changes#{branch-name=v1},
     data-forms#{json-value=v1},
     text#{text=v1, code-span=v1},
-    #{entry-id=v1, chunk=v2, ledger-ref=v1},
+    #{entry-id=v1, chunk=v1, ledger-ref=v1},
 }
 
 A field of a ledger entry is a member of the object of its line that a
@@ -496,7 +496,7 @@ repair removed it.
     ontology#{ledger-entry=v1, person=v1, agent=v1, job=v1},
     data-forms#{json-value=v1},
     text#{code-span=v1},
-    #{entry-field=v2},
+    #{entry-field=v1},
 }
 
 The writer that a ledger entry records is the agent that its `agent`
@@ -510,7 +510,7 @@ whose object has neither member records no writer.
 @cites {
     data-forms#{json-value=v1, json-value-of-a-byte-sequence=v1},
     text#{code-span=v1, whole-number=v1},
-    #{chunk=v2},
+    #{chunk=v1},
 }
 
 A newer line is a line of a chunk whose JSON value is an object that has
@@ -518,11 +518,11 @@ the member `v` with an integer greater than 1 as its value.
 
 ### 4.8 Ledger objects
 
-@term ledger-object=v2
+@term ledger-object=v1
 @cites {
-    changes#{commit=v1, ref-commit=v1, commit-file=v1, ancestry=v2},
+    changes#{commit=v1, ref-commit=v1, commit-file=v1, ancestry=v1},
     text#{code-span=v1},
-    #{ledger-ref=v1, chunk=v2},
+    #{ledger-ref=v1, chunk=v1},
 }
 
 The ledger objects of a commit are the commit, its git tree object, each
@@ -544,9 +544,9 @@ object is not a blob.
 @schema valid-ledger-tree=v1
 @cites {
     changes#{commit-file=v1},
-    data-forms#{canonical-line=v2, line-object=v1, json-value=v1},
+    data-forms#{canonical-line=v1, line-object=v1, json-value=v1},
     text#{whole-number=v1, character=v1, utf-8-encoding=v1, code-span=v1},
-    #{chunk-path=v1, chunk=v2, entry-id=v1, newer-line=v1},
+    #{chunk-path=v1, chunk=v1, entry-id=v1, newer-line=v1},
 }
 
 A git tree object is newer when one of its lines is a newer line. A git
@@ -574,10 +574,10 @@ when, each of these is true:
 
 ### 4.10 Valid, broken, and newer ledgers
 
-@atom ledger-validity=v2
+@atom ledger-validity=v1
 @cites {
     changes#{commit=v1, ref-commit=v1},
-    #{ledger-ref=v1, ledger-object=v2, valid-ledger-tree=v1},
+    #{ledger-ref=v1, ledger-object=v1, valid-ledger-tree=v1},
 }
 
 The ledger of a git repository that holds its ledger objects is newer,
@@ -593,13 +593,13 @@ valid, or broken:
 
 ### 4.11 Stored ledgers
 
-@term stored-ledger=v2
+@term stored-ledger=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, state-input=v1},
     text#{code-span=v1},
     #{
-        ledger-ref=v1, chunk=v2, valid-ledger-tree=v1,
-        ledger-validity=v2,
+        ledger-ref=v1, chunk=v1, valid-ledger-tree=v1,
+        ledger-validity=v1,
     },
 }
 
@@ -617,7 +617,7 @@ stored ledger.
 ### 4.12 Extensions
 
 @term ledger-extension=v1
-@cites {changes#{commit=v1}, #{chunk=v2}}
+@cites {changes#{commit=v1}, #{chunk=v1}}
 
 Extension is the smallest relation between commits in which each commit
 d extends d, and a commit d extends a commit c when d has exactly one
@@ -626,9 +626,9 @@ that parent is a line of the git tree object of d.
 
 ### 4.13 Intact histories
 
-@atom intact-history=v2
+@atom intact-history=v1
 @cites {
-    changes#{commit=v1, ancestry=v2},
+    changes#{commit=v1, ancestry=v1},
     #{ledger-ref=v1, valid-ledger-tree=v1, ledger-extension=v1},
 }
 
@@ -652,13 +652,13 @@ are accepted at no point.
 
 ### 4.15 Shared clones
 
-@term shared-clone=v2
+@term shared-clone=v1
 @cites {
     gitdoc/git-config,
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     changes#{git-configuration=v1, remote-transfer=v1},
     text#{text=v1, code-span=v1},
-    #{ledger-remote=v1, stored-ledger=v2},
+    #{ledger-remote=v1, stored-ledger=v1},
 }
 
 For the text r of the binding of the parameter `ledger-remote`, the
@@ -678,7 +678,7 @@ that remote takes git objects.
 @cites {
     data-forms#{json-value-of-a-byte-sequence=v1},
     text#{code-span=v1},
-    #{chunk=v2},
+    #{chunk=v1},
 }
 
 A git tree object accounts for a line of a chunk when, and only when,
@@ -688,14 +688,14 @@ value of the member `id` of the JSON value of that line.
 
 ### 4.17 Pull commits
 
-@term pull-commit=v2
+@term pull-commit=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v2},
-    data-forms#{canonical-line=v2},
+    changes#{commit=v1, ancestry=v1},
+    data-forms#{canonical-line=v1},
     text#{whole-number=v1, code-span=v1},
     #{
-        chunk=v2, entry-id=v1, valid-ledger-tree=v1,
+        chunk=v1, entry-id=v1, valid-ledger-tree=v1,
         ledger-extension=v1, accepted-entry=v1, accounted-line=v1,
     },
 }
@@ -731,9 +731,9 @@ stays and d is s, or at least one line stays and each of these is true:
 
 ### 4.18 Agent markers
 
-@term agent-marker=v2
+@term agent-marker=v1
 @cites {
-    ontology#{parameter=v2, agent=v1},
+    ontology#{parameter=v1, agent=v1},
     text#{text=v1, input=v1, code-span=v1},
     #{agent-markers=v1},
 }
@@ -746,9 +746,9 @@ environment of a process of that execution holds an agent marker.
 
 ### 4.19 Job markers
 
-@term job-marker=v2
+@term job-marker=v1
 @cites {
-    ontology#{parameter=v2, job=v1},
+    ontology#{parameter=v1, job=v1},
     text#{text=v1, input=v1, code-span=v1},
     #{job-markers=v1},
 }
@@ -763,11 +763,11 @@ environment of a process of that execution holds a job marker.
 
 ### 5.1 The ledger entries of a stored ledger
 
-@req give-stored-ledgers=v2
+@req give-stored-ledgers=v1
 @cites {
     ontology#{ledger-entry=v1},
     text#{conforming-program=v1},
-    #{stored-ledger=v2, ledger-validity=v2, ledger-object=v2},
+    #{stored-ledger=v1, ledger-validity=v1, ledger-object=v1},
 }
 
 When it gives the ledger entries of the stored ledger of a git
@@ -778,10 +778,10 @@ and its ledger is valid, and no ledger entry otherwise.
 
 ### 5.2 The validation of ledgers
 
-@req validate-ledgers=v2
+@req validate-ledgers=v1
 @cites {
     text#{conforming-program=v1, result=v1},
-    #{ledger-validity=v2, ledger-object=v2},
+    #{ledger-validity=v1, ledger-object=v1},
 }
 
 When it gives a result for whether the ledger of a git repository that
@@ -793,10 +793,10 @@ when the git repository does not hold its ledger objects.
 
 ### 5.3 The validation of histories
 
-@req validate-histories=v2
+@req validate-histories=v1
 @cites {
     text#{conforming-program=v1, result=v1},
-    #{intact-history=v2, ledger-validity=v2, ledger-object=v2},
+    #{intact-history=v1, ledger-validity=v1, ledger-object=v1},
 }
 
 When it gives a result for whether the history of the ledger of a git
@@ -809,11 +809,11 @@ repository does not hold its history objects.
 
 ### 5.4 States only from valid ledgers
 
-@req give-states-only-from-valid-ledgers=v2
+@req give-states-only-from-valid-ledgers=v1
 @cites {
     ontology#{state=v1, ledger=v1},
     text#{conforming-program=v1},
-    #{ledger-validity=v2, ledger-object=v2, stored-ledger=v2},
+    #{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
 }
 
 A conforming program must give no state at a point of the ledger of a
@@ -823,11 +823,11 @@ hold its ledger objects.
 
 ### 5.5 Members that change no state
 
-@req ignore-unknown-members=v2
+@req ignore-unknown-members=v1
 @cites {
     ontology#{state=v1, state-input=v1, ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1, input=v1, code-span=v1},
-    #{entry-field=v2, stored-ledger=v2},
+    #{entry-field=v1, stored-ledger=v1},
 }
 
 A conforming program must give the same states at the same points of the
@@ -840,11 +840,11 @@ runs.
 
 ### 5.6 Appends only to valid ledgers
 
-@req append-only-to-valid-ledgers=v2
+@req append-only-to-valid-ledgers=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1},
-    #{ledger-validity=v2, ledger-object=v2},
+    #{ledger-validity=v1, ledger-object=v1},
 }
 
 A conforming program must append ledger entries only to the ledger of a
@@ -852,13 +852,13 @@ git repository that holds its ledger objects and whose ledger is valid.
 
 ### 5.7 Appends at the end of the ledger
 
-@req append-entries-at-end=v2
+@req append-entries-at-end=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v2},
+    changes#{commit=v1, ancestry=v1},
     text#{conforming-program=v1, whole-number=v1, code-span=v1},
     #{
-        ledger-ref=v1, chunk=v2, valid-ledger-tree=v1,
+        ledger-ref=v1, chunk=v1, valid-ledger-tree=v1,
         ledger-extension=v1,
     },
 }
@@ -895,11 +895,11 @@ point of that ledger at which that ledger entry is accepted.
 
 ### 5.9 The common fields of new ledger entries
 
-@req write-entry-fields=v2
+@req write-entry-fields=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
     text#{conforming-program=v1, code-span=v1},
-    #{entry-field=v2},
+    #{entry-field=v1},
 }
 
 A conforming program must append, and put in a repair, only ledger
@@ -909,11 +909,11 @@ value of the form of that common field.
 
 ### 5.10 The agents that write ledger entries
 
-@req record-agent-writers=v2
+@req record-agent-writers=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1, input=v1, code-span=v1},
-    #{entry-field=v2, agent-marker=v2},
+    #{entry-field=v1, agent-marker=v1},
 }
 
 In an execution whose input says that an agent runs the execution, a
@@ -926,7 +926,7 @@ the member `agent`.
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v2},
+    #{ledger-ref=v1, shared-clone=v1},
 }
 
 A conforming program must change the ledger ref of a git repository only
@@ -937,14 +937,14 @@ clone it is.
 
 ### 5.12 Pushes to the shared clone
 
-@req push-only-extensions=v2
+@req push-only-extensions=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v2},
+    changes#{commit=v1, ancestry=v1},
     text#{conforming-program=v1},
     #{
-        ledger-ref=v1, chunk=v2, shared-clone=v2, valid-ledger-tree=v1,
-        stored-ledger=v2, ledger-extension=v1, intact-history=v2,
+        ledger-ref=v1, chunk=v1, shared-clone=v1, valid-ledger-tree=v1,
+        stored-ledger=v1, ledger-extension=v1, intact-history=v1,
         accepted-entry=v1,
     },
 }
@@ -970,7 +970,7 @@ each of these is true:
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v2, pull-commit=v2},
+    #{ledger-ref=v1, shared-clone=v1, pull-commit=v1},
 }
 
 When a conforming program pulls into a git repository A the ledger
@@ -982,13 +982,13 @@ the ledger ref of A.
 
 ### 5.14 The pulls that a program refuses
 
-@req refuse-unsafe-pulls=v2
+@req refuse-unsafe-pulls=v1
 @cites {
     ontology#{ledger=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
-        ledger-ref=v1, chunk=v2, shared-clone=v2, valid-ledger-tree=v1,
-        ledger-validity=v2, accounted-line=v1,
+        ledger-ref=v1, chunk=v1, shared-clone=v1, valid-ledger-tree=v1,
+        ledger-validity=v1, accounted-line=v1,
     },
 }
 
@@ -1011,7 +1011,7 @@ of these is true:
 @cites {
     ontology#{ledger=v1},
     text#{conforming-program=v1, code-span=v1},
-    #{ledger-ref=v1, shared-clone=v2, chunk=v2, pull-commit=v2},
+    #{ledger-ref=v1, shared-clone=v1, chunk=v1, pull-commit=v1},
 }
 
 When a conforming program pulls into a git repository A the ledger
@@ -1028,7 +1028,7 @@ that leaves.
     ontology#{ledger=v1, ledger-entry=v1},
     changes#{run-no-configured-programs=v1},
     text#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v2},
+    #{ledger-ref=v1, shared-clone=v1},
 }
 
 When it pulls into a git repository the ledger entries of its shared
@@ -1040,25 +1040,25 @@ it changes that ledger ref in another way than by a push.
 
 ### 5.17 No repair of a newer ledger
 
-@req repair-no-newer-ledgers=v2
+@req repair-no-newer-ledgers=v1
 @cites {
     ontology#{repair=v1},
     text#{conforming-program=v1},
-    #{ledger-validity=v2},
+    #{ledger-validity=v1},
 }
 
 A conforming program must make no repair of a ledger that is newer.
 
 ### 5.18 Voids in place of removed lines
 
-@req repair-ledgers-with-voids=v2
+@req repair-ledgers-with-voids=v1
 @cites {
     ontology#{repair=v1},
     data-forms#{json-value-of-a-byte-sequence=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
-        ledger-ref=v1, chunk=v2, entry-field=v2, valid-ledger-tree=v1,
-        intact-history=v2,
+        ledger-ref=v1, chunk=v1, entry-field=v1, valid-ledger-tree=v1,
+        intact-history=v1,
     },
 }
 
@@ -1096,7 +1096,7 @@ others.
 @cites {
     ontology#{definition-entry=v1, ledger=v1},
     text#{conforming-program=v1, input=v1},
-    #{agent-marker=v2},
+    #{agent-marker=v1},
 }
 
 In an execution whose input says that an agent runs the execution, a
@@ -1109,7 +1109,7 @@ definition entry.
 @cites {
     ontology#{repair=v1},
     text#{conforming-program=v1, input=v1},
-    #{agent-marker=v2},
+    #{agent-marker=v1},
 }
 
 In an execution whose input says that an agent runs the execution, a
@@ -1121,7 +1121,7 @@ conforming program must make no repair.
 @cites {
     ontology#{job=v1, job-record=v1, ledger=v1},
     text#{conforming-program=v1, input=v1, code-span=v1},
-    #{job-marker=v2},
+    #{job-marker=v1},
 }
 
 A conforming program must append a ledger entry of the kind `delivered`
@@ -1170,7 +1170,7 @@ valid, or makes the change that it names, such as a pull. So a vector
 holds a program only to what the program gives or makes for the input.
 
 The file is a test-vector set, in the form that the specification
-[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v2) gives. By
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives. By
 the term `data-forms#vector-meaning`, the object of each vector line of
 the file states one vector of this design. No group of this design uses
 a need, so the forms of each group give no need names.
@@ -1183,8 +1183,8 @@ a need, so the forms of each group give no need names.
     ontology#{ledger-entry=v1},
     changes#{commit=v1, ref-commit=v1, commit-file=v1},
     data-forms#{
-        json-value=v1, canonical-line=v2, line-object=v1, hex-text=v1,
-        vector-line=v2, group-form-list=v2, vector-meaning=v2,
+        json-value=v1, canonical-line=v1, line-object=v1, hex-text=v1,
+        vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
     text#{
         conforming-program=v1, input=v1, result=v1, text=v1,
@@ -1192,9 +1192,9 @@ a need, so the forms of each group give no need names.
         code-span=v1,
     },
     #{
-        give-stored-ledgers=v2, validate-ledgers=v2, ledger-ref=v1,
-        ledger-object=v2, ledger-validity=v2, stored-ledger=v2,
-        entry-id=v1, chunk=v2,
+        give-stored-ledgers=v1, validate-ledgers=v1, ledger-ref=v1,
+        ledger-object=v1, ledger-validity=v1, stored-ledger=v1,
+        entry-id=v1, chunk=v1,
     },
 }
 
@@ -1265,18 +1265,18 @@ sequence has this form:
 @schema history-vector=v1
 @cites {
     rfc/8259,
-    changes#{commit=v1, commit-file=v1, ancestry=v2},
+    changes#{commit=v1, commit-file=v1, ancestry=v1},
     data-forms#{
-        json-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     text#{
         conforming-program=v1, input=v1, result=v1, text=v1,
         byte-sequence=v1, sequence=v1, code-span=v1,
     },
     #{
-        ledger-vector=v1, validate-histories=v2, ledger-ref=v1,
-        ledger-object=v2, ledger-validity=v2, intact-history=v2,
+        ledger-vector=v1, validate-histories=v1, ledger-ref=v1,
+        ledger-object=v1, ledger-validity=v1, intact-history=v1,
     },
 }
 
@@ -1318,8 +1318,8 @@ result. It gives neither result when `values` is `{}`.
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
     changes#{commit=v1, commit-file=v1},
     data-forms#{
-        json-value=v1, canonical-line=v2, line-object=v1,
-        vector-line=v2, group-form-list=v2, vector-meaning=v2,
+        json-value=v1, canonical-line=v1, line-object=v1,
+        vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
     text#{
         conforming-program=v1, input=v1, text=v1, sequence=v1,
@@ -1327,10 +1327,10 @@ result. It gives neither result when `values` is `{}`.
     },
     #{
         ledger-vector=v1, pull-shared-entries=v1,
-        refuse-unsafe-pulls=v2, report-leaving-entries=v1,
-        ledger-ref=v1, ledger-object=v2, shared-clone=v2, chunk=v2,
-        newer-line=v1, valid-ledger-tree=v1, ledger-validity=v2,
-        accepted-entry=v1, pull-commit=v2,
+        refuse-unsafe-pulls=v1, report-leaving-entries=v1,
+        ledger-ref=v1, ledger-object=v1, shared-clone=v1, chunk=v1,
+        newer-line=v1, valid-ledger-tree=v1, ledger-validity=v1,
+        accepted-entry=v1, pull-commit=v1,
     },
 }
 
