@@ -2,15 +2,15 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Revisions
-@design revisions=v2
-@cites text=v2
-@cites identifiers=v2
-@cites files=v2
-@cites data-forms=v2
-@cites ontology=v2
-@cites changes=v2
-@cites findings=v2
-@cites documents=v2
+@design revisions=v1
+@cites text=v1
+@cites identifiers=v1
+@cites files=v1
+@cites data-forms=v1
+@cites ontology=v1
+@cites changes=v1
+@cites findings=v1
+@cites documents=v1
 @cites rfc/8259
 Specifies the base items of declared items, the finding classes `needs-revision` and `suspect`, the base tree of the change of a commit, and requirements for conforming programs that give the findings of these classes and whether the change of a commit has a base.
 
@@ -58,19 +58,19 @@ numbers.
 |---|---|
 | [tree](sinter:ontology#tree=v1) | a set of files, each a valid path with a content, such as the tree of a commit or the tree of a working tree |
 | base tree | the tree with which a conforming program compares a tree, such as the tree of the base of the change of a commit |
-| [label](sinter:ontology#revised-content=v2) | for a declared item, the text that `label` of Identifiers matches in its declaration, such as `v2` in `@req size=v2` |
-| [label of an edge](sinter:ontology#pinned-edge=v2) | for a pinned edge, the revision of its citation entry or inline citation, such as `v2` in `@cites billing#size=v2`, or the schema label of the form of its vector line, such as `v1` in `"form":"#g-vector=v1"` |
-| [current revision](sinter:ontology#item-revision=v2) | the label that an item has in a tree; a term with no label has no current revision |
-| [revised content](sinter:ontology#revised-content=v2) | the part of an item that its label covers, or would cover for a term with no label |
-| [extent hash](sinter:documents#extent-hash=v2) | the hash of the hash text that Documents gives for a declared item from its revised content; two revised contents of the same declared item, in two trees under one binding of each parameter, are the same when, and only when, the extent hashes of that item in the two trees are equal |
-| [set of names](sinter:documents#name-set=v2) | one of the sets of declared items of a tree in which names are looked up: the shared set and the set of each item of the kind design |
-| [base item](sinter:#base-item=v2) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
-| [form run](sinter:documents#tree-edge=v2), [form position](sinter:documents#tree-edge=v2) | for an edge that a vector line gives, the run of the text of its vector file between the opening and closing quotes of the JSON string of the value of `form`, and the position where that run starts |
-| [suspect edge](sinter:ontology#suspect-edge=v2) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the label of the edge |
-| [set of stopped files](sinter:documents#unreadable-file=v2) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files to whose reading it gives the result "parse failure" for limits of its own; a file in it cannot be read |
+| [label](sinter:ontology#revised-content=v1) | for a declared item, the text that `label` of Identifiers matches in its declaration, such as `v2` in `@req size=v2` |
+| [label of an edge](sinter:ontology#pinned-edge=v1) | for a pinned edge, the revision of its citation entry or inline citation, such as `v2` in `@cites billing#size=v2`, or the schema label of the form of its vector line, such as `v1` in `"form":"#g-vector=v1"` |
+| [current revision](sinter:ontology#item-revision=v1) | the label that an item has in a tree; a term with no label has no current revision |
+| [revised content](sinter:ontology#revised-content=v1) | the part of an item that its label covers, or would cover for a term with no label |
+| [extent hash](sinter:documents#extent-hash=v1) | the hash of the hash text that Documents gives for a declared item from its revised content; two revised contents of the same declared item, in two trees under one binding of each parameter, are the same when, and only when, the extent hashes of that item in the two trees are equal |
+| [set of names](sinter:documents#name-set=v1) | one of the sets of declared items of a tree in which names are looked up: the shared set and the set of each item of the kind design |
+| [base item](sinter:#base-item=v1) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
+| [form run](sinter:documents#tree-edge=v1), [form position](sinter:documents#tree-edge=v1) | for an edge that a vector line gives, the run of the text of its vector file between the opening and closing quotes of the JSON string of the value of `form`, and the position where that run starts |
+| [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the label of the edge |
+| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of read files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, and the code files to whose reading it gives the result "parse failure" for limits of its own; a file in it cannot be read |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot, that is not ackable |
-| [`needs-revision`](sinter:#needs-revision-finding=v2) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same |
-| [`suspect`](sinter:#suspect-finding=v2) | the class of the findings of the suspect edges of a tree |
+| [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same |
+| [`suspect`](sinter:#suspect-finding=v1) | the class of the findings of the suspect edges of a tree |
 
 ## 2. Labels, changes, and findings
 
@@ -159,10 +159,10 @@ gives.
 
 ### 3.1 Base items
 
-@term base-item=v2
+@term base-item=v1
 @cites {
-    ontology#{declared-item=v2, item-name=v2, tree=v1},
-    documents#{name-set=v2},
+    ontology#{declared-item=v1, item-name=v1, tree=v1},
+    documents#{name-set=v1},
     text#{text=v1},
 }
 
@@ -185,19 +185,19 @@ are the same name when, and only when, they are the same text.
 
 ### 3.2 Findings of the class `needs-revision`
 
-@atom needs-revision-finding=v2
+@atom needs-revision-finding=v1
 @cites {
     identifiers#{external-namespaces=v1, declaration=v1, tag-line-text=v1},
     ontology#{
-        declared-item=v2, item-name=v2, item-revision=v2, parameter=v2,
+        declared-item=v1, item-name=v1, item-revision=v1, parameter=v1,
         tree=v1,
     },
     documents#{
-        file-readers=v1, extent-hash=v2, item-file=v1, origin=v2,
-        run-spot=v2, tree-finding=v1, unreadable-file=v2,
+        file-readers=v1, extent-hash=v1, item-file=v1, origin=v1,
+        run-spot=v1, tree-finding=v1, unreadable-file=v1,
     },
     text#{text=v1},
-    #{base-item=v2},
+    #{base-item=v1},
 }
 
 Under a binding of `file-readers`, a binding of `external-namespaces`,
@@ -216,18 +216,18 @@ declaration of d in the text of its file in T.
 
 ### 3.3 Findings of the class `suspect`
 
-@atom suspect-finding=v2
-@refines ontology#suspect-edge=v2
+@atom suspect-finding=v1
+@refines ontology#suspect-edge=v1
 @cites {
     identifiers#{
-        external-namespaces=v1, citation-entry=v2, inline-citation=v1,
+        external-namespaces=v1, citation-entry=v1, inline-citation=v1,
     },
-    data-forms#{vector-line=v2},
-    ontology#{edge=v2, parameter=v2, tree=v1},
+    data-forms#{vector-line=v1},
+    ontology#{edge=v1, parameter=v1, tree=v1},
     documents#{
-        file-readers=v1, tree-edge=v2, origin=v2,
-        origin-position=v1, position-subject=v2, run-spot=v2,
-        tree-finding=v1, unreadable-file=v2,
+        file-readers=v1, tree-edge=v1, origin=v1,
+        origin-position=v1, position-subject=v1, run-spot=v1,
+        tree-finding=v1, unreadable-file=v1,
     },
 }
 
@@ -247,15 +247,15 @@ the spot of its form run in the text of the file of the edge.
 
 ### 4.1 The findings of the class `needs-revision`
 
-@req give-needs-revision-findings=v2
+@req give-needs-revision-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v2},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     documents#{
-        file-readers=v1, tree-finding=v1, unreadable-file=v2,
+        file-readers=v1, tree-finding=v1, unreadable-file=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{needs-revision-finding=v2},
+    #{needs-revision-finding=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -269,15 +269,15 @@ that class.
 
 ### 4.2 The findings of the class `suspect`
 
-@req give-suspect-findings=v2
+@req give-suspect-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v2},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     documents#{
-        file-readers=v1, tree-finding=v1, unreadable-file=v2,
+        file-readers=v1, tree-finding=v1, unreadable-file=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{suspect-finding=v2},
+    #{suspect-finding=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -290,10 +290,10 @@ finding of that class.
 
 ### 4.3 No finding under bindings that are not valid
 
-@req omit-findings-under-invalid-bindings=v2
+@req omit-findings-under-invalid-bindings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v2},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     documents#{file-readers=v1},
     text#{conforming-program=v1, result=v1},
 }
@@ -306,19 +306,19 @@ tree, and no finding of the class `suspect` of any tree.
 
 ### 4.4 The base tree of the change of a commit
 
-@req compare-with-change-base=v2
+@req compare-with-change-base=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v2},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     changes#{
-        commit=v1, commit-file=v1, change-of-a-commit=v2,
-        change-base=v2, repository-read=v1, undisturbed-read=v2,
+        commit=v1, commit-file=v1, change-of-a-commit=v1,
+        change-base=v1, repository-read=v1, undisturbed-read=v1,
     },
     documents#{
-        file-readers=v1, tree-finding=v1, unreadable-file=v2,
+        file-readers=v1, tree-finding=v1, unreadable-file=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{needs-revision-finding=v2},
+    #{needs-revision-finding=v1},
 }
 
 Under a binding of `default-branch-name` under which the change of a
@@ -337,10 +337,10 @@ bindings and these sets once, and no other finding of that class.
 
 @req omit-missing-base-report=v1
 @cites {
-    ontology#{finding-class=v1, parameter=v2},
+    ontology#{finding-class=v1, parameter=v1},
     changes#{
-        commit=v1, change-of-a-commit=v2, change-base=v2,
-        repository-read=v1, undisturbed-read=v2,
+        commit=v1, change-of-a-commit=v1, change-base=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -356,10 +356,10 @@ is undisturbed, it must not give that the change of h has no base.
 
 @req report-missing-base=v1
 @cites {
-    ontology#{finding-class=v1, parameter=v2},
+    ontology#{finding-class=v1, parameter=v1},
     changes#{
-        commit=v1, change-of-a-commit=v2, change-base=v2,
-        repository-read=v1, undisturbed-read=v2,
+        commit=v1, change-of-a-commit=v1, change-base=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1},
 }
@@ -380,18 +380,18 @@ section 4.
 The vectors of this design are in the file
 [`revisions.test-vectors.jsonl`](revisions.test-vectors.jsonl), in the
 same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
+specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
 to them. No group of this design uses a need, so the forms of each group
 give no need names. Subsection 5.1 gives the forms of the group `trees`,
-as the term [`group-form-list`](sinter:data-forms#group-form-list=v2)
+as the term [`group-form-list`](sinter:data-forms#group-form-list=v1)
 gives them. No vector follows from the requirements
 `compare-with-change-base`, `omit-missing-base-report`, and
 `report-missing-base`.
 
 Each vector is for the empty set of
-[stopped files](sinter:documents#unreadable-file=v2) of each tree. So a
+[stopped files](sinter:documents#unreadable-file=v1) of each tree. So a
 vector checks a program only when the set of stopped files of the
 program for each tree of the vector is empty.
 
@@ -407,18 +407,18 @@ program for each tree of the vector is empty.
     },
     files#{path=v1, path-set=v1},
     data-forms#{
-        hex-text=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        hex-text=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, slug=v1,
     },
-    ontology#{tree=v1, finding-class=v1, parameter=v2},
+    ontology#{tree=v1, finding-class=v1, parameter=v1},
     findings#{spot=v1},
-    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v2},
+    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
     #{
-        give-needs-revision-findings=v2, give-suspect-findings=v2,
-        omit-findings-under-invalid-bindings=v2,
+        give-needs-revision-findings=v1, give-suspect-findings=v1,
+        omit-findings-under-invalid-bindings=v1,
     },
 }
 
