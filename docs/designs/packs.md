@@ -67,10 +67,12 @@ valid paths and the files that they name; valid globs and the valid
 paths that fit them; the bytes that a program takes from a file; the
 system of a program; and file objects, folder tree objects, and stored
 folder trees. From Data forms, it takes TOML documents, their root
-tables, and TOML values; hashes and the hash form; JSON values, their
-canonical byte sequences, and the JSON values of byte sequences;
-indexes; and test-vector sets. From the Ontology, it takes tests, test
-results, and parameters and their bindings.
+tables, the texts of TOML keys, and TOML values; hashes and the hash
+form; hex texts; JSON values, key order, their canonical byte sequences,
+and the JSON values of byte sequences; indexes; and test-vector sets,
+with the forms of a group and what a vector line states. From the
+Ontology, it takes tests, test results, and parameters and their
+bindings.
 
 From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
@@ -131,8 +133,8 @@ matching.
 | [text predicate](sinter:#text-predicate=v1) | one of the ten predicates that a conforming program applies to the matches of the query language, such as `#eq?` or `#match?`, with its arguments and the condition under which it holds |
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [valid pack](sinter:#valid-pack=v2) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
-| [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place |
+| [parse text](sinter:#parse-tree=v2) | a text, with a line feed after it when it does not end with one |
+| [parse tree](sinter:#parse-tree=v2) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place, when the start and end bytes of its nodes lie at boundaries of the parse text, nest in their parents, and follow each other in order |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
@@ -170,10 +172,14 @@ matching.
 | [test result](sinter:ontology#test-evidence=v1) | what a test runner gives for one test that it runs; by the adapter, each element of the value of `results` of the response of a call of bind is a test result that the report content holds, with its name, its status, and, when it has them, its file, its line, and its duration |
 | [call](sinter:#adapter-call=v2) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, its test entry ids: it fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise it runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v2) | the bytes that a call of an adapter gives back |
-| [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response |
+| [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response; a call whose response is no adapter response has the result "failed" |
 | [JSON value of a response](sinter:#adapter-response=v1) | the JSON value of the response as a byte sequence, as Data forms defines it |
 | [result of a call](sinter:#call-result=v2) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
 | [result object, binding object](sinter:#adapter-response=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
+| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [forms of a group](sinter:data-forms#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 
 ## 2. Packs, descriptors, readings, and adapters
 
@@ -401,8 +407,9 @@ not end with one. The program parses the UTF-8 encoding of the parse
 text with the language of the usable grammar, and it runs the code of
 that language in an instance of the WebAssembly module of the grammar.
 The parsing of tree-sitter can give no parse tree, such as when the
-instantiation or an invocation in that instance fails. The program ends
-each reading. The text has a parse failure when the parsing gives no
+instantiation or an invocation in that instance fails, or when the start
+and end bytes of the nodes break the conditions of a parse tree. The
+program ends each reading. The text has a parse failure when it has no
 parse tree, or when the root node of the parse tree has an error: when
 the root node, or a node inside it, nodes of hidden symbols included, is
 an `ERROR` node or a `MISSING` node. A reading of a text with a parse
@@ -765,7 +772,7 @@ language, and its ABI version is the ABI version of that language.
 @cites {
     tree-sitter/query-language,
     text#{text=v1, code-span=v1, whole-number=v1},
-    #{usable-grammar=v1, parse-tree=v1},
+    #{usable-grammar=v1, parse-tree=v2},
 }
 
 The query language is the language of queries that tree-sitter's
@@ -950,12 +957,13 @@ its file `adapters/<r>.wasm`.
 
 ### 4.12 Parse trees
 
-@term parse-tree=v1
+@term parse-tree=v2
 @cites {
     tree-sitter/language-format, wasm-core/2.0,
     text#{
-        text=v1, line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
-        whole-number=v1, code-span=v1,
+        text=v1, character=v1, boundary=v1, line-feed=v1,
+        utf-8-encoding=v1, byte=v1, byte-sequence=v1, whole-number=v1,
+        code-span=v1,
     },
     #{webassembly-module=v1, usable-grammar=v1, grammar-name=v1},
 }
@@ -973,19 +981,40 @@ and each symbol has a name. Each node has a start byte and an end byte,
 which are whole numbers. A node has an error when it, or a node that the
 parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
 node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
-parsing inserts for a token that the text lacks. For a text and a usable
-grammar with a grammar name g, the parse tree is the parse tree that
+parsing inserts for a token that the text lacks. The parse text of a
+text is that text, followed by a line feed when the text does not end
+with a line feed. So the parse text of the empty text is one line feed.
+For a text and a usable grammar with a grammar name g, the result that
 this parsing gives for the language of that usable grammar and the UTF-8
-encoding of the parse text of that text. When this parsing gives no
-parse tree, the text has no parse tree with that usable grammar. The
-parse text of a text is that text, followed by a line feed when the text
-does not end with a line feed. So the parse text of the empty text is
-one line feed.
+encoding of the parse text of that text is a parse tree only when its
+nodes (with the nodes of hidden symbols left out and their children
+standing in their place) meet all four of these conditions:
+
+- For each node, the start byte of the node is the number of bytes of
+  the UTF-8 encoding of the characters of the parse text before a
+  boundary of the parse text, and the end byte of the node is the number
+  of bytes of the UTF-8 encoding of the characters of the parse text
+  before a boundary of the parse text.
+- For each node, the start byte of the node is less than or equal to the
+  end byte of the node.
+- For each node and each child of that node, the start byte of the child
+  is greater than or equal to the start byte of that node, and the end
+  byte of the child is less than or equal to the end byte of that node.
+- For each node and each two children of that node, when the first comes
+  before the second in the order of the children of that node, the end
+  byte of the first is less than or equal to the start byte of the
+  second.
+
+When this parsing gives a result that meets all four of these
+conditions, that result is the parse tree of that text with that usable
+grammar. When this parsing gives no parse tree, or gives a result that
+breaks any of these four conditions, the text has no parse tree with
+that usable grammar.
 
 ### 4.13 The order of the parse tree
 
 @term parse-tree-order=v1
-@cites #{parse-tree=v1}
+@cites #{parse-tree=v2}
 
 The nodes of a parse tree are its root node and each child of each of
 its nodes. The descendants of a node are its children and the
@@ -1002,7 +1031,7 @@ second of them.
         text=v1, character=v1, boundary=v1, run=v1, body=v1,
         utf-8-encoding=v1, byte=v1, code-span=v1,
     },
-    #{parse-tree=v1, parse-tree-order=v1},
+    #{parse-tree=v2, parse-tree-order=v1},
 }
 
 For each node of the parse tree of a text, s is the boundary of the
@@ -1028,7 +1057,7 @@ each have a run that starts and ends at one boundary, the same for both.
 @term node-type=v1
 @cites {
     text#{text=v1, text-of-a-byte-sequence=v1},
-    #{usable-grammar=v1, parse-tree=v1, parse-tree-order=v1},
+    #{usable-grammar=v1, parse-tree=v2, parse-tree-order=v1},
 }
 
 The node type of a node of a parse tree is the text of the name of its
@@ -1037,7 +1066,7 @@ symbol.
 ### 4.16 Parse failures
 
 @term parse-failure=v1
-@cites {text#{text=v1}, #{usable-grammar=v1, parse-tree=v1}}
+@cites {text#{text=v1}, #{usable-grammar=v1, parse-tree=v2}}
 
 A text has a parse failure with a usable grammar when, and only when,
 the text has no parse tree with that usable grammar, or the root node of
@@ -1050,7 +1079,7 @@ its parse tree with that usable grammar has an error.
     text#{code-span=v1},
     #{
         usable-grammar=v1, grammar-name=v1, query-language=v1,
-        query-file=v1, text-predicate=v1, parse-tree=v1,
+        query-file=v1, text-predicate=v1, parse-tree=v2,
         parse-tree-order=v1,
     },
 }
@@ -1071,7 +1100,7 @@ node of the parse tree.
 @term joined-match=v1
 @cites {
     text#{text=v1},
-    #{query-file=v1, query-match=v1, parse-tree=v1, parse-tree-order=v1},
+    #{query-file=v1, query-match=v1, parse-tree=v2, parse-tree-order=v1},
 }
 
 A query match of a valid query file has exactly one capture whose
@@ -1094,7 +1123,7 @@ name and the same role node.
     text#{text=v1, code-span=v1},
     #{
         usable-grammar=v1, query-file=v1, valid-pack=v2,
-        descriptor-grammar=v2, parse-tree=v1, joined-match=v1,
+        descriptor-grammar=v2, parse-tree=v2, joined-match=v1,
         parse-tree-order=v1,
     },
 }
@@ -1114,7 +1143,7 @@ only when, it is the role node of a kept match with the role name
     text#{text=v1, code-span=v1},
     #{
         usable-grammar=v1, query-file=v1, valid-pack=v2,
-        descriptor-grammar=v2, parse-tree=v1, joined-match=v1,
+        descriptor-grammar=v2, parse-tree=v2, joined-match=v1,
         parse-tree-order=v1,
     },
 }
@@ -1139,7 +1168,7 @@ node alone.
     text#{text=v1, code-span=v1},
     #{
         usable-grammar=v1, query-file=v1, valid-pack=v2,
-        descriptor-grammar=v2, parse-tree=v1, joined-match=v1,
+        descriptor-grammar=v2, parse-tree=v2, joined-match=v1,
         parse-tree-order=v1,
     },
 }
@@ -1155,7 +1184,7 @@ definition.
 ### 4.22 Enclosed nodes
 
 @term enclosed-node=v1
-@cites {text#{run=v1, boundary=v1}, #{parse-tree=v1, parse-tree-order=v1, node-run=v1}}
+@cites {text#{run=v1, boundary=v1}, #{parse-tree=v2, parse-tree-order=v1, node-run=v1}}
 
 A node A of the parse tree of a text encloses a different node B of that
 parse tree, and B is an enclosed node of A, when, and only when, the run
@@ -1173,7 +1202,7 @@ parse tree.
     text#{text=v1, code-span=v1},
     #{
         usable-grammar=v1, query-file=v1, valid-pack=v2,
-        descriptor-grammar=v2, parse-tree=v1, joined-match=v1,
+        descriptor-grammar=v2, parse-tree=v2, joined-match=v1,
         parse-tree-order=v1, enclosed-node=v1,
     },
 }
@@ -1203,7 +1232,7 @@ and that enclose it, in the order of the parse tree.
     text#{text=v1, run=v1, code-span=v1},
     data-forms#{index=v1},
     #{
-        joined-match=v1, parse-tree=v1, parse-tree-order=v1, node-run=v1,
+        joined-match=v1, parse-tree=v2, parse-tree-order=v1, node-run=v1,
         enclosed-node=v1, test-node=v2, test-runner=v2,
     },
 }
@@ -1747,7 +1776,8 @@ requirements of the group are `read-descriptor`,
   object, `{}`.
 
 With "valid", a conforming program gives each of these values as the
-value of the valid descriptor that it names, when it gives that value.
+value of the valid descriptor that it names, and no other value for it,
+when it gives that value.
 An absent member `adapter-hash`, `adapter-license`, or `match` means
 that a conforming program gives no such value for the test runner. The
 order of the elements of `runners`, and of `settings` in each test
@@ -1791,8 +1821,9 @@ requirements of the group are `give-file-grammars` and
   has no file grammar, the empty object, `{}`.
 
 When a conforming program gives a grammar as the file grammar of the
-valid path, it gives the grammar whose name `grammar` holds. With `{}`,
-it gives no grammar as the file grammar of the valid path.
+valid path, it gives the grammar whose name `grammar` holds, and no
+other grammar as the file grammar of the valid path. With `{}`, it gives
+no grammar as the file grammar of the valid path.
 
 ## 6. Runner adapters
 @spec adapters=v2
@@ -2372,7 +2403,8 @@ the call. The requirements of the group are `give-call-results`,
 
 When a conforming program gives the test results, the binding objects,
 the warnings, or the error text of the adapter of the call, it gives
-those of `values`. With `{}`, it gives none of these.
+those of `values`, and no other instead. With `{}`, it gives none of
+these.
 
 ```
 {"form":"#response-vector=v1","group":"responses","input":{"function":"recognise","response":"7b227265636f676e69736564223a747275657d"},"result":"recognised","values":{}}
@@ -2422,7 +2454,8 @@ group are `give-call-results`, `give-call-values`, `omit-call-values`,
 
 When a conforming program gives the test results, the binding objects,
 the warnings, or the error text of the adapter of the call, it gives
-those of `values`. With `{}`, it gives none of these.
+those of `values`, and no other instead. With `{}`, it gives none of
+these.
 
 ```
 {"form":"#call-vector=v1","group":"calls","input":{"adapter":"0061736d01000000011a056000017f60017f017f60047f7f7f7f017e60017e017f600000030504000102020503010001074d05066d656d6f727902001073696e7465725f696e7465726661636500000c73696e7465725f616c6c6f6300011073696e7465725f7265636f676e69736500020b73696e7465725f62696e6400030a1b04040041010b040041000b0a0042938080808080010b040042000b0b1a01004180080b137b227265636f676e69736564223a747275657d","function":"recognise","report-content":"3c74657374737569746573206e616d653d22766974657374207465737473223e3c2f746573747375697465733e","request":"7b22696e74657266616365223a312c227265706f7274223a226f75742f6a756e69742e786d6c222c2272756e6e6572223a22766974657374222c2273657474696e6773223a7b7d7d"},"note":"sinter_alloc gives the address 0","result":"failed","values":{}}
@@ -2520,7 +2553,7 @@ has no pack hash.
     text#{conforming-program=v1, result=v1},
     #{
         pack=v1, valid-pack=v2, webassembly-module=v1, usable-grammar=v1,
-        query-language=v1, query-file=v1, parse-tree=v1,
+        query-language=v1, query-file=v1, parse-tree=v2,
     },
 }
 
@@ -2921,9 +2954,10 @@ and its pack hash. The requirements of the group are `give-pack-files`,
   pack has no pack listing, and so no pack hash, the empty object, `{}`.
 
 When a conforming program gives the valid paths of the files, the pack
-listing, or the pack hash of the pack, it gives those of `values`. The
-order of `files` is not a value that a conforming program gives. With
-`{}`, it gives no pack listing and no pack hash for the pack.
+listing, or the pack hash of the pack, it gives those of `values`, and
+no other instead. The order of `files` is not a value that a conforming
+program gives. With `{}`, it gives no pack listing and no pack hash for
+the pack.
 
 A need of a vector is a condition on the system or on the file system
 that stores its folder tree. These are the need names that the group
