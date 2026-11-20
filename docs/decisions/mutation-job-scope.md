@@ -75,11 +75,14 @@ not kill the mutant.
   tests, so that each part has about 3 hours of work, half of the time
   limit of a GitHub job. The workflow names the largest number of
   mutants for one part, and the number of parts is the count divided
-  by that number, rounded up. Today that number is 2,500. It comes from a run on the
-  tree of pull request #207, on GitHub runners, with the selection
-  of tests below and two seeds: 6,179 mutants in three parts of about
-  2,060 mutants took 2 h 30 min, 1 h 52 min, and 1 h 16 min. The
-  slowest part, scaled from 2,060 to 2,500 mutants, takes about 3 hours.
+  by that number, rounded up. Today that number is 1,700. It comes from
+  a full run on GitHub runners of the tree of `main` with this job, with the selection of
+  tests below and two seeds: 5,358 mutants in three parts of about
+  1,790 mutants took 3 h 06 min, 1 h 40 min, and 1 h 19 min. The
+  slowest part took about 6.25 seconds for each mutant, so a part of
+  1,700 mutants at that rate takes about 3 hours. Parts with the same
+  count can take very different times, because the mutants of each
+  file run only the test groups that reach that file.
 - In the `mutation` job, each mutant runs only the **test groups**
   whose code can call into the source file of the mutant. A test group
   is one entry of the list of groups of the test suite. The groups come
@@ -146,8 +149,8 @@ not kill the mutant.
   too many tests.
 - **Size the parts by the count of mutants times the time of their
   selected tests** — deferred. It balances the parts better, because
-  the measured parts took from 1 h 16 min to 2 h 30 min with about the
-  same count. The count alone comes first because it needs no measured
+  the parts of the run on the tree of `main` took from 1 h 19 min to
+  3 h 06 min with about the same count. The count alone comes first because it needs no measured
   time.
 
 ## Consequences

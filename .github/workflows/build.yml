@@ -319,13 +319,12 @@ jobs:
     runs-on: ubuntu-26.04
     env:
       # @cites mutation-job-scope
-      # A part tests at most this many mutants. On a tree of 6,179 mutants
-      # in three parts, the parts took 2 h 30 min, 1 h 52 min, and
-      # 1 h 16 min (about 3.3 seconds per mutant on average, and 4.4
-      # seconds per mutant in the slowest part). At 2,500 mutants per
-      # part, a typical part takes about 2 h 15 min, and a part with
-      # slower files stays near 3 hours, well under GitHub's 6-hour limit.
-      MUTANTS_PER_PART: "2500"
+      # A part tests at most this many mutants. On the tree of main with
+      # this job, 5,358 mutants in three parts of about 1,790 took
+      # 3 h 06 min, 1 h 40 min, and 1 h 19 min; the slowest part took about
+      # 6.25 seconds per mutant. At that rate, a part of 1,700 mutants
+      # takes about 3 hours, half of GitHub's 6-hour limit.
+      MUTANTS_PER_PART: "1700"
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
       base: ${{ steps.scope.outputs.base }}

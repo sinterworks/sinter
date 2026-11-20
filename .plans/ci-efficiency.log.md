@@ -9,10 +9,13 @@
 - The count of the mutants on changed lines comes from
   `mutaml-runner --changed-since` with the test command `true`, so the
   count follows the rule of the runner itself and not a copy of it.
-- `MUTANTS_PER_PART` is set to 2,500 from a CI full run of 6,179
-  mutants in three parts (about 2,060 mutants per part), whose parts
-  took 2 h 30 min, 1 h 52 min, and 1 h 16 min. At 2,500 mutants per
-  part, even a slower imbalanced part stays near 3 hours.
+- `MUTANTS_PER_PART` was first set to 2,500 from a CI full run of
+  6,179 mutants on the tree of pull request #207, whose slowest part
+  took 2 h 30 min for about 2,060 mutants. A full run of the tree of
+  `main` with this job was slower: 5,358 mutants in three parts took 3 h 06 min, 1 h 40 min,
+  and 1 h 19 min, about 6.25 seconds for each mutant in the slowest
+  part. At 2,500 mutants, such a part would take about 4 h 20 min, so
+  the number is now 1,700, which keeps a part near 3 hours.
 - A group whose entry in the list of `test/test_sinter.ml` is not
   `("<name>", <Module>.tests)` counts as reaching every file: today
   `mode` and `cases`. `cases` starts `main.exe` through an argument
