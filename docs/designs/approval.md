@@ -316,21 +316,21 @@ The subject of a finding of the class `declined` or `awaiting-approval`
 is a subject text, such as `req:billing#limit`. A subject text matches
 the production `subject` of the schema `identifiers#ack-line`, and it
 holds no line feed, so it is a subject of a finding (term
-`findings#finding-subject`). Each of the three classes reports only what
-is in force under the bindings (term `bound-in-force-item`): a subject
-of approval whose declared item is in force, or an edge whose cited item
-is in force. So a retired item gives no finding of these classes. A
-subject of approval that is declined gives no finding of the class
-`awaiting-approval`. Two subjects of approval of one tree whose declared
-items have the same kind of item and the same name have the same subject
-text, so they give at most one finding of each class. The spot of that
-finding is that of the first subject of approval of the tree with that
-subject text in the subject order (term `subject-order`), whatever its
-state and whether its declared item is in force. So the spot does not
-depend on the ledger or on the states. Two such subjects of approval can
-give a finding of the class `declined` and a finding of the class
-`awaiting-approval`: both are in force, one of them is declined, and the
-other needs approval and is neither.
+`findings#finding-subject`). Each of the three classes reports only a
+subject of approval whose declared item is in force under the bindings,
+or an edge whose cited item is in force under the bindings (term
+`bound-in-force-item`). So a retired item gives no finding of these
+classes. A subject of approval that is declined gives no finding of the
+class `awaiting-approval`. Two subjects of approval of one tree whose
+declared items have the same kind of item and the same name have the
+same subject text, so they give at most one finding of each class. The
+spot of that finding is that of the first subject of approval of the
+tree with that subject text in the subject order (term `subject-order`),
+whatever its state and whether its declared item is in force. So the
+spot does not depend on the ledger or on the states. Two such subjects
+of approval can give a finding of the class `declined` and a finding of
+the class `awaiting-approval`: both are in force, one of them is
+declined, and the other needs approval and is neither.
 
 The subject of a finding of the class `unapproved-req` is the position
 subject of the citation entry of its edge, such as `src/fee.ml@L3C4`
