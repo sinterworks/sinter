@@ -3,10 +3,10 @@
 
 # The ledger
 @design ledger=v2
-@cites text=v1
+@cites text=v2
 @cites data-forms=v2
 @cites ontology=v2
-@cites changes=v1
+@cites changes=v2
 @cites identifiers=v2
 @cites gitdoc/git-config
 @cites rfc/3339
@@ -84,7 +84,7 @@ text.
 | [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when it resolves to a commit |
 | [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
 | [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
-| [reach](sinter:changes#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
+| [reach](sinter:changes#ancestry=v2) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
 | [ledger ref](sinter:#ledger-ref=v1), [ledger commit](sinter:#ledger-ref=v1) | the ref `refs/sinter/ledger` of a git repository; the commit of that ref |
 | [chunk](sinter:#chunk=v2), [chunk path](sinter:#chunk-path=v1) | a regular-file entry of a git tree object at a byte path of the form `entries/<hh>/<id>.jsonl`, in which `<hh>` is the two hex digits right after the `e-` of `<id>`; it holds lines of ledger entries |
 | [line of a chunk](sinter:#chunk=v2), [object of a line](sinter:#chunk=v2) | a part of the content of a chunk that ends with the byte 0x0A, or the part after the last 0x0A; the line object whose canonical line the line of a chunk is |
@@ -520,7 +520,7 @@ the member `v` with an integer greater than 1 as its value.
 
 @term ledger-object=v2
 @cites {
-    changes#{commit=v1, ref-commit=v1, commit-file=v1, ancestry=v1},
+    changes#{commit=v1, ref-commit=v1, commit-file=v1, ancestry=v2},
     text#{code-span=v1},
     #{ledger-ref=v1, chunk=v2},
 }
@@ -628,7 +628,7 @@ that parent is a line of the git tree object of d.
 
 @atom intact-history=v2
 @cites {
-    changes#{commit=v1, ancestry=v1},
+    changes#{commit=v1, ancestry=v2},
     #{ledger-ref=v1, valid-ledger-tree=v1, ledger-extension=v1},
 }
 
@@ -691,7 +691,7 @@ value of the member `id` of the JSON value of that line.
 @term pull-commit=v2
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
+    changes#{commit=v1, ancestry=v2},
     data-forms#{canonical-line=v2},
     text#{whole-number=v1, code-span=v1},
     #{
@@ -855,7 +855,7 @@ git repository that holds its ledger objects and whose ledger is valid.
 @req append-entries-at-end=v2
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
+    changes#{commit=v1, ancestry=v2},
     text#{conforming-program=v1, whole-number=v1, code-span=v1},
     #{
         ledger-ref=v1, chunk=v2, valid-ledger-tree=v1,
@@ -940,7 +940,7 @@ clone it is.
 @req push-only-extensions=v2
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
+    changes#{commit=v1, ancestry=v2},
     text#{conforming-program=v1},
     #{
         ledger-ref=v1, chunk=v2, shared-clone=v2, valid-ledger-tree=v1,
@@ -1266,7 +1266,7 @@ sequence has this form:
 @schema history-vector=v1
 @cites {
     rfc/8259,
-    changes#{commit=v1, commit-file=v1, ancestry=v1},
+    changes#{commit=v1, commit-file=v1, ancestry=v2},
     data-forms#{
         json-value=v1, vector-line=v2, group-form-list=v2,
         vector-meaning=v2,
