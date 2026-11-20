@@ -106,7 +106,7 @@ literal names `true` and `false`.
 | [binding of `file-readers`](sinter:#file-readers=v1), [reader](sinter:#file-reader=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v1), [code file](sinter:#read-file=v1) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
-| [set of stopped files](sinter:#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
+| [set of stopped files](sinter:#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading the program stops for limits of its own, the code files for whose reading the program gives "parse failure" by the exception for limits of Language packs, and the files of the tree whose content the program stops reading as a test-vector set for limits of its own; any set of files of a tree can be a set of stopped files |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when it is in the set of stopped files, when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
@@ -154,11 +154,11 @@ literal names `true` and `false`.
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
 | [extern mark](sinter:#extern-mark=v1), [valid extern mark](sinter:#valid-extern-mark=v1) | what an `@extern` line that stands in an item of the kind design states: that the design holds an item of the kind of the kind word of that `@extern` line, with the part name of that `@extern` line, in another file; an extern mark is valid when the design holds such an item, directly when that item is a requirement, a schema, an atom, or a term |
-| [edges of a tree](sinter:#tree-edge=v1), [form run](sinter:#tree-edge=v1), [form position](sinter:#tree-edge=v1) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the run of that line between the quotes of the JSON string of its `form`, JSON escapes included, and its form position is where that run starts |
+| [edges of a tree](sinter:#tree-edge=v1), [form run](sinter:#tree-edge=v1), [form position](sinter:#tree-edge=v1) | the edges that the citation entries of the accepted citations, the accepted inline citations, and the vector lines of the vector sets of a tree give; the form run of the edge of a vector line is the run of that line between the quotes of the JSON string of the `form` of that vector line, JSON escapes included, and the form position of that edge is where that run starts |
 | [position subject](sinter:#position-subject=v1) | the subject of a finding at a position in a read file or in the vector file of a declared item, such as `docs/guide.md@L3C5` |
 | [order of positions](sinter:#position-order=v1) | one position comes before another when its line number is less, or when the two line numbers are the same and its column is less |
 | [spot of a run](sinter:#run-spot=v1) | the spot whose span is a run of the text of a read file or of the vector file of a declared item |
-| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
+| [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives the finding gives |
 | [edit distance](sinter:#edit-distance=v1) | the least number of insertions, removals, replacements, and swaps of characters next to each other that change one text into another |
 | [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding, which a slug names |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
@@ -1627,22 +1627,22 @@ when they are the same text.
     #{item-file=v1, tree-containment=v1, unreadable-file=v1},
 }
 
-This term is for a tree and a set of stopped files of the tree. The
-vector path of an item of the kind design D of the tree is the text of
-the valid path of the file of D up to its last `/`, that `/` included,
-or the empty text when that valid path has no `/`, followed by the
-test-vector file name of the name of D alone. The vector path of an item
-of the kind specification that belongs to an item of the kind design D
-is that same text for D, followed by the test-vector file name of the
-name of D and the part name of the name of the specification. An item of
-the kind specification that belongs to no item of the kind design has no
-vector path. When the tree has a file whose valid path is the vector
-path of an item and that valid path is the vector path of no other item,
-the vector file of that item is that file. Under that set of stopped
-files, the vector set of an item in the tree is the content of its
-vector file when the item has a vector file, that vector file is not in
-that set of stopped files, and that content is a test-vector set.
-Otherwise, under that set of stopped files, the item has no vector set.
+This term is for a tree and a set of stopped files of the tree. For an
+item of the kind design D of the tree, let p be the text of the valid
+path of the file of D up to the last `/` of that valid path, that `/`
+included, or the empty text when that valid path has no `/`. The vector
+path of D is p followed by the test-vector file name of the name of D
+alone. The vector path of an item of the kind specification that belongs
+to D is p followed by the test-vector file name of the name of D and the
+part name of the name of the specification. An item of the kind
+specification that belongs to no item of the kind design has no vector
+path. When the tree has a file whose valid path is the vector path of an
+item and that valid path is the vector path of no other item, the vector
+file of that item is that file. Under that set of stopped files, when an
+item has a vector file, that vector file is not in that set of stopped
+files, and the content of that vector file is a test-vector set, the
+vector set of that item in the tree is that content. Otherwise, under
+that set of stopped files, the item has no vector set.
 
 ### 4.37 Selected items
 
@@ -1710,13 +1710,16 @@ rules give, or none when they give nothing:
   `external-ref` matches in the match of the destination of that inline
   citation. This rule gives the item that t names, or nothing when t
   names nothing.
-- for a vector line of the vector set of an item of the kind
+- For a vector line of the vector set of an item of the kind
   specification S that belongs to an item of the kind design D, or of an
-  item of the kind design D: the item x that the full name made of the
-  name of D, `#`, and the schema part name of the form of that vector
-  line names, as a citation entry with that entry name names an item for
-  no home design, when S holds x (for a vector set of S) or when D holds
-  x directly (for a vector set of D), and nothing otherwise.
+  item of the kind design D, let n be the full name made of the name of
+  D, `#`, and the schema part name of the form of that vector line. When
+  the vector set is the vector set of S, n names an item x as a citation
+  entry with the entry name n names an item for no home design, and S
+  holds x, this rule gives x. When the vector set is the vector set of
+  D, n names an item x as a citation entry with the entry name n names
+  an item for no home design, and D holds x directly, this rule gives x.
+  Otherwise, this rule gives nothing.
 
 For an edge that a vector line of the vector set of an item gives, the
 form run of that edge is the run of the text of the vector file of that
@@ -2265,10 +2268,10 @@ the file.
 
 A tree has one tree finding of the class `req-outside-design` for each
 item of the kind requirement of the tree that belongs to no item of the
-kind design. Its subject is the position subject of the origin position
-of the text of its declaration. The spot of the finding is the spot of
-the run of that text in the text of the file of that item of the kind
-requirement.
+kind design. The subject of the finding is the position subject of the
+origin position of the text of the declaration of that item of the kind
+requirement. The spot of the finding is the spot of the run of that text
+in the text of the file of that item of the kind requirement.
 
 ### 4.58 Findings of the class `extern-mismatch`
 
@@ -3316,16 +3319,16 @@ has this form:
   and `column`, its column, such as `{"column":7,"line":3}`.
 - A path set is a JSON array of its path set members, each a text, in
   their order.
-- A binding of `external-namespaces` is a JSON array with one element for
-  each pair of the binding, in no meaningful order. Each element is a
-  JSON object with two members: `namespace-name`, the namespace name of
-  the pair, and `id-pattern`, the id pattern of the pair.
+- A binding of `external-namespaces` is a JSON array with one element
+  for each pair of the binding, in no meaningful order. Each element is
+  a JSON object with two members: `namespace-name`, the namespace name
+  of the pair, and `id-pattern`, the id pattern of the pair.
 - A tree is a JSON object with one member for each file of the tree. The
   key is the valid path of the file. When the content of the file is
-  valid UTF-8, the value is the text of that content. When it is not,
-  the value is a JSON object with one member, `bytes`: the
-  [hex text](sinter:data-forms#hex-text=v1) of the content, as a JSON
-  string.
+  valid UTF-8, the value is the text of that content. When the content
+  of the file is not valid UTF-8, the value is a JSON object with one
+  member, `bytes`: the [hex text](sinter:data-forms#hex-text=v1) of the
+  content, as a JSON string.
 
 The member `input` is a JSON object with three members. `files` is the
 tree. `file-readers` is a JSON array with one element for each pair of a
@@ -3447,9 +3450,9 @@ this schema gives for `values` name. Otherwise, when the conforming
 program gives one of the things that a member names, the conforming
 program gives what that member states for that thing:
 
-- When it gives the read files, it gives the keys of `read-files`, each
-  once, with the reader of the pair at its index, and no other read
-  file.
+- When the conforming program gives the read files, the conforming
+  program gives the keys of `read-files`, each once, with the reader of
+  the pair at the index of that key, and no other read file.
 - When it gives the declared items, it gives one for each element of
   `items`, with its kind of item, its name, its file, and the origin
   position of the text of its declaration, and no other declared item.
