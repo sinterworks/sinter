@@ -175,7 +175,6 @@ matching.
 | [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response; a call whose response is no adapter response has the result "failed" |
 | [JSON value of a response](sinter:#adapter-response=v1) | the JSON value of the response as a byte sequence, as Data forms defines it |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
-| [values of a call](sinter:#call-value=v1) | with "bound", the test results, the binding objects, and the warnings of a call; with "failed" and an error response, the error text of the adapter |
 | [result object, binding object](sinter:#adapter-response=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
 | [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
@@ -595,10 +594,8 @@ name `out/junit.xml`, is the UTF-8 encoding of this text:
 
 The response is a JSON text in UTF-8. The definition of the
 [result of a call](sinter:#call-result=v1) gives the result of a call
-from its response, and the definition of the
-[values of a call](sinter:#call-value=v1) gives the test results, the
-binding objects, the warnings, and the error text of the adapter that
-the call gives. This
+from its response, and the test results, the binding objects, the
+warnings, and the error text of the adapter that the call gives. This
 response of bind binds one test result to one test entry:
 
 ```
@@ -2106,8 +2103,9 @@ response, a bind response, or an error response:
 
 @atom call-result=v1
 @cites {
-    data-forms#{json-value=v1},
-    text#{text=v1, result=v1, code-span=v1},
+    ontology#{test=v1, test-evidence=v1},
+    data-forms#{json-value=v1, index=v1},
+    text#{text=v1, result=v1, whole-number=v1, code-span=v1},
     #{
         test-runner=v1, adapter-request=v1, adapter-call=v1,
         adapter-response=v1, test-entry=v1,
@@ -2119,28 +2117,13 @@ call gives a response that is a recognise response and the value of
 `recognised` in its JSON value is true; "not recognised" when the call
 gives a response that is a recognise response and the value of
 `recognised` in its JSON value is false; and "failed" in each other
-case. By the interface, the function recognise says whether the report
-content is the content of a report file of the test runner that the
-member `runner` of the request names.
+case.
 
 The result of a call of the function bind is "bound" when the call gives
 a response that is a bind response in which the value of `test` of each
 binding object in the value of `bindings` of its JSON value is one of
 the test entry ids of the call. In each other case, the result of a call
 of the function bind is "failed".
-
-#### 6.1.9 The values of calls
-
-@term call-value=v1
-@cites {
-    ontology#{test=v1, test-evidence=v1},
-    data-forms#{json-value=v1, index=v1},
-    text#{text=v1, result=v1, whole-number=v1, code-span=v1},
-    #{
-        test-runner=v1, adapter-call=v1, adapter-response=v1,
-        call-result=v1, test-entry=v1,
-    },
-}
 
 A call with the result "bound" gives its test results, its binding
 objects, and its warnings. Its test results are the elements of the
@@ -2159,11 +2142,13 @@ of the value of `warnings`, in their order. A call with the result
 "failed" whose response is an error response gives the value of `error`
 in its JSON value as the error text of the adapter.
 
-The test results of a call stand in the order of the report content, and
-a test result has no file, no line, or no duration when the report
-content gives none. The reason of a binding object says why its test
-result binds to its test entry, and a warning is a text for the person
-who runs the program.
+By the interface, the function recognise says whether the report content
+is the content of a report file of the test runner that the member
+`runner` of the request names. The test results of a call stand in the
+order of the report content, and a test result has no file, no line, or
+no duration when the report content gives none. The reason of a binding
+object says why its test result binds to its test entry, and a warning
+is a text for the person who runs the program.
 
 ### 6.2 The validation of adapters
 
@@ -2213,11 +2198,11 @@ recognise, and "bound" or "failed" for the function bind.
 
 ### 6.5 The values of the results of calls
 
-@req give-call-value=v1
+@req give-call-values=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{conforming-program=v1, result=v1, text=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1, call-value=v1},
+    #{adapter-call=v1, call-result=v1},
 }
 
 When, with the result of a call that it makes of a function of a byte
@@ -2228,11 +2213,11 @@ those that the call gives, in their order, and no other instead.
 
 ### 6.6 No values of calls that do not bind
 
-@req omit-call-value=v1
+@req omit-call-values=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{conforming-program=v1, result=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1, call-value=v1},
+    #{adapter-call=v1, call-result=v1},
 }
 
 A conforming program must give no test results, no binding objects, and
@@ -2245,7 +2230,7 @@ call is not "bound".
 @req omit-adapter-error-texts=v1
 @cites {
     text#{conforming-program=v1, result=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1, call-value=v1},
+    #{adapter-call=v1, call-result=v1},
 }
 
 A conforming program must give an error text of the adapter for a call
@@ -2399,9 +2384,9 @@ sequence as that request.
     },
     #{
         adapter-vector=v1, valid-adapter=v1, adapter-call=v1,
-        adapter-response=v1, call-result=v1, call-value=v1,
-        test-entry=v1, give-call-results=v1, give-call-value=v1,
-        omit-call-value=v1, omit-adapter-error-texts=v1,
+        adapter-response=v1, call-result=v1, test-entry=v1,
+        give-call-results=v1, give-call-values=v1, omit-call-values=v1,
+        omit-adapter-error-texts=v1,
     },
 }
 
@@ -2461,8 +2446,8 @@ these.
     },
     #{
         adapter-vector=v1, response-vector=v1, adapter-call=v1,
-        call-result=v1, call-value=v1, test-entry=v1,
-        give-call-results=v1, give-call-value=v1, omit-call-value=v1,
+        call-result=v1, test-entry=v1, give-call-results=v1,
+        give-call-values=v1, omit-call-values=v1,
         omit-adapter-error-texts=v1, end-adapter-code=v1,
     },
 }
