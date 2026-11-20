@@ -133,8 +133,8 @@ let containers_from ~limit bytes first =
   let rec ordered i j =
     if j < n && is_digit bytes.[j] && j - i < 9 then ordered i (j + 1)
     else if j < n && (bytes.[j] = '.' || bytes.[j] = ')') && marker_end (j + 1)
-    then Some (j + 1)
-    else None
+    then j + 1
+    else i
   in
   let best = ref 0 and i = ref first in
   while
@@ -146,13 +146,6 @@ let containers_from ~limit bytes first =
   do
     let column = ref 0 and white = ref 0 and markers = ref 0 in
     let depth = ref 0 and listed = ref false and leading = ref true in
-    let marker next list =
-      incr markers;
-      depth := if !listed then !depth + 1 else !markers + (!white / 2);
-      listed := !listed || list;
-      column := !column + (next - !i);
-      i := next
-    in
     while not (ends !i) do
       if !leading then
         match bytes.[!i] with
@@ -161,13 +154,21 @@ let containers_from ~limit bytes first =
             white := !white + width;
             column := !column + width;
             incr i
-        | '>' -> marker (!i + 1) false
-        | ('-' | '+' | '*') when marker_end (!i + 1) -> marker (!i + 1) true
-        | c when is_digit c -> (
-            match ordered !i !i with
-            | Some next -> marker next true
-            | None -> leading := false)
-        | _ -> leading := false
+        | c ->
+            let next =
+              match c with
+              | '>' -> !i + 1
+              | ('-' | '+' | '*') when marker_end (!i + 1) -> !i + 1
+              | _ when is_digit c -> ordered !i !i
+              | _ -> !i
+            in
+            if next = !i then leading := false
+            else (
+              incr markers;
+              depth := if !listed then !depth + 1 else !markers + (!white / 2);
+              listed := !listed || c <> '>';
+              column := !column + (next - !i);
+              i := next)
       else incr i
     done;
     best := max !best !depth;

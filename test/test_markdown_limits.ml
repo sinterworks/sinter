@@ -939,11 +939,15 @@ let bracket_depth_grows_linearly_and_bounds_memory () =
 (* @cites commonmark-reader *)
 let container_depth_grows_linearly_and_bounds_memory () =
   let many_lines n = rep "  - a\n" n in
+  let many_ordered n = rep "1. a\n" n in
   let long_digits n = String.make n '1' ^ ". a\n" in
   let deep_list_line n = rep "- " n ^ "a\n" in
   Alcotest.(check (option int))
     "many_lines has depth 2" (Some 2)
     (Markdown_limits.container_depth ~limit:5 (many_lines 10));
+  Alcotest.(check (option int))
+    "many_ordered has depth 1" (Some 1)
+    (Markdown_limits.container_depth ~limit:5 (many_ordered 10));
   Alcotest.(check (option int))
     "long_digits has depth 0" (Some 0)
     (Markdown_limits.container_depth ~limit:5 (long_digits 20));
@@ -964,6 +968,8 @@ let container_depth_grows_linearly_and_bounds_memory () =
     ~input:deep_list_line (fun s -> Markdown_limits.container_depth ~limit:5 s);
   Counted_work.check_growth ~exponent:0. ~margin:1.5 ~sizes:(2_000, 32_000)
     ~input:many_lines (fun s -> Markdown_limits.container_depth ~limit:5 s);
+  Counted_work.check_growth ~exponent:0. ~margin:1.5 ~sizes:(2_000, 32_000)
+    ~input:many_ordered (fun s -> Markdown_limits.container_depth ~limit:5 s);
   let many_result =
     with_small_stack (fun () ->
         Markdown_limits.container_depth ~limit:10 (many_lines 150_000))
