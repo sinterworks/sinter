@@ -74,9 +74,10 @@ Documents (`documents`), it takes bindings of the parameter
 `file-readers`, read files, sets of stopped files, tag texts, accepted
 inputs, origins, origin positions, the order of positions, extent
 hashes, the edges of a tree, the spots of runs, and tree findings. From
-the Ledger (`ledger`), it takes job markers, the fields of a kind of
-ledger entry, acceptance rules, valid ledgers, ledger objects, stored
-ledgers, and the requirement leaving `delivered` entries to the job.
+the Ledger (`ledger`), it takes agent markers, job markers, the fields
+of a kind of ledger entry, acceptance rules, valid ledgers, ledger
+objects, stored ledgers, and the requirement leaving `delivered` entries
+to the job.
 From Test evidence (`evidence`), it takes report files, imports,
 readings of report files, tree evidence, test outcomes in the evidence
 for a tree, the requirement to give the sources of kept `verifies`
@@ -256,11 +257,13 @@ requirements of the job check its inputs in one order: valid bindings of
 `reject-job-under-invalid-bindings`), a valid ledger whose ledger
 objects the read repository holds (requirement
 `reject-job-on-invalid-ledger`), a commit `H` on the default branch
-(requirement `reject-job-without-default-branch`), and a
+(requirement `reject-job-without-default-branch`), a
 [git identity](sinter:#git-identity=v1) in the environment (requirement
-`reject-job-without-git-identity`).
+`reject-job-without-git-identity`), and no agent marker in the
+environment of a process of the execution (term `ledger#agent-marker`,
+requirement `reject-job-under-agent-marker`).
 
-When all four checks hold, the term `job-range` gives the
+When all five checks hold, the term `job-range` gives the
 [run status](sinter:#job-range=v1) on the read repository and `H`.
 Requirements `report-already-recorded-head`, `report-cut-job-range`, and
 `append-delivered-entries` govern the outcome, whether the run
@@ -2051,8 +2054,8 @@ N, S, V, and those bindings of `runner-settings`:
         repository-read=v1, undisturbed-read=v1,
     },
     ledger#{
-        accepted-entry=v1, job-marker=v1, ledger-validity=v1,
-        ledger-object=v1, stored-ledger=v1,
+        accepted-entry=v1, agent-marker=v1, job-marker=v1,
+        ledger-validity=v1, ledger-object=v1, stored-ledger=v1,
         leave-delivered-entries-to-job=v1,
     },
     ontology#{
@@ -2081,7 +2084,8 @@ which a conforming program of Identifiers gives the result "valid"; the
 read repository R′ of the run (term `job-range`) holds its ledger
 objects and its ledger is valid; the default branch of R′ has a commit H
 under a binding D of `default-branch-name`; git has an identity for R in
-the execution's environment; each repository read of the run is
+the execution's environment; the input of the execution does not say
+that an agent runs the execution; each repository read of the run is
 undisturbed; the run status that `job-range` gives from the stored
 ledger of R′ and H is ready to record with range C; and R′ holds the
 tree objects of H.
@@ -2090,11 +2094,11 @@ When the program finishes the run under these conditions, with a set S
 of stopped files of the tree of H, the evidence V for the tree of H, and
 the bindings of `runner-settings`, the program must give none of
 "already recorded", "cannot see range", "invalid bindings", "invalid
-ledger", "no default branch commit", and "no git identity", must end
-without an error, and, taking each commit c of C in parents-first order
-and, when c has a message text, each line l of that message text in
-line-number order, must append the `delivered` ledger entries in that
-order:
+ledger", "no default branch commit", "no git identity", and "agent
+execution", must end without an error, and, taking each commit c of C in
+parents-first order and, when c has a message text, each line l of that
+message text in line-number order, must append the `delivered` ledger
+entries in that order:
 
 1. For each line l that meets `delivery-line-form` whose task id t
    names a task that exists at the current end of the stored ledger of
@@ -2156,8 +2160,8 @@ and must end with an error.
         repository-read=v1, undisturbed-read=v1,
     },
     ledger#{
-        job-marker=v1, ledger-validity=v1, ledger-object=v1,
-        stored-ledger=v1,
+        agent-marker=v1, job-marker=v1, ledger-validity=v1,
+        ledger-object=v1, stored-ledger=v1,
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
@@ -2173,10 +2177,11 @@ binding of `file-readers`, a binding of `external-namespaces` for which
 a conforming program of Identifiers gives the result "valid", a binding
 of `default-branch-name` under which the default branch of the read
 repository R′ of the run (term `job-range`) has a commit H, while git
-has an identity for R in the execution's environment, with undisturbed
-repository reads, a valid ledger of R′ whose ledger objects R′ holds,
-and a run status (given by `job-range` from the stored ledger of R′ and
-H) that is already recorded:
+has an identity for R in the execution's environment and the input of
+the execution does not say that an agent runs the execution, with
+undisturbed repository reads, a valid ledger of R′ whose ledger objects
+R′ holds, and a run status (given by `job-range` from the stored ledger
+of R′ and H) that is already recorded:
 
 - When the program stops the run for limits of its own before deciding
   the run status (such as while checking ancestry, work-graph cycles, or
@@ -2199,8 +2204,8 @@ H) that is already recorded:
         undisturbed-read=v1,
     },
     ledger#{
-        job-marker=v1, ledger-validity=v1, ledger-object=v1,
-        stored-ledger=v1,
+        agent-marker=v1, job-marker=v1, ledger-validity=v1,
+        ledger-object=v1, stored-ledger=v1,
     },
     ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, input=v1, result=v1},
@@ -2213,13 +2218,14 @@ binding of `file-readers`, a binding of `external-namespaces` for which
 a conforming program of Identifiers gives the result "valid", a binding
 of `default-branch-name` under which the default branch of the read
 repository R′ of the run (term `job-range`) has a commit H, while git
-has an identity for R in the execution's environment, with undisturbed
-repository reads, and a valid ledger of R′ whose ledger objects R′
-holds, and either the run status that `job-range` gives from the stored
-ledger of R′ and H is cut, or that run status is ready to record and R′
-does not hold the tree objects of H, the program must append no
-`delivered` ledger entry, must give exactly one result, and only "cannot
-see range", and must end with an error.
+has an identity for R in the execution's environment and the input of
+the execution does not say that an agent runs the execution, with
+undisturbed repository reads, and a valid ledger of R′ whose ledger
+objects R′ holds, and either the run status that `job-range` gives from
+the stored ledger of R′ and H is cut, or that run status is ready to
+record and R′ does not hold the tree objects of H, the program must
+append no `delivered` ledger entry, must give exactly one result, and
+only "cannot see range", and must end with an error.
 
 ### 5.16 The job under bindings that are not valid
 
@@ -2325,7 +2331,38 @@ while git has no identity for R in the execution's environment, the
 program must append no `delivered` ledger entry, must give exactly one
 result, and only "no git identity", and must end with an error.
 
-### 5.20 Findings of the classes `promise-outside-paths` and `unmet-promise`
+### 5.20 The job under an agent marker
+
+@req reject-job-under-agent-marker=v1
+@cites {
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    changes#{
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
+    },
+    ledger#{
+        agent-marker=v1, job-marker=v1, ledger-validity=v1,
+        ledger-object=v1, stored-ledger=v1,
+    },
+    ontology#{job=v1, ledger=v1, parameter=v1},
+    text#{conforming-program=v1, input=v1, result=v1},
+    #{job-range=v1, git-identity=v1, job-end=v1},
+}
+
+When a conforming program runs the job on a git repository R in an
+execution whose input says that the execution is the job, under a valid
+binding of `file-readers`, a binding of `external-namespaces` for which
+a conforming program of Identifiers gives the result "valid", a valid
+ledger of the read repository R′ of the run (term `job-range`) whose
+ledger objects R′ holds, a binding of `default-branch-name` under which
+the default branch of R′ has a commit, and undisturbed repository reads,
+while git has an identity for R in the execution's environment and the
+input of the execution says that an agent runs the execution, the
+program must append no `delivered` ledger entry, must give exactly one
+result, and only "agent execution", and must end with an error.
+
+### 5.21 Findings of the classes `promise-outside-paths` and `unmet-promise`
 
 @req give-work-tree-findings=v1
 @cites {
@@ -2356,7 +2393,7 @@ finding of that class; otherwise, the program must give each tree
 finding of that class that T has at P under these bindings and inputs
 once, and must give no other finding of that class.
 
-### 5.21 Findings of the classes `malformed-delivery`, `stale-delivery`, and `delivery-on-unmet-task`
+### 5.22 Findings of the classes `malformed-delivery`, `stale-delivery`, and `delivery-on-unmet-task`
 
 @req give-work-commit-findings=v1
 @cites {
@@ -2400,7 +2437,7 @@ finding of that class; otherwise, the program must give each tree
 finding of that class that the tree of h has at P under these bindings
 and inputs once, and must give no other finding of that class.
 
-### 5.22 Findings of the classes `missing-delivery`, `delivery-without-change`, and `unplanned-change`
+### 5.23 Findings of the classes `missing-delivery`, `delivery-without-change`, and `unplanned-change`
 
 @req give-work-change-findings=v1
 @cites {
@@ -2443,7 +2480,7 @@ finding of that class; otherwise, the program must give each tree
 finding of that class that the tree of h has at P under these bindings
 and inputs once, and must give no other finding of that class.
 
-### 5.23 The change of a commit with a base
+### 5.24 The change of a commit with a base
 
 @req omit-work-missing-base-report=v1
 @cites {
@@ -2465,7 +2502,7 @@ program takes whether the change of h has a base is undisturbed. Under
 these conditions, that program must not give the result "no base" for
 the change of h.
 
-### 5.24 The change of a commit with no base
+### 5.25 The change of a commit with no base
 
 @req report-work-missing-base=v1
 @cites {
@@ -2487,7 +2524,7 @@ program takes that the change of h has no base is undisturbed. Under
 these conditions, that program must give exactly one result, and only
 "no base", for the change of h, and must give no finding of that class.
 
-### 5.25 No finding or accounting under bindings that are not valid
+### 5.26 No finding or accounting under bindings that are not valid
 
 @req omit-work-findings-under-invalid-bindings=v1
 @cites {
@@ -2518,7 +2555,7 @@ and `unmet-promise`.
 Under a binding of `exempt-paths` that is not valid, a conforming
 program must give no finding of the class `unplanned-change`.
 
-### 5.26 No finding from a ledger that is not valid
+### 5.27 No finding from a ledger that is not valid
 
 @req omit-work-findings-from-invalid-ledgers=v1
 @cites {
@@ -2564,9 +2601,9 @@ forms of a group. No vector follows from the requirements
 `report-already-recorded-head`, `report-cut-job-range`,
 `reject-job-under-invalid-bindings`, `reject-job-on-invalid-ledger`,
 `reject-job-without-default-branch`, `reject-job-without-git-identity`,
-`omit-work-missing-base-report`, `report-work-missing-base`,
-`omit-work-findings-under-invalid-bindings`, and
-`omit-work-findings-from-invalid-ledgers`.
+`reject-job-under-agent-marker`, `omit-work-missing-base-report`,
+`report-work-missing-base`, `omit-work-findings-under-invalid-bindings`,
+and `omit-work-findings-from-invalid-ledgers`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that the requirement names, such as whether a ledger
