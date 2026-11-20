@@ -3,13 +3,13 @@
 
 # Documents
 @design documents=v2
-@cites text=v1
+@cites text=v2
 @cites identifiers=v2
 @cites files=v1
 @cites data-forms=v2
 @cites ontology=v2
-@cites packs=v1
-@cites findings=v1
+@cites packs=v2
+@cites findings=v2
 @cites commonmark/0.31.2
 @cites rfc/5234
 @cites rfc/7405
@@ -90,17 +90,17 @@ names `true` and `false`.
 | [text of a file](sinter:ontology#tree=v1) | the text of the content of a file of a tree, when that content is valid UTF-8 |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
 | [path set](sinter:files#path-set=v1), [set of a path set](sinter:files#path-set-membership=v1) | a finite sequence of texts, such as `docs/` followed by `!docs/old/`; its set is the valid paths that it gives, such as `docs/a.md` and not `docs/old/a.md` |
-| [pack](sinter:packs#pack=v1), [valid pack](sinter:packs#valid-pack=v1) | a language pack: a folder tree that has the support for one language, such as its grammars and query files; it is valid when it has all its required files, each with the right content |
-| [reading of a text](sinter:packs#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed", and, with "parsed", the nodes that the pack finds in the text |
-| [comment node](sinter:packs#comment-node=v1), [tagged](sinter:packs#comment-node=v1) | a node of a reading that the pack finds as a comment; it is tagged when it can carry tags |
-| [definition node](sinter:packs#definition-node=v1), [body node](sinter:packs#definition-node=v1), [decoration node](sinter:packs#decoration-node=v1) | a node that the pack finds as a definition, such as a function or a module, with the nodes of its body; and a node that the pack finds as a decoration, such as a Rust attribute |
-| [test node](sinter:packs#test-node=v1), [name path](sinter:packs#test-name=v1) | a node that the pack finds as the code of one test, with the name of that test as the code writes it |
+| [pack](sinter:packs#pack=v1), [valid pack](sinter:packs#valid-pack=v2) | a language pack: a folder tree that has the support for one language, such as its grammars and query files; it is valid when it has all its required files, each with the right content |
+| [reading of a text](sinter:packs#reading-of-a-text=v2) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed", and, with "parsed", the nodes that the pack finds in the text |
+| [comment node](sinter:packs#comment-node=v2), [tagged](sinter:packs#comment-node=v2) | a node of a reading that the pack finds as a comment; it is tagged when it can carry tags |
+| [definition node](sinter:packs#definition-node=v2), [body node](sinter:packs#definition-node=v2), [decoration node](sinter:packs#decoration-node=v2) | a node that the pack finds as a definition, such as a function or a module, with the nodes of its body; and a node that the pack finds as a decoration, such as a Rust attribute |
+| [test node](sinter:packs#test-node=v2), [name path](sinter:packs#test-name=v1) | a node that the pack finds as the code of one test, with the name of that test as the code writes it |
 | [run of a node](sinter:packs#node-run=v1) | the run of the text that a node takes up |
 | [order of the parse tree](sinter:packs#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its descendants, and the first of two children of one node, with its descendants, comes before the second |
 | [enclose](sinter:packs#enclosed-node=v1) | a node encloses a different node when its run starts at or before the start of the run of the other node, ends at or after its end, and the other node does not come before it in the order of the parse tree |
-| [descriptor](sinter:packs#valid-pack=v1) | the valid descriptor of a valid pack, which gives the comment sigils, the foreign tag words, and the grammars of the pack |
-| [comment sigil](sinter:packs#comment-sigil=v1) | a line sigil, such as `//`; the opening sigil and the closing sigil of a block pair, such as `/*` and `*/`; or an inner sigil, such as `*` |
-| [foreign tag word](sinter:packs#foreign-tag-word=v1) | a tag word, such as `@param`, that the language of a pack, or a tool of that language, uses in comments with a meaning of its own |
+| [descriptor](sinter:packs#valid-pack=v2) | the valid descriptor of a valid pack, which gives the comment sigils, the foreign tag words, and the grammars of the pack |
+| [comment sigil](sinter:packs#comment-sigil=v2) | a line sigil, such as `//`; the opening sigil and the closing sigil of a block pair, such as `/*` and `*/`; or an inner sigil, such as `*` |
+| [foreign tag word](sinter:packs#foreign-tag-word=v2) | a tag word, such as `@param`, that the language of a pack, or a tool of that language, uses in comments with a meaning of its own |
 | [binding of `file-readers`](sinter:#file-readers=v1), [reader](sinter:#file-reader=v1) | a finite sequence of pairs, each a reader and a path set; a reader is the text `markdown` or a pack; a binding is valid when each of its path sets is a valid path set and each of its packs is a valid pack; the reader of a valid path is the reader of the first pair whose path set has that valid path in its set |
 | [read file](sinter:#read-file=v2) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and does not start or end with a space or a tab |
 | [markdown file](sinter:#read-file=v2), [code file](sinter:#read-file=v2) | a read file whose reader is the text `markdown`; a read file whose reader is a pack |
@@ -159,7 +159,7 @@ names `true` and `false`.
 | [tree finding](sinter:#tree-finding=v1) | a finding of a tree with a given class, subject, and spot, that is not ackable, and whose message, mark, related messages, and fix are those that the program that gives it gives |
 | [edit distance](sinter:#edit-distance=v1) | the least number of insertions, removals, replacements, and swaps of characters next to each other that change one text into another |
 | [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding, which a slug names |
-| [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
+| [subject of a finding](sinter:findings#finding-subject=v2) | the text that names what a finding is about |
 | [spot](sinter:findings#spot=v1) | a valid path of a file of a tree, alone or with a span of the text of that file |
 | [mark of a finding](sinter:findings#mark=v1) | a spot whose span is the part of the spot of a finding that is at fault, with a message |
 | [tag line](sinter:identifiers#tag-line=v1), [tag word](sinter:identifiers#tag-word=v1) | a line whose first character after the spaces and tabs at its start is `@`; its tag word is that `@` with the longest run of ASCII letters, ASCII digits, and `-` right after it, such as `@req` |
@@ -251,7 +251,7 @@ tag word in a code span of such an inline description is no finding.
 ### 2.3 Code files
 
 A code file is read with its pack: the
-[reading of its text](sinter:packs#reading-of-a-text=v1) gives the nodes
+[reading of its text](sinter:packs#reading-of-a-text=v2) gives the nodes
 of its comments and of its code. Its comment nodes form
 [runs of comments](sinter:#comment-run=v1), the comments next to each
 other in the file. For example, the lines `// a`, an empty line,
@@ -261,7 +261,7 @@ and `// b` give two runs of comments, and so do the lines `// a`,
 
 Each tagged comment node gives its
 [comment lines](sinter:#comment-line=v1): its lines without the
-[comment sigils](sinter:packs#comment-sigil=v1) of the descriptor of the
+[comment sigils](sinter:packs#comment-sigil=v2) of the descriptor of the
 pack. For example, with the block pair `/*` and `*/` and the inner sigil
 `*`, this comment node gives the comment lines ` @req a=v1`, ` A text.`,
 and a line of one space:
@@ -514,7 +514,7 @@ Each of these classes has an atom that gives its findings, each a
 @schema file-readers=v1
 @cites {
     files#{path-set=v1, valid-path-set=v1},
-    packs#{pack=v1, valid-pack=v1},
+    packs#{pack=v1, valid-pack=v2},
     ontology#{parameter=v2},
     text#{text=v1, code-span=v1},
 }
@@ -566,7 +566,7 @@ the code file.
 @term unreadable-file=v2
 @cites {
     files#{path=v1},
-    packs#{reading-of-a-text=v1, give-reading-results=v1},
+    packs#{reading-of-a-text=v2, give-reading-results=v2},
     text#{valid-utf-8=v1, text=v1, result=v1, input=v1},
     ontology#{tree=v1, parameter=v2},
     #{read-file=v2, file-readers=v1},
@@ -738,7 +738,7 @@ markdown lines that the paragraph takes:
 
 @term code-character=v1
 @cites {
-    packs#{reading-of-a-text=v1, comment-node=v1, node-run=v1},
+    packs#{reading-of-a-text=v2, comment-node=v2, node-run=v1},
     text#{
         text=v1, character=v1, place=v1, body=v1, line-ending=v1,
         space=v1, tab=v1,
@@ -770,7 +770,7 @@ of the boundaries where they start:
 @term comment-run=v1
 @cites {
     packs#{
-        reading-of-a-text=v1, comment-node=v1, enclosed-node=v1,
+        reading-of-a-text=v2, comment-node=v2, enclosed-node=v1,
         node-run=v1, parse-tree-order=v1,
     },
     text#{
@@ -821,7 +821,7 @@ last line number of its last comment node.
 
 @term comment-line=v1
 @cites {
-    packs#{comment-sigil=v1, comment-node=v1, valid-pack=v1},
+    packs#{comment-sigil=v2, comment-node=v2, valid-pack=v2},
     text#{
         text=v1, run=v1, boundary=v1, space=v1, tab=v1, character=v1,
         sequence=v1,
@@ -1074,8 +1074,8 @@ in that order.
 @term attachment=v1
 @cites {
     packs#{
-        definition-node=v1, test-node=v1, decoration-node=v1,
-        node-run=v1, parse-tree-order=v1, comment-node=v1,
+        definition-node=v2, test-node=v2, decoration-node=v2,
+        node-run=v1, parse-tree-order=v1, comment-node=v2,
     },
     text#{
         boundary=v1, line=v1, line-number=v1, position=v1, span=v1,
@@ -1125,7 +1125,7 @@ fn t() {}
 
 @term file-test=v1
 @cites {
-    packs#{reading-of-a-text=v1, test-node=v1, test-name=v1, node-run=v1},
+    packs#{reading-of-a-text=v2, test-node=v2, test-name=v1, node-run=v1},
     ontology#{test=v1},
     #{read-file=v2, unreadable-file=v2, attachment=v1, comment-run=v1},
 }
@@ -1405,7 +1405,7 @@ item in the two trees are equal.
 @cites {
     data-forms#{hash=v1},
     packs#{
-        definition-node=v1, test-node=v1, node-run=v1, comment-node=v1,
+        definition-node=v2, test-node=v2, node-run=v1, comment-node=v2,
     },
     text#{
         text=v1, run=v1, boundary=v1, space=v1, tab=v1, line-feed=v1,
@@ -1666,7 +1666,7 @@ of a tree.
 @term tree-site=v1
 @cites {
     identifiers#{citation=v1, inline-citation=v1, directive=v1},
-    packs#{comment-node=v1, node-run=v1},
+    packs#{comment-node=v2, node-run=v1},
     ontology#{site=v1, test=v1},
     text#{text=v1, line=v1, place=v1, run=v1},
     #{
@@ -1807,7 +1807,7 @@ r.
 @term tree-finding=v1
 @cites {
     findings#{
-        finding-subject=v1, spot=v1, finding-part=v1,
+        finding-subject=v2, spot=v1, finding-part=v1,
         ackable-finding=v1, message=v1, mark=v1, related-message=v1,
         fix=v1,
     },
@@ -1853,7 +1853,7 @@ span.
     identifiers#{
         tag-line=v1, tag-word=v1, sinter-tag-word=v2, tag-line-text=v1,
     },
-    packs#{foreign-tag-word=v1, valid-pack=v1},
+    packs#{foreign-tag-word=v2, valid-pack=v2},
     #{
         read-file=v2, tag-text=v2, origin=v2, origin-position=v1,
         position-subject=v2, run-spot=v2, tree-finding=v1,
@@ -3352,10 +3352,10 @@ These lines of the file are vectors of the group:
     identifiers#{external-namespaces=v1},
     ontology#{tree=v1, test=v1, parameter=v2},
     packs#{
-        valid-pack=v1, reading-of-a-text=v1, comment-node=v1,
-        definition-node=v1, decoration-node=v1, test-node=v1,
+        valid-pack=v2, reading-of-a-text=v2, comment-node=v2,
+        definition-node=v2, decoration-node=v2, test-node=v2,
         test-name=v1, node-run=v1, parse-tree-order=v1,
-        comment-sigil=v1, foreign-tag-word=v1,
+        comment-sigil=v2, foreign-tag-word=v2,
     },
     #{
         markdown-vector=v1, file-readers=v1, read-file=v2,
