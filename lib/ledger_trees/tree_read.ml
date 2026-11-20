@@ -128,9 +128,12 @@ module Make (Id : Hashtbl.HashedType) = struct
          give-stored-ledgers=v1, validate-histories=v1, validate-ledgers=v1,
      }
      The ledger objects of a git tree object are each git tree object that a
-     tree entry names, at any depth, and the blob of each chunk: each regular-file
-     entry whose byte path is a chunk path, whatever its mode. Each one is read,
-     and the first that cannot be read gives the error. A chunk path has two
+     tree entry names, at any depth, and the blob of each chunk: each
+     regular-file entry whose byte path is a chunk path, whatever its mode.
+     Each one is read, and the first that cannot be read gives the error, also
+     when a tree entry names a git object that is not a git tree object or a
+     chunk names a git object that is not a blob: then the git repository does
+     not hold its ledger objects, and no result follows. A chunk path has two
      bytes `/`, so a chunk lies only in the root, in a folder `entries`, or in
      a folder `entries/<hh>`; every other folder is read for its git tree
      objects alone. *)

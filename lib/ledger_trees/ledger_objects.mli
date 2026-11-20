@@ -42,10 +42,12 @@ type ('id, 'e) objects = {
           it *)
   tree : 'id -> ('id entry list, 'e) result;
       (** [Ok entries] for a git tree object that the git repository holds, and
-          [Error e] when it cannot be read *)
+          [Error e] when it cannot be read, such as when the git repository does
+          not hold it, or when the git object is not a git tree object *)
   blob : 'id -> (string, 'e) result;
       (** [Ok content] for a blob that the git repository holds, and [Error e]
-          when it cannot be read *)
+          when it cannot be read, such as when the git repository does not hold
+          it, or when the git object is not a blob *)
 }
 (** The readers of the git objects of a git repository. Each reader gives one
     result for one ['id]: the functions of the ledger read each git object at
@@ -53,7 +55,10 @@ type ('id, 'e) objects = {
     later use in that call. So, for an ['id], a reader gives the same result in
     every call. When a reader gives [Error e], a function of the ledger gives
     the first such [Error e] that it meets, and no other result: the git
-    repository does not hold its ledger objects, or its history objects. *)
+    repository does not hold its ledger objects, or its history objects. So a
+    git repository in which a tree entry names a git object that is not a git
+    tree object, or a chunk names a git object that is not a blob, does not hold
+    its ledger objects, as the term [ledger-object] says. *)
 
 (** The ledger ref of a git repository, the ref [refs/sinter/ledger], as the
     term [ledger-ref] gives it. *)
