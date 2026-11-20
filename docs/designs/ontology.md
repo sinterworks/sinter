@@ -1189,10 +1189,11 @@ records what the job observed about one delivery line, and it is a
 `delivered` ledger entry of the task that the line names. For each
 definition of that task that the line names, and for each promise of
 that definition, it records the revision and the revised content of the
-promised item of the kind requirement, and whether the promise was kept,
-was not kept, or has no result: no result when the evidence that the job
-read gives no result for whether the promise is kept. A promise with no
-result counts as not kept.
+promised item of the kind requirement, and whether the promise was kept
+or was not kept; for a promise of the kind of edge `verifies`, it can
+instead record that the promise has no result, when the evidence that
+the job read gives no result for whether the promise is kept. A promise
+with no result counts as not kept.
 
 ### 3.49 The states of work items
 
