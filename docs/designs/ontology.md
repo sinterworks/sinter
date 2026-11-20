@@ -1195,7 +1195,7 @@ declared items are the same item.
 @cites #{
     ledger-entry=v1, person=v1, subject-of-approval=v1,
     revised-content=v1, task=v1, plan=v1, promise=v1, item-revision=v1,
-    declared-item=v1,
+    declared-item=v1, item-name=v1, tree=v1,
 }
 
 A judgment is a ledger entry that records a decision of a person. A
@@ -1206,9 +1206,14 @@ judgment is one of these four kinds of ledger entry:
 - A `decline` ledger entry records that a person declined one revised
   content of one subject of approval.
 - A `done` ledger entry records that a person judged the work of one
-  task finished, and, for each item of the kind requirement that the
-  task promises, the revision and the revised content of that item at
-  which the person judged the work finished.
+  task finished in a tree. For each name of a promise of that task, when
+  that tree has exactly one item of the kind requirement with that name,
+  that `done` ledger entry records, for that name, the revision and the
+  revised content of that item in that tree. For each name of a promise
+  of that task, when that tree has no item of the kind requirement with
+  that name, or has two or more items of the kind requirement with that
+  name, that `done` ledger entry records no revision and no revised
+  content for that name.
 - An `abandoned` ledger entry records that a person ended one task or
   one plan, and the reason.
 
@@ -1218,25 +1223,35 @@ judgment is one of these four kinds of ledger entry:
 @cites #{
     ledger-entry=v1, job=v1, delivery-line=v1, promise=v1, task=v1,
     work-item-definition=v1, item-revision=v1, revised-content=v1,
-    declared-item=v1,
+    declared-item=v1, item-name=v1, tree=v1,
 }
 
 A record of the job is a ledger entry of the kind `delivered`. A record
-of the job records what the job observed about one delivery line. That
-record of the job is a `delivered` ledger entry of the task that the
-delivery line names. For each definition of that task that the delivery
-line names, and for each promise of that definition, that record of the
-job records the revision and the revised content of the promised item of
-the kind requirement. For each `satisfies` promise of each such
-definition, that record of the job also records whether the promise was
-kept or was not kept. For each `verifies` promise of each such
-definition, that record of the job also records one of three values:
-that the promise was kept, that the promise was not kept, or no result.
-A record of the job records no result for a `verifies` promise of a
-definition when, and only when, the job gives no result for whether that
-promise is kept. When a record of the job records no result for a
-promise of a definition, that promise counts as not kept for that
-definition in that record.
+of the job records what the job observed in a tree about one delivery
+line. That record of the job is a `delivered` ledger entry of the task
+that the delivery line names. For each definition of that task that the
+delivery line names, and for each promise of that definition:
+
+- when that tree has exactly one item of the kind requirement with the
+  name of that promise, that record of the job records, for that
+  promise, the revision and the revised content of that item in that
+  tree;
+- when that tree has no item of the kind requirement with the name of
+  that promise, or has two or more items of the kind requirement with
+  the name of that promise, that record of the job records no revision
+  and no revised content for that promise.
+
+For each `satisfies` promise of each definition of that task that the
+delivery line names, that record of the job also records whether the
+promise was kept or was not kept. For each `verifies` promise of each
+definition of that task that the delivery line names, that record of the
+job also records one of three values: that the promise was kept, that
+the promise was not kept, or no result. A record of the job records no
+result for a `verifies` promise of a definition when, and only when, the
+job gives no result for whether that promise is kept. When a record of
+the job records no result, or records no revision and no revised
+content, for a promise of a definition, that promise counts as not kept
+for that definition in that record.
 
 ### 3.49 The states of work items
 
@@ -1509,7 +1524,7 @@ of a ledger, when, and only when, one of these is true at that point:
   done of `work-item-state`, and it records both the current revision
   of the item in that tree and the same revised content as the revised
   content of the item in that tree:
-  - for a `done` ledger entry, for that item;
+  - for a `done` ledger entry, for the name of the item in that tree;
   - for a `delivered` ledger entry, for a promise whose name is the name
     of the item in that tree and that is a promise of the definition of
     that task that was current at the point of that ledger entry.
