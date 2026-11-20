@@ -12,11 +12,27 @@
     records. Not designed.
 - **`sinter check`**
   - The built-in finding classes, `spec/algebra.md` section 9.
-- **Rule files** — the rules and the finding classes that a
-  repository writes, `spec/manifest.md` section 14.
-  - Decide, when rule files are built, whether an edit of a rule file
-    needs a revision bump (`unbumped`), and whether `config-changed`
-    covers rule files.
+- **SinterScript** — a small language of its own in which a repository
+  writes its own checks, such as "every requirement cites an issue of
+  our tracker". Not designed.
+  - A check is code in a file of its own. Its declaration, its reason,
+    and its citations stand in a comment above the code, as Sinter
+    tags. So a check has a revision and a reason, as every other item
+    has.
+  - It is built around the query algebra (`spec/algebra.md`), which
+    comes first: a user runs a query from the command line. Until
+    SinterScript exists, a repository gets most of the power of its own
+    checks from a script that runs a query and fails when the result is
+    not empty. Sinter does not report such a result as a finding.
+  - Sinter stays a function of the snapshot and the ledger. So a check
+    always ends, it gives the same result for the same inputs, and it
+    reads and writes nothing else.
+  - It replaces rule files, the form of `spec/manifest.md` section 14
+    and of the record `rule-files`: a rule or a finding class as a
+    markdown file with its queries in the front matter. That form is
+    withdrawn.
+  - The work starts from a study of languages with the same aim, such
+    as CodeQL, Rego, CEL, and Datalog.
 - **A dictionary of terms** — one definition for each term of a
   repository, in any file that Sinter reads. Every text, and every
   agent, then uses a term with one meaning. Not designed.
@@ -63,6 +79,97 @@
   approves the changes to a set of items since their last approval
   (design notes section 6.4). How to show those changes so that the
   person actually reads what they approve is open. Not designed.
+- **Signed judgments** — a judgment in the ledger (an approval, a
+  decline, done, abandoned, or a repair) carries a signature that only
+  the person who gives it can make. Today a program takes a judgment
+  only on a confirmation that its standard input, its arguments, and
+  its environment cannot give, such as an answer at the controlling
+  terminal. An agent that runs the program on a pseudo-terminal can
+  still give that answer; a signature closes that route. The record of
+  decision R9 keeps signing as a later opt-in feature. Not designed.
+  - The signing key stays with the person, for example in an SSH agent
+    or on a hardware key, so that a program that an agent runs cannot
+    use it without the person.
+  - Readers check the signature of each judgment against the keys that
+    the repository trusts, and a judgment without a valid signature
+    counts for nothing.
+  - It needs the designs of the Ledger and of Approval.
+- **A security design** — a layered design of its own that states what
+  Sinter defends against, and the guarantees that follow from that.
+  Today the layered design Changes, which reads git repositories, holds
+  one such guarantee as a rule of intent: Sinter runs no program or
+  command that a git repository supplies, and a transfer to or from a
+  remote runs only as the person set it up outside the repository. Not
+  designed.
+  - The cases that this rule leaves open: programs that the search path
+    finds; settings files that the settings of a repository include;
+    programs inside a working tree, also Sinter itself when it runs
+    from its own checkout; reading the refs of a remote without a
+    fetch; a fetch from an address that is not a remote; and ssh
+    options in the host part of an address.
+  - The design can also hold the other guarantees of that kind, such as
+    the confinement of grammar code in language packs and the
+    confirmation of judgments (see "Signed judgments").
+  - It is written among the last of the layered designs, even where its
+    place in the order of dependencies is earlier, so that it covers the
+    whole surface at once. It may be split into parts, or its work
+    shared out, later.
+- **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
+  which an AI coding assistant, a program such as Claude Code that
+  writes code, writes a specification of each change before the
+  assistant writes the code. A person reviews the specification. The
+  checks of OpenSpec test only the form of the specifications, and
+  nothing ties a specification to the code or to the tests. The ideas
+  below are to explore when the work reaches them. Not designed, and
+  not decided.
+  - A view of the requirements that a change adds, changes, removes,
+    or replaces. In OpenSpec, the assistant writes this view by hand
+    for each change, as a "delta spec". Sinter knows each item and its
+    revision at the diff base and in the working tree, so it can
+    compute the view from the diff. The view can serve the item **Show
+    the approval delta so that a person reads it**.
+  - An example for each requirement. OpenSpec checks that each
+    requirement has at least one scenario: a condition and its outcome.
+    Sinter could report each requirement of a design that no group of
+    conformance vectors and no test with a `@verifies` covers.
+  - A reason when a requirement goes out of force. OpenSpec asks for a
+    reason and a migration for each requirement that a change removes.
+    Sinter could ask for one line of description on a status tag that
+    takes a requirement out of force, and on a `@supersedes` that
+    replaces a requirement. The line says why the requirement goes, and
+    what a user of the requirement does instead.
+  - A reader of OpenSpec repositories. The reader takes the
+    requirements and the scenarios of OpenSpec specifications as Sinter
+    items. A project that plans its changes with OpenSpec can then cite
+    those requirements from its code and its tests with Sinter's tags.
+    Sinter then reports the suspect citations of those requirements,
+    and it reads the test evidence for them. Which part of Sinter
+    reads OpenSpec specifications is undecided.
+  - Citations across repositories. In OpenSpec, a "store" keeps the
+    specifications in a repository of their own, and code repositories
+    refer to the store and only read it. Nothing copies a change from
+    one repository to another by itself. OpenSpec never finds a store
+    by its name alone, because two repositories in different
+    organizations can have the same name. The same shape could serve
+    citations from one repository to the items of another, and it
+    agrees with the rule that `sinter check` never reads the network.
+  - A guided first change. The `onboard` workflow of OpenSpec takes a
+    person through one small, real change in a repository that already
+    exists, from start to end, in about 15 minutes. The user manual
+    (plan `sinter-user-manual`) could start the same way, on a
+    repository that the reader already has.
+- **The coverage ladder** — whether a test ran the code that it claims
+  to verify (design notes section 4). The layered design of test
+  evidence counts a promise as kept from test results alone: a passing
+  test keeps it, also when the test never ran the code that satisfies
+  the requirement. A later layered design of its own adds coverage: a
+  promise then counts in full only when a coverage report shows that
+  the test ran that code. Not designed.
+  - Most coverage formats have no specification, and none ties a
+    coverage record to a test name of a report file. The design starts
+    from research on the formats.
+  - The finding classes `unexercised` and `unmeasured` wait for that
+    design.
 - **The coverage of each test for Rust and Go** — rung 4 of the
   evidence ladder needs the coverage of each test (design notes
   section 4). To run each test that carries a `@verifies` in its own
@@ -93,11 +200,32 @@
     for example new releases and security advisories. It writes what
     it finds into a file in the repository, as evidence import does.
     `sinter check` never reads the network.
-  - A rule (design notes section 7) whose origin is the record
-    triggers on that file. A plan that cites the observation, or an
-    `@ack`, clears the obligation.
+  - A check that the repository writes (the item **SinterScript**),
+    whose origin is the record, reports on that file. A plan that cites
+    the observation, or an `@ack`, clears the report.
   - It shares its design with `@pin` (`spec/vocabulary.md` section
     7.4) and with evidence import. Not designed.
+- **Assumptions about dependencies** — a design can rest on the
+  behavior of something that the project runs but does not control: a
+  library, a grammar, or a tool, each at a version. Today a design
+  states such behavior, with the version, in a term or a requirement.
+  Not designed.
+  - A new kind of declared item, an assumption, states one such fact and
+    names the dependency and its version.
+  - A test that observes the fact verifies the assumption with
+    `@verifies`, as a test verifies a requirement. When an update of the
+    dependency breaks the fact, the test fails, and Sinter reports the
+    assumption as not verified.
+  - Sinter reports an assumption that no test verifies, as it reports an
+    untraced requirement.
+  - An assumption has a revision, and citations pin it as they pin any
+    other item.
+  - A team that writes Sinter again from the designs (the item **A
+    clean-room implementation as the acceptance test of the designs**)
+    learns from the assumptions what each design takes from outside the
+    repository.
+  - It needs the design of test evidence, and a revision of the designs
+    Identifiers and Ontology for the new kind.
 - **Plans with their journals** — show each plan step with the
   journal entries for the step (record `plan-journals`): the step and
   its promises by default, the journal entries on request. Not
@@ -187,6 +315,21 @@
     CheerpX, needs a commercial license for use by an organization;
     and a server that runs the examples, which needs hosting and a
     secure sandbox.
+- **"Developing With Sinter"** — a second text beside the user manual,
+  "Using Sinter". The user manual teaches the tool. This text teaches a
+  way of working: how a person who works at the level of design uses
+  Sinter with coding agents, and why. Such a person sets the direction,
+  writes the contracts, gives the work to agents, and reviews by
+  intent. The text has an opinion, and it reads as a long essay in
+  sections more than as a manual. Its readers decide how a team works,
+  and many of them do not use Sinter yet. Not designed.
+  - Where it lives: a second mdBook book beside the user manual, one
+    long page, or a post outside the repository. Undecided.
+  - Its voice: the rules of the section "Writing" in `CONTRIBUTING.md`
+    apply to every text in the repository. An essay with an opinion may
+    need a freer voice. Undecided.
+  - When to write it: after the method of work and the design of Sinter
+    stop changing. Undecided.
 - **Test evidence for Sinter itself** — JUnit output from the test
   suite, for `evidence import`.
 - **Tests with no name** — the OCaml tests of `ppx_expect` and
@@ -194,6 +337,31 @@
   reports no name for them. The OCaml pack needs a way to bind their
   results before it can read them as tests. This matters because
   Sinter checks its own code. Not designed.
+- **Libraries for Sinter in several languages** — one library for each
+  of a few common languages, each in a repository of its own under
+  `sinterworks`, such as `sinter-rs`, `sinter-go`, and `sinter-py`. A
+  library holds what a program in that language needs to work with
+  Sinter's formats, in modules that a person can use one at a time. Not
+  designed.
+  - One module is for the author of a language pack who writes a runner
+    adapter. A runner adapter is the WebAssembly module of a pack that
+    reads the report file of a test runner and links each test result to
+    a test. The libraries of the languages that compile to WebAssembly
+    have this module.
+  - The module holds the parts that every adapter repeats: it reads the
+    request, gives the report and the test entries as values of the
+    language, writes the response in the form that Sinter reads, and
+    exports the functions that Sinter calls. The author then writes
+    only the part that reads the reports of one language or one test
+    runner, when these are not JUnit XML already.
+  - Where a language has common bindings for WebAssembly, the module is
+    written against them.
+  - Sinter's own packs use these modules for their adapters, so that
+    the libraries are tested on real work before others use them.
+  - Another module is the test adapter for conformance vectors of that
+    language's test frameworks (see the next item).
+  - Which languages come first, and which other modules each library
+    has, are open.
 - **Test adapters for conformance vectors** — a library for each test
   framework that loads the conformance vectors of a design and runs one
   test case for each vector, so that a test of an implementation cites
@@ -209,6 +377,8 @@
     reports each vector that no test exercises. The language pack of the
     test's language must read the citation, in a comment or in the call
     of the adapter.
+  - Each adapter is a module of the library for its language (see
+    "Libraries for Sinter in several languages").
   - The first adapter is for Python and pytest, as a decorator. Others
     follow for the test frameworks of the language packs.
   - In Python, the decorator takes the selection as an expression, not
@@ -220,6 +390,52 @@
     test needs no separate comment.
   - It needs citable conformance vectors and the format of their lines,
     which the redesign of Sinter decides.
+- **A clean-room implementation as the acceptance test of the designs**
+  — before the release of v0.1, a new implementation of the core
+  features of Sinter, in another language, written from the designs
+  alone. Probably done once. Not designed.
+  - The people or agents that write it read only the designs, their
+    conformance vectors, and the standards that the designs cite. They
+    do not read Sinter's code, its tests, or the history of the designs.
+  - The new implementation passes every conformance vector of the
+    designs that it implements.
+  - Both implementations then run on Sinter's own repository and on a
+    corpus of small example repositories. Each example holds a known
+    issue that Sinter must report, such as a citation that pins an old
+    revision. Both implementations must report the same findings.
+  - Each disagreement is a gap in a design or a defect in one of the
+    implementations. A gap is fixed in the design.
+  - Which features count as the core, and which language the new
+    implementation uses, are not decided.
+- **Reference models of states, and mutation testing mapped to
+  requirements** — how executable models and mutation testing check
+  Sinter's code. Not designed.
+  - A reference model is a short program, written from a design alone,
+    that computes what the design says. A property test gives the same
+    generated inputs to the product and to the model, and compares
+    their outputs.
+  - Models are written only for the computation of states, such as the
+    states of items and the pins that become suspect. There a naive
+    program recomputes the result from scratch, with no cache, no
+    incremental update, and no error messages, so the model stays much
+    smaller than the product.
+  - No models are written for parsers, hashes, or file formats. There
+    the design gives the algorithm itself, so a model is a second
+    implementation of it, and both implementations tend to share the
+    same misreadings of the design. The conformance vectors and the
+    test suites of the cited standards check these parts.
+  - Mutation testing changes the product's code. Each mutant that no
+    test kills maps, through the `@satisfies` tag of the changed code,
+    to a requirement whose tests or vectors are weak. A requirement
+    that no code satisfies needs no mutant: the traceability check
+    already reports it.
+  - A model is mutated only where a small model already exists. A
+    mutant of the model that no vector kills shows a part of the design
+    that the vectors do not fix.
+  - The executable models that check each design while the design is
+    written stay. They have another aim: they check that the
+    conformance vectors of a draft agree with its text. They do not
+    test the product.
 - **Tags in Python docstrings** — in Python, a docstring is a statement
   that consists of one string literal, not an f-string, and that is
   the first statement of a module, a class, or a function. Python
@@ -277,6 +493,35 @@
 - **A fuzz target for the bridge boundary** — `crowbar` under AFL over
   the result-buffer decoder and the wasm export reader, built outside
   the test suite. `docs/decisions/test-rigor.md` notes the choice.
+- **Grammars that cannot reach outside their tables** — tree-sitter
+  0.26.13 parses in native code, with the parse tables that it copies
+  out of the WebAssembly module of a grammar, and it reads those tables
+  with no bound check (`ts_language_lookup` in its `src/language.h`). So
+  the tables of a crafted grammar in a pack can make the parser read
+  memory outside the tables, in Sinter's own process, or loop. The
+  layered design of language packs states the guarantee that the
+  content of a pack reaches no file outside its folder tree, no network,
+  no clock, and no process, and that each reading ends. Today's bridge
+  does not meet it. Not designed.
+  - One way: check the tables of a grammar when Sinter loads it, so that
+    each index and each count stays inside its table.
+  - Another way: run the parse in a sandbox, such as the parser of
+    tree-sitter itself compiled to WebAssembly and run in wasmtime with
+    limits.
+  - A fuzz target over the tables of grammars, as for the bridge
+    boundary.
+  - Packs are pinned by their hashes, so a crafted grammar reaches Sinter
+    only in a pack that a person installed.
+- **Fuzz targets for the readers of text** — `crowbar` under AFL over
+  the readers that Sinter builds from the designs Text and Identifiers:
+  the UTF-8 decoder, the reader of tag lines, the reader of id patterns
+  and bindings, and the reader of inline citations in Markdown. Built
+  outside the test suite, as the target for the bridge boundary is.
+  Not designed.
+  - A target feeds a reader generated input and reports each input
+    that makes the reader raise an exception or run past a time limit.
+  - Inputs that take time out of proportion to their length are a main
+    aim, such as square brackets nested many levels deep in Markdown.
 - **A generated third-party list** — `THIRD_PARTY.md` built in CI from
   `bridge/Cargo.lock` and `sinter.opam.locked` (`cargo about` or
   `cargo license` for the Rust tree), with a drift check. `cargo deny`
