@@ -90,7 +90,7 @@ literal names `true` and `false`.
 | word or phrase | meaning |
 |---|---|
 | [test runner](sinter:packs#test-runner=v2) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
-| [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
+| [report file](sinter:#report-file=v2) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
 | [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which it is given, a root, one or more report files, and a narrowing |
 | [execution of test runners](sinter:#import=v1) | the runs of test runners whose report files are given together in one import, such as one job of continuous integration, or three jobs that each run a third of the tests |
 | [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for it; a tree has evidence when it has at least one |
@@ -111,7 +111,7 @@ literal names `true` and `false`.
 | [test results of an import](sinter:#linked-test=v2), [linked](sinter:#linked-test=v2) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
-| [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
+| [says passed, says failed](sinter:#status-meaning=v2) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
 | [outcome in an import](sinter:#import-outcome=v2) | "passed", "failed", or "not run": what the test results of one import say of a test |
@@ -408,7 +408,7 @@ edge replaces give no such finding.
 
 ### 3.1 Report files
 
-@term report-file=v1
+@term report-file=v2
 @cites {
     packs#{valid-pack=v2, test-runner=v2},
     text#{text=v1, byte-sequence=v1},
@@ -427,7 +427,7 @@ which is a test runner of the descriptor of its pack.
 @cites {
     ontology#{tree=v1, test=v1, test-evidence=v1},
     text#{text=v1, input=v1, whole-number=v1},
-    #{report-file=v1},
+    #{report-file=v2},
 }
 
 An import is an input that stands for one execution of test runners: the
@@ -790,7 +790,7 @@ parts has a result link to each test entry that these rules give:
     ontology#{tree=v1, parameter=v2},
     files#{path=v1},
     text#{text=v1, decimal-numeral=v1, whole-number=v1, code-span=v1},
-    #{report-file=v1, import=v1},
+    #{report-file=v2, import=v1},
 }
 
 Under a valid binding of `file-readers`, the test entries of the reading
@@ -816,7 +816,7 @@ the order of the parse tree.
         adapter-instance=v1, valid-adapter=v2, call-result=v2,
     },
     text#{result=v1},
-    #{report-file=v1, import=v1, reading-entry=v2, default-reader-result=v2},
+    #{report-file=v2, import=v1, reading-entry=v2, default-reader-result=v2},
 }
 
 Under a valid binding of `file-readers`, and a valid binding of
@@ -919,7 +919,7 @@ alike to that test. A test result names no other test.
 
 ### 3.18 What statuses say
 
-@term status-meaning=v1
+@term status-meaning=v2
 @cites {
     ontology#{test=v1, test-evidence=v1},
     packs#{call-result=v2},
@@ -954,7 +954,7 @@ when, T holds U.
     packs#{test-node=v2},
     #{
         import=v1, linked-test=v2, held-test=v1, named-test=v1,
-        status-meaning=v1,
+        status-meaning=v2,
     },
 }
 
@@ -976,7 +976,7 @@ that T holds, and says that the tests that it names failed.
     ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
         import=v1, linked-test=v2, held-test=v1, named-test=v1,
-        status-meaning=v1, suite-rule=v1,
+        status-meaning=v2, suite-rule=v1,
     },
 }
 
@@ -1007,9 +1007,9 @@ the evidence is "failed"; otherwise, "not run".
     data-forms#{hash=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
-        report-file=v1, import=v1, tree-evidence=v1,
+        report-file=v2, import=v1, tree-evidence=v1,
         reading-of-a-report-file=v2, linked-test=v2, held-test=v1,
-        named-test=v1, status-meaning=v1, import-outcome=v2,
+        named-test=v1, status-meaning=v2, import-outcome=v2,
         tree-outcome=v2, narrowing-of-an-import=v1,
     },
 }
@@ -1185,7 +1185,7 @@ runner under that binding.
     documents#{file-readers=v1},
     ontology#{parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
@@ -1200,7 +1200,7 @@ result of that reading.
     documents#{file-readers=v1},
     ontology#{test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1217,7 +1217,7 @@ that reading.
     documents#{file-readers=v1},
     ontology#{parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1232,7 +1232,7 @@ reading once, and no other result link of that reading.
     documents#{file-readers=v1},
     ontology#{test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v1, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, a conforming program must give
@@ -1247,7 +1247,7 @@ an import when the result of that reading is not "bound".
     ontology#{parameter=v2},
     packs#{adapter-request=v2, adapter-call=v2, test-entry=v1},
     text#{conforming-program=v1},
-    #{report-file=v1, import=v1, reading-entry=v2, reading-of-a-report-file=v2},
+    #{report-file=v2, import=v1, reading-entry=v2, reading-of-a-report-file=v2},
 }
 
 Under a valid binding of `file-readers`, when a conforming program makes
@@ -1354,7 +1354,7 @@ with it.
     ontology#{promise=v2, tree=v1, test=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v1, import=v1, reading-of-a-report-file=v2,
+        report-file=v2, import=v1, reading-of-a-report-file=v2,
         tree-evidence=v1, import-outcome=v2, tree-outcome=v2,
         outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
         ambiguous-result-finding=v2, unverified-vector-finding=v2,
@@ -1378,7 +1378,7 @@ the classes `never-ran`, `failed`, `ambiguous-result`, and
     ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1, parameter=v2},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v1, import=v1, tree-evidence=v1,
+        report-file=v2, import=v1, tree-evidence=v1,
         reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
         outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
         ambiguous-result-finding=v2, unverified-vector-finding=v2,
@@ -1403,7 +1403,7 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
     ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v1, import=v1, tree-evidence=v1,
+        report-file=v2, import=v1, tree-evidence=v1,
         reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
         outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
         ambiguous-result-finding=v2, unverified-vector-finding=v2,
@@ -1487,7 +1487,7 @@ vector binds a program only to what the program gives for the input.
         adapter-call=v2,
     },
     #{
-        report-file=v1, runner-data=v2, default-recognition=v2,
+        report-file=v2, runner-data=v2, default-recognition=v2,
         recognise-junit-reports=v2,
     },
 }
@@ -1557,7 +1557,7 @@ content of the input for its test runner, it gives the result that
         test-entry=v1, test-name=v1, test-node=v2, adapter-call=v2,
     },
     #{
-        recognition-vector=v1, report-file=v1, runner-data=v2,
+        recognition-vector=v1, report-file=v2, runner-data=v2,
         case-result=v2, default-reader-result=v2,
         reading-of-a-report-file=v2, give-reading-results=v2,
         give-reading-test-results=v2, give-reading-result-links=v2,
@@ -1650,7 +1650,7 @@ is `{}`, it gives no test result and no result link.
         test-node=v2, test-entry=v1,
     },
     #{
-        recognition-vector=v1, report-file=v1, import=v1,
+        recognition-vector=v1, report-file=v2, import=v1,
         tree-evidence=v1, case-result=v2, reading-of-a-report-file=v2,
         linked-test=v2, held-test=v1, named-test=v1, import-outcome=v2,
         tree-outcome=v2, outcome-source=v2, ambiguous-result-finding=v2,
