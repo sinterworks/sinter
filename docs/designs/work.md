@@ -111,7 +111,7 @@ environment and git configuration.
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own and stops reading for limits of its own |
 | [job promise outcome](sinter:#job-promise-outcome=v1) | the outcome that the job records for a promise of a task definition in a tree: `"kept"`, `"not-kept"`, or (for a `verifies` promise when Test evidence forbids a result) `"no-result"` |
 | [class promise outcome](sinter:#class-promise-outcome=v1) | the outcome that the finding classes of Work read for a promise of a task definition in a tree: `"known kept"`, `"known not kept"`, or `"not known"` |
-| [range of a run](sinter:#job-range=v1), [cut range](sinter:#job-range=v1) | the commit range that a run of the job reads on the default branch, from the `head` of the latest accepted `delivered` entry (or no start) to the commit of the default branch; the range is cut when a shallow commit or missing commit keeps the clone from seeing the full range |
+| [range of a run](sinter:#job-range=v1), [run status](sinter:#job-range=v1) | the status of a run of the job for a repository and the commit of the default branch: already recorded, ready to record (with a commit range to the commit of the default branch), or cut when missing commits or shallow commits keep the clone from deciding the range |
 | [merge commit](sinter:#delivery-merge-commit=v1) | the landing commit of a finishing commit on the first-parent line of the commit to which the default branch points |
 | [git identity](sinter:#git-identity=v1) | the committer identity `Name <email>` that git's environment and configuration give |
 | [tasks of a change](sinter:#change-task=v1) | the existing tasks named by delivery lines or task lines in the commits of the change of a commit |
@@ -285,47 +285,39 @@ the tree has valid evidence in which the edge's test passed.
 
 ### 2.6 The job on the default branch
 
-The job runs on the commit `H` to which the default branch points under
+The job runs on the commit `H` of the default branch under
 `default-branch-name`, when the execution holds a job marker (term
-`ledger#job-marker`). Before appending any entry, the job verifies that
-the bindings of `file-readers` and `external-namespaces` are valid
-(requirement `reject-job-under-invalid-bindings`), that the default
-branch has a commit `H` (requirement
-`reject-job-without-default-branch`), and that git has a committer
-identity in the environment (requirement
-`reject-job-without-git-identity`). When any of these fails, the job
-writes no `delivered` entry and ends with an error.
+`ledger#job-marker`). The requirements of the job check its inputs in
+one order: valid bindings of `file-readers` and `external-namespaces`
+(requirement `reject-job-under-invalid-bindings`), a commit `H` on the
+default branch (requirement `reject-job-without-default-branch`), and a
+[git identity](sinter:#git-identity=v1) in the environment (requirement
+`reject-job-without-git-identity`). When any of these checks fails, the
+job appends no `delivered` entry, gives the result that its requirement
+names, and ends with an error.
 
-The job finds its start commit from the field `head` of the latest
-accepted `delivered` ledger entry (term `job-range`). When no accepted
-`delivered` entry exists, the run has no start and reads every commit
-that `H` reaches. When the start commit reaches `H` (including when `H`
-equals the start), a later run already recorded `H`, so the job writes
-nothing and gives `"already recorded"` (requirement
-`report-already-recorded-head`). When `H` reaches the start, the range
-runs from the start to `H`. When neither reaches the other and neither
-history is cut, the default branch history was rewritten, so the job
-runs with no start; refused duplicate entries prevent writing a second
-entry for an already-recorded delivery line. When the clone lacks the
-start or any commit needed for the range, or hits a shallow commit
-(`changes#shallow-commit`), and the job does not fetch what is missing,
-the range is cut: the job writes nothing and gives `"cannot see range"`
-(requirement `report-cut-job-range`).
+When all three checks hold and the ledger is valid, the term
+`job-range` gives the [run status](sinter:#job-range=v1) for the
+repository (after any fetches that are part of the run's repository
+reads) and `H`: already recorded (requirement
+`report-already-recorded-head`), cut (requirement
+`report-cut-job-range`), or ready to record with a commit range. When
+the start commit reaches `H` (including when `H` equals the start, even
+in a shallow clone), an earlier run already recorded `H`, so the job
+appends no entry and gives `"already recorded"`. When the range is cut,
+or when the run status is ready to record and the repository lacks a git
+object of the tree of `H` after any fetches, the job appends no entry
+and gives `"cannot see range"`.
 
-For a ready range, the job walks the commits in parents-first order and
-reads each commit's delivery lines in line-number order (requirement
-`append-delivered-entries`). It writes one `delivered` entry for each
-well-formed delivery line whose task exists at the current end of the
-ledger and that no earlier accepted `delivered` entry already records
-for the same commit, task, and six hex digits. Every delivery line of
-the run is judged in the tree of `H` with the run's evidence, with
-`head` set to `H` and `merge` set to the finishing commit's landing
-commit on the first-parent line of `H` (term `delivery-merge-commit`).
-For example, if one push brings merge `M1` (delivering `t1`) and then
-merge `M2` (delivering `t2`) with `H = M2`, both `delivered` entries
-record `head = M2`, `M1`'s entry records `merge = M1`, `M2`'s entry
-records `merge = M2`, and both record labels, extent hashes, and
-promise outcomes observed in the tree of `M2`.
+When the run status is ready to record and the repository holds the git
+objects of the tree of `H`, requirement `append-delivered-entries`
+governs which `delivered` entries the job appends and what each entry
+records. For example, if one push brings merge `M1` (with a delivery
+line for `t1`) and then merge `M2` (with a delivery line for `t2`),
+with `H = M2`, both `delivered` entries record `head = M2`, the entry
+for `M1` records `merge = M1`, the entry for `M2` records `merge = M2`,
+and both record labels, extent hashes, and promise outcomes observed in
+the tree of `M2`.
 
 ### 2.7 The path check and re-pins
 
@@ -1159,14 +1151,16 @@ to record (with a commit range), and cut:
 1. When the run has no start object name: let C be the commit range
    from no commit to H. When C is complete in R, the run status is
    ready to record with range C. Otherwise, the run status is cut.
-2. When the run has a start object name s and either R holds no commit
-   whose commit object name is s or that commit is a shallow commit of
-   R or has a missing parent: the run status is cut.
-3. When the run has a start object name s and R holds a commit J whose
-   commit object name is s that is not a shallow commit of R and has no
-   missing parent:
-   - When J reaches H (including when H is J), the run status is
-     already recorded.
+2. When the run has a start object name s and s is the commit object
+   name of H: the run status is already recorded.
+3. When the run has a start object name s, s is not the commit object
+   name of H, and either R holds no commit whose commit object name is
+   s or that commit is a shallow commit of R or has a missing parent:
+   the run status is cut.
+4. When the run has a start object name s, s is not the commit object
+   name of H, and R holds a commit J whose commit object name is s that
+   is not a shallow commit of R and has no missing parent:
+   - When J reaches H, the run status is already recorded.
    - Otherwise, when H reaches J: let C be the commit range from J to
      H. When C is complete in R, the run status is ready to record with
      range C. Otherwise, the run status is cut.
@@ -1887,11 +1881,11 @@ promise q of a task definition D in T under F, N, S, E, and those
 bindings of `runner-settings`:
 
 - When E does not forbid a verifies result in T, the program must give
-  whether q is kept in T, and must give the job promise outcome of q
-  for D in T ("kept" or "not-kept").
+  whether q is kept in T, and must give exactly one job promise outcome
+  for q and D in T, and only "kept" or "not-kept": the job promise
+  outcome of q for D in T.
 - When E forbids a verifies result in T, the program must give no
-  result for whether q is kept in T (and records "no-result" in any
-  `delivered` ledger entry).
+  result for whether q is kept in T.
 
 ### 5.11 Appending `delivered` ledger entries
 
@@ -1936,9 +1930,13 @@ ledger objects and its ledger is valid; F is a valid binding of
 `file-readers`; N is a binding of `external-namespaces` for which
 Identifiers gives the result "valid"; the default branch of R has a
 commit H under a binding D of `default-branch-name`; git has an
-identity in the execution's environment for R; the run status for R and
-H is ready to record with range C; R holds the git objects needed for
-the tree of H; and each repository read is undisturbed.
+identity in the execution's environment for R; each repository read of
+the run is undisturbed; and, for the git repository R′ that is R after
+any fetches that the program makes as part of those repository reads
+(or R itself when the program makes no fetch), the run status for R′
+and H is ready to record with range C and R′ holds the git tree object
+of H and every git tree object and blob named by an entry of the git
+tree object of H.
 
 When the program finishes the run under these conditions, with a set S
 of stopped files of the tree of H, the evidence E for the tree of H,
@@ -1986,7 +1984,7 @@ that message text in line-number order:
 
 When the program stops the run for limits of its own before finishing
 (such as on the length of C), it must append no `delivered` ledger
-entry and must give the result "cannot see range".
+entry and must give exactly one result, and only "cannot see range".
 
 ### 5.12 The job on an already-recorded head
 
@@ -2010,11 +2008,14 @@ entry and must give the result "cannot see range".
 When a conforming program runs the job on a git repository R under a
 valid binding of `file-readers`, a binding of `external-namespaces` for
 which Identifiers gives the result "valid", a binding of
-`default-branch-name` under which the default branch has a commit H, a
-git identity in the execution's environment, a valid ledger whose
-ledger objects R holds, and undisturbed repository reads, and the run
-status for R and H is already recorded, the program must append no
-`delivered` ledger entry and must give the result "already recorded".
+`default-branch-name` under which the default branch of R has a commit
+H, a git identity in the execution's environment for R, a valid ledger
+whose ledger objects R holds, and undisturbed repository reads, and,
+for the git repository R′ that is R after any fetches that the program
+makes as part of those repository reads (or R itself when the program
+makes no fetch), the run status for R′ and H is already recorded, the
+program must append no `delivered` ledger entry and must give exactly
+one result, and only "already recorded".
 
 ### 5.13 The job when its range is cut
 
@@ -2023,7 +2024,7 @@ status for R and H is already recorded, the program must append no
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
     changes#{
-        commit-file=v1, default-branch-name=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, repository-read=v1,
         undisturbed-read=v1,
     },
@@ -2039,13 +2040,16 @@ status for R and H is already recorded, the program must append no
 When a conforming program runs the job on a git repository R under a
 valid binding of `file-readers`, a binding of `external-namespaces` for
 which Identifiers gives the result "valid", a binding of
-`default-branch-name` under which the default branch has a commit H, a
-git identity in the execution's environment, a valid ledger whose
-ledger objects R holds, and undisturbed repository reads, and either
-the run status for R and H is cut or R lacks a git object needed for
-the tree of H and the program does not fetch it, the program must
-append no `delivered` ledger entry and must give the result "cannot see
-range".
+`default-branch-name` under which the default branch of R has a commit
+H, a git identity in the execution's environment for R, a valid ledger
+whose ledger objects R holds, and undisturbed repository reads, let R′
+be R after any fetches that the program makes as part of those
+repository reads (or R itself when the program makes no fetch). When
+either the run status for R′ and H is cut, or the run status for R′ and
+H is ready to record and R′ lacks the git tree object of H or any git
+tree object or blob named by an entry of the git tree object of H, the
+program must append no `delivered` ledger entry and must give exactly
+one result, and only "cannot see range".
 
 ### 5.14 The job under bindings that are not valid
 
@@ -2060,13 +2064,15 @@ range".
 Under a binding of `file-readers` that is not valid, or under a binding
 of `external-namespaces` for which a conforming program of Identifiers
 gives the result "invalid", when a conforming program runs the job, it
-must append no `delivered` ledger entry, must give the result "invalid
-bindings", and must end with an error.
+must append no `delivered` ledger entry, must give exactly one result,
+and only "invalid bindings", and must end with an error.
 
 ### 5.15 The job when the default branch has no commit
 
 @req reject-job-without-default-branch=v1
 @cites {
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
     changes#{
         default-branch-name=v1, default-branch-commit=v1,
         repository-read=v1, undisturbed-read=v1,
@@ -2075,25 +2081,38 @@ bindings", and must end with an error.
     text#{conforming-program=v1, result=v1},
 }
 
-Under a binding of `default-branch-name` under which the default branch
-of a git repository R has no commit, when a conforming program runs the
-job on R and each repository read is undisturbed, it must append no
-`delivered` ledger entry, must give the result "no default branch
-commit", and must end with an error.
+Under a valid binding of `file-readers`, a binding of
+`external-namespaces` for which a conforming program of Identifiers
+gives the result "valid", and a binding of `default-branch-name` under
+which the default branch of a git repository R has no commit, when a
+conforming program runs the job on R and each repository read is
+undisturbed, it must append no `delivered` ledger entry, must give
+exactly one result, and only "no default branch commit", and must end
+with an error.
 
 ### 5.16 The job without a git identity
 
 @req reject-job-without-git-identity=v1
 @cites {
-    ontology#{job=v1, ledger=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    changes#{
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
+    },
+    ontology#{job=v1, ledger=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{git-identity=v1},
 }
 
-When git has no identity in the execution's environment for a git
-repository R, when a conforming program runs the job on R, it must
-append no `delivered` ledger entry, must give the result "no git
-identity", and must end with an error.
+Under a valid binding of `file-readers`, a binding of
+`external-namespaces` for which a conforming program of Identifiers
+gives the result "valid", and a binding of `default-branch-name` under
+which the default branch of a git repository R has a commit, when git
+has no identity in the execution's environment for R and each repository
+read is undisturbed, a conforming program that runs the job on R must
+append no `delivered` ledger entry, must give exactly one result, and
+only "no git identity", and must end with an error.
 
 ### 5.17 Findings of the classes `promise-outside-paths` and `unmet-promise`
 
