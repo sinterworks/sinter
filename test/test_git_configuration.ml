@@ -1354,7 +1354,9 @@ let upstream_tests =
        Over generated merge refs and lists of fetch refspecs, with negative
        refspecs, refspecs that map nothing, and refspecs with no destination,
        the upstream must be the destination of the first refspec that maps the
-       merge ref, by the rule of the page git-fetch, or the test fails. *)
+       merge ref, by the rule of the page git-fetch. Under a binding of
+       `default-branch-name`, the result gives that upstream and no other, or no
+       upstream, never both. *)
     property ~name:"the upstream is the map of the first refspec that maps M"
       ~print:(fun (m, refspecs) -> m ^ " " ^ String.concat " " refspecs)
       Gen.(
@@ -1450,57 +1452,111 @@ let commits_of_refs refs : (string, unit) Ref_commit.refs =
  fun name ->
   Ok (Option.map (fun c -> Ref_commit.Commit c) (List.assoc_opt name refs))
 
+let set = Vectors.read "changes"
+
+let env_of_settings settings =
+  let entries =
+    List.concat_map
+      (fun (name, values) ->
+        match values with
+        | `List items ->
+            List.map
+              (function
+                | `String value -> (name, value)
+                | other ->
+                    Alcotest.failf "not a setting value: %s"
+                      (Yojson.Basic.to_string other))
+              items
+        | other ->
+            Alcotest.failf "not a list of values: %s"
+              (Yojson.Basic.to_string other))
+      settings
+  in
+  ("GIT_CONFIG_NOSYSTEM", "1")
+  :: ("GIT_CONFIG_COUNT", string_of_int (List.length entries))
+  :: List.concat
+       (List.mapi
+          (fun index (name, value) ->
+            [
+              (Printf.sprintf "GIT_CONFIG_KEY_%d" index, name);
+              (Printf.sprintf "GIT_CONFIG_VALUE_%d" index, value);
+            ])
+          entries)
+
+let member name input =
+  match input with
+  | `Assoc fields -> List.assoc_opt name fields
+  | other -> Alcotest.failf "not an object: %s" (Yojson.Basic.to_string other)
+
+let default_branch_commit configuration input =
+  let binding =
+    match member "binding" input with
+    | Some (`String b) -> (
+        match Text.decode b with
+        | Ok text -> text
+        | Error _ -> Alcotest.fail "not UTF-8")
+    | _ -> Alcotest.fail "no binding"
+  and refs =
+    match member "refs" input with
+    | Some (`Assoc refs) ->
+        List.map
+          (fun (name, commit) ->
+            match commit with
+            | `String c -> (name, c)
+            | _ -> Alcotest.fail "not a commit")
+          refs
+    | _ -> Alcotest.fail "no refs"
+  in
+  let upstream b =
+    match Config.upstream configuration b with
+    | Ok upstream -> Ok upstream
+    | Error _ -> Error ()
+  in
+  match
+    Default_branch.commit ~upstream ~refs:(commits_of_refs refs) binding
+  with
+  | Ok (Some commit) -> `Assoc [ ("commit", `String commit) ]
+  | Ok None -> `Assoc []
+  | Error () -> `String "an error"
+
+let give_upstream (vector : Vectors.vector) =
+  let settings =
+    match member "settings" vector.input with
+    | Some (`Assoc settings) -> settings
+    | _ -> Alcotest.fail "no settings"
+  in
+  let configuration =
+    configuration_of { files = []; env = env_of_settings settings }
+  in
+  `Assoc [ ("values", default_branch_commit configuration vector.input) ]
+
+(* @verifies changes[upstreams][*]=v1
+   Each vector gives a binding of `default-branch-name`, the settings of the
+   git configuration, and the refs of the git repository. The reader of the git
+   configuration and the default-branch resolver must give the commit of the
+   vector and no other commit, or no commit, never both. *)
+let design_upstream_vectors =
+  Vectors.group set ~name:"upstreams" ~form:"#upstream-vector=v1" give_upstream
+
 (* @verifies changes#give-default-branch-commits=v1
-   The proposed vectors of `upstreams` give the file `config` of a git
-   repository and its refs; the upstream from the reader of the git
-   configuration, with the refs, must give the commit of the default branch of
-   each vector, or the test fails. *)
+   The proposed vectors of `upstreams` give a binding of `default-branch-name`,
+   the file `config` of a git repository, and its refs. The reader of the git
+   configuration, with the refs, must give the commit of the default branch and
+   no other commit, or no commit, never both. *)
 let upstream_vectors =
   Proposed_vectors.test "upstreams" (fun input ->
-      let member name =
-        match input with
-        | `Assoc fields -> List.assoc_opt name fields
-        | _ -> None
-      in
       let text =
-        match member "config" with
+        match member "config" input with
         | Some config -> Changes_model.bytes_of_json config
         | None -> Alcotest.fail "no config"
-      and binding =
-        match member "binding" with
-        | Some (`String b) -> b
-        | _ -> Alcotest.fail "no binding"
-      and refs =
-        match member "refs" with
-        | Some (`Assoc refs) ->
-            List.map
-              (fun (name, commit) ->
-                match commit with
-                | `String c -> (name, c)
-                | _ -> Alcotest.fail "not a commit")
-              refs
-        | _ -> Alcotest.fail "no refs"
       in
-      let configuration = configuration (only_config text) in
-      let upstream b =
-        match Config.upstream configuration b with
-        | Ok upstream -> Ok upstream
-        | Error _ -> Error ()
-      in
-      let binding =
-        match Text.decode binding with
-        | Ok text -> text
-        | Error _ -> Alcotest.fail "not UTF-8"
-      in
-      match
-        Default_branch.commit ~upstream ~refs:(commits_of_refs refs) binding
-      with
-      | Ok (Some commit) -> `Assoc [ ("commit", `String commit) ]
-      | Ok None -> `Assoc []
-      | Error () -> `String "an error")
+      default_branch_commit (configuration (only_config text)) input)
+
+let vector_groups = [ design_upstream_vectors ]
 
 let tests =
-  key_tests @ syntax_tests @ boolean_tests @ pathname_tests @ order_tests
+  Vectors.tests "changes" vector_groups
+  @ key_tests @ syntax_tests @ boolean_tests @ pathname_tests @ order_tests
   @ read_tests @ environment_tests @ more_environment_tests @ file_tests
   @ include_tests @ limit_tests @ condition_tests @ more_condition_tests
   @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
