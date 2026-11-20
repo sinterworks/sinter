@@ -67,13 +67,13 @@ symbolic links, and files of another kind, with their contents and
 attributes; valid paths and the files that they name; valid globs and
 the valid paths that fit them; the bytes that a program takes from a
 file; the system of a program; and file objects, folder tree objects,
-and stored folder trees. From Data forms, it takes TOML documents, their
-root tables, the texts of TOML keys, and TOML values; hashes and the
-hash form; hex texts; JSON values, key order, their canonical byte
-sequences, and the JSON values of byte sequences; indexes; and
-test-vector sets, with the forms of a group, needs and need names, and
-what a vector line states. From the Ontology, it takes schemas, tests,
-test results, and parameters and their bindings.
+and stored folder trees. From Data forms, the design takes TOML
+documents, their root tables, the texts of TOML keys, and TOML values;
+hashes and the hash form; hex texts; JSON values, key order, their
+canonical byte sequences, and the JSON values of byte sequences;
+indexes; and test-vector sets, with the forms of a group, needs and need
+names, and what a vector line states. From the Ontology, the design
+takes schemas, tests, test results, and parameters and their bindings.
 
 From RFC 8259, the design takes JSON texts. An adapter writes its
 response as a JSON text. The files that hold the conformance vectors of
@@ -420,11 +420,12 @@ tree-sitter gives no result, such as when the instantiation or an
 invocation in that instance fails or a trap occurs in a WebAssembly
 instance whose code runs for that parsing, or when the tree of nodes
 that the parsing gives breaks the conditions of a parse tree. The
-program ends each reading. The text has a parse failure when it has no
-parse tree, or when the root node of the parse tree has an error: when
-the root node, or a node inside it, nodes of hidden symbols included, is
-an `ERROR` node or a `MISSING` node. A reading of a text with a parse
-failure gives the result "parse failure", and no node of the text.
+program ends each reading. The text has a parse failure when the text
+has no parse tree, or when the root node of the parse tree has an error.
+The root node has an error when the root node, or a node inside the root
+node, nodes of hidden symbols included, is an `ERROR` node or a
+`MISSING` node. A reading of a text with a parse failure gives the
+result "parse failure", and no node of the text.
 
 Each other reading gives the result "parsed". The program runs each
 query file of the grammar over the parse tree. The query language of
@@ -1016,42 +1017,44 @@ runner is the content of the file `adapters/<r>.wasm` of that pack.
 }
 
 This definition uses the parsing that the format of languages of
-tree-sitter defines, which gives, for a language and a byte sequence, a
-tree of nodes or no result. This parsing runs the code of the language
-in the instance of the WebAssembly module in which that module gave that
-language. The parsing gives no result when the instantiation of that
-module fails, when an invocation in that instance fails, or when a trap
-occurs in a WebAssembly instance whose code runs for that parsing, such
-as the instance of the grammar or an instance that runs parsing code of
-tree-sitter. Each tree of nodes that this parsing gives has a root node,
-and the children of each node of that tree of nodes are its named and
-its anonymous child nodes, in their order. A node of a hidden symbol is
-no node of that tree of nodes, and its children stand in its place. Each
-node has a symbol. Each symbol has a name. Each node has a start byte
-and an end byte, which are whole numbers. An `ERROR` node is a node of
-the symbol `ERROR`. A `MISSING` node is a node that the parsing inserts
-for a token that the text lacks. A node has an error when that node, or
-a node that the parsing gives inside that node, nodes of hidden symbols
-included, is an `ERROR` node or a `MISSING` node.
+tree-sitter defines. For a language and a byte sequence, that parsing
+gives a tree of nodes or no result. This parsing runs the code of the
+language in the instance of the WebAssembly module in which that module
+gave that language. The parsing gives no result when the instantiation
+of that module fails, when an invocation in that instance fails, or when
+a trap occurs in a WebAssembly instance whose code runs for that
+parsing, such as the instance of the grammar or an instance that runs
+parsing code of tree-sitter. Each tree of nodes that this parsing gives
+has a root node. For each tree of nodes that this parsing gives, the
+children of each node of that tree of nodes are the named and the
+anonymous child nodes of that node, in their order. A node of a hidden
+symbol is no node of that tree of nodes. The children of a node of a
+hidden symbol stand in the place of that node. Each node has a symbol.
+Each symbol has a name. Each node has a start byte and an end byte,
+which are whole numbers. An `ERROR` node is a node of the symbol
+`ERROR`. A `MISSING` node is a node that the parsing inserts for a token
+that the text lacks. A node has an error when that node, or a node that
+the parsing gives inside that node, nodes of hidden symbols included, is
+an `ERROR` node or a `MISSING` node.
 
 The parse text of a text is that text, followed by a line feed when the
 text does not end with a line feed. So the parse text of the empty text
 is one line feed.
 
 For a text and a usable grammar with a grammar name g, let b be the
-boundary where the body of the text starts, and let l be the last
-boundary of the text. The tree of nodes that this parsing gives for the
-language of that usable grammar and the UTF-8 encoding of the parse text
-of that text is the parse tree of that text with that usable grammar
-when, and only when, its nodes (with the nodes of hidden symbols left
-out and their children standing in their place) meet all four of these
+boundary where the body of the text starts. Let l be the last boundary
+of that text. The tree of nodes that this parsing gives for the language
+of that usable grammar and the UTF-8 encoding of the parse text of that
+text is the parse tree of that text with that usable grammar when, and
+only when, its nodes (with the nodes of hidden symbols left out and
+their children standing in their place) meet all four of these
 conditions:
 
 1. For each node, the start byte of the node is the number of bytes of
    the UTF-8 encoding of the characters of the parse text before a
-   boundary of the parse text, and the end byte of the node is the
-   number of bytes of the UTF-8 encoding of the characters of the parse
-   text before a boundary of the parse text.
+   boundary of the parse text. For each node, the end byte of the node
+   is the number of bytes of the UTF-8 encoding of the characters of the
+   parse text before a boundary of the parse text.
 2. For each node, the start byte of the node is less than or equal to
    the end byte of the node.
 3. For each node and each child of that node, the run of the child in
@@ -1946,8 +1949,8 @@ requirements of the group are `give-file-grammars` and
   valid path has no file grammar, the empty object, `{}`.
 
 When a conforming program gives a grammar as the file grammar of the
-valid path, it gives the grammar whose name `grammar` holds, and no
-other grammar as the file grammar of the valid path. With `{}`, a
+valid path, the program gives the grammar whose name `grammar` holds,
+and no other grammar as the file grammar of the valid path. With `{}`, a
 conforming program gives no grammar as the file grammar of the valid
 path.
 
