@@ -1249,6 +1249,12 @@ let main_branch = "[branch \"main\"]\nremote = up\nmerge = refs/heads/main\n"
 
 let upstream_tests =
   [
+    (* @verifies changes#give-default-branch-commits=v1
+       The upstream of the default branch comes from the fetch refspecs of its
+       remote, used as a mapping by the page git-fetch. A refspec whose source
+       or destination is not a ref name, that has more than one `:` or none, or
+       that has a `*` on one side only must map nothing, and the next refspec
+       that maps the merge ref must give the upstream. *)
     case
       "a refspec that gives no ref name maps nothing, and the next one counts"
       (fun () ->
@@ -1305,6 +1311,11 @@ let upstream_tests =
           "remote" "no value"
           (upstream_of "[branch \"main\"]\nremote\nmerge = refs/heads/main\n"
              "main"));
+    (* @verifies changes#give-default-branch-commits=v1
+       A `*` of a fetch refspec must take the bytes of the merge ref between
+       the prefix and the suffix of the source, and must give no match when the
+       prefix and the suffix overlap in the merge ref; a `+` at the start of
+       the refspec must not change the mapping. *)
     case "a * takes the bytes between the prefix and the suffix" (fun () ->
         Alcotest.(check string)
           "prefix and suffix" "refs/remotes/u/xaiy"
@@ -1331,6 +1342,8 @@ let upstream_tests =
           (upstream_of
              (main_branch ^ remote [ "+refs/heads/main:refs/remotes/u/m" ])
              "main"));
+    (* @verifies changes#give-default-branch-commits=v1
+       A `*` of a fetch refspec must also take the empty byte sequence. *)
     case "a * takes the empty sequence" (fun () ->
         Alcotest.(check string)
           "empty" "refs/remotes/up/x"
@@ -1338,6 +1351,10 @@ let upstream_tests =
              ("[branch \"main\"]\nremote = up\nmerge = refs/heads/main\n"
              ^ remote [ "refs/heads/main*:refs/remotes/up/x*" ])
              "main"));
+    (* @verifies changes#give-default-branch-commits=v1
+       The source of a fetch refspec must map only the merge ref with the same
+       full name, never a short name such as `main`, and a `*` must take bytes
+       that hold `/`. *)
     case "a refspec maps by full names, and its * takes any bytes" (fun () ->
         Alcotest.(check string)
           "a short source" "no upstream"

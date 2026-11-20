@@ -258,6 +258,13 @@ let fold_table =
     ("\xc3\x89", "\xc3\xa9", false, false);
   ]
 
+(* @verifies changes#give-default-branch-commits=v1
+   The patterns of the conditions `gitdir:`, `gitdir/i:`, `onbranch:`, and
+   `hasconfig:remote.*.url:` decide which included files give settings of the
+   git configuration, and so the upstream of the default branch. Each pattern
+   of the table must match each pathname of the table as the patterns of the
+   page gitignore match a full pathname, and, with case folding, as the
+   condition `gitdir/i:` of the page git-config matches. *)
 let table_tests =
   [
     case "the patterns of the table match as the rules give" (fun () ->
@@ -285,6 +292,11 @@ let table_tests =
           fold_table);
   ]
 
+(* @verifies changes#give-default-branch-commits=v1
+   In a pattern of a condition of the git configuration, a class of a bracket
+   expression must match exactly its bytes of 0x00 to 0x7F, and a range must
+   match each byte from its first byte to its second byte, by their values,
+   other than `/`. *)
 let class_tests =
   [
     case "each class matches exactly its bytes of 0x00 to 0x7F" (fun () ->
@@ -383,6 +395,11 @@ let pathname_gen =
          (oneof_list
             [ "a"; "b"; "A"; "B"; "/"; "*"; "1"; "]"; "-"; "\xff"; "c" ])))
 
+(* @verifies changes#give-default-branch-commits=v1
+   Over generated patterns and pathnames, a pattern of a condition of the git
+   configuration must match a pathname exactly when a direct reading of the
+   rules of the page gitignore for a full pathname gives a match, with case
+   folding and without it, and a pattern of any bytes must give a result. *)
 let reference_properties =
   [
     property ~name:"a match agrees with a direct reading of the rules"

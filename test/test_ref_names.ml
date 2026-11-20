@@ -178,6 +178,12 @@ let name_gen =
 
 let tests =
   [
+    (* @verifies changes#give-ref-commits=v1
+       A text names a ref only when it is a ref name of the term `ref-name`:
+       for each name of the list, the check must accept the name when, and
+       only when, the name meets the rules of the page git-check-ref-format,
+       other than the rule that a ref name holds `/`, and starts with `refs/`
+       or is a root name of the page gitglossary. *)
     case "a ref name meets the seven rules of the term" (fun () ->
         List.iter
           (fun name ->
@@ -214,6 +220,11 @@ let tests =
       ~print:(Printf.sprintf "%S") name_gen (fun name ->
         Ref_name.is_ref_name name = reference_ref_name name
         && Ref_name.is_root_name name = reference_root_name name);
+    (* @verifies changes#read-only-repository-files=v1
+       Over generated names, a ref name must give a pathname with no byte
+       0x00, no `/` at its start, and no empty part, part `.`, or part `..`,
+       so that the read of a loose ref takes bytes only from a file under the
+       folder of the refs. *)
     property ~count:3000 ~name:"a ref name gives a pathname inside a folder"
       ~print:(Printf.sprintf "%S") name_gen (fun name ->
         (not (Ref_name.is_ref_name name))
