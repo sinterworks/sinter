@@ -5,7 +5,7 @@
 @design ontology=v2
 @cites identifiers=v2
 @cites text=v2
-@cites files=v1
+@cites files=v2
 @cites data-forms=v2
 Specifies the kinds of item that Sinter traces, with their names, revisions, and edges; trees and the default branch; containment; work items and their relations; the ledger and the actors that write it; the names and meanings of states; parameters and their bindings; and requirements for conforming programs on the inputs on which states depend, on the treatment of ledger entries, on how they change the ledger, on what they append to the ledger and the repairs that they make when an agent runs them, on the judgments that they append and the repairs that they make, and on the use of declared tasks.
 
@@ -133,7 +133,7 @@ forms of a group; and the meaning of a vector.
 | [work of a task](sinter:#task=v1) | what people and agents change in the trees of a repository to finish a task |
 | [paths of a task](sinter:#task=v1) | the path set whose set has the valid paths of the files of a tree that the work of a task is to add, change, or remove |
 | [path set](sinter:files#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
-| [set of a path set](sinter:files#path-set-membership=v1) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
+| [set of a path set](sinter:files#path-set-membership=v2) | the paths that a path set gives: for `docs/` followed by `!docs/old/`, `docs/a.md` and not `docs/old/a.md` |
 | [promise](sinter:#promise=v2) | a pair of a kind of edge, `satisfies` or `verifies`, and the name of an item of the kind requirement, which a task has |
 | [keep a promise](sinter:#promise=v2) | a promise is kept in a tree when the tree has an edge that it promises, from a file in the paths of its task, that is not suspect, and, for `verifies`, test evidence shows that the source of that edge passed |
 | [plan](sinter:#plan=v1) | one piece of work that is made up of tasks and plans |
@@ -935,7 +935,7 @@ exactly one work item, and a display name, which can change.
 
 @term task=v1
 @cites {
-    files#{path=v1, path-set=v1, path-set-membership=v1},
+    files#{path=v1, path-set=v1, path-set-membership=v2},
     #{person=v1, agent=v1, external-item=v1, tree=v1},
 }
 
@@ -953,7 +953,7 @@ branch.
 @term promise=v2
 @cites {
     identifiers#{citation=v1},
-    files#{path=v1, path-set-membership=v1},
+    files#{path=v1, path-set-membership=v2},
     data-forms#{group-form-list=v2},
     text#{requirement=v1, design=v1},
     #{
