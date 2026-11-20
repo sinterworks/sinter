@@ -34,10 +34,17 @@ type value = string option
     variable with no [=] after it. *)
 
 val boolean : value -> bool option
-(** [boolean value] is the value as a boolean, by the rules of the page
-    git-config: [Some true] for [None] and for [yes], [on], [true], and [1];
-    [Some false] for [no], [off], [false], [0], and the empty byte sequence; the
-    letters in any case. It is [None] for any other value. *)
+(** [boolean value] is the value as a boolean, by the rules of git: [Some true]
+    for [None] and for [yes], [on], [true], and [1]; [Some false] for [no],
+    [off], [false], [0], and the empty byte sequence; the letters in any case.
+    Any other value is an integer when it is, in order: zero or more of the
+    bytes 0x20 and 0x09 to 0x0D; [+], [-], or neither; [0x] or [0X] and one or
+    more hex digits, or [0] and zero or more of the digits [0] to [7], or a
+    digit [1] to [9] and zero or more digits, as a number in base 16, 8, or 10;
+    and at most one of [k], [m], and [g], in either case, which multiplies the
+    number by 2{^ 10}, 2{^ 20}, or 2{^ 30}. Such an integer from -2{^ 31} to
+    2{^ 31}-1 gives [Some true] when it is not 0 and [Some false] when it is 0.
+    It is [None] for any other value. *)
 
 type pathname =
   | Pathname of string  (** the value names the file at this pathname *)
@@ -72,11 +79,12 @@ val parse : string -> ((key * value) list, syntax_error) result
     is that of the page git-config, section "Syntax": a section header [[name]]
     or [[name "subsection"]], with whitespace before the double quote, gives the
     settings after it the section [name] and the subsection [subsection]. A
-    section name is one or more of the bytes [a] to [z], [A] to [Z], [0] to [9],
-    [-], and [.]; a subsection holds no 0x0A and no 0x00, with [\ ] before any
-    byte for that byte. The rest of the line after a header is read as the lines
-    below are. The other lines are lines [name = value] or [name], where a name
-    is a letter, then letters, digits, and [-]. Only the bytes 0x20 and 0x09 are
+    section name is zero or more of the bytes [a] to [z], [A] to [Z], [0] to
+    [9], [-], and [.], and it is empty only in a header with a subsection; a
+    subsection holds no 0x0A and no 0x00, with [\ ] before any byte for that
+    byte. The rest of the line after a header is read as the lines below are.
+    The other lines are lines [name = value] or [name], where a name is a
+    letter, then letters, digits, and [-]. Only the bytes 0x20 and 0x09 are
     whitespace. [#] and [;] outside double quotes start a comment to the end of
     the line. In a value, the whitespace around it is dropped, the whitespace
     inside it is kept byte for byte, double quotes are dropped and keep the
@@ -142,8 +150,9 @@ type error =
           file when the reads give each an identity and the two identities are
           equal, and otherwise when their pathnames are the same bytes *)
   | Remote_url_in_conditional_include of string
-      (** the file at this pathname, which a condition [hasconfig:remote.*.url:]
-          includes, in turn, sets [remote.<name>.url] *)
+      (** the file at this pathname, which a met condition includes, in turn,
+          sets [remote.<name>.url], and the configuration has a setting
+          [includeIf.hasconfig:remote.*.url:<pattern>.<name>] *)
   | Remote_url_without_value
       (** a setting [remote.<name>.url] has the value [None], and a condition
           [hasconfig:remote.*.url:] needs the values of these settings *)
@@ -186,7 +195,13 @@ val of_repository :
       only when the variables that it needs are set;
     + the file [config] of the git folder;
     + the settings [GIT_CONFIG_KEY_<n>] and [GIT_CONFIG_VALUE_<n>] for each
-      [<n>] from 0 to the value of [GIT_CONFIG_COUNT] less 1, in that order.
+      [<n>] from 0 to the value of [GIT_CONFIG_COUNT] less 1, in that order. A
+      key [GIT_CONFIG_KEY_<n>] splits at its first and its last [.]: the bytes
+      before the first [.] are the section, the bytes of a section name of
+      {!parse} other than [.]; the bytes after the last [.] are the variable
+      name, as in {!parse}; and, when the two [.] differ, the bytes between them
+      are the subsection, with no 0x0A and no 0x00. The section is empty only
+      when there is a subsection.
 
     An empty pathname names no file. A system file or a global file that gives
     [No_file] or [Unreadable] holds no setting; any other file that gives
@@ -195,8 +210,9 @@ val of_repository :
     A value of [include.path], and of [includeIf.<condition>.path] when the
     condition is met, names a file by {!pathname}, relative to the folder of the
     file that holds the value when it does not start with [/]; the settings of
-    that file come at the place of the value. An empty value and [Names_no_file]
-    include nothing. The conditions:
+    that file come at the place of the value. [Names_no_file] includes nothing.
+    An empty value is a relative pathname: it names the folder of the file that
+    holds it. The conditions:
 
     - [gitdir:] and a pattern is met when the pattern matches one of the
       pathnames [git_directories], by {!Sinter_wildmatch.matches}, after these
@@ -210,6 +226,11 @@ val of_repository :
     - A condition [onbranch:] is never met, and its section has no effect.
     - Any other condition is never met: the setting [includeIf.<condition>.path]
       includes no file.
+
+    When the files and the environment that the read reads have a setting
+    [includeIf.hasconfig:remote.*.url:<pattern>.<name>], for any [<name>], a
+    setting [remote.<name>.url] in a file that a met condition includes, in
+    turn, gives [Remote_url_in_conditional_include].
 
     The configuration of a git repository has no settings of a file
     [config.worktree]. The result is the first error that the files give, in

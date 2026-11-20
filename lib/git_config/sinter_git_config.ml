@@ -16,13 +16,71 @@ let equal_key = String.equal
 
 type value = string option
 
+let int_bound = 1 lsl 31
+
+let digit_value base c =
+  let value =
+    match c with
+    | '0' .. '9' -> Char.code c - Char.code '0'
+    | 'a' .. 'f' -> Char.code c - Char.code 'a' + 10
+    | 'A' .. 'F' -> Char.code c - Char.code 'A' + 10
+    | _ -> base
+  in
+  if value < base then Some value else None
+
+let integer text =
+  let length = String.length text in
+  let rec skip k =
+    if k < length && (text.[k] = ' ' || (text.[k] >= '\t' && text.[k] <= '\r'))
+    then skip (k + 1)
+    else k
+  in
+  let k = skip 0 in
+  let negative, k =
+    if k < length && (text.[k] = '+' || text.[k] = '-') then
+      (text.[k] = '-', k + 1)
+    else (false, k)
+  in
+  let base, k =
+    if
+      k + 1 < length
+      && text.[k] = '0'
+      && (text.[k + 1] = 'x' || text.[k + 1] = 'X')
+    then (16, k + 2)
+    else if k < length && text.[k] = '0' then (8, k)
+    else (10, k)
+  in
+  let rec digits k value =
+    match if k < length then digit_value base text.[k] else None with
+    | Some d -> digits (k + 1) (min (int_bound + 1) ((value * base) + d))
+    | None -> (k, value)
+  in
+  let after, magnitude = digits k 0 in
+  let factor =
+    if after = length then Some 1
+    else if after + 1 = length then
+      match text.[after] with
+      | 'k' | 'K' -> Some (1 lsl 10)
+      | 'm' | 'M' -> Some (1 lsl 20)
+      | 'g' | 'G' -> Some (1 lsl 30)
+      | _ -> None
+    else None
+  in
+  match factor with
+  | Some factor when after > k ->
+      let value = magnitude * factor in
+      if negative && value <= int_bound then Some (-value)
+      else if (not negative) && value < int_bound then Some value
+      else None
+  | _ -> None
+
 let boolean = function
   | None -> Some true
   | Some text -> (
       match lower text with
       | "yes" | "on" | "true" | "1" -> Some true
       | "no" | "off" | "false" | "0" | "" -> Some false
-      | _ -> None)
+      | _ -> Option.map (fun number -> number <> 0) (integer text))
 
 type pathname = Pathname of string | Names_no_file
 type pathname_error = No_home | Unread_form | No_value
@@ -103,9 +161,8 @@ let parse content =
       | _ -> ()
     in
     read_name ();
-    if Buffer.length name = 0 then raise Malformed;
     match peek () with
-    | Some ']' ->
+    | Some ']' when Buffer.length name > 0 ->
         advance ();
         Buffer.contents name
     | Some c when is_space c ->
@@ -340,7 +397,6 @@ let met context ~source condition =
           | None -> (
               match after ~prefix:"hasconfig:remote.*.url:" condition with
               | Some text -> (
-                  context.conditional_urls <- true;
                   match context.urls with
                   | None -> Ok false
                   | Some urls -> Ok (match_any text urls))
@@ -375,13 +431,16 @@ and apply context ~source ~chain = function
   | (key, value) :: rest ->
       context.settings <- (key, value) :: context.settings;
       context.count <- context.count + 1;
+      if String.starts_with ~prefix:"includeif.hasconfig:remote.*.url:" key then
+        context.conditional_urls <- true;
       let* () =
         if context.count > context.limits.max_values then Error Limit_exceeded
         else Ok ()
       in
       let* conditional =
         match source with
-        | Some (pathname, true) when is_remote_url key ->
+        | Some (pathname, true)
+          when is_remote_url key && Option.is_some context.urls ->
             Error (Remote_url_in_conditional_include pathname)
         | Some (_, conditional) -> Ok conditional
         | None -> Ok false
@@ -397,10 +456,7 @@ and apply context ~source ~chain = function
               let* met = met context ~source:pathname condition in
               if not met then Ok ()
               else
-                include_value context ~source:pathname ~chain
-                  ~conditional:
-                    (conditional
-                    || String.starts_with ~prefix:"hasconfig:" condition)
+                include_value context ~source:pathname ~chain ~conditional:true
                   value
       in
       apply context ~source ~chain rest
@@ -408,7 +464,7 @@ and apply context ~source ~chain = function
 and include_value context ~source ~chain ~conditional value =
   match pathname ~home:(context.environment "HOME") value with
   | Error _ -> Error (Unread_pathname { pathname = source; value })
-  | Ok Names_no_file | Ok (Pathname "") -> Ok ()
+  | Ok Names_no_file -> Ok ()
   | Ok (Pathname path) ->
       let* full =
         if String.starts_with ~prefix:"/" path then Ok path
@@ -439,7 +495,7 @@ let parse_key text =
         else Some (String.sub text (first + 1) (last - first - 1))
       in
       if
-        section <> ""
+        (section <> "" || first <> last)
         && String.for_all is_name_byte section
         && name <> ""
         && is_letter name.[0]

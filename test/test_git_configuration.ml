@@ -261,6 +261,43 @@ let syntax_tests =
             ("[s \"x\\\n\"]", 1);
             ("[s]\na = x\\\ny\n1 = z\n", 4);
           ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A section header with an empty section name and a subsection must give
+       the settings of git 2.54.0: `[.a]`, `[ "a"]`, and `[\t"a"]` give `.a.b`;
+       `[ ""]` and `[.]` give `..b`; `[]`, `["a"]`, `[ ]`, and `[ "a" ]` are
+       errors. *)
+    case "an empty section with a subsection is a section" (fun () ->
+        check_parse "headers"
+          [
+            (".a.b", Some "1");
+            (".a.b", Some "2");
+            (".a.b", Some "3");
+            ("..b", Some "4");
+            ("..b", Some "5");
+            (".A.b", Some "6");
+            (".a.b.b", Some "7");
+            (".a.b", Some "8");
+          ]
+          "[.a]\n\
+           b = 1\n\
+           [ \"a\"]\n\
+           b = 2\n\
+           [\t\"a\"]\n\
+           b = 3\n\
+           [ \"\"]\n\
+           b = 4\n\
+           [.]\n\
+           b = 5\n\
+           [ \"A\"]\n\
+           b = 6\n\
+           [.a \"b\"]\n\
+           b = 7\n\
+           [.A]\n\
+           b = 8\n";
+        List.iter
+          (fun text -> check_syntax_error (Printf.sprintf "%S" text) 1 text)
+          [ "[]\n"; "[\"a\"]\n"; "[ ]\n"; "[ \"a\" ]\n" ]);
     property
       ~name:"a file of settings in quotes gives back its settings in order"
       ~print:(fun settings ->
@@ -368,10 +405,104 @@ let boolean_tests =
             (Some "False", Some false);
             (Some "0", Some false);
             (Some "", Some false);
-            (Some "2", None);
+            (Some "2", Some true);
             (Some " true", None);
             (Some "y", None);
           ]);
+  ]
+
+let integer_boolean_tests =
+  [
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A value of a boolean setting, such as `extensions.worktreeConfig`, must
+       be the boolean that git 2.54.0 gives it: an integer in 32 bits, in base
+       16, 8, or 10, with a unit `k`, `m`, or `g`, is true when it is not 0, and
+       each value that git refuses gives no boolean. *)
+    case "an integer is a boolean, true when it is not 0" (fun () ->
+        List.iter
+          (fun (text, expected) ->
+            Alcotest.(check (option bool))
+              (Printf.sprintf "%S" text) expected
+              (Config.boolean (Some text)))
+          (([
+              "2";
+              "-1";
+              "+1";
+              "007";
+              "0x1";
+              "0X1f";
+              "1k";
+              "1K";
+              "1m";
+              "1M";
+              "1g";
+              "1G";
+              " 1";
+              "\t1";
+              "\n1";
+              "\0111";
+              "\0121";
+              "\r1";
+              " \t1";
+              "2147483647";
+              "-2147483648";
+              "2097151k";
+              "-2097152k";
+              "-2g";
+              "-1k";
+              "0x7fffffff";
+              "0x1k";
+              "0x1g";
+              "017777777777";
+              "0x1A";
+              "0X1F";
+              "2047m";
+              "-2048m";
+            ]
+           |> List.map (fun text -> (text, Some true)))
+          @ ([ "00"; "0k"; "0g"; "-0"; "+0"; "0x0"; "000"; " 0"; "\0110" ]
+            |> List.map (fun text -> (text, Some false)))
+          @ ([
+               "08";
+               "09";
+               "0x";
+               "0xk";
+               "00x1";
+               "1kb";
+               "1kk";
+               "1t";
+               "k";
+               "-k";
+               "-";
+               "1.0";
+               "1 ";
+               "+ 1";
+               "- 1";
+               " ";
+               " true";
+               "true ";
+               "1 k";
+               "0 x1";
+               "2147483648";
+               "-2147483649";
+               "2097152k";
+               "-2097153k";
+               "2g";
+               "0x80000000";
+               "020000000000";
+               "99999999999999999999";
+               "-99999999999999999999";
+               "\0271";
+               "2048m";
+               "-2049m";
+               "1a";
+               "1A";
+               "\0081";
+               "\0141";
+               "maybe";
+             ]
+            |> List.map (fun text -> (text, None)))));
   ]
 
 let pathname_tests =
@@ -480,6 +611,12 @@ let read_tests =
             ( "GIT_CONFIG_NOSYSTEM false",
               [ ("GIT_CONFIG_NOSYSTEM", "0") ],
               [ "/etc/gitconfig"; config_path ] );
+            ( "GIT_CONFIG_NOSYSTEM 2",
+              [ ("GIT_CONFIG_NOSYSTEM", "2") ],
+              [ config_path ] );
+            ( "GIT_CONFIG_NOSYSTEM 00",
+              [ ("GIT_CONFIG_NOSYSTEM", "00") ],
+              [ "/etc/gitconfig"; config_path ] );
             ( "GIT_CONFIG_SYSTEM",
               [ ("GIT_CONFIG_SYSTEM", "/sys") ],
               [ "/sys"; config_path ] );
@@ -562,6 +699,7 @@ let environment_tests =
             check_error expected ("environment " ^ expected) { base with env })
           [
             ([ ("GIT_CONFIG_NOSYSTEM", "maybe") ], "GIT_CONFIG_NOSYSTEM");
+            ([ ("GIT_CONFIG_NOSYSTEM", "08") ], "GIT_CONFIG_NOSYSTEM");
             (no_system @ [ ("GIT_CONFIG_COUNT", "x") ], "GIT_CONFIG_COUNT");
             (no_system @ [ ("GIT_CONFIG_COUNT", "-1") ], "GIT_CONFIG_COUNT");
             (no_system @ [ ("GIT_CONFIG_COUNT", "1") ], "GIT_CONFIG_KEY_0");
@@ -672,9 +810,25 @@ let more_environment_tests =
             "a.b_c";
             "a.x\ny.c";
             "a.b.";
-            ".b.c";
+            ".b";
+            ".";
+            "..";
             "a.b.1";
           ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A key of `GIT_CONFIG_KEY_<n>` with an empty section must be a key when it
+       has a subsection, as git 2.54.0 reads `.a.b`, `..b`, and `.A.b`, and
+       `.b`, `.`, and `..` must be errors. *)
+    case "a key with an empty section and a subsection is a key" (fun () ->
+        let configuration =
+          configuration
+            (env_world [ (".a.b", "1"); ("..b", "2"); (".A.b", "3") ])
+        in
+        check_values "an empty section" [ Some "1" ] configuration ".a.b";
+        check_values "an empty subsection" [ Some "2" ] configuration "..b";
+        check_values "the case of the subsection" [ Some "3" ] configuration
+          ".A.b");
     case "a remote URL outside a conditional include is a setting" (fun () ->
         let configuration =
           configuration
@@ -805,9 +959,8 @@ let include_tests =
         check_values "values"
           [ Some "1"; Some "2"; Some "3" ]
           configuration "s.a");
-    case
-      "an include of a missing file, an empty value, or %(prefix)/ includes \
-       nothing" (fun () ->
+    case "an include of a missing file or of %(prefix)/ includes nothing"
+      (fun () ->
         let configuration =
           configuration
             (include_world
@@ -816,7 +969,6 @@ let include_tests =
                    content
                      "[include]\n\
                       path = gone.inc\n\
-                      path =\n\
                       path = %(prefix)/etc/x\n\
                       path = :(optional)/etc/x\n\
                       [s]\n\
@@ -825,6 +977,49 @@ let include_tests =
                ])
         in
         check_values "values" [ Some "1" ] configuration "s.a");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. An empty value of `include.path`, or of the path of a met condition, must
+       name the folder of the file that holds it, as git 2.54.0 reads it, so
+       that the configuration is an error; from the environment, it must be a
+       relative include with no file. *)
+    case "an empty include names the folder of its file" (fun () ->
+        List.iter
+          (fun text ->
+            check_error text "unreadable /r/.git/"
+              (include_world
+                 [
+                   (config_path, content text); ("/r/.git/", Config.Unreadable);
+                 ]))
+          [
+            "[include]\npath =\n";
+            "[include]\npath = \"\"\n";
+            "[include]\npath =   \n";
+            "[includeIf \"gitdir:/r/.git\"]\npath =\n";
+          ];
+        check_error "the folder ." "unreadable /r/.git/."
+          (include_world
+             [
+               (config_path, content "[include]\npath = .\n");
+               ("/r/.git/.", Config.Unreadable);
+             ]);
+        check_error "a condition that is not met" "no error"
+          (include_world
+             [
+               (config_path, content "[includeIf \"gitdir:/x/\"]\npath =\n");
+               ("/r/.git/", Config.Unreadable);
+             ]);
+        check_error "from the environment"
+          ("relative without file " ^ show_value (Some ""))
+          (include_world
+             ~env:
+               (no_system
+               @ [
+                   ("GIT_CONFIG_COUNT", "1");
+                   ("GIT_CONFIG_KEY_0", "include.path");
+                   ("GIT_CONFIG_VALUE_0", "");
+                 ])
+             [ (config_path, content "") ]));
     case "an include whose pathname has an unread form is an error" (fun () ->
         List.iter
           (fun value ->
@@ -1136,6 +1331,121 @@ let more_condition_tests =
           "s.met";
         check_values "a setting" [ Some "/yes.inc" ] configuration
           "includeif.path");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When a file or the environment that the read reads has
+       a setting under a condition `hasconfig:remote.*.url:`, met or not, a
+       remote URL in a file that a met condition of any kind includes, in turn,
+       must make the configuration an error, as git 2.54.0 refuses it; with no
+       such setting, or in a file of a plain or an unmet include, the URL must
+       be a setting. *)
+    case "with a condition hasconfig, a URL under any met condition is an error"
+      (fun () ->
+        let hasconfig = "[includeIf \"hasconfig:remote.*.url:other\"]\n" in
+        let gitdir = "[includeIf \"gitdir:/r/.git\"]\npath = /url.inc\n" in
+        let run ?(env = no_system) ?working_tree ?branch config files =
+          match
+            fst
+              (run_with ?working_tree ?branch
+                 (include_world ~env
+                    ([
+                       (config_path, content config);
+                       ("/url.inc", content "[remote \"o\"]\nurl = /u\n");
+                       ("/url-none.inc", content "[remote \"o\"]\nurl\n");
+                       ("/hit.inc", content "[s]\nhit = 1\n");
+                     ]
+                    @ files)))
+          with
+          | Ok _ -> "no error"
+          | Error error -> error_name error
+        in
+        let refused name = "remote url in conditional include " ^ name in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ("no condition hasconfig", "no error", run gitdir []);
+            ( "a condition after",
+              refused "/url.inc",
+              run (gitdir ^ hasconfig ^ "path = /hit.inc\n") [] );
+            ( "a condition before",
+              refused "/url.inc",
+              run (hasconfig ^ "path = /hit.inc\n" ^ gitdir) [] );
+            ( "a condition gitdir/i",
+              refused "/url.inc",
+              run
+                ("[includeIf \"gitdir/i:/R/.GIT\"]\npath = /url.inc\n"
+               ^ hasconfig ^ "path = /hit.inc\n")
+                [] );
+            ( "a condition onbranch",
+              refused "/url.inc",
+              run ~working_tree:git_folder ~branch:"main"
+                ("[includeIf \"onbranch:**\"]\npath = /url.inc\n" ^ hasconfig
+               ^ "path = /hit.inc\n")
+                [] );
+            ( "a plain include in the file of the condition",
+              refused "/url.inc",
+              run
+                ("[includeIf \"gitdir:/r/.git\"]\npath = /via.inc\n" ^ hasconfig
+               ^ "path = /hit.inc\n")
+                [ ("/via.inc", content "[include]\npath = /url.inc\n") ] );
+            ( "a condition in the file of a plain include",
+              refused "/url.inc",
+              run
+                ("[include]\npath = /via.inc\n" ^ hasconfig
+               ^ "path = /hit.inc\n")
+                [ ("/via.inc", content gitdir) ] );
+            ( "a URL with no value",
+              "remote url without value",
+              run
+                ("[includeIf \"gitdir:/r/.git\"]\npath = /url-none.inc\n"
+               ^ hasconfig ^ "path = /hit.inc\n")
+                [] );
+            ( "a setting other than path under the condition",
+              refused "/url.inc",
+              run (gitdir ^ hasconfig ^ "foo = bar\n") [] );
+            ( "a setting with no value under the condition",
+              refused "/url.inc",
+              run (gitdir ^ hasconfig ^ "foo\n") [] );
+            ( "a condition from the environment",
+              refused "/url.inc",
+              run
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ( "GIT_CONFIG_KEY_0",
+                        "includeIf.hasconfig:remote.*.url:other.path" );
+                      ("GIT_CONFIG_VALUE_0", "/hit.inc");
+                    ])
+                gitdir [] );
+            ( "a section of the condition with no setting",
+              "no error",
+              run (gitdir ^ hasconfig) [] );
+            ( "a condition only in a file that is not included",
+              "no error",
+              run
+                ("[includeIf \"gitdir:/x/\"]\npath = /cond.inc\n" ^ gitdir)
+                [ ("/cond.inc", content (hasconfig ^ "path = /hit.inc\n")) ] );
+            ( "a condition gitdir that is not met",
+              "no error",
+              run
+                ("[includeIf \"gitdir:/x/\"]\npath = /url.inc\n" ^ hasconfig
+               ^ "path = /hit.inc\n")
+                [] );
+            ( "a plain include",
+              "no error",
+              run
+                ("[include]\npath = /url.inc\n" ^ hasconfig
+               ^ "path = /hit.inc\n")
+                [] );
+            ( "a key that starts like the condition only",
+              "no error",
+              run
+                (gitdir
+               ^ "[includeIf \"hasconfig:remote.*\"]\npath = /hit.inc\n")
+                [] );
+          ]);
     case "a condition hasconfig that is not met reads nothing of its file"
       (fun () ->
         Alcotest.(check string)
@@ -1219,6 +1529,26 @@ let worktree_tests =
         Alcotest.(check string)
           "not a boolean" "not a boolean"
           (values "[extensions]\nworktreeConfig = maybe\n"));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. An integer value of `extensions.worktreeConfig` must decide whether the
+       file `config.worktree` counts, as git 2.54.0 reads `2`, `-1`, `1k`, and
+       `" 1"` as true and `00` as false, and refuses `08` and `2147483648`. *)
+    case "an integer value of extensions.worktreeConfig is a boolean" (fun () ->
+        List.iter
+          (fun (value, expected) ->
+            Alcotest.(check string)
+              value expected
+              (values ("[extensions]\nworktreeConfig = " ^ value ^ "\n")))
+          [
+            ("2", show_values [ Some "1"; Some "2" ]);
+            ("-1", show_values [ Some "1"; Some "2" ]);
+            ("1k", show_values [ Some "1"; Some "2" ]);
+            ("\" 1\"", show_values [ Some "1"; Some "2" ]);
+            ("00", show_values [ Some "1" ]);
+            ("08", "not a boolean");
+            ("2147483648", "not a boolean");
+          ]);
     case "the configuration of a git repository has no file config.worktree"
       (fun () ->
         let configuration =
@@ -1573,7 +1903,8 @@ let vector_groups = [ design_upstream_vectors ]
 
 let tests =
   Vectors.tests "changes" vector_groups
-  @ key_tests @ syntax_tests @ boolean_tests @ pathname_tests @ order_tests
-  @ read_tests @ environment_tests @ more_environment_tests @ file_tests
-  @ include_tests @ limit_tests @ condition_tests @ more_condition_tests
-  @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
+  @ key_tests @ syntax_tests @ boolean_tests @ integer_boolean_tests
+  @ pathname_tests @ order_tests @ read_tests @ environment_tests
+  @ more_environment_tests @ file_tests @ include_tests @ limit_tests
+  @ condition_tests @ more_condition_tests @ worktree_tests @ upstream_tests
+  @ [ upstream_vectors ]
