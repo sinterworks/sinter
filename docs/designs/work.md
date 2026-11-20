@@ -2300,10 +2300,25 @@ The vectors of this design are in the file
 as this design. The file is a test-vector set, as the specification
 [`test-vectors`](sinter:data-forms#test-vectors=v1) of Data forms gives
 it. A vector is an input and what a conforming program gives for it.
-Each vector follows from the requirements and adds nothing to them. Each
-group has a subsection below that gives the forms of that group, as the
-term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
-them.
+Each vector follows from the requirements and adds nothing to them. The
+vectors are in six groups: `task-hash`, `message-lines`, `acceptance`,
+`states`, `promise-findings`, and `change-findings`. Each group has a
+subsection in this section that gives the forms of that group, as the
+term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives the
+forms of a group. No vector follows from the requirements
+`assign-new-work-item-id`, `record-done-requirements`,
+`give-job-promise-outcomes`, `append-delivered-entries`,
+`report-already-recorded-head`, `report-cut-job-range`,
+`reject-job-under-invalid-bindings`,
+`reject-job-without-default-branch`, `reject-job-without-git-identity`,
+`omit-work-missing-base-report`, `report-work-missing-base`,
+`omit-work-findings-under-invalid-bindings`, and
+`omit-work-findings-from-invalid-ledgers`.
+
+Each requirement from which vectors follow applies only when a program
+gives the thing that the requirement names, such as whether a ledger
+entry is accepted at a point. So a vector holds a program only to what
+the program gives for the input.
 
 ### 6.1 Task hashes
 
@@ -2343,4 +2358,427 @@ gives the text of `hash`, and no other text.
 
 ```
 {"form":"#task-hash-vector=v1","group":"task-hash","input":{"paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}]},"note":"one path and one satisfies promise","values":{"hash":"de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13","pre-image":"{\"paths\":[\"src/billing/**\"],\"promises\":[{\"kind\":\"satisfies\",\"req\":\"billing#limit\"}]}"}}
+```
+
+### 6.2 Message lines
+
+@schema message-lines-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, line=v1,
+        line-number=v1, whole-number=v1, decimal-numeral=v1,
+        code-span=v1,
+    },
+    changes#{commit=v1, message-text=v1},
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1,
+    },
+    #{
+        work-item-id=v1, delivery-line-form=v1, task-line-form=v1,
+        give-message-work-lines=v1,
+    },
+}
+
+The group `message-lines` holds the vectors of the requirement
+`give-message-work-lines`. Each vector gives the text of the message of
+a commit, or says that the commit message has no text, and gives the
+delivery lines, the malformed delivery lines, and the task lines of that
+commit. The group uses no need, so these forms give no need names.
+
+The JSON values, objects, arrays, strings, and numbers of this schema
+are as RFC 8259 defines them. Inside the members `input` and `values`, a
+text is a JSON string whose characters are the characters of the text,
+in order, and a line number is a JSON number written as the decimal
+numeral of a whole number of 1 or more.
+
+- `input`: a JSON object with zero or one member. When the commit
+  message has a text, `input` holds the member `text`, whose value is
+  that text. When the commit message has no text, `input` has no member
+  `text`.
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with three members:
+  - `delivery-lines`: a JSON array, in line-number order, of JSON objects
+    with the members `line` (the line number), `task` (the task id), and
+    `hash` (the short task hash);
+  - `malformed-delivery-lines`: a JSON array of the line numbers of the
+    malformed delivery lines, in line-number order;
+  - `task-lines`: a JSON array, in line-number order, of JSON objects
+    with the members `line` (the line number) and `task` (the task id).
+
+When a conforming program gives the delivery lines, malformed delivery
+lines, or task lines for the commit of a vector, it gives the elements
+of the matching member of `values` once, in order, and no other line.
+
+```
+{"form":"#message-lines-vector=v1","group":"message-lines","input":{"text":"Enforce billing limit\n\nDelivers: t-3f2a9c1d07e4 0e515c\n"},"note":"single valid delivery line","values":{"delivery-lines":[{"hash":"0e515c","line":3,"task":"t-3f2a9c1d07e4"}],"malformed-delivery-lines":[],"task-lines":[]}}
+```
+
+### 6.3 Acceptance
+
+@schema acceptance-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, result=v1,
+        code-span=v1,
+    },
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1,
+    },
+    ontology#{ledger=v1, ledger-entry=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    #{
+        task-field=v1, plan-field=v1, done-field=v1,
+        abandoned-field=v1, delivered-field=v1,
+        definition-acceptance-rule=v1, work-judgment-acceptance-rule=v1,
+        delivered-acceptance-rule=v1, give-work-entry-acceptance=v1,
+    },
+}
+
+The group `acceptance` holds the vectors of the requirement
+`give-work-entry-acceptance`. Each vector gives a ledger whose ledger
+entries of the kinds `task`, `plan`, `done`, `abandoned`, and
+`delivered` are the given ones, in order. For each of those ledger
+entries, the vector gives whether that ledger entry is accepted at its
+point. The group uses no need, so these forms give no need names.
+
+The input of each vector stands for a valid ledger of a git repository
+that holds its ledger objects. No other process changes that git
+repository while the program reads it.
+
+The JSON values, objects, arrays, strings, numbers, and the literal
+names `true` and `false` of this schema are as RFC 8259 defines them.
+Inside the members `input` and `values`, a text is a JSON string whose
+characters are the characters of the text, in order, and a sequence is a
+JSON array of its elements, in order.
+
+- `input`: a JSON object with one member, `ledger`. `ledger` is the
+  ledger entries of the five work kinds of the ledger, as a sequence in
+  the order of the ledger. Each ledger entry is a JSON object that holds
+  `kind` and each field of the kind that the object of the ledger entry
+  has, with the same values. The other members of the object of the
+  ledger entry have no effect on the vector. The ledger has no other
+  ledger entry of these five kinds.
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with one member, `accepted`. `accepted` is a
+  JSON array with one element for each element of `ledger`, in the same
+  order. Each element is `true` when that ledger entry is accepted at
+  its point, and `false` when that ledger entry is not accepted at its
+  point.
+
+When a conforming program gives whether one of these ledger entries is
+accepted at its point, the program gives "accepted" when the element of
+`accepted` for that ledger entry is `true`, and gives "not accepted"
+when that element is `false` (unless a `task` or `plan` entry exceeds
+the program's limits on work-graph cycles, in which case the program
+gives no result).
+
+```
+{"form":"#acceptance-vector=v1","group":"acceptance","input":{"ledger":[{"def":1,"kind":"task","name":"Initial","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"Renamed","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"Stale","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"},{"def":4,"kind":"task","name":"Skipped","paths":[],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"task definition sequence: def 1, def 2, stale def 2, skipped def 4","values":{"accepted":[true,true,false,false]}}
+```
+
+### 6.4 States, readiness, and accounting
+
+@schema states-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, result=v1,
+        code-span=v1,
+    },
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1, hash-form=v1,
+    },
+    identifiers#{
+        slug=v1, full-name=v1, label=v1, external-namespaces=v1,
+        validate-bindings=v1,
+    },
+    documents#{file-readers=v1, extent-hash=v1, unreadable-file=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ontology#{
+        ledger=v1, tree=v1, task=v1, plan=v1, declared-item=v1,
+        item-name=v1, item-revision=v1, containment=v1,
+        work-item-state=v1, ready-task=v1,
+        requirement-accounted-for=v1, parameter=v1,
+    },
+    #{
+        work-item-id=v1, delivered-task-completion=v1,
+        give-task-states=v1, give-plan-states=v1,
+        give-task-readiness=v1, give-requirement-accounting=v1,
+        acceptance-vector=v1,
+    },
+}
+
+The group `states` holds the vectors of the requirements
+`give-task-states`, `give-plan-states`, `give-task-readiness`, and
+`give-requirement-accounting`. Each vector gives a ledger, task ids,
+plan ids, and items of the kind requirement of a tree, and gives the
+task states, plan states, task readiness, and requirement accounting at
+the point after the last ledger entry of that ledger. The group uses no
+need, so these forms give no need names.
+
+The input of each vector stands for a valid ledger of a git repository
+that holds its ledger objects, a valid binding of `file-readers`, a
+binding of `external-namespaces` for which a conforming program of
+Identifiers gives the result "valid", and an empty set of stopped files
+of the tree. No other process changes the git repository while the
+program reads it.
+
+The JSON values, objects, arrays, strings, and the literal names `true`
+and `false` of this schema are as RFC 8259 defines them. Inside the
+members `input` and `values`, a text is a JSON string whose characters
+are the characters of the text, in order.
+
+- `input`: a JSON object with four members:
+  - `ledger`: the ledger entries of the five work kinds of the ledger,
+    in the form that the schema `acceptance-vector` gives;
+  - `tasks`: a JSON array of distinct task ids;
+  - `plans`: a JSON array of distinct plan ids;
+  - `requirements`: a JSON array of JSON objects, each standing for one
+    declared item of the kind requirement of the tree, with `req` (its
+    name), `label` (its current revision), `hash` (its extent hash),
+    optional `spec` (the name of the item of the kind specification that
+    holds it, if any), and optional `design` (the name of the item of
+    the kind design to which it belongs, if any).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with four members:
+  - `task-states`: a JSON object whose members are each task id in
+    `tasks` that exists at the point, each mapped to `"open"`,
+    `"delivered"`, `"done"`, or `"abandoned"`;
+  - `plan-states`: a JSON object whose members are each plan id in
+    `plans` that exists at the point, each mapped to `"open"`, `"done"`,
+    or `"abandoned"`;
+  - `ready`: a JSON object whose members are each task id in `tasks`
+    that exists at the point, each mapped to `true` (for "ready") or
+    `false` (for "not ready");
+  - `accounted-for`: a JSON object whose members are each `req` in
+    `requirements`, each mapped to `true` (for "accounted for") or
+    `false` (for "not accounted for").
+
+For each queried task id, plan id, or requirement, a conforming program
+gives the result that the matching member of `values` gives, and gives
+no state or readiness result for a task id or plan id that does not
+appear in `task-states`, `plan-states`, or `ready`.
+
+```
+{"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":[{"promises":[{"hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit"}],"task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
+```
+
+### 6.5 Promise findings
+
+@schema promise-findings-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, whole-number=v1,
+        decimal-numeral=v1, code-point-order=v1, result=v1,
+        code-span=v1,
+    },
+    files#{path=v1},
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{
+        file-readers=v1, tree-edge=v1, origin-position=v1, run-spot=v1,
+        tree-finding=v1, unreadable-file=v1,
+    },
+    packs#{runner-settings=v1},
+    evidence#{tree-evidence=v1, tree-outcome=v1},
+    changes#{
+        commit=v1, message-text=v1, change-of-a-commit=v1,
+        change-base=v1, default-branch-name=v1, repository-read=v1,
+        undisturbed-read=v1,
+    },
+    findings#{finding-subject=v1, spot=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ontology#{
+        ledger=v1, tree=v1, edge=v1, finding-class=v1, parameter=v1,
+    },
+    #{
+        class-promise-outcome=v1, delivery-on-unmet-task-finding=v1,
+        missing-delivery-finding=v1, promise-outside-paths-finding=v1,
+        unmet-promise-finding=v1, give-work-tree-findings=v1,
+        give-work-commit-findings=v1, give-work-change-findings=v1,
+        acceptance-vector=v1,
+    },
+}
+
+The group `promise-findings` holds the vectors of the requirements
+`give-work-tree-findings`, `give-work-commit-findings` (for the class
+`delivery-on-unmet-task`), and `give-work-change-findings` (for the
+class `missing-delivery`). Each vector gives a ledger, a summary of the
+tree of a commit (with its edges and evidence status), optional commit
+message texts of the change of that commit, and an optional summary of
+the base tree of that change, and gives the resulting findings at the
+point after the last ledger entry of that ledger. The group uses no
+need, so these forms give no need names.
+
+The input of each vector stands for a valid ledger of a git repository
+that holds its ledger objects, a valid binding of `file-readers`, a
+binding of `external-namespaces` for which Identifiers gives the result
+"valid", a binding of `default-branch-name` under which the default
+branch has a commit (and the change has a base when `base` is present),
+and undisturbed repository reads.
+
+The JSON values, objects, arrays, strings, numbers, and the literal
+names `true` and `false` of this schema are as RFC 8259 defines them.
+Inside the members `input` and `values`, a text is a JSON string whose
+characters are the characters of the text, in order, and each line or
+column number is a JSON number written as the decimal numeral of a whole
+number of 1 or more.
+
+A tree summary is a JSON object with three members: `has-evidence`
+(`true` when the tree has evidence, `false` otherwise),
+`forbids-verifies` (`true` when the tree has evidence and Test evidence
+forbids a verifies result in that tree, `false` otherwise), and `edges`,
+a JSON array of edge summaries. Each edge summary is a JSON object with:
+`kind` (`"satisfies"` or `"verifies"`), `req` (the requirement name that
+the edge targets directly or through a vector group or vector set),
+`fits` (`true` when the edge says what its kind says, has a test source
+for `verifies`, stands in a read file, and is not suspect, `false`
+otherwise), `path` (the valid path of the file of the edge), `line` and
+`col` (the origin position of its citation entry), `end-line` and
+`end-col` (the position after the spot of its citation entry), and, for
+a `verifies` edge when `has-evidence` is `true`, optional `test-outcome`
+(`"passed"`, `"failed"`, `"skipped"`, or `"not-run"`).
+
+- `input`: a JSON object with two to four members: `ledger` (in the form
+  of `acceptance-vector`), `tree` (a tree summary), optional `commits`
+  (a JSON array of the message texts of the commits of the change), and
+  optional `base` (a tree summary of the base tree, present only when
+  `commits` is present).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with one member, `findings`, a JSON object
+  holding:
+  - `unmet-promise`: a JSON array of the finding subjects in code point
+    order;
+  - `promise-outside-paths`: a JSON array, in code point order of
+    `subject`, of JSON objects with `subject` and `spot` (a JSON object
+    with `path`, `start-line`, `start-col`, `end-line`, and `end-col`);
+  - when `commits` is present, `delivery-on-unmet-task`: a JSON array of
+    the task id subjects in code point order;
+  - when `commits` and `base` are present, `missing-delivery`: a JSON
+    array of the task id subjects in code point order.
+
+When a conforming program gives the findings of any class named in
+`findings`, it gives one finding for each element of that member (with
+that spot for `promise-outside-paths`, and no spot for the other three
+classes), and no other finding of that class.
+
+```
+{"form":"#promise-findings-vector=v1","group":"promise-findings","input":{"ledger":[{"def":1,"kind":"task","name":"Sat","paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"}],"tree":{"edges":[{"col":1,"end-col":20,"end-line":1,"fits":true,"kind":"satisfies","line":1,"path":"src/billing/a.ml","req":"billing#limit"}],"forbids-verifies":false,"has-evidence":true}},"note":"satisfies kept inside paths gives no finding","values":{"findings":{"promise-outside-paths":[],"unmet-promise":[]}}}
+```
+
+### 6.6 Change findings
+
+@schema change-findings-vector=v1
+@cites {
+    rfc/8259,
+    text#{
+        conforming-program=v1, text=v1, character=v1, whole-number=v1,
+        decimal-numeral=v1, code-point-order=v1, result=v1,
+        code-span=v1,
+    },
+    files#{path=v1, valid-path-set=v1},
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
+    changes#{
+        commit=v1, message-text=v1, change-of-a-commit=v1,
+        change-base=v1, hunk=v1, change-diff=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
+    },
+    findings#{finding-subject=v1, spot=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ontology#{ledger=v1, finding-class=v1, parameter=v1},
+    #{
+        exempt-paths=v1, commit-object-name=v1, change-task=v1,
+        repin-only-file=v1, path-finding-subject=v1,
+        stale-delivery-finding=v1, delivery-without-change-finding=v1,
+        unplanned-change-finding=v1, give-work-commit-findings=v1,
+        give-work-change-findings=v1, acceptance-vector=v1,
+    },
+}
+
+The group `change-findings` holds the vectors of the requirements
+`give-work-commit-findings` (for the class `stale-delivery`) and
+`give-work-change-findings` (for the classes `delivery-without-change`
+and `unplanned-change`). Each vector gives a ledger, a valid binding of
+`exempt-paths`, optional commits of the change of a commit, and optional
+changed files with hunks between the base tree and the tree of that
+commit, and gives the resulting findings at the point after the last
+ledger entry of that ledger. The group uses no need, so these forms give
+no need names.
+
+The input of each vector stands for a valid ledger of a git repository
+that holds its ledger objects, a valid binding of `file-readers`, a
+binding of `external-namespaces` for which Identifiers gives the result
+"valid", a binding of `default-branch-name` (under which the default
+branch has a commit when `commits` is present, and has no commit when
+`commits` is absent), and undisturbed repository reads.
+
+The JSON values, objects, arrays, strings, numbers, and the literal
+names `true` and `false` of this schema are as RFC 8259 defines them.
+Inside the members `input` and `values`, a text is a JSON string whose
+characters are the characters of the text, in order.
+
+A file summary is a JSON object with two members: `readable` (`true`
+when the file is a read file that can be read in its tree under
+`file-readers` and the tree's set of stopped files, `false` otherwise),
+and `lines`, a JSON array of line objects in line-number order. Each
+line object has `text` (the line text) and `pins`, a JSON array of the
+citation pins of accepted citation tag lines on that line. Each pin
+object has `start` and `end` (the 0-based start and end boundaries of
+the pin run in `text`), and, in the tree of the commit, optional
+`matches-current` (`true` when the edge of that citation pin has a cited
+item whose current revision is that pin run's text, `false` otherwise).
+
+- `input`: a JSON object with two to four members:
+  - `ledger`: in the form of `acceptance-vector`;
+  - `exempt-paths`: a JSON array of strings forming a valid path set;
+  - optional `commits`: a JSON array of JSON objects, each with `id` (a
+    commit object name) and optional `text` (the commit message text,
+    omitted when the message has no text);
+  - optional `changed-files` (present when the change has a base): a
+    JSON array of objects for each valid path with a hunk in a diff of
+    the change, each holding `path`, optional `base` (a file summary in
+    the base tree, omitted when the file was added), and optional `head`
+    (a file summary in the commit tree, omitted when the file was
+    deleted).
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with one member, `findings`, a JSON object
+  holding:
+  - `stale-delivery`: a JSON array of finding subjects in code point
+    order;
+  - when `commits` and `changed-files` are present,
+    `delivery-without-change`: a JSON array of task id subjects in code
+    point order;
+  - when `commits` and `changed-files` are present, `unplanned-change`:
+    a JSON array, in code point order of `subject`, of JSON objects with
+    `subject` and `has-spot` (`true` when the finding has the valid path
+    alone as its spot, `false` when the finding has no spot).
+
+When a conforming program gives the findings of any class named in
+`findings`, it gives one finding for each element of that member (with
+no spot for `stale-delivery` and `delivery-without-change`, and with or
+without a spot as `has-spot` says for `unplanned-change`), and no other
+finding of that class.
+
+```
+{"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"stale-delivery for malformed line, stale hash, and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2","1111111111111111111111111111111111111111@L3"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
 ```
