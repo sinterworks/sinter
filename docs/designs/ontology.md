@@ -102,7 +102,7 @@ forms of a group; and the meaning of a vector.
 | [conformance vector](sinter:#conformance-vector=v1) | the thing whose vector line is one vector line of a vector set; when the object of its vector line states a vector of the specification or the design of the vector set, it says that vector: an input, or several inputs, of a conforming program of the specification or the design of the vector set, and what the requirements of that specification, or the requirements that the design holds directly, oblige that program to give for them; otherwise it says no vector |
 | [vector line of a conformance vector](sinter:#conformance-vector=v1) | one vector line of a vector set; each vector line of a vector set is the vector line of one conformance vector, and a vector set has no other conformance vector |
 | [vector set](sinter:#vector-set=v1) | the test-vector set of an item of the kind specification, or of an item of the kind design, in a tree, when the tree has one |
-| [form pin](sinter:data-forms#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names a definition and a label of it |
+| [form pin](sinter:data-forms#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`, which names a schema and a label of it |
 | [form of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `form` of the object of a vector line, which is a form pin |
 | [group of a vector line](sinter:data-forms#vector-line=v1) | the value of the member `group` of the object of a vector line, which is a group name such as `offsets` |
 | [group of conformance vectors](sinter:#conformance-vector-group=v1) | the set of the conformance vectors of one vector set whose vector lines have one group as the value of the member `group`; its name is that group |
@@ -537,14 +537,13 @@ is this:
 @term vector-set=v1
 @cites {
     data-forms#{test-vector-set=v1, group-form-list=v1},
-    #{declared-item=v1, tree=v1},
+    #{declared-item=v1, schema=v1, tree=v1},
 }
 
 In a tree, each item of the kind design and each item of the kind
 specification has at most one vector set: the test-vector set of that
-item in that tree, when the tree has one, whether or not a definition
-that the item declares gives the forms of a group for each of its
-groups.
+item in that tree, when the tree has one, whether or not a schema that
+the item declares gives the forms of a group for each of its groups.
 
 ### 3.16 Conformance vectors
 
@@ -1194,10 +1193,11 @@ promised item of the kind requirement. For each `satisfies` promise of
 each such definition, it also records whether the promise was kept or
 was not kept. For each `verifies` promise of each such definition, it
 also records one of three values: that the promise was kept, that the
-promise was not kept, or no result. It records no result for a
-`verifies` promise when, and only when, the job gives no result for
-whether that promise is kept. In a record of the job, a promise for
-which that record records no result counts as not kept.
+promise was not kept, or no result. A record of the job records no
+result for a `verifies` promise of a definition when, and only when, the
+job gives no result for whether that promise is kept. When a record of
+the job records no result for a promise of a definition, that promise
+counts as not kept for that definition in that record.
 
 ### 3.49 The states of work items
 
@@ -1460,10 +1460,11 @@ of a ledger, when, and only when, one of these is true at that point:
   before that point meets, for that task, the condition of the state
   done of `work-item-state`, and it records both the current revision
   of the item in that tree and the same revised content as the revised
-  content of the item in that tree: for a `done` ledger entry, for that
-  item; and for a `delivered` ledger entry, for a promise, whose name
-  is the name of the item in that tree, of the definition of that task
-  that was current at the point of that ledger entry.
+  content of the item in that tree:
+  - for a `done` ledger entry, for that item;
+  - for a `delivered` ledger entry, for a promise whose name is the name
+    of the item in that tree and that is a promise of the definition of
+    that task that was current at the point of that ledger entry.
 
 ### 3.62 Parameters
 
