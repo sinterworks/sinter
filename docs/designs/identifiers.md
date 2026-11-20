@@ -2047,10 +2047,10 @@ optional member `note`, and no other member:
   conforming program gives the result that `result` holds, once, and no
   other result.
 - `values`: a JSON object that holds what a conforming program gives for
-  the inputs that the schema of the group names, other than the result
-  that `result` holds when the vector has `result` and other than each
-  result and each value that the vectors of the group do not state. The
-  schema of each group gives the members of this JSON object, and it
+  the inputs that the schema of the group names, other than each result
+  and each value that the vectors of the group do not state, and, when
+  the vector has `result`, other than the result that `result` holds.
+  The schema of each group gives the members of this JSON object, and it
   names each result and each value that a conforming program gives and
   that the vectors of the group do not state. In `values`, or in the
   `values` member of an element of an array that a group schema names,
@@ -2077,14 +2077,15 @@ sequence in one fixed JSON form:
 
 A vector line meets the schema `vector-line` when, and only when, it
 meets what this schema states for one vector line: what this schema
-states from "The text of each line of the vector file" to this
-paragraph. All vector lines in the vector file with the same `group`
-have the same `#` and part name in `form`, and their labels in `form`
-may differ. The vector file meets the schema `vector-line` when, and
-only when, the vector file meets what this schema states before "The
-text of each line of the vector file" and what this paragraph states on
-`group` and `form`, and the text of each line of the vector file is a
-vector line that meets the schema `vector-line`.
+states from "The text of each line of the vector file" up to this
+paragraph, this paragraph left out. All vector lines in the vector file
+with the same `group` have the same `#` and part name in `form`, and
+their labels in `form` may differ. The vector file meets the schema
+`vector-line` when, and only when, the vector file meets what this
+schema states before "The text of each line of the vector file" and
+what this paragraph states on `group` and `form`, and the text of each
+line of the vector file is a vector line that meets the schema
+`vector-line`.
 
 ### 6.2 Tag lines
 
