@@ -383,16 +383,14 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them. No group of this design uses a need, so the forms of each group
-give no need names. Subsection 5.1 gives the forms of the group `trees`,
-as the term [`group-form-list`](sinter:data-forms#group-form-list=v1)
-gives them. No vector follows from the requirements
+to them. Subsection 5.1 gives the forms of the group `trees`, as the
+term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
+them. No vector follows from the requirements
 `compare-with-change-base`, `omit-missing-base-report`, and
 `report-missing-base`.
 
-Each vector is for the empty set of
-[stopped files](sinter:documents#unreadable-file=v1) of each tree. So a
-vector checks a program only when the set of stopped files of the
+By the schema `trees-vector`, a vector checks a program only when the
+set of [stopped files](sinter:documents#unreadable-file=v1) of the
 program for each tree of the vector is empty.
 
 ### 5.1 Trees
@@ -417,6 +415,7 @@ program for each tree of the vector is empty.
     findings#{spot=v1},
     documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
     #{
+        needs-revision-finding=v1, suspect-finding=v1,
         give-needs-revision-findings=v1, give-suspect-findings=v1,
         omit-findings-under-invalid-bindings=v1,
     },
