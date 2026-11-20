@@ -180,6 +180,13 @@ let loose_tests =
           ]);
   ]
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+   @cites changes#commit=v1
+   By the term `commit`, a loose object is one RFC 1950 zlib stream whose
+   inflated bytes start with `<type> <size>\0` and hash to its object id. Each
+   case puts a malformed stream, a malformed header, or an object of another id
+   or kind at the loose pathname of X. The test fails when the store gives an
+   object from such a file or omits its damage. *)
 let loose_damage_tests =
   let x = O.id Id.Sha1 O.Blob "abc" in
   let at bytes = M.create [ (loose_pathname x, M.File bytes) ] in
@@ -404,6 +411,13 @@ let delta_of base target =
   O.delta ~base_size:(String.length base) ~result_size:(String.length target)
     (O.delta_between base target)
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+   @cites changes#commit=v1
+   By the term `commit`, a `REF_DELTA` entry in a pack uses a base entry in the
+   same pack whose object hashes to the named base id. The cases test a valid
+   base in the same pack, a base entry that hashes to another object, delta
+   cycles, and the delta limit. A lookup that accepts a wrong base or misses a
+   valid base in the same pack fails the test. *)
 let ref_delta_tests =
   let base = String.make 200 'b' and target = String.make 200 'b' ^ "t" in
   let base_id = O.id Id.Sha1 O.Blob base
@@ -814,6 +828,14 @@ let order_tests =
 
 let alternates ?(db = db) text = (db ^ "/info/alternates", M.File text)
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1, read-only-repository-files=v1}
+   @cites changes#commit=v1
+   By the term `commit`, the object databases of a git repository are the
+   folder `objects` of its git folder and, in turn, each folder that a file
+   `info/alternates` names. The cases check absolute and relative paths,
+   transitive `info/alternates` files, symbolic links, non-folders, cycles,
+   search order, and folder deduplication. A lookup that misses a named object
+   database or follows an invalid line fails the test. *)
 let alternate_tests =
   let content = "in an alternate\n" in
   let x = O.id Id.Sha1 O.Blob content in
@@ -1739,6 +1761,16 @@ let generated_properties =
           plan.objects);
   ]
 
+(* @verifies changes#{give-commit-parents=v1, give-message-texts=v1, give-commit-files=v1, give-commit-file-at-path=v1}
+   @cites changes#commit=v1
+   By the term `commit`, a git repository holds a git object only when a place
+   gives bytes that follow gitformat-loose or gitformat-pack and hash to the
+   object id from `<type> <size>\0` and the content. The cases check fixed
+   object ids, prefix omission, SHA-256 hash mismatches, loose sizes with
+   leading zeros or non-decimal characters, bytes after the zlib stream of a
+   loose object, and `REF_DELTA` bases outside the same pack. The test fails
+   when the store gives an object from a place that breaks any of these rules
+   or rejects a valid object. *)
 let held_tests =
   let base = String.make 200 'b' and target = String.make 200 'b' ^ "t" in
   let base_id = O.id Id.Sha1 O.Blob base
@@ -1761,7 +1793,138 @@ let held_tests =
   in
   let x = O.id Id.Sha1 O.Blob "abc" in
   let loose_at bytes = M.create [ (loose_pathname x, M.File bytes) ] in
+  let raw_of_hex format hex =
+    match Id.of_hex format hex with
+    | Some id -> Id.to_bytes id
+    | None -> Alcotest.failf "not an id: %s" hex
+  in
   [
+    case "the object id is the hash of type, space, size, NUL, and content"
+      (fun () ->
+        let vectors =
+          [
+            ( "sha1 blob abc",
+              Id.Sha1,
+              O.Blob,
+              "abc",
+              "f2ba8f84ab5c1bce84a7b441cb1959cfc7093b7f" );
+            ( "sha256 empty tree",
+              Id.Sha256,
+              O.Tree,
+              "",
+              "6ef19b41225c5369f1c104d45d8d85efa9b057b53b14b4b9b939dd74decc5321"
+            );
+          ]
+        in
+        List.iter
+          (fun (label, format, kind, content, hex) ->
+            let raw = raw_of_hex format hex in
+            let loose_node =
+              (loose_pathname raw, M.File (O.loose kind content))
+            in
+            check (label ^ ", loose") (held kind content)
+              (finder ~format (M.create [ loose_node ]) raw);
+            let pack = O.pack format [ O.Whole (kind, content) ] in
+            check (label ^ ", packed") (held kind content)
+              (finder ~format
+                 (M.create
+                    (pack_nodes "p" pack (O.index_v2 format ~pack [ raw ])))
+                 raw);
+            let unprefixed = O.hash format content in
+            check
+              (label ^ ", loose without prefix")
+              (not_held
+                 ~damage:[ damage (loose_pathname unprefixed) Store.Wrong_id ]
+                 ())
+              (finder ~format
+                 (M.create
+                    [
+                      (loose_pathname unprefixed, M.File (O.loose kind content));
+                    ])
+                 unprefixed);
+            check
+              (label ^ ", packed without prefix")
+              (not_held
+                 ~damage:
+                   [ damage ~offset:12 (pack_pathname "p") Store.Wrong_id ]
+                 ())
+              (finder ~format
+                 (M.create
+                    (pack_nodes "p" pack
+                       (O.index_v2 format ~pack [ unprefixed ])))
+                 unprefixed))
+          vectors;
+        let sha256_id = O.id Id.Sha256 O.Blob "abc" in
+        check "sha256 loose wrong content"
+          (not_held
+             ~damage:[ damage (loose_pathname sha256_id) Store.Wrong_id ]
+             ())
+          (finder ~format:Id.Sha256
+             (M.create
+                [ (loose_pathname sha256_id, M.File (O.loose O.Blob "abd")) ])
+             sha256_id);
+        check "sha256 loose wrong kind"
+          (not_held
+             ~damage:[ damage (loose_pathname sha256_id) Store.Wrong_id ]
+             ())
+          (finder ~format:Id.Sha256
+             (M.create
+                [ (loose_pathname sha256_id, M.File (O.loose O.Tree "abc")) ])
+             sha256_id);
+        let bad_pack = O.pack Id.Sha256 [ O.Whole (O.Commit, "abc") ] in
+        check "sha256 packed wrong kind"
+          (not_held
+             ~damage:[ damage ~offset:12 (pack_pathname "p") Store.Wrong_id ]
+             ())
+          (finder ~format:Id.Sha256
+             (M.create
+                (pack_nodes "p" bad_pack
+                   (O.index_v2 Id.Sha256 ~pack:bad_pack [ sha256_id ])))
+             sha256_id));
+    case "a REF_DELTA base of another kind gives nothing" (fun () ->
+        List.iter
+          (fun (label, format) ->
+            let b_id = O.id format O.Blob base
+            and t_id = O.id format O.Blob target in
+            let pack =
+              O.pack format
+                [
+                  O.Whole (O.Commit, base);
+                  O.Ref_delta (b_id, delta_of base target);
+                ]
+            in
+            check label
+              (not_held
+                 ~damage:
+                   [ damage ~offset:12 (pack_pathname "s") Store.Wrong_id ]
+                 ())
+              (finder ~format
+                 (M.create
+                    (pack_nodes "s" pack
+                       (O.index_v2 format ~pack [ b_id; t_id ])))
+                 t_id))
+          both_formats);
+    case "a REF_DELTA whose result has another id gives nothing" (fun () ->
+        let pack =
+          O.pack Id.Sha1
+            [
+              O.Whole (O.Blob, base);
+              O.Ref_delta (base_id, delta_of base "another result");
+            ]
+        in
+        check "wrong result"
+          (not_held
+             ~damage:
+               [
+                 damage ~offset:(nth_offset pack 1) (pack_pathname "s")
+                   Store.Wrong_id;
+               ]
+             ())
+          (finder
+             (M.create
+                (pack_nodes "s" pack
+                   (O.index_v2 Id.Sha1 ~pack [ base_id; target_id ])))
+             target_id));
     case "a REF_DELTA base in another pack is not a base" (fun () ->
         let whole = O.pack Id.Sha1 [ O.Whole (O.Blob, base) ] in
         check "another pack" not_in_pack
@@ -1781,6 +1944,43 @@ let held_tests =
           (finder
              (M.create (alternates "/a/objects\n" :: node :: delta_nodes ()))
              target_id));
+    case
+      "a REF_DELTA in an alternate does not take its base from the first \
+       database" (fun () ->
+        let _, node = loose O.Blob base in
+        check "from the first database"
+          (not_held
+             ~damage:
+               [
+                 damage ~offset:12
+                   (pack_pathname ~db:"/a/objects" "d")
+                   (Store.Base_not_in_pack (oid Id.Sha1 base_id));
+               ]
+             ())
+          (finder
+             (M.create
+                (alternates "/a/objects\n" :: node
+                :: delta_nodes ~db:"/a/objects" ()))
+             target_id));
+    case
+      "a REF_DELTA whose base is outside its pack does not hide a later place"
+      (fun () ->
+        let whole = O.pack Id.Sha1 [ O.Whole (O.Blob, base) ] in
+        let _, good = loose ~db:"/a/objects" O.Blob target in
+        check "held from the alternate"
+          (held
+             ~damage:
+               [
+                 damage ~offset:12 (pack_pathname "d")
+                   (Store.Base_not_in_pack (oid Id.Sha1 base_id));
+               ]
+             O.Blob target)
+          (finder
+             (M.create
+                ((alternates "/a/objects\n" :: good :: delta_nodes ())
+                @ pack_nodes "w" whole
+                    (O.index_v2 Id.Sha1 ~pack:whole [ base_id ])))
+             target_id));
     case "a REF_DELTA whose base no place holds names the base" (fun () ->
         check "no base" not_in_pack
           (finder (M.create (delta_nodes ())) target_id));
@@ -1793,7 +1993,35 @@ let held_tests =
                    [ damage (loose_pathname x) Store.Malformed_loose_header ]
                  ())
               (finder (loose_at (O.zlib (header ^ "abc"))) x))
-          [ ("one zero", "blob 03\000"); ("two zeros", "blob 003\000") ]);
+          [ ("one zero", "blob 03\000"); ("two zeros", "blob 003\000") ];
+        let own_raw = O.hash Id.Sha1 "blob 03\000abc" in
+        check "at its own hash"
+          (not_held
+             ~damage:
+               [ damage (loose_pathname own_raw) Store.Malformed_loose_header ]
+             ())
+          (finder
+             (M.create
+                [ (loose_pathname own_raw, M.File (O.zlib "blob 03\000abc")) ])
+             own_raw);
+        let ten = String.make 10 'a' in
+        let ten_id = O.id Id.Sha1 O.Blob ten in
+        check "a negative size"
+          (not_held
+             ~damage:[ damage (loose_pathname x) Store.Malformed_loose_header ]
+             ())
+          (finder (loose_at (O.zlib "blob -3\000abc")) x);
+        check "an underscore in the size"
+          (not_held
+             ~damage:
+               [ damage (loose_pathname ten_id) Store.Malformed_loose_header ]
+             ())
+          (finder
+             (M.create
+                [
+                  (loose_pathname ten_id, M.File (O.zlib ("blob 1_0\000" ^ ten)));
+                ])
+             ten_id));
     case "the size 0 is written as one digit 0" (fun () ->
         let raw = O.id Id.Sha1 O.Blob "" in
         check "blob 00"
