@@ -1224,12 +1224,13 @@ judgment is one of these four kinds of ledger entry:
 A record of the job is a ledger entry of the kind `delivered`. A record
 of the job records what the job observed about one delivery line. That
 record of the job is a `delivered` ledger entry of the task that the
-delivery line names. For each definition of that task that the line
-names, and for each promise of that definition, it records the revision
-and the revised content of the promised item of the kind requirement.
-For each `satisfies` promise of each such definition, it also records
-whether the promise was kept or was not kept. For each `verifies`
-promise of each such definition, it also records one of three values:
+delivery line names. For each definition of that task that the delivery
+line names, and for each promise of that definition, that record of the
+job records the revision and the revised content of the promised item of
+the kind requirement. For each `satisfies` promise of each such
+definition, that record of the job also records whether the promise was
+kept or was not kept. For each `verifies` promise of each such
+definition, that record of the job also records one of three values:
 that the promise was kept, that the promise was not kept, or no result.
 A record of the job records no result for a `verifies` promise of a
 definition when, and only when, the job gives no result for whether that
