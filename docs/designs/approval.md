@@ -316,23 +316,21 @@ The subject of a finding of the class `declined` or `awaiting-approval`
 is a subject text, such as `req:billing#limit`. A subject text matches
 the production `subject` of the schema `identifiers#ack-line`, and it
 holds no line feed, so it is a subject of a finding (term
-`findings#finding-subject`). Each of the three classes reports only a
-subject of approval whose declared item is in force under the bindings,
-or an edge whose cited item is an item of the kind requirement that has
-a subject of approval, or a schema that has a subject of approval, and
-whose cited item is in force under the bindings (term
-`bound-in-force-item`), so a retired item gives no
-finding of these classes. A subject of approval that is declined gives
-no finding of the class `awaiting-approval`. Two subjects of approval of
-one tree whose declared items have the same kind of item and the same
-name have the same subject text, so they give at most one finding of
-each class. The spot of that finding is that of the first subject of
-approval of the tree with that subject text in the subject order (term
-`subject-order`), whatever its state and whether its declared item is in
-force. So the spot does not depend on the ledger or on the states. Two
-such subjects of approval can give a finding of the class `declined` and
-a finding of the class `awaiting-approval`: both are in force, one of
-them is declined, and the other needs approval and is neither.
+`findings#finding-subject`). Each of the three classes reports only what
+is in force under the bindings (term `bound-in-force-item`): a subject
+of approval whose declared item is in force, or an edge whose cited item
+is in force. So a retired item gives no finding of these classes. A
+subject of approval that is declined gives no finding of the class
+`awaiting-approval`. Two subjects of approval of one tree whose declared
+items have the same kind of item and the same name have the same subject
+text, so they give at most one finding of each class. The spot of that
+finding is that of the first subject of approval of the tree with that
+subject text in the subject order (term `subject-order`), whatever its
+state and whether its declared item is in force. So the spot does not
+depend on the ledger or on the states. Two such subjects of approval can
+give a finding of the class `declined` and a finding of the class
+`awaiting-approval`: both are in force, one of them is declined, and the
+other needs approval and is neither.
 
 The subject of a finding of the class `unapproved-req` is the position
 subject of the citation entry of its edge, such as `src/fee.ml@L3C4`
@@ -345,14 +343,13 @@ line give only edges of the kind `cites`, so they give no such finding.
 
 @schema approval-kinds=v1
 @cites {
-    ontology#{subject-of-approval=v1, parameter=v1, person=v1},
+    ontology#{subject-of-approval=v1, parameter=v1},
     text#{code-span=v1},
 }
 
-The parameter `approval-kinds` gives the kinds of subject of approval
-that need approval by a person. A binding of the parameter
-`approval-kinds` is a set of kinds of subject of approval. The empty set
-is a binding.
+A binding of the parameter `approval-kinds` is a set of kinds of subject
+of approval. The empty set is a binding. Every binding of
+`approval-kinds` meets the schema `approval-kinds`.
 
 ## 4. Definitions
 
@@ -891,12 +888,10 @@ same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
-to them. No group of this design uses a need, so the forms of each group
-give no need names. The vectors are in three groups, `acceptance`,
-`findings`, and `states`, and each group has a subsection below that
-gives its forms, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v1) gives them. No
-vector follows from the requirements `record-judged-content`,
+to them. The vectors are in three groups, `acceptance`, `findings`, and
+`states`, and each group has a subsection below that gives its forms, as
+the term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
+them. No vector follows from the requirements `record-judged-content`,
 `record-seen-judgments`, `give-no-states-under-invalid-bindings`, and
 `give-no-findings-from-invalid-ledgers`.
 
