@@ -250,10 +250,141 @@ let run_cases =
         Alcotest.(check string) "the line feed" "3-3" (run_of subject nodes 3));
     case "the run of a node counts characters, not bytes" (fun () ->
         let subject = "\xc3\xa9\xf0\x9f\x98\x80" in
-        let nodes = [ node 0 4 0 7; node 1 3 2 6; node 1 3 0 2 ] in
+        let nodes = [ node 0 4 0 7; node 1 3 0 2; node 1 3 2 6 ] in
         Alcotest.(check string) "the root" "0-2" (run_of subject nodes 0);
-        Alcotest.(check string) "the emoji" "1-2" (run_of subject nodes 1);
-        Alcotest.(check string) "the e" "0-1" (run_of subject nodes 2));
+        Alcotest.(check string) "the e" "0-1" (run_of subject nodes 1);
+        Alcotest.(check string) "the emoji" "1-2" (run_of subject nodes 2));
+  ]
+
+(* @verifies packs#{give-reading-results=v1, give-reading-node-values=v1}
+   Each case checks condition 3 (a child's run in the text lies within its
+   parent's run in the text) and condition 4 (each earlier sibling's run in the
+   text ends at or before the start of each later sibling's run in the text) of
+   the term parse-tree, including clamping at the byte order mark and the added
+   line feed, and the order of errors in Parse_tree.decode. *)
+let nesting_and_order_cases =
+  [
+    case "a child whose run lies outside its parent's run gives Not_nested"
+      (fun () ->
+        fails "child starts before parent" (Not_nested 1) "abcd"
+          (record [ node 0 4 1 3; node 1 3 0 2 ]);
+        fails "child ends after parent" (Not_nested 1) "abcd"
+          (record [ node 0 4 0 2; node 1 3 1 3 ]);
+        fails "child surrounds parent" (Not_nested 1) "abcd"
+          (record [ node 0 4 1 2; node 1 3 0 3 ]);
+        fails "empty child before parent" (Not_nested 1) "abcd"
+          (record [ node 0 4 1 3; node 1 3 0 0 ]);
+        fails "empty child after parent" (Not_nested 1) "abcd"
+          (record [ node 0 4 0 1; node 1 3 2 2 ]);
+        fails "grandchild starts before its parent" (Not_nested 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 1 3; node 2 1 0 2 ]);
+        fails "grandchild ends after its parent" (Not_nested 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 2; node 2 1 1 3 ]);
+        fails "child of second sibling outside second sibling" (Not_nested 3)
+          "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 2; node 1 3 2 4; node 2 1 1 3 ]);
+        fails "multi-byte child outside parent" (Not_nested 1)
+          "\xc3\xa9\xf0\x9f\x98\x80"
+          (record [ node 0 4 2 6; node 1 3 0 2 ]));
+    case
+      "a child whose run starts before the previous sibling's run ends gives \
+       Not_in_order" (fun () ->
+        fails "overlapping siblings" (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 2; node 1 3 1 3 ]);
+        fails "disjoint siblings in reverse order" (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 2 4; node 1 3 0 1 ]);
+        fails "multi-byte siblings in reverse order" (Not_in_order 2)
+          "\xc3\xa9\xf0\x9f\x98\x80"
+          (record [ node 0 4 0 7; node 1 3 2 6; node 1 3 0 2 ]);
+        fails "identical non-empty siblings" (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 1 3; node 1 3 1 3 ]);
+        fails "second sibling inside first sibling" (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 3; node 1 3 1 2 ]);
+        fails "empty sibling inside previous sibling" (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 3; node 1 3 2 2 ]);
+        fails "empty sibling before previous empty sibling" (Not_in_order 2)
+          "abcd"
+          (record [ node 0 4 0 4; node 1 3 2 2; node 1 3 1 1 ]);
+        fails "second sibling overlaps first sibling after a shorter grandchild"
+          (Not_in_order 3) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 3; node 2 1 0 1; node 1 3 2 4 ]);
+        fails "third sibling overlaps second sibling" (Not_in_order 3) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 1; node 1 3 1 3; node 1 3 2 4 ]);
+        fails "grandchildren out of order" (Not_in_order 3) "abcd"
+          (record [ node 0 4 0 4; node 1 3 0 4; node 2 1 2 4; node 2 2 1 2 ]));
+    case
+      "conditions 3 and 4 hold on the clamped runs in the text, not raw bytes"
+      (fun () ->
+        ignore (decoded "ab" (record [ node 0 4 0 2; node 1 3 0 3 ]));
+        ignore (decoded "ab" (record [ node 0 4 2 2; node 1 3 2 3 ]));
+        ignore
+          (decoded "ab" (record [ node 0 4 0 3; node 1 3 0 3; node 1 3 2 3 ]));
+        ignore
+          (decoded "ab" (record [ node 0 4 0 3; node 1 3 2 3; node 1 3 2 2 ]));
+        fails "a text ending in a line feed does not clamp the line feed"
+          (Not_nested 1) "ab\n"
+          (record [ node 0 4 0 2; node 1 3 0 3 ]);
+        fails "siblings on a text ending in a line feed overlap"
+          (Not_in_order 2) "ab\n"
+          (record [ node 0 4 0 3; node 1 3 0 3; node 1 3 2 3 ]);
+        ignore
+          (decoded "\xef\xbb\xbfab" (record [ node 0 4 3 5; node 1 3 0 5 ]));
+        ignore
+          (decoded "\xef\xbb\xbfab" (record [ node 0 4 3 3; node 1 3 0 3 ]));
+        ignore
+          (decoded "\xef\xbb\xbfab"
+             (record [ node 0 4 3 5; node 1 3 0 3; node 1 3 0 4 ]));
+        ignore
+          (decoded "\xef\xbb\xbfab"
+             (record [ node 0 4 0 6; node 1 3 3 3; node 1 3 0 3 ]));
+        ignore
+          (decoded "" (record [ node 0 4 0 0; node 1 3 0 1; node 1 3 0 0 ]));
+        ignore
+          (decoded "\xef\xbb\xbf"
+             (record [ node 0 4 3 3; node 1 3 0 4; node 1 3 0 3 ]));
+        ignore
+          (decoded "abcd"
+             (record
+                [
+                  node 0 4 0 4;
+                  node 1 3 0 0;
+                  node 1 3 0 0;
+                  node 1 3 0 2;
+                  node 1 3 2 2;
+                  node 1 3 2 4;
+                  node 1 3 4 4;
+                ]));
+        ignore
+          (decoded "abcd"
+             (record
+                [
+                  node 0 4 0 4;
+                  node 1 3 0 2;
+                  node 2 1 0 2;
+                  node 1 3 2 4;
+                  node 2 2 2 3;
+                ])));
+    case "Not_nested and Not_in_order follow the check order and record order"
+      (fun () ->
+        fails "Wrong_bytes before Not_nested on one node" (Wrong_bytes 1) "abcd"
+          (record [ node 0 4 1 3; node 1 3 2 0 ]);
+        fails "Unknown_symbol before Not_nested on one node" (Unknown_symbol 1)
+          "abcd"
+          (record [ node 0 4 1 2; node 1 9 0 3 ]);
+        fails "Wrong_depth before Not_nested on one node" (Wrong_depth 1) "abcd"
+          (record [ node 0 4 1 2; node 2 3 0 3 ]);
+        fails "Not_nested before Not_in_order when child starts before parent"
+          (Not_nested 2) "abcd"
+          (record [ node 0 4 1 3; node 1 3 2 3; node 1 3 0 2 ]);
+        fails "Not_nested before Not_in_order when child ends after parent"
+          (Not_nested 2) "abcd"
+          (record [ node 0 4 0 3; node 1 3 1 3; node 1 3 2 4 ]);
+        fails "Not_nested on an earlier node before errors on a later node"
+          (Not_nested 1) "abcd"
+          (record [ node 0 4 1 2; node 1 3 0 3; node 5 99 9 0 ]);
+        fails "Not_in_order on an earlier node before errors on a later node"
+          (Not_in_order 2) "abcd"
+          (record [ node 0 4 0 4; node 1 3 1 3; node 1 3 0 2; node 5 99 9 0 ]));
   ]
 
 let byte_offsets_of_parse_text_boundaries chars =
@@ -282,22 +413,191 @@ let gen_chars =
     pair bool (list_size (int_range 0 8) piece) >|= fun (bom, cs) ->
     if bom then Uchar.of_int 0xfeff :: cs else cs)
 
+let clamped_indices ~b ~l nb boundary =
+  List.filter (fun idx -> max b (min idx l) = boundary) (List.init nb Fun.id)
+
+let gen_raw_pair ~b ~l nb lo hi =
+  let starts = clamped_indices ~b ~l nb lo in
+  let ends = clamped_indices ~b ~l nb hi in
+  let pairs =
+    List.concat_map
+      (fun s ->
+        List.filter_map (fun e -> if s <= e then Some (s, e) else None) ends)
+      starts
+  in
+  Gen.oneof_list pairs
+
+let rec gen_ordered_runs count lo hi =
+  if count = 0 then Gen.return []
+  else
+    Gen.(
+      int_range lo hi >>= fun a ->
+      int_range a hi >>= fun b ->
+      gen_ordered_runs (count - 1) b hi >|= fun rest -> (a, b) :: rest)
+
 let gen_well_formed_tree =
   Gen.(
     gen_chars >>= fun chars ->
     let bounds = byte_offsets_of_parse_text_boundaries chars in
     let nb = Array.length bounds in
-    int_range 1 12 >>= fun count ->
-    let rec nodes k prev acc =
-      if k = count then return (List.rev acc)
-      else
-        (if k = 0 then return 0 else int_range 1 (prev + 1)) >>= fun depth ->
-        int_range 0 (Array.length node_types - 1) >>= fun symbol ->
-        int_range 0 (nb - 1) >>= fun a ->
-        int_range a (nb - 1) >>= fun b ->
-        nodes (k + 1) depth (node depth symbol bounds.(a) bounds.(b) :: acc)
+    let b =
+      if chars <> [] && Uchar.to_int (List.hd chars) = 0xfeff then 1 else 0
     in
-    pair bool (nodes 0 0 []) >|= fun (flag, ns) -> (chars, flag, ns))
+    let l = List.length chars in
+    let rec gen_subtree depth lo hi max_depth =
+      int_range 0 (Array.length node_types - 1) >>= fun symbol ->
+      gen_raw_pair ~b ~l nb lo hi >>= fun (si, ei) ->
+      let me = node depth symbol bounds.(si) bounds.(ei) in
+      if max_depth <= 0 then return [ me ]
+      else
+        int_range 0 3 >>= fun n_children ->
+        gen_ordered_runs n_children lo hi >>= fun child_runs ->
+        let rec build_children = function
+          | [] -> return []
+          | (clo, chi) :: rest ->
+              gen_subtree (depth + 1) clo chi (max_depth - 1) >>= fun sub ->
+              build_children rest >|= fun more -> sub @ more
+        in
+        build_children child_runs >|= fun children -> me :: children
+    in
+    int_range b l >>= fun rlo ->
+    int_range rlo l >>= fun rhi ->
+    int_range 0 3 >>= fun max_depth ->
+    pair bool (gen_subtree 0 rlo rhi max_depth) >|= fun (flag, ns) ->
+    (chars, flag, ns))
+
+let gen_perturbed_tree =
+  Gen.(
+    gen_well_formed_tree >>= fun (chars, flag, ns) ->
+    let bounds = byte_offsets_of_parse_text_boundaries chars in
+    let nb = Array.length bounds in
+    let count = List.length ns in
+    int_range 0 (count - 1) >>= fun target ->
+    int_range 0 (nb - 1) >>= fun a ->
+    int_range a (nb - 1) >|= fun b ->
+    let ns =
+      List.mapi
+        (fun i n ->
+          if i = target then { n with start = bounds.(a); end_ = bounds.(b) }
+          else n)
+        ns
+    in
+    (chars, flag, ns))
+
+let gen_mixed_tree =
+  Gen.(
+    oneof_weighted
+      [
+        (2, gen_well_formed_tree);
+        (3, gen_perturbed_tree);
+        ( 2,
+          gen_chars >>= fun chars ->
+          let bounds = byte_offsets_of_parse_text_boundaries chars in
+          let nb = Array.length bounds in
+          int_range 1 10 >>= fun count ->
+          let rec nodes k prev acc =
+            if k = count then return (List.rev acc)
+            else
+              (if k = 0 then oneof_weighted [ (8, return 0); (1, return 1) ]
+               else
+                 oneof_weighted
+                   [ (8, int_range 1 (prev + 1)); (1, int_range 0 (prev + 2)) ])
+              >>= fun depth ->
+              oneof_weighted
+                [
+                  (8, int_range 0 (Array.length node_types - 1));
+                  (1, return (Array.length node_types));
+                ]
+              >>= fun symbol ->
+              oneof_weighted
+                [
+                  ( 8,
+                    int_range 0 (nb - 1) >>= fun a ->
+                    int_range a (nb - 1) >|= fun b -> (bounds.(a), bounds.(b))
+                  );
+                  ( 1,
+                    int_range 0 (bounds.(nb - 1) + 1) >>= fun a ->
+                    int_range 0 (bounds.(nb - 1) + 1) >|= fun b -> (a, b) );
+                ]
+              >>= fun (s, e) ->
+              nodes (k + 1) (max 0 depth) (node depth symbol s e :: acc)
+          in
+          pair bool (nodes 0 0 []) >|= fun (flag, ns) -> (chars, flag, ns) );
+      ])
+
+let boundary_of_opt bounds byte =
+  let n = Array.length bounds in
+  let rec go k =
+    if k = n then None else if bounds.(k) = byte then Some k else go (k + 1)
+  in
+  go 0
+
+let reference_decode chars ns =
+  let bounds = byte_offsets_of_parse_text_boundaries chars in
+  let b =
+    if chars <> [] && Uchar.to_int (List.hd chars) = 0xfeff then 1 else 0
+  in
+  let l = List.length chars in
+  let n_types = Array.length node_types in
+  let runs = Array.make (List.length ns) (0, 0) in
+  let arr = Array.of_list ns in
+  let rec check k =
+    if k = Array.length arr then Ok ()
+    else
+      let cur = arr.(k) in
+      let valid_depth =
+        if k = 0 then cur.depth = 0
+        else cur.depth >= 1 && cur.depth <= arr.(k - 1).depth + 1
+      in
+      if not valid_depth then Error (Parse_tree.Wrong_depth k)
+      else if cur.symbol < 0 || cur.symbol >= n_types then
+        Error (Unknown_symbol k)
+      else
+        match
+          (boundary_of_opt bounds cur.start, boundary_of_opt bounds cur.end_)
+        with
+        | Some s, Some e when cur.start <= cur.end_ -> (
+            let rf = max b (min s l) and ru = max b (min e l) in
+            runs.(k) <- (rf, ru);
+            if k = 0 then check (k + 1)
+            else
+              let rec find_parent j =
+                if arr.(j).depth = cur.depth - 1 then j else find_parent (j - 1)
+              in
+              let p = find_parent (k - 1) in
+              let pf, pu = runs.(p) in
+              if rf < pf || ru > pu then Error (Not_nested k)
+              else
+                let rec find_prev_sibling j =
+                  if j <= p then None
+                  else if arr.(j).depth = cur.depth then Some j
+                  else find_prev_sibling (j - 1)
+                in
+                match find_prev_sibling (k - 1) with
+                | Some prev when rf < snd runs.(prev) -> Error (Not_in_order k)
+                | _ -> check (k + 1))
+        | _ -> Error (Wrong_bytes k)
+  in
+  check 0
+
+let runs_follow_node_run_invariant tree =
+  let count = Parse_tree.node_count tree in
+  let rs = Array.init count (fun k -> Parse_tree.run tree (nth tree k)) in
+  let rec check_pairs i =
+    if i >= count then true
+    else
+      let rec inner j =
+        if j >= count then true
+        else
+          let a = rs.(i) and b = rs.(j) in
+          let ok =
+            (a.from <= b.from && b.until <= a.until) || a.until <= b.from
+          in
+          ok && inner (j + 1)
+      in
+      inner (i + 1) && check_pairs (i + 1)
+  in
+  check_pairs 0
 
 let print_tree (chars, flag, ns) =
   Printf.sprintf "%S %b [%s]"
@@ -359,7 +659,33 @@ let property_cases =
                       && indexes (Parse_tree.children t tn) = expected_children
                       && run.from = max b (min s l)
                       && run.until = max b (min e l))
-                    (List.init count Fun.id)));
+                    (List.init count Fun.id)
+               && runs_follow_node_run_invariant t));
+    (* @verifies packs#{give-reading-results=v1, give-reading-node-values=v1}
+       For generated records with valid and invalid depths, symbols, byte
+       offsets, parent-child nesting, and sibling order, Parse_tree.decode
+       agrees with a direct reading of the four conditions of parse-tree and
+       the error order of Parse_tree.decode, and every accepted tree obeys the
+       pairwise nesting invariant of node-run. *)
+    QCheck_alcotest.to_alcotest ~speed_level:`Quick
+      (QCheck2.Test.make ~count:2000
+         ~name:
+           "decode agrees with the four conditions of parse-tree and the check \
+            order"
+         ~print:print_tree gen_mixed_tree (fun (chars, flag, ns) ->
+           let subject = Text.of_uchars chars in
+           let r = record ~flags:(if flag then 1 else 0) ns in
+           match
+             (Parse_tree.decode ~node_types subject r, reference_decode chars ns)
+           with
+           | Ok t, Ok () -> runs_follow_node_run_invariant t
+           | Error got, Error expected -> got = expected
+           | Ok _, Error expected ->
+               QCheck2.Test.fail_reportf "accepted tree, expected %s"
+                 (error_text expected)
+           | Error got, Ok () ->
+               QCheck2.Test.fail_reportf "refused valid tree with %s"
+                 (error_text got)));
     QCheck_alcotest.to_alcotest ~speed_level:`Quick
       (QCheck2.Test.make ~count:1000 ~name:"decode never raises on any record"
          ~print:(fun (r, s) -> Printf.sprintf "%S on %S" r s)
@@ -403,6 +729,13 @@ let growth_cases =
             in
             (subject, record nodes))
           (fun (subject, r) -> Parse_tree.decode ~node_types subject r));
+    case "the work of decode grows as n log m on a deep chain" (fun () ->
+        Counted_work.check_growth ~margin:2.0 ~sizes:(1_000, 8_000)
+          ~input:(fun n ->
+            let subject = text (String.make n 'a') in
+            let nodes = List.init n (fun k -> node k 3 0 (n - k)) in
+            (subject, record nodes))
+          (fun (subject, r) -> Parse_tree.decode ~node_types subject r));
     case "the work of parse_text grows linearly" (fun () ->
         Counted_work.check_growth ~margin:2.0 ~sizes:(1_000, 8_000)
           ~input:(fun n -> text (String.make n 'a'))
@@ -410,4 +743,5 @@ let growth_cases =
   ]
 
 let tests =
-  parse_text_cases @ decode_cases @ run_cases @ property_cases @ growth_cases
+  parse_text_cases @ decode_cases @ run_cases @ nesting_and_order_cases
+  @ property_cases @ growth_cases

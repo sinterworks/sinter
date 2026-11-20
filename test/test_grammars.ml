@@ -148,6 +148,10 @@ let value_types s =
 
 let core_cases =
   [
+    (* @verifies packs#isolate-grammars=v1
+       The core of tree-sitter imports nothing, so code that runs inside an
+       instance of a grammar cannot reach files, process output, a network, a
+       clock, or processes through the core. *)
     case "the core has no import" (fun () ->
         Alcotest.(check int)
           "imports" 0
@@ -790,6 +794,10 @@ let module_cases =
                   imports =
                     "(import \"y\" \"malloc\" (func (param i32) (result i32)))";
                 })));
+    (* @verifies packs#isolate-grammars=v1
+       A grammar module that imports a host or WASI function such as fopen,
+       proc_exit, or wasi.fd_write, or imports a permitted name with another
+       kind or type, is refused before instantiation. *)
     case "an import that the program does not give is refused" (fun () ->
         List.iter
           (fun (imports, module_name, n) ->
@@ -1116,6 +1124,10 @@ let limit_cases =
           "2^32 - 1, 2^32, 2^32 + 1" [ false; true; true ]
           (List.map Grammar.too_long
              [ 0xFFFF_FFFF; 0x1_0000_0000; 0x1_0000_0001 ]));
+    (* @verifies packs#end-grammar-code=v1
+       Grammar code that loops without end, or that exhausts fuel, memory, or
+       table limits during validation, stops at the instance limits and gives
+       an error. *)
     case "code that does not end stops at the fuel" (fun () ->
         refused "a loop" ~limits:small_limits (Link_failed (Stopped Fuel))
           (G.grammar { G.base with prelude = "(loop $l (br $l))" }));
@@ -1264,6 +1276,11 @@ let tree_facts tree subject =
     (walk tree)
   && List.length (walk tree) = Parse_tree.node_count tree
 
+(* @verifies packs#{give-reading-results=v1, end-grammar-code=v1}
+   A parse that tree-sitter cancels, in which grammar code or the core
+   instance traps, or that stops at fuel, memory, or table limits gives no
+   parse tree (parse failure), and grammar code during parsing always ends
+   within the instance limits. *)
 let parse_cases =
   [
     case "a parse that the parsing of tree-sitter cancels gives No_tree"
@@ -1293,6 +1310,21 @@ let parse_cases =
         in
         match Grammar.parse ~limits:small_limits g (text "abc") with
         | Error (Failed (Trap _ | Stopped Fuel)) -> ()
+        | Error e -> Alcotest.fail (parse_failure_text e)
+        | Ok _ -> Alcotest.fail "a tree");
+    case "a parse in which the core instance traps gives no tree" (fun () ->
+        let g =
+          usable "t"
+            (G.grammar
+               {
+                 G.base with
+                 imports = G.function_import "malloc" "i32" "i32";
+                 lex_body =
+                   "(drop (call $malloc (i32.const -16))) (i32.const 0)";
+               })
+        in
+        match Grammar.parse ~limits:small_limits g (text "abc") with
+        | Error (Failed (Trap _)) -> ()
         | Error e -> Alcotest.fail (parse_failure_text e)
         | Ok _ -> Alcotest.fail "a tree");
     case "two domains parse with one grammar at the same time" (fun () ->
