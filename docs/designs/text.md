@@ -38,6 +38,7 @@ design has one JSON text on each line of its text.
 
 | word or phrase | meaning |
 |---|---|
+| definition | a term, a schema, or an atom that a design declares under a name |
 | term | a definition that a design declares under a name, such as `whole-number`, that says what a word means, gives a grammar rule that is a building block, or defines a computed value; a definition of a design is a term, a schema, or an atom |
 | schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the edge of a conforming program: its layout and every constraint that is a property of the thing itself |
 | atom | a definition, declared by a design under a name, that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
@@ -94,6 +95,7 @@ design has one JSON text on each line of its text.
 | [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after it up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
 | [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
 | [give](sinter:#algorithm=v1) | for each choice of a value for each of its header value names, an algorithm gives the value V of the step `Give V.` at which its steps end for these values |
+| [canonical vector line](sinter:#canonical-vector-line=v1) | a JSON text, as RFC 8259 defines it, that holds one JSON object with no repeated member names, no `null`, no number with a fraction or an exponent, no whole number outside −9,007,199,254,740,991 to 9,007,199,254,740,991, no leading `-` on 0, no space, tab, line feed, or carriage return outside JSON strings, members in code point order of their names, and fixed JSON string escapes |
 
 ## 2. Numbers, texts, bytes, lines, and notation
 
@@ -1286,38 +1288,25 @@ the program gives for the input: a program that gives a line number for
 a character, and no column, is held only to the line number. The schema
 of each group says what a conforming program gives in each case.
 
-### 5.1 Vector lines
+### 5.1 Canonical vector lines
 
-@schema vector-line=v1
+@schema canonical-vector-line=v1
 @cites {
     rfc/8259,
     #{
-        conforming-program=v1, design=v1, input=v1, result=v1,
-        valid-utf-8=v1, text=v1, byte-order-mark=v1, line=v1,
-        character=v1, code-point=v1, code-point-order=v1, space=v1,
-        tab=v1, line-feed=v1, carriage-return=v1, whole-number=v1,
-        decimal-numeral=v1, hex-digit=v1, 0x-numeral=v1, u-numeral=v1,
-        code-span=v1,
+        text=v1, character=v1, code-point=v1, code-point-order=v1,
+        space=v1, tab=v1, line-feed=v1, carriage-return=v1,
+        whole-number=v1, hex-digit=v1, u-numeral=v1, code-span=v1,
     },
 }
 
-The file is valid UTF-8. Its text has no byte order mark and no carriage
-return, it has no empty line, and when it is not empty it ends with a
-line feed. The file holds zero or more vector lines. Each line of the
-text of the file is a vector line: a JSON text, as RFC 8259 defines it,
-that holds one JSON object in canonical form. So only a line feed ends a
-line of the file. U+0085, U+2028, and U+2029 are in some JSON strings of
-the file, and they do not end a line.
-
-A JSON text holds a JSON object in canonical form when, and only when,
-it holds one JSON object and all of these rules hold:
+A canonical vector line is a JSON text, as RFC 8259 defines it, that
+holds one JSON object and meets all of these rules:
 
 - No JSON object has two members with the same name.
 - No JSON value is `null`, a number with a fraction or an exponent, or a
   whole number outside the range from −9,007,199,254,740,991 to
   9,007,199,254,740,991. A JSON number that writes 0 has no leading `-`.
-- No JSON string holds an escape sequence `\u` of a number from 0xD800
-  to 0xDFFF that is not one of two that write one character.
 - There is no space, tab, line feed, or carriage return outside JSON
   strings.
 - The members of each JSON object stand in code point order of their
@@ -1329,6 +1318,30 @@ it holds one JSON object and all of these rules hold:
   of its code point divided by 16, and the hex digit of the remainder,
   and every other character stands as itself.
 
+A JSON text meets the schema `canonical-vector-line` when, and only
+when, it is a canonical vector line.
+
+### 5.2 Vector lines
+
+@schema vector-line=v1
+@cites {
+    rfc/8259,
+    #{
+        canonical-vector-line=v1, conforming-program=v1, design=v1,
+        input=v1, result=v1, valid-utf-8=v1, text=v1,
+        byte-order-mark=v1, line=v1, line-feed=v1, carriage-return=v1,
+        whole-number=v1, decimal-numeral=v1, u-numeral=v1, code-span=v1,
+    },
+}
+
+The file is valid UTF-8. Its text has no byte order mark and no carriage
+return, it has no empty line, and when it is not empty it ends with a
+line feed. The file holds zero or more vector lines. Each line of the
+text of the file is a vector line: a canonical vector line, which meets
+the schema `canonical-vector-line`. So only a line feed ends a line of
+the file. U+0085, U+2028, and U+2029 are in some JSON strings of the
+file, and they do not end a line.
+
 The JSON object of a vector line has the members `form`, `group`,
 `input`, `note`, `result`, and `values`, in that order, with `note` and
 `result` only where these rules state:
@@ -1336,8 +1349,9 @@ The JSON object of a vector line has the members `form`, `group`,
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label of that schema: `v`,
   then the decimal numeral of a whole number of 1 or more, such as `v1`
-  (for example, `"#decode-vector=v1"`). Every vector line of one group
-  in the file names the same schema in `form`.
+  (for example, `"#decode-vector=v1"`). All vector lines with the same
+  `group` in the file have the same `#` and schema name in `form`. Their
+  labels in `form` may differ.
 - `group`: the name of the group of the vector, as a JSON string.
 - `input`: the input.
 - `note`: an explanation of the vector, as a JSON string, which a
@@ -1352,7 +1366,7 @@ The JSON object of a vector line has the members `form`, `group`,
   gives in each case. An empty JSON object, `{}`, says that a conforming
   program gives none of the things that the schema names for `values`.
 
-### 5.2 Byte sequences that a program decodes
+### 5.3 Byte sequences that a program decodes
 
 @schema decode-vector=v1
 @cites {
@@ -1371,7 +1385,8 @@ The group `decode` holds the vectors of the requirements
 `validate-utf-8`, `give-texts-of-byte-sequences`, and
 `omit-texts-of-invalid-byte-sequences`. Each vector gives a byte
 sequence and what a conforming program gives when it decodes the byte
-sequence as UTF-8. Each vector line of the group follows `vector-line`.
+sequence as UTF-8. Each vector line of the group meets the schema
+`vector-line`.
 
 Inside `input`, `result`, and `values`, a text and a byte sequence have
 these forms:
@@ -1405,7 +1420,7 @@ gives no text as the text of the byte sequence.
 {"form":"#decode-vector=v1","group":"decode","input":"ff","note":"the UTF-8 encoding of no character holds the byte 0xFF","result":"invalid","values":{}}
 ```
 
-### 5.3 The UTF-8 encodings that a program gives
+### 5.4 The UTF-8 encodings that a program gives
 
 @schema encode-vector=v1
 @cites {
@@ -1419,9 +1434,9 @@ gives no text as the text of the byte sequence.
 
 The group `encode` holds the vectors of the requirement
 `give-utf-8-encodings`. Each vector gives a text and its UTF-8 encoding.
-Each vector line of the group follows `vector-line`. Inside `input` and
-`values`, a text and a byte sequence have the JSON forms that
-`decode-vector` states.
+Each vector line of the group meets the schema `vector-line`. Inside
+`input` and `values`, a text and a byte sequence have the JSON forms
+that `decode-vector` states.
 
 The members `input` and `values` of the JSON object of a vector line
 hold these things:
@@ -1438,7 +1453,7 @@ byte sequence, as the UTF-8 encoding of the text.
 {"form":"#encode-vector=v1","group":"encode","input":"hi","values":{"encoding":"6869"}}
 ```
 
-### 5.4 The lines that a program gives
+### 5.5 The lines that a program gives
 
 @schema line-vector=v1
 @cites {
@@ -1454,8 +1469,8 @@ byte sequence, as the UTF-8 encoding of the text.
 
 The group `lines` holds the vectors of the requirements `give-lines`,
 `give-numbered-lines`, and `give-only-lines`. Each vector gives a text
-and the lines of the text. Each vector line of the group follows
-`vector-line`.
+and the lines of the text. Each vector line of the group meets the
+schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
 `decode-vector` states, and a whole number, a run, and a sequence have
@@ -1494,7 +1509,7 @@ line of the text, only an element of `runs` or an element of `texts`.
 {"form":"#line-vector=v1","group":"lines","input":"a\nb","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
 ```
 
-### 5.5 The positions of characters that a program gives
+### 5.6 The positions of characters that a program gives
 
 @schema character-position-vector=v1
 @cites {
@@ -1510,7 +1525,7 @@ line of the text, only an element of `runs` or an element of `texts`.
 The group `character-positions` holds the vectors of the requirement
 `give-character-positions`. Each vector gives a text, a place of the
 body of the text, and the position of the character at that place. Each
-vector line of the group follows `vector-line`.
+vector line of the group meets the schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
 `decode-vector` states, a whole number has the JSON form that
@@ -1537,7 +1552,7 @@ the column of `position`, and no other column, for that character.
 {"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"a\nb"},"values":{"position":{"column":1,"line":2}}}
 ```
 
-### 5.6 The starts and ends of spans that a program gives
+### 5.7 The starts and ends of spans that a program gives
 
 @schema span-vector=v1
 @cites {
@@ -1553,10 +1568,10 @@ the column of `position`, and no other column, for that character.
 The group `spans` holds the vectors of the requirements
 `give-span-starts` and `give-span-ends`. Each vector gives a text, a
 span of the text, and the start and the end of the span. Each vector
-line of the group follows `vector-line`. Inside `input` and `values`, a
-text has the JSON form that `decode-vector` states, a whole number and a
-run have the JSON forms that `line-vector` states, and a position has
-the JSON form that `character-position-vector` states.
+line of the group meets the schema `vector-line`. Inside `input` and
+`values`, a text has the JSON form that `decode-vector` states, a whole
+number and a run have the JSON forms that `line-vector` states, and a
+position has the JSON form that `character-position-vector` states.
 
 The members `input` and `values` of the JSON object of a vector line
 hold these things:
