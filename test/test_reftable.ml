@@ -1456,6 +1456,93 @@ let parse_damaged_tests =
         Alcotest.(check string)
           "suffix_length past block records end" "bad block 0"
           (parse_err huge_suffix));
+    (* @verifies changes#give-ref-commits=v1
+       By the promise of `Reftable.parse` in `lib/git_refs/reftable.mli`, when
+       the footer gives the position 0 for the log blocks, the ref blocks end at
+       a block of the type `g` only when that block comes right after the
+       header. A table of two ref blocks with no log block whose second ref
+       block has type `g` must give `Bad_block` at the byte offset of that
+       second block, not a partial table of refs. *)
+    case "later ref block of type g with log position 0 gives Bad_block"
+      (fun () ->
+        List.iter
+          (fun (label, version, format, raw1, raw2) ->
+            let two_blocks =
+              W.encode
+                ~config:
+                  {
+                    W.default_config with
+                    version;
+                    block_size = 256;
+                    max_records_per_block = Some 1;
+                    write_ref_index = false;
+                  }
+                [
+                  {
+                    W.name = "refs/heads/a";
+                    update_index_delta = 0L;
+                    value = W.Object raw1;
+                  };
+                  {
+                    W.name = "refs/heads/b";
+                    update_index_delta = 0L;
+                    value = W.Object raw2;
+                  };
+                ]
+            in
+            ignore (parse_ok ~format two_blocks);
+            Alcotest.(check char)
+              (label ^ " second block type before edit")
+              'r' two_blocks.[256];
+            Alcotest.(check string)
+              (label ^ " second ref block with type g")
+              "bad block 256"
+              (parse_err ~format (set_byte two_blocks 256 (Char.code 'g'))))
+          [
+            ("v1", W.V1, Id.Sha1, sha1_raw '1', sha1_raw '2');
+            ("v2 sha1", W.V2_sha1, Id.Sha1, sha1_raw '1', sha1_raw '2');
+            ("v2 s256", W.V2_sha256, Id.Sha256, sha256_raw '1', sha256_raw '2');
+          ]);
+    (* @verifies changes#give-ref-commits=v1
+       By the promise of `Reftable.parse` in `lib/git_refs/reftable.mli`, the
+       ref blocks end at a block of the type `g` right after the header only
+       when the footer gives the position 0 for the log blocks. A table with one
+       ref block and a log block whose footer gives a log position above the
+       header must give `Bad_block 0` when the first block has type `g`, not an
+       empty table of refs. *)
+    case "first block of type g with non-zero log position gives Bad_block 0"
+      (fun () ->
+        List.iter
+          (fun (label, version, format, hl, raw1) ->
+            let with_log =
+              W.encode
+                ~config:
+                  {
+                    W.default_config with
+                    version;
+                    log_block = Some "\000\000\008logbytes";
+                  }
+                [
+                  {
+                    W.name = "refs/heads/a";
+                    update_index_delta = 0L;
+                    value = W.Object raw1;
+                  };
+                ]
+            in
+            ignore (parse_ok ~format with_log);
+            Alcotest.(check char)
+              (label ^ " first block type before edit")
+              'r' with_log.[hl];
+            Alcotest.(check string)
+              (label ^ " first block with type g and log block")
+              "bad block 0"
+              (parse_err ~format (set_byte with_log hl (Char.code 'g'))))
+          [
+            ("v1", W.V1, Id.Sha1, 24, sha1_raw '1');
+            ("v2 sha1", W.V2_sha1, Id.Sha1, 28, sha1_raw '1');
+            ("v2 s256", W.V2_sha256, Id.Sha256, 28, sha256_raw '1');
+          ]);
     case "prefix compression bomb stops at max_names" (fun () ->
         let prefix = "refs/heads/" ^ String.make 900 'a' in
         let recs =
