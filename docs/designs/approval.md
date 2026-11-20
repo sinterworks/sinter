@@ -90,7 +90,7 @@ strings, numbers, and the literal names `true` and `false`.
 | [extent hash](sinter:documents#extent-hash=v2) | the hash that measures the revised content of a declared item of a tree: two revised contents of the same declared item are the same when, and only when, their extent hashes are equal |
 | [hash form](sinter:data-forms#hash-form=v1) | the form of a text of exactly 64 hex digits, which a hash has |
 | [binding of `approval-kinds`](sinter:#approval-kinds=v1) | a set of kinds of subject of approval |
-| [need approval](sinter:#approval-need=v1) | a subject of approval needs approval by a person under a binding of `approval-kinds` when its kind is in that binding |
+| [need approval](sinter:#approval-need=v1) | a subject of approval needs approval by a person under a valid binding of `approval-kinds` when its kind is in that binding |
 | [kind word of a kind of subject of approval](sinter:#subject-text=v2) | `design` for an item of the kind design without the declared items that it holds, `spec` for an item of the kind specification with the items that it holds, `schema` for a schema that an item of the kind design holds directly, `req` for an item of the kind requirement that an item of the kind design holds directly, `atom` for an atom that an item of the kind design holds directly, `term` for a term that an item of the kind design holds directly, and `decision` for a decision record |
 | [subject text](sinter:#subject-text=v2) | a text that matches the production `subject-text`, such as `req:billing#limit`; the subject text of a subject of approval of a tree is the kind word of its kind of subject of approval, `:`, and the name of its declared item in that tree |
 | [judgment](sinter:ontology#judgment=v1) | a ledger entry that records a decision of a person: a ledger entry of the kind `approval`, `decline`, `done`, or `abandoned` |
@@ -359,12 +359,12 @@ is a binding.
 
 @term approval-need=v1
 @cites {
-    ontology#{subject-of-approval=v2, person=v1},
+    ontology#{subject-of-approval=v2, person=v1, parameter=v2},
     text#{code-span=v1},
     #{approval-kinds=v1},
 }
 
-Under a binding A of `approval-kinds`, a subject of approval needs
+Under a valid binding A of `approval-kinds`, a subject of approval needs
 approval by a person when, and only when, its kind is in A.
 
 ### 4.2 Subject texts
@@ -530,7 +530,7 @@ F, and N.
 @cites {
     ontology#{
         subject-of-approval=v2, tree=v1, ledger=v1, state=v1,
-        default-branch=v1,
+        default-branch=v1, parameter=v2,
     },
     identifiers#{external-namespaces=v1},
     changes#{default-branch-commit=v1},
@@ -543,12 +543,12 @@ F, and N.
     },
 }
 
-For a git repository R, a binding A of `approval-kinds`, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, a tree T, and a point P of the ledger of R, each
-subject of approval S that T has under F and N is in exactly one of the
-states approved,
-declined, and neither, in T at P under A, D, F, and N:
+For a git repository R, a valid binding A of `approval-kinds`, a binding
+D of `default-branch-name`, a binding F of `file-readers`, a binding N
+of `external-namespaces`, a tree T, and a point P of the ledger of R,
+each subject of approval S that T has under F and N is in exactly one of
+the states approved, declined, and neither, in T at P under A, D, F, and
+N:
 
 - When S needs approval under A, S is approved when, and only when, its
   latest judgment at P under F and N is of the kind `approval`; it is
@@ -571,7 +571,7 @@ is neither approved nor declined.
     ontology#{
         declared-item=v2, in-force-item=v2, retired-item=v2,
         effective-supersedes-edge=v2, supersedes-edge=v2,
-        approval-state=v2, edge=v2, tree=v1, ledger=v1,
+        approval-state=v2, edge=v2, tree=v1, ledger=v1, parameter=v2,
     },
     identifiers#{external-namespaces=v1, status-tag=v1},
     changes#{default-branch-commit=v1},
@@ -581,9 +581,9 @@ is neither approved nor declined.
     #{approval-kinds=v1, subject-state=v2},
 }
 
-For a git repository R, a binding A of `approval-kinds`, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, a tree T, and a point P of the ledger of R, a
+For a git repository R, a valid binding A of `approval-kinds`, a binding
+D of `default-branch-name`, a binding F of `file-readers`, a binding N
+of `external-namespaces`, a tree T, and a point P of the ledger of R, a
 declared item of T is in force in T at P under A, D, F, and N when, and
 only when, it is in force in T at P (atom `ontology#in-force-item`),
 read as this term gives. The atoms `ontology#effective-supersedes-edge`
@@ -619,6 +619,7 @@ order of positions.
 @cites {
     ontology#{
         subject-of-approval=v2, declared-item=v2, tree=v1, ledger=v1,
+        parameter=v2,
     },
     identifiers#{external-namespaces=v1, tag-line-text=v1},
     documents#{
@@ -635,17 +636,17 @@ order of positions.
     },
 }
 
-For a git repository R, a binding A of `approval-kinds`, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, and a point P of the ledger of R, a tree T has,
-at P under A, D, F, and N, one tree finding of the class `declined` for
-each text t that is the subject text of a subject of approval S that T
-has under F and N, such that S is declined in T at P under A, D, F, and
-N, and the declared item of S is in force in T at P under A, D, F, and
-N. Its subject is t. Its spot is the spot of the run of the text of the
-tag line of the declaration of the declared item of the first subject of
-approval that T has under F and N whose subject text is t, in the
-subject order, in the text of the file of that declared item.
+For a git repository R, a valid binding A of `approval-kinds`, a binding
+D of `default-branch-name`, a binding F of `file-readers`, a binding N
+of `external-namespaces`, and a point P of the ledger of R, a tree T
+has, at P under A, D, F, and N, one tree finding of the class `declined`
+for each text t that is the subject text of a subject of approval S that
+T has under F and N, such that S is declined in T at P under A, D, F,
+and N, and the declared item of S is in force in T at P under A, D, F,
+and N. Its subject is t. Its spot is the spot of the run of the text of
+the tag line of the declaration of the declared item of the first
+subject of approval that T has under F and N whose subject text is t, in
+the subject order, in the text of the file of that declared item.
 
 ### 4.12 Findings of the class `awaiting-approval`
 
@@ -653,6 +654,7 @@ subject order, in the text of the file of that declared item.
 @cites {
     ontology#{
         subject-of-approval=v2, declared-item=v2, tree=v1, ledger=v1,
+        parameter=v2,
     },
     identifiers#{external-namespaces=v1, tag-line-text=v1},
     documents#{
@@ -669,10 +671,10 @@ subject order, in the text of the file of that declared item.
     },
 }
 
-For a git repository R, a binding A of `approval-kinds`, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, and a point P of the ledger of R, a tree T has,
-at P under A, D, F, and N, one tree finding of the class
+For a git repository R, a valid binding A of `approval-kinds`, a binding
+D of `default-branch-name`, a binding F of `file-readers`, a binding N
+of `external-namespaces`, and a point P of the ledger of R, a tree T
+has, at P under A, D, F, and N, one tree finding of the class
 `awaiting-approval` for each text t that is the subject text of a
 subject of approval S that T has under F and N such that each of these
 is true:
@@ -694,7 +696,7 @@ subject order, in the text of the file of that declared item.
     ontology#{
         edge=v2, satisfies-edge=v2, verifies-edge=v2,
         subject-of-approval=v2, declared-item=v2, schema=v1, tree=v1,
-        ledger=v1,
+        ledger=v1, parameter=v2,
     },
     documents#{
         file-readers=v1, tree-edge=v2, origin=v2,
@@ -710,10 +712,10 @@ subject order, in the text of the file of that declared item.
     },
 }
 
-For a git repository R, a binding A of `approval-kinds`, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, and a point P of the ledger of R, a tree T has,
-at P under A, D, F, and N, one tree finding of the class
+For a git repository R, a valid binding A of `approval-kinds`, a binding
+D of `default-branch-name`, a binding F of `file-readers`, a binding N
+of `external-namespaces`, and a point P of the ledger of R, a tree T
+has, at P under A, D, F, and N, one tree finding of the class
 `unapproved-req` for each edge that T has under F and N, of the kind
 `satisfies` or `verifies`, that says what its kind of edge says, and
 whose cited item is an item of the kind requirement or a schema that has
@@ -739,7 +741,7 @@ text of the file of the edge.
     #{approval-kinds=v1, subject-state=v2},
 }
 
-Under a binding A of `approval-kinds`, a binding D of
+Under a valid binding A of `approval-kinds`, a binding D of
 `default-branch-name`, a valid binding F of `file-readers`, and a
 binding N of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid", when a conforming program
@@ -863,7 +865,7 @@ repository does not hold its ledger objects.
     },
 }
 
-Under a binding A of `approval-kinds`, a binding D of
+Under a valid binding A of `approval-kinds`, a binding D of
 `default-branch-name`, a valid binding F of `file-readers`, and a
 binding N of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid", when a conforming program
@@ -1022,21 +1024,21 @@ names `true` and `false` of this schema are as RFC 8259 defines them.
 Inside the members `input` and `values`, a text, such as a subject text
 or a position subject, is a JSON string whose characters are the
 characters of the text, in order. A sequence is a JSON array of its
-elements, in order. A binding of `approval-kinds` is a JSON array of
-JSON strings: for each kind of subject of approval in the binding, the
-kind word of that kind of subject of approval, such as `"req"` for an
-item of the kind requirement that an item of the kind design holds
+elements, in order. A valid binding of `approval-kinds` is a JSON array
+of JSON strings: for each kind of subject of approval in the binding,
+the kind word of that kind of subject of approval, such as `"req"` for
+an item of the kind requirement that an item of the kind design holds
 directly, each once, in code point order.
 
-- `input`: a JSON object with three members. `binding` is a binding of
-  `approval-kinds`. `subjects` is the subjects of approval of the tree,
-  as a sequence, each a JSON object with three members: `subject`, its
-  subject text; `state`, its state in the tree at the point under the
-  bindings, one of the JSON strings `"approved"`, `"declined"`, and
-  `"neither"`; and `in-force`, `true` when its declared item is in force
-  in the tree at the point under the bindings (term
-  `bound-in-force-item`), and `false` when it is not. `edges` is the
-  edges of the tree, as a sequence, each a JSON object with these
+- `input`: a JSON object with three members. `binding` is a valid
+  binding of `approval-kinds`. `subjects` is the subjects of approval of
+  the tree, as a sequence, each a JSON object with three members:
+  `subject`, its subject text; `state`, its state in the tree at the
+  point under the bindings, one of the JSON strings `"approved"`,
+  `"declined"`, and `"neither"`; and `in-force`, `true` when its
+  declared item is in force in the tree at the point under the bindings
+  (term `bound-in-force-item`), and `false` when it is not. `edges` is
+  the edges of the tree, as a sequence, each a JSON object with these
   members: `kind`, its kind of edge, a text; `fits`, `true` when the
   edge says what its kind of edge says, and `false` when it does not;
   `at`, the position subject of the origin position of its citation
@@ -1097,11 +1099,12 @@ of that class.
 The group `states` holds the vectors of the requirement
 `give-subject-states`. Each vector gives one subject of approval of a
 tree, by its subject text and the extent hash of its declared item, a
-binding of `approval-kinds`, the `approval` and `decline` ledger entries
-of a ledger, and the trees of the commits of the first-parent line of
-the commit of the default branch, and it gives the state of the subject
-of approval in the tree at the point after the last ledger entry of the
-ledger. The group uses no need, so these forms give no need names.
+valid binding of `approval-kinds`, the `approval` and `decline` ledger
+entries of a ledger, and the trees of the commits of the first-parent
+line of the commit of the default branch, and it gives the state of the
+subject of approval in the tree at the point after the last ledger entry
+of the ledger. The group uses no need, so these forms give no need
+names.
 
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects; for a binding of `file-readers` that is
@@ -1116,10 +1119,10 @@ The JSON values, objects, arrays, and strings of this schema are as RFC
 8259 defines them. Inside the members `input` and `result`, a text, such
 as a subject text or a hash, is a JSON string whose characters are the
 characters of the text, in order; a sequence is a JSON array of its
-elements, in order; and a binding of `approval-kinds` has the form that
-the schema `findings-vector` gives for it.
+elements, in order; and a valid binding of `approval-kinds` has the form
+that the schema `findings-vector` gives for it.
 
-- `input`: a JSON object with four or five members. `binding` is a
+- `input`: a JSON object with four or five members. `binding` is a valid
   binding of `approval-kinds`. `subject` is the subject text of the
   subject of approval, and `hash` is the extent hash of its declared
   item in the tree. `ledger` is the ledger entries of the kinds
