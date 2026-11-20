@@ -635,7 +635,10 @@ ends with `/`. They have numbers from 1, in that order.
 @atom glob-fit=v2
 @cites {
     #{path=v1, glob=v1},
-    text#{character=v1, text=v1, run=v1, code-span=v1, place=v1},
+    text#{
+        character=v1, text=v1, run=v1, result=v1, code-span=v1,
+        place=v1,
+    },
 }
 
 A valid path fits a valid glob when, and only when, the file names of
@@ -662,6 +665,9 @@ characters the run holds, the empty run included. A run fits a place at
 which the character of the glob segment is a character other than `*`
 when, and only when, the run holds one character, and that character is
 the character of the glob segment at that place.
+
+For a valid path and a valid glob, the result is "fits" when the valid
+path fits the valid glob, and "does not fit" when it does not.
 
 ### 3.19 Path sets
 
@@ -692,7 +698,7 @@ at least one path set member.
 @atom path-set-membership=v2
 @cites {
     #{path=v1, glob=v1, glob-fit=v2, path-set=v1},
-    text#{text=v1, code-span=v1},
+    text#{text=v1, result=v1, code-span=v1},
 }
 
 For a path set in which the glob text of each path set member is a
@@ -700,6 +706,10 @@ valid glob, a valid path is in the set of the path set when, and only
 when, the valid path fits the glob text of at least one plain member of
 the path set, and the valid path fits the glob text of no `!` member of
 the path set.
+
+For a valid path and a path set in which the glob text of each path set
+member is a valid glob, the result is "in the set" when the valid path
+is in the set of the path set, and "not in the set" when it is not.
 
 ### 3.22 File objects
 
@@ -1078,11 +1088,11 @@ and list the need names that the group uses, if any.
         glob=v1, path-set=v1,
     },
     text#{
-        design=v1, conforming-program=v1, input=v1, text=v1,
-        character=v1, run=v1, line=v1, line-feed=v1,
+        canonical-vector-line=v1, design=v1, conforming-program=v1,
+        input=v1, text=v1, character=v1, run=v1, line=v1, line-feed=v1,
         carriage-return=v1, valid-utf-8=v1, whole-number=v1,
-        decimal-numeral=v1, code-point-order=v1, hex-digit=v1,
-        u-numeral=v1, sequence=v1, result=v1, code-span=v1,
+        decimal-numeral=v1, code-point-order=v1, u-numeral=v1,
+        sequence=v1, result=v1, code-span=v1,
     },
 }
 
@@ -1097,34 +1107,20 @@ it ends with a line feed. Only a line feed ends a line of the vector
 file. A JSON string of the vector file can hold U+0085, U+2028, or
 U+2029, and these characters do not end a line. The vector file holds
 zero or more vector lines. Each line of the text of the vector file is a
-JSON text, as RFC 8259 defines it, that holds one JSON object in
-canonical form:
-
-- No JSON object has two members with the same name.
-- No JSON value is `null`, a number with a fraction or exponent, or a
-  whole number outside the range from −9,007,199,254,740,991 to
-  9,007,199,254,740,991. A JSON number that writes 0 has no leading `-`.
-- No JSON string holds an escape sequence `\u` of a number from D800 to
-  DFFF that is not one of two that write one character.
-- There is no whitespace outside strings.
-- The members of each JSON object stand in code point order of their
-  keys.
-- In each JSON string, `"` is written `\"`, `\` is written `\\`, the
-  characters U+0008, U+0009, U+000A, U+000C, and U+000D are written
-  `\b`, `\t`, `\n`, `\f`, and `\r`, each other character from U+0000 to
-  U+001F is written `\u00` and two lower-case hex digits, and every
-  other character stands as itself.
+JSON text, as RFC 8259 defines it, that meets the schema
+`canonical-vector-line` of Text and notation.
 
 The JSON object of each vector line holds the required members `form`,
-`group`, and `input`, at least one of `result` and `values`, and the
-optional members `needs` and `note`, in code point order of their keys,
-and no other member:
+`group`, `input`, and `result`, the member `values` only for the group
+`file-reads`, and the optional members `needs` and `note`, in code
+point order of their names, and no other member:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label of that schema: `v`,
   then the decimal numeral of a whole number of 1 or more, such as `v1`
-  (for example, `"#path-vector=v1"`). Every vector line of one group in
-  the vector file names the same schema in `form`.
+  (for example, `"#path-vector=v1"`). All vector lines with the same
+  `group` in the vector file have the same `#` and schema name in
+  `form`. Their labels in `form` may differ.
 - `group`: the name of the group of the vector, as a JSON string, such
   as `"paths"`.
 - `input`: the inputs of the vector: what a conforming program takes or
