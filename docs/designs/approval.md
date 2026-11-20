@@ -1082,20 +1082,28 @@ item of the kind design holds directly.
   subject of approval is in force in the tree at the point under the
   bindings (term `bound-in-force-item`), and `false` when that declared
   item is not in force in the tree at the point under the bindings.
-  `edges` is the edges of the tree, as a sequence, each a JSON object
-  with these members: `kind`, its kind of edge, a text; `fits`, `true`
-  when the edge says what its kind of edge says, and `false` when it
-  does not; `at`, the position subject of the origin position of its
-  citation entry or of its inline citation, or of the form position of
-  its vector line (an inline citation and a vector line give only edges
-  of the kind `cites`); and, when its cited item is an item of the kind
-  requirement that has a subject of approval, or a schema that has a
-  subject of approval, two more members: `cited`, the index of that
+  `edges` is the edges of the tree, as a sequence. Each edge in `edges`
+  is a JSON object with the members `kind`, `fits`, and `at`, and, when
+  the cited item of that edge is an item of the kind requirement that
+  has a subject of approval, or a schema that has a subject of approval,
+  two more members, `cited` and `in-force`. `kind` is the kind of edge
+  of that edge, a text. `fits` is `true` when that edge says what its
+  kind of edge says, and `false` when that edge does not say what its
+  kind of edge says. `at` is the position subject of the origin position
+  of the citation entry of that edge, of the origin position of the
+  inline citation of that edge, or of the form position of the vector
+  line of that edge. An inline citation and a vector line give only
+  edges of the kind `cites`. When the cited item of an edge in `edges`
+  is an item of the kind requirement that has a subject of approval, or
+  a schema that has a subject of approval, `cited` is the index of that
   subject of approval in `subjects`, a JSON number written as the
-  decimal numeral of a whole number of 1 or more, counted from 1; and
-  `in-force`, `true` when that cited item is in force in the tree at the
-  point under the bindings (term `bound-in-force-item`), and `false`
-  when it is not.
+  decimal numeral of a whole number of 1 or more, counted from 1. When
+  the cited item of an edge in `edges` is an item of the kind
+  requirement that has a subject of approval, or a schema that has a
+  subject of approval, `in-force` is `true` when that cited item is in
+  force in the tree at the point under the bindings (term
+  `bound-in-force-item`), and `false` when that cited item is not in
+  force in the tree at the point under the bindings.
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with one member, `findings`. `findings` is a
