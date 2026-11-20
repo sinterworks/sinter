@@ -15,12 +15,13 @@
 Specifies the base items of declared items, the finding classes `needs-revision` and `suspect`, the base tree of the change of a commit, and requirements for conforming programs that give the findings of these classes and whether the change of a commit has a base.
 
 A label says which revised content of an item a citation rests on. When
-the revised content of an item changes, its label must change too, so
-that each pinned citation of the item becomes suspect and a person
-checks it again. A conforming program compares a tree with a base tree,
-such as the tree of the base of the change of a commit. It reports each
-declared item whose revised content or kind changed while its label
-stayed the same. It also reports each suspect edge of a tree.
+the revised content of an item changes, the label of the item must
+change too, so that each pinned citation of the item becomes suspect and
+a person checks that citation again. A conforming program compares a
+tree with a base tree, such as the tree of the base of the change of a
+commit. It reports each declared item whose revised content or kind
+changed while its label stayed the same. It also reports each suspect
+edge of a tree.
 
 From the Ontology (`ontology`), the design takes trees and their files,
 the tree of a commit, declared items and their kinds, containment,
@@ -77,43 +78,45 @@ numbers.
 ### 2.1 What needs a new label
 
 A declared item has a revised content: the part of the item that its
-label covers. The extent hash is the measure of revised content: an edit
-changes the revised content of a declared item when, and only when, it
-changes its extent hash.
+label covers. The extent hash is the measure of revised content. An edit
+changes the revised content of a declared item when, and only when, the
+edit changes the extent hash of that item.
 
 The labels of declared items are texts that match the production `label`
-of Identifiers, such as `v2`, `2026-11`, or `rc1`, and no order is
-defined on them. So, for a declared item, a new label is a label other
-than the label of the item with which it is compared at the base. The
-atom `needs-revision-finding` gives which declared items of the tree
-need a new label. A declared item with a new label gives no finding of
-that class, whatever else changed, and neither does a term with no
-label.
+of Identifiers, such as `v2`, `2026-11`, or `rc1`. No order is defined
+on the labels of declared items. So, for a declared item, a new label is
+a label other than the label of the item with which that declared item
+is compared at the base. The atom `needs-revision-finding` gives which
+declared items of the tree need a new label. A declared item with a new
+label gives no finding of the class `needs-revision`, whatever else
+changed. A term with no label also gives no finding of the class
+`needs-revision`.
 
 For example, a base tree declares `@req size=v2`, which the item of the
 kind design `billing` holds directly. In the tree, a sentence of the
-text of the requirement changes and its label stays `v2`. The tree has
-one finding of the class `needs-revision` with the subject
-`billing#size`. When the label becomes `v3`, or any other label, the
-tree has none for it.
+text of the requirement changes, and the label of the requirement stays
+`v2`. The tree has one finding of the class `needs-revision` with the
+subject `billing#size`. When the label of the requirement becomes `v3`,
+or any other label, the tree has no finding of the class
+`needs-revision` for the requirement.
 
 ### 2.2 Base items
 
 A declared item of the tree is compared with its base item, as the term
-`base-item` gives it. The kind of the base item can differ from the kind
-of the item. So when `@design x=v1` becomes `@decision x=v1` with the
-same text, the two items are compared, and the tree has a finding of the
-class `needs-revision` for `x`, because their kinds differ. A citation
-of `x` then rests on the decision record, and its pin becomes suspect
-only when the label changes.
+`base-item` gives that base item. The kind of the base item can differ
+from the kind of the item. So when `@design x=v1` becomes
+`@decision x=v1` with the same text, the two items are compared, and the
+tree has a finding of the class `needs-revision` for `x`, because their
+kinds differ. A citation of `x` then rests on the decision record. The
+pin of that citation becomes suspect only when the label changes.
 
-An item has no base item when, for example, another item of its set of
-names has its name, in the tree or in the base tree, or when the item is
-in no set of names. The valid path of the file of a declared item does
-not count when its base item is found. A declared item in a file that
-cannot be read, such as a read file in the set of stopped files of the
-tree, is not a declared item of its tree, so it has no base item and it
-is no base item.
+An item has no base item when, for example, the set of names of the item
+has another item with the same name, in the tree or in the base tree, or
+when the item is in no set of names. The valid path of the file of a
+declared item does not count when the base item of that declared item is
+found. A declared item in a file that cannot be read, such as a read
+file in the set of stopped files of the tree, is not a declared item of
+its tree, so it has no base item and it is no base item.
 
 ### 2.3 Suspect edges
 
@@ -132,12 +135,12 @@ spot from the form run `#g-vector=v1` that the term
 
 ### 2.4 The base tree of the change of a commit
 
-The findings of the class `needs-revision` are defined for any base
-tree and any tree. For the change of a commit, the base tree is the
-tree of the base of the change of that commit. When the change has no
-base, such as when the commit and the commit of the default branch have
-two merge bases, a conforming program gives no finding of that class
-for it and gives that the change has no base.
+The findings of the class `needs-revision` are defined for any base tree
+and any tree. For the change of a commit, the base tree is the tree of
+the base of the change of that commit. When the change has no base, such
+as when the commit and the commit of the default branch have two merge
+bases, a conforming program gives no finding of that class for the
+change and gives that the change has no base.
 
 Both trees of a comparison are read under one binding of each
 parameter. What a program gives from a repository read that is not
@@ -146,11 +149,11 @@ a matter of the quality of an implementation.
 
 ### 2.5 Findings
 
-The findings of both classes are tree findings: no finding of either
-class is ackable, and the message, the mark, the related messages, and
-any fix of a finding are those that the program that gives it gives. A
-related message can have a spot in the base tree, such as the spot of
-the declaration of the base item.
+The findings of both classes are tree findings. No finding of either
+class is ackable. For a finding of either class, the message, the mark,
+the related messages, and any fix of that finding are those that the
+program that gives that finding gives. A related message can have a spot
+in the base tree, such as the spot of the declaration of the base item.
 
 Each finding has the subject and the spot that the atom of its class
 gives.
@@ -200,19 +203,20 @@ are the same name when, and only when, they are the same text.
     #{base-item=v1},
 }
 
-Under a binding of `file-readers`, a binding of `external-namespaces`,
-and a set of stopped files of each tree, for a tree T and a base tree B,
-the declared items, their kinds, names, current revisions, extent
+For a tree T and a base tree B, under a binding of `file-readers`, a
+binding of `external-namespaces`, and a set of stopped files of each
+tree, the declared items, their kinds, names, current revisions, extent
 hashes, and files of T and of B, and the base items in B of the declared
-items of T, are those that T and B have under these two bindings and
-their sets of stopped files. Under these bindings and sets, T has one
-tree finding of the class `needs-revision` against B for each declared
-item d of T that has a current revision in T and a base item e in B,
-when e has a current revision in B that is the same text as the current
-revision of d in T, and d and e are of different kinds of item or the
-extent hash of d in T is not the extent hash of e in B. Its subject is
-the name of d. Its spot is the spot of the run of the text of the
-declaration of d in the text of its file in T.
+items of T, are those that T and B have under these two bindings and the
+sets of stopped files of T and of B. Under these bindings and sets, T
+has one tree finding of the class `needs-revision` against B for each
+declared item d of T that meets three conditions. First, d has a current
+revision in T and a base item e in B. Second, e has a current revision
+in B that is the same text as the current revision of d in T. Third, d
+and e are of different kinds of item, or the extent hash of d in T is
+not the extent hash of e in B. The subject of that finding is the name
+of d. The spot of that finding is the spot of the run of the text of the
+declaration of d in the text of the file of d in T.
 
 ### 3.3 Findings of the class `suspect`
 
@@ -235,13 +239,15 @@ Under a binding of `file-readers`, a binding of `external-namespaces`,
 and a set of stopped files of a tree, the tree has one tree finding of
 the class `suspect` for each edge that the tree has under these bindings
 and this set and that is suspect in the tree. For an edge that a
-citation entry or an inline citation gives, its subject is the position
-subject of the origin position of the citation entry or of the inline
-citation of the edge, and its spot is the spot of the run of that
-citation entry or inline citation in the text of the file of the edge.
-For an edge that a vector line gives, its subject is the position
-subject of its form position in the file of the edge, and its spot is
-the spot of its form run in the text of the file of the edge.
+citation entry or an inline citation gives, the subject of the finding
+for that edge is the position subject of the origin position of the
+citation entry or of the inline citation of the edge. The spot of the
+finding for that edge is the spot of the run of that citation entry or
+inline citation in the text of the file of the edge. For an edge that a
+vector line gives, the subject of the finding for that edge is the
+position subject of the form position of that edge in the file of the
+edge. The spot of the finding for that edge is the spot of the form run
+of that edge in the text of the file of the edge.
 
 ## 4. Requirements
 
@@ -258,14 +264,14 @@ the spot of its form run in the text of the file of the edge.
     #{needs-revision-finding=v1},
 }
 
-Under a valid binding of `file-readers` and a binding of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the findings of the class `needs-revision` of a tree against a base tree
-under these bindings and a set of stopped files of each tree, it must
-give each tree finding of that class that the tree has against the base
-tree under these bindings and these sets once, and no other finding of
-that class.
+This requirement applies under a valid binding of `file-readers` and a
+binding of `external-namespaces` for which a conforming program of the
+design Identifiers gives the result "valid". When a conforming program
+gives the findings of the class `needs-revision` of a tree against a
+base tree under these bindings and a set of stopped files of each tree,
+that program must give each tree finding of that class that the tree has
+against the base tree under these bindings and these sets once, and must
+give no other finding of that class.
 
 ### 4.2 The findings of the class `suspect`
 
@@ -280,13 +286,13 @@ that class.
     #{suspect-finding=v1},
 }
 
-Under a valid binding of `file-readers` and a binding of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the findings of the class `suspect` of a tree under these bindings and
-a set of stopped files, it must give each tree finding of that class
-that the tree has under these bindings and this set once, and no other
-finding of that class.
+This requirement applies under a valid binding of `file-readers` and a
+binding of `external-namespaces` for which a conforming program of the
+design Identifiers gives the result "valid". When a conforming program
+gives the findings of the class `suspect` of a tree under these bindings
+and a set of stopped files, that program must give each tree finding of
+that class that the tree has under these bindings and this set once, and
+must give no other finding of that class.
 
 ### 4.3 No finding under bindings that are not valid
 
@@ -321,17 +327,21 @@ tree, and no finding of the class `suspect` of any tree.
     #{needs-revision-finding=v1},
 }
 
-Under a binding of `default-branch-name` under which the change of a
-commit h has a base, a valid binding of `file-readers`, and a binding of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives
-the findings of the class `needs-revision` of the change of h under
-these bindings and a set of stopped files of each of the two trees, and
-each repository read from which it takes the base of the change of h
-and the files of the tree of h and of the tree of that base is
-undisturbed, it must give each tree finding of that class that the tree
-of h has against the tree of the base of the change of h under these
-bindings and these sets once, and no other finding of that class.
+This requirement applies for a commit h under three bindings: a binding
+of `default-branch-name` under which the change of h has a base, a valid
+binding of `file-readers`, and a binding of `external-namespaces` for
+which a conforming program of the design Identifiers gives the result
+"valid". Under these bindings, this requirement applies when a
+conforming program meets two conditions. First, that program gives the
+findings of the class `needs-revision` of the change of h under these
+bindings, a set of stopped files of the tree of h, and a set of stopped
+files of the tree of the base of the change of h. Second, each
+repository read from which that program takes the base of the change of
+h and the files of the tree of h and of the tree of that base is
+undisturbed. Under these bindings and when both conditions hold, that
+program must give each tree finding of that class that the tree of h has
+against the tree of the base of the change of h under these bindings and
+these sets once, and must give no other finding of that class.
 
 ### 4.5 The change of a commit with a base
 
@@ -345,12 +355,15 @@ bindings and these sets once, and no other finding of that class.
     text#{conforming-program=v1},
 }
 
-Under a binding of `default-branch-name` under which the change of a
-commit h has a base, when a conforming program gives the findings of the
-class `needs-revision` of the change of h under that binding, or gives
-whether the change of h has a base under that binding, and each
-repository read from which it takes whether the change of h has a base
-is undisturbed, it must not give that the change of h has no base.
+This requirement applies for a commit h under a binding of
+`default-branch-name` under which the change of h has a base, when a
+conforming program meets two conditions. First, that program gives the
+findings of the class `needs-revision` of the change of h under that
+binding, or gives whether the change of h has a base under that binding.
+Second, each repository read from which that program takes whether the
+change of h has a base is undisturbed. Under that binding and when both
+conditions hold, that program must not give that the change of h has no
+base.
 
 ### 4.6 The change of a commit with no base
 
@@ -364,12 +377,14 @@ is undisturbed, it must not give that the change of h has no base.
     text#{conforming-program=v1},
 }
 
-Under a binding of `default-branch-name` under which the change of a
-commit h has no base, when a conforming program gives the findings of
-the class `needs-revision` of the change of h under that binding, and
-each repository read from which it takes that the change of h has no
-base is undisturbed, it must give that the change of h has no base, and
-no finding of that class.
+This requirement applies for a commit h under a binding of
+`default-branch-name` under which the change of h has no base, when a
+conforming program meets two conditions. First, that program gives the
+findings of the class `needs-revision` of the change of h under that
+binding. Second, each repository read from which that program takes that
+the change of h has no base is undisturbed. Under that binding and when
+both conditions hold, that program must give that the change of h has no
+base, and must give no finding of that class.
 
 ## 5. Conformance
 
@@ -382,9 +397,9 @@ The vectors of this design are in the file
 same folder as this design. The file is a test-vector set, as the
 specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
-gives for it. Each vector follows from the requirements and adds nothing
-to them. Subsection 5.1 gives the forms of the group `trees`, as the
-term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
+gives for that input. Each vector follows from the requirements and adds
+nothing to them. Subsection 5.1 gives the forms of the group `trees`, as
+the term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
 them. No vector follows from the requirements
 `compare-with-change-base`, `omit-missing-base-report`, and
 `report-missing-base`.
@@ -427,7 +442,7 @@ a binding of `external-namespaces`. Its requirements are
 `give-needs-revision-findings`, `give-suspect-findings`, and
 `omit-findings-under-invalid-bindings`. Each vector is for the empty set
 of stopped files of each tree. Each vector of the group has the member
-`values`, and no vector has the member `result`; these forms name no
+`values`, and no vector has the member `result`. These forms name no
 question for `result`. The group uses no need, so these forms give no
 need names.
 
@@ -444,47 +459,56 @@ four members:
 - `tree`: the tree.
 - `file-readers`: the binding of `file-readers`, as a JSON array with
   one element for each pair of the binding, in their order. The reader
-  of each pair is `markdown`, and the element is the path set of the
-  pair: a JSON array of its path set members, each a text, in their
-  order.
-- `external-namespaces`: the binding of `external-namespaces`, as a
-  JSON array with one element for each pair of the binding, in no
-  meaningful order. Each element is a JSON object with two members:
+  of each pair is `markdown`. The element for each pair is the path set
+  of that pair: a JSON array of the path set members of that path set,
+  each a text, in their order.
+- `external-namespaces`: the binding of `external-namespaces`, as a JSON
+  array with one element for each pair of the binding, in no meaningful
+  order. Each element is a JSON object with two members:
   `namespace-name`, the namespace name of the pair, and `id-pattern`,
   the id pattern of the pair.
 
 A tree is a JSON object with one member for each file of the tree. The
-key is the valid path of the file. When the content of the file is
-valid UTF-8, the value is the text of that content, as a JSON string.
-When it is not, the value is a JSON object with one member, `bytes`: the
-[hex text](sinter:data-forms#hex-text=v1) of the content, as a JSON
-string.
+key is the valid path of the file. When the content of the file is valid
+UTF-8, the value is the text of that content, as a JSON string. When the
+content of the file is not valid UTF-8, the value is a JSON object with
+one member, `bytes`: the [hex text](sinter:data-forms#hex-text=v1) of
+the content, as a JSON string.
 
 The member `values` is the empty JSON object, `{}`, when the binding of
-`file-readers` of the input is not valid, or a conforming program of the
-design Identifiers gives the result "invalid" for its binding of
-`external-namespaces`. Otherwise, it is a JSON object with one member,
-`findings`: a JSON array with one element for each tree finding of the
-class `needs-revision` that the tree has against the base tree, and for
-each tree finding of the class `suspect` that the tree has, under the
-two bindings of the input and the empty set of stopped files of each
-tree, in the code point order of the slugs of their
-classes and then in the code point order of their subjects. Each element
-is a JSON object with these members: `class`, the slug of its class;
-`subject`, its subject; and `spot`, its spot: a JSON object with the
-member `path`, its valid path, and the member `span`, its span, as a
-JSON object with two members, `from`, the boundary of the text of the
-file where the span starts, and `to`, the boundary where it ends, each a
-JSON number written as a decimal numeral.
+`file-readers` of the input is not valid, or when a conforming program
+of the design Identifiers gives the result "invalid" for the binding of
+`external-namespaces` of the input. Otherwise, the member `values` is a
+JSON object with one member, `findings`, whose value is a JSON array. In
+that case, `findings` has one element for each tree finding of the class
+`needs-revision` that the tree has against the base tree, and one
+element for each tree finding of the class `suspect` that the tree has,
+under the two bindings of the input and the empty set of stopped files
+of each tree. In that case, the elements of `findings` are in the code
+point order of the slugs of the classes of those findings and then in
+the code point order of the subjects of those findings. Each element of
+`findings` is a JSON object with these three members: `class`, the slug
+of the class of the finding; `subject`, the subject of the finding; and
+`spot`, the spot of the finding. The value of `spot` is a JSON object
+with the member `path`, the valid path of the spot, and the member
+`span`, the span of the spot. The value of `span` is a JSON object with
+two members: `from`, the boundary of the text of the file where the span
+starts, and `to`, the boundary of the text of the file where the span
+ends, each a JSON number written as a decimal numeral.
 
 For the input of a vector, when `values` is `{}`, a conforming program
-gives no finding of either class for the tree. Otherwise, when it gives
-the findings of the class `needs-revision` of the tree against the base
-tree under the two bindings of the input and the empty set of stopped
-files of each tree, it gives one for each element of `findings` of that
-class, with the subject that the element states, and no other; and when
-it gives the findings of the class `suspect` of the tree under these
-bindings and the empty set of stopped files, it gives one for each element of
-`findings` of that class, with the subject that the element states, and
-no other. When it gives the spot of such a finding, it gives the spot
-that the element states.
+gives no finding of either class for the tree. For the input of a
+vector, when `values` is not `{}` and a conforming program gives the
+findings of the class `needs-revision` of the tree against the base tree
+under the two bindings of the input and the empty set of stopped files
+of each tree, that program gives one finding of that class for each
+element of `findings` of that class, with the subject that the element
+states, and gives no other finding of that class. For the input of a
+vector, when `values` is not `{}` and a conforming program gives the
+findings of the class `suspect` of the tree under the two bindings of
+the input and the empty set of stopped files, that program gives one
+finding of that class for each element of `findings` of that class, with
+the subject that the element states, and gives no other finding of that
+class. When a conforming program gives the spot of such a finding, that
+program gives the spot that the element of `findings` for that finding
+states.
