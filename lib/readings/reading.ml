@@ -22,6 +22,8 @@ type t = { lines : Lines.t; nodes : node list }
 type error =
   | Not_a_run of { node : int }
   | Body_not_a_run of { node : int; body : int }
+  | Not_nested of { node : int }
+  | Body_not_nested of { node : int; body : int }
   | No_body_node of { node : int }
   | No_own_name of { node : int }
 
@@ -30,39 +32,62 @@ let in_body text (run : Text.run) =
   && run.from <= run.until
   && run.until <= Text.length text
 
-let rec first_outside text number = function
+let rec close (run : Text.run) = function
+  | (top : Text.run) :: rest when top.until <= run.from -> close run rest
+  | stack -> stack
+
+(* @satisfies packs#node-run=v1
+   Of two nodes of a parse tree, the run of the later lies inside the run of
+   the earlier, or starts at or after its end. The open runs form a stack, each
+   inside the one below it, so a run nests with every run before it when, and
+   only when, it lies inside the top that is left after the runs that end at or
+   before its start close. *)
+let nested stack (run : Text.run) =
+  match close run stack with
+  | (top : Text.run) :: _
+    when not (top.from <= run.from && run.until <= top.until) ->
+      None
+  | stack -> Some (run :: stack)
+
+let rec body_error text node stack body = function
   | [] -> None
-  | run :: rest ->
-      if in_body text run then first_outside text (number + 1) rest
-      else Some number
+  | run :: rest -> (
+      if not (in_body text run) then Some (Body_not_a_run { node; body })
+      else
+        match nested stack run with
+        | None -> Some (Body_not_nested { node; body })
+        | Some stack -> body_error text node stack (body + 1) rest)
 
 let node_error text number node =
-  if not (in_body text node.run) then Some (Not_a_run { node = number })
-  else
-    let body_error =
-      match node.body with
-      | Some [] -> Some (No_body_node { node = number })
-      | Some runs ->
-          Option.map
-            (fun body -> Body_not_a_run { node = number; body })
-            (first_outside text 1 runs)
-      | None -> None
-    in
-    match (body_error, node.test) with
-    | Some error, _ -> Some error
-    | None, Some [] -> Some (No_own_name { node = number })
-    | None, _ -> None
+  let body_error =
+    match node.body with
+    | Some [] -> Some (No_body_node { node = number })
+    | Some runs -> body_error text number [] 1 runs
+    | None -> None
+  in
+  match (body_error, node.test) with
+  | Some error, _ -> Some error
+  | None, Some [] -> Some (No_own_name { node = number })
+  | None, _ -> None
 
+(* @satisfies packs#parse-tree=v1
+   A list of nodes whose runs break the order of the term node-run is no parse
+   tree, so the check refuses it and gives no reading. *)
 let check lines nodes =
   let text = Lines.text lines in
-  let rec scan number = function
+  let rec scan number stack = function
     | [] -> Ok { lines; nodes }
     | node :: rest -> (
-        match node_error text number node with
-        | Some error -> Error error
-        | None -> scan (number + 1) rest)
+        if not (in_body text node.run) then Error (Not_a_run { node = number })
+        else
+          match nested stack node.run with
+          | None -> Error (Not_nested { node = number })
+          | Some stack -> (
+              match node_error text number node with
+              | Some error -> Error error
+              | None -> scan (number + 1) stack rest))
   in
-  scan 1 nodes
+  scan 1 [] nodes
 
 let lines reading = reading.lines
 let nodes reading = reading.nodes

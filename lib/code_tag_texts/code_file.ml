@@ -171,37 +171,21 @@ let last_line_of facts (node : Reading.node) =
   if p > node.run.from then facts.line_of_place.(p)
   else first_line_of facts node
 
-let outer_nodes numbered =
-  let m = List.length numbered in
-  let tree = Array.make m (-1) in
-  let rec add i value =
-    if i < m then begin
-      tree.(i) <- max tree.(i) value;
-      add (i lor (i + 1)) value
-    end
-  in
-  let rec greatest i acc =
-    let acc = max acc tree.(i) and rest = i land (i + 1) in
-    if rest <> 0 then greatest (rest - 1) acc else acc
-  in
-  List.stable_sort
-    (fun ((_, a) : int * Reading.node) (_, (b : Reading.node)) ->
-      match Int.compare a.run.from b.run.from with
-      | 0 -> Int.compare b.run.until a.run.until
-      | order -> order)
-    numbered
-  |> List.fold_left
-       (fun outer ((i, node) : int * Reading.node) ->
-         let enclosed = greatest i (-1) >= node.run.until in
-         add i node.run.until;
-         if enclosed then outer else (i, node) :: outer)
-       []
-  |> List.stable_sort
-       (fun ((i, a) : int * Reading.node) ((j, b) : int * Reading.node) ->
-         match Int.compare a.run.from b.run.from with
-         | 0 -> Int.compare i j
-         | order -> order)
-  |> List.map snd
+(* @satisfies packs#node-run=v1
+   In the order of the term node-run, a comment node before a comment node B
+   encloses B when, and only when, its run ends at or after the end of the run
+   of B, so the greatest end so far decides each node, in one pass in the order
+   of the list. *)
+let outer_nodes = function
+  | [] -> []
+  | (first : Reading.node) :: rest ->
+      List.fold_left
+        (fun (outer, last) (node : Reading.node) ->
+          if last >= node.run.until then (outer, last)
+          else (node :: outer, node.run.until))
+        ([ first ], first.run.until)
+        rest
+      |> fst |> List.rev
 
 type open_run = {
   first_node : Reading.node;
@@ -310,11 +294,10 @@ let attachment facts targets (run : Text.run) ~first ~last =
 let make path sigils reading =
   let facts = facts reading in
   let lines = facts.lines in
-  let numbered =
+  let comments =
     List.filter
       (fun (node : Reading.node) -> Option.is_some node.comment)
       (Reading.nodes reading)
-    |> List.mapi (fun i node -> (i, node))
   in
   let targets = targets reading in
   let comment_runs =
@@ -352,7 +335,7 @@ let make path sigils reading =
             attachment facts targets run ~first:open_run.first
               ~last:open_run.last;
         })
-      (group facts (outer_nodes numbered))
+      (group facts (outer_nodes comments))
   in
   let tag_texts = List.filter_map (fun run -> run.tag_text) comment_runs in
   {

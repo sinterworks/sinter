@@ -1094,6 +1094,20 @@ let readable_file_cases () =
     | _ -> false);
   Alcotest.(check int) "one call" 1 (List.length calls);
   let result, calls =
+    read_one "// a\n" (fun () ->
+        ( sigils,
+          Reading.Parsed
+            [ reading_node (tagged (run 0 4)); reading_node (tagged (run 2 5)) ]
+        ))
+  in
+  Alcotest.(check bool)
+    "a reading whose nodes break parse-tree order fails the checks" true
+    (match result with
+    | Error (Readable_file.Invalid_reading (Reading.Not_nested { node = 2 })) ->
+        true
+    | _ -> false);
+  Alcotest.(check int) "one call for an unnested reading" 1 (List.length calls);
+  let result, calls =
     read_one ~markdown:true "# A\n" (fun () -> Alcotest.fail "no pack")
   in
   Alcotest.(check bool)
@@ -1311,6 +1325,177 @@ let tests_of_files_that_are_no_code_files () =
       | _ -> Alcotest.fail "one test")
   | Error _ -> Alcotest.fail "a code file"
 
+let with_small_stack run =
+  let before = Gc.get () in
+  Gc.set { before with stack_limit = 1 lsl 16 };
+  Fun.protect ~finally:(fun () -> Gc.set before) run
+
+(* @verifies packs#{parse-tree=v1, node-run=v1}
+   Under parse-tree order, a comment node is enclosed when an earlier comment
+   node ends at or after its end. These cases check nested chains, equal runs,
+   empty comment nodes at start and end boundaries, and siblings after enclosed
+   comment nodes. *)
+let outer_comment_node_cases () =
+  let file =
+    code_file c_sigils "/* a /* b /* c */ */ */\n"
+      [ tagged (run 0 23); tagged (run 5 20); tagged (run 10 17) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "deeply nested comments keep only the outer node" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check string) "the outer run" "0-23" (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments");
+  let file =
+    code_file line_sigils "// a\n" [ untagged (run 0 4); tagged (run 0 4) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "two comment nodes with one run keep only the first" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check bool)
+        "the enclosed tagged node gives no tag text" true (r.tag_text = None)
+  | _ -> Alcotest.fail "one run of comments");
+  let file =
+    code_file line_sigils "// a\n" [ untagged (run 0 4); tagged (run 4 4) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "an empty comment node at the end boundary is enclosed" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check bool)
+        "no tag text from the enclosed empty node" true (r.tag_text = None)
+  | _ -> Alcotest.fail "one run of comments");
+  let file =
+    code_file line_sigils "// a\n" [ tagged (run 0 0); tagged (run 0 4) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "an empty comment node before a non-empty one at one start boundary \
+         keeps both"
+        2
+        (List.length r.comment_nodes);
+      Alcotest.(check string) "the joined run" "0-4" (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments");
+  let file =
+    code_file line_sigils "// a\n" [ untagged (run 0 0); tagged (run 0 0) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "two empty comment nodes at one boundary keep only the first" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check bool)
+        "no tag text from the second empty node" true (r.tag_text = None)
+  | _ -> Alcotest.fail "one run of comments");
+  let source = "/* a /* b */ *//* c */\n" in
+  let file =
+    code_file c_sigils source
+      [ tagged (run 0 15); tagged (run 5 12); tagged (run 15 22) ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "a sibling after an enclosed comment node stays outer" 2
+        (List.length r.comment_nodes);
+      Alcotest.(check string) "the joined run" "0-22" (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments");
+  let source = "/* /* a */ /* b */ *//* c */\n" in
+  let file =
+    code_file c_sigils source
+      [
+        tagged (run 0 21);
+        tagged (run 3 10);
+        tagged (run 11 18);
+        tagged (run 21 28);
+      ]
+  in
+  (match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "two sibling comments inside one outer comment are both enclosed" 2
+        (List.length r.comment_nodes);
+      Alcotest.(check string) "the joined run" "0-28" (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments");
+  let file =
+    code_file c_sigils "#[a /* b */]\n"
+      [ decoration (run 0 12); tagged (run 4 11) ]
+  in
+  match Code_file.comment_runs file with
+  | [ r ] ->
+      Alcotest.(check int)
+        "a comment inside a decoration node is still an outer comment node" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check string) "the comment run" "4-11" (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments"
+
+let nested_comment_reading count =
+  let source = "/*" ^ String.make (2 * count) 'a' ^ "*/\n" in
+  let lines = Lines.of_text (text_of source) in
+  let rec build acc k =
+    if k < 0 then acc
+    else
+      build (reading_node (tagged (run k ((2 * count) + 4 - k))) :: acc) (k - 1)
+  in
+  let nodes = build [] (count - 1) in
+  match Reading.check lines nodes with
+  | Ok reading -> reading
+  | Error _ -> Alcotest.fail "a nested comment reading passes Reading.check"
+
+let disjoint_and_nested_comment_reading count =
+  let source = String.concat "" (List.init count (fun _ -> "/* a */\n")) in
+  let lines = Lines.of_text (text_of source) in
+  let rec build acc k =
+    if k < 0 then acc
+    else
+      let base = 8 * k in
+      let outer = reading_node (tagged (run base (base + 7))) in
+      let inner = reading_node (tagged (run (base + 2) (base + 5))) in
+      build (outer :: inner :: acc) (k - 1)
+  in
+  let nodes = build [] (count - 1) in
+  match Reading.check lines nodes with
+  | Ok reading -> reading
+  | Error _ ->
+      Alcotest.fail
+        "a reading of disjoint and nested comments passes Reading.check"
+
+let make_grows_linearly_on_nested_comments () =
+  let path = path_of "lib/a.rs" and sigils = comment_sigils c_sigils in
+  let run reading = Code_file.make path sigils reading in
+  Counted_work.check_growth ~margin:1.5 ~sizes:(1_000, 16_000)
+    ~input:nested_comment_reading run;
+  Timed_work.check_growth ~margin:3. ~runs:3 ~sizes:(4_000, 32_000)
+    ~input:nested_comment_reading run;
+  Counted_work.check_growth ~margin:1.5 ~sizes:(1_000, 16_000)
+    ~input:disjoint_and_nested_comment_reading run;
+  Timed_work.check_growth ~margin:3. ~runs:3 ~sizes:(4_000, 32_000)
+    ~input:disjoint_and_nested_comment_reading run
+
+let make_keeps_constant_stack_depth_on_nested_comments () =
+  let depth = 200_000 in
+  let path = path_of "lib/a.rs" and sigils = comment_sigils c_sigils in
+  let reading = nested_comment_reading depth in
+  let runs =
+    with_small_stack (fun () ->
+        let file = Code_file.make path sigils reading in
+        Code_file.comment_runs file)
+  in
+  match runs with
+  | [ r ] ->
+      Alcotest.(check int)
+        "one outer comment node" 1
+        (List.length r.comment_nodes);
+      Alcotest.(check string)
+        "the outermost run"
+        (Printf.sprintf "0-%d" ((2 * depth) + 4))
+        (print_run r.run)
+  | _ -> Alcotest.fail "one run of comments"
+
 let tests =
   [
     code_characters_follow_the_term;
@@ -1329,6 +1514,12 @@ let tests =
       a_file_keeps_its_path_and_reading;
     Alcotest.test_case "a code file with 300,000 comment nodes" `Quick
       many_comment_nodes;
+    Alcotest.test_case "outer comment nodes under parse-tree order" `Quick
+      outer_comment_node_cases;
+    Alcotest.test_case "make grows linearly on nested comment nodes" `Quick
+      make_grows_linearly_on_nested_comments;
+    Alcotest.test_case "make keeps constant stack depth on nested comment nodes"
+      `Quick make_keeps_constant_stack_depth_on_nested_comments;
     Alcotest.test_case
       "of targets with one run, the first in the list is the target" `Quick
       first_target_in_the_list;

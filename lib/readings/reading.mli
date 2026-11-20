@@ -13,9 +13,8 @@
     [packs=v1] give for the text, each once, in the order of the parse tree,
     each with its run as the term [node-run] gives it. {!check} checks a part of
     this guarantee: the cases that a term forbids. It does not check the rest:
-    it accepts a node with no role, nodes in any order, and nodes whose runs
-    overlap in any way, and it takes the order of the list as the order of the
-    parse tree. *)
+    it accepts a node with no role, and it takes the order of the list as the
+    order of the parse tree. *)
 
 open Sinter_text
 
@@ -75,6 +74,17 @@ type error =
       (** the run of the body node with the number [body], from 1, of the node
           is not a run of the text that starts at or after the boundary where
           the body of the text starts *)
+  | Not_nested of { node : int }
+      (** the run of the node and the run of a node before it in the list break
+          the order of the term [node-run]: the run of the node does not start
+          at or after the boundary where the run of the earlier node starts and
+          end at or before the boundary where that run ends, and it does not
+          start at or after the boundary where the run of the earlier node ends
+      *)
+  | Body_not_nested of { node : int; body : int }
+      (** the run of the body node with the number [body], from 1, of the node
+          and the run of a body node before it among the body nodes of that node
+          break the order of the term [node-run], as for {!Not_nested} *)
   | No_body_node of { node : int }
       (** the node is a definition node with no body node *)
   | No_own_name of { node : int }
@@ -86,15 +96,24 @@ val check : Lines.t -> node list -> (t, error) Stdlib.result
     result "parsed" and the nodes [nodes]:
     - its run is a run of the text that starts at or after the boundary where
       the body of the text starts;
-    - when it is a definition node, it has at least one body node, and the run
-      of each body node is a run of the text that starts at or after the
-      boundary where the body of the text starts;
+    - for each node before it in [nodes], its run starts at or after the
+      boundary where the run of that node starts and ends at or before the
+      boundary where that run ends, or its run starts at or after the boundary
+      where the run of that node ends;
+    - when it is a definition node, it has at least one body node, and each body
+      node passes these two checks, in this order: its run is a run of the text
+      that starts at or after the boundary where the body of the text starts;
+      and, for each body node before it among the body nodes of the node, its
+      run starts at or after the boundary where the run of that body node starts
+      and ends at or before the boundary where that run ends, or its run starts
+      at or after the boundary where the run of that body node ends;
     - when it is a test node, its name path has at least one own name.
 
     It is [Error] for the node of the lowest number that fails a check, with the
-    first check that it fails in the order of this list, and for the body node
-    of the lowest number among those of that node that fail the second check.
-    The time is linear in the number of the nodes and of their body nodes. *)
+    first check that it fails in the order of this list, and, for the third
+    check, for the body node of the lowest number among those of that node that
+    fail a check, with the first check that it fails. The time is linear in the
+    number of the nodes and of their body nodes. *)
 
 val lines : t -> Lines.t
 (** [lines reading] is the lines of the text of [reading]. *)
