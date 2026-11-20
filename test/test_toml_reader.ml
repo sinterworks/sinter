@@ -139,6 +139,14 @@ let value_cases : (string * M.value option) list =
     ("a = 12#9-", Some (M.Integer 12L));
     ("a = 0#:x", Some (M.Integer 0L));
     ("a = 0\nx9-c-9 = 1", Some (M.Integer 0L));
+    ("a = 2026-04-30", Some (M.Local_date { year = 2026; month = 4; day = 30 }));
+    ("a = 2026-06-30", Some (M.Local_date { year = 2026; month = 6; day = 30 }));
+    ("a = 2026-09-30", Some (M.Local_date { year = 2026; month = 9; day = 30 }));
+    ("a = 2026-11-30", Some (M.Local_date { year = 2026; month = 11; day = 30 }));
+    ("a = 2026-04-31", None);
+    ("a = 2026-06-31", None);
+    ("a = 2026-09-31", None);
+    ("a = 2026-11-31", None);
   ]
 
 let value_of_a = function
@@ -384,6 +392,10 @@ let fault_cases =
     ("a = 1e400", "Float_out_of_range at 4");
     ("a = [1, -1e400]", "Float_out_of_range at 8");
     ("d = 1979-02-30", "Date_time_out_of_range at 4");
+    ("d = 2026-04-31", "Date_time_out_of_range at 4");
+    ("d = 2026-06-31", "Date_time_out_of_range at 4");
+    ("d = 2026-09-31", "Date_time_out_of_range at 4");
+    ("d = 2026-11-31", "Date_time_out_of_range at 4");
     ("a = 1979-05-27T07:32:00+24:00", "Date_time_out_of_range at 4");
     ("t = 12:00:61", "Date_time_out_of_range at 4");
     ("s = \"ab\\uD800\"", "Escape_not_a_character at 7");
@@ -408,6 +420,11 @@ let fault_cases =
     ("[[a.b]]\n[a]\nb.y = 2", "Dotted_key_into_named_table at 12");
   ]
 
+(* @verifies data-forms#read-toml=v1
+   No byte sequence of the list is a TOML document. The test fails when read
+   gives a root table for a byte sequence of the list, or gives a kind of fault
+   or an offset other than the one that the list names for that byte
+   sequence. *)
 let gives_each_fault_with_its_offset () =
   List.iter
     (fun (bytes, expected) ->
