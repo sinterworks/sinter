@@ -438,7 +438,7 @@ let within_grows_as_its_result () =
       List.map (Tree_file.within file)
         (File_lines.all (Tree_file.file_lines file)))
 
-let crossing_comments n =
+let nested_comments n =
   let buffer = Buffer.create (n * 24) in
   let froms =
     List.init n (fun k ->
@@ -479,24 +479,24 @@ let crossing_comments n =
                        block = [ ("/*", "*/") ];
                        inner = [];
                      };
-                   nodes = List.map2 node froms ends;
+                   nodes = List.map2 node froms (List.rev ends);
                  } );
              ];
          }) )
 
 let within_grows_as_its_runs_over_nested_lines () =
-  let until, file = crossing_comments 3 in
+  let until, file = nested_comments 3 in
   Alcotest.(check (list int))
-    "the lines within the first line" [ 1; 2; 3 ]
+    "the lines within the first line" [ 1 ]
     (Line_set.elements (Tree_file.within file { Text.from = 0; until }));
   Alcotest.(check (list int))
     "no line within a run that ends before them" []
     (Line_set.elements
        (Tree_file.within file { Text.from = 0; until = until - 1 }));
   Counted_work.check_growth ~exponent:0. ~margin:1.5 ~sizes:(50, 200)
-    ~input:crossing_comments (fun (until, file) ->
+    ~input:nested_comments (fun (until, file) ->
       Tree_file.within file { Text.from = 0; until });
-  Time_growth.check ~bound:2. ~size:50 ~input:crossing_comments
+  Time_growth.check ~bound:2. ~size:50 ~input:nested_comments
     (Time_growth.repeat 500_000 (fun (until, file) ->
          Tree_file.within file { Text.from = 0; until = until - 1 }))
 
