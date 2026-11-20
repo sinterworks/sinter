@@ -8,12 +8,12 @@ The CI job that measures the mutation score fails below 95 percent; the number d
 
 ## Context
 
-The record `mutation-testing` set the gate as a minimum that starts at
-the measured score rounded down and only rises. When the survivors of
-the first runs were killed or marked, the measurement reached 100
-percent, and that rule would have set the gate there. A gate at 100
-fails a pull request on the first mutant that no test kills, until the
-author writes the test or marks the place.
+Revision v2 of the record `mutation-testing` set the gate as a minimum
+that starts at the measured score rounded down and only rises. When the
+survivors of the first runs were killed or marked, the measurement
+reached 100 percent, and that rule would have set the gate there. A gate
+at 100 fails a pull request on the first mutant that no test kills,
+until the author writes the test or marks the place.
 
 ## Decision
 
@@ -27,14 +27,16 @@ author writes the test or marks the place.
 ## Alternatives considered
 
 - **The measured score rounded down, rising with each measurement**,
-  the rule of the earlier record — not kept. With the measurement at
-  100, it becomes the gate below, and the maintainer chose room
-  instead.
-- **A gate of 100 percent, with every survivor killed or marked** —
-  not chosen. It is what the measurement gave and what two of the
-  surveyed tools ship as their default. The maintainer preferred a gate
-  that does not stop a sound pull request for one unkilled mutant, with
-  100 as the standard that review holds a change to.
+  the rule of revision v2 of `mutation-testing` — not kept. With the
+  measurement at 100, this rule sets the gate at 100 percent. A gate
+  below the measurement was chosen instead, so that one survivor does
+  not fail the job.
+- **A gate of 100 percent, with every survivor killed or marked** — not
+  chosen. It is what the measurement gave and what two of the eleven
+  tools that the record `mutation-testing` surveyed ship as their
+  default. The maintainer preferred a gate that does not stop a sound
+  pull request for one unkilled mutant, with 100 as the standard that
+  review holds a change to.
 
 ## Consequences
 
