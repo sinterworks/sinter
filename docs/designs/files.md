@@ -3,7 +3,7 @@
 
 # Files and paths
 @design files=v2
-@cites text=v1
+@cites text=v2
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
