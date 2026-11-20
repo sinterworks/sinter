@@ -26,7 +26,8 @@ case-sensitive strings of RFC 7405.
 From Text and notation, the design takes characters, texts, places,
 boundaries, runs, code spans, bytes, byte sequences, valid UTF-8, the
 text of a byte sequence, UTF-8 encodings, the notation of productions,
-requirements, conforming programs, and results. From POSIX.1-2024, the
+requirements, conforming programs, results, and canonical vector lines
+for its vector file. From POSIX.1-2024, the
 design takes files, processes, and what a file system is; the file
 types, such as a directory, a regular file, and a symbolic link; the
 directory entries of a directory, and the names `.` and `..` in a
@@ -1090,9 +1091,10 @@ and list the need names that the group uses, if any.
     text#{
         canonical-vector-line=v1, design=v1, conforming-program=v1,
         input=v1, text=v1, character=v1, run=v1, line=v1, line-feed=v1,
-        carriage-return=v1, valid-utf-8=v1, whole-number=v1,
-        decimal-numeral=v1, code-point-order=v1, u-numeral=v1,
-        sequence=v1, result=v1, code-span=v1,
+        carriage-return=v1, byte-sequence=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, whole-number=v1, decimal-numeral=v1,
+        code-point-order=v1, u-numeral=v1, sequence=v1, result=v1,
+        code-span=v1,
     },
 }
 
@@ -1101,26 +1103,27 @@ person or the program that runs the vectors, and compares what a program
 gives with them, is the runner. The vectors are in groups, and each
 group has a name, such as `paths`.
 
-The vector file is valid UTF-8. Its text does not start with U+FEFF, it
-holds no carriage return, it has no empty line, and when it is not empty
-it ends with a line feed. Only a line feed ends a line of the vector
-file. A JSON string of the vector file can hold U+0085, U+2028, or
-U+2029, and these characters do not end a line. The vector file holds
-zero or more vector lines. Each line of the text of the vector file is a
-JSON text, as RFC 8259 defines it, that meets the schema
-`canonical-vector-line` of Text and notation.
+The vector file, `files.test-vectors.jsonl` in the same directory as
+this design, is a byte sequence that is valid UTF-8. Its text does not
+start with U+FEFF, it holds no carriage return, it has no empty line,
+and when it is not empty it ends with a line feed. Only a line feed ends
+a line of the vector file. A JSON string of the vector file can hold
+U+0085, U+2028, or U+2029, and these characters do not end a line. The
+vector file holds zero or more vector lines. All vector lines with the
+same `group` in the vector file have the same `#` and schema name in
+`form`, and their labels in `form` may differ.
 
-The JSON object of each vector line holds the required members `form`,
+The text of each line of the vector file is a vector line: a JSON text,
+as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
+Text and notation. Its JSON object holds the required members `form`,
 `group`, `input`, and `result`, the member `values` only for the group
-`file-reads`, and the optional members `needs` and `note`, in code
-point order of their names, and no other member:
+`file-reads`, and the optional members `needs` and `note`, and no other
+member:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
-  for the group of the vector, `=`, and a label of that schema: `v`,
-  then the decimal numeral of a whole number of 1 or more, such as `v1`
-  (for example, `"#path-vector=v1"`). All vector lines with the same
-  `group` in the vector file have the same `#` and schema name in
-  `form`. Their labels in `form` may differ.
+  for the group of the vector, `=`, and a label: `v`, then the decimal
+  numeral of a whole number of 1 or more, such as `v1` (for example,
+  `"#path-vector=v1"`).
 - `group`: the name of the group of the vector, as a JSON string, such
   as `"paths"`.
 - `input`: the inputs of the vector: what a conforming program takes or
@@ -1174,6 +1177,9 @@ gives:
 
 Each JSON object that a schema of a vector group describes has the
 members that the schema names for it, and no other member.
+
+A vector line meets the schema `vector-line` when, and only when, it
+meets what this schema states for a vector line.
 
 ### 5.2 Paths
 
@@ -1249,8 +1255,8 @@ text as a path in the folder tree.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
-  The runner makes these conditions true, or it skips the vector, as the
-  needs of this schema allow.
+  A run of the vectors runs a vector under these conditions, or skips
+  the vector as this schema states for skips.
 - `result`: the result of each file read of the text in the folder tree
   that a conforming program makes under these conditions: "invalid",
   "found", "no file", "symbolic link", "not a regular file", "not
@@ -1269,8 +1275,8 @@ text of the content. When `values` is `{}`, it gives no text as the
 text of a content. A conforming program gives exactly one result in each
 file read, also when no process opens a pipe of the folder tree. So
 when a file read has given no result after a time that the runner
-chooses, the runner judges that the program did not give the result
-that `result` holds.
+chooses, the run of the vectors fails on that vector, as when the
+program does not give the result that `result` holds.
 
 For example, in `tree`, the reference `b.md` of a symbolic link, which
 is the hex byte sequence `"622e6d64"`, leads to the file of the folder
@@ -1338,13 +1344,14 @@ skip.
 A vector of the group `file-reads` has the member `needs` when, and only
 when, it has one or more of these needs, and the member is a JSON array
 holding each need name of the vector once, in code point order, and no
-other name. For each vector that it does not skip, the runner uses a
-file system that stores its folder tree, and a process of the program
-for which the conditions of its input hold. The runner can skip a vector
-only when it cannot make true a need that the member `needs` of the
-vector names. When it skips a vector, it reports the skipped vector and
-each such need. Any other skip of a vector makes the run of the vectors
-fail, as when the program does not give the result of a vector.
+other name. For each vector that a run of the vectors does not skip, the
+run uses a file system that stores its folder tree and a process of the
+program for which the conditions of its input hold. A skip of a vector
+decides nothing about that vector when the runner cannot make true a
+need that the member `needs` of the vector names and reports the skipped
+vector and each such need. Any other skip of a vector makes the run of
+the vectors fail, as when the program does not give the result of the
+vector.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
