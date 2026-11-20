@@ -109,8 +109,8 @@ finding class is the kind of finding, which a slug names. Each finding
 has the parts that the term `finding-part` gives, such as its subject,
 its message, and its spot, and these parts can have parts of their own.
 
-For example, a finding class, such as `no-test`, reports an item of the
-kind requirement that no test cites. In a tree,
+For example, the finding class `no-test` reports an item of the kind
+requirement that no test cites. In a tree,
 the item of the kind requirement `billing#due-date` is declared on line
 41 of `docs/designs/billing.md`, by the tag line `@req due-date=v2`, and
 no test cites it. The finding has these parts:
@@ -284,8 +284,8 @@ can have effect. An acknowledgment of a finding that is not ackable has
 no effect. Each edit set of the fix of a finding corrects the finding,
 or adds an acknowledgment of it when the finding is ackable.
 
-For example, a finding class, such as `old-word`, reports a word that a
-word list replaces. Line 3 of `docs/guide.md` is
+For example, the finding class `old-word` reports a word that a word
+list replaces. Line 3 of `docs/guide.md` is
 `The stamp comes last.`, and the word list replaces `stamp` with
 `approval`. The finding has the spot from line 3, column 1 to line 3,
 column 22, and the mark from line 3, column 5 to line 3, column 10. Its
@@ -530,6 +530,7 @@ spot, with the new text of the edit description as its new text.
 @atom edit-set-description=v1
 @cites {
     ontology#{tree=v1},
+    text#{result=v1},
     #{edit-description=v1, edit=v1, edit-set=v1},
 }
 
@@ -538,7 +539,9 @@ when, and only when, it has one or more edit descriptions, each edit
 description of the sequence describes an edit in that tree, no two edit
 descriptions of the sequence describe the same edit, and these edits are
 the edits of an edit set in that tree, which is the edit set that the
-sequence describes.
+sequence describes. For a tree and a finite sequence of edit
+descriptions, the result for whether the sequence describes an edit set
+in the tree is "valid" when it does, and "invalid" when it does not.
 
 ### 3.17 Fixes
 
