@@ -346,8 +346,9 @@ The class `unplanned-change` reports one tree finding for each valid
 path with a hunk between `b` and `h` that lies outside the paths of
 every task of the change and outside the exempt paths, unless the
 file's change [only re-pins](sinter:#repin-only-file=v1). A file's
-change only re-pins when the file is valid UTF-8 in both trees, has the
-same number of lines in both trees, and every differing line differs
+change only re-pins when the file is a read file that can be read in
+both trees (and so is valid UTF-8 in both trees), has the same number of
+lines in both trees, and every differing line differs
 only in pins of accepted citation tag lines (including continuation
 lines and tags in code comments), with each changed new pin equal to
 the current label of its cited item in the tree of `h`. A change to an
