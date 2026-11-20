@@ -52,11 +52,11 @@ vectors, sites, external items, edges of all five kinds and when an edge
 says what its kind of edge says, pinned edges, effective `supersedes`
 edges, retired items, items in force, the default branch, the ledger,
 finding classes, and parameters. From Changes (`changes`), it takes
-commits, the files of the tree of a commit, shallow commits, the
-parameter `default-branch-name` with its bindings, the commit of the
-default branch, the change of a commit, the base of the change of a
-commit, first-parent lines, repository reads, and undisturbed repository
-reads. From Findings (`findings`), it takes spots, edits, edit sets,
+commits, the files of the tree of a commit, the parameter
+`default-branch-name` with its bindings, the commit of the default
+branch, the change of a commit, the base of the change of a commit,
+first-parent lines, repository reads, and undisturbed repository reads.
+From Findings (`findings`), it takes spots, edits, edit sets,
 edited texts, edited trees, fixes, finding parts, and the requirement
 `findings#limit-fix-edit-sets`.
 
@@ -69,7 +69,8 @@ the order of positions, the spots of runs, and tree findings. From
 Revisions (`revisions`), it takes base items. From the Ledger
 (`ledger`), it takes stored ledgers, ledger objects, and valid, broken,
 and newer ledgers. From Approval (`approval`), it takes the parameter
-`approval-kinds` with its bindings and in force under the bindings.
+`approval-kinds` with its bindings, in force under the bindings, and
+incomplete first-parent lines.
 
 ## 1. Glossary
 
@@ -90,7 +91,7 @@ and newer ledgers. From Approval (`approval`), it takes the parameter
 | [anchor member](sinter:#cycle-finding=v1) | among the members of a cycle of `supersedes` and `refines` edges whose name comes first in code point order, the member that comes first in declaration order |
 | [base item](sinter:revisions#base-item=v1) | the one declared item of a base tree with the same name in the corresponding set of names, of any kind, when the declared item of the tree is also the one declared item with its name in its set of names |
 | [item with a new label](sinter:#new-label-item=v1) | a declared item of a tree that has a current revision, whose file is not a historical file, and that either has no base item in the base tree or whose base item has no current revision or a different current revision |
-| [incomplete first-parent line](sinter:#cut-history=v1) | a first-parent line of the commit of the default branch that cannot be read in full because a commit on the line is a shallow commit, a non-shallow commit on the line names a first parent that is not a commit of the repository, or a needed git tree object or read-file blob of a commit on the line is missing from the repository at the end of the repository reads |
+| [incomplete first-parent line](sinter:approval#incomplete-first-parent-line=v1) | a first-parent line of the commit of the default branch of a git repository that is incomplete for the repository reads from which a program takes that first-parent line and the files of the trees of the commits of that first-parent line, under a valid binding of `file-readers`, as the term `approval#incomplete-first-parent-line` gives it |
 | [cut history](sinter:#cut-history=v1) | a history of the default branch whose first-parent line is incomplete, or in which a read file of a tree of that line is in the set of stopped files of that tree |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and either a spot or no spot, that is not ackable |
 | [`retired`](sinter:#retired-finding=v1) | the finding class of `cites`, `satisfies`, `verifies`, and `refines` edges that say what their kind of edge says, whose source counts, whose cited item counts as retired, and whose file is not a historical file |
@@ -372,9 +373,11 @@ which reads the ledger. The requirement
 newer and a git repository that does not hold its ledger objects. The
 requirements `give-successors` and `give-retired-findings` state what a
 conforming program gives when the first-parent line of the commit of the
-default branch is incomplete (term `cut-history`), including in a
-shallow clone or when the git repository lacks needed git objects. The
-classes `cycle`, `deleted-decision`, and `reused-label` read no ledger.
+default branch is incomplete for the repository reads from which that
+program takes that first-parent line and the files of the trees of the
+commits of that first-parent line (term
+`approval#incomplete-first-parent-line`). The classes `cycle`,
+`deleted-decision`, and `reused-label` read no ledger.
 
 The requirements `give-successors`, `give-retired-findings`, and
 `give-cycle-findings` state what a conforming program gives when it
@@ -786,43 +789,28 @@ declaration of d in the text of the file of d in T.
 @cites {
     ontology#{default-branch=v1, tree=v1, parameter=v1},
     changes#{
-        commit=v1, commit-file=v1, shallow-commit=v1,
-        default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1, repository-read=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1,
     },
     documents#{file-readers=v1, read-file=v1, unreadable-file=v1},
+    approval#{incomplete-first-parent-line=v1},
     text#{code-span=v1},
 }
 
-This term is for a git repository R, the repository reads from which a
-program takes the first-parent line of the commit of the default branch
-and the files of the trees of its commits, a binding D of
-`default-branch-name` under which the default branch of R has a commit
-d, and a valid binding F of `file-readers`. In this term, R holds a git
-object when R holds that git object at the end of those repository
-reads.
+This term is for a git repository R, a binding D of `default-branch-name`
+under which the default branch of R has a commit d, a valid binding F of
+`file-readers`, the repository reads from which a program takes the
+first-parent line of d and the files of the trees of the commits of that
+first-parent line, and a set Uc of stopped files of the tree of each
+commit c of the first-parent line of d (whenever two commits of that
+line have the same tree, they have the same set of stopped files).
 
-The first-parent line of d under F is incomplete for those repository
-reads when, and only when, one or more of these three conditions holds:
-
-1. A commit of the first-parent line of d is a shallow commit of R.
-2. A commit of the first-parent line of d is not a shallow commit of R,
-   and its commit object names as its first parent a git object that is
-   not a commit of R.
-3. For some commit c of the first-parent line of d, R does not hold the
-   git tree object of c, does not hold a git tree object named by a
-   tree entry under it, or does not hold the blob of a regular-file
-   entry under it whose file in the tree of c is a read file of the
-   tree of c under F.
-
-For a set Uc of stopped files of the tree of each commit c of the
-first-parent line of d (whenever two commits of that line have the same
-tree, they have the same set of stopped files), the history of the
-default branch of R under D, F, and these sets is cut for those
-repository reads when, and only when, either the first-parent line of d
-under F is incomplete for those repository reads, or for some commit c
-of the first-parent line of d, a read file of the tree of c under F is
-in Uc.
+The history of the default branch of R under D, F, and these sets is cut
+for those repository reads when, and only when, either the first-parent
+line of d under F is incomplete for those repository reads (term
+`approval#incomplete-first-parent-line`), or for some commit c of the
+first-parent line of d, a read file of the tree of c under F is in Uc.
 
 ## 5. Requirements
 
@@ -836,14 +824,18 @@ in Uc.
         parameter=v1,
     },
     changes#{
-        commit=v1, default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
-    approval#{approval-kinds=v1, bound-in-force-item=v1},
+    approval#{
+        approval-kinds=v1, bound-in-force-item=v1,
+        incomplete-first-parent-line=v1,
+    },
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{successor=v1, cut-history=v1},
+    #{successor=v1},
 }
 
 This requirement applies for a git repository R whose ledger is valid
@@ -863,14 +855,16 @@ program takes the ledger and the trees of the first-parent line is
 undisturbed.
 
 When the default branch of R has a commit d under D and the first-parent
-line of d under F is incomplete for those repository reads (term
-`cut-history`), the program must give each successor of x in T at P
-under A, D, F, N, and S once and no other item, or must give no
-successor of x. Otherwise, the program must give each successor of x in
-T at P under A, D, F, N, and S once and no other item, except that when,
-in giving those successors, the program refuses the edges of T (term
-`documents#tree-edge`) for limits of its own, the program must give no
-successor for T.
+line of d under F is incomplete (term
+`approval#incomplete-first-parent-line`) for the repository reads from
+which that program takes the first-parent line of d and the files of the
+trees of the commits of that first-parent line, that program must give
+each successor of x in T at P under A, D, F, N, and S once and no other
+item, or must give no successor of x. Otherwise, that program must give
+each successor of x in T at P under A, D, F, N, and S once and no other
+item, except that when, in giving those successors, that program refuses
+the edges of T (term `documents#tree-edge`) for limits of its own, that
+program must give no successor for T.
 
 ### 5.2 Findings of the class `retired`
 
@@ -882,17 +876,21 @@ successor for T.
         parameter=v1,
     },
     changes#{
-        commit=v1, default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1, repository-read=v1, undisturbed-read=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     documents#{
         file-readers=v1, tree-edge=v1, tree-finding=v1,
         unreadable-file=v1,
     },
-    approval#{approval-kinds=v1, bound-in-force-item=v1},
+    approval#{
+        approval-kinds=v1, bound-in-force-item=v1,
+        incomplete-first-parent-line=v1,
+    },
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{historical-paths=v1, retired-finding=v1, cut-history=v1},
+    #{historical-paths=v1, retired-finding=v1},
 }
 
 This requirement applies for a git repository R whose ledger is valid
@@ -912,15 +910,18 @@ of stopped files), and each repository read from which that program
 takes the ledger and the trees of the first-parent line is undisturbed.
 
 When the default branch of R has a commit d under D and the first-parent
-line of d under F is incomplete for those repository reads (term
-`cut-history`), the program must give each tree finding of the class
-`retired` that T has at P under A, D, F, N, H, and S once and no other
-finding of that class, or must give no finding of that class for T.
-Otherwise, the program must give each tree finding of the class
-`retired` that T has at P under A, D, F, N, H, and S once and no other
-finding of that class, except that when, in giving those findings, the
-program refuses the edges of T (term `documents#tree-edge`) for limits
-of its own, the program must give no finding of that class for T.
+line of d under F is incomplete (term
+`approval#incomplete-first-parent-line`) for the repository reads from
+which that program takes the first-parent line of d and the files of the
+trees of the commits of that first-parent line, that program must give
+each tree finding of the class `retired` that T has at P under A, D, F,
+N, H, and S once and no other finding of that class, or must give no
+finding of that class for T. Otherwise, that program must give each tree
+finding of the class `retired` that T has at P under A, D, F, N, H, and
+S once and no other finding of that class, except that when, in giving
+those findings, that program refuses the edges of T (term
+`documents#tree-edge`) for limits of its own, that program must give no
+finding of that class for T.
 
 ### 5.3 Offered fixes of `retired` findings
 
@@ -1476,13 +1477,17 @@ the inputs while the program runs.
         default-branch=v1, tree=v1, ledger=v1, parameter=v1,
     },
     changes#{
-        commit=v1, default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1,
     },
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-    approval#{approval-kinds=v1, bound-in-force-item=v1},
-    #{successor=v1, cut-history=v1, give-successors=v1},
+    approval#{
+        approval-kinds=v1, bound-in-force-item=v1,
+        incomplete-first-parent-line=v1,
+    },
+    #{successor=v1, give-successors=v1},
 }
 
 The group `successors` holds the vectors of the requirement
@@ -1497,10 +1502,13 @@ need, so these forms give no need names.
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects and whose default branch's first-parent
 line (when the default branch has a commit) is not incomplete (term
-`cut-history`); for valid bindings of `approval-kinds` and
-`file-readers`; for a binding of `external-namespaces` for which a
-conforming program of Identifiers gives the result "valid"; for one
-binding of `default-branch-name`; and for empty sets of stopped files.
+`approval#incomplete-first-parent-line`) for the repository reads from
+which a conforming program takes that first-parent line and the files of
+the trees of the commits of that first-parent line; for valid bindings
+of `approval-kinds` and `file-readers`; for a binding of
+`external-namespaces` for which a conforming program of Identifiers
+gives the result "valid"; for one binding of `default-branch-name`; and
+for empty sets of stopped files.
 No other process changes these inputs while the program runs.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
@@ -1559,18 +1567,22 @@ once and gives no other item.
         parameter=v1,
     },
     changes#{
-        commit=v1, default-branch-name=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1,
     },
     documents#{
         file-readers=v1, tree-edge=v1, position-subject=v1,
         tree-finding=v1, unreadable-file=v1,
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-    approval#{approval-kinds=v1, bound-in-force-item=v1},
+    approval#{
+        approval-kinds=v1, bound-in-force-item=v1,
+        incomplete-first-parent-line=v1,
+    },
     #{
         historical-paths=v1, historical-file=v1, retired-finding=v1,
-        cut-history=v1, give-retired-findings=v1,
+        give-retired-findings=v1,
         omit-findings-under-invalid-historical-paths=v1,
     },
 }
@@ -1587,10 +1599,13 @@ these forms give no need names.
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects and whose default branch's first-parent
 line (when the default branch has a commit) is not incomplete (term
-`cut-history`); for valid bindings of `approval-kinds` and
-`file-readers`; for a binding of `external-namespaces` for which a
-conforming program of Identifiers gives the result "valid"; for one
-binding of `default-branch-name`; and for empty sets of stopped files.
+`approval#incomplete-first-parent-line`) for the repository reads from
+which a conforming program takes that first-parent line and the files of
+the trees of the commits of that first-parent line; for valid bindings
+of `approval-kinds` and `file-readers`; for a binding of
+`external-namespaces` for which a conforming program of Identifiers
+gives the result "valid"; for one binding of `default-branch-name`; and
+for empty sets of stopped files.
 No other process changes these inputs while the program runs.
 
 The JSON values, objects, arrays, strings, and the literal names `true`
