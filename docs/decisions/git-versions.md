@@ -2,17 +2,20 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Support the git versions that still get security fixes
-@decision git-versions
-Sinter supports each git version of a maintenance track that the last security release of git covered, and states the oldest one as its minimum.
+@decision git-versions v2
+The code of Sinter that runs the `git` program supports each git version of a maintenance track that the last security release of git covered, and states the oldest one as its minimum.
 
 ## Context
 
-Sinter reads a repository only through the `git` program. The code
-said that it needed git 2.30 or later, but nobody had given a reason
-for 2.30. Diff mode sets `GIT_NO_LAZY_FETCH=1`, so that git never
-downloads a missing object in a partial clone. Git reads that variable
-only from the security releases of April 2024: 2.39.4, 2.40.2, 2.41.1,
-2.42.2, 2.43.4, 2.44.1, and 2.45.1 and later.
+Today's code reads a repository through the `git` program
+(`lib/git.ml`). The libraries that implement the design Changes
+(`docs/designs/changes.md`) read git's files themselves and run no git
+program (record `git-format-readers`). The code said that it needed
+git 2.30 or later, but nobody had given a reason for 2.30. Diff mode
+sets `GIT_NO_LAZY_FETCH=1`, so that git never downloads a missing
+object in a partial clone. Git reads that variable only from the
+security releases of April 2024: 2.39.4, 2.40.2, 2.41.1, 2.42.2,
+2.43.4, 2.44.1, and 2.45.1 and later.
 
 Git has no long-term support. Its security policy supports only the
 maintenance track of the newest feature release, 2.56 in October
@@ -25,15 +28,18 @@ Xcode on macOS was 2.54.0.
 
 ## Decision
 
-- Sinter supports a git version when its maintenance track had a
-  release in the last security release of git. The oldest version of
-  that release is the minimum: 2.43.7 in October 2026.
+- The code that runs the git program supports a git version when its
+  maintenance track had a release in the last security release of git.
+  The oldest version of that release is the minimum: 2.43.7 in October
+  2026.
 - The minimum rises only when a new security release of git leaves
   out the oldest track.
 - A distribution's build of an older version string that carries the
   same security fixes is supported, as Ubuntu's 2.43.0 is.
 - `README.md` and `lib/git.mli` state the minimum. Sinter does not
   check the version of git when it runs.
+- This record covers only the code that runs the git program. No git
+  version applies to the libraries that implement the design Changes.
 
 ## Alternatives considered
 
@@ -48,7 +54,8 @@ Xcode on macOS was 2.54.0.
 
 ## Consequences
 
-Every supported git reads `GIT_NO_LAZY_FETCH`. The code may use a
-feature of git 2.43. A user of an older git gets no error from Sinter
-and no promise from it. A person who changes the minimum looks at the
-newest security release of git, and nothing reminds them.
+Every supported git reads `GIT_NO_LAZY_FETCH`. The code that runs the
+git program may use a feature of git 2.43. A user of an older git gets
+no error from Sinter and no promise from it. A person who changes the
+minimum looks at the newest security release of git, and nothing
+reminds them.

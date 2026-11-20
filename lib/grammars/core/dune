@@ -1,0 +1,21 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(rule
+ (target core.wasm)
+ (deps
+  (env_var SINTER_WASM_CC)
+  build.sh
+  alloc.c
+  driver.c
+  %{workspace_root}/wasm_engine/rust-toolchain.toml
+  (source_tree %{workspace_root}/third_party/tree-sitter/lib)
+  (source_tree
+   %{workspace_root}/third_party/tree-sitter/crates/language/wasm/include))
+ (action
+  (run
+   ./build.sh
+   %{workspace_root}/third_party/tree-sitter
+   .
+   %{workspace_root}/wasm_engine/rust-toolchain.toml
+   core.wasm)))

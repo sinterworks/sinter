@@ -1,0 +1,11 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(executable
+ (name wait_probe)
+ (libraries
+  sinter_repository_files
+  sinter_git_objects
+  sinter_git_refs
+  sinter_git_object_store
+  unix))

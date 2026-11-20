@@ -1,0 +1,52 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_wasm_engine)
+ (public_name sinter.wasm_engine)
+ (foreign_stubs
+  (language c)
+  (names wasm_engine_stubs)
+  (extra_deps sinter_wasm_engine.h))
+ (foreign_archives sinter_wasm_engine)
+ (c_library_flags
+  (:include link_flags.sexp))
+ (modes native)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))
+
+(rule
+ (targets libsinter_wasm_engine.a link_flags.sexp)
+ (deps
+  build.sh
+  (source_tree %{workspace_root}/wasm_engine))
+ (action
+  (run
+   ./build.sh
+   %{workspace_root}/wasm_engine
+   rust-target
+   libsinter_wasm_engine.a
+   link_flags.sexp)))
+
+(rule
+ (target sinter_wasm_engine.h)
+ (action
+  (copy
+   %{workspace_root}/wasm_engine/include/sinter_wasm_engine.h
+   sinter_wasm_engine.h)))
+
+(rule
+ (alias runtest)
+ (deps
+  (:bridge %{workspace_root}/bridge/rust-toolchain.toml)
+  (:engine %{workspace_root}/wasm_engine/rust-toolchain.toml))
+ (action
+  (run
+   sh
+   -c
+   "[ \"$(grep '^channel' \"$1\")\" = \"$(grep '^channel' \"$2\")\" ] || { echo 'bridge/rust-toolchain.toml and wasm_engine/rust-toolchain.toml name different channels.' >&2; exit 1; }"
+   sh
+   %{bridge}
+   %{engine})))

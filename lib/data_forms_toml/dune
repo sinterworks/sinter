@@ -1,0 +1,11 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_data_forms_toml)
+ (public_name sinter.data_forms_toml)
+ (libraries sinter_toml sinter_text)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

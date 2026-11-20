@@ -20,7 +20,8 @@ suite=$build/test/test_sinter.exe
 groups=test/test_sinter.ml
 programs='main.exe bin/.main.eobjs
 generate.exe bench/.generate.eobjs
-run.exe bench/.run.eobjs'
+run.exe bench/.run.eobjs
+wait_probe.exe test/wait_probe/.wait_probe.eobjs'
 
 if [ ! -f "$list" ] || [ ! -x "$suite" ] || [ ! -f "$groups" ]; then
   echo "mutant-groups.sh: there is no build with the code instrumented here." >&2

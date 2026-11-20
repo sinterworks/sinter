@@ -1,0 +1,11 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_git_objects)
+ (public_name sinter.git_objects)
+ (libraries sinter_text sinter_paths sinter_git_model)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

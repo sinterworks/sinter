@@ -2,7 +2,7 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # License the code under Apache-2.0 and the specifications under CC-BY-4.0
-@decision licensing v2
+@decision licensing v3
 The code uses Apache-2.0, the specifications and documentation use CC-BY-4.0 with a statement that implementing the formats needs no license, and contributions come in under a DCO.
 
 ## Context
@@ -39,6 +39,12 @@ stands behind each commit.
   manifest, and the absence of GPL, AGPL, SSPL, and unknown
   licenses among the dependencies. LGPL is allowed only for the OCaml
   runtime, under its linking exception.
+- The rule on the licenses of dependencies covers code that is linked
+  into Sinter or shipped with it. A tool that only runs during a build
+  or a test, and whose code is not linked and not shipped, is outside
+  the rule. An example is the parser generator `menhir` (GPL-2.0-only),
+  which builds the formatter of the developer setup and the test-only
+  package `wasm`.
 
 The copyright line everywhere is `Copyright <year> The Sinter
 Authors`.

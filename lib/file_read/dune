@@ -1,0 +1,14 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_file_read)
+ (public_name sinter.file_read)
+ (libraries sinter_paths sinter_text unix)
+ (foreign_stubs
+  (language c)
+  (names file_read_stubs))
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

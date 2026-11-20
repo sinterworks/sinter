@@ -46,6 +46,7 @@ applies to Sinter.
 | `lib/` | the core library, `sinter.core`, and the bridge library | Apache-2.0 |
 | `bin/` | the `sinter` executable | Apache-2.0 |
 | `bridge/` | the Rust crate that loads grammars through wasmtime | Apache-2.0 |
+| `wasm_engine/` | the Rust crate that compiles and runs WebAssembly Core 2.0 modules through wasmtime | Apache-2.0 |
 | `test/` | the test suite and its fixtures | Apache-2.0 |
 | `spec/` | the seven normative specifications | CC-BY-4.0 |
 | `docs/` | the design notes, the roadmap, the decision records, and the procedures for contributors | CC-BY-4.0 |

@@ -1,0 +1,19 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_grammars)
+ (public_name sinter.grammars)
+ (libraries sinter_pack_descriptor sinter_text sinter_wasm_engine)
+ (private_modules core_bytes)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))
+
+(rule
+ (targets core_bytes.ml)
+ (action
+  (with-stdout-to
+   core_bytes.ml
+   (run %{exe:../embed/embed.exe} core %{dep:core/core.wasm}))))
