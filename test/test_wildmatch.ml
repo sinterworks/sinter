@@ -231,6 +231,11 @@ let table =
     ("foo\\", "foo", false);
     ("[abc", "[abc", false);
     ("[abc", "a", false);
+    ("[a-", "a", false);
+    ("[a-", "-", false);
+    ("[a-", "[a-", false);
+    ("[!a-", "b", false);
+    ("[a-b-", "a", false);
     ("[[:foo:]]", "f", false);
     ("[[:alpha:", "a", false);
     ("[[:alpha_]]", "a", false);
