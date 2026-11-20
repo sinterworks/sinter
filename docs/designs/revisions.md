@@ -68,7 +68,7 @@ numbers.
 | [form run](sinter:documents#tree-edge=v1), [form position](sinter:documents#tree-edge=v1) | for an edge that a vector line gives, the run of the text of its vector file between the opening and closing quotes of the JSON string of the value of `form`, and the position where that run starts |
 | [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the label of the edge |
 | [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files to whose reading it gives the result "parse failure" for limits of its own, and the files whose reading as a test-vector set it stops for limits of its own; a read file in it cannot be read |
-| [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot, that is not ackable |
+| [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot or no spot, that is not ackable |
 | [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same |
 | [`suspect`](sinter:#suspect-finding=v1) | the class of the findings of the suspect edges of a tree |
 
