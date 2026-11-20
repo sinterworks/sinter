@@ -437,6 +437,12 @@ let bracket_rule_s3_step_cases =
     ("a single CRLF does not empty the stack", "[\r\n[", 2);
     ("a single line feed does not empty the stack", "[\n[", 2);
     ("a single carriage return does not empty the stack", "[\r[", 2);
+    ("a line of only a closing bracket is not blank", "[[\n]\n[[", 3);
+    ("a line of only a greater-than sign is not blank", "[\n>\n[", 2);
+    ("a line of only a less-than sign is not blank", "[\n<\n[", 2);
+    ("a line of only a backtick is not blank", "[\n`\n[", 2);
+    ("a line of only a quotation mark is not blank", "[\n\"\n[", 2);
+    ("a line of only an apostrophe is not blank", "[\n'\n[", 2);
     ("spaces and tabs alone make a blank line", "[\n  \t \n[", 1);
     ("a form feed is not white space of a blank line", "[\n\x0c\n[", 2);
     ("an opening bracket inside a code span counts", "[`[`]", 2);
@@ -447,6 +453,9 @@ let bracket_rule_s3_step_cases =
     ("a matching code span hides a closing bracket inside it", "[`]`][", 1);
     ("a code span hides an unclosed closer until its closing run", "[`][`", 2);
     ("an escaped two-backtick run opens a span of length one", "[\\``]`][", 1);
+    ( "an escaped two-backtick run hides a closer until a one-backtick run",
+      "[\\``]`[",
+      2 );
     ( "a closing backtick run matches on its full length after a backslash",
       "[`]\\`][",
       1 );
