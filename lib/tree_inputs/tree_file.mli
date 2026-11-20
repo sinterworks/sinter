@@ -95,10 +95,10 @@ val all_lines : t -> Line_set.t
 val within : t -> Text.run -> Line_set.t
 (** [within file r] is the set of the numbers of the file lines of [file] whose
     runs start at or after the boundary where [r] starts and end at or before
-    the boundary where [r] ends. Let n be the number of the file lines. The time
-    grows as log n times the number of the runs of the result, and as log n
-    times the number of the runs of the numbers of the file lines that start in
-    [r] and end after it. *)
+    the boundary where [r] ends. The file lines of a read file share no place,
+    so at most one of them starts in [r] and ends after it. Let n be the number
+    of the file lines. The time grows as log n times one more than the number of
+    the runs of the result. *)
 
 val last_not_blank : t -> int -> int
 (** [last_not_blank file k] is the greatest number, from 1 to [k], of a file
