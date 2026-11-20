@@ -100,6 +100,7 @@ let () =
       ("ref names", Test_ref_names.tests);
       ("git configuration", Test_git_configuration.tests);
       ("git refs", Test_git_refs.tests);
+      ("reftable", Test_reftable.tests);
       ("chunk sources", Test_chunk_sources.tests);
       ("test vectors", Test_test_vectors.tests);
       ("test-vector file names", Test_test_vector_file_name.tests);

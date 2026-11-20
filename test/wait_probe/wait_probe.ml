@@ -77,6 +77,26 @@ let () =
             | Ok None -> "none"
             | Error error -> refs_error error))
         [ name; "HEAD" ]
+  | [ _; "reftable"; git_folder; name ] ->
+      let refs =
+        Refs.create
+          {
+            Refs.max_loose_size = 1 lsl 20;
+            max_packed_size = 1 lsl 30;
+            max_tables_list_size = 1 lsl 20;
+            max_stack_size = 1 lsl 30;
+            max_names_size = 1 lsl 30;
+          }
+          Refs.Reftable Id.Sha1 ~git_folder Refs.Main
+      in
+      List.iter
+        (fun name ->
+          print_endline
+            (match Refs.lookup refs name with
+            | Ok (Some t) -> target t
+            | Ok None -> "none"
+            | Error error -> refs_error error))
+        [ name; "HEAD" ]
   | [ _; "objects"; git_folder; format; hex; max_deltas; max_databases ] ->
       let format = if format = "sha256" then Id.Sha256 else Id.Sha1 in
       let limits =
