@@ -70,9 +70,9 @@ folder trees. From Data forms, it takes TOML documents, their root
 tables, the texts of TOML keys, and TOML values; hashes and the hash
 form; hex texts; JSON values, key order, their canonical byte sequences,
 and the JSON values of byte sequences; indexes; and test-vector sets,
-with the forms of a group and what a vector line states. From the
-Ontology, it takes tests, test results, and parameters and their
-bindings.
+with the forms of a group, needs and need names, and what a vector line
+states. From the Ontology, it takes schemas, tests, test results, and
+parameters and their bindings.
 
 From RFC 8259, the design takes JSON texts: an adapter writes its
 response as a JSON text, and the files that hold the conformance vectors
@@ -134,7 +134,7 @@ matching.
 | [role name, role node](sinter:#joined-match=v1) | the capture name of a match that gives the kind of thing that the match finds, such as `comment` or `case`, and the node that the match captures under it |
 | [valid pack](sinter:#valid-pack=v1) | a pack that is well named, holds only folders and regular files, and has a valid descriptor; for each grammar of the descriptor, a usable grammar with the hash of the grammar, a valid `tags.scm`, and valid other query files; for each test runner with an adapter hash, an adapter file with that hash; and a file under `licenses/` |
 | [parse text](sinter:#parse-tree=v1) | a text, with a line feed after it when it does not end with one |
-| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place, when the start and end bytes of its nodes lie at boundaries of the parse text, nest in their parents, and follow each other in order |
+| [parse tree](sinter:#parse-tree=v1) | the tree of nodes that the parsing of tree-sitter gives for the language of a usable grammar and the UTF-8 encoding of a parse text, with the nodes of hidden symbols left out and their children in their place, when the start byte and the end byte of each node each count the bytes before a boundary of the parse text, each start byte is at most its end byte, and the runs of its nodes in the text nest in their parents and follow each other in order |
 | [node](sinter:#parse-tree-order=v1) | a node of a parse tree: its root node, or a child of one of its nodes, such as a comment or a function |
 | [node type](sinter:#node-type=v1) | the name of the symbol of a node, as a text, such as `line_comment` |
 | [order of the parse tree](sinter:#parse-tree-order=v1) | the order of the nodes of a parse tree in which each node comes before its children, and the children of a node come in their order |
@@ -175,6 +175,7 @@ matching.
 | [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response; a call whose response is no adapter response has the result "failed" |
 | [JSON value of a response](sinter:#adapter-response=v1) | the JSON value of the response as a byte sequence, as Data forms defines it |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
+| [values of a call](sinter:#call-value=v1) | with "bound", the test results, the binding objects, and the warnings of a call; with "failed" and an error response, the error text of the adapter |
 | [result object, binding object](sinter:#adapter-response=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
 | [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
@@ -406,9 +407,11 @@ The parse text is the text, with a line feed after it when the text does
 not end with one. The program parses the UTF-8 encoding of the parse
 text with the language of the usable grammar, and it runs the code of
 that language in an instance of the WebAssembly module of the grammar.
-The parsing of tree-sitter can give no parse tree, such as when the
-instantiation or an invocation in that instance fails, or when the start
-and end bytes of the nodes break the conditions of a parse tree. The
+The text has no parse tree when the parsing of tree-sitter gives no
+result, such as when the instantiation or an invocation in that instance
+fails or a trap occurs in any WebAssembly instance during the parsing,
+or when the tree of nodes that the parsing gives breaks the conditions
+of a parse tree. The
 program ends each reading. The text has a parse failure when it has no
 parse tree, or when the root node of the parse tree has an error: when
 the root node, or a node inside it, nodes of hidden symbols included, is
@@ -592,8 +595,10 @@ name `out/junit.xml`, is the UTF-8 encoding of this text:
 
 The response is a JSON text in UTF-8. The definition of the
 [result of a call](sinter:#call-result=v1) gives the result of a call
-from its response, and the test results, the binding objects, the
-warnings, and the error text of the adapter that the call gives. This
+from its response, and the definition of the
+[values of a call](sinter:#call-value=v1) gives the test results, the
+binding objects, the warnings, and the error text of the adapter that
+the call gives. This
 response of bind binds one test result to one test entry:
 
 ```
@@ -961,55 +966,68 @@ its file `adapters/<r>.wasm`.
 @cites {
     tree-sitter/language-format, wasm-core/2.0,
     text#{
-        text=v1, character=v1, boundary=v1, line-feed=v1,
-        utf-8-encoding=v1, byte=v1, byte-sequence=v1, whole-number=v1,
-        code-span=v1,
+        text=v1, character=v1, boundary=v1, run=v1, body=v1,
+        line-feed=v1, utf-8-encoding=v1, byte=v1, byte-sequence=v1,
+        whole-number=v1, code-span=v1,
     },
     #{webassembly-module=v1, usable-grammar=v1, grammar-name=v1},
 }
 
 This definition uses the parsing that the format of languages of
 tree-sitter defines, which gives, for a language and a byte sequence, a
-parse tree or no parse tree. This parsing runs the code of the language
+tree of nodes or no result. This parsing runs the code of the language
 in the instance of the WebAssembly module in which that module gave that
-language, and it gives no parse tree when the instantiation or an
-invocation in that instance fails. A parse tree has a root node, and the
-children of each node of a parse tree are its named and its anonymous
-child nodes, in their order. A node of a hidden symbol is no node of the
-parse tree, and its children stand in its place. Each node has a symbol,
-and each symbol has a name. Each node has a start byte and an end byte,
+language. The parsing gives no result when the instantiation of that
+module fails, when an invocation in that instance fails, or when a trap
+occurs in any WebAssembly instance during the parsing, whether the
+instance of the grammar or tree-sitter's core instance. Each tree of
+nodes that this parsing gives has a root node, and the children of each
+node of that tree of nodes are its named and its anonymous child nodes,
+in their order. A node of a hidden symbol is no node of that tree of
+nodes, and its children stand in its place. Each node has a symbol, and
+each symbol has a name. Each node has a start byte and an end byte,
 which are whole numbers. A node has an error when it, or a node that the
 parsing gives inside it, nodes of hidden symbols included, is an `ERROR`
 node, a node of the symbol `ERROR`, or a `MISSING` node, a node that the
-parsing inserts for a token that the text lacks. The parse text of a
-text is that text, followed by a line feed when the text does not end
-with a line feed. So the parse text of the empty text is one line feed.
-For a text and a usable grammar with a grammar name g, the result that
-this parsing gives for the language of that usable grammar and the UTF-8
-encoding of the parse text of that text is a parse tree only when its
-nodes (with the nodes of hidden symbols left out and their children
-standing in their place) meet all four of these conditions:
+parsing inserts for a token that the text lacks.
 
-- For each node, the start byte of the node is the number of bytes of
-  the UTF-8 encoding of the characters of the parse text before a
-  boundary of the parse text, and the end byte of the node is the number
-  of bytes of the UTF-8 encoding of the characters of the parse text
-  before a boundary of the parse text.
-- For each node, the start byte of the node is less than or equal to the
-  end byte of the node.
-- For each node and each child of that node, the start byte of the child
-  is greater than or equal to the start byte of that node, and the end
-  byte of the child is less than or equal to the end byte of that node.
-- For each node and each two children of that node, when the first comes
-  before the second in the order of the children of that node, the end
-  byte of the first is less than or equal to the start byte of the
-  second.
+The parse text of a text is that text, followed by a line feed when the
+text does not end with a line feed. So the parse text of the empty text
+is one line feed.
 
-When this parsing gives a result that meets all four of these
-conditions, that result is the parse tree of that text with that usable
-grammar. When this parsing gives no parse tree, or gives a result that
-breaks any of these four conditions, the text has no parse tree with
-that usable grammar.
+For a text and a usable grammar with a grammar name g, let b be the
+boundary where the body of the text starts, and let l be the last
+boundary of the text. The tree of nodes that this parsing gives for the
+language of that usable grammar and the UTF-8 encoding of the parse text
+of that text is the parse tree of that text with that usable grammar
+when, and only when, its nodes (with the nodes of hidden symbols left
+out and their children standing in their place) meet all four of these
+conditions:
+
+1. For each node, the start byte of the node is the number of bytes of
+   the UTF-8 encoding of the characters of the parse text before a
+   boundary of the parse text, and the end byte of the node is the
+   number of bytes of the UTF-8 encoding of the characters of the parse
+   text before a boundary of the parse text.
+2. For each node, the start byte of the node is less than or equal to
+   the end byte of the node.
+3. For each node and each child of that node, the run of the child in
+   the text starts at or after the boundary where the run of the node in
+   the text starts, and ends at or before the boundary where the run of
+   the node in the text ends.
+4. For each node and each two children of that node, when the first
+   comes before the second in the order of the children of that node,
+   the run of the first in the text ends at or before the boundary where
+   the run of the second in the text starts.
+
+In conditions 3 and 4, for a node that meets conditions 1 and 2, the run
+of that node in the text is the run of the text that starts at the
+greater of b and the lesser of s and l, and that ends at the greater of
+b and the lesser of e and l, where s and e are the boundaries of the
+parse text that condition 1 gives for the start byte and the end byte of
+that node. When this parsing gives no result, or gives a tree of nodes
+that breaks any of these four conditions, the text has no parse tree
+with that usable grammar.
 
 ### 4.13 The order of the parse tree
 
@@ -1887,7 +1905,10 @@ than 0 also for 0 bytes, or gives 0 when it cannot reserve them.
 @atom valid-adapter=v1
 @cites {
     wasm-core/2.0,
-    text#{byte-sequence=v1, code-span=v1, conforming-program=v1},
+    text#{
+        byte-sequence=v1, code-span=v1, conforming-program=v1,
+        result=v1,
+    },
     #{adapter-module=v1, adapter-instance=v1},
 }
 
@@ -1901,6 +1922,10 @@ it is one, when, and only when, it meets each of these conditions:
    `sinter_interface`, and nothing else in that instance; these do not
    fail, and the invocation gives the `i32` value 1, which is the
    version of the interface.
+
+In a decision of a program whether a byte sequence is a valid adapter,
+the result is "valid" when the byte sequence is a valid adapter in that
+decision, and "invalid" when it is not.
 
 #### 6.1.4 Test entries
 
@@ -2081,9 +2106,8 @@ response, a bind response, or an error response:
 
 @atom call-result=v1
 @cites {
-    ontology#{test=v1, test-evidence=v1},
-    data-forms#{json-value=v1, index=v1},
-    text#{text=v1, result=v1, whole-number=v1, code-span=v1},
+    data-forms#{json-value=v1},
+    text#{text=v1, result=v1, code-span=v1},
     #{
         test-runner=v1, adapter-request=v1, adapter-call=v1,
         adapter-response=v1, test-entry=v1,
@@ -2095,13 +2119,28 @@ call gives a response that is a recognise response and the value of
 `recognised` in its JSON value is true; "not recognised" when the call
 gives a response that is a recognise response and the value of
 `recognised` in its JSON value is false; and "failed" in each other
-case.
+case. By the interface, the function recognise says whether the report
+content is the content of a report file of the test runner that the
+member `runner` of the request names.
 
 The result of a call of the function bind is "bound" when the call gives
 a response that is a bind response in which the value of `test` of each
 binding object in the value of `bindings` of its JSON value is one of
 the test entry ids of the call. In each other case, the result of a call
 of the function bind is "failed".
+
+#### 6.1.9 The values of calls
+
+@term call-value=v1
+@cites {
+    ontology#{test=v1, test-evidence=v1},
+    data-forms#{json-value=v1, index=v1},
+    text#{text=v1, result=v1, whole-number=v1, code-span=v1},
+    #{
+        test-runner=v1, adapter-call=v1, adapter-response=v1,
+        call-result=v1, test-entry=v1,
+    },
+}
 
 A call with the result "bound" gives its test results, its binding
 objects, and its warnings. Its test results are the elements of the
@@ -2120,13 +2159,11 @@ of the value of `warnings`, in their order. A call with the result
 "failed" whose response is an error response gives the value of `error`
 in its JSON value as the error text of the adapter.
 
-By the interface, the function recognise says whether the report content
-is the content of a report file of the test runner that the member
-`runner` of the request names. The test results of a call stand in the
-order of the report content, and a test result has no file, no line, or
-no duration when the report content gives none. The reason of a binding
-object says why its test result binds to its test entry, and a warning
-is a text for the person who runs the program.
+The test results of a call stand in the order of the report content, and
+a test result has no file, no line, or no duration when the report
+content gives none. The reason of a binding object says why its test
+result binds to its test entry, and a warning is a text for the person
+who runs the program.
 
 ### 6.2 The validation of adapters
 
@@ -2176,11 +2213,11 @@ recognise, and "bound" or "failed" for the function bind.
 
 ### 6.5 The values of the results of calls
 
-@req give-call-values=v1
+@req give-call-value=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{conforming-program=v1, result=v1, text=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1},
+    #{adapter-call=v1, call-result=v1, call-value=v1},
 }
 
 When, with the result of a call that it makes of a function of a byte
@@ -2191,11 +2228,11 @@ those that the call gives, in their order, and no other instead.
 
 ### 6.6 No values of calls that do not bind
 
-@req omit-call-values=v1
+@req omit-call-value=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{conforming-program=v1, result=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1},
+    #{adapter-call=v1, call-result=v1, call-value=v1},
 }
 
 A conforming program must give no test results, no binding objects, and
@@ -2208,7 +2245,7 @@ call is not "bound".
 @req omit-adapter-error-texts=v1
 @cites {
     text#{conforming-program=v1, result=v1, byte-sequence=v1},
-    #{adapter-call=v1, call-result=v1},
+    #{adapter-call=v1, call-result=v1, call-value=v1},
 }
 
 A conforming program must give an error text of the adapter for a call
@@ -2362,9 +2399,9 @@ sequence as that request.
     },
     #{
         adapter-vector=v1, valid-adapter=v1, adapter-call=v1,
-        adapter-response=v1, call-result=v1, test-entry=v1,
-        give-call-results=v1, give-call-values=v1, omit-call-values=v1,
-        omit-adapter-error-texts=v1,
+        adapter-response=v1, call-result=v1, call-value=v1,
+        test-entry=v1, give-call-results=v1, give-call-value=v1,
+        omit-call-value=v1, omit-adapter-error-texts=v1,
     },
 }
 
@@ -2424,8 +2461,8 @@ these.
     },
     #{
         adapter-vector=v1, response-vector=v1, adapter-call=v1,
-        call-result=v1, test-entry=v1, give-call-results=v1,
-        give-call-values=v1, omit-call-values=v1,
+        call-result=v1, call-value=v1, test-entry=v1,
+        give-call-results=v1, give-call-value=v1, omit-call-value=v1,
         omit-adapter-error-texts=v1, end-adapter-code=v1,
     },
 }
