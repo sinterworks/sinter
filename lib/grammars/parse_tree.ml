@@ -28,6 +28,8 @@ type error =
   | Wrong_depth of int
   | Unknown_symbol of int
   | Wrong_bytes of int
+  | Not_nested of int
+  | Not_in_order of int
 
 let ends_with_line_feed bytes =
   let length = String.length bytes in
@@ -70,6 +72,25 @@ let boundary offsets byte =
 
 exception Wrong of error
 
+let place text =
+  let body = (Text.body text).from and last = Text.length text in
+  fun boundary -> max body (min boundary last)
+
+(* @satisfies packs#give-reading-results=v1
+   A tree of nodes is a parse tree only when the run of each child lies inside
+   the run of its parent, and the run of each child starts at or after the end
+   of the run of the child before it; otherwise the text has no parse tree, and
+   so a parse failure. The child before a node is the last node that its
+   arrival closes, when one closes. *)
+let check_runs nodes index ~parent ~before =
+  let node = nodes.(index) in
+  if node.from < nodes.(parent).from || node.until > nodes.(parent).until then
+    raise (Wrong (Not_nested index));
+  match before with
+  | Some child when nodes.(child).until > node.from ->
+      raise (Wrong (Not_in_order index))
+  | _ -> ()
+
 let decode ~node_types text record =
   let length = String.length record in
   if length < 24 || length <> 8 + (16 * word record 0) then Error Wrong_length
@@ -78,6 +99,7 @@ let decode ~node_types text record =
     if flags > 1 then Error (Wrong_flags flags)
     else
       let offsets = boundaries text in
+      let place = place text in
       let entry index ~low ~high =
         let field k = word record (2 + (4 * index) + k) in
         let depth = field 0 in
@@ -88,21 +110,30 @@ let decode ~node_types text record =
         let start = field 2 and finish = field 3 in
         match (boundary offsets start, boundary offsets finish) with
         | Some from, Some until when start <= finish ->
-            { depth; symbol; start; finish; from; until }
+            {
+              depth;
+              symbol;
+              start;
+              finish;
+              from = place from;
+              until = place until;
+            }
         | _ -> raise (Wrong (Wrong_bytes index))
       in
       try
         let nodes = Array.make count (entry 0 ~low:0 ~high:0) in
-        for index = 1 to count - 1 do
-          nodes.(index) <- entry index ~low:1 ~high:(nodes.(index - 1).depth + 1)
-        done;
         let after = Array.make count count in
         let open_nodes = Stack.create () in
         Stack.push 0 open_nodes;
         for index = 1 to count - 1 do
+          nodes.(index) <- entry index ~low:1 ~high:(nodes.(index - 1).depth + 1);
+          let before = ref None in
           while nodes.(Stack.top open_nodes).depth >= nodes.(index).depth do
-            after.(Stack.pop open_nodes) <- index
+            let closed = Stack.pop open_nodes in
+            after.(closed) <- index;
+            before := Some closed
           done;
+          check_runs nodes index ~parent:(Stack.top open_nodes) ~before:!before;
           Stack.push index open_nodes
         done;
         Ok { text; node_types; nodes; after; root_has_error = flags = 1 }
@@ -128,9 +159,6 @@ let end_byte tree n = tree.nodes.(n).finish
 
 let run tree n =
   let { from; until; _ } = tree.nodes.(n) in
-  let body = Text.body tree.text in
-  let last = Text.length tree.text in
-  let place boundary = max body.from (min boundary last) in
-  { Text.from = place from; until = place until }
+  { Text.from; until }
 
 let root_has_error tree = tree.root_has_error

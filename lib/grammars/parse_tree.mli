@@ -33,6 +33,14 @@ type error =
           start byte or an end byte that is not the number of bytes of the UTF-8
           encoding of the characters of the parse text before one of its
           boundaries *)
+  | Not_nested of int
+      (** the run in the text of the node at this index does not start at or
+          after the boundary where the run of its parent starts, or does not end
+          at or before the boundary where the run of its parent ends *)
+  | Not_in_order of int
+      (** the run in the text of the node at this index starts before the
+          boundary where the run of the child before it, among the children of
+          its parent, ends *)
 
 val parse_text : Text.t -> string
 (** [parse_text text] is the UTF-8 encoding of the parse text of [text]: [text],
@@ -54,10 +62,15 @@ val decode : node_types:Text.t array -> Text.t -> string -> (t, error) result
       node), its symbol, its start byte, and its end byte. The start byte and
       the end byte are in the UTF-8 encoding of the parse text of [text].
 
-    It is [Error] when [record] is not such a record of a tree of [text], with
-    the first reason that holds, in the order of the record. The function never
-    raises. The time is in O(m + n log m), for n nodes and a parse text of m
-    bytes. *)
+    It is [Error] when [record] is not such a record of a tree of [text]. It is
+    also [Error] when the runs of the nodes in [text], as {!run} gives them,
+    break a condition of the term [parse-tree]: [Not_nested] when the run of a
+    child does not lie inside the run of its parent, and [Not_in_order] when the
+    run of a child starts before the end of the run of the child before it. The
+    error is the first reason that holds, in the order of the record; for one
+    node, the reasons hold in the order of the constructors of {!error}. The
+    function never raises. The time is in O(m + n log m), for n nodes and a
+    parse text of m bytes. *)
 
 val text : t -> Text.t
 (** [text tree] is the text of [tree]. *)

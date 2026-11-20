@@ -33,6 +33,8 @@ let error_text = function
   | Wrong_depth k -> Printf.sprintf "wrong depth %d" k
   | Unknown_symbol k -> Printf.sprintf "unknown symbol %d" k
   | Wrong_bytes k -> Printf.sprintf "wrong bytes %d" k
+  | Not_nested k -> Printf.sprintf "not nested %d" k
+  | Not_in_order k -> Printf.sprintf "not in order %d" k
 
 let decoded ?(node_types = node_types) subject r =
   match Parse_tree.decode ~node_types (text subject) r with
