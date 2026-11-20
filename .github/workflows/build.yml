@@ -673,6 +673,7 @@ jobs:
         with:
           pattern: mutation-part-*
           path: _mutations/parts
+          merge-multiple: true
       - name: Join the reports of the parts
         if: steps.scope.outputs.mode != 'none'
         env:
@@ -684,7 +685,7 @@ jobs:
           missing=0
           part=1
           while [ "$part" -le "$PARTS" ]; do
-            report="_mutations/parts/mutation-part-$part/part-$part.json"
+            report="_mutations/parts/part-$part.json"
             if [ -f "$report" ]; then
               set -- "$@" "$report"
             else
