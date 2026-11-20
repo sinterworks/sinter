@@ -28,8 +28,10 @@ type error =
 
 val of_text : Sinter_text.Text.t -> (t, error) result
 (** [of_text text] is [Ok name] when [text] is a branch name, and [name] then
-    holds [text]. It is [Error] when [text] is not a branch name. The time is
-    linear in the length of [text]. *)
+    holds [text]. It is [Error] when [text] is not a branch name. So a binding
+    of the parameter [default-branch-name] meets the schema
+    [default-branch-name] of the design [changes=v1] when, and only when,
+    [of_text] gives [Ok] for it. The time is linear in the length of [text]. *)
 
 val to_text : t -> Sinter_text.Text.t
 (** [to_text name] is the text of [name]. *)

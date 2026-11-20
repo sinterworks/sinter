@@ -20,6 +20,7 @@ val commit :
     [b], or [None] when [b] has no upstream, or [Error e] when it cannot be
     read. The result is [Some c] when the first of the three refs that exists
     has the commit [c], as {!Ref_commit.commit} gives it. It is [None] when
-    [binding] is not a branch name, when none of the three refs exists, or when
-    the first of them that exists has no commit. The names of the refs are the
-    UTF-8 encodings of their texts. *)
+    [binding] is not a branch name, so that it does not meet the schema
+    [default-branch-name], when none of the three refs exists, or when the first
+    of them that exists has no commit. The names of the refs are the UTF-8
+    encodings of their texts. *)
