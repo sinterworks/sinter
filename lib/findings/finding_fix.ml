@@ -19,8 +19,8 @@ let rec repeated second earlier = function
       | None -> repeated (second + 1) (set :: earlier) rest)
 
 (* @satisfies findings#limit-fix-edit-sets=v1
-   A fix holds one or more edit sets, all in one tree, no two the same set, each
-   with its number from 1 in the order of the list. *)
+   Each edit set of a fix is an edit set in the one tree of the fix, and no two
+   edit sets of a fix are the same set. *)
 let make message edit_sets =
   match edit_sets with
   | [] -> Error No_edit_set

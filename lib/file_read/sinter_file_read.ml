@@ -305,9 +305,10 @@ module System = struct
   let open_file = open_file
 
   (* @satisfies files#give-file-read-results=v1
-     The file type of a file gives its kind: a directory is a folder, a
-     regular file is a regular file, a symbolic link is a symbolic link, and
-     each other type is a file of another kind. *)
+     The file type of a file gives the kind of that file: a file of the type
+     directory is a folder, a file of the type regular file is a regular file,
+     a file of the type symbolic link is a symbolic link, and a file of each
+     other type is a file of another kind. *)
   let kind folder name =
     match kind_code folder name with
     | 0 -> Folder
