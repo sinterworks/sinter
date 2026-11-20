@@ -61,9 +61,9 @@ val parse :
     0x00, the next block starts at that multiple. The ref blocks end at the
     smallest position of the footer that is not 0, or at the start of the footer
     when all are 0, or at the first block of the type [i] when the footer gives
-    a position of the ref index, or at the first block of the type [g] when the
-    footer gives the position 0 for the log blocks. A ref block is in its form
-    when each of these holds:
+    a position of the ref index, or, when the footer gives the position 0 for
+    the log blocks, at a block of the type [g] right after the header. A ref
+    block is in its form when each of these holds:
 
     - its type is [r], and its length is not above the block size when the block
       size is not 0;

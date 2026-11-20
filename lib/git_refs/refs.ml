@@ -20,11 +20,12 @@ let last settings key =
       if Config.equal_key k key then Some value else found)
     None settings
 
-(* @satisfies changes#{give-ref-commits=v1, give-head-commits=v1}
+(* @satisfies changes#{give-ref-commits=v1, give-head-commits=v1, read-only-repository-files=v1}
    The ref storage format is the one that the last value of the setting
    extensions.refStorage of the file config names, files when no value is
-   set; a format holds only with the repository format version 1, and no
-   payload is read. *)
+   set; a format holds only with the repository format version 1, and any
+   payload that is not empty gives an error, so no folder outside the
+   repository files is read. *)
 let storage settings =
   match last settings (Config.key ~section:"extensions" "refStorage") with
   | None -> Ok Files
@@ -170,8 +171,8 @@ module Make (R : Files.READER) = struct
         (fun error -> Malformed_tables_list { pathname = list; error })
         (Reftable.table_names content)
     in
-    let rec tables stack_left names_left = function
-      | [] -> Ok []
+    let rec tables stack_left names_left newer = function
+      | [] -> Ok (List.rev newer)
       | name :: older -> (
           let pathname = Filename.concat folder name in
           match R.read ~max_size:stack_left pathname with
@@ -182,15 +183,12 @@ module Make (R : Files.READER) = struct
               with
               | Error error -> Error (Malformed_table { pathname; error })
               | Ok table ->
-                  let* rest =
-                    tables
-                      (stack_left - String.length content)
-                      (names_left - Reftable.names_size table)
-                      older
-                  in
-                  Ok (table :: rest)))
+                  tables
+                    (stack_left - String.length content)
+                    (names_left - Reftable.names_size table)
+                    (table :: newer) older))
     in
-    tables refs.limits.max_stack_size refs.limits.max_names_size
+    tables refs.limits.max_stack_size refs.limits.max_names_size []
       (List.rev names)
 
   let stack refs ~own =

@@ -213,8 +213,8 @@ let ref_block h names s ~block ~type_at ~bound =
    The ref blocks follow the header, each at the end of the block before it
    or, after padding of 0x00 bytes, at the next multiple of the block size;
    they end at the bound that the footer gives, at the first index block
-   when the table has a ref index, or at the first log block when the footer
-   gives the position 0 for the log blocks. *)
+   when the table has a ref index, or at a log block right after the header
+   when the footer gives the position 0 for the log blocks. *)
 let parse format ~max_names s =
   if max_names < 0 then invalid_arg "Reftable.parse: a negative maximum";
   let names = { max_names; size = 0; last = None; entries = [] } in
@@ -243,7 +243,7 @@ let parse format ~max_names s =
             in
             blocks next ~type_at:next
         | 'i' when has_index -> ()
-        | 'g' when no_log -> ()
+        | 'g' when no_log && block = 0 -> ()
         | _ -> raise (Fail (Bad_block block))
     in
     blocks 0 ~type_at:h.header_length
@@ -279,9 +279,11 @@ type list_error =
 
 module Names = Set.Make (String)
 
-(* @satisfies changes#{give-ref-commits=v1, give-head-commits=v1}
+(* @satisfies changes#{give-ref-commits=v1, give-head-commits=v1, read-only-repository-files=v1}
    The file tables.list names the tables of the stack, one file name of the
-   stack folder on each line, from the oldest to the newest. *)
+   stack folder on each line, from the oldest to the newest; a line that is
+   empty, . or .., or that holds / or 0x00, names no file of that folder and
+   gives an error, so no table outside the stack folder is read. *)
 let table_names content =
   if content = "" then Ok []
   else if content.[String.length content - 1] <> '\n' then
