@@ -2,15 +2,15 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Test evidence
-@design evidence=v2
-@cites text=v2
-@cites identifiers=v2
-@cites files=v2
-@cites data-forms=v2
-@cites ontology=v2
-@cites packs=v2
-@cites findings=v2
-@cites documents=v2
+@design evidence=v1
+@cites text=v1
+@cites identifiers=v1
+@cites files=v1
+@cites data-forms=v1
+@cites ontology=v1
+@cites packs=v1
+@cites findings=v1
+@cites documents=v1
 @cites w3c/rec-xml-20081126
 @cites rfc/5234
 @cites rfc/7405
@@ -89,38 +89,38 @@ literal names `true` and `false`.
 
 | word or phrase | meaning |
 |---|---|
-| [test runner](sinter:packs#test-runner=v2) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
-| [report file](sinter:#report-file=v2) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
+| [test runner](sinter:packs#test-runner=v1) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
+| [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
 | [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which it is given, a root, one or more report files, and a narrowing |
 | [execution of test runners](sinter:#import=v1) | the runs of test runners whose report files are given together in one import, such as one job of continuous integration, or three jobs that each run a third of the tests |
 | [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for it; a tree has evidence when it has at least one |
 | [JUnit XML report](sinter:#junit-report=v1) | a report content that is a well-formed XML document in UTF-8 or UTF-16, with no document type declaration, whose root element is `testsuites` or `testsuite` |
 | [suite element](sinter:#junit-report=v1), [case element](sinter:#junit-report=v1) | in a JUnit XML report, a `testsuite` element that is the root, a child of the root `testsuites`, or a child of a suite element; a `testcase` element whose parent is a suite element |
-| [data of a runner](sinter:#runner-data=v2), [value of a key](sinter:#runner-data-value=v1) | the values of a closed set of keys for a test runner with a match table, from its runner settings, from its match table, or from defaults; it can be valid or not |
+| [data of a runner](sinter:#runner-data=v1), [value of a key](sinter:#runner-data-value=v1) | the values of a closed set of keys for a test runner with a match table, from its runner settings, from its match table, or from defaults; it can be valid or not |
 | default reader | the reader of JUnit XML reports that a conforming program uses for the report files of a test runner with a match table: what it gives is the default recognition and the default reading |
-| [test results of a JUnit XML report](sinter:#case-result=v2) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
-| [name part of a test result](sinter:#case-result=v2) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
+| [test results of a JUnit XML report](sinter:#case-result=v1) | one test result for each case element, with its name parts, its name, its status, and, when the case element gives them, its file, its line, and its duration |
+| [name part of a test result](sinter:#case-result=v1) | a text that the default reader reads for a test result by a member of `path`, such as the value of the attribute `name` of its case element |
 | [path parts](sinter:#report-path-match=v1), [match a valid path](sinter:#report-path-match=v1) | the texts between the `/` and `\` of a text, without empty texts, without `.`, and without `..` at the start; a text matches a valid path when it has path parts, and the shorter of its path parts and the file names of the valid path is equal to the end of the longer; the length of the match is the number of the shorter |
-| [patterns of a test entry](sinter:#name-pattern=v2) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
-| [match a pattern](sinter:#pattern-match=v2) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
-| [default recognition](sinter:#default-recognition=v2) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
-| [default reading](sinter:#default-reader-result=v2) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
-| [result link](sinter:#reading-of-a-report-file=v2) | a pair of a test result and a test entry that a reading gives with the result "bound" |
-| [test entries of a reading](sinter:#reading-entry=v2) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
-| [reading of a report file](sinter:#reading-of-a-report-file=v2) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
-| [test results of an import](sinter:#linked-test=v2), [linked](sinter:#linked-test=v2) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
+| [patterns of a test entry](sinter:#name-pattern=v1) | sequences of pattern parts that the default reader compares with the name parts of test results: the names of a prefix, the names of its name path, separators, placeholders, and affix slots |
+| [match a pattern](sinter:#pattern-match=v1) | the name parts of a test result match a pattern when they are as many as its pattern parts, and texts for its placeholders, and for its affix slots texts that are the empty text or instances of affix patterns, make each pattern part equal to the name part of the test result |
+| [default recognition](sinter:#default-recognition=v1) | "recognised", "not recognised", or "failed": whether the default reader takes a report content as a report file of a test runner |
+| [default reading](sinter:#default-reader-result=v1) | "bound", with test results and result links, or "unreadable": what the default reader gives for a report content and test entries |
+| [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
+| [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
+| [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of its test runner, or the default reading |
+| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of its report files with the result "bound"; a test result is linked to a test of the tree when a result link joins it to a test entry with the path, the name, and the kind of the test, and it has no file or a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; it is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs it; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
 | [a test result names a test](sinter:#named-test=v1) | a test result names a test when it is linked to it, and the narrowing, when it is valid, has no triple for the pair of the test result and a test alike to that test |
-| [says passed, says failed](sinter:#status-meaning=v2) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
+| [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that it names passed; one with `fail` or `error` says that they failed; one with `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of its file when the test node of T is a test suite that encloses the test node of U |
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test that holds other tests passed: it holds at least one test case, each test case that it holds has a test result that names it and says passed, and no test result that names it or a test that it holds says failed |
-| [outcome in an import](sinter:#import-outcome=v2) | "passed", "failed", or "not run": what the test results of one import say of a test |
-| [outcome in the evidence for a tree](sinter:#tree-outcome=v2) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v2) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
-| [verified](sinter:#verified-vector=v2) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
-| [`never-ran`](sinter:#never-ran-finding=v2), [`failed`](sinter:#failed-finding=v2) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
-| [`ambiguous-result`](sinter:#ambiguous-result-finding=v2) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v2) | the finding class, for a tree that has evidence, of a group of conformance vectors of an item that is in force in the tree at the end of the ledger, when the group has at least one conformance vector that says a vector and is not verified |
+| [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
+| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when it is "failed" in one or more; otherwise "not run" |
+| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence, for each of its report files the hash of its report content and the result of its reading, the outcome in that import, the triples of the narrowing that remove a pair of the test, of a test that it holds, or of a test alike to one of these, and the test results that made it (for "not run", those with the status `skip`), each with the number and the hash of the report content of its report file, its number, its name, and its status |
+| [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when it has at least one conformance vector that says a vector and a test with a `verifies` edge to that group or to its vector set has the outcome "passed" in the evidence for the tree |
+| [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
+| [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test that a test result names, when the test result also names a test that is not alike to it |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, of a group of conformance vectors of an item that is in force in the tree at the end of the ledger, when the group has at least one conformance vector that says a vector and is not verified |
 
 ## 2. Report files, readings, and outcomes
 
@@ -408,9 +408,9 @@ edge replaces give no such finding.
 
 ### 3.1 Report files
 
-@term report-file=v2
+@term report-file=v1
 @cites {
-    packs#{valid-pack=v2, test-runner=v2},
+    packs#{valid-pack=v1, test-runner=v1},
     text#{text=v1, byte-sequence=v1},
 }
 
@@ -427,7 +427,7 @@ which is a test runner of the descriptor of its pack.
 @cites {
     ontology#{tree=v1, test=v1, test-evidence=v1},
     text#{text=v1, input=v1, whole-number=v1},
-    #{report-file=v2},
+    #{report-file=v1},
 }
 
 An import is an input that stands for one execution of test runners: the
@@ -462,7 +462,7 @@ for it has at least one import.
 @cites {
     w3c/rec-xml-20081126,
     text#{text=v1, code-span=v1},
-    packs#{adapter-call=v2},
+    packs#{adapter-call=v1},
 }
 
 A report content is a JUnit XML report when, and only when, it is a
@@ -492,13 +492,13 @@ letters. These definitions apply to a JUnit XML report:
 
 ### 3.5 The data of a runner
 
-@schema runner-data=v2
+@schema runner-data=v1
 @cites {
     packs#{
-        test-runner=v2, runner-setting=v2, runner-settings=v1,
-        valid-descriptor=v2,
+        test-runner=v1, runner-setting=v1, runner-settings=v1,
+        valid-descriptor=v1,
     },
-    identifiers#{id-pattern=v2},
+    identifiers#{id-pattern=v1},
     data-forms#{toml-value=v1},
     text#{text=v1, character=v1, code-span=v1},
 }
@@ -544,12 +544,12 @@ or the name of one of its runner settings.
 @term runner-data-value=v1
 @cites {
     packs#{
-        test-runner=v2, runner-setting=v2, runner-settings=v1,
-        valid-descriptor=v2,
+        test-runner=v1, runner-setting=v1, runner-settings=v1,
+        valid-descriptor=v1,
     },
     data-forms#{toml-value=v1},
     text#{code-span=v1},
-    #{runner-data=v2},
+    #{runner-data=v1},
 }
 
 For a test runner of a valid descriptor that has a match table, under a
@@ -562,7 +562,7 @@ has no value.
 
 ### 3.7 The test results of a JUnit XML report
 
-@term case-result=v2
+@term case-result=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{
@@ -570,7 +570,7 @@ has no value.
         rule-name=v1, code-span=v1,
     },
     #{
-        junit-report=v1, runner-data=v2, runner-data-value=v1,
+        junit-report=v1, runner-data=v1, runner-data-value=v1,
         report-path-match=v1,
     },
 }
@@ -641,16 +641,16 @@ shorter of the two sequences.
 
 ### 3.9 The patterns of test entries
 
-@term name-pattern=v2
+@term name-pattern=v1
 @cites {
     packs#{test-entry=v1, test-name=v1},
-    identifiers#{id-pattern=v2, fit=v2},
+    identifiers#{id-pattern=v1, fit=v1},
     files#{path=v1},
     text#{
         text=v1, character=v1, run=v1, place=v1, whole-number=v1,
         code-span=v1,
     },
-    #{runner-data=v2, runner-data-value=v1},
+    #{runner-data=v1, runner-data-value=v1},
 }
 
 For a test entry and the valid data of a runner, the patterns of the
@@ -700,12 +700,12 @@ separates two pattern parts. These steps give the patterns:
 
 ### 3.10 Matches of patterns
 
-@term pattern-match=v2
+@term pattern-match=v1
 @cites {
     ontology#{test-evidence=v1},
     text#{text=v1, character=v1, code-span=v1},
     #{
-        name-pattern=v2, case-result=v2, runner-data=v2,
+        name-pattern=v1, case-result=v1, runner-data=v1,
         runner-data-value=v1,
     },
 }
@@ -721,14 +721,14 @@ text, equal to the name part of the test result at the same index.
 
 ### 3.11 Default recognitions
 
-@atom default-recognition=v2
+@atom default-recognition=v1
 @cites {
     packs#{
-        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
-        adapter-call=v2,
+        valid-descriptor=v1, test-runner=v1, runner-settings=v1,
+        adapter-call=v1,
     },
     text#{text=v1, character=v1, code-span=v1},
-    #{junit-report=v1, runner-data=v2, runner-data-value=v1},
+    #{junit-report=v1, runner-data=v1, runner-data-value=v1},
 }
 
 For a report content and a test runner of a valid descriptor that has a
@@ -746,18 +746,18 @@ the text after that `=`.
 
 ### 3.12 Default readings
 
-@term default-reader-result=v2
+@term default-reader-result=v1
 @cites {
     ontology#{test-evidence=v1},
     files#{path=v1},
     packs#{
-        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
-        test-entry=v1, adapter-call=v2,
+        valid-descriptor=v1, test-runner=v1, runner-settings=v1,
+        test-entry=v1, adapter-call=v1,
     },
     text#{text=v1},
     #{
-        junit-report=v1, runner-data=v2, case-result=v2,
-        report-path-match=v1, name-pattern=v2, pattern-match=v2,
+        junit-report=v1, runner-data=v1, case-result=v1,
+        report-path-match=v1, name-pattern=v1, pattern-match=v1,
     },
 }
 
@@ -780,17 +780,17 @@ parts has a result link to each test entry that these rules give:
 
 ### 3.13 The test entries of readings
 
-@term reading-entry=v2
+@term reading-entry=v1
 @cites {
-    documents#{file-readers=v1, read-file=v2, unreadable-file=v2},
+    documents#{file-readers=v1, read-file=v1, unreadable-file=v1},
     packs#{
-        reading-of-a-text=v2, test-node=v2, test-entry=v1,
-        parse-tree-order=v1, test-runner=v2,
+        reading-of-a-text=v1, test-node=v1, test-entry=v1,
+        parse-tree-order=v1, test-runner=v1,
     },
-    ontology#{tree=v1, parameter=v2},
+    ontology#{tree=v1, parameter=v1},
     files#{path=v1},
     text#{text=v1, decimal-numeral=v1, whole-number=v1, code-span=v1},
-    #{report-file=v2, import=v1},
+    #{report-file=v1, import=v1},
 }
 
 Under a valid binding of `file-readers`, the test entries of the reading
@@ -806,17 +806,17 @@ the order of the parse tree.
 
 ### 3.14 Readings of report files
 
-@atom reading-of-a-report-file=v2
+@atom reading-of-a-report-file=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v2},
+    ontology#{test-evidence=v1, parameter=v1},
     packs#{
-        valid-pack=v2, test-runner=v2, runner-settings=v1,
-        test-entry=v1, adapter-request=v2, adapter-call=v2,
-        adapter-instance=v1, valid-adapter=v2, call-result=v2,
+        valid-pack=v1, test-runner=v1, runner-settings=v1,
+        test-entry=v1, adapter-request=v1, adapter-call=v1,
+        adapter-instance=v1, valid-adapter=v1, call-result=v1,
     },
     text#{result=v1},
-    #{report-file=v2, import=v1, reading-entry=v2, default-reader-result=v2},
+    #{report-file=v1, import=v1, reading-entry=v1, default-reader-result=v1},
 }
 
 Under a valid binding of `file-readers`, and a valid binding of
@@ -851,15 +851,15 @@ test entry that the reading gives with the result "bound".
 
 ### 3.15 Linked tests
 
-@term linked-test=v2
+@term linked-test=v1
 @cites {
     documents#{file-readers=v1, file-test=v1},
-    packs#{test-entry=v1, test-name=v1, test-node=v2},
-    ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v2},
+    packs#{test-entry=v1, test-name=v1, test-node=v1},
+    ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v1},
     files#{path=v1},
     text#{whole-number=v1},
     #{
-        import=v1, reading-of-a-report-file=v2, report-path-match=v1,
+        import=v1, reading-of-a-report-file=v1, report-path-match=v1,
         held-test=v1,
     },
 }
@@ -887,9 +887,9 @@ these conditions are true:
 @cites {
     ontology#{test=v1, test-evidence=v1},
     documents#{file-test=v1},
-    packs#{test-name=v1, test-node=v2},
+    packs#{test-name=v1, test-node=v1},
     text#{whole-number=v1},
-    #{import=v1, linked-test=v2},
+    #{import=v1, linked-test=v1},
 }
 
 A triple of the narrowing of an import stands for the pair of the test
@@ -908,7 +908,7 @@ that test result.
 @term named-test=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, tree=v1},
-    #{import=v1, linked-test=v2, narrowing-of-an-import=v1},
+    #{import=v1, linked-test=v1, narrowing-of-an-import=v1},
 }
 
 A test result of an import names a test of the tree of the import, as
@@ -919,10 +919,10 @@ alike to that test. A test result names no other test.
 
 ### 3.18 What statuses say
 
-@term status-meaning=v2
+@term status-meaning=v1
 @cites {
     ontology#{test=v1, test-evidence=v1},
-    packs#{call-result=v2},
+    packs#{call-result=v1},
     #{named-test=v1},
 }
 
@@ -936,7 +936,7 @@ result with the status `skip` says neither.
 @term held-test=v1
 @cites {
     documents#{file-test=v1},
-    packs#{test-node=v2, enclosed-node=v1},
+    packs#{test-node=v1, enclosed-node=v1},
     ontology#{test=v1, tree=v1},
 }
 
@@ -950,11 +950,11 @@ when, T holds U.
 
 @term suite-rule=v1
 @cites {
-    ontology#{test=v1, test-evidence=v1, promise=v2, tree=v1},
-    packs#{test-node=v2},
+    ontology#{test=v1, test-evidence=v1, promise=v1, tree=v1},
+    packs#{test-node=v1},
     #{
-        import=v1, linked-test=v2, held-test=v1, named-test=v1,
-        status-meaning=v2,
+        import=v1, linked-test=v1, held-test=v1, named-test=v1,
+        status-meaning=v1,
     },
 }
 
@@ -970,13 +970,13 @@ that T holds, and says that the tests that it names failed.
 
 ### 3.21 The outcomes of tests in an import
 
-@atom import-outcome=v2
-@refines ontology#promise=v2
+@atom import-outcome=v1
+@refines ontology#promise=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
-        import=v1, linked-test=v2, held-test=v1, named-test=v1,
-        status-meaning=v2, suite-rule=v1,
+        import=v1, linked-test=v1, held-test=v1, named-test=v1,
+        status-meaning=v1, suite-rule=v1,
     },
 }
 
@@ -992,8 +992,8 @@ of these:
 
 ### 3.22 The outcomes of tests in the evidence for a tree
 
-@atom tree-outcome=v2
-@cites {ontology#{test=v1, tree=v1}, #{tree-evidence=v1, import=v1, import-outcome=v2}}
+@atom tree-outcome=v1
+@cites {ontology#{test=v1, tree=v1}, #{tree-evidence=v1, import=v1, import-outcome=v1}}
 
 The outcome of a test of a tree in the evidence for that tree is
 "passed" when its outcome in one or more imports of the evidence is
@@ -1002,15 +1002,15 @@ the evidence is "failed"; otherwise, "not run".
 
 ### 3.23 The sources of outcomes
 
-@term outcome-source=v2
+@term outcome-source=v1
 @cites {
     data-forms#{hash=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     #{
-        report-file=v2, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v2, linked-test=v2, held-test=v1,
-        named-test=v1, status-meaning=v2, import-outcome=v2,
-        tree-outcome=v2, narrowing-of-an-import=v1,
+        report-file=v1, import=v1, tree-evidence=v1,
+        reading-of-a-report-file=v1, linked-test=v1, held-test=v1,
+        named-test=v1, status-meaning=v1, import-outcome=v1,
+        tree-outcome=v1, narrowing-of-an-import=v1,
     },
 }
 
@@ -1039,14 +1039,14 @@ name, and its status.
 
 ### 3.24 Verified groups of conformance vectors
 
-@term verified-vector=v2
+@term verified-vector=v1
 @cites {
-    documents#{tree-edge=v2},
+    documents#{tree-edge=v1},
     ontology#{
-        verifies-edge=v2, edge-source=v1, conformance-vector=v2,
-        conformance-vector-group=v1, vector-set=v2, test=v1, tree=v1,
+        verifies-edge=v1, edge-source=v1, conformance-vector=v1,
+        conformance-vector-group=v1, vector-set=v1, test=v1, tree=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v2},
+    #{tree-evidence=v1, tree-outcome=v1},
 }
 
 A group of conformance vectors of a vector set of a tree is verified in
@@ -1058,19 +1058,19 @@ outcome "passed" in the evidence for the tree.
 
 ### 3.25 Findings of the class `never-ran`
 
-@atom never-ran-finding=v2
+@atom never-ran-finding=v1
 @cites {
-    identifiers#{citation-entry=v2},
+    identifiers#{citation-entry=v1},
     ontology#{
-        edge=v2, edge-source=v1, verifies-edge=v2, schema=v1, test=v1,
-        tree=v1, conformance-vector-group=v1, vector-set=v2,
+        edge=v1, edge-source=v1, verifies-edge=v1, schema=v1, test=v1,
+        tree=v1, conformance-vector-group=v1, vector-set=v1,
     },
     text#{requirement=v1},
     documents#{
-        tree-edge=v2, origin=v2, origin-position=v1,
-        position-subject=v2, run-spot=v2, tree-finding=v1,
+        tree-edge=v1, origin=v1, origin-position=v1,
+        position-subject=v1, run-spot=v1, tree-finding=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v2},
+    #{tree-evidence=v1, tree-outcome=v1},
 }
 
 A tree that has evidence has one tree finding of the class `never-ran`
@@ -1085,19 +1085,19 @@ of the file.
 
 ### 3.26 Findings of the class `failed`
 
-@atom failed-finding=v2
+@atom failed-finding=v1
 @cites {
-    identifiers#{citation-entry=v2},
+    identifiers#{citation-entry=v1},
     ontology#{
-        edge=v2, edge-source=v1, verifies-edge=v2, schema=v1, test=v1,
-        tree=v1, conformance-vector-group=v1, vector-set=v2,
+        edge=v1, edge-source=v1, verifies-edge=v1, schema=v1, test=v1,
+        tree=v1, conformance-vector-group=v1, vector-set=v1,
     },
     text#{requirement=v1},
     documents#{
-        tree-edge=v2, origin=v2, origin-position=v1,
-        position-subject=v2, run-spot=v2, tree-finding=v1,
+        tree-edge=v1, origin=v1, origin-position=v1,
+        position-subject=v1, run-spot=v1, tree-finding=v1,
     },
-    #{tree-evidence=v1, tree-outcome=v2},
+    #{tree-evidence=v1, tree-outcome=v1},
 }
 
 A tree that has evidence has one tree finding of the class `failed` for
@@ -1112,10 +1112,10 @@ of the file.
 
 ### 3.27 Findings of the class `ambiguous-result`
 
-@atom ambiguous-result-finding=v2
+@atom ambiguous-result-finding=v1
 @cites {
-    packs#{test-node=v2, node-run=v1},
-    documents#{file-test=v1, position-subject=v2, run-spot=v2, tree-finding=v1},
+    packs#{test-node=v1, node-run=v1},
+    documents#{file-test=v1, position-subject=v1, run-spot=v1, tree-finding=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     text#{position=v1, run=v1},
     #{tree-evidence=v1, import=v1, named-test=v1, narrowing-of-an-import=v1},
@@ -1132,18 +1132,18 @@ that run.
 
 ### 3.28 Findings of the class `unverified-vector`
 
-@atom unverified-vector-finding=v2
+@atom unverified-vector-finding=v1
 @cites {
     ontology#{
-        conformance-vector=v2, conformance-vector-group=v1,
-        vector-set=v2, item-name=v2, tree=v1, in-force-item=v2,
+        conformance-vector=v1, conformance-vector-group=v1,
+        vector-set=v1, item-name=v1, tree=v1, in-force-item=v1,
         ledger=v1,
     },
-    documents#{vector-file=v2, tree-finding=v1},
+    documents#{vector-file=v1, tree-finding=v1},
     findings#{spot=v1},
     files#{path=v1},
     text#{span=v1, code-span=v1},
-    #{tree-evidence=v1, verified-vector=v2},
+    #{tree-evidence=v1, verified-vector=v1},
 }
 
 A tree that has evidence has one tree finding of the class
@@ -1161,14 +1161,14 @@ item alone, with no span.
 
 ### 4.1 Default recognitions
 
-@req recognise-junit-reports=v2
+@req recognise-junit-reports=v1
 @cites {
     packs#{
-        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
-        adapter-call=v2,
+        valid-descriptor=v1, test-runner=v1, runner-settings=v1,
+        adapter-call=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{default-recognition=v2},
+    #{default-recognition=v1},
 }
 
 When a conforming program gives the default recognition of a report
@@ -1180,12 +1180,12 @@ runner under that binding.
 
 ### 4.2 The results of readings
 
-@req give-reading-results=v2
+@req give-reading-results=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
@@ -1195,12 +1195,12 @@ result of that reading.
 
 ### 4.3 The test results of readings
 
-@req give-reading-test-results=v2
+@req give-reading-test-results=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v2},
+    ontology#{test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1212,12 +1212,12 @@ that reading.
 
 ### 4.4 The result links of readings
 
-@req give-reading-result-links=v2
+@req give-reading-result-links=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{parameter=v2},
+    ontology#{parameter=v1},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when, with the result "bound"
@@ -1227,12 +1227,12 @@ reading once, and no other result link of that reading.
 
 ### 4.5 No values of readings that do not bind
 
-@req omit-reading-values=v2
+@req omit-reading-values=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v2},
+    ontology#{test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
-    #{report-file=v2, import=v1, reading-of-a-report-file=v2},
+    #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, a conforming program must give
@@ -1241,13 +1241,13 @@ an import when the result of that reading is not "bound".
 
 ### 4.6 The requests of readings
 
-@req give-reading-requests=v2
+@req give-reading-requests=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{parameter=v2},
-    packs#{adapter-request=v2, adapter-call=v2, test-entry=v1},
+    ontology#{parameter=v1},
+    packs#{adapter-request=v1, adapter-call=v1, test-entry=v1},
     text#{conforming-program=v1},
-    #{report-file=v2, import=v1, reading-entry=v2, reading-of-a-report-file=v2},
+    #{report-file=v1, import=v1, reading-entry=v1, reading-of-a-report-file=v1},
 }
 
 Under a valid binding of `file-readers`, when a conforming program makes
@@ -1259,12 +1259,12 @@ entries as the test entry ids of the call.
 
 ### 4.7 Bytes only from the report content
 
-@req read-only-report-content=v2
+@req read-only-report-content=v1
 @cites {
     w3c/rec-xml-20081126,
-    packs#{adapter-call=v2},
+    packs#{adapter-call=v1},
     text#{conforming-program=v1, byte=v1},
-    #{default-recognition=v2, default-reader-result=v2},
+    #{default-recognition=v1, default-reader-result=v1},
 }
 
 For a default recognition or a default reading of a report content, a
@@ -1274,8 +1274,8 @@ resource of a network that the report content names.
 
 ### 4.8 Readings that end
 
-@req end-report-readings=v2
-@cites {text#{conforming-program=v1}, #{reading-of-a-report-file=v2}}
+@req end-report-readings=v1
+@cites {text#{conforming-program=v1}, #{reading-of-a-report-file=v1}}
 
 A conforming program must end each reading of a report file that it
 makes.
@@ -1294,12 +1294,12 @@ only when that import is given for that tree.
 
 ### 4.10 Outcomes
 
-@req give-test-outcomes=v2
+@req give-test-outcomes=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{test=v1, tree=v1, parameter=v2},
+    ontology#{test=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
-    #{import=v1, tree-evidence=v1, import-outcome=v2, tree-outcome=v2},
+    #{import=v1, tree-evidence=v1, import-outcome=v1, tree-outcome=v1},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
@@ -1310,12 +1310,12 @@ import, or in that evidence.
 
 ### 4.11 The sources of outcomes
 
-@req give-outcome-sources=v2
+@req give-outcome-sources=v1
 @cites {
     documents#{file-readers=v1},
-    ontology#{test=v1, tree=v1, parameter=v2},
+    ontology#{test=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1},
-    #{tree-evidence=v1, tree-outcome=v2, outcome-source=v2},
+    #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
 }
 
 Under a valid binding of `file-readers`, when a conforming program gives
@@ -1324,16 +1324,16 @@ give with it each source of that outcome once, and no other source.
 
 ### 4.12 The sources of kept promises
 
-@req give-promise-sources=v2
+@req give-promise-sources=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, tree-edge=v2},
+    documents#{file-readers=v1, tree-edge=v1},
     ontology#{
-        promise=v2, verifies-edge=v2, edge-source=v1, test=v1, tree=v1,
-        parameter=v2,
+        promise=v1, verifies-edge=v1, edge-source=v1, test=v1, tree=v1,
+        parameter=v1,
     },
     text#{conforming-program=v1, result=v1},
-    #{tree-evidence=v1, tree-outcome=v2, outcome-source=v2},
+    #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
 }
 
 Under a valid binding of `file-readers` and a binding of
@@ -1349,15 +1349,15 @@ with it.
 
 ### 4.13 Nothing from evidence with a stopped reading
 
-@req give-nothing-for-stopped-readings=v2
+@req give-nothing-for-stopped-readings=v1
 @cites {
-    ontology#{promise=v2, tree=v1, test=v1},
+    ontology#{promise=v1, tree=v1, test=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v2, import=v1, reading-of-a-report-file=v2,
-        tree-evidence=v1, import-outcome=v2, tree-outcome=v2,
-        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
-        ambiguous-result-finding=v2, unverified-vector-finding=v2,
+        report-file=v1, import=v1, reading-of-a-report-file=v1,
+        tree-evidence=v1, import-outcome=v1, tree-outcome=v1,
+        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
+        ambiguous-result-finding=v1, unverified-vector-finding=v1,
     },
 }
 
@@ -1371,17 +1371,17 @@ the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 ### 4.14 Nothing under bindings that are not valid
 
-@req give-nothing-under-invalid-bindings=v2
+@req give-nothing-under-invalid-bindings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
-    ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1, parameter=v2},
+    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v2, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
-        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
-        ambiguous-result-finding=v2, unverified-vector-finding=v2,
+        report-file=v1, import=v1, tree-evidence=v1,
+        reading-of-a-report-file=v1, import-outcome=v1, tree-outcome=v1,
+        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
+        ambiguous-result-finding=v1, unverified-vector-finding=v1,
     },
 }
 
@@ -1397,16 +1397,16 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 ### 4.15 Nothing from evidence under a binding of `runner-settings` that is not valid
 
-@req give-nothing-under-invalid-runner-settings=v2
+@req give-nothing-under-invalid-runner-settings=v1
 @cites {
-    packs#{runner-settings=v1, test-runner=v2},
-    ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1},
+    packs#{runner-settings=v1, test-runner=v1},
+    ontology#{promise=v1, tree=v1, test=v1, test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        report-file=v2, import=v1, tree-evidence=v1,
-        reading-of-a-report-file=v2, import-outcome=v2, tree-outcome=v2,
-        outcome-source=v2, never-ran-finding=v2, failed-finding=v2,
-        ambiguous-result-finding=v2, unverified-vector-finding=v2,
+        report-file=v1, import=v1, tree-evidence=v1,
+        reading-of-a-report-file=v1, import-outcome=v1, tree-outcome=v1,
+        outcome-source=v1, never-ran-finding=v1, failed-finding=v1,
+        ambiguous-result-finding=v1, unverified-vector-finding=v1,
     },
 }
 
@@ -1421,15 +1421,15 @@ in that tree, and no finding of that tree of the classes `never-ran`,
 
 ### 4.16 The findings of the evidence for a tree
 
-@req give-evidence-findings=v2
+@req give-evidence-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, tree-finding=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v2},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        tree-evidence=v1, never-ran-finding=v2, failed-finding=v2,
-        ambiguous-result-finding=v2, unverified-vector-finding=v2,
+        tree-evidence=v1, never-ran-finding=v1, failed-finding=v1,
+        ambiguous-result-finding=v1, unverified-vector-finding=v1,
     },
 }
 
@@ -1450,14 +1450,14 @@ section 4.
 The vectors of this design are in the file
 [`evidence.test-vectors.jsonl`](evidence.test-vectors.jsonl), in the
 same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v2) of
+specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
 Data forms gives it. A vector is an input and what a conforming program
 gives for it. Each vector follows from the requirements and adds nothing
 to them. No group of this design uses a need, so the forms of each group
 give no need names. The vectors are in four groups, `recognitions`,
 `readings`, `outcomes`, and `findings`, and each subsection below gives
 the forms of one group, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v2) gives them. No
+[`group-form-list`](sinter:data-forms#group-form-list=v1) gives them. No
 vector follows from the requirements `give-reading-requests`,
 `read-only-report-content`, `end-report-readings`,
 `take-evidence-for-own-tree`, `give-promise-sources`,
@@ -1479,16 +1479,16 @@ vector binds a program only to what the program gives for the input.
         utf-8-encoding=v1, result=v1, code-span=v1,
     },
     data-forms#{
-        hex-text=v1, toml-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        hex-text=v1, toml-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     packs#{
-        test-runner=v2, runner-setting=v2, runner-settings=v1,
-        adapter-call=v2,
+        test-runner=v1, runner-setting=v1, runner-settings=v1,
+        adapter-call=v1,
     },
     #{
-        report-file=v2, runner-data=v2, default-recognition=v2,
-        recognise-junit-reports=v2,
+        report-file=v1, runner-data=v1, default-recognition=v1,
+        recognise-junit-reports=v1,
     },
 }
 
@@ -1546,22 +1546,22 @@ content of the input for its test runner, it gives the result that
         whole-number=v1, code-point-order=v1, result=v1, code-span=v1,
     },
     data-forms#{
-        toml-value=v1, vector-line=v2, group-form-list=v2,
-        vector-meaning=v2,
+        toml-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
-    ontology#{test-evidence=v1, parameter=v2},
+    ontology#{test-evidence=v1, parameter=v1},
     packs#{
-        test-runner=v2, runner-setting=v2, runner-settings=v1,
-        test-entry=v1, test-name=v1, test-node=v2, adapter-call=v2,
+        test-runner=v1, runner-setting=v1, runner-settings=v1,
+        test-entry=v1, test-name=v1, test-node=v1, adapter-call=v1,
     },
     #{
-        recognition-vector=v1, report-file=v2, runner-data=v2,
-        case-result=v2, default-reader-result=v2,
-        reading-of-a-report-file=v2, give-reading-results=v2,
-        give-reading-test-results=v2, give-reading-result-links=v2,
-        omit-reading-values=v2,
+        recognition-vector=v1, report-file=v1, runner-data=v1,
+        case-result=v1, default-reader-result=v1,
+        reading-of-a-report-file=v1, give-reading-results=v1,
+        give-reading-test-results=v1, give-reading-result-links=v1,
+        omit-reading-values=v1,
     },
 }
 
@@ -1637,25 +1637,25 @@ is `{}`, it gives no test result and no result link.
     },
     files#{path=v1},
     data-forms#{
-        hash=v1, vector-line=v2, group-form-list=v2, vector-meaning=v2,
+        hash=v1, vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
     ontology#{
         test=v1, test-evidence=v1, tree=v1, finding-class=v1,
-        parameter=v2,
+        parameter=v1,
     },
     packs#{
-        runner-settings=v1, test-runner=v2, test-name=v1,
-        test-node=v2, test-entry=v1,
+        runner-settings=v1, test-runner=v1, test-name=v1,
+        test-node=v1, test-entry=v1,
     },
     #{
-        recognition-vector=v1, report-file=v2, import=v1,
-        tree-evidence=v1, case-result=v2, reading-of-a-report-file=v2,
-        linked-test=v2, held-test=v1, named-test=v1, import-outcome=v2,
-        tree-outcome=v2, outcome-source=v2, ambiguous-result-finding=v2,
-        give-test-outcomes=v2, give-outcome-sources=v2,
-        give-evidence-findings=v2,
+        recognition-vector=v1, report-file=v1, import=v1,
+        tree-evidence=v1, case-result=v1, reading-of-a-report-file=v1,
+        linked-test=v1, held-test=v1, named-test=v1, import-outcome=v1,
+        tree-outcome=v1, outcome-source=v1, ambiguous-result-finding=v1,
+        give-test-outcomes=v1, give-outcome-sources=v1,
+        give-evidence-findings=v1,
     },
 }
 
@@ -1747,26 +1747,26 @@ class `ambiguous-result` of the tree, it gives one for that test when
         conforming-program=v1, text=v1, code-point-order=v1, result=v1,
         requirement=v1, code-span=v1,
     },
-    data-forms#{vector-line=v2, group-form-list=v2, vector-meaning=v2},
+    data-forms#{vector-line=v1, group-form-list=v1, vector-meaning=v1},
     identifiers#{
-        external-namespaces=v1, validate-bindings=v1, citation-entry=v2,
+        external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
     },
     documents#{
-        file-readers=v1, tree-edge=v2, origin-position=v1,
-        position-subject=v2,
+        file-readers=v1, tree-edge=v1, origin-position=v1,
+        position-subject=v1,
     },
     ontology#{
-        tree=v1, test=v1, edge=v2, verifies-edge=v2, edge-source=v1,
-        schema=v1, declared-item=v2, conformance-vector=v2,
-        conformance-vector-group=v1, vector-set=v2, item-name=v2,
-        in-force-item=v2, ledger=v1, finding-class=v1, parameter=v2,
+        tree=v1, test=v1, edge=v1, verifies-edge=v1, edge-source=v1,
+        schema=v1, declared-item=v1, conformance-vector=v1,
+        conformance-vector-group=v1, vector-set=v1, item-name=v1,
+        in-force-item=v1, ledger=v1, finding-class=v1, parameter=v1,
     },
-    packs#{runner-settings=v1, test-runner=v2},
+    packs#{runner-settings=v1, test-runner=v1},
     #{
-        recognition-vector=v1, tree-evidence=v1, tree-outcome=v2,
-        reading-of-a-report-file=v2, never-ran-finding=v2,
-        failed-finding=v2, unverified-vector-finding=v2,
-        give-evidence-findings=v2,
+        recognition-vector=v1, tree-evidence=v1, tree-outcome=v1,
+        reading-of-a-report-file=v1, never-ran-finding=v1,
+        failed-finding=v1, unverified-vector-finding=v1,
+        give-evidence-findings=v1,
     },
 }
 
