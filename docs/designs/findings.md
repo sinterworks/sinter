@@ -31,13 +31,13 @@ positions, and spans, with the start and the end of a span; valid UTF-8,
 UTF-8 encodings, and the text of a byte sequence; and conforming
 programs, inputs, and results. From Identifiers, it takes slugs and the
 form of `@ack` lines. From Files and paths, it takes valid paths. From
-the Ontology, it takes findings and finding classes, items, trees,
-people, and the ledger. From Data forms, it takes JSON values, with the
-members of objects and their keys, hex texts, and, from its
+the Ontology, it takes findings and finding classes, items, schemas,
+trees, people, and the ledger. From Data forms, it takes JSON values,
+with the members of objects and their keys, hex texts, and, from its
 specification `test-vectors`, test-vector sets: the file that holds the
 conformance vectors of the design is one. From that specification, it
-also takes vector lines, the forms of a group, and what a vector line
-states.
+also takes vector lines, the forms of a group, needs and need names, and
+what a vector line states.
 
 ## 1. Glossary
 
@@ -74,7 +74,7 @@ states.
 | [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
 | [`@ack` line](sinter:identifiers#ack-line=v2) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
-| [subject of a finding](sinter:#finding-subject=v2) | the text that names what a finding is about; it matches the production `subject` of the form of `@ack` lines and holds no line feed |
+| [subject of a finding](sinter:#finding-subject=v2) | the text that names what a finding is about; it matches the production `subject` of the schema `ack-line` of Identifiers and holds no line feed |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
 | [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of the text of that content that starts and ends at no boundary inside a line ending |
@@ -932,10 +932,9 @@ form of a text that `edit-set-vector` gives.
 
 - `input`: a JSON object with two members: `class`, the slug that names
   the finding class, and `subject`, the subject.
-- `result`: the forms of the group name no question for `result`; no
-  vector of the group has this member.
+- `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `finding-id`: the finding id
-  of the finding. Each vector of the group has this member.
+  of the finding.
 
 When a conforming program gives a text as the finding id of the finding,
 it gives the text that `finding-id` holds, and no other text.
@@ -978,21 +977,21 @@ boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
 - `input`: a JSON object with the member `text`, the text, and, for a
   spot with a span, the member `span`, the span of the spot, as a run.
   For a spot without a span, the object has no other member.
-- `result`: the forms of the group name no question for `result`; no
-  vector of the group has this member.
+- `result`: no vector of the group has this member.
 - `values`: for a spot with a span, a JSON object with two members:
   `start`, the start position of the spot, and `after`, the position
   after the spot. For a spot without a span, the empty JSON object,
-  `{}`. Each vector of the group has this member.
+  `{}`.
 
 When a conforming program gives a line number for the start position of
-the spot, it gives the line number of `start`. When it gives a column
-for the start position, it gives the column of `start`. When it gives a
-line number for the position after the spot, it gives the line number
-of `after`. When it gives a column for the position after the spot, it
-gives the column of `after`. When `values` is `{}`, it gives no line
-number and no column as the start position of the spot or as the
-position after that spot.
+the spot, it gives the line number of `start`, and no other line number.
+When it gives a column for the start position, it gives the column of
+`start`, and no other column. When it gives a line number for the
+position after the spot, it gives the line number of `after`, and no
+other line number. When it gives a column for the position after the
+spot, it gives the column of `after`, and no other column. When `values`
+is `{}`, it gives no line number and no column as the start position of
+the spot or as the position after that spot.
 
 ```
 {"form":"#spot-position-vector=v1","group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"note":"the span ends right after a line ending, so the position after the spot is in column 1 of line 2","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
