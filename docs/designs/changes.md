@@ -103,13 +103,13 @@ the forms in which the vectors write folder trees. From the Ontology
 (`ontology`), it takes trees, the default branch, and parameters with
 their bindings.
 
-From Data forms (`data-forms`), the design takes test-vector sets, in the
-format that its specification `test-vectors` gives, and the forms of a
-group of vectors and what a vector line states. The file that holds the
-conformance vectors of the design is a test-vector set. From POSIX.1-2024, it
-takes processes and the shell, the open files of a process, pathnames,
-pipes, environment variables, the permissions and the appropriate
-privileges of a process, and its user IDs and group IDs.
+From Data forms (`data-forms`), the design takes test-vector sets, in
+the format that its specification `test-vectors` gives, and the forms of
+a group of vectors and what a vector line states. The file that holds
+the conformance vectors of the design is a test-vector set. From
+POSIX.1-2024, it takes processes and the shell, the open files of a
+process, pathnames, pipes, environment variables, the permissions and
+the appropriate privileges of a process, and its user IDs and group IDs.
 From RFC 8259, the design takes JSON objects, members, arrays, strings,
 numbers, and the literal names `true` and `false`, which the subsections
 of its Conformance section name.
@@ -137,7 +137,7 @@ of its Conformance section name.
 | [git tree object](sinter:#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object |
 | [tree entry, regular-file entry, symbolic-link entry, submodule entry](sinter:#commit-file=v1) | the four kinds of an entry of a git tree object, by the file type that the page gitdatamodel gives for its mode, with the mode 100664 as a regular file |
 | blob | a git object that holds a content, which is a byte sequence |
-| [reach](sinter:#reach=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
+| [reach](sinter:#reach=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on, and no other commit |
 | [ancestry](sinter:#ancestry=v2) | the set of the commits that a commit reaches |
 | [ref name](sinter:#ref-name=v1) | a text that can be the name of a ref, such as `refs/heads/main` or `HEAD`: it meets the rules of the page git-check-ref-format other than its rule that a ref name holds `/`, and it starts with `refs/` or is a root name of the page gitglossary, such as `ORIG_HEAD`, or one of the irregular refs that it lists |
 | [ref](sinter:#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref, as the page gitglossary defines them |
@@ -198,6 +198,10 @@ of its Conformance section name.
 | [undisturbed repository read](sinter:#undisturbed-read=v2) | a repository read during which no process, the program that makes it included, other than in an own change of the read when the file of that change is not a file of a working tree, creates, deletes, or changes a repository file from which the read takes bytes, or changes which file a pathname names, or whether it names one, when the read uses that pathname to reach or look for a repository file |
 | [own change of a repository read](sinter:#undisturbed-read=v2) | the creation, the deletion, or the change of one file by the program that makes the read, itself or through any program that it uses, when that file is one of these: a file of a loose object or a pack that the program creates in the read, with the files that are for that pack alone, or a folder of the folder tree of an object database; a commit-graph file in a fetch that is part of the read; git's index, a file that its format names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before it; or a lock file or a temporary file that the program creates in one of these folders and deletes, or renames to one of the files before it; a change of one of these folders counts only when each folder entry that the change creates, deletes, or changes names one of these files that is not a folder, or a folder that the program created in the read; a file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give none, not even as such a temporary file; an own change keeps a read undisturbed only when its file is not a file of a working tree |
 | [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [forms of a group](sinter:data-forms#group-form-list=v2) | five things that a definition that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
+| [need](sinter:data-forms#group-form-list=v2) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
+| [need name](sinter:data-forms#group-form-list=v2) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
 
 ## 2. Git repositories, changes, and hunks
 
@@ -234,11 +238,10 @@ The term `commit` defines the parents of a commit, in their order, and
 its first parent. Git makes a commit with two or more parents when a
 person joins the histories of two or more branches in one commit. The
 term `ancestry` and the atom `reach` define the commits that a commit
-reaches. The term
-`commit-range` defines the range from a commit, or from no commit, to a
-commit h, and the term `parents-first-order` defines an order of a range
-that comes from a walk of the parents of its commits, not from the dates
-of the commits.
+reaches. The term `commit-range` defines the range from a commit, or
+from no commit, to a commit h, and the term `parents-first-order`
+defines an order of a range that comes from a walk of the parents of its
+commits, not from the dates of the commits.
 
 Example: in the history below, each commit names its parents to its
 left. The commit `f` has two parents: its first parent `c` and its
