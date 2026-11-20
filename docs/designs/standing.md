@@ -445,19 +445,17 @@ of that file is in the set of H.
 This term is for a git repository R, a valid binding A of
 `approval-kinds`, a binding D of `default-branch-name`, a valid binding
 F of `file-readers`, a binding N of `external-namespaces`, a tree T, a
-point P of the ledger of R, and a set of stopped files of each tree that
-it reads: a set U of stopped files of T and, when the default branch of
-R has a commit under D, a set of stopped files of the tree of each
-commit of the first-parent line of that commit. Let S stand for these
-sets of stopped files.
+point P of the ledger of R, and sets S of stopped files: a set U of
+stopped files of T and, when the default branch of R has a commit under
+D, a set of stopped files of the tree of each commit of the first-parent
+line of that commit.
 
-In this term, a declared item of T is in force in T at P under A, D, F,
-N, and S when it is in force in T at P under A, D, F, N, and S (term
-`approval#bound-in-force-item`), and is retired in T at P under A, D, F,
-N, and S when it is not in force there. In this term, a `supersedes`
-edge of T under F, N, and U is effective in T at P under A, D, F, N, and
-S when that edge is effective in T at P (atom
-`ontology#effective-supersedes-edge`) as the term
+In this term, in force in T at P under A, D, F, N, and S is as the term
+`approval#bound-in-force-item` gives it, and a declared item of T is
+retired in T at P under A, D, F, N, and S when it is not in force there.
+In this term, a `supersedes` edge of T under F, N, and U is effective in
+T at P under A, D, F, N, and S when that edge is effective in T at P
+(atom `ontology#effective-supersedes-edge`) as the term
 `approval#bound-in-force-item` reads status tags, edges, and the state
 approved under A, D, F, N, and S.
 
@@ -499,8 +497,8 @@ group of conformance vectors or a vector set, has no successor.
     ontology#{
         declared-item=v1, edge=v1, cites-edge=v1, satisfies-edge=v1,
         verifies-edge=v1, refines-edge=v1, vector-set=v1,
-        conformance-vector-group=v1, external-item=v1,
-        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
+        conformance-vector-group=v1, default-branch=v1, tree=v1,
+        ledger=v1, parameter=v1,
     },
     changes#{
         commit=v1, default-branch-name=v1, default-branch-commit=v1,
@@ -547,8 +545,6 @@ conditions holds:
    T, and the item of the kind design or of the kind specification of
    that vector set is not in force in T at P under A, D, F, N, and S
    (term `approval#bound-in-force-item`).
-
-An external item never counts as retired.
 
 At P under A, D, F, N, H, and S, T has one tree finding of the class
 `retired` for each edge e that T has under F, N, and U that meets all
@@ -779,12 +775,9 @@ and the files of the trees of its commits, a binding D of
 d, a valid binding F of `file-readers`, and, for each commit c of the
 first-parent line of d, a set Uc of stopped files of the tree of c. In
 this term, R holds a git object when R holds that git object at the end
-of those repository reads. Thus R holds each git object that the program
-fetches into R during those repository reads, and R does not hold a git
-object that R lacks and that the program does not fetch. The history of
-the default branch of R under D, F, and these sets is cut for those
-repository reads when, and only when, one or more of these four
-conditions holds:
+of those repository reads. The history of the default branch of R under
+D, F, and these sets is cut for those repository reads when, and only
+when, one or more of these four conditions holds:
 
 1. A commit of the first-parent line of d is a shallow commit of R.
 2. A commit of the first-parent line of d is not a shallow commit of R,
