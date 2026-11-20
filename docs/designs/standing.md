@@ -461,17 +461,16 @@ point P of the ledger of R, and sets S of stopped files: one set of
 stopped files for each distinct tree among T and, when the default
 branch of R has a commit under D, the trees of the commits of the
 first-parent line of that commit (let U be the set of stopped files of
-T; whenever two of these places hold the same tree, they share one set
-of stopped files).
+T; whenever T and a tree of that line, or two trees of that line, are
+the same tree, they share one set of stopped files).
 
 In this term, in force in T at P under A, D, F, N, and S is as the term
 `approval#bound-in-force-item` gives it, and a declared item of T is
 retired in T at P under A, D, F, N, and S when it is not in force there.
 In this term, a `supersedes` edge of T under F, N, and U is effective in
 T at P under A, D, F, N, and S when that edge is effective in T at P
-(atom `ontology#effective-supersedes-edge`) as the term
-`approval#bound-in-force-item` reads status tags, edges, and the state
-approved under A, D, F, N, and S.
+(atom `ontology#effective-supersedes-edge`), read as the term
+`approval#bound-in-force-item` gives under A, D, F, N, and S.
 
 A declared item y of T directly replaces a declared item x of T in T at
 P under A, D, F, N, and S when, and only when, some `supersedes` edge of
@@ -536,8 +535,9 @@ binding H of `historical-paths`, a point P of the ledger of R, a tree T,
 and sets S of stopped files: one set of stopped files for each distinct
 tree among T and, when the default branch of R has a commit under D, the
 trees of the commits of the first-parent line of that commit (let U be
-the set of stopped files of T; whenever two of these places hold the
-same tree, they share one set of stopped files).
+the set of stopped files of T; whenever T and a tree of that line, or
+two trees of that line, are the same tree, they share one set of stopped
+files).
 
 A source of an edge of T under F, N, and U counts in T at P under A, D,
 F, N, and S when, and only when, one of these three conditions holds:
@@ -557,10 +557,10 @@ conditions holds:
 
 1. The cited item is a declared item of T that is not in force in T at P
    under A, D, F, N, and S (term `approval#bound-in-force-item`).
-2. The cited item is a group of conformance vectors or a vector set of
-   T, and the item of the kind design or of the kind specification of
-   that vector set is not in force in T at P under A, D, F, N, and S
-   (term `approval#bound-in-force-item`).
+2. The cited item is a vector set of T, or a group of conformance
+   vectors of a vector set of T, and the item of the kind design or of
+   the kind specification of that vector set is not in force in T at P
+   under A, D, F, N, and S (term `approval#bound-in-force-item`).
 
 At P under A, D, F, N, H, and S, T has one tree finding of the class
 `retired` for each edge e that T has under F, N, and U that meets all
