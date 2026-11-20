@@ -16,51 +16,56 @@ Specifies the canonical form of JSON values and canonical lines, and the JSON va
 
 A JSON value is a string, an integer, a boolean, an array, or an object.
 Each JSON value has one canonical form: a JSON text, as RFC 8259 defines
-it, with the members of each object in a fixed order and with no space,
-tab, line feed, or carriage return outside its strings. A canonical line
-holds the canonical byte sequence of one line object, which is an object
-of a restricted shape, and ends with the byte 0x0A. So two programs that
-give the canonical lines of the same line objects, in the same order,
-give the same bytes.
+a JSON text, with the members of each object in a fixed order and with
+no space, tab, line feed, or carriage return outside the strings of that
+JSON text. A line object is an object of a restricted shape. A canonical
+line holds the canonical byte sequence of one line object and ends with
+the byte 0x0A. So two programs that give the canonical lines of the same
+line objects, in the same order, give the same bytes.
 
-A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
-with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0,
-that has no value error, and whose keys, tables, and strings break no
-statement of TOML 1.1.0. At the points where TOML 1.1.0 lets an
-implementation choose, such as the number of digits of a fraction of a
-second, a conforming program makes the choices of the reading rules of
-TOML. When a conforming program gives a result for whether a byte
-sequence is a TOML document, it gives the result "valid" for a TOML
-document and "invalid" for every other byte sequence. For a TOML
-document, it can also give the root table and the spans of its keys and
-values, with their locations.
+A TOML document is a byte sequence that meets three conditions. First,
+the text of the byte sequence, as TOML 1.1.0 reads that text with the
+reading rules of TOML, matches the rule `toml` of TOML 1.1.0. Second,
+the byte sequence has no value error. Third, the keys, tables, and
+strings of the byte sequence break no statement of TOML 1.1.0. At the
+points where TOML 1.1.0 lets an implementation choose, such as the
+number of digits of a fraction of a second, a conforming program makes
+the choices of the reading rules of TOML. When a conforming program
+gives a result for whether a byte sequence is a TOML document, it gives
+the result "valid" for a TOML document and "invalid" for every other
+byte sequence. For a TOML document, a conforming program can also give
+the root table and the spans of the keys and values of the TOML
+document, with the locations of those keys and values.
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
-sequence. The hash of a byte sequence is its digest as 64 hex digits. A
-hash id is an id prefix, such as `e-`, and then the first hex digits of
-a hash. A test-vector set is a byte sequence that holds vector lines,
-and the object of a vector line can state a vector.
+sequence. The hash of a byte sequence is the digest of that byte
+sequence as 64 hex digits. A hash id is an id prefix, such as `e-`, and
+then the first hex digits of a hash. A test-vector set is a byte
+sequence that holds vector lines. The object of a vector line can state
+a vector.
 
-From Text and notation, the design takes characters, texts, and their
-places, boundaries, and runs; bytes, byte sequences, and UTF-8; byte
-order marks and bodies; lines, line numbers, positions, and spans; whole
-numbers, decimal numerals, 0x numerals, U+ numerals, and hex digits;
-code spans and the notation of productions; and conforming programs,
-inputs, and results.
+From Text and notation, the design takes characters, texts, and the
+places, boundaries, and runs of texts; bytes, byte sequences, and UTF-8;
+byte order marks and bodies; lines, line numbers, positions, and spans;
+whole numbers, decimal numerals, 0x numerals, U+ numerals, and hex
+digits; code spans and the notation of productions; and conforming
+programs, inputs, and results.
 
 From RFC 8259, the design takes JSON texts and the rule `JSON-text` of
-its ABNF: canonical forms and vector lines write JSON values in JSON
-texts, and a conforming program reads the JSON value of a byte sequence
-from its JSON text. From RFC 2781, it takes the code units of the
-encoding UTF-16, by which key order compares keys. From TOML 1.1.0, it
-takes documents, their tables, their keys, and their values, and the
-rules `toml`, `key`, `simple-key`, and `val` of its ABNF. From RFC 3339,
-it takes the ranges of the months, days, hours, minutes, seconds, and
-offsets of dates and times, the meaning of the offset of an offset
-date-time, and its statement on leap seconds, which a reading rule of
-TOML replaces. From IEEE 754-2019, it takes the binary64 format of
-floating-point numbers, and rounding to nearest with ties to even. From
-FIPS 180-4, it takes the hash function SHA-256.
+the ABNF of RFC 8259. Canonical forms and vector lines write JSON values
+in JSON texts. A conforming program reads the JSON value of a byte
+sequence from the JSON text of that byte sequence. From RFC 2781, the
+design takes the code units of the encoding UTF-16, by which key order
+compares keys. From TOML 1.1.0, the design takes documents, their
+tables, their keys, and their values, and the rules `toml`, `key`,
+`simple-key`, and `val` of the ABNF of TOML 1.1.0. From RFC 3339, the
+design takes the ranges of the months, days, hours, minutes, seconds,
+and offsets of dates and times, the meaning of the offset of an offset
+date-time, and the statement of RFC 3339 on leap seconds. A reading rule
+of TOML replaces that statement on leap seconds. From IEEE 754-2019, the
+design takes the binary64 format of floating-point numbers, and rounding
+to nearest with ties to even. From FIPS 180-4, the design takes the hash
+function SHA-256.
 
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
@@ -108,7 +113,7 @@ case-sensitive strings of RFC 7405.
 | [array](sinter:#json-value=v1) | a finite sequence of JSON values, its elements |
 | [object](sinter:#json-value=v1) | a finite set of members in which no two members have the same key |
 | [member](sinter:#json-value=v1) | a key, which is a text, and a JSON value, which is the value of the member |
-| [UTF-16 code unit](sinter:#utf-16-code-unit=v1) | a code unit, as a whole number, that UTF-16, as RFC 2781 defines it, gives for a character |
+| [UTF-16 code unit](sinter:#utf-16-code-unit=v1) | a code unit, as a whole number, that UTF-16, as RFC 2781 defines UTF-16, gives for a character |
 | [key order](sinter:#key-order=v1) | the order of texts by their UTF-16 code units, in which the members of an object stand in its canonical form |
 | [canonical form](sinter:#canonical-form=v1) | the one text that the rules of the canonical form give for a JSON value |
 | [string form](sinter:#canonical-form=v1) | the text that stands for one character of a string in the canonical form of the string, such as `\n` for the line feed and `a` for `a` |
@@ -118,11 +123,11 @@ case-sensitive strings of RFC 7405.
 | [flat object](sinter:#line-object=v1) | an object in which the value of each member is a scalar |
 | [line object](sinter:#line-object=v1) | an object in which the value of each member is a scalar, an array of scalars, or an array of flat objects |
 | [canonical line](sinter:#canonical-line=v1) | the canonical byte sequence of a line object, then the byte 0x0A |
-| [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when the byte sequence is valid UTF-8, its text is a JSON text of RFC 8259, and that JSON text has no value `null`, no number with a fraction or an exponent or outside the range of an integer, no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two that write the UTF-16 code units of one character, and no object with two names that stand for the same text |
+| [JSON value of a byte sequence](sinter:#json-value-of-a-byte-sequence=v1) | the JSON value that the value of the JSON text of a byte sequence gives, when all of these hold: the byte sequence is valid UTF-8; the text of the byte sequence is a JSON text of RFC 8259; that JSON text has no value `null`; that JSON text has no number with a fraction or an exponent or outside the range of an integer; that JSON text has no escape sequence `\u` of a number from 0xD800 to 0xDFFF that is not one of two escape sequences `\u` that write the UTF-16 code units of one character; and that JSON text has no object with two names that stand for the same text |
 | [TOML document](sinter:#toml-document=v1) | a byte sequence whose text, as TOML 1.1.0 reads it with the reading rules of TOML, matches the rule `toml` of TOML 1.1.0, that has no value error, and whose keys, tables, and strings break no statement of TOML 1.1.0 |
 | key/value pair, table header, inline table, array of tables, quoted key, basic string, multi-line basic string, literal string, multi-line literal string, escape sequence, newline; integer, float, string, array, and value of TOML 1.1.0 | the things that TOML 1.1.0 calls by these names; in a JSON text, an escape sequence is what RFC 8259 calls by that name |
 | [TOML key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that is not a dotted key, such as `a` or `"a"` |
-| [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; these are the TOML keys of the dotted key |
+| [dotted key](sinter:#toml-key=v1) | a key of TOML 1.1.0 that joins two or more TOML keys with `.`, such as `b.c.x`; the TOML keys that the dotted key joins are the TOML keys of the dotted key |
 | [key of a key/value pair](sinter:#toml-key=v1), [key of a table header](sinter:#toml-key=v1) | the key of TOML 1.1.0 in it: a TOML key or a dotted key |
 | [TOML value](sinter:#toml-value=v1) | a value of the data that TOML 1.1.0 reads from a document: the value that a value of TOML 1.1.0 gives, the root table of a document, a table that a table header makes, a table that a dotted key makes, a TOML array that the table headers of an array of tables make, or a TOML value in one of these; each TOML value is of one of ten kinds |
 | [TOML string](sinter:#toml-value=v1), [TOML integer](sinter:#toml-value=v1), [TOML float](sinter:#toml-value=v1), [TOML boolean](sinter:#toml-value=v1), [TOML array](sinter:#toml-value=v1) | a TOML value of the type string, integer, float, boolean, or array of TOML 1.1.0 |
@@ -133,7 +138,7 @@ case-sensitive strings of RFC 7405.
 | [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
 | [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
-| [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what it is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
+| [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what the span is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
 | [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
@@ -151,8 +156,8 @@ case-sensitive strings of RFC 7405.
 | [forms of a group](sinter:#group-form-list=v1) | the five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group, as `group-form-list` states |
 | [fixed form](sinter:#group-form-list=v1) | a shape of JSON values that the forms of a group give for the value of `input` or of `values`, or any of several such shapes: which of a string, an integer, a boolean, an array, or an object each value is, their members, the values of their integers, and the texts of their strings; whether a value has a fixed form depends on that value alone |
 | [need](sinter:#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
-| [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
-| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when it operates while each need of the vector holds, gives what the object of its vector line states; a skip of a vector decides nothing about it when the check cannot make a need of the vector hold and reports that need, and each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
+| [need name](sinter:#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of those texts stands for, if any |
+| [check of the vectors](sinter:#vector-meaning=v1) | the act of deciding, for each vector of a specification, or of a design, that the object of a vector line of a test-vector set states, whether a program, when the program operates while each need of the vector holds, gives what the object of the vector line of that vector states; a skip of a vector decides nothing about that vector when the check cannot make a need of the vector hold and reports that need; each other skip counts as a decision that the program does not give what the object states; each of these decisions, a decision about a skip included, is a decision of the check, such as one run of a test that checks the vectors, and not of a reader of what the check reports |
 | [vector object](sinter:#vector-object=v1) | an object with fixed members: it always has the members `form`, `group`, and `input`, has the member `result`, the member `values`, or both, and can have the members `needs` and `note` |
 | [vector line](sinter:#vector-line=v1) | the canonical byte sequence of a vector object, then the byte 0x0A |
 | [test-vector set](sinter:#test-vector-set=v1) | a byte sequence of zero or more vector lines in which all vector lines with the same group have the same schema part name in their form |
@@ -160,14 +165,15 @@ case-sensitive strings of RFC 7405.
 ## 2. Results, JSON values, and canonical forms
 
 When a conforming program gives a result for an input that it reads or
-validates, it gives one of two results: "valid" or "invalid". It can
-also give more, such as the line object of a canonical line or the root
-table of a TOML document.
+validates, it gives one of two results: "valid" or "invalid". A
+conforming program can also give more, such as the line object of a
+canonical line or the root table of a TOML document.
 
-A conforming program may refuse an input beyond its own limits, such as
-a byte sequence too long for it to hash, a number that it cannot hold,
-or arrays, objects, or inline tables nested deeper than it reads; it
-then gives no result for that input.
+A conforming program may refuse an input beyond the program's own
+limits, such as a byte sequence too long for the program to hash, a
+number that the program cannot hold, or arrays, objects, or inline
+tables nested deeper than the program reads. When a conforming program
+refuses an input, the conforming program gives no result for that input.
 
 The term `index` gives the index of an element of a finite sequence,
 counted from 1. So the first element of an array has the index 1, and
@@ -176,17 +182,17 @@ the second element has the index 2.
 The term `json-value` gives the JSON values: strings, integers,
 booleans, arrays, and objects. An object can hold the key U+00E9 and the
 key `e`, U+0301 as two members, although both keys show as the letter e
-with an acute accent. It can also hold the keys `a` and `A` as two
-members.
+with an acute accent. An object can also hold the keys `a` and `A` as
+two members.
 
-The term `canonical-form` gives the canonical form of a JSON value, a
-text, and the term `canonical-byte-sequence` gives its UTF-8 encoding.
-In a canonical form, the members of an object stand in key order, which
-compares two keys by their UTF-16 code units, as the terms `key-order`
-and `utf-16-code-unit` give. For example, the key U+1F600 (the code
-units 0xD83D and 0xDE00) comes before the key U+E000 (the code unit
-0xE000) in key order, but U+1F600 comes after U+E000 in code point
-order.
+The term `canonical-form` gives the canonical form of a JSON value,
+which is a text. The term `canonical-byte-sequence` gives the UTF-8
+encoding of that canonical form. In a canonical form, the members of an
+object stand in key order. Key order compares two keys by their UTF-16
+code units, as the terms `key-order` and `utf-16-code-unit` give. For
+example, the key U+1F600 (the code units 0xD83D and 0xDE00) comes before
+the key U+E000 (the code unit 0xE000) in key order, but U+1F600 comes
+after U+E000 in code point order.
 
 In these examples, a JSON text gives each JSON value:
 
@@ -246,9 +252,9 @@ and for no other JSON value.
 @cites {rfc/2781, text#{character=v1, text=v1, whole-number=v1}}
 
 The UTF-16 code units of a character are the code units, each a whole
-number, that UTF-16, as RFC 2781 defines it, gives for the character.
-The UTF-16 code units of a text are the UTF-16 code units of its
-characters, in their order.
+number, that UTF-16, as RFC 2781 defines UTF-16, gives for the
+character. The UTF-16 code units of a text are the UTF-16 code units of
+its characters, in their order.
 
 ### 3.5 Key order
 
@@ -261,7 +267,8 @@ when, one of these is true:
 - At the first index at which the UTF-16 code units of t and of u
   differ, the code unit of t is less than the code unit of u.
 - The UTF-16 code units of t are fewer than the UTF-16 code units of u,
-  and they are the same as the first code units of u.
+  and the UTF-16 code units of t are the same as the first code units of
+  u.
 
 ### 3.6 Canonical forms
 
@@ -293,9 +300,9 @@ The canonical form of a JSON value is a text that these rules give:
   elements in their order, with `,` between each two of them, then `]`.
 - The canonical form of an object is `{`, then the canonical forms of
   its members in the key order of their keys, with `,` between each two
-  of them, then `}`. The canonical form of a member is the canonical
-  form of its key as a string, then `:`, then the canonical form of its
-  value.
+  of those canonical forms, then `}`. The canonical form of a member is
+  the canonical form of its key as a string, then `:`, then the
+  canonical form of its value.
 
 ### 3.7 Canonical byte sequences
 
@@ -311,21 +318,23 @@ canonical form.
 @cites {fips/180-4, text#{byte=v1, byte-sequence=v1}, #{hex-text=v1}}
 
 The hash of a byte sequence is the hex text of the digest, as 32 bytes,
-that SHA-256 of FIPS 180-4 gives for it.
+that SHA-256 of FIPS 180-4 gives for that byte sequence.
 
 ## 4. JSON lines
 @spec json-lines=v1
 
 When a conforming program gives a byte sequence as the canonical byte
 sequence of a JSON value, it gives the canonical byte sequence of that
-JSON value. When it gives a byte sequence as the canonical line of a
-line object, it gives the canonical line of that line object. It gives
-no canonical line for a thing that is not a line object. When it gives a
-result for whether a byte sequence is the canonical line of a line
-object, it gives the result "valid" when the byte sequence is the
-canonical line of a line object, and the result "invalid" when it is
-not. It can also give the line object whose canonical line the byte
-sequence is.
+JSON value. When a conforming program gives a byte sequence as the
+canonical line of a line object, the conforming program gives the
+canonical line of that line object. A conforming program gives no
+canonical line for a thing that is not a line object. When a conforming
+program gives a result for whether a byte sequence is the canonical line
+of a line object, the conforming program gives the result "valid" when
+the byte sequence is the canonical line of a line object, and the result
+"invalid" when the byte sequence is not the canonical line of a line
+object. The conforming program can also give the line object whose
+canonical line the byte sequence is.
 
 The term `line-object` gives the line objects.
 These are not line objects:
@@ -355,15 +364,16 @@ of the byte sequence, the final 0x0A included:
 | `[1]`, 0x0A | the JSON value is not an object |
 
 A conforming program can also read a byte sequence as a JSON text, such
-as the output of another program. When it gives a result for whether the
-byte sequence has a JSON value, it gives the result "valid" when the
-byte sequence has one, and the result "invalid" when it has none. It can
-also give the JSON value of the byte sequence, as the term
-`json-value-of-a-byte-sequence` gives it. For example, the UTF-8
-encoding of `{ "b": 1, "a": "\u00e9" }`, then the byte 0x0A, has the
-JSON value whose canonical form is `{"a":"é","b":1}`, and the UTF-8
-encodings of `{"a":1.0}`, of `{"a":1,"a":2}`, and of `"\ud800"` have no
-JSON value.
+as the output of another program. When the conforming program gives a
+result for whether the byte sequence has a JSON value, the conforming
+program gives the result "valid" when the byte sequence has a JSON
+value, and the result "invalid" when the byte sequence has no JSON
+value. The conforming program can also give the JSON value of the byte
+sequence, as the term `json-value-of-a-byte-sequence` gives that JSON
+value. For example, the UTF-8 encoding of `{ "b": 1, "a": "\u00e9" }`,
+then the byte 0x0A, has the JSON value whose canonical form is
+`{"a":"é","b":1}`. The UTF-8 encodings of `{"a":1.0}`, of
+`{"a":1,"a":2}`, and of `"\ud800"` have no JSON value.
 
 ### 4.1 Definitions
 
@@ -413,34 +423,36 @@ fractions, exponents, and the literal names `true`, `false`, and
   when the byte sequence is valid UTF-8 and its text matches the rule
   `JSON-text`. Every other byte sequence has no JSON text.
 - A string or a name of a JSON text stands for the text that RFC 8259
-  gives for it. A string or a name with an escape sequence `\u` of a
-  number from 0xD800 to 0xDFFF that is not one of two, one right after
-  the other, that write the UTF-16 code units of one character stands
-  for no text.
+  gives for that string or name. When a string or a name has an escape
+  sequence `\u` of a number from 0xD800 to 0xDFFF, and that escape
+  sequence is not one of two escape sequences `\u`, one right after the
+  other, that write the UTF-16 code units of one character, that string
+  or name stands for no text.
 - The value `true` of a JSON text gives the JSON value true, and the
   value `false` gives the JSON value false. The value `null` gives no
   JSON value.
-- A number of a JSON text with no fraction and no exponent gives the
-  integer that is the whole number that it writes, when that whole
-  number is an integer. Every other number of a JSON text gives no JSON
-  value.
-- A string of a JSON text gives the string that is the text that it
-  stands for. A string of a JSON text that stands for no text gives no
-  JSON value.
-- An array of a JSON text gives the array whose elements are the JSON
-  values that its values give, in their order, when each of its values
-  gives a JSON value. Otherwise, it gives no JSON value.
+- When a number of a JSON text has no fraction and no exponent, and the
+  whole number that the number writes is an integer, that number gives
+  that integer. Every other number of a JSON text gives no JSON value.
+- A string of a JSON text gives the string that is the text that the
+  string of the JSON text stands for. A string of a JSON text that
+  stands for no text gives no JSON value.
+- When each value of an array of a JSON text gives a JSON value, that
+  array of the JSON text gives the array whose elements are the JSON
+  values that those values give, in their order. Otherwise, that array
+  of the JSON text gives no JSON value.
 - An object of a JSON text gives the object that has one member for each
-  member of the object of the JSON text, and no other member: the key
-  of that member is the text that the name of the member of the JSON
-  text stands for, and its value is the JSON value that the value of the
-  member of the JSON text gives. An object of a JSON text gives no JSON
-  value when one of its names stands for no text, when the value of one
-  of its members gives no JSON value, or when two of its names stand for
-  the same text.
+  member of the object of the JSON text, and no other member: the key of
+  that member is the text that the name of the member of the JSON text
+  stands for, and the value of that member is the JSON value that the
+  value of the member of the JSON text gives. An object of a JSON text
+  gives no JSON value when one of the names of the object stands for no
+  text, when the value of one of the members of the object gives no JSON
+  value, or when two of the names of the object stand for the same text.
 - The JSON value of a byte sequence is the JSON value that the value of
-  its JSON text gives. A byte sequence that has no JSON text, or whose
-  JSON text has a value that gives no JSON value, has no JSON value.
+  the JSON text of that byte sequence gives. A byte sequence that has no
+  JSON text, or whose JSON text has a value that gives no JSON value,
+  has no JSON value.
 
 ### 4.2 Canonical byte sequences as output
 
@@ -476,9 +488,10 @@ the canonical line of that thing.
 }
 
 When a conforming program gives a result for whether a byte sequence is
-the canonical line of a line object, it must give exactly one result:
-"valid" when the byte sequence is the canonical line of a line object,
-and "invalid" when it is not.
+the canonical line of a line object, the conforming program must give
+exactly one result: "valid" when the byte sequence is the canonical line
+of a line object, and "invalid" when the byte sequence is not the
+canonical line of a line object.
 
 ### 4.5 Only the line objects of canonical lines
 
@@ -502,9 +515,10 @@ only the line object whose canonical line the byte sequence is.
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
-When a conforming program gives a result for whether a byte sequence
-has a JSON value, it must give exactly one result: "valid" when the byte
-sequence has a JSON value, and "invalid" when it has none.
+When a conforming program gives a result for whether a byte sequence has
+a JSON value, the conforming program must give exactly one result:
+"valid" when the byte sequence has a JSON value, and "invalid" when the
+byte sequence has no JSON value.
 
 ### 4.7 Only the JSON values of byte sequences
 
@@ -527,10 +541,10 @@ requirement that the specification declares.
 The file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. By the term `vector-meaning`,
-the object of each vector line of the file states one vector of this
-specification. No group of this specification uses a need, so the forms
-of each group give no need names.
+specification `test-vectors` defines a test-vector set. By the term
+`vector-meaning`, the object of each vector line of the file states one
+vector of this specification. No group of this specification uses a
+need, so the forms of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each schema below gives the forms of one group, as
@@ -561,7 +575,7 @@ its hex text, as a string, such as `"7b7d0a"` for the UTF-8 encoding of
 - `input`: a string whose characters are a JSON text whose UTF-8
   encoding has a JSON value, as the term
   [`json-value-of-a-byte-sequence`](sinter:#json-value-of-a-byte-sequence=v1)
-  gives it; the input is that JSON value.
+  gives the JSON value of a byte sequence. The input is that JSON value.
 - `result`: the forms of the group name no question for `result`.
 - `values`: an object with one member, `canonical-byte-sequence`: the
   canonical byte sequence of the input.
@@ -602,10 +616,10 @@ object. The requirement of the group is `write-canonical-line`. In
   `canonical-line`: the canonical line of the input. When the input is
   not a line object, the empty object, `{}`.
 
-When a conforming program gives a byte sequence as the canonical line
-of the input, it gives the byte sequence of `canonical-line`, and no
-other byte sequence. When `values` is `{}`, it gives no byte sequence as
-the canonical line of the input.
+When a conforming program gives a byte sequence as the canonical line of
+the input, it gives the byte sequence of `canonical-line`, and no other
+byte sequence. When `values` is `{}`, a conforming program gives no byte
+sequence as the canonical line of the input.
 
 ```
 {"form":"#write-line-vector=v1","group":"write-line","input":"{}","values":{"canonical-line":"7b7d0a"}}
@@ -639,15 +653,16 @@ sequence as a canonical line. The requirements of the group are
 - `result`: when a conforming program gives a result for whether the
   byte sequence is the canonical line of a line object, that result:
   "valid" when the byte sequence is the canonical line of a line object,
-  and "invalid" when it is not.
+  and "invalid" when the byte sequence is not the canonical line of a
+  line object.
 - `values`: when `result` is "valid", an object with one member,
   `line-object`: the line object whose canonical line the byte sequence
   is. When `result` is "invalid", the empty object, `{}`.
 
 When a conforming program gives a line object as the line object of the
 byte sequence, it gives the line object of `line-object`, and no other
-line object. When `values` is `{}`, it
-gives no line object as the line object of the byte sequence.
+line object. When `values` is `{}`, a conforming program gives no line
+object as the line object of the byte sequence.
 
 ```
 {"form":"#read-line-vector=v1","group":"read-line","input":"7b2261223a322c2262223a317d0a","result":"valid","values":{"line-object":{"a":2,"b":1}}}
@@ -680,15 +695,16 @@ gives.
 - `input`: the byte sequence.
 - `result`: when a conforming program gives a result for whether the
   byte sequence has a JSON value, that result: "valid" when the byte
-  sequence has one, and "invalid" when it has none.
+  sequence has a JSON value, and "invalid" when the byte sequence has no
+  JSON value.
 - `values`: when `result` is "valid", an object with one member,
   `json-value`: the JSON value of the byte sequence. When `result` is
   "invalid", the empty object, `{}`.
 
 When a conforming program gives a JSON value as the JSON value of the
 byte sequence, it gives the JSON value of `json-value`, and no other
-JSON value. When `values` is `{}`, it gives no JSON value as the JSON
-value of the byte sequence.
+JSON value. When `values` is `{}`, a conforming program gives no JSON
+value as the JSON value of the byte sequence.
 
 ```
 {"form":"#read-json-vector=v1","group":"read-json","input":"7b20226222203a205b312c20325d202c092261223a74727565207d0d0a","note":"spaces, a tab, a carriage return, and a line feed stand around values and around `:` and `,`, and the members do not stand in key order","result":"valid","values":{"json-value":{"a":true,"b":[1,2]}}}
@@ -699,41 +715,45 @@ value of the byte sequence.
 @spec toml=v1
 
 A conforming program can read a byte sequence as a TOML document. When
-it gives a result for whether the byte sequence is a TOML document, it
-gives the result "valid" when the byte sequence is a TOML document, and
-the result "invalid" when it is not. For a TOML document, it can also
-give the root table, and the spans of the keys of TOML 1.1.0 and of the
-values of TOML 1.1.0 in the document, with their locations.
+the conforming program gives a result for whether the byte sequence is a
+TOML document, the conforming program gives the result "valid" when the
+byte sequence is a TOML document, and the result "invalid" when the byte
+sequence is not a TOML document. For a TOML document, a conforming
+program can also give the root table, and the spans of the keys of TOML
+1.1.0 and of the values of TOML 1.1.0 in the document, with their
+locations.
 
 In this specification, a text in a code block stands for the UTF-8
 encoding of its lines, each line then the byte 0x0A.
 
-A TOML document is a byte sequence whose text, as TOML 1.1.0 reads it
-with the reading rules of TOML, matches the rule `toml` of the ABNF of
-TOML 1.1.0, that has no value error, and whose keys, tables, and strings
-break no statement of TOML 1.1.0, such as the statement that no key is
-defined twice. A value error is a date or a time that RFC 3339 does not
-allow, such as the local date `1979-02-30`.
+A TOML document is a byte sequence that meets all three of these
+conditions. First, the text of the byte sequence, as TOML 1.1.0 reads
+that text with the reading rules of TOML, matches the rule `toml` of the
+ABNF of TOML 1.1.0. Second, the byte sequence has no value error. Third,
+the keys, tables, and strings of the byte sequence break no statement of
+TOML 1.1.0, such as the statement that no key is defined twice. A value
+error is a date or a time that RFC 3339 does not allow, such as the
+local date `1979-02-30`.
 
 TOML 1.1.0 reads a text. By a reading rule of TOML, for a byte sequence
-that is valid UTF-8, TOML 1.1.0 reads the body of its text, so it does
-not read a byte order mark. So when a byte sequence starts with the
-bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the characters after the
-U+FEFF that these bytes encode.
+that is valid UTF-8, TOML 1.1.0 reads the body of the text of that byte
+sequence, so TOML 1.1.0 does not read a byte order mark. So when a byte
+sequence starts with the bytes 0xEF, 0xBB, 0xBF, TOML 1.1.0 reads the
+characters after the U+FEFF that these bytes encode.
 
 The terms `toml-key` and `toml-key-text` give the TOML keys of a key of
 TOML 1.1.0 and their texts. So the TOML keys `a` and `"a"` have the same
 text, and the TOML keys `"\u00e9"` and `"e\u0301"` have two different
 texts.
 
-The term `toml-value` gives the TOML values and their ten kinds, and the
+The term `toml-value` gives the TOML values and their ten kinds. The
 term `root-table` gives the root table of a TOML document. For example,
 the integer `0x1F` of TOML 1.1.0 gives the TOML integer 31.
 
 At the points where TOML 1.1.0 lets an implementation choose, a
 conforming program makes the choices of the reading rules of TOML, as
-the term `toml-reading-rule-list` gives them. For example, `12:30:00.5`
-and `12:30:00.50` give equal local times.
+the term `toml-reading-rule-list` gives those reading rules. For
+example, `12:30:00.5` and `12:30:00.50` give equal local times.
 
 TOML 1.1.0 bases local times, local date-times, and offset date-times on
 RFC 3339. RFC 3339, section 5.7, allows the second 60 only at a leap
@@ -786,27 +806,29 @@ For a TOML document, a conforming program can give spans of the text of
 the byte sequence: the span of the key of each key/value pair and of
 each table header, of each TOML key of these keys, and of each value of
 TOML 1.1.0. The span of the key of a key/value pair or of a table header
-is the run that the rule `key` of TOML 1.1.0 matches, the span of a TOML
-key is the run that the rule `simple-key` matches, and the span of a
-value of TOML 1.1.0 is the run that the rule `val` matches. A span holds
-the quotes of a quoted key and of a string of TOML 1.1.0, the brackets
-of an array of TOML 1.1.0, and the braces of an inline table. It holds
-no space or tab before or after the key of TOML 1.1.0 or the value of
-TOML 1.1.0, but the span of the dotted key `a . b` holds the spaces
-around its `.`. The start of a span is the position of the boundary
-where it starts, and its end is the position of the boundary right after
-its last character. So in the text `a = 1`, the key `a` of the key/value
-pair starts at line 1, column 1, and ends at line 1, column 2, and the
-value `1` starts at line 1, column 5, and ends at line 1, column 6. A
-table that a table header makes, a table that a dotted key makes, a
-TOML array that the table headers of an array of tables make, and the
-root table have no span. So in the text `a.b = { c = 1 }`, the table `a`
-has no span, and the table `a.b`, which the inline table gives, has the
-span of the inline table.
+is the run that the rule `key` of TOML 1.1.0 matches. The span of a TOML
+key is the run that the rule `simple-key` of TOML 1.1.0 matches. The
+span of a value of TOML 1.1.0 is the run that the rule `val` of TOML
+1.1.0 matches. A span holds the quotes of a quoted key and of a string
+of TOML 1.1.0, the brackets of an array of TOML 1.1.0, and the braces of
+an inline table. A span holds no space or tab before or after the key of
+TOML 1.1.0 or the value of TOML 1.1.0. However, the span of the dotted
+key `a . b` holds the spaces around the `.` of that dotted key. The
+start of a span is the position of the boundary where the span starts.
+The end of a span is the position of the boundary right after the last
+character of the span. So in the text `a = 1`, the key `a` of the
+key/value pair starts at line 1, column 1, and ends at line 1, column 2.
+In that same text, the value `1` starts at line 1, column 5, and ends at
+line 1, column 6. A table that a table header makes, a table that a
+dotted key makes, a TOML array that the table headers of an array of
+tables make, and the root table have no span. So in the text
+`a.b = { c = 1 }`, the table `a` has no span, and the table `a.b`, which
+the inline table gives, has the span of the inline table.
 
-A byte order mark has no position, so it adds no column: when a byte
-sequence starts with the bytes 0xEF, 0xBB, 0xBF and then holds `a = 1`,
-the key `a` of the key/value pair also starts at line 1, column 1.
+A byte order mark has no position, so a byte order mark adds no column.
+When a byte sequence starts with the bytes 0xEF, 0xBB, 0xBF and then
+holds `a = 1`, the key `a` of the key/value pair also starts at line 1,
+column 1.
 
 A span pair is a span together with what the span is the span of. The
 span of a value of TOML 1.1.0 is the span of the TOML value at the
@@ -823,8 +845,8 @@ the span of the TOML key with the index i of the key of TOML 1.1.0 that
 leads to the location of that key. So in the text `[[a]]`, the span of
 the key `a` of the table header is the span of the key of TOML 1.1.0
 that leads to a location of two steps, the text `a` and the index 1. The
-span of its TOML key `a` is the span of the TOML key with the index 1 of
-that key of TOML 1.1.0.
+span of the TOML key `a` of the key `a` of the table header is the span
+of the TOML key with the index 1 of that key of TOML 1.1.0.
 
 ### 5.1 Definitions
 
@@ -837,11 +859,12 @@ These definitions use the terms key, dotted key, key/value pair, and
 table header of TOML 1.1.0.
 
 - A TOML key is a key of TOML 1.1.0 that is not a dotted key.
-- The key of a key/value pair or of a table header is the key of
-  TOML 1.1.0 in it.
-- The TOML keys of a key of TOML 1.1.0 are the key itself when it is a
-  TOML key. When it is a dotted key, they are the TOML keys that the
-  dotted key joins with `.`, in their order.
+- The key of a key/value pair or of a table header is the key of TOML
+  1.1.0 in that key/value pair or table header.
+- When a key of TOML 1.1.0 is a TOML key, the TOML keys of that key are
+  that key itself. When a key of TOML 1.1.0 is a dotted key, the TOML
+  keys of that key are the TOML keys that the dotted key joins with `.`,
+  in their order.
 
 #### 5.1.2 The texts of TOML keys
 
@@ -883,19 +906,21 @@ table of TOML 1.1.0.
 - A TOML string, a TOML integer, a TOML float, a TOML boolean, and a
   TOML array are the TOML values of the types string, integer, float,
   boolean, and array of TOML 1.1.0.
-- Each TOML value is of one of these ten kinds: a TOML string, which is
-  a text; a TOML integer, which is a whole number; a TOML float, which
-  is an IEEE 754-2019 binary64 value; a TOML boolean, which is true or
-  false; a local date, which is a year, a month, and a day; a local
-  time, which is an hour, a minute, a second, and a fraction of a
-  second; a local date-time, which is a local date and a local time; an
-  offset date-time, which is a local date-time and an offset; a TOML
-  array, which is a sequence of TOML values; and a table.
+- Each TOML value is of one of these ten kinds: a TOML string, a TOML
+  integer, a TOML float, a TOML boolean, a local date, a local time, a
+  local date-time, an offset date-time, a TOML array, and a table. A
+  TOML string is a text. A TOML integer is a whole number. A TOML float
+  is an IEEE 754-2019 binary64 value. A TOML boolean is true or false. A
+  local date is a year, a month, and a day. A local time is an hour, a
+  minute, a second, and a fraction of a second. A local date-time is a
+  local date and a local time. An offset date-time is a local date-time
+  and an offset. A TOML array is a sequence of TOML values.
 - A table holds a set of pairs. Each pair is the text of a TOML key and
   a TOML value. No two pairs that a table holds have the same text. The
   pairs have no order.
-- A table holds the text of each pair that it holds, and the TOML value
-  of that pair is the TOML value of that text in the table.
+- A table holds the text of each pair that the table holds. For each
+  pair that a table holds, the TOML value of that pair is the TOML value
+  of the text of that pair in that table.
 
 #### 5.1.4 Equal TOML values
 
@@ -906,10 +931,10 @@ table of TOML 1.1.0.
     #{toml-value=v1, index=v1},
 }
 
-A program gives a TOML value when it gives something that stands for
-that TOML value, and for no TOML value that is not equal to it. Two TOML
-values are equal when, and only when, they are of the same kind and one
-of these is true:
+A program gives a TOML value when the program gives something that
+stands for that TOML value, and for no TOML value that is not equal to
+that TOML value. Two TOML values are equal when, and only when, they are
+of the same kind and one of these is true:
 
 - They are TOML strings that are the same text, TOML integers that are
   the same whole number, or TOML booleans that are both true or both
@@ -952,11 +977,14 @@ mark.
 }
 
 For a float of TOML 1.1.0 other than `inf`, `+inf`, `-inf`, `nan`,
-`+nan`, and `-nan`, the TOML float that it gives is the IEEE 754-2019
-binary64 value whose sign bit is 1 when, and only when, the float of
-TOML 1.1.0 starts with `-`, and whose magnitude is the binary64 value
-that rounding to nearest, with ties to even, gives for the absolute
-value of the number that the float of TOML 1.1.0 stands for.
+`+nan`, and `-nan`, the TOML float that the float of TOML 1.1.0 gives is
+the IEEE 754-2019 binary64 value with this sign bit and this magnitude.
+For such a float of TOML 1.1.0, the sign bit of that binary64 value is 1
+when, and only when, the float of TOML 1.1.0 starts with `-`. For such a
+float of TOML 1.1.0, the magnitude of that binary64 value is the
+binary64 value that rounding to nearest, with ties to even, gives for
+the absolute value of the number that the float of TOML 1.1.0 stands
+for.
 
 #### 5.1.7 Fractions of a second in TOML
 
@@ -964,20 +992,20 @@ value of the number that the float of TOML 1.1.0 stands for.
 @cites {toml-lang/1.1.0, text#{code-span=v1}, #{toml-value=v1}}
 
 In a document, the digits after the `.` of the second of a local time, a
-local date-time, or an offset date-time give its fraction of a second.
-When these digits are d1 to dk, the fraction of a second is the sum of
-the numbers di / 10^i for each i from 1 to m, where m is the smaller of
-k and 9.
+local date-time, or an offset date-time give the fraction of a second of
+that local time, local date-time, or offset date-time. When these digits
+are d1 to dk, the fraction of a second is the sum of the numbers di /
+10^i for each i from 1 to m, where m is the smaller of k and 9.
 
 #### 5.1.8 Leap seconds in TOML
 
 @term toml-leap-second=v1
 @cites {rfc/3339, toml-lang/1.1.0, #{toml-value=v1}}
 
-With this rule, which replaces the statement of RFC 3339, section 5.7,
-on leap seconds, TOML 1.1.0 reads each second from 0 to 60 as a valid
-second of a local time, a local date-time, and an offset date-time, on
-every date and at every hour and minute.
+This rule replaces the statement of RFC 3339, section 5.7, on leap
+seconds. With this rule, TOML 1.1.0 reads each second from 0 to 60 as a
+valid second of a local time, a local date-time, and an offset
+date-time, on every date and at every hour and minute.
 
 #### 5.1.9 Offsets in TOML
 
@@ -1005,10 +1033,10 @@ RFC 3339, section 4.3, gives.
 }
 
 This rule uses the terms multi-line basic string, multi-line literal
-string, and newline of TOML 1.1.0. Each newline of a multi-line basic
-string or a multi-line literal string that TOML 1.1.0 does not trim
-stays in the TOML string as its characters: U+000A, or U+000D and then
-U+000A.
+string, and newline of TOML 1.1.0. For each newline of a multi-line
+basic string or of a multi-line literal string, when TOML 1.1.0 does not
+trim that newline, that newline stays in the TOML string as the
+characters of that newline: U+000A, or U+000D and then U+000A.
 
 #### 5.1.11 The reading rules of TOML
 
@@ -1035,9 +1063,9 @@ The reading rules of TOML are the rules of `toml-byte-order-mark`,
 }
 
 - The location of a TOML value of a TOML document is the sequence of
-  steps that leads to it from the root table of the TOML document. Each
-  step is the text of a TOML key, or the index of a TOML value in a TOML
-  array.
+  steps that leads to that TOML value from the root table of the TOML
+  document. Each step is the text of a TOML key, or the index of a TOML
+  value in a TOML array.
 - The location of the root table is the sequence of no steps. When a
   table with the location L holds a text x, the TOML value of x in that
   table has the location of the steps of L and then the step x. When a
@@ -1058,11 +1086,11 @@ The reading rules of TOML are the rules of `toml-byte-order-mark`,
 }
 
 This definition uses the terms basic string, multi-line basic string,
-literal string, multi-line literal string, and escape sequence of
-TOML 1.1.0. The text of a TOML string is the text that TOML 1.1.0 gives
-for its basic string, multi-line basic string, literal string, or
-multi-line literal string after the escape sequences resolve, with no
-change other than the trims that TOML 1.1.0 makes.
+literal string, multi-line literal string, and escape sequence of TOML
+1.1.0. The text of a TOML string is the text that TOML 1.1.0 gives for
+the basic string, multi-line basic string, literal string, or multi-line
+literal string of that TOML string after the escape sequences resolve,
+with no change other than the trims that TOML 1.1.0 makes.
 
 #### 5.1.14 The local date-times of offset date-times
 
@@ -1090,8 +1118,9 @@ date-time that the document gives before the offset.
 These definitions use the terms key, key/value pair, table header,
 dotted key, value, string, quoted key, array, inline table, and array of
 tables of TOML 1.1.0, and the rules `key`, `simple-key`, and `val` of
-the ABNF of TOML 1.1.0. They apply to a TOML document. Its spans are
-spans of the text of the byte sequence that is the TOML document:
+the ABNF of TOML 1.1.0. These definitions apply to a TOML document. Its
+spans are spans of the text of the byte sequence that is the TOML
+document:
 
 - The span of the key of a key/value pair or of a table header is the
   run that the rule `key` matches for that key.
@@ -1099,14 +1128,14 @@ spans of the text of the byte sequence that is the TOML document:
   `simple-key` matches for that TOML key. The run holds the quotes of a
   quoted key.
 - The span of a value of TOML 1.1.0 is the run that the rule `val`
-  matches for that value. The run holds the quotes of a string of
-  TOML 1.1.0, the brackets of an array of TOML 1.1.0, and the braces of
-  an inline table. Each element of an array of TOML 1.1.0 and the value
-  of each key/value pair is a value of TOML 1.1.0.
+  matches for that value. The run holds the quotes of a string of TOML
+  1.1.0, the brackets of an array of TOML 1.1.0, and the braces of an
+  inline table. Each element of an array of TOML 1.1.0 and the value of
+  each key/value pair is a value of TOML 1.1.0.
 - The TOML value that a value of TOML 1.1.0 gives has the span of that
-  value. A table that a table header makes, a table that a dotted key
-  makes, a TOML array that the table headers of an array of tables make,
-  and the root table have no span.
+  value of TOML 1.1.0. A table that a table header makes, a table that a
+  dotted key makes, a TOML array that the table headers of an array of
+  tables make, and the root table have no span.
 
 #### 5.1.16 Value errors
 
@@ -1123,14 +1152,15 @@ spans of the text of the byte sequence that is the TOML document:
 
 This definition uses the terms local date, local time, local date-time,
 and offset date-time of TOML 1.1.0, and the rule `toml` of the ABNF of
-TOML 1.1.0. It applies to a byte sequence that is valid UTF-8 and for
-which the text of the body of its text matches the rule `toml`.
+TOML 1.1.0. This definition applies to a byte sequence that is valid
+UTF-8 and for which the text of the body of the text of that byte
+sequence matches the rule `toml`.
 
 A value error of such a byte sequence is each local date, local time,
-local date-time, or offset date-time of TOML 1.1.0 in the body of its
-text that RFC 3339, sections 5.6 and 5.7, does not allow, with the rule
-`toml-leap-second` in place of the statement of RFC 3339 on leap
-seconds.
+local date-time, or offset date-time of TOML 1.1.0 in the body of the
+text of that byte sequence that RFC 3339, sections 5.6 and 5.7, does not
+allow, with the rule `toml-leap-second` in place of the statement of RFC
+3339 on leap seconds.
 
 #### 5.1.17 TOML documents
 
@@ -1145,8 +1175,8 @@ This definition uses the rule `toml` of the ABNF of TOML 1.1.0. A TOML
 document is a byte sequence that meets each of these conditions:
 
 - The byte sequence is valid UTF-8, as TOML 1.1.0 requires of a
-  document, and the text that TOML 1.1.0 reads for it, with the reading
-  rules of TOML, matches the rule `toml`.
+  document. The text that TOML 1.1.0 reads for the byte sequence, with
+  the reading rules of TOML, matches the rule `toml`.
 - The byte sequence has no value error.
 - The keys, the tables, and the strings of that text break no statement
   of TOML 1.1.0, such as the statements that no key or table is defined
@@ -1170,10 +1200,10 @@ TOML document is the root table that TOML 1.1.0 gives for the document,
 with the reading rules of TOML, and with the rules of `toml-string-text`
 and `toml-offset-date-time`. In this root table, each table that a table
 header makes, each table that a dotted key makes, and the table of each
-inline table is a TOML value of the kind table, and each TOML array that
-the table headers of an array of tables make, and each TOML array that
-the brackets `[` and `]` around TOML values make, is a TOML value of the
-kind TOML array.
+inline table is a TOML value of the kind table. In this root table, each
+TOML array that the table headers of an array of tables make, and each
+TOML array that the brackets `[` and `]` around TOML values make, is a
+TOML value of the kind TOML array.
 
 #### 5.1.19 Span pairs
 
@@ -1207,8 +1237,9 @@ document are these, and no others:
   that key.
 
 A program gives the TOML value, the key, the TOML key, or the location
-of a span pair when it gives something that stands for it, and for no
-other TOML value, key, TOML key, or location.
+of a span pair when the program gives something that stands for that
+TOML value, key, TOML key, or location, and for no other TOML value,
+key, TOML key, or location.
 
 ### 5.2 TOML documents as input
 
@@ -1222,8 +1253,9 @@ other TOML value, key, TOML key, or location.
 }
 
 When a conforming program gives a result for whether a byte sequence is
-a TOML document, it must give exactly one result: "valid" when the byte
-sequence is a TOML document, and "invalid" when it is not.
+a TOML document, the conforming program must give exactly one result:
+"valid" when the byte sequence is a TOML document, and "invalid" when
+the byte sequence is not a TOML document.
 
 ### 5.3 Only the root tables of TOML documents
 
@@ -1250,28 +1282,34 @@ only the root table of the TOML document that the byte sequence is.
     #{toml-document=v1, toml-span-pair=v1},
 }
 
-When a conforming program does not give the result "invalid" for
-whether a byte sequence is a TOML document, it must give, as a span of
-the text of the byte sequence together with what the span is the span
-of, only a span pair of the TOML document that the byte sequence is;
-as the line number of the start or of the end of the span of such a
-pair, only the line number of that start or that end; and as the column
-of that start or that end, only that column.
+When a conforming program does not give the result "invalid" for whether
+a byte sequence is a TOML document, the conforming program must give, as
+a span of the text of the byte sequence together with what the span is
+the span of, only a span pair of the TOML document that the byte
+sequence is. When a conforming program does not give the result
+"invalid" for whether a byte sequence is a TOML document, the conforming
+program must give, as the line number of the start or of the end of the
+span of a span pair of the TOML document that the byte sequence is, only
+the line number of that start or that end. When a conforming program
+does not give the result "invalid" for whether a byte sequence is a TOML
+document, the conforming program must give, as the column of the start
+or of the end of the span of a span pair of the TOML document that the
+byte sequence is, only the column of that start or that end.
 
 ### 5.5 Conformance
 
-A program conforms to the specification `toml` when it is a
+A program conforms to the specification `toml` when the program is a
 [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
+[specification](sinter:text#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
 [`data-forms.toml.test-vectors.jsonl`](data-forms.toml.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. By the term `vector-meaning`,
-the object of each vector line of the file states one vector of this
-specification. No group of this specification uses a need, so the forms
-of each group give no need names.
+specification `test-vectors` defines a test-vector set. By the term
+`vector-meaning`, the object of each vector line of the file states one
+vector of this specification. No group of this specification uses a
+need, so the forms of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each schema below gives the forms of one or more
@@ -1297,10 +1335,11 @@ groups, as the term `group-form-list` gives them.
 
 Each vector that the object of a vector line of the groups
 `give-root-table` and `reject-byte-sequence` states gives a byte
-sequence and what a conforming program gives for it as a TOML document.
-The byte sequence decides which of the two groups the vector line has.
-Together, the vectors that these objects state test which byte sequences
-are TOML documents, and the root tables of TOML documents.
+sequence and what a conforming program gives for that byte sequence as a
+TOML document. The byte sequence decides which of the two groups the
+vector line has. Together, the vectors that these objects state test
+which byte sequences are TOML documents, and the root tables of TOML
+documents.
 
 In `input` and `values`, these fixed forms apply:
 
@@ -1310,9 +1349,10 @@ In `input` and `values`, these fixed forms apply:
   the table holds. The key of the member is the text of the TOML key of
   the pair, and the value of the member is the form of the TOML value of
   the pair.
-- The form of a TOML value is an object with one member. The key of
-  that member names the kind of the TOML value, and its value gives the
-  TOML value, as this table and the two paragraphs after it say.
+- The form of a TOML value is an object with one member. The key of that
+  member names the kind of the TOML value, and the value of that member
+  gives the TOML value, as this table and the two paragraphs after this
+  table say.
 
 | kind of the TOML value | key of the member | value of the member |
 |---|---|---|
@@ -1337,23 +1377,23 @@ with no `0` at the end. So positive zero is `"0"`, the TOML float 0.5 is
 `"0.5"`, and the TOML float 100,000,000,000,000,000,000 is
 `"100000000000000000000"`.
 
-The string of a local date is the year as four digits, `-`, the month
-as two digits, `-`, and the day as two digits, such as `"1600-02-29"`.
-The string of a local time is the hour, `:`, the minute, `:`, and the
+The string of a local date is the year as four digits, `-`, the month as
+two digits, `-`, and the day as two digits, such as `"1600-02-29"`. The
+string of a local time is the hour, `:`, the minute, `:`, and the
 second, each as two digits; then, when the fraction of the second is not
 0, `.` and the digits of the fraction after the decimal point, with no
 `0` at the end. So the local time of `12:30` is `"12:30:00"`, and the
 local time of `12:30:00.50` is `"12:30:00.5"`. The string of a local
 date-time is the string of its local date, `T`, and the string of its
 local time. The string of an offset date-time is the string of its local
-date-time, then its offset: `+00:00` for the offset 0. For each other
-offset, the string of the offset is `+` when the offset is greater than
-0, and `-` when it is less than 0; then the whole-number quotient of the
-absolute value of the offset divided by 60, and the remainder, each as
-two digits, with `:` between them. So the offset date-time of
-`1979-05-27T07:32:00Z` is `"1979-05-27T07:32:00+00:00"`, and the offset
-date-time of `1979-05-27T00:32:00-07:00` is
-`"1979-05-27T00:32:00-07:00"`.
+date-time, then the string of its offset. For the offset 0, the string
+of the offset is `+00:00`. For each other offset, the string of the
+offset is `+` when the offset is greater than 0, and `-` when the offset
+is less than 0; then the whole-number quotient of the absolute value of
+the offset divided by 60 as two digits, `:`, and the remainder as two
+digits. So the offset date-time of `1979-05-27T07:32:00Z` is
+`"1979-05-27T07:32:00+00:00"`, and the offset date-time of
+`1979-05-27T00:32:00-07:00` is `"1979-05-27T00:32:00-07:00"`.
 
 So the form of the root table in which `a` holds a table in which `b`
 holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
@@ -1453,9 +1493,9 @@ number of the end of that span, it gives the line number of `end`, and
 no other line number. When it gives a column as the column of the end of
 that span, it gives the column of `end`, and no other column. The object
 of a vector line of the group states nothing about the other spans that
-a conforming program gives for the TOML document. The note of each
-vector line of the group whose object states a vector gives the text of
-the span.
+a conforming program gives for the TOML document. For each vector line
+of the group, when the object of that vector line states a vector, the
+note of that vector line gives the text of the span.
 
 ```
 {"form":"#toml-span-vector=v1","group":"give-span","input":"61203d20310a","note":"the text of the span is `a`","result":"valid","values":{"end":{"column":2,"line":1},"index":1,"location":["a"],"of":"toml-key","start":{"column":1,"line":1}}}
@@ -1463,8 +1503,8 @@ the span.
 ```
 
 The group `omit-span` holds the vector lines whose vectors each give a
-TOML document and the location of a TOML value of it that has no span.
-The requirements of the group are `read-toml` and
+TOML document and the location of a TOML value of the TOML document that
+has no span. The requirements of the group are `read-toml` and
 `give-only-toml-spans`.
 
 - `input`: the byte sequence of the TOML document.
@@ -1483,9 +1523,10 @@ location of `no-span-at`.
 @spec hashes=v1
 
 A conforming program can give the hash of a byte sequence, as the term
-`hash` gives it. When it gives a result for whether a text fits the hash
-form, it gives "valid" when the text fits the hash form, and "invalid"
-when it does not.
+`hash` gives the hash of a byte sequence. When a conforming program
+gives a result for whether a text fits the hash form, the conforming
+program gives "valid" when the text fits the hash form, and "invalid"
+when the text does not fit the hash form.
 
 For example, the hash of the three bytes of `abc` is
 `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`.
@@ -1502,8 +1543,8 @@ not fit the hash form.
     production=v1, rule-name=v1, hex-digit=v1, text=v1, code-span=v1,
 }
 
-A text fits the hash form when, and only when, it matches the production
-`hash-form`:
+A text fits the hash form when, and only when, the text matches the
+production `hash-form`:
 
 ```abnf
 hash-form  = 64hex-digit
@@ -1534,18 +1575,18 @@ the hash form, and "invalid" when the text does not fit the hash form.
 
 ### 6.4 Conformance
 
-A program conforms to the specification `hashes` when it is a
+A program conforms to the specification `hashes` when the program is a
 [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
+[specification](sinter:text#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
 [`data-forms.hashes.test-vectors.jsonl`](data-forms.hashes.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. By the term `vector-meaning`,
-the object of each vector line of the file states one vector of this
-specification. No group of this specification uses a need, so the forms
-of each group give no need names.
+specification `test-vectors` defines a test-vector set. By the term
+`vector-meaning`, the object of each vector line of the file states one
+vector of this specification. No group of this specification uses a
+need, so the forms of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each schema below gives the forms of one group, as
@@ -1568,8 +1609,8 @@ the term `group-form-list` gives them.
 The group `compute` holds the vector lines whose vectors each give a
 byte sequence and its hash. The requirement of the group is
 `compute-hash`. In `input` and `values`, a byte sequence is its hex
-text, as a string, such as `"616263"` for the three bytes of `abc`, and
-a text is a string of the characters of the text.
+text, as a string, such as `"616263"` for the three bytes of `abc`. In
+`input` and `values`, a text is a string of the characters of the text.
 
 - `input`: the byte sequence.
 - `result`: the forms of the group name no question for `result`.
@@ -1599,15 +1640,15 @@ sequence, it gives the text of `hash`, and no other text.
 }
 
 The group `validate` holds the vector lines whose vectors each give a
-text and the result that a conforming program gives for it when it
-validates the text as a hash. The requirement of the group is
-`validate-hash`. In `input`, a text is a string of the characters of the
-text, as `compute-hash-vector` gives.
+text and the result that a conforming program gives for that text when
+the conforming program validates the text as a hash. The requirement of
+the group is `validate-hash`. In `input`, a text is a string of the
+characters of the text, as `compute-hash-vector` gives.
 
 - `input`: the text.
 - `result`: when a conforming program gives a result for whether the
   text fits the hash form, that result: "valid" when the text fits the
-  hash form, and "invalid" when it does not.
+  hash form, and "invalid" when the text does not fit the hash form.
 - `values`: the forms of the group give no fixed form for `values`.
 
 ```
@@ -1618,17 +1659,20 @@ text, as `compute-hash-vector` gives.
 @spec hash-ids=v1
 
 A conforming program can give the hash id of a byte sequence with an id
-prefix and a number of hex digits from 1 to 64. When it gives a result
-for whether a text fits the hash-id form with an id prefix and a number
-of hex digits, it gives "valid" when the text fits the hash-id form, and
-"invalid" when it does not.
+prefix and a number of hex digits from 1 to 64. When a conforming
+program gives a result for whether a text fits the hash-id form with an
+id prefix and a number of hex digits, the program gives "valid" when the
+text fits the hash-id form, and the program gives "invalid" when the
+text does not fit the hash-id form.
 
-The term `id-prefix` gives the id prefixes, such as `e-` or `t-`, and
-the terms `hash-id` and `hash-id-form` give the hash ids and the hash-id
-form. For example, with the id prefix `e-` and 12 hex digits, the hash
-id of the three bytes of `abc` is `e-ba7816bf8f01`, the text
-`e-5b1c0a9d2e11` fits the hash-id form, and `e-5b1c0a9d2e1`,
-`e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do not.
+The term `id-prefix` gives the id prefixes, such as `e-` or `t-`. The
+term `hash-id` gives the hash ids. The term `hash-id-form` gives the
+hash-id form. For example, with the id prefix `e-` and 12 hex digits,
+the hash id of the three bytes of `abc` is `e-ba7816bf8f01`. With the id
+prefix `e-` and 12 hex digits, the text `e-5b1c0a9d2e11` fits the
+hash-id form. With the id prefix `e-` and 12 hex digits, the texts
+`e-5b1c0a9d2e1`, `e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do not fit the
+hash-id form.
 
 ### 7.1 Definitions
 
@@ -1708,10 +1752,10 @@ requirement that the specification declares.
 The file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
 in the same directory as this design, is a test-vector set, as the
-specification `test-vectors` defines it. By the term `vector-meaning`,
-the object of each vector line of the file states one vector of this
-specification. No group of this specification uses a need, so the forms
-of each group give no need names.
+specification `test-vectors` defines a test-vector set. By the term
+`vector-meaning`, the object of each vector line of the file states one
+vector of this specification. No group of this specification uses a
+need, so the forms of each group give no need names.
 
 The vectors follow from the requirements of this specification and add
 nothing to them. Each schema below gives the forms of one group, as
@@ -1736,9 +1780,10 @@ The group `compute` holds the vector lines whose vectors each give an id
 prefix, a number of hex digits, a byte sequence, and the hash id of the
 byte sequence with that id prefix and that number of hex digits. The
 requirement of the group is `compute-hash-id`. In `input` and `values`,
-a byte sequence is its hex text, as a string, such as `"616263"` for
-the three bytes of `abc`; a text, such as an id prefix, is a string of
-the characters of the text; and a whole number is an integer.
+a byte sequence is its hex text, as a string, such as `"616263"` for the
+three bytes of `abc`. In `input` and `values`, a text, such as an id
+prefix, is a string of the characters of the text. In `input` and
+`values`, a whole number is an integer.
 
 - `input`: an object with three members: `id-prefix`, the id prefix;
   `number-of-hex-digits`, the number of hex digits; and
@@ -1772,18 +1817,22 @@ text of `hash-id`, and no other text.
 
 The group `validate` holds the vector lines whose vectors each give a
 text, an id prefix, a number of hex digits, and the result that a
-conforming program gives for them when it validates the text as a hash
-id. The requirement of the group is `validate-hash-id`. In `input`, a
-text, such as an id prefix, is a string of the characters of the text,
-and a whole number is an integer, as `compute-hash-id-vector` gives.
+conforming program gives for that text, that id prefix, and that number
+of hex digits when the program validates the text as a hash id. The
+requirement of the group is `validate-hash-id`. In `input`, a text, such
+as an id prefix, is a string of the characters of the text, as
+`compute-hash-id-vector` gives. In `input`, a whole number is an
+integer, as `compute-hash-id-vector` gives.
 
 - `input`: an object with three members, one for each of the three
   inputs: `text`, the text; `id-prefix`, the id prefix; and
   `number-of-hex-digits`, the number of hex digits.
 - `result`: the result of the three inputs together, when a conforming
   program gives a result for whether the text fits the hash-id form with
-  the id prefix and the number of hex digits: "valid" when it fits, and
-  "invalid" when it does not.
+  the id prefix and the number of hex digits: "valid" when the text fits
+  the hash-id form with the id prefix and the number of hex digits, and
+  "invalid" when the text does not fit the hash-id form with the id
+  prefix and the number of hex digits.
 - `values`: the forms of the group give no fixed form for `values`.
 
 ```
@@ -1793,17 +1842,18 @@ and a whole number is an integer, as `compute-hash-id-vector` gives.
 ## 8. Test vectors
 @spec test-vectors=v1
 
-A vector is as the term `vector-meaning` gives it, and the object of a
+A vector is as the term `vector-meaning` gives it. The object of a
 vector line can state a vector. A conforming program can read a byte
 sequence as a test-vector set.
 
 By the term `test-vector-file-name`, the test-vector file name of a
 design with the name `a` and of its specification with the name `b` is
-`a.b.test-vectors.jsonl`, and that of `a` alone is
+`a.b.test-vectors.jsonl`. By the term `test-vector-file-name`, the
+test-vector file name of a design with the name `a` alone is
 `a.test-vectors.jsonl`.
 
 A test-vector set holds zero or more vector lines, as the schema
-`test-vector-set` gives, and each vector line holds the canonical byte
+`test-vector-set` gives. Each vector line holds the canonical byte
 sequence of a vector object, such as
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","result":"valid"}`,
 as the terms `vector-line` and `vector-object` give. The schema
@@ -1853,8 +1903,8 @@ label     = 1*( %x21-22 / %x24-29 / %x2B / %x2D-2E / %x30-3C
 ```
 
 The schema part name of a form pin is the text that `segment` matches
-between its `#` and its `=`. The schema label of a form pin is the text
-that `label` matches after its `=`.
+between the `#` and the `=` of the form pin. The schema label of a form
+pin is the text that `label` matches after the `=` of the form pin.
 
 #### 8.1.3 Group names
 
@@ -1876,8 +1926,8 @@ group-name  = %x61-7A *( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 }
 
 A member that a code span names, such as the member `group`, is the
-member whose key is the text of the code span, and the value of `group`
-is the value of the member `group`.
+member whose key is the text of the code span. The value of `group` is
+the value of the member `group`.
 
 A vector object is an object that has the members `form`, `group`, and
 `input`, has the member `result` or the member `values` or both, can
@@ -1885,10 +1935,10 @@ have the members `needs` and `note`, and has no other member. The value
 of `form` is a string that is a form pin. The value of `group` is a
 string that is a group name. The value of `input` is a JSON value. The
 value of `result` is a string. The value of `values` is a JSON value.
-The value of `note` is a string. The value of `needs` is an array of
-one or more strings, each a text that matches the production
-`group-name`, in which each string comes before the string after it in
-key order.
+The value of `note` is a string. The value of `needs` is an array of one
+or more strings. Each string in the array is a text that matches the
+production `group-name`. In the array, each string comes before the next
+string in key order.
 
 #### 8.1.5 Vector lines
 
@@ -1899,8 +1949,8 @@ key order.
 }
 
 A vector line is the canonical byte sequence of a vector object, then
-the byte 0x0A. The object of a vector line is the object whose
-canonical byte sequence it holds. The form of a vector line is the
+the byte 0x0A. The object of a vector line is the object whose canonical
+byte sequence the vector line holds. The form of a vector line is the
 value of `form` of its object. The group of a vector line is the value
 of `group` of its object.
 
@@ -1914,11 +1964,12 @@ of `group` of its object.
 
 A test-vector set is a byte sequence that holds zero or more vector
 lines, one after another, and no other bytes, in which all vector lines
-with the same group have the same schema part name in their form. The
-schema labels of their forms may differ. A group of a test-vector set
-is a text that is the group of one or more of its vector lines. The
-vector lines of a group of a test-vector set are its vector lines whose
-group is that group.
+with the same group have the same schema part name in their form. In a
+test-vector set, the schema labels of the forms of vector lines with the
+same group may differ. A group of a test-vector set is a text that is
+the group of one or more of the vector lines of the test-vector set. The
+vector lines of a group of a test-vector set are the vector lines of the
+test-vector set whose group is that group.
 
 #### 8.1.7 The forms of a group
 
@@ -1941,9 +1992,9 @@ of the group g of S that Q gives:
    declares;
 2. what the value of `input` of a vector object in which the value of
    `group` is g stands for: one input of a conforming program of S, or
-   several inputs of it, such as a text and a place of that text; and
-   the fixed form in which the value of `input` holds them, such as the
-   hex text of a byte sequence;
+   several inputs of that conforming program, such as a text and a place
+   of that text; and the fixed form in which the value of `input` holds
+   that input or those inputs, such as the hex text of a byte sequence;
 3. the question that the value of `result` of such a vector object
    answers, such as whether a byte sequence is a TOML document, or no
    question for `result`; which of these inputs, or which of them
@@ -1952,25 +2003,29 @@ of the group g of S that Q gives:
    only under some conditions, such as that a conforming program of S
    gives a result for that question. A need, the fifth thing, is never
    one of these conditions;
-4. what the value of `values` of such a vector object stands for: what
-   a conforming program of S gives, or does not give, for these inputs,
+4. what the value of `values` of such a vector object stands for: what a
+   conforming program of S gives, or does not give, for these inputs,
    other than the result that the value of `result` stands for, such as
    the results of the other inputs; and the fixed form in which the
-   value of `values` holds it. The value of `values` can stand for a
-   thing that the program gives when it gives a thing of that kind,
-   such as the text of a byte sequence when the program gives a text
-   for that byte sequence; for things of which the program gives one in
-   place of another, such as a line and the text of that line; and for
-   a thing that the program does not give. The forms can also give no
-   fixed form for `values`; then no value of `values` has a fixed form,
-   and the forms need not say what such a value stands for;
-5. the need names that the group g uses, if any, each a text that
-   matches the production `group-name`, and for each need name, the need
-   that it stands for: a condition on the environment in which a
-   conforming program of S operates that a check of the vectors can be
-   unable to make hold, such as that the file system stores a given
-   entry name. A condition on what a conforming program gives, such as
-   that it gives a result, is never a need. A need name stands for the
+   value of `values` holds what the value of `values` stands for. The
+   value of `values` can stand for a thing that the program gives when
+   the program gives a thing of that kind, such as the text of a byte
+   sequence when the program gives a text for that byte sequence. The
+   value of `values` can stand for things of which the program gives one
+   in place of another, such as a line and the text of that line. The
+   value of `values` can stand for a thing that the program does not
+   give. The forms can also give no fixed form for `values`. When the
+   forms give no fixed form for `values`, no value of `values` has a
+   fixed form. When the forms give no fixed form for `values`, the forms
+   need not say what a value of `values` stands for;
+5. the need names that the group g uses, if any, and, for each need
+   name, the need that the need name stands for. Each of these need
+   names is a text that matches the production `group-name`. A need is a
+   condition on the environment in which a conforming program of S
+   operates, and a condition that a check of the vectors can be unable
+   to make hold, such as that the file system stores a given entry name.
+   A condition on what a conforming program gives, such as that the
+   program gives a result, is never a need. A need name stands for the
    same need in every schema that S declares and that gives the forms of
    a group of S. When the group g uses no need, Q gives no need names
    for g. When Q gives no need name for g, the forms of the group g that
@@ -1979,12 +2034,13 @@ of the group g of S that Q gives:
 A fixed form, in the second and the fourth thing, is a shape of JSON
 values: which of a string, an integer, a boolean, an array, or an object
 each value is, their members, the values of their integers, and the
-texts of their strings, such as a string that is the hex text of a byte
-sequence, or an integer of 1 or more. When the forms give a shape for
-each of several cases, such as one shape for each result, the fixed form
-is any of these shapes. Whether a value has a fixed form depends on that
-value alone: not on what it stands for, and not on the value of another
-member, such as `input` or `result`.
+texts of their strings. For example, a fixed form can be a string that
+is the hex text of a byte sequence, or an integer of 1 or more. When the
+forms give a shape for each of several cases, such as one shape for each
+result, the fixed form is any of these shapes. Whether a value has a
+fixed form depends on that value alone: not on what that value stands
+for, and not on the value of another member, such as `input` or
+`result`.
 
 For a design D, a schema Q that D declares under a name outside its
 specifications, and a group name g, Q gives the forms of the group g of
@@ -2016,63 +2072,70 @@ for that input. For a design D, a vector of D is an input and what
 requirements that D holds outside its specifications oblige a
 conforming program of D to give for that input.
 
-For a specification S, or a design D, and a vector line whose group is
-g and whose form has the schema part name p, the object of the vector
-line states one vector of S, or of D, when the schema that S declares
-under the name p, or that D declares under the name p outside its
+For a specification S, or a design D, and a vector line whose group is g
+and whose form has the schema part name p, the object of the vector line
+states one vector of S, or of D, when the schema that S declares under
+the name p, or that D declares under the name p outside its
 specifications, gives the forms of the group g of S, or of D, and the
 value of `input`, and the value of `values` when the object has that
 member, have the fixed forms that these forms give; a value of `values`
-has no fixed form when these forms give none. It then states that vector
-by these forms, whatever other vector lines a test-vector set that holds
-it has. Otherwise, the object of the vector line states no vector of S,
-or of D. By these forms of the group g, the object of a vector line that
-states a vector states this:
+has no fixed form when these forms give none. The object of the vector
+line then states that vector by these forms, whatever other vector lines
+a test-vector set that holds the vector line has. Otherwise, the object
+of the vector line states no vector of S, or of D. By these forms of the
+group g, the object of a vector line that states a vector states this:
 
 - The input of the vector is what the value of `input` stands for: one
-  input of a conforming program of S, or of D, or several.
+  input, or several inputs, of a conforming program of S, or of D.
 - The needs of the vector are the needs that these forms give for the
   strings of the value of `needs`. A string for which these forms give
-  no need stands for no need, and a skip of a vector because of it
-  counts as a decision that the program does not give what the object of
-  its vector line states. A vector that an object without the member
-  `needs` states has no needs.
+  no need stands for no need. A skip of a vector because of a string for
+  which these forms give no need counts as a decision that the program
+  does not give what the object of the vector line of that vector
+  states. A vector that an object without the member `needs` states has
+  no needs.
 - When the object has the member `result` and the forms name a question
   for `result`, the requirements of the group g oblige a conforming
   program of S, or of D, to give the result that is the value of
   `result`, such as `valid` for the result "valid", and no other result,
-  as its result for the question that the forms name for `result`, about
-  the input, or the inputs together, that the forms name for that
-  question, whenever the conditions hold that the forms name for that
-  result and each need of the vector holds; when the forms name no
-  condition and the vector has no needs, they oblige it always. The
-  object states nothing about a result for another question, or for
-  another of these inputs, other than what the value of `values` stands
-  for. When the forms name no question for `result`, the value of
-  `result` states nothing.
+  as the result of that program for the question that the forms name for
+  `result`, about the input, or the inputs together, that the forms name
+  for that question, whenever the conditions that the forms name for
+  that result hold and each need of the vector holds. When the object
+  has the member `result`, the forms name a question for `result`, the
+  forms name no condition, and the vector has no needs, the requirements
+  of the group g always oblige a conforming program of S, or of D, to
+  give the result that is the value of `result`, and no other result, as
+  the result of that program for the question that the forms name for
+  `result`, about the input, or the inputs together, that the forms name
+  for that question. The object states nothing about a result for
+  another question, or for another of these inputs, other than what the
+  value of `values` stands for. When the forms name no question for
+  `result`, the value of `result` states nothing.
 - When the object has the member `values`, the requirements of the group
   g oblige a conforming program of S, or of D, to give, or not to give,
   for the input of the vector, what the value of `values` stands for,
   whenever each need of the vector holds.
-- An object without the member `result` states no result other than
-  those that the value of `values` stands for. An object without the
+- An object without the member `result` states no result other than the
+  results that the value of `values` stands for. An object without the
   member `values` states nothing about what a conforming program gives
   for the input of the vector, other than the result that the value of
   `result` stands for.
-- The value of `note` explains the vector line, and it is no part of the
-  input, the result, or the values. The value of `needs` is also no
-  part of the input, the result, or the values.
+- The value of `note` explains the vector line. The value of `note` is
+  no part of the input, the result, or the values. The value of `needs`
+  is also no part of the input, the result, or the values.
 - A check of the vectors of S, or of D, in a test-vector set decides,
   for each vector of S, or of D, that the object of a vector line of the
-  test-vector set states, whether a program, when it operates while each
-  need of the vector holds, gives what the object of its vector line
-  states. A skip of a vector decides nothing about it when the check
-  cannot make a need of the vector hold and reports that need. Each
-  other skip of a vector counts as a decision that the program does not
-  give what the object of its vector line states. Each of these
-  decisions, a decision about a skip included, is a decision of the
-  check, such as one run of a test that checks the vectors, and not of a
-  reader of what the check reports.
+  test-vector set states, whether a program, when the program operates
+  while each need of the vector holds, gives what the object of the
+  vector line of that vector states. A skip of a vector decides nothing
+  about that vector when the check cannot make a need of the vector hold
+  and the check reports that need. Each other skip of a vector counts as
+  a decision that the program does not give what the object of the
+  vector line of that vector states. Each of these decisions, a decision
+  about a skip included, is a decision of the check, such as one run of
+  a test that checks the vectors, and not of a reader of what the check
+  reports.
 
 ### 8.2 Test-vector sets as input
 
@@ -2086,8 +2149,9 @@ states a vector states this:
 }
 
 When a conforming program gives a result for whether a byte sequence is
-a test-vector set, it must give exactly one result: "valid" when the
-byte sequence is a test-vector set, and "invalid" when it is not.
+a test-vector set, the conforming program must give exactly one result:
+"valid" when the byte sequence is a test-vector set, and "invalid" when
+the byte sequence is not a test-vector set.
 
 ### 8.3 The objects of test-vector sets
 
@@ -2098,15 +2162,15 @@ byte sequence is a test-vector set, and "invalid" when it is not.
 }
 
 When a conforming program gives objects as the objects of a byte
-sequence, it must give all the objects of the vector lines of the
-test-vector set that the byte sequence is, each once and in their order,
-and no other object.
+sequence, the conforming program must give all the objects of the vector
+lines of the test-vector set that the byte sequence is, each once and in
+the order of the vector lines, and no other object.
 
 ### 8.4 Conformance
 
-A program conforms to the specification `test-vectors` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
+A program conforms to the specification `test-vectors` when the program
+is a [conforming program](sinter:text#conforming-program=v1) of that
+[specification](sinter:text#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -2140,11 +2204,11 @@ the term `group-form-list` gives them.
 }
 
 The group `read-set` holds the vector lines whose vectors each give a
-byte sequence and what a conforming program gives when it reads the byte
-sequence as a test-vector set. The requirements of the group are
-`read-test-vector-set` and `give-objects-of-test-vector-sets`. In
-`input` and `values`, a byte sequence is its hex text, as a string, such
-as
+byte sequence and what a conforming program gives when the conforming
+program reads the byte sequence as a test-vector set. The requirements
+of the group are `read-test-vector-set` and
+`give-objects-of-test-vector-sets`. In `input` and `values`, a byte
+sequence is its hex text, as a string, such as
 `"7b22666f726d223a2223613d7631222c2267726f7570223a2261222c22696e707574223a2278222c22726573756c74223a2276616c6964227d0a"`
 for the UTF-8 encoding of
 `{"form":"#a=v1","group":"a","input":"x","result":"valid"}`, then the
@@ -2153,15 +2217,17 @@ byte 0x0A.
 - `input`: the byte sequence.
 - `result`: when a conforming program gives a result for whether the
   byte sequence is a test-vector set, that result: "valid" when the byte
-  sequence is a test-vector set, and "invalid" when it is not.
+  sequence is a test-vector set, and "invalid" when the byte sequence is
+  not a test-vector set.
 - `values`: when `result` is "valid", an object with one member,
   `objects`: an array of the objects of the vector lines of the byte
-  sequence, in their order. When `result` is "invalid", the empty
-  object, `{}`.
+  sequence, in the order of the vector lines. When `result` is
+  "invalid", the empty object, `{}`.
 
 When a conforming program gives objects as the objects of the byte
-sequence, it gives each object of `objects` once, in their order, and no
-other object. When `values` is `{}`, it gives no object as an object of
+sequence, the conforming program gives each object of `objects` once, in
+the order of the elements of `objects`, and no other object. When
+`values` is `{}`, a conforming program gives no object as an object of
 the byte sequence.
 
 ```
