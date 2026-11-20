@@ -8,9 +8,9 @@
     markdown file in the set of stopped files, or when it is a code file and the
     reading of its text, as the text of a file at its valid path, with its pack
     has the result "no grammar" or the result "parse failure". Each other read
-    file can be read. The set of stopped files is the set of the markdown files
-    whose text a limit of the caller stops, as {!Markdown_limits.check} decides
-    it. *)
+    file can be read. Of the set of stopped files, this module decides only the
+    markdown files: those whose text a limit of the caller stops, as
+    {!Markdown_limits.check} decides it. *)
 
 open Sinter_text
 open Sinter_paths

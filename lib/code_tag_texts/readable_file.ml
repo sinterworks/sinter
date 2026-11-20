@@ -26,10 +26,11 @@ let read limits pack file =
   | Ok lines -> (
       match Read_file.reader file with
       | File_readers.Markdown -> (
-          (* @satisfies documents#unreadable-file=v1
+          (* @satisfies documents#give-declared-items=v1
              A markdown file whose text a limit of the caller stops is in the
-             set of stopped files, so it gives no readable file and the error
-             names that limit. *)
+             set of stopped files and cannot be read, so it gives no readable
+             file, no tag text, and no declared item, and the error names that
+             limit. *)
           match Markdown_limits.check limits lines with
           | Ok text -> Ok (Markdown_file text)
           | Error limit -> Error (Cannot_be_read (Stopped limit)))

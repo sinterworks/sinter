@@ -10,6 +10,11 @@ type error =
   | Invalid_glob of { pair : int; error : Path_set.glob_error }
   | Invalid_path_set of { pair : int; fault : Path_set.fault }
 
+(* @satisfies documents#file-readers=v1
+   A binding meets the schema only when each of its path sets is a valid path
+   set, so make checks the path set of each pair, in order, and gives the first
+   pair whose path set is not valid; each pack stands for a valid pack by its
+   type. *)
 let make pairs =
   let rec check k acc = function
     | [] -> Ok (List.rev acc)

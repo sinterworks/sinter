@@ -1,8 +1,8 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-(** Bindings of the parameter [file-readers], as the term [file-reader-binding]
-    of the design [documents=v1] defines them.
+(** Bindings of the parameter [file-readers], as the schema [file-readers] and
+    the term [file-reader] of the design [documents=v1] define them.
 
     A binding of [file-readers] is a finite sequence of pairs, with numbers from
     1 in order. Each pair has a reader and a path set. A reader is the text
