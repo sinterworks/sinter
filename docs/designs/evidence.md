@@ -3,13 +3,13 @@
 
 # Test evidence
 @design evidence=v2
-@cites text=v1
+@cites text=v2
 @cites identifiers=v2
 @cites files=v1
 @cites data-forms=v2
 @cites ontology=v2
-@cites packs=v1
-@cites findings=v1
+@cites packs=v2
+@cites findings=v2
 @cites documents=v2
 @cites w3c/rec-xml-20081126
 @cites rfc/5234
@@ -89,7 +89,7 @@ literal names `true` and `false`.
 
 | word or phrase | meaning |
 |---|---|
-| [test runner](sinter:packs#test-runner=v1) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
+| [test runner](sinter:packs#test-runner=v2) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
 | [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that it ran; as an input, its report content, which is its bytes, its report name, its pack, and its test runner |
 | [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which it is given, a root, one or more report files, and a narrowing |
 | [execution of test runners](sinter:#import=v1) | the runs of test runners whose report files are given together in one import, such as one job of continuous integration, or three jobs that each run a third of the tests |
@@ -410,7 +410,7 @@ edge replaces give no such finding.
 
 @term report-file=v1
 @cites {
-    packs#{valid-pack=v1, test-runner=v1},
+    packs#{valid-pack=v2, test-runner=v2},
     text#{text=v1, byte-sequence=v1},
 }
 
@@ -462,7 +462,7 @@ for it has at least one import.
 @cites {
     w3c/rec-xml-20081126,
     text#{text=v1, code-span=v1},
-    packs#{adapter-call=v1},
+    packs#{adapter-call=v2},
 }
 
 A report content is a JUnit XML report when, and only when, it is a
@@ -495,8 +495,8 @@ letters. These definitions apply to a JUnit XML report:
 @schema runner-data=v2
 @cites {
     packs#{
-        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
-        valid-descriptor=v1,
+        test-runner=v2, runner-setting=v2, runner-settings=v1,
+        valid-descriptor=v2,
     },
     identifiers#{id-pattern=v2},
     data-forms#{toml-value=v1},
@@ -544,8 +544,8 @@ or the name of one of its runner settings.
 @term runner-data-value=v1
 @cites {
     packs#{
-        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
-        valid-descriptor=v1,
+        test-runner=v2, runner-setting=v2, runner-settings=v1,
+        valid-descriptor=v2,
     },
     data-forms#{toml-value=v1},
     text#{code-span=v1},
@@ -724,8 +724,8 @@ text, equal to the name part of the test result at the same index.
 @atom default-recognition=v2
 @cites {
     packs#{
-        valid-descriptor=v1, test-runner=v1, runner-setting-binding=v1,
-        adapter-call=v1,
+        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
+        adapter-call=v2,
     },
     text#{text=v1, character=v1, code-span=v1},
     #{junit-report=v1, runner-data=v2, runner-data-value=v1},
@@ -751,8 +751,8 @@ the text after that `=`.
     ontology#{test-evidence=v1},
     files#{path=v1},
     packs#{
-        valid-descriptor=v1, test-runner=v1, runner-setting-binding=v1,
-        test-entry=v1, adapter-call=v1,
+        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
+        test-entry=v1, adapter-call=v2,
     },
     text#{text=v1},
     #{
@@ -784,8 +784,8 @@ parts has a result link to each test entry that these rules give:
 @cites {
     documents#{file-readers=v1, read-file=v2, unreadable-file=v2},
     packs#{
-        reading-of-a-text=v1, test-node=v1, test-entry=v1,
-        parse-tree-order=v1, test-runner=v1,
+        reading-of-a-text=v2, test-node=v2, test-entry=v1,
+        parse-tree-order=v1, test-runner=v2,
     },
     ontology#{tree=v1, parameter=v2},
     files#{path=v1},
@@ -811,9 +811,9 @@ the order of the parse tree.
     documents#{file-readers=v1},
     ontology#{test-evidence=v1, parameter=v2},
     packs#{
-        valid-pack=v1, test-runner=v1, runner-setting-binding=v1,
-        test-entry=v1, adapter-request=v1, adapter-call=v1,
-        adapter-instance=v1, valid-adapter=v1, call-result=v1,
+        valid-pack=v2, test-runner=v2, runner-settings=v1,
+        test-entry=v1, adapter-request=v2, adapter-call=v2,
+        adapter-instance=v1, valid-adapter=v2, call-result=v2,
     },
     text#{result=v1},
     #{report-file=v1, import=v1, reading-entry=v2, default-reader-result=v2},
@@ -854,7 +854,7 @@ test entry that the reading gives with the result "bound".
 @term linked-test=v2
 @cites {
     documents#{file-readers=v1, file-test=v1},
-    packs#{test-entry=v1, test-name=v1, test-node=v1},
+    packs#{test-entry=v1, test-name=v1, test-node=v2},
     ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v2},
     files#{path=v1},
     text#{whole-number=v1},
@@ -887,7 +887,7 @@ these conditions are true:
 @cites {
     ontology#{test=v1, test-evidence=v1},
     documents#{file-test=v1},
-    packs#{test-name=v1, test-node=v1},
+    packs#{test-name=v1, test-node=v2},
     text#{whole-number=v1},
     #{import=v1, linked-test=v2},
 }
@@ -922,7 +922,7 @@ alike to that test. A test result names no other test.
 @term status-meaning=v1
 @cites {
     ontology#{test=v1, test-evidence=v1},
-    packs#{call-result=v1},
+    packs#{call-result=v2},
     #{named-test=v1},
 }
 
@@ -936,7 +936,7 @@ result with the status `skip` says neither.
 @term held-test=v1
 @cites {
     documents#{file-test=v1},
-    packs#{test-node=v1, enclosed-node=v1},
+    packs#{test-node=v2, enclosed-node=v1},
     ontology#{test=v1, tree=v1},
 }
 
@@ -951,7 +951,7 @@ when, T holds U.
 @term suite-rule=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, promise=v2, tree=v1},
-    packs#{test-node=v1},
+    packs#{test-node=v2},
     #{
         import=v1, linked-test=v2, held-test=v1, named-test=v1,
         status-meaning=v1,
@@ -1114,7 +1114,7 @@ of the file.
 
 @atom ambiguous-result-finding=v2
 @cites {
-    packs#{test-node=v1, node-run=v1},
+    packs#{test-node=v2, node-run=v1},
     documents#{file-test=v1, position-subject=v2, run-spot=v2, tree-finding=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1},
     text#{position=v1, run=v1},
@@ -1164,8 +1164,8 @@ item alone, with no span.
 @req recognise-junit-reports=v2
 @cites {
     packs#{
-        valid-descriptor=v1, test-runner=v1, runner-setting-binding=v1,
-        adapter-call=v1,
+        valid-descriptor=v2, test-runner=v2, runner-settings=v1,
+        adapter-call=v2,
     },
     text#{conforming-program=v1, result=v1},
     #{default-recognition=v2},
@@ -1245,7 +1245,7 @@ an import when the result of that reading is not "bound".
 @cites {
     documents#{file-readers=v1},
     ontology#{parameter=v2},
-    packs#{adapter-request=v1, adapter-call=v1, test-entry=v1},
+    packs#{adapter-request=v2, adapter-call=v2, test-entry=v1},
     text#{conforming-program=v1},
     #{report-file=v1, import=v1, reading-entry=v2, reading-of-a-report-file=v2},
 }
@@ -1262,7 +1262,7 @@ entries as the test entry ids of the call.
 @req read-only-report-content=v2
 @cites {
     w3c/rec-xml-20081126,
-    packs#{adapter-call=v1},
+    packs#{adapter-call=v2},
     text#{conforming-program=v1, byte=v1},
     #{default-recognition=v2, default-reader-result=v2},
 }
@@ -1399,7 +1399,7 @@ of the classes `never-ran`, `failed`, `ambiguous-result`, and
 
 @req give-nothing-under-invalid-runner-settings=v2
 @cites {
-    packs#{runner-setting-binding=v1, test-runner=v1},
+    packs#{runner-settings=v1, test-runner=v2},
     ontology#{promise=v2, tree=v1, test=v1, test-evidence=v1},
     text#{conforming-program=v1, result=v1},
     #{
@@ -1483,8 +1483,8 @@ vector binds a program only to what the program gives for the input.
         vector-meaning=v2,
     },
     packs#{
-        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
-        adapter-call=v1,
+        test-runner=v2, runner-setting=v2, runner-settings=v1,
+        adapter-call=v2,
     },
     #{
         report-file=v1, runner-data=v2, default-recognition=v2,
@@ -1553,8 +1553,8 @@ content of the input for its test runner, it gives the result that
     documents#{file-readers=v1},
     ontology#{test-evidence=v1, parameter=v2},
     packs#{
-        test-runner=v1, runner-setting=v1, runner-setting-binding=v1,
-        test-entry=v1, test-name=v1, test-node=v1, adapter-call=v1,
+        test-runner=v2, runner-setting=v2, runner-settings=v1,
+        test-entry=v1, test-name=v1, test-node=v2, adapter-call=v2,
     },
     #{
         recognition-vector=v1, report-file=v1, runner-data=v2,
@@ -1646,8 +1646,8 @@ is `{}`, it gives no test result and no result link.
         parameter=v2,
     },
     packs#{
-        runner-setting-binding=v1, test-runner=v1, test-name=v1,
-        test-node=v1, test-entry=v1,
+        runner-settings=v1, test-runner=v2, test-name=v1,
+        test-node=v2, test-entry=v1,
     },
     #{
         recognition-vector=v1, report-file=v1, import=v1,
@@ -1761,7 +1761,7 @@ class `ambiguous-result` of the tree, it gives one for that test when
         conformance-vector-group=v1, vector-set=v2, item-name=v2,
         in-force-item=v2, ledger=v1, finding-class=v1, parameter=v2,
     },
-    packs#{runner-setting-binding=v1, test-runner=v1},
+    packs#{runner-settings=v1, test-runner=v2},
     #{
         recognition-vector=v1, tree-evidence=v1, tree-outcome=v2,
         reading-of-a-report-file=v2, never-ran-finding=v2,
