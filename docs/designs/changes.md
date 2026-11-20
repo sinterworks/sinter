@@ -102,20 +102,20 @@ of another kind, the bytes that a program takes from a file, valid paths
 and their file names, the files and the folders of the path of a valid
 path in a folder tree, and file objects, folder tree objects, and stored
 folder trees, the forms in which the vectors write folder trees. From
-the Ontology (`ontology`), it takes schemas, trees, the default branch,
-and parameters with their bindings.
+the Ontology (`ontology`), the design takes schemas, trees, the default
+branch, and parameters with their bindings.
 
 From Data forms (`data-forms`), the design takes test-vector sets, in
-the format that its specification `test-vectors` gives, and the forms of
-a group of vectors, needs and need names, and what a vector line states.
-The file that holds the conformance vectors of the design is a
-test-vector set. From POSIX.1-2024, the design takes processes and the
-shell, the open files of a process, pathnames, pipes, environment
-variables, the permissions and the appropriate privileges of a process,
-and the user IDs and group IDs of a process. From RFC 8259, the design
-takes JSON objects, members, arrays, strings, numbers, and the literal
-names `true` and `false`, which the subsections of the Conformance
-section of the design name.
+the format that the specification `test-vectors` of Data forms gives,
+and the forms of a group of vectors, needs and need names, and what a
+vector line states. The file that holds the conformance vectors of the
+design is a test-vector set. From POSIX.1-2024, the design takes
+processes and the shell, the open files of a process, pathnames, pipes,
+environment variables, the permissions and the appropriate privileges of
+a process, and the user IDs and group IDs of a process. From RFC 8259,
+the design takes JSON objects, members, arrays, strings, numbers, and
+the literal names `true` and `false`, which the subsections of the
+Conformance section of the design name.
 
 ## 1. Glossary
 
@@ -1366,13 +1366,14 @@ must give exactly the parents of that commit, in their order.
     text#{conforming-program=v1, text=v1},
 }
 
-When it gives the text of the message of a commit of a git repository,
-or gives that the message of that commit has no text, in an undisturbed
-repository read, a conforming program must give the text of the message
-of that commit, and no other text as the text of the message of that
-commit, when it has a text, and give that it has no text when it has
-none. In that read, it must not give both a text of the message of that
-commit and that the message has no text.
+When a conforming program gives the text of the message of a commit of a
+git repository, or gives that the message of that commit has no text, in
+an undisturbed repository read, the conforming program must give the
+text of the message of that commit, and no other text as the text of the
+message of that commit, when that message has a text, and must give that
+the message of that commit has no text when that message has no text. In
+that read, it must not give both a text of the message of that commit
+and that the message has no text.
 
 ### 5.5 The commits of refs
 
@@ -1382,12 +1383,13 @@ commit and that the message has no text.
     text#{conforming-program=v1},
 }
 
-When it gives the commit of a ref of a git repository, or gives that the
-ref has no commit, in an undisturbed repository read, a conforming
-program must give the commit of that ref, and no other commit as the
-commit of that ref, when the ref has one, and give that it has none when
-it has none. In that read, it must not give both a commit of that ref
-and that the ref has no commit.
+When a conforming program gives the commit of a ref of a git repository,
+or gives that the ref has no commit, in an undisturbed repository read,
+the conforming program must give the commit of that ref, and no other
+commit as the commit of that ref, when that ref has a commit, and must
+give that the ref has no commit when that ref has no commit. In that
+read, it must not give both a commit of that ref and that the ref has no
+commit.
 
 ### 5.6 The commit of the default branch
 
@@ -1401,15 +1403,17 @@ and that the ref has no commit.
     text#{conforming-program=v1, code-span=v1},
 }
 
-When it gives the commit of the default branch of a git repository under
-a binding of `default-branch-name`, or gives that the default branch has
-no commit under that binding, in an undisturbed repository read, a
-conforming program must give the commit of the default branch under that
-binding, and no other commit as the commit of the default branch under
-that binding, when it has one, and give that it has none when it has
-none. In that read, it must not give both a commit of the default branch
-under that binding and that the default branch has no commit under that
-binding.
+When a conforming program gives the commit of the default branch of a
+git repository under a binding of `default-branch-name`, or gives that
+the default branch has no commit under that binding, in an undisturbed
+repository read, the conforming program must give the commit of the
+default branch under that binding, and no other commit as the commit of
+the default branch under that binding, when the default branch has a
+commit under that binding, and must give that the default branch has no
+commit under that binding when the default branch has no commit under
+that binding. In that read, it must not give both a commit of the
+default branch under that binding and that the default branch has no
+commit under that binding.
 
 ### 5.7 Head commits
 
@@ -1422,13 +1426,14 @@ binding.
     text#{conforming-program=v1},
 }
 
-When it gives the head commit of a working tree of a git repository, or
-gives that the working tree has no head commit, in an undisturbed
-repository read, a conforming program must give the head commit of that
-working tree, and no other commit as the head commit of that working
-tree, when it has one, and give that it has none when it has none. In
-that read, it must not give both a head commit of that working tree and
-that the working tree has no head commit.
+When a conforming program gives the head commit of a working tree of a
+git repository, or gives that the working tree has no head commit, in an
+undisturbed repository read, the conforming program must give the head
+commit of that working tree, and no other commit as the head commit of
+that working tree, when that working tree has a head commit, and must
+give that the working tree has no head commit when that working tree has
+no head commit. In that read, it must not give both a head commit of
+that working tree and that the working tree has no head commit.
 
 ### 5.8 The files of the tree of a commit
 
@@ -1465,14 +1470,15 @@ the conforming program gives, exactly the content of that file.
     text#{conforming-program=v1},
 }
 
-When, in an undisturbed repository read, it gives the file with a valid
-path p of the tree of a commit of a git repository, or gives that the
-tree of that commit has no file with the valid path p, a conforming
-program must give that file, with exactly its content, and no other file
-for the valid path p, when that tree has a file with the valid path p,
-and give that the tree has no file with the valid path p when it has
-none. In that read, it must not give both a file with the valid path p
-of that tree and that the tree has no file with the valid path p.
+When, in an undisturbed repository read, a conforming program gives the
+file with a valid path p of the tree of a commit of a git repository, or
+gives that the tree of that commit has no file with the valid path p,
+the conforming program must give that file, with exactly the content of
+that file, and no other file for the valid path p, when that tree has a
+file with the valid path p, and must give that the tree has no file with
+the valid path p when that tree has no file with the valid path p. In
+that read, it must not give both a file with the valid path p of that
+tree and that the tree has no file with the valid path p.
 
 ### 5.10 The files of the tree of a working tree
 
@@ -1510,15 +1516,16 @@ the content of that file.
     text#{conforming-program=v1},
 }
 
-When, in an undisturbed repository read, it gives the file with a valid
-path p of the tree of a working tree of a git repository, or gives that
-the tree of that working tree has no file with the valid path p, a
-conforming program must give that file, with exactly its content, and no
-other file for the valid path p, when that tree has a file with the
-valid path p, and give that the tree has no file with the valid path p
-when it has none. In that read, it must not give both a file with the
-valid path p of that tree and that the tree has no file with the valid
-path p.
+When, in an undisturbed repository read, a conforming program gives the
+file with a valid path p of the tree of a working tree of a git
+repository, or gives that the tree of that working tree has no file with
+the valid path p, the conforming program must give that file, with
+exactly the content of that file, and no other file for the valid path
+p, when that tree has a file with the valid path p, and must give that
+the tree has no file with the valid path p when that tree has no file
+with the valid path p. In that read, it must not give both a file with
+the valid path p of that tree and that the tree has no file with the
+valid path p.
 
 ### 5.12 Ranges
 
@@ -1603,14 +1610,16 @@ must give exactly the merge bases of those two commits.
     text#{conforming-program=v1, code-span=v1},
 }
 
-When it gives the base of the change of a commit h of a git repository
-under a binding of `default-branch-name`, or gives that the change of h
-has no base under that binding, in an undisturbed repository read, a
-conforming program must give the base of the change of h under that
-binding, and no other commit as the base of the change of h under that
-binding, when it has one, and give that it has none when it has none. In
-that read, it must not give both a base of the change of h under that
-binding and that the change of h has no base under that binding.
+When a conforming program gives the base of the change of a commit h of
+a git repository under a binding of `default-branch-name`, or gives that
+the change of h has no base under that binding, in an undisturbed
+repository read, the conforming program must give the base of the change
+of h under that binding, and no other commit as the base of the change
+of h under that binding, when the change of h has a base under that
+binding, and must give that the change of h has no base under that
+binding when the change of h has no base under that binding. In that
+read, it must not give both a base of the change of h under that binding
+and that the change of h has no base under that binding.
 
 ### 5.17 First-parent lines
 
@@ -1639,15 +1648,16 @@ order of that first-parent line.
     text#{conforming-program=v1},
 }
 
-When it gives the landing commit of a commit c on the first-parent line
-of a commit d of a git repository, or gives that c has no landing commit
-on that first-parent line, in an undisturbed repository read, a
-conforming program must give the landing commit of c on that
-first-parent line, and no other commit as the landing commit of c on
-that first-parent line, when c has one, and give that c has none when d
-does not reach c. In that read, it must not give both a landing commit
-of c on that first-parent line and that c has no landing commit on that
-first-parent line.
+When a conforming program gives the landing commit of a commit c on the
+first-parent line of a commit d of a git repository, or gives that c has
+no landing commit on that first-parent line, in an undisturbed
+repository read, the conforming program must give the landing commit of
+c on that first-parent line, and no other commit as the landing commit
+of c on that first-parent line, when c has a landing commit on that
+first-parent line, and must give that c has no landing commit on that
+first-parent line when d does not reach c. In that read, it must not
+give both a landing commit of c on that first-parent line and that c has
+no landing commit on that first-parent line.
 
 ### 5.19 Hunks
 
@@ -1689,12 +1699,14 @@ obligation holds only in an undisturbed repository read.
     },
 }
 
-When it gives new line numbers of old lines of a valid path p between an
-old tree and a new tree, a conforming program must give them for one
-line map M of p between those trees: for each old line i of p for which
-it gives a new line number, or gives that the line has none, it must
-give the new line number of i for M, and no other new line number for i,
-when i has one, and give that i has none when i has no new line number
+When a conforming program gives new line numbers of old lines of a valid
+path p between an old tree and a new tree, the conforming program must
+give those new line numbers for one line map M of p between those trees:
+for each old line i of p for which the conforming program gives a new
+line number, or gives that the old line i has no new line number, the
+conforming program must give the new line number of i for M, and no
+other new line number for i, when i has a new line number for M, and
+must give that i has no new line number when i has no new line number
 for M. It must not give both a new line number for i and that i has no
 new line number. When one of the two trees is the tree of a commit or of
 a working tree of a git repository, these obligations hold only in an
@@ -1730,15 +1742,16 @@ of p between those trees.
     text#{conforming-program=v1, code-span=v1},
 }
 
-When it gives a diff of the change of a commit h of a git repository
-under a binding of `default-branch-name`, or gives that the change of h
-has no diff under that binding, in an undisturbed repository read, a
-conforming program must give one diff of the change of h under that
-binding, with exactly its hunks and no other hunk, when the change of h
-has a base, and give that it has no diff when the change of h has no
-base under that binding. In that read, it must not give both a diff of
-the change of h under that binding and that the change of h has no diff
-under that binding.
+When a conforming program gives a diff of the change of a commit h of a
+git repository under a binding of `default-branch-name`, or gives that
+the change of h has no diff under that binding, in an undisturbed
+repository read, the conforming program must give one diff of the change
+of h under that binding, with exactly the hunks of that diff and no
+other hunk, when the change of h has a base, and must give that the
+change of h has no diff when the change of h has no base under that
+binding. In that read, it must not give both a diff of the change of h
+under that binding and that the change of h has no diff under that
+binding.
 
 ### 5.23 No change to the repository by a read
 
