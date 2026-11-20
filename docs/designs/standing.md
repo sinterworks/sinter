@@ -856,10 +856,11 @@ conforming program gives the successors of a declared item x of a tree T
 at a point P of the ledger of R under A, D, F, N, and sets S of stopped
 files (one set of stopped files for each distinct tree among T and, when
 the default branch of R has a commit under D, the trees of the commits
-of the first-parent line of that commit, so that whenever two of these
-places hold the same tree they share one set of stopped files), and each
-repository read from which that program takes the ledger and the trees
-of the first-parent line is undisturbed.
+of the first-parent line of that commit, so that whenever T and a tree
+of that line, or two trees of that line, are the same tree, they share
+one set of stopped files), and each repository read from which that
+program takes the ledger and the trees of the first-parent line is
+undisturbed.
 
 When the default branch of R has a commit d under D and the first-parent
 line of d under F is incomplete for those repository reads (term
@@ -905,10 +906,10 @@ findings of the class `retired` of a tree T at a point P of the ledger
 of R under A, D, F, N, H, and sets S of stopped files (one set of
 stopped files for each distinct tree among T and, when the default
 branch of R has a commit under D, the trees of the commits of the
-first-parent line of that commit, so that whenever two of these places
-hold the same tree they share one set of stopped files), and each
-repository read from which that program takes the ledger and the trees
-of the first-parent line is undisturbed.
+first-parent line of that commit, so that whenever T and a tree of that
+line, or two trees of that line, are the same tree, they share one set
+of stopped files), and each repository read from which that program
+takes the ledger and the trees of the first-parent line is undisturbed.
 
 When the default branch of R has a commit d under D and the first-parent
 line of d under F is incomplete for those repository reads (term
@@ -969,16 +970,17 @@ Identifiers gives the result "valid", a valid binding H of
 `historical-paths`, and sets S of stopped files (one set of stopped files
 for each distinct tree among T and, when the default branch of R has a
 commit under D, the trees of the commits of the first-parent line of
-that commit; let U be the set of stopped files of T, and whenever two of
-these places hold the same tree they share one set of stopped files),
-when each repository read from which that program takes the ledger and
-the trees of the first-parent line is undisturbed.
+that commit; let U be the set of stopped files of T, and whenever T and
+a tree of that line, or two trees of that line, are the same tree, they
+share one set of stopped files), when each repository read from which a
+conforming program takes the ledger and the trees of the first-parent
+line is undisturbed.
 
 Let E be the edge of a tree finding f of the class `retired` that T has
 at P under A, D, F, N, H, and S, and let c be the cited item of E. When
-c has one or more successors in T at P under A, D, F, N, and S, and a
-conforming program gives a fix for f, that fix must meet all three of
-these conditions:
+c has one or more successors in T at P under A, D, F, N, and S, and that
+program gives a fix for f, that fix must meet all three of these
+conditions:
 
 1. The fix has exactly one edit set for each successor of c in T at P
    under A, D, F, N, and S, in the code point order of the names of
@@ -1132,7 +1134,10 @@ these sets once, and must give no other finding of that class.
     changes#{commit=v1, change-of-a-commit=v1},
     documents#{file-readers=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{successor=v1},
+    #{
+        successor=v1, retired-finding=v1, cycle-finding=v1,
+        deleted-decision-finding=v1, reused-label-finding=v1,
+    },
 }
 
 Under a binding of `file-readers` that is not valid, or under a binding
@@ -1150,7 +1155,10 @@ the change of any commit.
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     changes#{commit=v1, change-of-a-commit=v1},
     text#{conforming-program=v1, code-span=v1},
-    #{historical-paths=v1},
+    #{
+        historical-paths=v1, retired-finding=v1, cycle-finding=v1,
+        deleted-decision-finding=v1, reused-label-finding=v1,
+    },
 }
 
 Under a binding of `historical-paths` that is not valid, a conforming
@@ -1278,6 +1286,7 @@ class.
         change-base=v1, repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1, code-span=v1},
+    #{deleted-decision-finding=v1, reused-label-finding=v1},
 }
 
 This requirement applies for a commit h under a binding of
@@ -1286,9 +1295,10 @@ conforming program meets two conditions. First, that program gives the
 findings of the class `deleted-decision` or of the class `reused-label`
 of the change of h under that binding. Second, each repository read from
 which that program takes that the change of h has no base is
-undisturbed. Under that binding and when both conditions hold, that program must give
-that the change of h has no base, and must give no finding of the class
-or classes whose findings it gives.
+undisturbed. Under that binding and when both conditions hold, that
+program must give that the change of h has no base, must give no finding
+of the class or classes whose findings it gives, and must not give that
+it cannot see the whole history.
 
 ### 5.13 The change of a commit with a base
 
@@ -1300,6 +1310,7 @@ or classes whose findings it gives.
         change-base=v1, repository-read=v1, undisturbed-read=v1,
     },
     text#{conforming-program=v1, code-span=v1},
+    #{deleted-decision-finding=v1, reused-label-finding=v1},
 }
 
 This requirement applies for a commit h under a binding of
@@ -1327,7 +1338,10 @@ give that the change of h has no base.
     },
     documents#{file-readers=v1, unreadable-file=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{historical-paths=v1, new-label-item=v1, cut-history=v1},
+    #{
+        historical-paths=v1, new-label-item=v1, reused-label-finding=v1,
+        cut-history=v1,
+    },
 }
 
 This requirement applies for a commit h of a git repository R under four
@@ -1356,7 +1370,7 @@ reading the first-parent line of d for limits of its own. When all four
 conditions hold, that program must give that it cannot see the whole
 history, and must give no finding of the class `reused-label`.
 
-### 5.15 When the first-parent line is complete or no label is new
+### 5.15 When the first-parent line is complete, no label is new, or reused labels are not given
 
 @req omit-cut-history-report=v1
 @cites {
@@ -1371,34 +1385,44 @@ history, and must give no finding of the class `reused-label`.
     },
     documents#{file-readers=v1, unreadable-file=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{historical-paths=v1, new-label-item=v1, cut-history=v1},
+    #{
+        historical-paths=v1, new-label-item=v1, reused-label-finding=v1,
+        cut-history=v1,
+    },
 }
 
-This requirement applies for a commit h of a git repository R under four
-bindings: a binding D of `default-branch-name` under which the change of
-h has a base (so the default branch of R has a commit d under D), a
-valid binding F of `file-readers`, a binding N of `external-namespaces`
-for which a conforming program of the design Identifiers gives the
-result "valid", and a valid binding H of `historical-paths`. Under these
-bindings, let UT be a set of stopped files of the tree of h, let UB be a
-set of stopped files of the tree of the base of the change of h, and for
-each commit c of the first-parent line of d, let Uc be a set of stopped
-files of the tree of c, such that whenever two of these trees are the
-same tree, their sets of stopped files are the same set.
+For a commit h under a binding D of `default-branch-name`, when a
+conforming program does not give the findings of the class
+`reused-label` of the change of h under D, and each repository read that
+the program makes for the change of h under D is undisturbed, that
+program must not give that it cannot see the whole history for the
+change of h under D.
 
-This requirement applies when a conforming program meets three
-conditions. First, that program gives the findings of the class
-`reused-label` of the change of h under D, F, N, H, UT, UB, and the sets
-Uc. Second, each repository read from which that program takes the base
-of the change of h, the first-parent line of d, and the files of the
-trees of h, of that base, and of the commits of that line is
-undisturbed. Third, either the tree of h has no item with a new label
-against the tree of the base of the change of h under F, N, H, UT, and
-UB, or the history of the default branch of R under D, F, and the sets
-Uc is not cut for those repository reads and that program does not stop
-reading the first-parent line of d for limits of its own. When all three
-conditions hold, that program must not give that it cannot see the whole
-history.
+For a commit h of a git repository R under four bindings, the next
+paragraph applies when the four bindings are these: a binding D of
+`default-branch-name` under which the change of h has a base (so the
+default branch of R has a commit d under D), a valid binding F of
+`file-readers`, a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid",
+and a valid binding H of `historical-paths`. Under these bindings, let
+UT be a set of stopped files of the tree of h, let UB be a set of
+stopped files of the tree of the base of the change of h, and for each
+commit c of the first-parent line of d, let Uc be a set of stopped files
+of the tree of c, such that whenever two of these trees are the same
+tree, their sets of stopped files are the same set.
+
+Under these bindings and sets, when a conforming program meets three
+conditions, that program must not give that it cannot see the whole
+history for the change of h under D. First, that program gives the
+findings of the class `reused-label` of the change of h under D, F, N,
+H, UT, UB, and the sets Uc. Second, each repository read from which that
+program takes the base of the change of h, the first-parent line of d,
+and the files of the trees of h, of that base, and of the commits of
+that line is undisturbed. Third, either the tree of h has no item with a
+new label against the tree of the base of the change of h under F, N, H,
+UT, and UB, or the history of the default branch of R under D, F, and
+the sets Uc is not cut for those repository reads and that program does
+not stop reading the first-parent line of d for limits of its own.
 
 ## 6. Conformance
 
