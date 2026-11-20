@@ -3,7 +3,7 @@
 
 # Changes
 @design changes=v2
-@cites text=v1
+@cites text=v2
 @cites files=v1
 @cites ontology=v2
 @cites data-forms=v2
