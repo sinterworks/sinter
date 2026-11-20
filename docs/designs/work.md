@@ -106,7 +106,7 @@ an environment and git configuration.
 | [fields of a `plan` ledger entry](sinter:#plan-field=v1) | `work-item`, `def`, `name`, `waits`, `carries-out`, and optional `plan` |
 | [fields of a `done` ledger entry](sinter:#done-field=v1) | `work-item`, `requirements`, and optional `note` |
 | [fields of an `abandoned` ledger entry](sinter:#abandoned-field=v1) | `work-item` and `reason` |
-| [fields of a `delivered` ledger entry](sinter:#delivered-field=v1) | `work-item`, `commit`, `merge`, `head`, `hash`, and `definitions` |
+| [fields of a `delivered` ledger entry](sinter:#delivered-field=v1) | `work-item`, `commit`, `merge`, `head`, `hash`, `definitions`, and `promises` |
 | [work-graph cycle](sinter:#work-graph-cycle=v1) | a cycle in the composition edges from plans to their parts or in the combined directed graph of composition edges, direct waits, and waits inherited from plans that hold work items |
 | [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ledger#accepted-entry=v1) | the condition under which a ledger entry of a given kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for it there |
 | [delivered task completion](sinter:#delivered-task-completion=v1) | the condition under which an accepted `delivered` ledger entry records that a delivery line named the current definition of its task and that every promise of that definition was kept |
@@ -606,10 +606,11 @@ short-task-hash  = 6hex-digit
 A promise observation is a JSON object that meets all four of these
 conditions:
 
-1. It has the member `kind`, whose value is the string `satisfies` or
-   the string `verifies`, and the member `req`, whose value is a string
-   that matches the production `slug` or the production `full-name` of
-   Identifiers.
+1. It has the member `task-hash`, whose value is a string that fits the
+   hash form; the member `kind`, whose value is the string `satisfies`
+   or the string `verifies`; and the member `req`, whose value is a
+   string that matches the production `slug` or the production
+   `full-name` of Identifiers.
 2. It has the member `outcome`: when `kind` is `satisfies`, the value of
    `outcome` is one of the strings `kept` and `not-kept`; when `kind` is
    `verifies`, the value of `outcome` is one of the strings `kept`,
@@ -617,18 +618,8 @@ conditions:
 3. Either it has both the member `label`, whose value is a string that
    is a label, and the member `extent-hash`, whose value is a string
    that fits the hash form; or it has neither `label` nor `extent-hash`.
-4. It has no member other than `kind`, `req`, `outcome`, `label`, and
-   `extent-hash`.
-
-A definition observation for a short task hash s is a JSON object that
-has the member `task-hash`, has the member `promises`, and has no other
-member, where:
-
-- `task-hash` is a string that fits the hash form and whose first six
-  characters are s;
-- `promises` is an array of promise observations in which no two
-  elements have both the same value of `kind` and the same value of
-  `req`.
+4. It has no member other than `task-hash`, `kind`, `req`, `outcome`,
+   `label`, and `extent-hash`.
 
 The fields of the kind `delivered` are these required fields, with these
 values:
@@ -638,9 +629,13 @@ values:
 - `merge`, a string that is a commit object name;
 - `head`, a string that is a commit object name;
 - `hash`, a string that is a short task hash;
-- `definitions`, an array of definition observations for the value of
-  `hash` of the ledger entry, in which no two elements have the same
-  value of `task-hash`.
+- `definitions`, an array of strings that each fit the hash form and
+  whose first six characters are the value of `hash` of the ledger
+  entry, in which no two elements are the same text;
+- `promises`, an array of promise observations in which the value of
+  `task-hash` of each element is an element of `definitions` of the
+  ledger entry, and in which no two elements have the same value of
+  `task-hash`, the same value of `kind`, and the same value of `req`.
 
 A ledger entry of the kind `delivered` meets the schema
 `delivered-field` when, and only when, its object has each required
@@ -796,12 +791,12 @@ when, each of these four conditions is true:
 3. No accepted `delivered` ledger entry at an index before P has the
    same value of `commit`, the same value of `work-item`, and the same
    value of `hash` as E.
-4. For each element o of `definitions` of E, there is an accepted `task`
+4. For each element g of `definitions` of E, there is an accepted `task`
    ledger entry at an index before P whose `work-item` is the
-   `work-item` of E and whose definition has the value of `task-hash` of
-   o as its task hash, and the set of pairs of `kind` and `req` of the
-   elements of `promises` of o is the set of pairs of `kind` and `req`
-   of the promises of that definition.
+   `work-item` of E and whose definition has g as its task hash, and the
+   set of pairs of `kind` and `req` of the elements of `promises` of E
+   whose value of `task-hash` is g is the set of pairs of `kind` and
+   `req` of the promises of that definition.
 
 ### 4.15 Task completion by `delivered` ledger entries
 
@@ -818,17 +813,17 @@ when, each of these four conditions is true:
     #{delivered-field=v1, task-hash=v1},
 }
 
-In the atom `ontology#work-item-state`, an accepted `delivered` ledger
-entry E of a task t at its point P records that the job observed that a
-delivery line of t named the definition of t that was current at P and
-that each promise of that definition was kept when, and only when, both
-of these conditions are true:
+In the atom `ontology#work-item-state`, for an accepted `delivered`
+ledger entry E of a task t at its point P, let g be the task hash of the
+definition of t that was current at P. E records that the job observed
+that a delivery line of t named that current definition and that each
+promise of that definition was kept when, and only when, both of these
+conditions are true:
 
-1. The member `definitions` of E holds an element o whose value of
-   `task-hash` is the task hash of the definition of t that was current
-   at P.
-2. Every element of `promises` of o has the value `kept` for `outcome`,
-   and has both `label` and `extent-hash`.
+1. The member `definitions` of E holds g.
+2. Every element of `promises` of E whose value of `task-hash` is g has
+   the value `kept` for `outcome`, and has both `label` and
+   `extent-hash`.
 
 ### 4.16 Recorded requirement content for requirement accounting
 
@@ -865,13 +860,13 @@ under F, N, and S:
 - An accepted `delivered` ledger entry E at its point P records both the
   current revision of r in T and the same revised content as the revised
   content of r in T for a promise of the definition of its task that was
-  current at P when, and only when, `definitions` of E holds an element
-  o whose `task-hash` is the task hash of that current definition, and
-  `promises` of o holds an element whose `req` is the name of r in T,
-  that element has both `label` and `extent-hash`, the value of `label`
-  of that element is the current revision of r in T, and the value of
-  `extent-hash` of that element is the extent hash of r in T under F, N,
-  and S.
+  current at P when, and only when, `definitions` of E holds the task
+  hash g of that current definition, and `promises` of E holds an
+  element whose value of `task-hash` is g and whose `req` is the name of
+  r in T, that element has both `label` and `extent-hash`, the value of
+  `label` of that element is the current revision of r in T, and the
+  value of `extent-hash` of that element is the extent hash of r in T
+  under F, N, and S.
 
 ### 4.17 The form of delivery lines
 
@@ -2042,15 +2037,18 @@ order:
      first-parent line of H;
    - `head`: the commit object name of H;
    - `hash`: the short task hash of l;
-   - `definitions`: one definition observation for each distinct task
-     hash among the accepted `task` ledger entries of t before that
-     point whose first six characters are the short task hash of l, in
-     code point order of `task-hash`, and no other element.
-2. In each definition observation of `definitions`, the program must set
-   `promises` to an array holding one promise observation for each
-   promise q of the definition with that `task-hash`, in promise order,
-   and no other element, where the program must write:
-   - `kind` as the `kind` of q and `req` as the `req` of q;
+   - `definitions`: an array holding each distinct task hash among the
+     accepted `task` ledger entries of t before that point whose first
+     six characters are the short task hash of l, in code point order,
+     and no other element;
+   - `promises`: an array holding one promise observation for each pair
+     of a task hash g in `definitions` and a promise q of the definition
+     with task hash g, ordered first by g in code point order and then
+     by q in promise order, and no other element.
+2. In each promise observation of `promises`, for its task hash g and
+   promise q of the definition with task hash g, the program must write:
+   - `task-hash` as g, `kind` as the `kind` of q, and `req` as the `req`
+     of q;
    - `outcome` as the job promise outcome of q for that definition in
      the tree of H under F, N, S, V, and the bindings of
      `runner-settings`;
@@ -2785,7 +2783,7 @@ computation of a task hash of an entry before that point, in which case
 the program gives no result).
 
 ```
-{"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":[{"promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit"}],"task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
+{"form":"#states-vector=v1","group":"states","input":{"ledger":[{"def":1,"kind":"task","name":"Old name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":2,"kind":"task","name":"New name","paths":["src/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"commit":"1111111111111111111111111111111111111111","definitions":["8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"],"hash":"8c391a","head":"1111111111111111111111111111111111111111","kind":"delivered","merge":"1111111111111111111111111111111111111111","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"8c391ae69123435eeecc2d6ee1bbcc27497c1e65d5460c1b38a040ce63631c79"}],"work-item":"t-000000000001"}],"plans":["p-000000000001"],"requirements":[{"design":"billing","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit","spec":"billing#rules"},{"design":"auth","extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"auth#login"}],"tasks":["t-000000000001","t-000000000002"]},"note":"task becomes done via delivered entry matching current task hash after display-name edit","values":{"accounted-for":{"auth#login":false,"billing#limit":true},"plan-states":{},"ready":{"t-000000000001":false},"task-states":{"t-000000000001":"done"}}}
 ```
 
 ### 6.5 Promise findings
