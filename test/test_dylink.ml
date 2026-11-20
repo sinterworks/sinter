@@ -84,6 +84,8 @@ let tests =
             "\x00ASM\x01\x00\x00\x00";
             "\x00asm\x01\x00\x00";
             empty_module ^ "\x00";
+            empty_module ^ "\x00\x05";
+            empty_module ^ "\x00\x05\x04a";
             empty_module ^ "\x00\x05abc";
             empty_module ^ "\x00\x00";
             empty_module ^ "\x00\x02\x05a";
