@@ -1021,14 +1021,16 @@ boundary 1 and ends at boundary 4 is `{"from":1,"to":4}`.
   object, `{}`.
 
 When a conforming program gives a line number for the start position of
-the spot, it gives the line number of `start`, and no other line number.
-When it gives a column for the start position, it gives the column of
-`start`, and no other column. When it gives a line number for the
-position after the spot, it gives the line number of `after`, and no
-other line number. When it gives a column for the position after the
-spot, it gives the column of `after`, and no other column. When `values`
-is `{}`, a conforming program gives no line number and no column as the
-start position of the spot or as the position after that spot.
+the spot, the conforming program gives the line number of `start`, and
+no other line number. When a conforming program gives a column for the
+start position, the conforming program gives the column of `start`, and
+no other column. When a conforming program gives a line number for the
+position after the spot, the conforming program gives the line number of
+`after`, and no other line number. When a conforming program gives a
+column for the position after the spot, the conforming program gives the
+column of `after`, and no other column. When `values` is `{}`, a
+conforming program gives no line number and no column as the start
+position of the spot or as the position after that spot.
 
 ```
 {"form":"#spot-position-vector=v1","group":"spot-positions","input":{"span":{"from":0,"to":3},"text":"ab\ncd"},"note":"the span ends right after a line ending, so the position after the spot is in column 1 of line 2","values":{"after":{"column":1,"line":2},"start":{"column":1,"line":1}}}
