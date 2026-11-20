@@ -67,7 +67,7 @@ numbers.
 | [base item](sinter:#base-item=v1) | the declared item of the base tree with which a declared item of the tree is compared: the one item with the same name in the corresponding set of names, of any kind, when the item of the tree is also the one item with its name in its set of names |
 | [form run](sinter:documents#tree-edge=v1), [form position](sinter:documents#tree-edge=v1) | for an edge that a vector line gives, the run of the text of its vector file between the opening and closing quotes of the JSON string of the value of `form`, and the position where that run starts |
 | [suspect edge](sinter:ontology#suspect-edge=v1) | a pinned edge that has a cited item in the tree and whose cited item has no current revision, or has a current revision other than the label of the edge |
-| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files to whose reading it gives the result "parse failure" for limits of its own, and the files whose reading as a test-vector set it stops for limits of its own; a read file in it cannot be read |
+| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading it stops for limits of its own, the code files for whose reading it gives the result "parse failure" for limits of its own, and the files of the tree whose content it stops reading as a test-vector set for limits of its own; any set of files of a tree can be one |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of one tree, with a class, a subject, and a spot or no spot, that is not ackable |
 | [`needs-revision`](sinter:#needs-revision-finding=v1) | the class of the findings of a declared item of a tree whose revised content or kind changed against the base tree while its label stayed the same |
 | [`suspect`](sinter:#suspect-finding=v1) | the class of the findings of the suspect edges of a tree |
@@ -111,9 +111,9 @@ An item has no base item when, for example, another item of its set of
 names has its name, in the tree or in the base tree, or when the item is
 in no set of names. The valid path of the file of a declared item does
 not count when its base item is found. A declared item in a file that
-cannot be read, such as a file in the set of stopped files of the tree,
-is not a declared item of its tree, so it has no base item and it is no
-base item.
+cannot be read, such as a read file in the set of stopped files of the
+tree, is not a declared item of its tree, so it has no base item and it
+is no base item.
 
 ### 2.3 Suspect edges
 
