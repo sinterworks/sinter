@@ -361,13 +361,14 @@ branch has no commit (`changes#default-branch-commit`), so the change of
 a commit has no base.
 
 Successors and the class `retired` read in force under the bindings,
-which reads the ledger. The requirement
-`omit-results-from-invalid-ledgers` covers a ledger that is broken or
-newer and a git repository that does not hold its ledger objects. When a
-git repository lacks git objects that a tree of the first-parent line
-needs for `approval#bound-in-force-item`, a conforming program gives the
-successors or `retired` findings, or gives none. The classes `cycle`,
-`deleted-decision`, and `reused-label` read no ledger.
+which reads the ledger. The requirement `omit-results-from-invalid-ledgers` covers a ledger that
+is broken or newer and a git repository that does not hold its ledger
+objects. The requirements `give-successors` and `give-retired-findings`
+state what a conforming program gives when the first-parent line of the
+commit of the default branch is incomplete (term `cut-history`),
+including in a shallow clone or when the git repository lacks needed git
+objects. The classes `cycle`, `deleted-decision`, and `reused-label`
+read no ledger.
 
 The requirements `give-successors`, `give-retired-findings`, and
 `give-cycle-findings` state what a conforming program gives when it
@@ -791,13 +792,12 @@ This term is for a git repository R, the repository reads from which a
 program takes the first-parent line of the commit of the default branch
 and the files of the trees of its commits, a binding D of
 `default-branch-name` under which the default branch of R has a commit
-d, a valid binding F of `file-readers`, and, for each commit c of the
-first-parent line of d, a set Uc of stopped files of the tree of c
-(whenever two commits of that line have the same tree, they have the
-same set of stopped files). In this term, R holds a git object when R holds that git object at the end
-of those repository reads. The history of the default branch of R under
-D, F, and these sets is cut for those repository reads when, and only
-when, one or more of these four conditions holds:
+d, and a valid binding F of `file-readers`. In this term, R holds a git
+object when R holds that git object at the end of those repository
+reads.
+
+The first-parent line of d under F is incomplete for those repository
+reads when, and only when, one or more of these three conditions holds:
 
 1. A commit of the first-parent line of d is a shallow commit of R.
 2. A commit of the first-parent line of d is not a shallow commit of R,
@@ -808,8 +808,15 @@ when, one or more of these four conditions holds:
    tree entry under it, or does not hold the blob of a regular-file
    entry under it whose file in the tree of c is a read file of the
    tree of c under F.
-4. For some commit c of the first-parent line of d, a read file of the
-   tree of c under F is in Uc.
+
+For a set Uc of stopped files of the tree of each commit c of the
+first-parent line of d (whenever two commits of that line have the same
+tree, they have the same set of stopped files), the history of the
+default branch of R under D, F, and these sets is cut for those
+repository reads when, and only when, either the first-parent line of d
+under F is incomplete for those repository reads, or for some commit c
+of the first-parent line of d, a read file of the tree of c under F is
+in Uc.
 
 ## 5. Requirements
 
@@ -830,7 +837,7 @@ when, one or more of these four conditions holds:
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     approval#{approval-kinds=v1, bound-in-force-item=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{successor=v1},
+    #{successor=v1, cut-history=v1},
 }
 
 This requirement applies for a git repository R whose ledger is valid
@@ -848,13 +855,13 @@ places hold the same tree they share one set of stopped files), and each
 repository read from which that program takes the ledger and the trees
 of the first-parent line is undisturbed.
 
-When R lacks git objects that a tree of the first-parent line of the
-commit of the default branch needs for `approval#bound-in-force-item`,
-the program must give each successor of x in T at P under A, D, F, N,
-and S once and no other item, or must give no successor of x. Otherwise,
-the program must give each successor of x in T at P under A, D, F, N,
-and S once and no other item, except that when, in giving those
-successors, the program refuses the edges of T (term
+When the default branch of R has a commit d under D and the first-parent
+line of d under F is incomplete for those repository reads (term
+`cut-history`), the program must give each successor of x in T at P
+under A, D, F, N, and S once and no other item, or must give no
+successor of x. Otherwise, the program must give each successor of x in
+T at P under A, D, F, N, and S once and no other item, except that when,
+in giving those successors, the program refuses the edges of T (term
 `documents#tree-edge`) for limits of its own, the program must give no
 successor for T.
 
@@ -878,7 +885,7 @@ successor for T.
     },
     approval#{approval-kinds=v1, bound-in-force-item=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
-    #{historical-paths=v1, retired-finding=v1},
+    #{historical-paths=v1, retired-finding=v1, cut-history=v1},
 }
 
 This requirement applies for a git repository R whose ledger is valid
@@ -897,16 +904,16 @@ hold the same tree they share one set of stopped files), and each
 repository read from which that program takes the ledger and the trees
 of the first-parent line is undisturbed.
 
-When R lacks git objects that a tree of the first-parent line of the
-commit of the default branch needs for `approval#bound-in-force-item`,
-the program must give each tree finding of the class `retired` that T
-has at P under A, D, F, N, H, and S once and no other finding of that
-class, or must give no finding of that class for T. Otherwise, the
-program must give each tree finding of the class `retired` that T has at
-P under A, D, F, N, H, and S once and no other finding of that class,
-except that when, in giving those findings, the program refuses the
-edges of T (term `documents#tree-edge`) for limits of its own, the
-program must give no finding of that class for T.
+When the default branch of R has a commit d under D and the first-parent
+line of d under F is incomplete for those repository reads (term
+`cut-history`), the program must give each tree finding of the class
+`retired` that T has at P under A, D, F, N, H, and S once and no other
+finding of that class, or must give no finding of that class for T.
+Otherwise, the program must give each tree finding of the class
+`retired` that T has at P under A, D, F, N, H, and S once and no other
+finding of that class, except that when, in giving those findings, the
+program refuses the edges of T (term `documents#tree-edge`) for limits
+of its own, the program must give no finding of that class for T.
 
 ### 5.3 Offered fixes of `retired` findings
 
@@ -1418,17 +1425,17 @@ the inputs while the program runs.
     },
     ontology#{
         declared-item=v1, containment=v1, item-name=v1, edge=v1,
-        supersedes-edge=v1, effective-supersedes-edge=v1, tree=v1,
-        ledger=v1, parameter=v1,
+        supersedes-edge=v1, effective-supersedes-edge=v1,
+        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
     },
     changes#{
-        default-branch-name=v1, default-branch-commit=v1,
+        commit=v1, default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1,
     },
     documents#{file-readers=v1, tree-edge=v1, unreadable-file=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     approval#{approval-kinds=v1, bound-in-force-item=v1},
-    #{successor=v1, give-successors=v1},
+    #{successor=v1, cut-history=v1, give-successors=v1},
 }
 
 The group `successors` holds the vectors of the requirement
@@ -1436,18 +1443,18 @@ The group `successors` holds the vectors of the requirement
 their kinds, the items of the kind design that hold them, and whether
 each is in force), the `supersedes` edges of the tree (with whether each
 edge is effective and whether `every-part` matches its citation entry),
-and one declared item of that tree. The vector gives the successors of that declared item in
-the tree at a point of a ledger. The group uses no need, so these forms
-give no need names.
+and one declared item of that tree. The vector gives the successors of
+that declared item in the tree at a point of a ledger. The group uses no
+need, so these forms give no need names.
 
 The input of each vector stands for a valid ledger of a git repository
-that holds its ledger objects and holds every git object that
-`approval#bound-in-force-item` needs; for valid bindings of
-`approval-kinds` and `file-readers`; for a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid"; for one binding of `default-branch-name`; and
-for empty sets of stopped files. No other process changes these inputs
-while the program runs.
+that holds its ledger objects and whose default branch's first-parent
+line (when the default branch has a commit) is not incomplete (term
+`cut-history`); for valid bindings of `approval-kinds` and
+`file-readers`; for a binding of `external-namespaces` for which a
+conforming program of Identifiers gives the result "valid"; for one
+binding of `default-branch-name`; and for empty sets of stopped files.
+No other process changes these inputs while the program runs.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
@@ -1499,11 +1506,12 @@ gives no other item.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{
         declared-item=v1, edge=v1, vector-set=v1,
-        conformance-vector-group=v1, external-item=v1, tree=v1,
-        ledger=v1, finding-class=v1, parameter=v1,
+        conformance-vector-group=v1, external-item=v1,
+        default-branch=v1, tree=v1, ledger=v1, finding-class=v1,
+        parameter=v1,
     },
     changes#{
-        default-branch-name=v1, default-branch-commit=v1,
+        commit=v1, default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1,
     },
     documents#{
@@ -1514,7 +1522,7 @@ gives no other item.
     approval#{approval-kinds=v1, bound-in-force-item=v1},
     #{
         historical-paths=v1, historical-file=v1, retired-finding=v1,
-        give-retired-findings=v1,
+        cut-history=v1, give-retired-findings=v1,
         omit-findings-under-invalid-historical-paths=v1,
     },
 }
@@ -1529,13 +1537,13 @@ binding of `historical-paths` is not valid. The group uses no need, so
 these forms give no need names.
 
 The input of each vector stands for a valid ledger of a git repository
-that holds its ledger objects and holds every git object that
-`approval#bound-in-force-item` needs; for valid bindings of
-`approval-kinds` and `file-readers`; for a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid"; for one binding of `default-branch-name`; and
-for empty sets of stopped files. No other process changes these inputs
-while the program runs.
+that holds its ledger objects and whose default branch's first-parent
+line (when the default branch has a commit) is not incomplete (term
+`cut-history`); for valid bindings of `approval-kinds` and
+`file-readers`; for a binding of `external-namespaces` for which a
+conforming program of Identifiers gives the result "valid"; for one
+binding of `default-branch-name`; and for empty sets of stopped files.
+No other process changes these inputs while the program runs.
 
 The JSON values, objects, arrays, strings, and the literal names `true`
 and `false` of this schema are as RFC 8259 defines them. Inside `input`
