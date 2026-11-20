@@ -17,6 +17,8 @@ concurrency:
 
 env:
   OCAML_VERSION: "5.5.2"
+  RUST_TOOLCHAIN: "1.99.1"
+  SAVE_CACHES: ${{ github.event_name != 'pull_request' }}
   # @cites mutation-testing
   MUTAML_COMMIT: "b41eaafd112350ec4d0e2ee9f2336eb37e7b8fd7"
 
@@ -46,26 +48,39 @@ jobs:
           echo "os=$ImageOS" >>"$GITHUB_OUTPUT"
       - name: Restore the opam switch
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-
+          key: opam-switch-dev-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.opam.outputs.cache-hit != 'true'
+        id: compiler
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
+      - name: Keep the switch that holds only the compiler in the cache
+        if: env.SAVE_CACHES == 'true' && steps.opam.outputs.cache-hit == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
+          lookup-only: true
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           cache: false
-          toolchain: 1.99.1
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt, clippy
-      - name: Cache the cargo state
-        uses: actions/cache@v6
+      - name: Restore the cargo state of the bridge
+        id: cargo
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-build-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-build-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          restore-keys: ${{ env.SAVE_CACHES != 'true' && format('cargo-bridge-{0}-{1}-{2}-', steps.image.outputs.os, runner.arch, env.RUST_TOOLCHAIN) || '' }}
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -74,9 +89,21 @@ jobs:
         with:
           ocaml-compiler: ${{ env.OCAML_VERSION }}
           cache: false
+      - name: Save the switch that holds only the compiler
+        if: env.SAVE_CACHES == 'true' && steps.opam.outputs.cache-hit != 'true' && steps.compiler.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: ${{ steps.compiler.outputs.cache-primary-key }}
       - name: Install dependencies
         if: steps.opam.outputs.cache-hit != 'true'
         run: opam install . --deps-only --with-test --with-dev-setup --locked
+      - name: Save the opam switch
+        if: env.SAVE_CACHES == 'true' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: ${{ steps.opam.outputs.cache-primary-key }}
       - name: Put the switch on the path
         run: |
           prefix="$GITHUB_WORKSPACE/_opam"
@@ -97,6 +124,15 @@ jobs:
       - name: Build
         id: build
         run: dune build
+      - name: Save the cargo state of the bridge
+        if: env.SAVE_CACHES == 'true' && steps.cargo.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/sinter-bridge-build
+          key: ${{ steps.cargo.outputs.cache-primary-key }}
       - name: Check that sinter.opam matches dune-project
         run: git diff --exit-code -- sinter.opam
       - name: Test
@@ -142,12 +178,16 @@ jobs:
           echo "os=$ImageOS" >>"$GITHUB_OUTPUT"
       - name: Restore the opam switch
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-
+          key: opam-switch-dev-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -198,17 +238,18 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           cache: false
-          toolchain: 1.99.1
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt, clippy
-      - name: Cache the cargo state
-        uses: actions/cache@v6
+      - name: Restore the cargo state of the crate checks
+        id: cargo
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             bridge/target
-          key: cargo-rust-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-rust-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+          key: cargo-crate-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', '.github/workflows/build.yml') }}
+          restore-keys: ${{ env.SAVE_CACHES != 'true' && format('cargo-crate-{0}-{1}-{2}-', steps.image.outputs.os, runner.arch, env.RUST_TOOLCHAIN) || '' }}
       - name: Check that the crate is formatted
         run: cargo fmt --check --manifest-path bridge/Cargo.toml
       - name: Check the crate with clippy
@@ -229,6 +270,15 @@ jobs:
         run: >
           cargo rustc --release --manifest-path bridge/Cargo.toml
           -- --print native-static-libs
+      - name: Save the cargo state of the crate checks
+        if: env.SAVE_CACHES == 'true' && steps.cargo.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            bridge/target
+          key: ${{ steps.cargo.outputs.cache-primary-key }}
 
   coverage:
     name: Measure coverage
@@ -247,25 +297,29 @@ jobs:
           echo "os=$ImageOS" >>"$GITHUB_OUTPUT"
       - name: Restore the opam switch
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-coverage-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.BISECT_PPX_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-coverage-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.BISECT_PPX_COMMIT }}-
+          key: opam-switch-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.BISECT_PPX_COMMIT }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           cache: false
-          toolchain: 1.99.1
-      - name: Cache the cargo state
-        uses: actions/cache@v6
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Restore the cargo state of the bridge
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-coverage-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -284,6 +338,12 @@ jobs:
           opam pin add -y -n bisect_ppx \
             "git+https://github.com/aantron/bisect_ppx.git#$BISECT_PPX_COMMIT"
           opam install -y bisect_ppx
+      - name: Save the opam switch
+        if: env.SAVE_CACHES == 'true' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: ${{ steps.opam.outputs.cache-primary-key }}
       - name: Put the switch on the path
         run: |
           prefix="$GITHUB_WORKSPACE/_opam"
@@ -391,12 +451,16 @@ jobs:
       - name: Restore the opam switch
         if: steps.scope.outputs.mode != 'none'
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-
+          key: opam-switch-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - name: Turn off git background maintenance
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -415,6 +479,12 @@ jobs:
           opam pin add -y -n mutaml \
             "git+https://github.com/sinterworks/mutaml.git#$MUTAML_COMMIT"
           opam install -y mutaml
+      - name: Save the opam switch
+        if: steps.scope.outputs.mode != 'none' && env.SAVE_CACHES == 'true' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: ${{ steps.opam.outputs.cache-primary-key }}
       - name: Put the switch on the path
         if: steps.scope.outputs.mode != 'none'
         run: |
@@ -476,25 +546,29 @@ jobs:
           echo "os=$ImageOS" >>"$GITHUB_OUTPUT"
       - name: Restore the opam switch
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-
+          key: opam-switch-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           cache: false
-          toolchain: 1.99.1
-      - name: Cache the cargo state
-        uses: actions/cache@v6
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Restore the cargo state of the bridge
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -636,12 +710,16 @@ jobs:
       - name: Restore the opam switch
         if: steps.scope.outputs.mode != 'none'
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-mutation-v2-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-
+          key: opam-switch-mutation-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ env.MUTAML_COMMIT }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - name: Turn off git background maintenance
         if: steps.scope.outputs.mode != 'none' && steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
@@ -797,27 +875,31 @@ jobs:
       - name: Restore the opam switch
         if: steps.scope.outputs.measure == 'true'
         id: opam
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: _opam
-          key: opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam.locked') }}
-          restore-keys: |
-            opam-v3-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-
+          key: opam-switch-dev-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-${{ hashFiles('sinter.opam', 'sinter.opam.locked', '.github/workflows/build.yml') }}
+      - name: Restore the switch that holds only the compiler
+        if: steps.scope.outputs.measure == 'true' && steps.opam.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: _opam
+          key: opam-compiler-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.OCAML_VERSION }}-switch
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         if: steps.scope.outputs.measure == 'true'
         with:
           cache: false
-          toolchain: 1.99.1
-      - name: Cache the cargo state
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Restore the cargo state of the bridge
         if: steps.scope.outputs.measure == 'true'
-        uses: actions/cache@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-performance-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('bridge/Cargo.lock') }}
-          restore-keys: cargo-performance-${{ steps.image.outputs.os }}-${{ runner.arch }}-
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.scope.outputs.measure == 'true' && steps.opam.outputs.cache-hit != 'true'
         run: git config --global maintenance.auto false
