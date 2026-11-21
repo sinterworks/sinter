@@ -1112,8 +1112,8 @@ path is not in the set of the valid path set.
 
 ## 5. Conformance
 
-A program, or a part of a program, conforms to this design when it
-meets every requirement of the section Requirements.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector file,
