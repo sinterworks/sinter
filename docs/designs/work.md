@@ -948,7 +948,7 @@ at P. This holds whatever the state of that task at P.
     ontology#{
         promise=v1, tree=v1, task=v1, work-item-definition=v1, edge=v1,
         satisfies-edge=v1, verifies-edge=v1, suspect-edge=v1, test=v1,
-        parameter=v1,
+        declared-item=v1, item-name=v1, parameter=v1,
     },
     files#{path-set-membership=v1},
     identifiers#{external-namespaces=v1, validate-bindings=v1},
@@ -969,13 +969,18 @@ For a task definition d and a promise q of d, the job promise outcome
 of q for d in T under F, N, V, and those bindings of `runner-settings`
 is one of "kept" and "not-kept":
 
-- When q has the kind `satisfies`, the job promise outcome is "kept"
-  when q is kept in T under F and N by `ontology#promise`, with the
-  paths of d as the paths of the task, and "not-kept" otherwise.
-- When q has the kind `verifies`, the job promise outcome is "kept" when
-  T has evidence and q is kept in T under F, N, and V by
-  `ontology#promise` and `evidence#tree-outcome`, with the paths of d as
-  the paths of the task, and "not-kept" otherwise.
+- When T has, under F and N, no declared item of the kind requirement
+  whose name in T is the `req` of q, or more than one such declared
+  item, the job promise outcome is "not-kept".
+- When T has, under F and N, exactly one such declared item and q has
+  the kind `satisfies`, the job promise outcome is "kept" when q is kept
+  in T under F and N by `ontology#promise`, with the paths of d as the
+  paths of the task, and "not-kept" otherwise.
+- When T has, under F and N, exactly one such declared item and q has
+  the kind `verifies`, the job promise outcome is "kept" when T has
+  evidence and q is kept in T under F, N, and V by `ontology#promise`
+  and `evidence#tree-outcome`, with the paths of d as the paths of the
+  task, and "not-kept" otherwise.
 
 ### 4.21 Promise outcomes in findings
 
