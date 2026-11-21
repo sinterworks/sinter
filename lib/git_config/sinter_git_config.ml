@@ -316,6 +316,8 @@ type error =
 
 type limits = { max_files : int; max_values : int }
 type variant = Repository | Working_tree of string option
+type inclusion = Plain | Met | Unmet_hasconfig
+type place = Before_hasconfig of string option | After_hasconfig
 
 type context = {
   environment : string -> string option;
@@ -323,7 +325,7 @@ type context = {
   variant : variant;
   git_directories : string list;
   urls : string list option;
-  mutable conditional_urls : bool;
+  mutable place : place;
   mutable settings : (key * value) list;
   limits : limits;
   mutable files : int;
@@ -339,6 +341,28 @@ let is_remote_url key =
   String.length key >= String.length "remote..url"
   && String.starts_with ~prefix:"remote." key
   && String.ends_with ~suffix:".url" key
+
+let hasconfig = "hasconfig:remote.*.url:"
+let hasconfig_setting = "includeif." ^ hasconfig
+let is_hasconfig key = String.starts_with ~prefix:hasconfig_setting key
+
+let meet context ~pathname ~inclusion key =
+  match (pathname, inclusion) with
+  | Some pathname, (Met | Unmet_hasconfig) when is_remote_url key -> (
+      match context.place with
+      | After_hasconfig -> Error (Remote_url_in_conditional_include pathname)
+      | Before_hasconfig None ->
+          context.place <- Before_hasconfig (Some pathname);
+          Ok ()
+      | Before_hasconfig (Some _) -> Ok ())
+  | _ -> (
+      match context.place with
+      | Before_hasconfig first when is_hasconfig key -> (
+          context.place <- After_hasconfig;
+          match first with
+          | None -> Ok ()
+          | Some pathname -> Error (Remote_url_in_conditional_include pathname))
+      | _ -> Ok ())
 
 let after ~prefix text =
   if String.starts_with ~prefix text then
@@ -395,11 +419,9 @@ let met context ~source condition =
               | Working_tree (Some branch) ->
                   Ok (match_any (with_ending text) [ branch ]))
           | None -> (
-              match after ~prefix:"hasconfig:remote.*.url:" condition with
-              | Some text -> (
-                  match context.urls with
-                  | None -> Ok false
-                  | Some urls -> Ok (match_any text urls))
+              match after ~prefix:hasconfig condition with
+              | Some text ->
+                  Ok (match_any text (Option.value ~default:[] context.urls))
               | None -> Ok false)))
 
 let same_file (pathname, identity) (pathname', identity') =
@@ -407,7 +429,7 @@ let same_file (pathname, identity) (pathname', identity') =
   | Some identity, Some identity' -> identity = identity'
   | _ -> String.equal pathname pathname'
 
-let rec include_file context ~chain ~conditional pathname =
+let rec include_file context ~chain ~inclusion pathname =
   let* file = read_file context pathname in
   match file with
   | No_file -> Ok ()
@@ -415,53 +437,53 @@ let rec include_file context ~chain ~conditional pathname =
   | Content { content; identity } ->
       if List.exists (same_file (pathname, identity)) chain then
         Error (Include_cycle pathname)
-      else
-        apply_content context ~chain ~conditional (pathname, identity) content
+      else apply_content context ~chain ~inclusion (pathname, identity) content
 
-and apply_content context ~chain ~conditional ((pathname, _) as file) content =
+and apply_content context ~chain ~inclusion ((pathname, _) as file) content =
   match parse content with
   | Error { line } -> Error (Syntax { pathname; line })
   | Ok settings ->
-      apply context
-        ~source:(Some (pathname, conditional))
-        ~chain:(file :: chain) settings
+      apply context ~pathname:(Some pathname) ~inclusion ~chain:(file :: chain)
+        settings
 
-and apply context ~source ~chain = function
-  | [] -> Ok ()
-  | (key, value) :: rest ->
-      context.settings <- (key, value) :: context.settings;
-      context.count <- context.count + 1;
-      if String.starts_with ~prefix:"includeif.hasconfig:remote.*.url:" key then
-        context.conditional_urls <- true;
-      let* () =
-        if context.count > context.limits.max_values then Error Limit_exceeded
-        else Ok ()
-      in
-      let* conditional =
-        match source with
-        | Some (pathname, true)
-          when is_remote_url key && Option.is_some context.urls ->
-            Error (Remote_url_in_conditional_include pathname)
-        | Some (_, conditional) -> Ok conditional
-        | None -> Ok false
-      in
-      let pathname = Option.map fst source in
-      let* () =
-        if key = "include.path" then
-          include_value context ~source:pathname ~chain ~conditional value
-        else
-          match condition_of key with
-          | None -> Ok ()
-          | Some condition ->
-              let* met = met context ~source:pathname condition in
-              if not met then Ok ()
-              else
-                include_value context ~source:pathname ~chain ~conditional:true
-                  value
-      in
-      apply context ~source ~chain rest
+and apply context ~pathname ~inclusion ~chain settings =
+  let rec loop = function
+    | [] -> Ok ()
+    | (key, value) :: rest ->
+        (match inclusion with
+        | Unmet_hasconfig -> ()
+        | Plain | Met -> context.settings <- (key, value) :: context.settings);
+        context.count <- context.count + 1;
+        let* () =
+          if context.count > context.limits.max_values then Error Limit_exceeded
+          else Ok ()
+        in
+        let* () = meet context ~pathname ~inclusion key in
+        let* () =
+          if key = "include.path" then
+            include_value context ~source:pathname ~chain ~inclusion value
+          else
+            match condition_of key with
+            | None -> Ok ()
+            | Some condition ->
+                let* met = met context ~source:pathname condition in
+                if met then
+                  include_value context ~source:pathname ~chain
+                    ~inclusion:
+                      (match inclusion with
+                      | Unmet_hasconfig -> Unmet_hasconfig
+                      | Plain | Met -> Met)
+                    value
+                else if String.starts_with ~prefix:hasconfig condition then
+                  include_value context ~source:pathname ~chain
+                    ~inclusion:Unmet_hasconfig value
+                else Ok ()
+        in
+        loop rest
+  in
+  loop settings
 
-and include_value context ~source ~chain ~conditional value =
+and include_value context ~source ~chain ~inclusion value =
   match pathname ~home:(context.environment "HOME") value with
   | Error _ -> Error (Unread_pathname { pathname = source; value })
   | Ok Names_no_file -> Ok ()
@@ -473,7 +495,7 @@ and include_value context ~source ~chain ~conditional value =
           | None -> Error (Relative_without_file value)
           | Some source -> Ok (Filename.concat (Filename.dirname source) path)
       in
-      include_file context ~chain ~conditional full
+      include_file context ~chain ~inclusion full
 
 let outer_file context pathname =
   if pathname = "" then Ok ()
@@ -482,7 +504,7 @@ let outer_file context pathname =
     match file with
     | No_file | Unreadable -> Ok ()
     | Content { content; identity } ->
-        apply_content context ~chain:[] ~conditional:false (pathname, identity)
+        apply_content context ~chain:[] ~inclusion:Plain (pathname, identity)
           content
 
 let parse_key text =
@@ -533,7 +555,8 @@ let environment_settings context =
           | None -> Error (Environment value_name)
           | Some value ->
               let* () =
-                apply context ~source:None ~chain:[] [ (key, Some value) ]
+                apply context ~pathname:None ~inclusion:Plain ~chain:[]
+                  [ (key, Some value) ]
               in
               pairs (n + 1))
   in
@@ -602,7 +625,7 @@ let collect ~limits ~environment ~read ~variant ~git_folder ~extra
       variant;
       git_directories;
       urls;
-      conditional_urls = false;
+      place = Before_hasconfig None;
       settings = [];
       limits;
       files = 0;
@@ -623,8 +646,7 @@ let collect ~limits ~environment ~read ~variant ~git_folder ~extra
         | Error { line } -> Error (Syntax { pathname = local; line })
         | Ok settings ->
             let* () =
-              apply context
-                ~source:(Some (local, false))
+              apply context ~pathname:(Some local) ~inclusion:Plain
                 ~chain:[ (local, identity) ]
                 settings
             in
@@ -633,12 +655,15 @@ let collect ~limits ~environment ~read ~variant ~git_folder ~extra
   let* extra = extra local_settings in
   let* () =
     each
-      (fun pathname ->
-        include_file context ~chain:[] ~conditional:false pathname)
+      (fun pathname -> include_file context ~chain:[] ~inclusion:Plain pathname)
       extra
   in
   let* () = environment_settings context in
-  Ok (List.rev context.settings, context.conditional_urls)
+  Ok
+    ( List.rev context.settings,
+      match context.place with
+      | After_hasconfig -> true
+      | Before_hasconfig _ -> false )
 
 let build ~limits ~environment ~read ~variant ~git_folder ~extra
     ~git_directories =

@@ -139,9 +139,9 @@ type error =
           in the file at [pathname], or in the environment when [pathname] is
           [None] *)
   | Relative_without_file of value
-      (** a value of [include.path], or a condition [gitdir:./] or
-          [gitdir/i:./], that is relative to a file comes from the environment,
-          which is no file *)
+      (** a value of [include.path] or of [includeIf.<condition>.path] that
+          includes a file, or a condition [gitdir:./] or [gitdir/i:./], that is
+          relative to a file comes from the environment, which is no file *)
   | Not_a_boolean of key
       (** the last value of this setting is not a boolean by {!boolean} *)
   | Include_cycle of string
@@ -150,14 +150,16 @@ type error =
           file when the reads give each an identity and the two identities are
           equal, and otherwise when their pathnames are the same bytes *)
   | Remote_url_in_conditional_include of string
-      (** the file at this pathname, which a met condition includes, in turn,
-          sets [remote.<name>.url], and the configuration has a setting
+      (** the file at this pathname sets [remote.<name>.url], and either a
+          condition [hasconfig:remote.*.url:] that is not met includes that
+          file, in turn, or a met condition includes that file, in turn, while
+          the configuration has a setting
           [includeIf.hasconfig:remote.*.url:<pattern>.<name>] *)
   | Remote_url_without_value
       (** a setting [remote.<name>.url] has the value [None], and a condition
           [hasconfig:remote.*.url:] needs the values of these settings *)
   | Limit_exceeded
-      (** the read would read more files, or give more values, than its
+      (** the read would read more files, or read more values, than its
           {!limits} allow; it gives no part of the configuration *)
 
 type limits = {
@@ -167,7 +169,9 @@ type limits = {
           each include, counted each time that it is read *)
   max_values : int;
       (** the maximum number of values of all the settings together, the values
-          of [include.path] and [includeIf.<condition>.path] included *)
+          of [include.path] and [includeIf.<condition>.path] included; the
+          values of the files that a condition [hasconfig:remote.*.url:] that is
+          not met includes, in turn, count too *)
 }
 (** The limits of the work of one read of a git configuration. When the
     configuration has a condition [hasconfig:remote.*.url:], each of the two
@@ -208,11 +212,11 @@ val of_repository :
     [No_file] holds no setting. [GIT_CONFIG] has no effect.
 
     A value of [include.path], and of [includeIf.<condition>.path] when the
-    condition is met, names a file by {!pathname}, relative to the folder of the
-    file that holds the value when it does not start with [/]; the settings of
-    that file come at the place of the value. [Names_no_file] includes nothing.
-    An empty value is a relative pathname: it names the folder of the file that
-    holds it. The conditions:
+    condition is met, includes the file that the value names by {!pathname},
+    relative to the folder of the file that holds the value when it does not
+    start with [/]; the settings of that file come at the place of the value.
+    [Names_no_file] includes nothing. An empty value is a relative pathname: it
+    names the folder of the file that holds it. The conditions:
 
     - [gitdir:] and a pattern is met when the pattern matches one of the
       pathnames [git_directories], by {!Sinter_wildmatch.matches}, after these
@@ -227,10 +231,27 @@ val of_repository :
     - Any other condition is never met: the setting [includeIf.<condition>.path]
       includes no file.
 
-    When the files and the environment that the read reads have a setting
-    [includeIf.hasconfig:remote.*.url:<pattern>.<name>], for any [<name>], a
-    setting [remote.<name>.url] in a file that a met condition includes, in
-    turn, gives [Remote_url_in_conditional_include].
+    A value of [includeIf.hasconfig:remote.*.url:<pattern>.path] whose condition
+    is not met also includes a file, by the same rules, but no setting of that
+    file, or of a file that it includes, in turn, is a setting of the
+    configuration. The read reads these files as it reads each other included
+    file, and it counts them and their values toward [limits].
+
+    The read meets the settings of the files and of the environment in their
+    order, with the settings of an included file at the place of its include. A
+    setting [remote.<name>.url], with a value or with none, gives
+    [Remote_url_in_conditional_include] where the read meets it in these files:
+
+    - a file that a condition [hasconfig:remote.*.url:] that is not met
+      includes, in turn;
+    - a file that a met condition includes, in turn, after the read meets the
+      first setting [includeIf.hasconfig:remote.*.url:<pattern>.<name>], for any
+      [<name>].
+
+    When the read meets that first setting, a setting [remote.<name>.url], with
+    a value or with none, that the read met before that place in a file that a
+    met condition includes, in turn, gives [Remote_url_in_conditional_include]
+    there, with the pathname of the first such file.
 
     The configuration of a git repository has no settings of a file
     [config.worktree]. The result is the first error that the files give, in

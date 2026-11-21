@@ -1335,10 +1335,12 @@ let more_condition_tests =
        The settings of the git configuration decide the upstream of the
        default branch. When a file or the environment that the read reads has
        a setting under a condition `hasconfig:remote.*.url:`, met or not, a
-       remote URL in a file that a met condition of any kind includes, in turn,
-       must make the configuration an error, as git 2.54.0 refuses it; with no
-       such setting, or in a file of a plain or an unmet include, the URL must
-       be a setting. *)
+       remote URL (with or without a value) in a file that a met condition of
+       any kind includes, in turn, must make the configuration an error, as
+       git 2.54.0 refuses it. With no such setting, or in a file of a plain
+       include, the remote URL must be a setting. In a file of an unmet
+       condition other than `hasconfig:remote.*.url:`, the include must give no
+       error. *)
     case "with a condition hasconfig, a URL under any met condition is an error"
       (fun () ->
         let hasconfig = "[includeIf \"hasconfig:remote.*.url:other\"]\n" in
@@ -1396,7 +1398,7 @@ let more_condition_tests =
                ^ "path = /hit.inc\n")
                 [ ("/via.inc", content gitdir) ] );
             ( "a URL with no value",
-              "remote url without value",
+              refused "/url-none.inc",
               run
                 ("[includeIf \"gitdir:/r/.git\"]\npath = /url-none.inc\n"
                ^ hasconfig ^ "path = /hit.inc\n")
@@ -1444,6 +1446,12 @@ let more_condition_tests =
               run
                 (gitdir
                ^ "[includeIf \"hasconfig:remote.*\"]\npath = /hit.inc\n")
+                [] );
+            ( "a condition with no colon after url",
+              "no error",
+              run
+                (gitdir
+               ^ "[includeIf \"hasconfig:remote.*.urlx\"]\npath = /hit.inc\n")
                 [] );
           ]);
     (* @verifies changes#give-default-branch-commits=v1
@@ -1495,26 +1503,6 @@ let more_condition_tests =
                 hasconfig
                 [ ("/url.inc", url) ] );
           ]);
-    case "a condition hasconfig that is not met reads nothing of its file"
-      (fun () ->
-        Alcotest.(check string)
-          "not met" "not met"
-          (match
-             fst
-               (run_with
-                  (include_world
-                     [
-                       ( config_path,
-                         content
-                           "[includeIf \"hasconfig:remote.*.url:nothing\"]\n\
-                            path = /bad.inc\n" );
-                       ("/bad.inc", Config.Unreadable);
-                     ]))
-           with
-          | Ok configuration ->
-              if Config.values configuration (key "s.met") = [] then "not met"
-              else "met"
-          | Error error -> error_name error));
     case "a limit of no value takes a configuration with no value" (fun () ->
         Alcotest.(check string)
           "empty" "ok"
@@ -1526,6 +1514,1329 @@ let more_condition_tests =
            with
           | Ok _ -> "ok"
           | Error error -> error_name error));
+  ]
+
+let unmet_hasconfig_tests =
+  let unmet = "[includeIf \"hasconfig:remote.*.url:nothing\"]\n" in
+  let url_file = content "[remote \"o\"]\nurl = /u\n" in
+  let plain_file = content "[s]\nv = 1\n" in
+  let syntax_file = content "[s\n" in
+  let run_result ?limits ?(env = no_system) ?git_directories ?working_tree
+      ?branch files =
+    match
+      fst
+        (run_with ?limits ?git_directories ?working_tree ?branch
+           (include_world ~env files))
+    with
+    | Ok _ -> "no error"
+    | Error error -> error_name error
+  in
+  let refused path = "remote url in conditional include " ^ path in
+  [
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A setting `includeIf.hasconfig:remote.*.url:<pattern>.path`
+       whose condition is not met must include the file that its value names,
+       as git 2.54.0 reads that file. An error of that value (an unread
+       pathname, or a relative pathname from the environment) or of that file
+       (an unreadable file, a syntax error, an empty value that names a folder,
+       or an include cycle) must be the error of the configuration. A missing
+       file, or a value that names no file, must give no error. A variable
+       other than `path` under that condition must include no file. The
+       settings of that file must not be settings of the configuration. *)
+    case "a condition hasconfig that is not met reads its file for errors"
+      (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "unreadable file",
+              "unreadable /bad.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /bad.inc\n"));
+                  ("/bad.inc", Config.Unreadable);
+                ] );
+            ( "syntax error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /syntax.inc\n"));
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "empty path naming folder",
+              "unreadable /r/.git/",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path =\n"));
+                  ("/r/.git/", Config.Unreadable);
+                ] );
+            ( "path without value",
+              Printf.sprintf "unread pathname %s %s" config_path
+                (show_value None),
+              run_result [ (config_path, content (unmet ^ "path\n")) ] );
+            ( "tilde path without HOME",
+              Printf.sprintf "unread pathname %s %s" config_path
+                (show_value (Some "~/x.inc")),
+              run_result [ (config_path, content (unmet ^ "path = ~/x.inc\n")) ]
+            );
+            ( "relative path from environment",
+              "relative without file " ^ show_value (Some "x.inc"),
+              run_result
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ( "GIT_CONFIG_KEY_0",
+                        "includeIf.hasconfig:remote.*.url:nothing.path" );
+                      ("GIT_CONFIG_VALUE_0", "x.inc");
+                    ])
+                [ (config_path, content "") ] );
+            ( "self include cycle",
+              "include cycle " ^ config_path,
+              run_result [ (config_path, content (unmet ^ "path = config\n")) ]
+            );
+            ( "uppercase variable PATH",
+              "unreadable /bad.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "PATH = /bad.inc\n"));
+                  ("/bad.inc", Config.Unreadable);
+                ] );
+            ( "missing file before syntax error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content (unmet ^ "path = /missing.inc\npath = /syntax.inc\n")
+                  );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "missing file gives no error",
+              "no error",
+              run_result
+                [ (config_path, content (unmet ^ "path = /missing.inc\n")) ] );
+            ( "prefix and optional forms give no error",
+              "no error",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet
+                     ^ "path = %(prefix)/etc/x\npath = :(optional)/etc/x\n") );
+                  ("/etc/x", Config.Unreadable);
+                ] );
+            ( "a variable other than path includes no file",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "foo = /bad.inc\n"));
+                  ("/bad.inc", Config.Unreadable);
+                ] );
+          ];
+        let world =
+          include_world
+            [
+              ( config_path,
+                content
+                  ("[s]\nv = 0\n" ^ unmet ^ "path = /plain.inc\n[s]\nv = 2\n")
+              );
+              ("/plain.inc", plain_file);
+            ]
+        in
+        let result, read_paths = run_with world in
+        let config =
+          match result with
+          | Ok configuration -> configuration
+          | Error error -> Alcotest.failf "plain file: %s" (error_name error)
+        in
+        Alcotest.(check bool)
+          "the reader reads the file of the unmet condition" true
+          (List.mem "/plain.inc" read_paths);
+        check_values "settings of the unmet file do not apply"
+          [ Some "0"; Some "2" ] config "s.v");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A setting `remote.<name>.url` in a file that an unmet
+       condition `hasconfig:remote.*.url:` includes must give
+       `Remote_url_in_conditional_include` with the pathname of that file, as
+       git 2.54.0 refuses that setting, whether the condition comes from the
+       file `config`, a system file, a global file, the file `config.worktree`,
+       or the environment. A setting `remote.url` or `remote.<name>.pushurl` is
+       not such a setting. The result must be the first error of the files in
+       their order. *)
+    case "a condition hasconfig that is not met refuses a remote URL" (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "in file config",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+            ( "a pattern that matches only the URL of the included file",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:/u\"]\n\
+                       path = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "uppercase REMOTE and URL",
+              refused "/upper.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /upper.inc\n"));
+                  ("/upper.inc", content "[REMOTE \"o\"]\nURL = /u\n");
+                ] );
+            ( "old subsection syntax",
+              refused "/old.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /old.inc\n"));
+                  ("/old.inc", content "[remote.o]\nurl = /u\n");
+                ] );
+            ( "empty remote name",
+              refused "/empty.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /empty.inc\n"));
+                  ("/empty.inc", content "[remote \"\"]\nurl = /u\n");
+                ] );
+            ( "remote without subsection is no remote URL",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /nosub.inc\n"));
+                  ("/nosub.inc", content "[remote]\nurl = /u\n");
+                ] );
+            ( "pushurl is no remote URL",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /pushurl.inc\n"));
+                  ("/pushurl.inc", content "[remote \"o\"]\npushurl = /u\n");
+                ] );
+            ( "in global file with another remote in config",
+              refused "/url.inc",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content (unmet ^ "path = /url.inc\n"));
+                  (config_path, content "[remote \"p\"]\nurl = /v\n");
+                  ("/url.inc", url_file);
+                ] );
+            ( "unreadable include from global file",
+              "unreadable /dir.inc",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content (unmet ^ "path = /dir.inc\n"));
+                  (config_path, content "");
+                  ("/dir.inc", Config.Unreadable);
+                ] );
+            ( "in system file",
+              refused "/url.inc",
+              run_result
+                ~env:[ ("GIT_CONFIG_SYSTEM", "/sys") ]
+                [
+                  ("/sys", content (unmet ^ "path = /url.inc\n"));
+                  (config_path, content "");
+                  ("/url.inc", url_file);
+                ] );
+            ( "in config.worktree",
+              refused "/url.inc",
+              run_result ~working_tree:git_folder
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( git_folder ^ "/config.worktree",
+                    content (unmet ^ "path = /url.inc\n") );
+                  ("/url.inc", url_file);
+                ] );
+            ( "from environment",
+              refused "/url.inc",
+              run_result
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ( "GIT_CONFIG_KEY_0",
+                        "includeIf.hasconfig:remote.*.url:nothing.path" );
+                      ("GIT_CONFIG_VALUE_0", "/url.inc");
+                    ])
+                [ (config_path, content ""); ("/url.inc", url_file) ] );
+            ( "same file in plain include and unmet hasconfig",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      ("[include]\npath = /url.inc\n" ^ unmet
+                     ^ "path = /url.inc\n") );
+                  ("/url.inc", url_file);
+                ] );
+            ( "URL before syntax error under unmet hasconfig",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content (unmet ^ "path = /url.inc\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "syntax error before URL under unmet hasconfig",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content (unmet ^ "path = /syntax.inc\npath = /url.inc\n") );
+                  ("/syntax.inc", syntax_file);
+                  ("/url.inc", url_file);
+                ] );
+            ( "missing file before URL under unmet hasconfig",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content (unmet ^ "path = /missing.inc\npath = /url.inc\n")
+                  );
+                  ("/url.inc", url_file);
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. The settings of a file that an unmet condition
+       `hasconfig:remote.*.url:` includes must not be settings of the
+       configuration, as git 2.54.0 reads that file, whether the condition
+       comes from a global file, the file `config.worktree`, or the
+       environment. The settings of the other files must stay settings of the
+       configuration. *)
+    case "a condition hasconfig that is not met gives no setting in any source"
+      (fun () ->
+        let global_cfg =
+          configuration_of
+            (include_world
+               ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+               [
+                 ("/global", content (unmet ^ "path = /plain.inc\n"));
+                 (config_path, content "[remote \"p\"]\nurl = /v\n");
+                 ("/plain.inc", plain_file);
+               ])
+        in
+        check_values "global unmet file gives no setting" [] global_cfg "s.v";
+        check_values "config remote stays" [ Some "/v" ] global_cfg
+          "remote.p.url";
+        let worktree_cfg =
+          configuration_of ~working_tree:git_folder
+            (include_world
+               [
+                 (config_path, content "[extensions]\nworktreeConfig = true\n");
+                 ( git_folder ^ "/config.worktree",
+                   content (unmet ^ "path = /plain.inc\n[s]\nw = 2\n") );
+                 ("/plain.inc", plain_file);
+               ])
+        in
+        check_values "worktree unmet file gives no setting" [] worktree_cfg
+          "s.v";
+        check_values "worktree own setting stays" [ Some "2" ] worktree_cfg
+          "s.w";
+        let env_cfg =
+          configuration_of
+            (include_world
+               ~env:
+                 (no_system
+                 @ [
+                     ("GIT_CONFIG_COUNT", "1");
+                     ( "GIT_CONFIG_KEY_0",
+                       "includeIf.hasconfig:remote.*.url:nothing.path" );
+                     ("GIT_CONFIG_VALUE_0", "/plain.inc");
+                   ])
+               [
+                 (config_path, content "[s]\na = 0\n");
+                 ("/plain.inc", plain_file);
+               ])
+        in
+        check_values "env unmet file gives no setting" [] env_cfg "s.v";
+        check_values "config setting stays" [ Some "0" ] env_cfg "s.a");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A file that an unmet condition `hasconfig:remote.*.url:`
+       includes must include other files by the usual rules, as git 2.54.0
+       reads them. In that file, a plain include, a met condition, and a
+       condition `hasconfig:remote.*.url:`, met or not, must include their
+       files under the same rule: a read error is the error of the
+       configuration, a remote URL gives `Remote_url_in_conditional_include`,
+       and no setting is a setting of the configuration. Any other condition
+       that is not met must include no file. An unmet condition
+       `hasconfig:remote.*.url:` in a file of a plain include or of a met
+       condition must include its file under the same rule. The settings of the
+       other files must stay settings of the configuration. *)
+    case "a file under an unmet condition hasconfig follows nested includes"
+      (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "plain include to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ("/via.inc", content "[include]\npath = /url.inc\n");
+                  ("/url.inc", url_file);
+                ] );
+            ( "plain include to syntax error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ("/via.inc", content "[include]\npath = /syntax.inc\n");
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "relative path to relative plain include with URL",
+              refused "/r/.git/sub/rel_url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = sub/mid.inc\n"));
+                  ( "/r/.git/sub/mid.inc",
+                    content "[include]\npath = rel_url.inc\n" );
+                  ("/r/.git/sub/rel_url.inc", url_file);
+                ] );
+            ( "nested unmet hasconfig to unreadable folder",
+              "unreadable /dir.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:still-nothing\"]\n\
+                       path = /dir.inc\n" );
+                  ("/dir.inc", Config.Unreadable);
+                ] );
+            ( "nested unmet hasconfig to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:still-nothing\"]\n\
+                       path = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "nested met hasconfig to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      ("[remote \"p\"]\nurl = /v\n" ^ unmet
+                     ^ "path = /via.inc\n") );
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                       path = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met gitdir to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:/r/.git\"]\npath = /url.inc\n"
+                  );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met gitdir to syntax error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"gitdir:/r/.git\"]\npath = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "met gitdir/i to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"gitdir/i:/R/.GIT\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met relative gitdir:./ to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /r/via.inc\n"));
+                  ( "/r/via.inc",
+                    content "[includeIf \"gitdir:./\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet gitdir to URL",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet gitdir to syntax error",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\npath = /syntax.inc\n"
+                  );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "unmet gitdir/i to URL",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"gitdir/i:/NOTHING/\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met onbranch to URL",
+              refused "/url.inc",
+              run_result ~working_tree:git_folder ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:main\"]\npath = /url.inc\n"
+                  );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met onbranch to syntax error",
+              "syntax /syntax.inc:1",
+              run_result ~working_tree:git_folder ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"onbranch:main\"]\npath = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "unmet onbranch to URL",
+              "no error",
+              run_result ~working_tree:git_folder ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:other\"]\npath = /url.inc\n"
+                  );
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet onbranch to syntax error",
+              "no error",
+              run_result ~working_tree:git_folder ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"onbranch:other\"]\npath = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "onbranch in repository without working tree",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:**\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "onbranch in detached working tree",
+              "no error",
+              run_result ~working_tree:git_folder
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:**\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "unknown condition to syntax error",
+              "no error",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"foo:bar\"]\npath = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "indirect include cycle via plain include",
+              "include cycle /a.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /a.inc\n"));
+                  ("/a.inc", content "[include]\npath = /b.inc\n");
+                  ("/b.inc", content "[include]\npath = /a.inc\n");
+                ] );
+            ( "indirect include cycle via unmet hasconfig",
+              "include cycle /a.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /a.inc\n"));
+                  ("/a.inc", content (unmet ^ "path = /a.inc\n"));
+                ] );
+            ( "plain include to unmet hasconfig to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  (config_path, content "[include]\npath = /via.inc\n");
+                  ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+            ( "met gitdir to unmet hasconfig to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:/r/.git\"]\npath = /via.inc\n"
+                  );
+                  ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+            ( "met onbranch to unmet hasconfig to URL",
+              refused "/url.inc",
+              run_result ~working_tree:git_folder ~branch:"main"
+                [
+                  ( config_path,
+                    content "[includeIf \"onbranch:main\"]\npath = /via.inc\n"
+                  );
+                  ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+            ( "met hasconfig to unmet hasconfig to URL",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                       path = /via.inc\n\
+                       [remote \"p\"]\n\
+                       url = /v\n" );
+                  ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+          ];
+        Alcotest.(check string)
+          "indirect include cycle by identity" "cycle"
+          (match
+             fst
+               (run_with
+                  (include_world
+                     [
+                       ( config_path,
+                         content ~identity:(1, 1) (unmet ^ "path = /a.inc\n") );
+                       ( "/a.inc",
+                         content ~identity:(1, 2)
+                           "[include]\npath = /link.inc\n" );
+                       ( "/link.inc",
+                         content ~identity:(1, 2) "[include]\npath = /a.inc\n"
+                       );
+                     ]))
+           with
+          | Ok _ -> "no error"
+          | Error (Config.Include_cycle _) -> "cycle"
+          | Error error -> error_name error);
+        let check_no_leak ?working_tree ?branch name via_content =
+          let cfg =
+            configuration_of ?working_tree ?branch
+              (include_world
+                 [
+                   ( config_path,
+                     content
+                       ("[remote \"p\"]\nurl = /v\n" ^ unmet
+                      ^ "path = /via.inc\n") );
+                   ("/via.inc", content via_content);
+                   ("/plain.inc", plain_file);
+                 ])
+          in
+          check_values (name ^ ": no s.v") [] cfg "s.v";
+          check_values (name ^ ": remote stays") [ Some "/v" ] cfg
+            "remote.p.url"
+        in
+        check_no_leak "plain include under unmet hasconfig"
+          "[include]\npath = /plain.inc\n";
+        check_no_leak "met gitdir under unmet hasconfig"
+          "[includeIf \"gitdir:/r/.git\"]\npath = /plain.inc\n";
+        check_no_leak ~working_tree:git_folder ~branch:"main"
+          "met onbranch under unmet hasconfig"
+          "[includeIf \"onbranch:main\"]\npath = /plain.inc\n";
+        check_no_leak "met hasconfig under unmet hasconfig"
+          "[s]\n\
+           v = 9\n\
+           [includeIf \"hasconfig:remote.*.url:/v\"]\n\
+           path = /plain.inc\n\
+           [s]\n\
+           v = 8\n";
+        let after_cfg =
+          configuration_of
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     (unmet ^ "path = /p2.inc\n"
+                    ^ "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                       path = /p3.inc\n\
+                       [remote \"p\"]\n\
+                       url = /v\n") );
+                 ("/p2.inc", content "[s]\na = 2\n");
+                 ("/p3.inc", content "[s]\na = 3\n");
+               ])
+        in
+        check_values "met hasconfig after unmet hasconfig applies" [ Some "3" ]
+          after_cfg "s.a";
+        let nested_restore_cfg =
+          configuration_of
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                      path = /outer.inc\n\
+                      [remote \"p\"]\n\
+                      url = /v\n" );
+                 ( "/outer.inc",
+                   content
+                     ("[s]\na = 1\n" ^ unmet ^ "path = /inner.inc\n[s]\na = 3\n")
+                 );
+                 ("/inner.inc", content "[s]\na = 2\n");
+               ])
+        in
+        check_values "settings before and after inner unmet hasconfig apply"
+          [ Some "1"; Some "3" ] nested_restore_cfg "s.a");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A file that an unmet condition `hasconfig:remote.*.url:`
+       includes, and each file that it includes, in turn, must count toward
+       `limits.max_files`, and its values toward `limits.max_values`, as any
+       other included file does. *)
+    case "a file under an unmet condition hasconfig counts toward limits"
+      (fun () ->
+        let run_limit max_files max_values files =
+          match
+            fst
+              (run_with
+                 ~limits:{ Config.max_files; max_values }
+                 (include_world files))
+          with
+          | Ok cfg -> show_values (Config.values cfg (key "s.a"))
+          | Error error -> error_name error
+        in
+        let single =
+          [
+            ( config_path,
+              content ("[s]\nx = 1\n" ^ unmet ^ "path = plain.inc\n") );
+            ("/r/.git/plain.inc", content "[s]\na = 1\nb = 2\n");
+          ]
+        in
+        Alcotest.(check string)
+          "2 files and 4 values" (show_values []) (run_limit 2 4 single);
+        Alcotest.(check string)
+          "1 file exceeds max_files" "limit exceeded" (run_limit 1 4 single);
+        Alcotest.(check string)
+          "3 values exceeds max_values" "limit exceeded" (run_limit 2 3 single);
+        let twice =
+          [
+            ( config_path,
+              content (unmet ^ "path = plain.inc\npath = plain.inc\n") );
+            ("/r/.git/plain.inc", content "[s]\na = 1\n");
+          ]
+        in
+        Alcotest.(check string)
+          "same file twice: 3 files and 4 values" (show_values [])
+          (run_limit 3 4 twice);
+        Alcotest.(check string)
+          "same file twice: 2 files exceeds max_files" "limit exceeded"
+          (run_limit 2 4 twice);
+        Alcotest.(check string)
+          "same file twice: 3 values exceeds max_values" "limit exceeded"
+          (run_limit 3 3 twice);
+        let nested =
+          [
+            (config_path, content (unmet ^ "path = /via.inc\n"));
+            ("/via.inc", content "[include]\npath = /plain.inc\n");
+            ("/plain.inc", content "[s]\na = 1\n");
+          ]
+        in
+        Alcotest.(check string)
+          "nested: 3 files and 3 values" (show_values []) (run_limit 3 3 nested);
+        Alcotest.(check string)
+          "nested: 2 files exceeds max_files" "limit exceeded"
+          (run_limit 2 3 nested);
+        Alcotest.(check string)
+          "nested: 2 values exceeds max_values" "limit exceeded"
+          (run_limit 3 2 nested);
+        let missing =
+          [ (config_path, content (unmet ^ "path = gone.inc\n")) ]
+        in
+        Alcotest.(check string)
+          "missing file: 2 files" (show_values []) (run_limit 2 10 missing);
+        Alcotest.(check string)
+          "missing file: 1 file exceeds max_files" "limit exceeded"
+          (run_limit 1 10 missing));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. For generated includes in a file that an unmet
+       condition `hasconfig:remote.*.url:` includes, the result must be the
+       first error of the files that the usual rules include, in their order,
+       as git 2.54.0 gives it: a read error, or
+       `Remote_url_in_conditional_include` for a remote URL. When those files
+       give no error, the result must be a configuration with no setting of
+       those files and with the settings of the file `config`. *)
+    property ~count:300
+      ~name:"generated include trees under an unmet condition hasconfig"
+      ~print:(fun entries ->
+        String.concat "; "
+          (List.map (fun (k, l) -> Printf.sprintf "(%s, %s)" k l) entries))
+      Gen.(
+        list_size (int_range 1 4)
+          (pair
+             (oneof_list
+                [
+                  "setting";
+                  "plain";
+                  "met_gitdir";
+                  "unmet_gitdir";
+                  "unmet_hasconfig";
+                  "met_hasconfig";
+                ])
+             (oneof_list [ "plain"; "missing"; "syntax"; "unreadable"; "url" ])))
+      (fun entries ->
+        let lines = ref [] in
+        let files = ref [] in
+        let first_error = ref None in
+        let record_error err =
+          if !first_error = None then first_error := Some err
+        in
+        List.iteri
+          (fun idx (kind, leaf) ->
+            let path = Printf.sprintf "/leaf_%d.inc" idx in
+            let reachable =
+              match kind with
+              | "setting" ->
+                  lines := Printf.sprintf "[s]\nv = s%d\n" idx :: !lines;
+                  false
+              | "plain" ->
+                  lines :=
+                    Printf.sprintf "[include]\npath = %s\n" path :: !lines;
+                  true
+              | "met_gitdir" ->
+                  lines :=
+                    Printf.sprintf "[includeIf \"gitdir:/r/.git\"]\npath = %s\n"
+                      path
+                    :: !lines;
+                  true
+              | "unmet_gitdir" ->
+                  lines :=
+                    Printf.sprintf
+                      "[includeIf \"gitdir:/nothing/\"]\npath = %s\n" path
+                    :: !lines;
+                  false
+              | "unmet_hasconfig" ->
+                  lines :=
+                    Printf.sprintf
+                      "[includeIf \"hasconfig:remote.*.url:still-nothing\"]\n\
+                       path = %s\n"
+                      path
+                    :: !lines;
+                  true
+              | _ ->
+                  lines :=
+                    Printf.sprintf
+                      "[includeIf \"hasconfig:remote.*.url:/match\"]\n\
+                       path = %s\n"
+                      path
+                    :: !lines;
+                  true
+            in
+            if kind <> "setting" then
+              match leaf with
+              | "plain" ->
+                  files :=
+                    (path, content (Printf.sprintf "[s]\nv = l%d\n" idx))
+                    :: !files
+              | "missing" -> ()
+              | "syntax" ->
+                  files := (path, syntax_file) :: !files;
+                  if reachable then
+                    record_error (Printf.sprintf "syntax %s:1" path)
+              | "unreadable" ->
+                  files := (path, Config.Unreadable) :: !files;
+                  if reachable then record_error ("unreadable " ^ path)
+              | _ ->
+                  files := (path, url_file) :: !files;
+                  if reachable then record_error (refused path))
+          entries;
+        let mid_content = String.concat "" (List.rev !lines) in
+        let world =
+          include_world
+            (( config_path,
+               content
+                 ("[remote \"p\"]\nurl = /match\n" ^ unmet ^ "path = /mid.inc\n")
+             )
+            :: ("/mid.inc", content mid_content)
+            :: !files)
+        in
+        match (fst (run_with world), !first_error) with
+        | Ok cfg, None ->
+            Config.values cfg (key "s.v") = []
+            && Config.values cfg (key "remote.p.url") = [ Some "/match" ]
+        | Error err, Some expected -> error_name err = expected
+        | _ -> false);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When the read meets the first setting
+       `includeIf.hasconfig:remote.*.url:<pattern>.<name>` of the
+       configuration, a setting `remote.<name>.url` (with or without a value)
+       that the read met before in a file under a met condition must give
+       `Remote_url_in_conditional_include` there with the pathname of the first
+       such file, as git 2.54.0 refuses it. After that setting, such a remote
+       URL must give `Remote_url_in_conditional_include` where the read meets
+       it. A read error before that place must come first, and the refusal must
+       come before a read error after that place. *)
+    case "a remote URL is refused at the first hasconfig setting or where read"
+      (fun () ->
+        let gitdir path =
+          Printf.sprintf "[includeIf \"gitdir:/r/.git\"]\npath = %s\n" path
+        in
+        let url_none = content "[remote \"o\"]\nurl\n" in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "read error before first hasconfig wins over earlier conditional \
+               URL",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url.inc" ^ "[include]\npath = /syntax.inc\n"
+                     ^ unmet ^ "path = /plain.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "earlier conditional URL is refused at first hasconfig before \
+               later read error",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url.inc" ^ unmet ^ "path = /plain.inc\n"
+                     ^ "[include]\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "earlier conditional URL is refused before reading file of first \
+               hasconfig",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content (gitdir "/url.inc" ^ unmet ^ "path = /syntax.inc\n")
+                  );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "earlier conditional URL is refused at non-path hasconfig before \
+               later read error",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url.inc" ^ unmet ^ "foo = bar\n"
+                     ^ "[include]\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "two earlier conditional URLs report the first file",
+              refused "/url1.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url1.inc" ^ gitdir "/url2.inc" ^ unmet
+                     ^ "path = /plain.inc\n") );
+                  ("/url1.inc", url_file);
+                  ("/url2.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "later conditional URL after hasconfig is refused before later \
+               read error",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /plain.inc\n" ^ gitdir "/url.inc"
+                     ^ "[include]\npath = /syntax.inc\n") );
+                  ("/plain.inc", plain_file);
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "read error after hasconfig wins over later conditional URL",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /plain.inc\n"
+                     ^ "[include]\npath = /syntax.inc\n" ^ gitdir "/url.inc") );
+                  ("/plain.inc", plain_file);
+                  ("/syntax.inc", syntax_file);
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet hasconfig URL is refused before later plain include read \
+               error",
+              refused "/url.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /url.inc\n"
+                     ^ "[include]\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "plain include read error before unmet hasconfig URL wins",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      ("[include]\npath = /syntax.inc\n" ^ unmet
+                     ^ "path = /url.inc\n") );
+                  ("/syntax.inc", syntax_file);
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet hasconfig read error wins over later plain include read \
+               error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /syntax.inc\n"
+                     ^ "[include]\npath = /dir.inc\n") );
+                  ("/syntax.inc", syntax_file);
+                  ("/dir.inc", Config.Unreadable);
+                ] );
+            ( "global conditional URL: config read error before hasconfig wins",
+              "syntax /syntax.inc:1",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content (gitdir "/url.inc"));
+                  ( config_path,
+                    content
+                      ("[include]\npath = /syntax.inc\n" ^ unmet
+                     ^ "path = /plain.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "global conditional URL: refused at config hasconfig before \
+               later read error",
+              refused "/url.inc",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content (gitdir "/url.inc"));
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /plain.inc\n"
+                     ^ "[include]\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "config conditional URL: config read error before env hasconfig \
+               wins",
+              "syntax /syntax.inc:1",
+              run_result
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ( "GIT_CONFIG_KEY_0",
+                        "includeIf.hasconfig:remote.*.url:nothing.path" );
+                      ("GIT_CONFIG_VALUE_0", "/plain.inc");
+                    ])
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url.inc" ^ "[include]\npath = /syntax.inc\n") );
+                  ("/url.inc", url_file);
+                  ("/syntax.inc", syntax_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "config conditional URL: refused at env hasconfig before later \
+               env read error",
+              refused "/url.inc",
+              run_result
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "2");
+                      ( "GIT_CONFIG_KEY_0",
+                        "includeIf.hasconfig:remote.*.url:nothing.path" );
+                      ("GIT_CONFIG_VALUE_0", "/plain.inc");
+                      ("GIT_CONFIG_KEY_1", "include.path");
+                      ("GIT_CONFIG_VALUE_1", "/syntax.inc");
+                    ])
+                [
+                  (config_path, content (gitdir "/url.inc"));
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "URL without value under unmet hasconfig is refused",
+              refused "/url-none.inc",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /url-none.inc\n"));
+                  ("/url-none.inc", url_none);
+                ] );
+            ( "URL without value under met hasconfig is refused",
+              refused "/url-none.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                       path = /url-none.inc\n\
+                       [remote \"p\"]\n\
+                       url = /v\n" );
+                  ("/url-none.inc", url_none);
+                ] );
+            ( "URL without value under met gitdir after hasconfig is refused",
+              refused "/url-none.inc",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (unmet ^ "path = /plain.inc\n" ^ gitdir "/url-none.inc")
+                  );
+                  ("/plain.inc", plain_file);
+                  ("/url-none.inc", url_none);
+                ] );
+            ( "URL without value under met gitdir: read error before hasconfig \
+               wins",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      (gitdir "/url-none.inc"
+                     ^ "[include]\npath = /syntax.inc\n" ^ unmet
+                     ^ "path = /plain.inc\n") );
+                  ("/url-none.inc", url_none);
+                  ("/syntax.inc", syntax_file);
+                  ("/plain.inc", plain_file);
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A met condition in a file that a met condition
+       includes, in turn, must include its file as a met condition does, as
+       git 2.54.0 reads that file. The settings of that file must be settings
+       of the configuration. With no setting
+       `includeIf.hasconfig:remote.*.url:<pattern>.<name>`, a remote URL in
+       that file must be a setting. A remote URL in that file before the first
+       such setting must give `Remote_url_in_conditional_include` at that
+       setting, and a read error before that setting must come first. A remote
+       URL in that file after that setting must give
+       `Remote_url_in_conditional_include` where the read meets it, and a read
+       error before the URL must come first. *)
+    case
+      "a met condition in a file of a met condition includes its file as a met \
+       condition" (fun () ->
+        let gitdir path =
+          Printf.sprintf "[includeIf \"gitdir:/r/.git\"]\npath = %s\n" path
+        in
+        let check_setting ?working_tree ?branch name files =
+          check_values name [ Some "1" ]
+            (configuration_of ?working_tree ?branch (include_world files))
+            "s.v"
+        in
+        check_setting "met gitdir in a file of a met gitdir"
+          [
+            (config_path, content (gitdir "/outer.inc"));
+            ("/outer.inc", content (gitdir "/plain.inc"));
+            ("/plain.inc", plain_file);
+          ];
+        check_setting "met hasconfig in a file of a met gitdir"
+          [
+            ( config_path,
+              content (gitdir "/outer.inc" ^ "[remote \"p\"]\nurl = /v\n") );
+            ( "/outer.inc",
+              content
+                "[includeIf \"hasconfig:remote.*.url:/v\"]\npath = /plain.inc\n"
+            );
+            ("/plain.inc", plain_file);
+          ];
+        check_setting "met gitdir in a file of a met hasconfig"
+          [
+            ( config_path,
+              content
+                "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                 path = /outer.inc\n\
+                 [remote \"p\"]\n\
+                 url = /v\n" );
+            ("/outer.inc", content (gitdir "/plain.inc"));
+            ("/plain.inc", plain_file);
+          ];
+        check_setting ~working_tree:git_folder ~branch:"main"
+          "met onbranch in a file of a met gitdir"
+          [
+            (config_path, content (gitdir "/outer.inc"));
+            ( "/outer.inc",
+              content "[includeIf \"onbranch:main\"]\npath = /plain.inc\n" );
+            ("/plain.inc", plain_file);
+          ];
+        let nested config =
+          [
+            (config_path, content config);
+            ("/outer.inc", content (gitdir "/url.inc"));
+            ("/url.inc", url_file);
+            ("/syntax.inc", syntax_file);
+            ("/plain.inc", plain_file);
+          ]
+        in
+        check_values "a URL with no condition hasconfig is a setting"
+          [ Some "/u" ]
+          (configuration_of (include_world (nested (gitdir "/outer.inc"))))
+          "remote.o.url";
+        let syntax = "[include]\npath = /syntax.inc\n" in
+        let condition = unmet ^ "path = /plain.inc\n" in
+        List.iter
+          (fun (name, expected, config) ->
+            Alcotest.(check string) name expected (run_result (nested config)))
+          [
+            ( "a URL before the condition hasconfig is refused at the condition",
+              refused "/url.inc",
+              gitdir "/outer.inc" ^ condition ^ syntax );
+            ( "a read error before the condition hasconfig comes first",
+              "syntax /syntax.inc:1",
+              gitdir "/outer.inc" ^ syntax ^ condition );
+            ( "a URL after the condition hasconfig is refused where read",
+              refused "/url.inc",
+              condition ^ gitdir "/outer.inc" ^ syntax );
+            ( "a read error before the URL comes first",
+              "syntax /syntax.inc:1",
+              condition ^ syntax ^ gitdir "/outer.inc" );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. An unmet condition other than `hasconfig:remote.*.url:`,
+       such as `gitdir:`, `onbranch:`, or `hasconfig:remote.*.pushurl:`, must
+       read nothing of its file, as git 2.54.0 reads nothing of that file,
+       even when that file has a syntax error or holds a condition
+       `hasconfig:remote.*.url:`. *)
+    case "other unmet conditions read nothing of their files" (fun () ->
+        let check_unread ?working_tree ?branch name target files =
+          let result, read_paths =
+            run_with ?working_tree ?branch (include_world files)
+          in
+          (match result with
+          | Ok _ -> ()
+          | Error error ->
+              Alcotest.failf "%s: unexpected %s" name (error_name error));
+          Alcotest.(check bool)
+            (name ^ ": file not read") false
+            (List.mem target read_paths)
+        in
+        check_unread "unmet gitdir to syntax error" "/syntax.inc"
+          [
+            ( config_path,
+              content "[includeIf \"gitdir:/nothing/\"]\npath = /syntax.inc\n"
+            );
+            ("/syntax.inc", syntax_file);
+          ];
+        check_unread "unmet gitdir to unmet hasconfig with URL" "/via.inc"
+          [
+            ( config_path,
+              content "[includeIf \"gitdir:/nothing/\"]\npath = /via.inc\n" );
+            ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+            ("/url.inc", url_file);
+          ];
+        check_unread ~working_tree:git_folder ~branch:"main"
+          "unmet onbranch to unmet hasconfig with URL" "/via.inc"
+          [
+            ( config_path,
+              content "[includeIf \"onbranch:other\"]\npath = /via.inc\n" );
+            ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+            ("/url.inc", url_file);
+          ];
+        check_unread "a condition hasconfig on pushurl to syntax error"
+          "/syntax.inc"
+          [
+            ( config_path,
+              content
+                "[includeIf \"hasconfig:remote.*.pushurl:x\"]\n\
+                 path = /syntax.inc\n" );
+            ("/syntax.inc", syntax_file);
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A met condition `hasconfig:remote.*.url:` must include
+       its file: the settings of that file must be settings of the
+       configuration, and a remote URL in that file must give
+       `Remote_url_in_conditional_include`, as git 2.54.0 reads that file. *)
+    case "a met condition hasconfig includes its file and refuses a remote URL"
+      (fun () ->
+        let met_cfg =
+          configuration_of
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                      path = /plain.inc\n\
+                      [remote \"p\"]\n\
+                      url = /v\n" );
+                 ("/plain.inc", plain_file);
+               ])
+        in
+        check_values "met hasconfig applies settings" [ Some "1" ] met_cfg "s.v";
+        check_values "met hasconfig keeps remote" [ Some "/v" ] met_cfg
+          "remote.p.url";
+        Alcotest.(check string)
+          "met hasconfig refuses URL" (refused "/url.inc")
+          (run_result
+             [
+               ( config_path,
+                 content
+                   "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                    path = /url.inc\n\
+                    [remote \"p\"]\n\
+                    url = /v\n" );
+               ("/url.inc", url_file);
+             ]));
   ]
 
 let worktree_tests =
@@ -2131,5 +3442,5 @@ let tests =
   @ key_tests @ syntax_tests @ boolean_tests @ integer_boolean_tests
   @ pathname_tests @ order_tests @ read_tests @ environment_tests
   @ more_environment_tests @ file_tests @ include_tests @ limit_tests
-  @ condition_tests @ more_condition_tests @ worktree_tests @ upstream_tests
-  @ [ upstream_vectors ]
+  @ condition_tests @ more_condition_tests @ unmet_hasconfig_tests
+  @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
