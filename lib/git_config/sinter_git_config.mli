@@ -134,10 +134,11 @@ type error =
           the count *)
   | Unread_pathname of { pathname : string option; value : value }
       (** {!pathname} gives an error for the value [value] of [include.path] or
-          [includeIf.<condition>.path], or [value] is a pattern of a condition
-          [gitdir:] or [gitdir/i:] that starts with [~/] when [HOME] is not set;
-          in the file at [pathname], or in the environment when [pathname] is
-          [None] *)
+          [includeIf.<condition>.path], or the value of [HOME] is empty and
+          [value] is the value of a setting [includeIf.<condition>.<name>], for
+          any [<name>], whose condition is [gitdir:] or [gitdir/i:] and a
+          pattern that is [~] or starts with [~/]; in the file at [pathname], or
+          in the environment when [pathname] is [None] *)
   | Relative_without_file of value
       (** a value of [include.path] or of [includeIf.<condition>.path] that
           includes a file, or a condition [gitdir:./] or [gitdir/i:./], that is
@@ -182,13 +183,16 @@ val of_repository :
   environment:(string -> string option) ->
   read:(string -> file) ->
   git_directories:string list ->
+  branch:string option ->
   string ->
   (t, error) result
-(** [of_repository ~limits ~environment ~read ~git_directories git_folder] is
-    the git configuration of the git repository whose git folder is at the
-    pathname [git_folder]. [environment name] is the value of the environment
-    variable [name], and [read pathname] is what the file at [pathname] gives.
-    The files, in this order:
+(** [of_repository ~limits ~environment ~read ~git_directories ~branch
+     git_folder] is the git configuration of the git repository whose git folder
+    is at the pathname [git_folder]. [environment name] is the value of the
+    environment variable [name], and [read pathname] is what the file at
+    [pathname] gives. [branch] is [Some name] when the HEAD of [git_folder]
+    names a branch, with [name] its name after [refs/heads/], and [None]
+    otherwise. The files, in this order:
 
     + the system file: the value of [GIT_CONFIG_SYSTEM], or [/etc/gitconfig]
       when that variable is not set; none when [GIT_CONFIG_NOSYSTEM] is true by
@@ -220,14 +224,23 @@ val of_repository :
 
     - [gitdir:] and a pattern is met when the pattern matches one of the
       pathnames [git_directories], by {!Sinter_wildmatch.matches}, after these
-      steps: a [~/] at its start becomes [$HOME/]; a [./] at its start becomes
-      the folder of the file that holds it, then [/]; a pattern that then does
-      not start with [/] gets [**/] before it; and a pattern that ends with [/]
-      gets [**] after it. [gitdir/i:] is the same with [~case_fold:true].
+      steps: when the pattern is [~] or starts with [~/], the [~] at its start
+      becomes the value of [HOME]; a [./] at its start becomes the folder of the
+      file that holds it, then [/]; a pattern that then does not start with [/]
+      gets [**/] before it; and a pattern that ends with [/] gets [**] after it.
+      [gitdir/i:] is the same with [~case_fold:true]. A pattern that starts with
+      [~] and then a byte other than [/] keeps its [~]. When [HOME] is not set,
+      a condition [gitdir:] or [gitdir/i:] whose pattern is [~] or starts with
+      [~/] is not met. When the value of [HOME] is empty, each setting
+      [includeIf.<condition>.<name>] with such a condition, for any [<name>] and
+      with a value or with none, gives [Unread_pathname] where the read meets
+      that setting.
     - [hasconfig:remote.*.url:] and a pattern is met when the pattern matches a
       value of a setting [remote.<name>.url] of the configuration in which no
       such condition is met.
-    - A condition [onbranch:] is never met, and its section has no effect.
+    - [onbranch:] and a pattern is met when [branch] is [Some name] and the
+      pattern matches [name] by {!Sinter_wildmatch.matches}, with [**] after a
+      pattern that ends with [/].
     - Any other condition is never met: the setting [includeIf.<condition>.path]
       includes no file.
 
@@ -271,15 +284,14 @@ val of_working_tree :
 (** [of_working_tree ~limits ~environment ~read ~git_folder ~git_directories
      ~branch working_tree_folder] is the git configuration of the working tree
     whose folder is at the pathname [working_tree_folder], of the git repository
-    whose git folder is at [git_folder], as {!of_repository} gives it, with two
-    more rules. The file [config.worktree] of [working_tree_folder] comes after
+    whose git folder is at [git_folder], as {!of_repository} gives it, with one
+    more rule. The file [config.worktree] of [working_tree_folder] comes after
     the file [config] of the git folder, when the last value of
     [extensions.worktreeConfig] in that file [config] itself, with no include
     applied, is true by {!boolean}; a value that is not a boolean gives
-    [Not_a_boolean]. A condition [onbranch:] and a pattern is met when [branch]
-    is [Some name], the name of the branch that HEAD names, after [refs/heads/],
-    and the pattern matches it by {!Sinter_wildmatch.matches}, with [**] after a
-    pattern that ends with [/]. *)
+    [Not_a_boolean]. In this function, [branch] is [Some name] when the HEAD of
+    the working tree names a branch, with [name] its name after [refs/heads/],
+    and [None] otherwise. *)
 
 (** {1 The upstream of a branch} *)
 

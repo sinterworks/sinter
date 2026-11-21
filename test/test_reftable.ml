@@ -2731,7 +2731,7 @@ let upstreams_on (vector : Vectors.vector) =
           if Sys.file_exists path then
             Config.Content { content = read_file path; identity = None }
           else Config.No_file)
-        ~git_directories:[ root ] root
+        ~git_directories:[ root ] ~branch:None root
     with
     | Ok c -> c
     | Error _ -> Alcotest.fail "config read failed"

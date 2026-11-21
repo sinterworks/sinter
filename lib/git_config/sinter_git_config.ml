@@ -315,14 +315,13 @@ type error =
   | Limit_exceeded
 
 type limits = { max_files : int; max_values : int }
-type variant = Repository | Working_tree of string option
 type inclusion = Plain | Met | Unmet_hasconfig
 type place = Before_hasconfig of string option | After_hasconfig
 
 type context = {
   environment : string -> string option;
   read : string -> file;
-  variant : variant;
+  branch : string option;
   git_directories : string list;
   urls : string list option;
   mutable place : place;
@@ -373,9 +372,14 @@ let after ~prefix text =
 
 let condition_of key =
   match after ~prefix:"includeif." key with
-  | Some rest when String.ends_with ~suffix:".path" rest ->
-      Some (String.sub rest 0 (String.length rest - String.length ".path"))
-  | _ -> None
+  | Some rest -> (
+      match String.rindex_opt rest '.' with
+      | Some dot ->
+          Some
+            ( String.sub rest 0 dot,
+              String.sub rest (dot + 1) (String.length rest - dot - 1) )
+      | None -> None)
+  | None -> None
 
 let with_ending pattern =
   if String.ends_with ~suffix:"/" pattern then pattern ^ "**" else pattern
@@ -384,45 +388,60 @@ let match_any ?case_fold pattern texts =
   let pattern = Sinter_wildmatch.compile ?case_fold pattern in
   List.exists (Sinter_wildmatch.matches pattern) texts
 
-let gitdir context ~source ~case_fold text =
-  let* pattern =
-    match after ~prefix:"~/" text with
-    | Some rest -> (
-        match context.environment "HOME" with
-        | None ->
-            Error (Unread_pathname { pathname = source; value = Some text })
-        | Some home -> Ok (home ^ "/" ^ rest))
-    | None -> (
-        match after ~prefix:"./" text with
-        | Some rest -> (
-            match source with
-            | None -> Error (Relative_without_file (Some text))
-            | Some source -> Ok (Filename.dirname source ^ "/" ^ rest))
-        | None ->
-            Ok
-              (if String.starts_with ~prefix:"/" text then text
-               else "**/" ^ text))
-  in
-  Ok (match_any ~case_fold (with_ending pattern) context.git_directories)
-
-let met context ~source condition =
+let gitdir_of condition =
   match after ~prefix:"gitdir:" condition with
-  | Some text -> gitdir context ~source ~case_fold:false text
+  | Some text -> Some (false, text)
   | None -> (
       match after ~prefix:"gitdir/i:" condition with
-      | Some text -> gitdir context ~source ~case_fold:true text
+      | Some text -> Some (true, text)
+      | None -> None)
+
+let home_rest text =
+  match after ~prefix:"~" text with
+  | Some rest when rest = "" || String.starts_with ~prefix:"/" rest -> Some rest
+  | _ -> None
+
+let home context ~source ~value =
+  match context.environment "HOME" with
+  | Some "" -> Error (Unread_pathname { pathname = source; value })
+  | home -> Ok home
+
+let gitdir context ~source ~value ~case_fold text =
+  let matches pattern =
+    let pattern =
+      if String.starts_with ~prefix:"/" pattern then pattern
+      else "**/" ^ pattern
+    in
+    Ok (match_any ~case_fold (with_ending pattern) context.git_directories)
+  in
+  match home_rest text with
+  | Some rest -> (
+      let* home = home context ~source ~value in
+      match home with None -> Ok false | Some home -> matches (home ^ rest))
+  | None -> (
+      match after ~prefix:"./" text with
+      | Some rest -> (
+          match source with
+          | None -> Error (Relative_without_file (Some text))
+          | Some source -> matches (Filename.dirname source ^ "/" ^ rest))
+      | None -> matches text)
+
+let met context ~source ~value condition =
+  match gitdir_of condition with
+  | Some (case_fold, text) -> gitdir context ~source ~value ~case_fold text
+  | None -> (
+      match after ~prefix:"onbranch:" condition with
+      | Some text -> (
+          match context.branch with
+          | None -> Ok false
+          | Some branch ->
+              let pattern = Sinter_wildmatch.compile (with_ending text) in
+              Ok (Sinter_wildmatch.matches pattern branch))
       | None -> (
-          match after ~prefix:"onbranch:" condition with
-          | Some text -> (
-              match context.variant with
-              | Repository | Working_tree None -> Ok false
-              | Working_tree (Some branch) ->
-                  Ok (match_any (with_ending text) [ branch ]))
-          | None -> (
-              match after ~prefix:hasconfig condition with
-              | Some text ->
-                  Ok (match_any text (Option.value ~default:[] context.urls))
-              | None -> Ok false)))
+          match after ~prefix:hasconfig condition with
+          | Some text ->
+              Ok (match_any text (Option.value ~default:[] context.urls))
+          | None -> Ok false))
 
 let same_file (pathname, identity) (pathname', identity') =
   match (identity, identity') with
@@ -465,8 +484,8 @@ and apply context ~pathname ~inclusion ~chain settings =
           else
             match condition_of key with
             | None -> Ok ()
-            | Some condition ->
-                let* met = met context ~source:pathname condition in
+            | Some (condition, "path") ->
+                let* met = met context ~source:pathname ~value condition in
                 if met then
                   include_value context ~source:pathname ~chain
                     ~inclusion:
@@ -478,6 +497,14 @@ and apply context ~pathname ~inclusion ~chain settings =
                   include_value context ~source:pathname ~chain
                     ~inclusion:Unmet_hasconfig value
                 else Ok ()
+            | Some (condition, _) -> (
+                match
+                  Option.bind (gitdir_of condition) (fun (_, text) ->
+                      home_rest text)
+                with
+                | None -> Ok ()
+                | Some _ ->
+                    Result.map ignore (home context ~source:pathname ~value))
         in
         loop rest
   in
@@ -614,7 +641,7 @@ let rec each f = function
       let* () = f x in
       each f rest
 
-let collect ~limits ~environment ~read ~variant ~git_folder ~extra
+let collect ~limits ~environment ~read ~branch ~git_folder ~extra
     ~git_directories ~urls =
   if limits.max_files < 0 || limits.max_values < 0 then
     invalid_arg "Sinter_git_config: a negative limit";
@@ -622,7 +649,7 @@ let collect ~limits ~environment ~read ~variant ~git_folder ~extra
     {
       environment;
       read;
-      variant;
+      branch;
       git_directories;
       urls;
       place = Before_hasconfig None;
@@ -665,10 +692,10 @@ let collect ~limits ~environment ~read ~variant ~git_folder ~extra
       | After_hasconfig -> true
       | Before_hasconfig _ -> false )
 
-let build ~limits ~environment ~read ~variant ~git_folder ~extra
-    ~git_directories =
+let build ~limits ~environment ~read ~branch ~git_folder ~extra ~git_directories
+    =
   let* settings, conditional =
-    collect ~limits ~environment ~read ~variant ~git_folder ~extra
+    collect ~limits ~environment ~read ~branch ~git_folder ~extra
       ~git_directories ~urls:None
   in
   let* settings =
@@ -686,7 +713,7 @@ let build ~limits ~environment ~read ~variant ~git_folder ~extra
           (Ok []) settings
       in
       let* settings, _ =
-        collect ~limits ~environment ~read ~variant ~git_folder ~extra
+        collect ~limits ~environment ~read ~branch ~git_folder ~extra
           ~git_directories ~urls:(Some urls)
       in
       Ok settings
@@ -697,14 +724,15 @@ let build ~limits ~environment ~read ~variant ~git_folder ~extra
          Keys.add key (value :: values table key) table)
        Keys.empty (List.rev settings))
 
-let of_repository ~limits ~environment ~read ~git_directories git_folder =
-  build ~limits ~environment ~read ~variant:Repository ~git_folder
+let of_repository ~limits ~environment ~read ~git_directories ~branch git_folder
+    =
+  build ~limits ~environment ~read ~branch ~git_folder
     ~extra:(fun _ -> Ok [])
     ~git_directories
 
 let of_working_tree ~limits ~environment ~read ~git_folder ~git_directories
     ~branch working_tree_folder =
-  build ~limits ~environment ~read ~variant:(Working_tree branch) ~git_folder
+  build ~limits ~environment ~read ~branch ~git_folder
     ~extra:(worktree_config ~working_tree_folder)
     ~git_directories
 

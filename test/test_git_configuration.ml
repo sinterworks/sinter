@@ -76,7 +76,7 @@ let run_with ?limits ?(git_directories = [ git_folder ]) ?branch ?working_tree
   let result =
     match working_tree with
     | None ->
-        Config.of_repository ~limits ~environment ~read ~git_directories
+        Config.of_repository ~limits ~environment ~read ~git_directories ~branch
           git_folder
     | Some working_tree_folder ->
         Config.of_working_tree ~limits ~environment ~read ~git_folder
@@ -1152,6 +1152,7 @@ let condition_tests =
               (conditional ~git_directories:directories condition))
           [
             ("gitdir:/r/.git", [ git_folder ], "met");
+            ("gitdir:/r/.git", [ "/x//r/.git" ], "not met");
             ("gitdir:/r/", [ git_folder ], "met");
             ("gitdir:/r", [ git_folder ], "not met");
             ("gitdir:r/.git", [ git_folder ], "met");
@@ -1164,6 +1165,12 @@ let condition_tests =
             ("gitdir:./", [ git_folder ^ "/x" ], "met");
             ("gitdir:./x/", [ git_folder ], "not met");
           ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is set and not empty, the `~` at the start
+       of a pattern `~/...` of a condition `gitdir:` or `gitdir/i:` becomes the
+       value of `HOME`. When `HOME` is not set, that condition is not met, and
+       the read gives no error. *)
     case "a condition gitdir with ~/ takes HOME" (fun () ->
         Alcotest.(check string)
           "home" "met"
@@ -1171,16 +1178,41 @@ let condition_tests =
              ~env:(no_system @ [ ("HOME", "/h") ])
              "gitdir:~/w/");
         Alcotest.(check string)
-          "no home"
-          (Printf.sprintf "unread pathname %s %s" config_path
-             (show_value (Some "~/w/")))
-          (conditional "gitdir:~/w/"));
-    case "a condition onbranch is never met in a git repository" (fun () ->
+          "gitdir/i" "met"
+          (conditional ~git_directories:[ "/h/w/.git" ]
+             ~env:(no_system @ [ ("HOME", "/h") ])
+             "gitdir/i:~/W/");
         Alcotest.(check string)
-          "onbranch" "not met"
-          (conditional "onbranch:main");
-        Alcotest.(check string)
-          "onbranch *" "not met" (conditional "onbranch:*"));
+          "HOME is /" "not met"
+          (conditional ~env:(no_system @ [ ("HOME", "/") ]) "gitdir:~/x/");
+        Alcotest.(check string) "no home" "not met" (conditional "gitdir:~/w/"));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. In a git repository without a working tree, a condition
+       `onbranch:` matches the branch name that the HEAD of the git folder
+       names, with `**` after a pattern that ends with `/`. When HEAD names no
+       branch, the condition is not met. *)
+    case "a condition onbranch matches the branch of a git repository"
+      (fun () ->
+        List.iter
+          (fun (condition, branch, expected) ->
+            Alcotest.(check string)
+              condition expected
+              (conditional ?branch condition))
+          [
+            ("onbranch:main", Some "main", "met");
+            ("onbranch:main", Some "other", "not met");
+            ("onbranch:MAIN", Some "main", "not met");
+            ("onbranch:feat/", Some "feat/a/b", "met");
+            ("onbranch:feat/", Some "feat", "not met");
+            ("onbranch:feat/*", Some "feat/a/b", "not met");
+            ("onbranch:feat/*", Some "feat/a", "met");
+            ("onbranch:**", Some "main", "met");
+            ("onbranch:", Some "main", "not met");
+            ("onbranch:main", None, "not met");
+            ("onbranch:**", None, "not met");
+            ("onbranch:*", None, "not met");
+          ]);
     case "a condition onbranch matches the branch of a working tree" (fun () ->
         List.iter
           (fun (condition, branch, expected) ->
@@ -2054,6 +2086,35 @@ let unmet_hasconfig_tests =
                   ("/syntax.inc", syntax_file);
                 ] );
             ( "onbranch in repository without working tree",
+              refused "/url.inc",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:**\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+            ( "met onbranch to syntax error in repository without working tree",
+              "syntax /syntax.inc:1",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content
+                      "[includeIf \"onbranch:main\"]\npath = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "unmet onbranch in repository without working tree",
+              "no error",
+              run_result ~branch:"other"
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"onbranch:main\"]\npath = /url.inc\n"
+                  );
+                  ("/url.inc", url_file);
+                ] );
+            ( "onbranch in detached repository without working tree",
               "no error",
               run_result
                 [
@@ -2180,6 +2241,9 @@ let unmet_hasconfig_tests =
           "[includeIf \"gitdir:/r/.git\"]\npath = /plain.inc\n";
         check_no_leak ~working_tree:git_folder ~branch:"main"
           "met onbranch under unmet hasconfig"
+          "[includeIf \"onbranch:main\"]\npath = /plain.inc\n";
+        check_no_leak ~branch:"main"
+          "met onbranch in repository under unmet hasconfig"
           "[includeIf \"onbranch:main\"]\npath = /plain.inc\n";
         check_no_leak "met hasconfig under unmet hasconfig"
           "[s]\n\
@@ -2839,6 +2903,1191 @@ let unmet_hasconfig_tests =
              ]));
   ]
 
+let follow_git_tests =
+  let hasconfig =
+    "[includeIf \"hasconfig:remote.*.url:other\"]\npath = /plain.inc\n"
+  in
+  let unmet = "[includeIf \"hasconfig:remote.*.url:nothing\"]\n" in
+  let yes_file = content "[s]\nmet = 1\n" in
+  let plain_file = content "[s]\nv = 1\n" in
+  let url_file = content "[remote \"o\"]\nurl = /u\n" in
+  let syntax_file = content "[s\n" in
+  let refused path = "remote url in conditional include " ^ path in
+  let unread pathname value =
+    Printf.sprintf "unread pathname %s %s" pathname (show_value value)
+  in
+  let run_result ?(env = no_system) ?git_directories ?working_tree ?branch files
+      =
+    match
+      fst
+        (run_with ?git_directories ?working_tree ?branch
+           (include_world ~env files))
+    with
+    | Ok _ -> "no error"
+    | Error error -> error_name error
+  in
+  let empty_home = no_system @ [ ("HOME", "") ] in
+  [
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. In a git repository without a working tree, a met
+       condition `onbranch:` includes its file in both passes. The condition is
+       met in the file `config`, in a global file, in the environment, and in a
+       file that a met condition includes. The rules for a remote URL in a file
+       that a met condition includes apply to the file of a met condition
+       `onbranch:`. An unmet condition `onbranch:` includes no file. The read
+       of a git repository reads no file `config.worktree`. *)
+    case
+      "a condition onbranch in a git repository applies with hasconfig and \
+       across sources" (fun () ->
+        let onbranch path =
+          Printf.sprintf "[includeIf \"onbranch:main\"]\npath = %s\n" path
+        in
+        check_values "remote URL with no hasconfig" [ Some "/u" ]
+          (configuration_of ~branch:"main"
+             (include_world
+                [
+                  (config_path, content (onbranch "/url.inc"));
+                  ("/url.inc", url_file);
+                ]))
+          "remote.o.url";
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "remote URL before hasconfig",
+              refused "/url.inc",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (onbranch "/url.inc" ^ hasconfig));
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "remote URL after hasconfig",
+              refused "/url.inc",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (hasconfig ^ onbranch "/url.inc"));
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "remote URL through plain include under onbranch with hasconfig",
+              refused "/url.inc",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (onbranch "/via.inc" ^ hasconfig));
+                  ("/via.inc", content "[include]\npath = /url.inc\n");
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "met onbranch to unmet hasconfig to remote URL",
+              refused "/url.inc",
+              run_result ~branch:"main"
+                [
+                  (config_path, content (onbranch "/via.inc"));
+                  ("/via.inc", content (unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+          ];
+        let both_passes =
+          configuration_of ~branch:"main"
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     (onbranch "/yes.inc"
+                    ^ "[includeIf \"hasconfig:remote.*.url:/v\"]\n\
+                       path = /plain.inc\n\
+                       [remote \"p\"]\n\
+                       url = /v\n") );
+                 ("/yes.inc", yes_file);
+                 ("/plain.inc", plain_file);
+               ])
+        in
+        check_values "onbranch applies in second pass" [ Some "1" ] both_passes
+          "s.met";
+        check_values "met hasconfig applies alongside onbranch" [ Some "1" ]
+          both_passes "s.v";
+        let check_unread ?branch name config =
+          let result, read_paths =
+            run_with ?branch
+              (include_world
+                 [
+                   (config_path, content config);
+                   ("/url.inc", url_file);
+                   ("/plain.inc", plain_file);
+                 ])
+          in
+          (match result with
+          | Ok _ -> ()
+          | Error error ->
+              Alcotest.failf "%s: unexpected %s" name (error_name error));
+          Alcotest.(check bool)
+            (name ^ ": file not read") false
+            (List.mem "/url.inc" read_paths)
+        in
+        check_unread ~branch:"main" "unmet onbranch with hasconfig"
+          ("[includeIf \"onbranch:other\"]\npath = /url.inc\n" ^ hasconfig);
+        check_unread "detached onbranch with hasconfig"
+          ("[includeIf \"onbranch:**\"]\npath = /url.inc\n" ^ hasconfig);
+        check_values "global onbranch" [ Some "1" ]
+          (configuration_of ~branch:"main"
+             (include_world
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content (onbranch "/yes.inc"));
+                  (config_path, content "");
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        check_values "environment onbranch" [ Some "1" ]
+          (configuration_of ~branch:"main"
+             (include_world
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.onbranch:main.path");
+                      ("GIT_CONFIG_VALUE_0", "/yes.inc");
+                    ])
+                [ (config_path, content ""); ("/yes.inc", yes_file) ]))
+          "s.met";
+        check_values "met onbranch in a file of a met gitdir" [ Some "1" ]
+          (configuration_of ~branch:"main"
+             (include_world
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/r/.git\"]\npath = /outer.inc\n" );
+                  ("/outer.inc", content (onbranch "/yes.inc"));
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        let no_worktree_cfg =
+          configuration_of ~branch:"main"
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     ("[extensions]\nworktreeConfig = true\n"
+                    ^ onbranch "/yes.inc") );
+                 (git_folder ^ "/config.worktree", content "[s]\nwt = 2\n");
+                 ("/yes.inc", yes_file);
+               ])
+        in
+        check_values "onbranch applies without working tree" [ Some "1" ]
+          no_worktree_cfg "s.met";
+        check_values "config.worktree stays unread" [] no_worktree_cfg "s.wt");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `branch` is `Some name`, `of_repository` and
+       `of_working_tree` meet a condition `onbranch:` when
+       `Sinter_wildmatch.matches` matches `name`, with `**` after a pattern
+       that ends with `/`. When `branch` is `None`, neither function meets the
+       condition. *)
+    property ~count:300
+      ~name:
+        "a condition onbranch in a git repository matches the wildmatch rule"
+      ~print:(fun (branch, pattern) ->
+        Printf.sprintf "(%s, %S)"
+          (match branch with None -> "None" | Some b -> Printf.sprintf "%S" b)
+          pattern)
+      Gen.(
+        pair
+          (option
+             (map (String.concat "/")
+                (list_size (int_range 1 3)
+                   (oneof_list [ "main"; "feat"; "a"; "b"; "MAIN" ]))))
+          (oneof_list
+             [
+               "main";
+               "other";
+               "MAIN";
+               "feat/";
+               "feat/*";
+               "feat/**";
+               "a/";
+               "a/*";
+               "*/a";
+               "*";
+               "**";
+               "?";
+               "";
+               "a/?/b";
+             ]))
+      (fun (branch, pattern) ->
+        let expected =
+          match branch with
+          | None -> "not met"
+          | Some name ->
+              let full =
+                if String.ends_with ~suffix:"/" pattern then pattern ^ "**"
+                else pattern
+              in
+              if Sinter_wildmatch.matches (Sinter_wildmatch.compile full) name
+              then "met"
+              else "not met"
+        in
+        let cond = "onbranch:" ^ pattern in
+        conditional ?branch cond = expected
+        && conditional ~working_tree:git_folder ?branch cond = expected);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is not set, a condition `gitdir:` or
+       `gitdir/i:` whose pattern starts with `~/` is not met, and the read
+       gives no error. The condition is not met in the file `config`, in a
+       global file, in the file `config.worktree`, in the environment, and in a
+       file that an unmet condition `hasconfig:remote.*.url:` includes. When
+       `HOME` is not set, a value `~/...` of a met
+       `includeIf.<condition>.path` gives `Unread_pathname`. *)
+    case "a condition gitdir with ~/ is not met when HOME is not set" (fun () ->
+        List.iter
+          (fun (name, git_directories, condition) ->
+            Alcotest.(check string)
+              name "not met"
+              (conditional ~git_directories condition))
+          [
+            ("gitdir/i:~/W/", [ git_folder ], "gitdir/i:~/W/");
+            ("gitdir:~/", [ git_folder ], "gitdir:~/");
+            ( "gitdir:~/r/.git does not expand ~ to /",
+              [ git_folder ],
+              "gitdir:~/r/.git" );
+          ];
+        let result, read_paths =
+          run_with
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     "[includeIf \"gitdir:~/w/\"]\n\
+                      path = /syntax.inc\n\
+                      path = ~/y.inc\n\
+                      path\n" );
+                 ("/syntax.inc", syntax_file);
+               ])
+        in
+        (match result with
+        | Ok _ -> ()
+        | Error error ->
+            Alcotest.failf "HOME unset with bad paths: %s" (error_name error));
+        Alcotest.(check bool)
+          "syntax file not read" false
+          (List.mem "/syntax.inc" read_paths);
+        List.iter
+          (fun (name, actual) -> Alcotest.(check string) name "no error" actual)
+          [
+            ( "global file",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ( "/global",
+                    content "[includeIf \"gitdir:~/w/\"]\npath = /syntax.inc\n"
+                  );
+                  (config_path, content "");
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "config.worktree",
+              run_result ~working_tree:git_folder
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( git_folder ^ "/config.worktree",
+                    content "[includeIf \"gitdir:~/w/\"]\npath = /syntax.inc\n"
+                  );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "environment",
+              run_result
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/w/.path");
+                      ("GIT_CONFIG_VALUE_0", "/syntax.inc");
+                    ])
+                [ (config_path, content ""); ("/syntax.inc", syntax_file) ] );
+            ( "unmet hasconfig to gitdir:~/w/ to URL",
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/w/\"]\npath = /url.inc\n" );
+                  ("/url.inc", url_file);
+                ] );
+          ];
+        Alcotest.(check string)
+          "met includeIf path ~/ still fails without HOME"
+          (unread config_path (Some "~/plain.inc"))
+          (run_result
+             [
+               ( config_path,
+                 content "[includeIf \"gitdir:/r/.git\"]\npath = ~/plain.inc\n"
+               );
+             ]));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is empty, a setting
+       `includeIf.<condition>.path` whose condition is `gitdir:` or `gitdir/i:`
+       with a pattern that starts with `~/` gives `Unread_pathname` in any
+       source and in a file that an unmet condition `hasconfig:remote.*.url:`
+       includes. The error holds the pathname of the file (or `None` for the
+       environment) and the value of the setting. When `HOME` is empty, a
+       pattern without `~` keeps its rules, and a value `~/x` of `include.path`
+       or of a met `includeIf.<condition>.path` names the file `/x`. *)
+    case "a condition gitdir with ~/ gives Unread_pathname when HOME is empty"
+      (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "gitdir:~/x/",
+              unread config_path (Some "/yes.inc"),
+              conditional ~env:empty_home "gitdir:~/x/" );
+            ( "gitdir/i:~/x/",
+              unread config_path (Some "/yes.inc"),
+              conditional ~env:empty_home "gitdir/i:~/x/" );
+            ( "gitdir:~/",
+              unread config_path (Some "/yes.inc"),
+              conditional ~env:empty_home "gitdir:~/" );
+            ( "prefix target",
+              unread config_path (Some "%(prefix)/etc/x"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:~/x/\"]\npath = %(prefix)/etc/x\n" );
+                ] );
+            ( "path without value",
+              unread config_path None,
+              run_result ~env:empty_home
+                [ (config_path, content "[includeIf \"gitdir:~/x/\"]\npath\n") ]
+            );
+            ( "global file",
+              unread "/global" (Some "/yes.inc"),
+              run_result
+                ~env:(empty_home @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ( "/global",
+                    content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
+                  (config_path, content "");
+                ] );
+            ( "system file",
+              unread "/sys" (Some "/yes.inc"),
+              run_result
+                ~env:[ ("GIT_CONFIG_SYSTEM", "/sys"); ("HOME", "") ]
+                [
+                  ( "/sys",
+                    content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
+                  (config_path, content "");
+                ] );
+            ( "config.worktree",
+              unread (git_folder ^ "/config.worktree") (Some "/yes.inc"),
+              run_result ~env:empty_home ~working_tree:git_folder
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( git_folder ^ "/config.worktree",
+                    content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
+                ] );
+            ( "environment gitdir",
+              unread "<environment>" (Some "/yes.inc"),
+              run_result
+                ~env:
+                  (empty_home
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/x/.path");
+                      ("GIT_CONFIG_VALUE_0", "/yes.inc");
+                    ])
+                [ (config_path, content "") ] );
+            ( "unmet hasconfig to gitdir:~/x/",
+              unread "/via.inc" (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
+                ] );
+            ( "unmet gitdir to gitdir:~/x/ is not read",
+              "no error",
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\npath = /via.inc\n" );
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
+                ] );
+            ( "control: met gitdir without ~/",
+              "met",
+              conditional ~env:empty_home "gitdir:/r/.git" );
+            ( "control: relative gitdir:./",
+              "not met",
+              conditional ~env:empty_home "gitdir:./" );
+            ( "control: met includeIf path ~/ of missing file",
+              "no error",
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/r/.git\"]\npath = ~/missing.inc\n"
+                  );
+                ] );
+          ];
+        let result, read_paths =
+          run_with
+            (include_world ~env:empty_home
+               [
+                 ( config_path,
+                   content "[includeIf \"gitdir:~/x/\"]\npath = /syntax.inc\n"
+                 );
+                 ("/syntax.inc", syntax_file);
+               ])
+        in
+        Alcotest.(check string)
+          "error before reading target file"
+          (unread config_path (Some "/syntax.inc"))
+          (match result with
+          | Ok _ -> "no error"
+          | Error error -> error_name error);
+        Alcotest.(check bool)
+          "target file not read" false
+          (List.mem "/syntax.inc" read_paths);
+        check_values "control: include.path ~/ expands to / with empty HOME"
+          [ Some "1" ]
+          (configuration_of
+             (include_world ~env:empty_home
+                [
+                  (config_path, content "[include]\npath = ~/yes.inc\n");
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is empty, `Unread_pathname` for a condition
+       `gitdir:` or `gitdir/i:` whose pattern starts with `~/` occurs at the
+       place of its setting in the order of the files, their lines, and the
+       environment. *)
+    case "an error of gitdir with ~/ and empty HOME keeps the order of errors"
+      (fun () ->
+        let tilde = "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" in
+        let syntax = "[include]\npath = /syntax.inc\n" in
+        let met_gitdir = "[includeIf \"gitdir:/r/.git\"]\npath = /url.inc\n" in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "syntax include before gitdir:~/x/",
+              "syntax /syntax.inc:1",
+              run_result ~env:empty_home
+                [
+                  (config_path, content (syntax ^ tilde));
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "gitdir:~/x/ before syntax include",
+              unread config_path (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (tilde ^ syntax));
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "global gitdir:~/x/ before config syntax include",
+              unread "/global" (Some "/yes.inc"),
+              run_result
+                ~env:(empty_home @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content tilde);
+                  (config_path, content syntax);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "global syntax include before config gitdir:~/x/",
+              "syntax /syntax.inc:1",
+              run_result
+                ~env:(empty_home @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content syntax);
+                  (config_path, content tilde);
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "config gitdir:~/x/ before environment syntax include",
+              unread config_path (Some "/yes.inc"),
+              run_result
+                ~env:
+                  (empty_home
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "include.path");
+                      ("GIT_CONFIG_VALUE_0", "/syntax.inc");
+                    ])
+                [ (config_path, content tilde); ("/syntax.inc", syntax_file) ]
+            );
+            ( "config syntax include before environment gitdir:~/x/",
+              "syntax /syntax.inc:1",
+              run_result
+                ~env:
+                  (empty_home
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/x/.path");
+                      ("GIT_CONFIG_VALUE_0", "/yes.inc");
+                    ])
+                [ (config_path, content syntax); ("/syntax.inc", syntax_file) ]
+            );
+            ( "in unmet hasconfig: gitdir:~/x/ before remote URL",
+              unread "/via.inc" (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ("/via.inc", content (tilde ^ "[remote \"o\"]\nurl = /u\n"));
+                ] );
+            ( "in unmet hasconfig: remote URL before gitdir:~/x/",
+              refused "/via.inc",
+              run_result ~env:empty_home
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ("/via.inc", content ("[remote \"o\"]\nurl = /u\n" ^ tilde));
+                ] );
+            ( "gitdir:~/x/ before first hasconfig wins over earlier \
+               conditional URL",
+              unread config_path (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (met_gitdir ^ tilde ^ hasconfig));
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "earlier conditional URL refused at first hasconfig before later \
+               gitdir:~/x/",
+              refused "/url.inc",
+              run_result ~env:empty_home
+                [
+                  (config_path, content (met_gitdir ^ hasconfig ^ tilde));
+                  ("/url.inc", url_file);
+                  ("/plain.inc", plain_file);
+                ] );
+            ( "gitdir:~/x/ after hasconfig wins over later conditional URL",
+              unread config_path (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (hasconfig ^ tilde ^ met_gitdir));
+                  ("/plain.inc", plain_file);
+                  ("/url.inc", url_file);
+                ] );
+            ( "unmet hasconfig URL before gitdir:~/x/",
+              refused "/url.inc",
+              run_result ~env:empty_home
+                [
+                  (config_path, content (unmet ^ "path = /url.inc\n" ^ tilde));
+                  ("/url.inc", url_file);
+                ] );
+            ( "gitdir:~/x/ before unmet hasconfig URL",
+              unread config_path (Some "/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (tilde ^ unmet ^ "path = /url.inc\n"));
+                  ("/url.inc", url_file);
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is set and not empty, the pattern `~` of a
+       condition `gitdir:` or `gitdir/i:` becomes the value of `HOME`, and the
+       condition matches by `Sinter_wildmatch.matches`. The condition is met in
+       the file `config`, in a global file, in the system file, in the file
+       `config.worktree`, and in the environment. When `HOME` is not set, that
+       condition is not met, and the read gives no error. When `HOME` is empty,
+       each setting under that condition gives `Unread_pathname` with its file
+       and its value. *)
+    case "a condition gitdir with exact ~ follows HOME" (fun () ->
+        let home_git = no_system @ [ ("HOME", git_folder) ] in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "HOME equals git folder",
+              "met",
+              conditional ~env:home_git "gitdir:~" );
+            ( "HOME equals parent of git folder",
+              "not met",
+              conditional ~env:(no_system @ [ ("HOME", "/r") ]) "gitdir:~" );
+            ( "gitdir:~ is case sensitive",
+              "not met",
+              conditional ~env:(no_system @ [ ("HOME", "/R/.GIT") ]) "gitdir:~"
+            );
+            ( "gitdir/i:~ folds case",
+              "met",
+              conditional
+                ~env:(no_system @ [ ("HOME", "/R/.GIT") ])
+                "gitdir/i:~" );
+            ( "gitdir/i:~ does not match parent",
+              "not met",
+              conditional ~env:(no_system @ [ ("HOME", "/R") ]) "gitdir/i:~" );
+            ( "HOME holding ~ does not expand twice",
+              "met",
+              conditional ~git_directories:[ "/sub/~x" ]
+                ~env:(no_system @ [ ("HOME", "/sub/~x") ])
+                "gitdir:~" );
+            ("HOME unset gitdir:~", "not met", conditional "gitdir:~");
+            ( "HOME empty gitdir:~",
+              unread config_path (Some "/yes.inc"),
+              conditional ~env:empty_home "gitdir:~" );
+            ( "HOME empty gitdir/i:~",
+              unread config_path (Some "/yes.inc"),
+              conditional ~env:empty_home "gitdir/i:~" );
+            ( "HOME empty gitdir:~ path without value",
+              unread config_path None,
+              run_result ~env:empty_home
+                [ (config_path, content "[includeIf \"gitdir:~\"]\npath\n") ] );
+            ( "HOME empty gitdir:~ path with ~/",
+              unread config_path (Some "~/yes.inc"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~\"]\npath = ~/yes.inc\n" );
+                ] );
+            ( "HOME empty gitdir:~ foo=bar",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content "[includeIf \"gitdir:~\"]\nfoo = bar\n");
+                ] );
+            ( "HOME empty gitdir:~ foo without value",
+              unread config_path None,
+              run_result ~env:empty_home
+                [ (config_path, content "[includeIf \"gitdir:~\"]\nfoo\n") ] );
+            ( "HOME empty gitdir/i:~ foo=bar",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:~\"]\nfoo = bar\n" );
+                ] );
+            ( "HOME unset system gitdir:~",
+              "no error",
+              run_result
+                ~env:[ ("GIT_CONFIG_SYSTEM", "/sys") ]
+                [
+                  ( "/sys",
+                    content "[includeIf \"gitdir:~\"]\npath = /syntax.inc\n" );
+                  (config_path, content "");
+                  ("/syntax.inc", syntax_file);
+                ] );
+          ];
+        check_values "HOME set global gitdir:~" [ Some "1" ]
+          (configuration_of
+             (include_world
+                ~env:(home_git @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ( "/global",
+                    content "[includeIf \"gitdir:~\"]\npath = /yes.inc\n" );
+                  (config_path, content "");
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        check_values "HOME set system gitdir:~" [ Some "1" ]
+          (configuration_of
+             (include_world
+                ~env:[ ("GIT_CONFIG_SYSTEM", "/sys"); ("HOME", git_folder) ]
+                [
+                  ("/sys", content "[includeIf \"gitdir:~\"]\npath = /yes.inc\n");
+                  (config_path, content "");
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        check_values "HOME set config.worktree gitdir:~" [ Some "1" ]
+          (configuration_of ~working_tree:git_folder
+             (include_world ~env:home_git
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( git_folder ^ "/config.worktree",
+                    content "[includeIf \"gitdir:~\"]\npath = /yes.inc\n" );
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        check_values "HOME set environment gitdir:~" [ Some "1" ]
+          (configuration_of
+             (include_world
+                ~env:
+                  (home_git
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~.path");
+                      ("GIT_CONFIG_VALUE_0", "/yes.inc");
+                    ])
+                [ (config_path, content ""); ("/yes.inc", yes_file) ]))
+          "s.met";
+        check_values "HOME set gitdir:~ with path ~/yes.inc" [ Some "1" ]
+          (configuration_of
+             (include_world ~env:home_git
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~\"]\npath = ~/yes.inc\n" );
+                  (git_folder ^ "/yes.inc", yes_file);
+                ]))
+          "s.met";
+        let unset_res, unset_reads =
+          run_with
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     "[includeIf \"gitdir:~\"]\n\
+                      path = /syntax.inc\n\
+                      path = ~/y.inc\n\
+                      path\n\
+                      foo = bar\n" );
+                 ("/syntax.inc", syntax_file);
+               ])
+        in
+        (match unset_res with
+        | Ok cfg ->
+            check_values "HOME unset gitdir:~ keeps foo" [ Some "bar" ] cfg
+              "includeIf.gitdir:~.foo"
+        | Error error ->
+            Alcotest.failf "HOME unset gitdir:~: %s" (error_name error));
+        Alcotest.(check bool)
+          "HOME unset gitdir:~ does not read target" false
+          (List.mem "/syntax.inc" unset_reads));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is empty, each setting
+       `includeIf.<condition>.<name>`, for any `<name>` and with a value or
+       with none, whose condition is `gitdir:` or `gitdir/i:` with a pattern
+       that starts with `~/`, gives `Unread_pathname` with its file (or `None`
+       for the environment) and its value. The error comes in any source and in
+       a file that an unmet condition `hasconfig:remote.*.url:` includes. A
+       section with no setting gives no error. *)
+    case
+      "a setting other than path under gitdir with ~/ gives Unread_pathname \
+       when HOME is empty" (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "gitdir:~/x/ foo=bar",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "gitdir:~/x/ foo without value",
+              unread config_path None,
+              run_result ~env:empty_home
+                [ (config_path, content "[includeIf \"gitdir:~/x/\"]\nfoo\n") ]
+            );
+            ( "gitdir:~/x/ foo empty value",
+              unread config_path (Some ""),
+              run_result ~env:empty_home
+                [
+                  (config_path, content "[includeIf \"gitdir:~/x/\"]\nfoo =\n");
+                ] );
+            ( "gitdir/i:~/x/ foo=bar",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "uppercase section INCLUDEIF",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[INCLUDEIF \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "uppercase condition GITDIR is not gitdir",
+              "no error",
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"GITDIR:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "empty section gives no error",
+              "no error",
+              run_result ~env:empty_home
+                [ (config_path, content "[includeIf \"gitdir:~/x/\"]\n") ] );
+            ( "global file foo=bar",
+              unread "/global" (Some "bar"),
+              run_result
+                ~env:(empty_home @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n");
+                  (config_path, content "");
+                ] );
+            ( "system file foo=bar",
+              unread "/sys" (Some "bar"),
+              run_result
+                ~env:[ ("GIT_CONFIG_SYSTEM", "/sys"); ("HOME", "") ]
+                [
+                  ("/sys", content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n");
+                  (config_path, content "");
+                ] );
+            ( "config.worktree foo=bar",
+              unread (git_folder ^ "/config.worktree") (Some "bar"),
+              run_result ~env:empty_home ~working_tree:git_folder
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( git_folder ^ "/config.worktree",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "plain include to foo=bar",
+              unread "/via.inc" (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content "[include]\npath = /via.inc\n");
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "environment gitdir:~/x/ foo=bar",
+              unread "<environment>" (Some "bar"),
+              run_result
+                ~env:
+                  (empty_home
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/x/.foo");
+                      ("GIT_CONFIG_VALUE_0", "bar");
+                    ])
+                [ (config_path, content "") ] );
+            ( "unmet hasconfig to gitdir:~/x/ foo=bar",
+              unread "/via.inc" (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "unmet gitdir to gitdir:~/x/ foo=bar is unread",
+              "no error",
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\npath = /via.inc\n" );
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+          ];
+        let first_res, first_reads =
+          run_with
+            (include_world ~env:empty_home
+               [
+                 ( config_path,
+                   content
+                     "[includeIf \"gitdir:~/x/\"]\n\
+                      foo = bar\n\
+                      path = /syntax.inc\n" );
+                 ("/syntax.inc", syntax_file);
+               ])
+        in
+        Alcotest.(check string)
+          "an earlier setting other than path wins over a later path"
+          (unread config_path (Some "bar"))
+          (match first_res with
+          | Ok _ -> "no error"
+          | Error error -> error_name error);
+        Alcotest.(check bool)
+          "later syntax target not read" false
+          (List.mem "/syntax.inc" first_reads);
+        check_values "control: HOME empty gitdir:/nothing/ foo=bar keeps value"
+          [ Some "bar" ]
+          (configuration_of
+             (include_world ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:/nothing/\"]\nfoo = bar\n" );
+                ]))
+          "includeIf.gitdir:/nothing/.foo";
+        check_values "control: HOME unset gitdir:~/x/ foo=bar keeps value"
+          [ Some "bar" ]
+          (configuration_of
+             (include_world
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ]))
+          "includeIf.gitdir:~/x/.foo";
+        let met_res, met_reads =
+          run_with ~git_directories:[ "/h/w/.git" ]
+            (include_world
+               ~env:(no_system @ [ ("HOME", "/h") ])
+               [
+                 ( config_path,
+                   content "[includeIf \"gitdir:~/w/\"]\nfoo = /yes.inc\n" );
+                 ("/yes.inc", yes_file);
+               ])
+        in
+        (match met_res with
+        | Ok cfg ->
+            check_values "control: met gitdir:~/w/ foo does not include" [] cfg
+              "s.met";
+            check_values "control: met gitdir:~/w/ foo keeps value"
+              [ Some "/yes.inc" ] cfg "includeIf.gitdir:~/w/.foo"
+        | Error error ->
+            Alcotest.failf "met gitdir:~/w/ foo: %s" (error_name error));
+        Alcotest.(check bool)
+          "control: met gitdir:~/w/ foo does not read file" false
+          (List.mem "/yes.inc" met_reads));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When `HOME` is empty, the error `Unread_pathname` of a
+       setting other than `path` under a condition `gitdir:` or `gitdir/i:`
+       with a pattern `~` or `~/...` comes at the place of that setting in the
+       order of the lines, with the value of that setting. *)
+    case
+      "an error of a setting other than path with an empty HOME keeps the \
+       order of errors" (fun () ->
+        let tilde_foo = "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" in
+        let syntax = "[include]\npath = /syntax.inc\n" in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "foo=bar before syntax include",
+              unread config_path (Some "bar"),
+              run_result ~env:empty_home
+                [
+                  (config_path, content (tilde_foo ^ syntax));
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "syntax include before foo=bar",
+              "syntax /syntax.inc:1",
+              run_result ~env:empty_home
+                [
+                  (config_path, content (syntax ^ tilde_foo));
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "gitdir:/nothing/ foo=bar before gitdir:~ baz=qux reports qux",
+              unread config_path (Some "qux"),
+              run_result ~env:empty_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\n\
+                       foo = bar\n\
+                       [includeIf \"gitdir:~\"]\n\
+                       baz = qux\n" );
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A condition `gitdir:` or `gitdir/i:` whose pattern
+       starts with `~` and then a byte other than `/` keeps its `~` and gives
+       no error, whether `HOME` is set, not set, or empty. *)
+    case "a condition gitdir starting with ~ and another byte keeps its ~"
+      (fun () ->
+        let homes =
+          [
+            ("HOME set", no_system @ [ ("HOME", "/h") ]);
+            ("HOME unset", no_system);
+            ("HOME empty", empty_home);
+          ]
+        in
+        List.iter
+          (fun (home_label, env) ->
+            List.iter
+              (fun (label, git_directories, condition, expected) ->
+                Alcotest.(check string)
+                  (home_label ^ ": " ^ label)
+                  expected
+                  (conditional ~git_directories ~env condition))
+              [
+                ( "gitdir:~x/ matches ~x dir",
+                  [ "/r/~x/repo/.git" ],
+                  "gitdir:~x/",
+                  "met" );
+                ( "gitdir/i:~X/ matches ~x dir",
+                  [ "/r/~x/repo/.git" ],
+                  "gitdir/i:~X/",
+                  "met" );
+                ( "gitdir:~x/ does not match x dir",
+                  [ "/r/x/repo/.git" ],
+                  "gitdir:~x/",
+                  "not met" );
+                ( "gitdir:~x matches bare ~x",
+                  [ "/r/sub/~x" ],
+                  "gitdir:~x",
+                  "met" );
+                ( "gitdir:~~ matches bare ~~",
+                  [ "/r/sub/~~" ],
+                  "gitdir:~~",
+                  "met" );
+                ( "gitdir:~*/ matches ~x dir",
+                  [ "/r/~x/repo/.git" ],
+                  "gitdir:~*/",
+                  "met" );
+                ( "gitdir:~nobody/x/ is not met",
+                  [ git_folder ],
+                  "gitdir:~nobody/x/",
+                  "not met" );
+              ])
+          homes;
+        check_values "HOME empty gitdir:~x/ foo=bar keeps value" [ Some "bar" ]
+          (configuration_of
+             (include_world ~env:empty_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~x/\"]\nfoo = bar\n" );
+                ]))
+          "includeIf.gitdir:~x/.foo";
+        Alcotest.(check string)
+          "HOME empty environment gitdir:~x/ foo=bar" "no error"
+          (run_result
+             ~env:
+               (empty_home
+               @ [
+                   ("GIT_CONFIG_COUNT", "1");
+                   ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~x/.foo");
+                   ("GIT_CONFIG_VALUE_0", "bar");
+                 ])
+             [ (config_path, content "") ]);
+        Alcotest.(check string)
+          "HOME empty unmet hasconfig to gitdir:~x/ foo=bar" "no error"
+          (run_result ~env:empty_home
+             [
+               (config_path, content (unmet ^ "path = /via.inc\n"));
+               ("/via.inc", content "[includeIf \"gitdir:~x/\"]\nfoo = bar\n");
+             ]));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. For generated patterns of a condition `gitdir:` or
+       `gitdir/i:`, variable names, and values, the read gives
+       `Unread_pathname` when `HOME` is empty and the pattern is `~` or starts
+       with `~/`. When `HOME` is not set, a condition with such a pattern is not
+       met, and the read gives no error. In every other case, the `~` of a
+       pattern `~` or `~/...` becomes the value of `HOME`, the condition
+       matches by `Sinter_wildmatch.matches`, and the read includes a file only
+       when the variable name is `path`. *)
+    property ~count:300
+      ~name:
+        "a condition gitdir with ~ or ~/ or ~name follows HOME for any variable"
+      ~print:(fun (case_fold, pattern, var_name, var_value, home, git_dir) ->
+        Printf.sprintf "(%b, %S, %S, %s, %s, %S)" case_fold pattern var_name
+          (show_value var_value)
+          (match home with None -> "unset" | Some h -> Printf.sprintf "%S" h)
+          git_dir)
+      Gen.(
+        let+ case_fold = bool
+        and+ pattern =
+          oneof_list
+            [
+              "~";
+              "~/";
+              "~/w/";
+              "~/W/";
+              "~/r/.git";
+              "~x";
+              "~X";
+              "~x/";
+              "~X/";
+              "~~";
+              "~nobody/x/";
+            ]
+        and+ var_name = oneof_list [ "path"; "PATH"; "foo" ]
+        and+ var_value =
+          oneof_list [ Some "/yes.inc"; Some "bar"; Some ""; None ]
+        and+ home =
+          oneof_list
+            [ None; Some ""; Some "/h"; Some "/r/.git"; Some "/R/.GIT" ]
+        and+ git_dir =
+          oneof_list
+            [
+              "/r/.git";
+              "/h/w/.git";
+              "/r/~x/repo/.git";
+              "/r/sub/~x";
+              "/r/sub/~~";
+            ]
+        in
+        (case_fold, pattern, var_name, var_value, home, git_dir))
+      (fun (case_fold, pattern, var_name, var_value, home, git_dir) ->
+        let prefix = if case_fold then "gitdir/i:" else "gitdir:" in
+        let condition = prefix ^ pattern in
+        let setting_line =
+          match var_value with
+          | None -> var_name ^ "\n"
+          | Some v -> var_name ^ " = " ^ v ^ "\n"
+        in
+        let env =
+          match home with
+          | None -> no_system
+          | Some h -> no_system @ [ ("HOME", h) ]
+        in
+        let world =
+          include_world ~env
+            [
+              ( config_path,
+                content
+                  (Printf.sprintf "[includeIf \"%s\"]\n%s" condition
+                     setting_line) );
+              ("/yes.inc", yes_file);
+            ]
+        in
+        let result, read_paths = run_with ~git_directories:[ git_dir ] world in
+        let starts_with_home =
+          pattern = "~" || String.starts_with ~prefix:"~/" pattern
+        in
+        let is_path = String.lowercase_ascii var_name = "path" in
+        let setting_key =
+          Config.key ~section:"includeIf" ~subsection:condition var_name
+        in
+        match (starts_with_home, home) with
+        | true, Some "" -> (
+            match result with
+            | Error error ->
+                error_name error = unread config_path var_value
+                && not (List.mem "/yes.inc" read_paths)
+            | Ok _ -> false)
+        | true, None -> (
+            match result with
+            | Ok cfg ->
+                Config.values cfg (key "s.met") = []
+                && Config.values cfg setting_key = [ var_value ]
+                && not (List.mem "/yes.inc" read_paths)
+            | Error _ -> false)
+        | _ -> (
+            let expanded =
+              match (starts_with_home, home) with
+              | true, Some h ->
+                  h ^ String.sub pattern 1 (String.length pattern - 1)
+              | _ -> pattern
+            in
+            let with_prefix =
+              if String.starts_with ~prefix:"/" expanded then expanded
+              else "**/" ^ expanded
+            in
+            let full =
+              if String.ends_with ~suffix:"/" with_prefix then
+                with_prefix ^ "**"
+              else with_prefix
+            in
+            let matched =
+              Sinter_wildmatch.matches
+                (Sinter_wildmatch.compile ~case_fold full)
+                git_dir
+            in
+            if matched && is_path then
+              match var_value with
+              | None -> (
+                  match result with
+                  | Error error -> error_name error = unread config_path None
+                  | Ok _ -> false)
+              | Some "/yes.inc" -> (
+                  match result with
+                  | Ok cfg -> Config.values cfg (key "s.met") = [ Some "1" ]
+                  | Error _ -> false)
+              | Some _ -> (
+                  match result with
+                  | Ok cfg -> Config.values cfg (key "s.met") = []
+                  | Error _ -> false)
+            else
+              match result with
+              | Ok cfg ->
+                  Config.values cfg (key "s.met") = []
+                  && Config.values cfg setting_key = [ var_value ]
+                  && not (List.mem "/yes.inc" read_paths)
+              | Error _ -> false));
+  ]
+
 let worktree_tests =
   let world extension =
     include_world
@@ -3443,4 +4692,4 @@ let tests =
   @ pathname_tests @ order_tests @ read_tests @ environment_tests
   @ more_environment_tests @ file_tests @ include_tests @ limit_tests
   @ condition_tests @ more_condition_tests @ unmet_hasconfig_tests
-  @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
+  @ follow_git_tests @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
