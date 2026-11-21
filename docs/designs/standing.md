@@ -775,7 +775,7 @@ is incomplete for those repository reads (term
 
 @term approval-completion=v1
 @cites {
-    identifiers#{external-namespaces=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{
         item=v1, declared-item=v1, subject-of-approval=v1,
         approval-state=v1, edge=v1, supersedes-edge=v1,
@@ -796,15 +796,17 @@ is incomplete for those repository reads (term
         approval-kinds=v1, approval-need=v1, latest-judgment=v1,
         merged-content=v1, incomplete-first-parent-line=v1,
     },
-    text#{sequence=v1, code-span=v1},
+    text#{conforming-program=v1, result=v1, sequence=v1, code-span=v1},
     #{historical-paths=v1, successor=v1, retired-finding=v1},
 }
 
 This term is for a git repository R whose ledger is valid and that holds
 its ledger objects, a valid binding A of `approval-kinds`, a binding D
 of `default-branch-name` (valid or not), a valid binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and the repository reads from which a program
+`file-readers`, a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid", a
+tree T, a point P of the ledger of R, and the repository reads from
+which a program
 takes the ledger of R, the commit of the default branch of R under D
 (when D is a valid binding), the first-parent line of that commit (when
 the default branch has a commit under D), and the files of the trees of
@@ -941,9 +943,9 @@ item, and must not give that it cannot see the whole history for the
 successors of x. When two approval completions in C give different sets
 of successors of x in T, that program must give no successor of x; when
 D is a valid binding of `default-branch-name`, that program must give
-that it cannot see the whole history; when D is not a valid binding of
-`default-branch-name`, that program must not give that it cannot see the
-whole history for the successors of x.
+that it cannot see the whole history for the successors of x; when D is
+not a valid binding of `default-branch-name`, that program must not give
+that it cannot see the whole history for the successors of x.
 
 ### 5.2 Findings of the class `retired`
 
@@ -989,11 +991,11 @@ class `retired` for T. When some edge e of T under F and N gives a
 `retired` tree finding under some approval completion in C (under H) and
 gives no `retired` tree finding under some other approval completion in
 C (under H), and D is a valid binding of `default-branch-name`, that
-program must give that it cannot see the whole history. Otherwise (when
-no edge of T under F and N differs across C under H, or when D is not
-a valid binding of `default-branch-name`), that program must not give
-that it cannot see the whole history for the findings of the class
-`retired` of T.
+program must give that it cannot see the whole history for the findings
+of the class `retired` of T. Otherwise (when no edge of T under F and N
+differs across C under H, or when D is not a valid binding of
+`default-branch-name`), that program must not give that it cannot see
+the whole history for the findings of the class `retired` of T.
 
 ### 5.3 Offered fixes of `retired` findings
 
@@ -1051,10 +1053,10 @@ D is valid), the first-parent line of that commit, and the files of the
 trees of the commits of that first-parent line is undisturbed.
 
 Let C be the set of approval completions of T at P under A, D, F, and N
-for those repository reads (term `approval-completion`). Let E be the
-edge of a tree finding f of the class `retired` that E gives under every
-approval completion in C (under H), and let c be the cited item of E.
-When two approval completions in C give different sets of successors of
+for those repository reads (term `approval-completion`). For each edge E
+of T under F and N that gives a `retired` tree finding f under every
+approval completion in C (under H), let c be the cited item of E. When
+two approval completions in C give different sets of successors of
 c in T, that program must give no fix for f. When every approval
 completion in C gives the same set K of successors of c in T, K has one
 or more items, and that program gives a fix for f, that fix must meet
@@ -1233,8 +1235,8 @@ of `default-branch-name` (whether or not D is a valid binding of
 `default-branch-name`), a valid binding F of `file-readers`, and a
 binding N of `external-namespaces` for which a conforming program of the
 design Identifiers gives the result "valid". When a conforming program
-meets two conditions, that program must give that R does not hold its
-ledger objects, must give no successor of any declared item of any tree
+meets two conditions, that program must give that R lacks its ledger
+objects, must give no successor of any declared item of any tree
 at any point of the ledger of R, must give no finding of the class
 `retired` of any tree at any point of the ledger of R, and must not give
 that it cannot see the whole history for those successors or those
@@ -1263,7 +1265,7 @@ findings:
 
 This requirement applies for a git repository R that holds its ledger
 objects. When a conforming program meets two conditions, that program
-must not give that R does not hold its ledger objects:
+must not give that R lacks its ledger objects:
 
 1. That program gives the successors of a declared item of a tree or
    gives the findings of the class `retired` of a tree at a point of the
@@ -1435,7 +1437,8 @@ h has at least one item with a new label against the tree of the base of
 the change of h under F, N, and H. Fourth, the history of the default
 branch of R under D and F is cut for those repository reads. When all
 four conditions hold, that program must give that it cannot see the
-whole history, and must give no finding of the class `reused-label`.
+whole history for the change of h, and must give no finding of the class
+`reused-label`.
 
 ### 5.15 When no label is new, the default branch is read in full, or reused labels are not given
 
@@ -1487,9 +1490,8 @@ reads.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`standing.test-vectors.jsonl`](standing.test-vectors.jsonl), in the
