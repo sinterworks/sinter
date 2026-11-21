@@ -2536,18 +2536,13 @@ as this design. The file is a test-vector set, as the specification
 [`test-vectors`](sinter:data-forms#test-vectors=v1) of Data forms gives
 it. A vector is an input and what a conforming program gives for it.
 Each vector follows from the requirements and adds nothing to them. The
-vectors are in six groups: `task-hash`, `message-lines`, `acceptance`,
-`states`, `promise-findings`, and `change-findings`. Each group has a
-subsection in this section that gives the forms of that group, as the
-term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives the
-forms of a group. No vector follows from the requirements
+vectors are in seven groups: `task-hash`, `message-lines`, `acceptance`,
+`states`, `promise-findings`, `change-findings`, and `job`. Each group
+has a subsection in this section that gives the forms of that group, as
+the term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
+the forms of a group. No vector follows from the requirements
 `assign-new-work-item-id`, `record-done-requirements`,
-`omit-work-writes-at-limits`, `give-job-promise-outcomes`,
-`append-delivered-entries`, `report-already-recorded-head`,
-`report-cut-job-range`, `reject-job-under-invalid-bindings`,
-`reject-job-without-ledger-objects`, `reject-job-on-invalid-ledger`,
-`reject-job-without-default-branch`, `reject-job-without-git-identity`,
-`reject-job-under-agent-marker`, `fail-job-at-limits`, and
+`omit-work-writes-at-limits`, `fail-job-at-limits`, and
 `omit-work-findings-under-invalid-bindings`.
 
 Each requirement from which vectors follow applies only when a program
@@ -3044,4 +3039,158 @@ result "no base" for the change of that commit.
 
 ```
 {"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"malformed-delivery for malformed line and stale-delivery for stale hash and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"malformed-delivery":["1111111111111111111111111111111111111111@L3"],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
+```
+
+### 6.7 The job
+
+@schema job-vector=v1
+@cites {
+    rfc/8259,
+    gitdoc/gitglossary,
+    text#{
+        conforming-program=v1, input=v1, text=v1, character=v1,
+        result=v1, code-point-order=v1, code-span=v1,
+    },
+    data-forms#{
+        json-value=v1, vector-line=v1, group-form-list=v1,
+        vector-meaning=v1, test-vectors=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1, extent-hash=v1},
+    packs#{runner-settings=v1, test-runner=v1},
+    evidence#{import=v1, report-file=v1, tree-evidence=v1},
+    changes#{
+        commit=v1, message-text=v1, shallow-commit=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
+    },
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    ontology#{
+        job=v1, ledger=v1, ledger-entry=v1, tree=v1, declared-item=v1,
+        item-name=v1, item-revision=v1, parameter=v1,
+    },
+    #{
+        commit-object-name=v1, task-hash=v1, delivered-field=v1,
+        job-range=v1, git-identity=v1, job-end=v1,
+        give-job-promise-outcomes=v1,
+        append-delivered-entries=v1, report-already-recorded-head=v1,
+        report-cut-job-range=v1, reject-job-under-invalid-bindings=v1,
+        reject-job-without-ledger-objects=v1,
+        reject-job-on-invalid-ledger=v1,
+        reject-job-without-default-branch=v1,
+        reject-job-without-git-identity=v1,
+        reject-job-under-agent-marker=v1, acceptance-vector=v1,
+        promise-findings-vector=v1,
+    },
+}
+
+The group `job` holds the vectors of the requirements
+`give-job-promise-outcomes`, `append-delivered-entries`,
+`report-already-recorded-head`, `report-cut-job-range`,
+`reject-job-under-invalid-bindings`, `reject-job-without-ledger-objects`,
+`reject-job-on-invalid-ledger`, `reject-job-without-default-branch`,
+`reject-job-without-git-identity`, and `reject-job-under-agent-marker`.
+Each vector gives what one execution of the job reads: the bindings, the
+ledger, the commits of the git repository with their parents and message
+texts, the commit of the default branch, a summary of the tree of that
+commit, the git identity, and whether an agent runs the execution. Each
+vector gives the result that the execution gives, whether the execution
+ends with an error, the `delivered` ledger entries that the execution
+appends, and its results for the `verifies` promises that those entries
+record. The group uses no need, so these forms give no need names.
+
+The input of each vector stands for one execution of a conforming
+program that runs the job on a git repository R, in an execution whose
+input says that the execution is the job. Each repository read of the
+run is undisturbed. R′ is the read repository of the run (term
+`job-range`).
+
+The JSON values, objects, arrays, strings, and the literal names `true`
+and `false` of this schema are as RFC 8259 defines them. Inside the
+members `input` and `values`, a text is a JSON string whose characters
+are the characters of the text, in order.
+
+- `input`: a JSON object with the members `bindings`, `ledger`,
+  `commits`, and `agent`, and the optional members `default-branch`,
+  `tree`, and `identity`:
+  - `bindings`: a JSON object with four members, each `true` or
+    `false`: `file-readers` (`true` when the binding of `file-readers`
+    is valid), `external-namespaces` (`true` when a conforming program
+    of Identifiers gives the result "valid" for the binding of
+    `external-namespaces`, and `false` when it gives "invalid"),
+    `default-branch-name` (`true` when the binding of
+    `default-branch-name` is valid), and `runner-settings` (`false`
+    when, and only when, `tree` is present, the tree of H has evidence,
+    and the test runner of a report file of an import of the evidence
+    for the tree of H has a binding of `runner-settings` that is not
+    valid);
+  - `ledger`: the string `missing-objects` when R′ does not hold its
+    ledger objects; the string `broken-or-newer` when R′ holds its
+    ledger objects and its ledger is broken or newer; and, when R′
+    holds its ledger objects and its ledger is valid, the ledger entries
+    of the five work kinds of the stored ledger of R′, in the form that
+    the schema `acceptance-vector` gives for `ledger`;
+  - `commits`: a JSON array with one JSON object for each commit of R′,
+    with `id` (the commit object name of that commit), `parents` (a JSON
+    array of the object names, written in hex digits, that the commit
+    object of that commit names as its parents, in order), optional
+    `shallow` (`true`, present when, and only when, that commit is a
+    shallow commit of R′), and optional `text` (the text of the message
+    of that commit, omitted when that message has no text); an object
+    name in `parents` that is no `id` in `commits` names a git object
+    that is not a commit of R′;
+  - `default-branch`: the commit object name of the commit H of the
+    default branch of R′ under the binding of `default-branch-name`,
+    which is an `id` in `commits`; omitted when that binding is not
+    valid or when the default branch of R′ has no commit under that
+    binding;
+  - `tree`: present when, and only when, `default-branch` is present
+    and R′ holds the tree objects of H (term `job-range`); a JSON object
+    with `has-evidence` and `edges`, as a tree summary of the schema
+    `promise-findings-vector` gives them for the tree of H, and
+    `requirements`, a JSON array with one JSON object for each declared
+    item of the kind requirement of the tree of H, with `req` (its name),
+    `label` (its current revision), and `extent-hash` (its extent hash),
+    so that two elements have the same `req` when two such declared items
+    have the same name;
+  - `identity`: the git identity for R in the environment of the
+    execution; omitted when git has no identity for R in that
+    environment;
+  - `agent`: `true` when the input of the execution says that an agent
+    runs the execution, and `false` otherwise.
+- `result`: no vector of the group has this member; these forms name no
+  question for `result`.
+- `values`: a JSON object with the members `error`, `appended`, and
+  `verifies`, and the optional member `report`:
+  - `report`: the one of the eight results "already recorded", "cannot
+    see range", "invalid bindings", "invalid ledger", "missing ledger
+    objects", "no default branch commit", "no git identity", and "agent
+    execution" that the execution gives; omitted when the execution
+    gives none of these eight results;
+  - `error`: `true` when the execution ends with an error, and `false`
+    when it ends without an error;
+  - `appended`: a JSON array of the `delivered` ledger entries that the
+    execution appends, in the order of the appends, each as a JSON
+    object that holds `kind`, `by`, and each field of the kind
+    `delivered`, with the values that the execution writes;
+  - `verifies`: a JSON array, in code point order of `task-hash` and
+    then of `req`, of JSON objects with `task-hash`, `req`, and
+    `outcome`, one for each distinct pair of a value of `task-hash` and
+    a value of `req` of a promise observation of the kind `verifies` in
+    `appended`; `outcome` (`"kept"` or `"not-kept"`) is the result that
+    the execution gives, apart from the appended ledger entries, for
+    whether that promise is kept in the tree of H for the definition
+    with that task hash.
+
+When the program reaches no limit of its own, a conforming program that
+runs the job on the input of a vector gives the result of `report` once
+and no other of the eight results, or none of the eight results when
+`report` is omitted; ends with an error when `error` is `true`, and
+without an error when `error` is `false`; appends the `delivered` ledger
+entries of `appended`, in that order and with those values, and no other
+`delivered` ledger entry; and gives the result of `outcome` for the
+promise and the definition of each element of `verifies`.
+
+```
+{"form":"#job-vector=v1","group":"job","input":{"agent":false,"bindings":{"default-branch-name":true,"external-namespaces":true,"file-readers":true,"runner-settings":true},"commits":[{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","parents":[],"text":"Initial\n"},{"id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],"text":"Enforce the limit\n\nDelivers: t-000000000001 de291f\n"},{"id":"cccccccccccccccccccccccccccccccccccccccc","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],"text":"Merge the limit\n"},{"id":"dddddddddddddddddddddddddddddddddddddddd","parents":["cccccccccccccccccccccccccccccccccccccccc"],"text":"Test the limit\n\nDelivers: t-000000000002 e9677a\n"},{"id":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","parents":["cccccccccccccccccccccccccccccccccccccccc","dddddddddddddddddddddddddddddddddddddddd"],"text":"Merge the test\n"}],"default-branch":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","identity":"Ada Lovelace <ada@example.com>","ledger":[{"def":1,"kind":"task","name":"T","paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":1,"kind":"task","name":"T","paths":["test/billing/**"],"promises":[{"kind":"verifies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000002"},{"def":1,"kind":"task","name":"T","paths":[],"promises":[],"waits":[],"work-item":"t-000000000009"},{"commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","definitions":["e0cbbad5090116c0db98e30089719b47d07a9bcdef1c72d8f168ee88327b0411"],"hash":"e0cbba","head":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"delivered","merge":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","promises":[],"work-item":"t-000000000009"}],"tree":{"edges":[{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"satisfies","line":1,"path":"src/billing/a.ml","req":"billing#limit"},{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"verifies","line":1,"path":"test/billing/a_test.ml","req":"billing#limit","test-outcome":"passed"}],"has-evidence":true,"requirements":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit"}]}},"note":"two merges in one push: each entry records its own landing commit as merge and the commit of the default branch as head","values":{"appended":[{"by":"Ada Lovelace <ada@example.com>","commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","definitions":["de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"],"hash":"de291f","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"cccccccccccccccccccccccccccccccccccccccc","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"}],"work-item":"t-000000000001"},{"by":"Ada Lovelace <ada@example.com>","commit":"dddddddddddddddddddddddddddddddddddddddd","definitions":["e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"],"hash":"e9677a","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"verifies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"}],"work-item":"t-000000000002"}],"error":false,"verifies":[{"outcome":"kept","req":"billing#limit","task-hash":"e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"}]}}
 ```
