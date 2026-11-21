@@ -2021,20 +2021,21 @@ of each report file of each import of V is valid.
 
 When the program finishes the run under these conditions, with the
 evidence V for the tree of H and those bindings of `runner-settings`,
-the program must give none of "already recorded", "cannot see range",
-"invalid bindings", "invalid ledger", "missing ledger objects", "no
-default branch commit", "no git identity", and "agent execution", must
-end without an error, and, taking each commit c of C in parents-first
-order and, when c has a message text, each line l of that message text
-in line-number order, must append the `delivered` ledger entries in that
-order:
+let P be the point after the last ledger entry of the stored ledger of
+R′. The program must give none of "already recorded", "cannot see
+range", "invalid bindings", "invalid ledger", "missing ledger objects",
+"no default branch commit", "no git identity", and "agent execution",
+must end without an error, and, taking each commit c of C in
+parents-first order and, when c has a message text, each line l of that
+message text in line-number order, must append the `delivered` ledger
+entries in that order:
 
 1. For each line l that meets `delivery-line-form` whose task id t
-   names a task that exists at the current end of the stored ledger of
-   R′ and for which no accepted `delivered` ledger entry before that
-   point has the commit object name of c as `commit`, t as `work-item`,
-   and the short task hash of l as `hash`, the program must append one
-   `delivered` ledger entry with:
+   names a task that exists at P, when neither an accepted `delivered`
+   ledger entry before P nor a `delivered` ledger entry appended earlier
+   in the run has the commit object name of c as `commit`, t as
+   `work-item`, and the short task hash of l as `hash`, the program must
+   append one `delivered` ledger entry with:
    - `by`: the git identity for R in the execution's environment;
    - `work-item`: t;
    - `commit`: the commit object name of c;
@@ -2043,9 +2044,9 @@ order:
    - `head`: the commit object name of H;
    - `hash`: the short task hash of l;
    - `definitions`: an array holding each distinct task hash among the
-     accepted `task` ledger entries of t before that point whose first
-     six characters are the short task hash of l, in code point order,
-     and no other element;
+     accepted `task` ledger entries of t before P whose first six
+     characters are the short task hash of l, in code point order, and
+     no other element;
    - `promises`: an array holding one promise observation for each pair
      of a task hash g in `definitions` and a promise q of the definition
      with task hash g, ordered first by g in code point order and then
@@ -2065,12 +2066,10 @@ order:
    - when the tree of H has, under F and N, no such declared item or
      more than one such declared item, neither `label` nor
      `extent-hash`.
-3. The program must append no `delivered` ledger entry for any
-   malformed delivery line, for any delivery line whose task does not
-   exist at that point, or for any delivery line that an earlier
-   accepted `delivered` ledger entry already records. When no line in C
-   qualifies under rule 1, the program must append no `delivered`
-   ledger entry.
+3. The program must append at most one `delivered` ledger entry in the
+   run for each commit object name, task id, and short task hash. The
+   program must append no `delivered` ledger entry that rule 1 does not
+   require.
 
 ### 5.15 The job on an already-recorded head
 
