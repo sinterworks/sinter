@@ -296,7 +296,8 @@ that binding is a branch name, which the term `branch-name` defines. So
 `main`, `release/2.0`, and `@` are branch names, and `a..b`, `.hidden`,
 `topic.lock`, `a b`, `HEAD`, `-x`, and `refs/heads/main` are not. The
 term `default-branch-commit` gives the commit of the default branch
-under a binding. For example, under the binding `main`, when `main` has
+under a binding that is a branch name. For example, under the binding
+`main`, when `main` has
 the upstream `refs/remotes/origin/main` and that ref points to a commit,
 the commit of the default branch is that commit.
 
@@ -744,11 +745,10 @@ three refs of the default branch, in this order:
 2. the ref whose name is `refs/heads/` followed by b.
 3. the ref whose name is `refs/remotes/origin/` followed by b.
 
-The commit of the default branch is the commit of the first of these
-three refs that exists in the git repository. When none of them exists,
-or when the first of them that exists has no commit, the default branch
-has no commit. Under a binding of `default-branch-name` that is not a
-branch name, the default branch has no commit.
+Under that binding, the commit of the default branch is the commit of
+the first of these three refs that exists in the git repository. Under
+that binding, when none of them exists, or when the first of them that
+exists has no commit, the default branch has no commit.
 
 ### 4.13 The files of the tree of a commit
 
@@ -944,12 +944,13 @@ that no other common ancestor of the two reaches.
     },
 }
 
-The base of the change of a commit h under a binding of
-`default-branch-name` is the merge base of h and the commit of the
-default branch under that binding, when these two commits have exactly
-one merge base. When they have no merge base, or more than one, the
-change of h has no base. When the default branch has no commit under
-that binding, the change of h has no base.
+Under a binding of `default-branch-name` that meets the schema
+`default-branch-name`, the base of the change of a commit h is the merge
+base of h and the commit of the default branch under that binding, when
+these two commits have exactly one merge base. Under that binding, when
+they have no merge base, or more than one, the change of h has no base.
+Under that binding, when the default branch has no commit under that
+binding, the change of h has no base.
 
 ### 4.21 First-parent lines
 
@@ -1404,16 +1405,16 @@ commit.
 }
 
 When a conforming program gives the commit of the default branch of a
-git repository under a binding of `default-branch-name`, or gives that
-the default branch has no commit under that binding, in an undisturbed
-repository read, the conforming program must give the commit of the
-default branch under that binding, and no other commit as the commit of
-the default branch under that binding, when the default branch has a
-commit under that binding, and must give that the default branch has no
-commit under that binding when the default branch has no commit under
-that binding. In that read, it must not give both a commit of the
-default branch under that binding and that the default branch has no
-commit under that binding.
+git repository under a binding of `default-branch-name` that meets the
+schema `default-branch-name`, or gives that the default branch has no
+commit under that binding, in an undisturbed repository read, the
+conforming program must give the commit of the default branch under that
+binding, and no other commit as the commit of the default branch under
+that binding, when the default branch has a commit under that binding,
+and must give that the default branch has no commit under that binding
+when the default branch has no commit under that binding. In that read,
+it must not give both a commit of the default branch under that binding
+and that the default branch has no commit under that binding.
 
 ### 5.7 Head commits
 
@@ -1574,13 +1575,14 @@ range.
 }
 
 When a conforming program gives the commits of the change of a commit h
-of a git repository under a binding of `default-branch-name`, or gives
-that h has no change under that binding, in an undisturbed repository
-read, the conforming program must give exactly the commits of the change
-of h when the default branch has a commit under that binding, and must
-give that h has no change when the default branch has no commit under
-that binding. In that read, it must not give both commits of the change
-of h under that binding and that h has no change under that binding.
+of a git repository under a binding of `default-branch-name` that meets
+the schema `default-branch-name`, or gives that h has no change under
+that binding, in an undisturbed repository read, the conforming program
+must give exactly the commits of the change of h when the default branch
+has a commit under that binding, and must give that h has no change when
+the default branch has no commit under that binding. In that read, it
+must not give both commits of the change of h under that binding and
+that h has no change under that binding.
 
 ### 5.15 Merge bases
 
@@ -1611,15 +1613,16 @@ must give exactly the merge bases of those two commits.
 }
 
 When a conforming program gives the base of the change of a commit h of
-a git repository under a binding of `default-branch-name`, or gives that
-the change of h has no base under that binding, in an undisturbed
-repository read, the conforming program must give the base of the change
-of h under that binding, and no other commit as the base of the change
-of h under that binding, when the change of h has a base under that
-binding, and must give that the change of h has no base under that
-binding when the change of h has no base under that binding. In that
-read, it must not give both a base of the change of h under that binding
-and that the change of h has no base under that binding.
+a git repository under a binding of `default-branch-name` that meets the
+schema `default-branch-name`, or gives that the change of h has no base
+under that binding, in an undisturbed repository read, the conforming
+program must give the base of the change of h under that binding, and no
+other commit as the base of the change of h under that binding, when the
+change of h has a base under that binding, and must give that the change
+of h has no base under that binding when the change of h has no base
+under that binding. In that read, it must not give both a base of the
+change of h under that binding and that the change of h has no base
+under that binding.
 
 ### 5.17 First-parent lines
 
@@ -1743,15 +1746,15 @@ of p between those trees.
 }
 
 When a conforming program gives a diff of the change of a commit h of a
-git repository under a binding of `default-branch-name`, or gives that
-the change of h has no diff under that binding, in an undisturbed
-repository read, the conforming program must give one diff of the change
-of h under that binding, with exactly the hunks of that diff and no
-other hunk, when the change of h has a base, and must give that the
-change of h has no diff when the change of h has no base under that
-binding. In that read, it must not give both a diff of the change of h
-under that binding and that the change of h has no diff under that
-binding.
+git repository under a binding of `default-branch-name` that meets the
+schema `default-branch-name`, or gives that the change of h has no diff
+under that binding, in an undisturbed repository read, the conforming
+program must give one diff of the change of h under that binding, with
+exactly the hunks of that diff and no other hunk, when the change of h
+has a base, and must give that the change of h has no diff when the
+change of h has no base under that binding. In that read, it must not
+give both a diff of the change of h under that binding and that the
+change of h has no diff under that binding.
 
 ### 5.23 No change to the repository by a read
 
@@ -1989,8 +1992,8 @@ result.
     text#{conforming-program=v1, text=v1, code-span=v1},
     #{
         branch-name-vector=v1, give-default-branch-commits=v1,
-        default-branch-name=v1, default-branch-commit=v1, commit=v1,
-        ref-commit=v1, repository-read=v1, undisturbed-read=v1,
+        default-branch-name=v1, branch-name=v1, default-branch-commit=v1,
+        commit=v1, ref-commit=v1, repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2008,7 +2011,8 @@ and no other commit. Each vector stands for an undisturbed repository
 read.
 
 - `input`: a JSON object. Its member `binding` is the binding of
-  `default-branch-name`, a text b. The member `upstream` is for the
+  `default-branch-name`, a text b, which is a branch name. The member
+  `upstream` is for the
   upstream of the branch b, which item 1 of the term
   `default-branch-commit` gives. The member `local` is for the ref whose
   name is `refs/heads/` followed by b. The member `remote` is for the
