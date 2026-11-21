@@ -1446,6 +1446,55 @@ let more_condition_tests =
                ^ "[includeIf \"hasconfig:remote.*\"]\npath = /hit.inc\n")
                 [] );
           ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. When the configuration has a setting under a condition
+       `hasconfig:remote.*.url:`, a remote URL in a global file, in the file
+       `config.worktree`, or in the file of a plain `include.path` from the
+       environment must be a setting, as git 2.54.0 reads those files. None of
+       those files comes from a conditional include. *)
+    case
+      "with a condition hasconfig, a URL outside conditional includes is a \
+       setting" (fun () ->
+        let hasconfig =
+          "[includeIf \"hasconfig:remote.*.url:other\"]\npath = /hit.inc\n"
+        in
+        let url = content "[remote \"o\"]\nurl = /u\n" in
+        let urls ?(env = []) ?working_tree config files =
+          match
+            fst
+              (run_with ?working_tree
+                 (include_world ~env:(no_system @ env)
+                    ((config_path, content config) :: files)))
+          with
+          | Ok configuration ->
+              show_values (Config.values configuration (key "remote.o.url"))
+          | Error error -> error_name error
+        in
+        List.iter
+          (fun (name, actual) ->
+            Alcotest.(check string) name (show_values [ Some "/u" ]) actual)
+          [
+            ( "a global file",
+              urls
+                ~env:[ ("GIT_CONFIG_GLOBAL", "/global.gitconfig") ]
+                hasconfig
+                [ ("/global.gitconfig", url) ] );
+            ( "the file config.worktree",
+              urls ~working_tree:git_folder
+                ("[extensions]\nworktreeConfig = true\n" ^ hasconfig)
+                [ (git_folder ^ "/config.worktree", url) ] );
+            ( "a plain include from the environment",
+              urls
+                ~env:
+                  [
+                    ("GIT_CONFIG_COUNT", "1");
+                    ("GIT_CONFIG_KEY_0", "include.path");
+                    ("GIT_CONFIG_VALUE_0", "/url.inc");
+                  ]
+                hasconfig
+                [ ("/url.inc", url) ] );
+          ]);
     case "a condition hasconfig that is not met reads nothing of its file"
       (fun () ->
         Alcotest.(check string)
