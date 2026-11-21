@@ -3006,8 +3006,7 @@ current revision is that pin run's text (the same as `false`).
     commit tree, omitted when the file was deleted).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
-- `values`: a JSON object with the member `findings` and the optional
-  member `no-base`:
+- `values`: a JSON object with the members `findings` and `no-base`:
   - `findings`: a JSON object holding:
     - `malformed-delivery`: a JSON array of finding subjects in code
       point order;
