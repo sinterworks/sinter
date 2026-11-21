@@ -315,9 +315,7 @@ are the accepted inputs. Those accepted inputs give the
 among those accepted inputs, the [extern marks](sinter:#extern-mark=v1),
 and the [status tags](sinter:identifiers#status-tag=v1) of the tree.
 Under a binding of `file-readers` that is not valid, a conforming
-program gives none of the things that
-[`give-nothing-under-invalid-bindings`](sinter:#give-nothing-under-invalid-bindings=v1)
-names.
+program gives nothing that depends on that binding.
 
 The [origin](sinter:#origin=v1) of a part of a tag text or of a markdown
 text is the places of the text of the file of that tag text or markdown
@@ -2842,40 +2840,7 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
 
 ## 5. Requirements
 
-### 5.1 Nothing under a binding of `file-readers` that is not valid
-
-@req give-nothing-under-invalid-bindings=v1
-@cites {
-    identifiers#{status-tag=v1},
-    ontology#{
-        tree=v1, declared-item=v1, containment=v1, test=v1, site=v1,
-        edge=v1, finding-class=v1, parameter=v1,
-    },
-    text#{conforming-program=v1},
-    #{
-        file-readers=v1, read-file=v1, item-file=v1, extent=v1,
-        extent-hash=v1, code-hash=v1, tree-containment=v1,
-        file-test=v1, tree-site=v1, tree-edge=v1, accepted-input=v1,
-        extern-mark=v1,
-        vector-file=v1, parse-error-finding=v1, typo-tag-finding=v1,
-        ignored-tag-finding=v1, invalid-target-finding=v1,
-        duplicate-finding=v1, dangling-finding=v1,
-        wrong-source-finding=v1, wrong-kind-finding=v1,
-        misplaced-declaration-finding=v1, req-outside-design-finding=v1,
-        extern-mismatch-finding=v1,
-    },
-}
-
-Under a binding of `file-readers` that is not valid, a conforming
-program must give, for any tree, no read file, no declared item, no
-extent, no hash text, no extent hash, no code text, no code hash, no
-item to which a declared item belongs, no test, no site, no edge, no
-status tag, no extern mark, no vector file, and no finding of the classes
-`parse-error`, `typo-tag`, `ignored-tag`, `invalid-target`, `duplicate`,
-`dangling`, `wrong-source`, `wrong-kind`, `misplaced-declaration`,
-`req-outside-design`, and `extern-mismatch`.
-
-### 5.2 Read files
+### 5.1 Read files
 
 @req give-read-files=v1
 @cites {
@@ -2889,7 +2854,7 @@ the read files of a tree under that binding, that conforming program
 must give each read file of the tree once, with the reader of that read
 file, and no other read file.
 
-### 5.3 Declared items
+### 5.2 Declared items
 
 @req give-declared-items=v1
 @cites {
@@ -2913,7 +2878,7 @@ item of that declared item, the name of that declared item, the file of
 that declared item, and the origin position of the text of the
 declaration of that declared item, and no other declared item.
 
-### 5.4 Extents
+### 5.3 Extents
 
 @req give-extents=v1
 @cites {
@@ -2930,7 +2895,7 @@ the extent of a declared item of a tree under these bindings, that
 conforming program must give the extent of that item, and nothing else
 as that extent.
 
-### 5.5 Extent hashes
+### 5.4 Extent hashes
 
 @req give-extent-hashes=v1
 @cites {
@@ -2947,7 +2912,7 @@ the extent hash of a declared item of a tree under these bindings, that
 conforming program must give the extent hash of that item, and nothing
 else as that extent hash.
 
-### 5.6 Code hashes
+### 5.5 Code hashes
 
 @req give-code-hashes=v1
 @cites {
@@ -2963,7 +2928,7 @@ a code hash, with the file of that run of comments, the boundaries where
 that run of comments starts and ends, and the code hash of that run of
 comments, and no other run of comments with a code hash.
 
-### 5.7 Containment
+### 5.6 Containment
 
 @req give-containment=v1
 @cites {
@@ -2982,7 +2947,7 @@ conforming program must give the item of that kind to which the declared
 item belongs, or that the declared item belongs to no item of that kind
 when the declared item belongs to none, and nothing else as that item.
 
-### 5.8 Tests
+### 5.7 Tests
 
 @req give-tests=v1
 @cites {
@@ -2997,7 +2962,7 @@ give each test of each read file of the tree once, with the file of that
 test, the name of that test, the code of that test, and each comment on
 that test, and no other test and no other comment on a test.
 
-### 5.9 Sites
+### 5.8 Sites
 
 @req give-sites=v1
 @cites {
@@ -3014,7 +2979,7 @@ the sites of a tree under these bindings, that conforming program must
 give each site of each read file of the tree once, with the file of that
 site and the file lines of that site, and no other site.
 
-### 5.10 Edges
+### 5.9 Edges
 
 @req give-edges=v1
 @cites {
@@ -3042,7 +3007,7 @@ form position of the vector line of that edge, the kind of edge of that
 edge, the source of that edge or that the edge has none, and the cited
 item of that edge or that the edge has none, and no other edge.
 
-### 5.11 The items in which status tags stand
+### 5.10 The items in which status tags stand
 
 @req give-status-tag-items=v1
 @cites {
@@ -3068,7 +3033,7 @@ position of the text of that status tag, and the item in which that
 status tag stands or that the status tag stands in no item, and no other
 status tag.
 
-### 5.12 Extern marks
+### 5.11 Extern marks
 
 @req give-extern-marks=v1
 @cites {
@@ -3092,7 +3057,7 @@ origin position of the text of the `@extern` line of that extern mark,
 the item of the kind design of that extern mark, and whether that extern
 mark is valid, and no other extern mark.
 
-### 5.13 Vector files
+### 5.12 Vector files
 
 @req give-vector-files=v1
 @cites {
@@ -3110,7 +3075,7 @@ specification of a tree under these bindings, that conforming program
 must give the vector file of that item, or that the item has none when
 the item has none, and nothing else as that vector file.
 
-### 5.14 The findings of a tree
+### 5.13 The findings of a tree
 
 @req give-tree-findings=v1
 @cites {
@@ -3118,8 +3083,7 @@ the item has none, and nothing else as that vector file.
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     text#{conforming-program=v1, result=v1},
     #{
-        file-readers=v1, tree-finding=v1, parse-error-finding=v1,
-        typo-tag-finding=v1, ignored-tag-finding=v1,
+        file-readers=v1, tree-finding=v1,
         invalid-target-finding=v1, duplicate-finding=v1,
         dangling-finding=v1, wrong-source-finding=v1,
         wrong-kind-finding=v1, misplaced-declaration-finding=v1,
@@ -3127,19 +3091,33 @@ the item has none, and nothing else as that vector file.
     },
 }
 
-Under a valid binding of `file-readers`, when a conforming program gives
-the findings of a tree of one of the classes `parse-error`, `typo-tag`,
-and `ignored-tag` under that binding, that conforming program must give
-once each tree finding of that class that the tree has, and no other
-finding of that class. Under a valid binding of `file-readers` and a
-binding of `external-namespaces` for which a conforming program of the
-design Identifiers gives the result "valid", when a conforming program
-gives the findings of a tree of one of the classes `invalid-target`,
+Under a valid binding of `file-readers` and a binding of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", when a conforming program gives
+the findings of a tree of one of the classes `invalid-target`,
 `duplicate`, `dangling`, `wrong-source`, `wrong-kind`,
 `misplaced-declaration`, `req-outside-design`, and `extern-mismatch`
 under these bindings, that conforming program must give once each tree
 finding of that class that the tree has, and no other finding of that
 class.
+
+### 5.14 The file findings of a tree
+
+@req give-file-findings=v1
+@cites {
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
+    text#{conforming-program=v1},
+    #{
+        file-readers=v1, tree-finding=v1, parse-error-finding=v1,
+        typo-tag-finding=v1, ignored-tag-finding=v1,
+    },
+}
+
+Under a valid binding of `file-readers`, when a conforming program gives
+the findings of a tree of one of the classes `parse-error`, `typo-tag`,
+and `ignored-tag` under that binding, that conforming program must give
+once each tree finding of that class that the tree has, and no other
+finding of that class.
 
 ### 5.15 Hash texts
 
@@ -3178,9 +3156,8 @@ target, and nothing else as that code text.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`documents.test-vectors.jsonl`](documents.test-vectors.jsonl), in the
@@ -3230,23 +3207,21 @@ checks that program only on the declared items.
         item-file=v1, extent=v1, extent-hash=v1, tree-containment=v1,
         tree-site=v1, tree-edge=v1, extern-mark=v1,
         valid-extern-mark=v1, vector-file=v1, tree-finding=v1,
-        give-nothing-under-invalid-bindings=v1, give-read-files=v1,
-        give-declared-items=v1, give-extents=v1, give-extent-hashes=v1,
-        give-hash-texts=v1, give-containment=v1, give-sites=v1,
-        give-edges=v1, give-status-tag-items=v1, give-extern-marks=v1,
-        give-vector-files=v1, give-tree-findings=v1,
+        give-read-files=v1, give-declared-items=v1, give-extents=v1,
+        give-extent-hashes=v1, give-hash-texts=v1, give-containment=v1,
+        give-sites=v1, give-edges=v1, give-status-tag-items=v1,
+        give-extern-marks=v1, give-vector-files=v1,
+        give-tree-findings=v1, give-file-findings=v1,
     },
 }
 
 The group `markdown` has the vectors of trees that have no code file.
-Its vectors follow from the requirements
-`give-nothing-under-invalid-bindings`, `give-read-files`,
+Its vectors follow from the requirements `give-read-files`,
 `give-declared-items`, `give-extents`, `give-extent-hashes`,
 `give-hash-texts`, `give-containment`, `give-sites`, `give-edges`,
-`give-status-tag-items`, `give-extern-marks`, `give-vector-files`, and
-`give-tree-findings`. Each vector checks a conforming program only when
-the program reaches no limit of its own. Each vector of the group has
-the member `values`, and no vector has the member `result`.
+`give-status-tag-items`, `give-extern-marks`, `give-vector-files`,
+`give-tree-findings`, and `give-file-findings`. Each vector of the group
+has the member `values`, and no vector has the member `result`.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
@@ -3375,19 +3350,19 @@ member. The element of a thing that has no such item has no such member.
   the JSON value `true` when that extern mark is valid, and the JSON
   value `false` when that extern mark is not valid.
 - `findings`: a JSON array with one element for each tree finding that
-  the tree has, of one of the classes that the requirement
-  `give-tree-findings` names (or of the classes `parse-error`,
-  `typo-tag`, and `ignored-tag` only when a conforming program of the
-  design Identifiers gives the result "invalid" for the binding of
-  `external-namespaces` of the input), in the code point order of the
-  slugs of the classes of the tree findings and then in the code point
-  order of the subjects of the tree findings. Each element is a JSON
-  object for one tree finding, with these members. `class` is the slug
-  of the class of that tree finding. `subject` is the subject of that
-  tree finding. `spot` is the spot of that tree finding: a JSON object
-  with the member `path`, which is the valid path of that spot, and,
-  when that spot has a span, the member `span`, which is that span, as a
-  run.
+  the tree has, of one of the classes that the requirements
+  `give-file-findings` and `give-tree-findings` name. When a conforming
+  program of the design Identifiers gives the result "invalid" for the
+  binding of `external-namespaces` of the input, the array has only the
+  tree findings of the classes `parse-error`, `typo-tag`, and
+  `ignored-tag`. The elements stand in the code point order of the slugs
+  of the classes of the tree findings and then in the code point order
+  of the subjects of the tree findings. Each element is a JSON object
+  for one tree finding, with these members. `class` is the slug of the
+  class of that tree finding. `subject` is the subject of that tree
+  finding. `spot` is the spot of that tree finding: a JSON object with
+  the member `path`, which is the valid path of that spot, and, when
+  that spot has a span, the member `span`, which is that span, as a run.
 
 A reference to an item is a JSON object of one of these five forms.
 `{"item":k}` refers to the declared item with the index k in `items`.
@@ -3404,13 +3379,13 @@ its own and reads the tree under the two bindings of the input, that
 conforming program gives what `values` states. For each member that this
 schema gives for `values` and that `values` omits, the conforming
 program gives, for the tree, none of the things that that member names
-(by `give-nothing-under-invalid-bindings` when `file-readers` is not
-valid, and by `conforming-program` of Text when `external-namespaces` is
-not valid; when `values` omits `items`, the conforming program also
-gives no extent, no hash text, no extent hash, no item to which a
-declared item belongs, and no vector file). When `values` has a member
-and the conforming program gives the things that that member names, the
-conforming program gives what that member states for those things:
+(by `conforming-program` of Text when `file-readers` or
+`external-namespaces` is not valid; when `values` omits `items`, the
+conforming program also gives no extent, no hash text, no extent hash,
+no item to which a declared item belongs, and no vector file). When
+`values` has a member and the conforming program gives the things that
+that member names, the conforming program gives what that member states
+for those things:
 
 - When the conforming program gives the read files, the conforming
   program gives the keys of `read-files`, each once, with the reader of
@@ -3433,16 +3408,17 @@ conforming program gives what that member states for those things:
   `item`, the conforming program gives that the status tag stands in no
   item.
 - When the conforming program gives the tree findings of one of the
-  classes that the requirement `give-tree-findings` names: if a
-  conforming program of the design Identifiers gives the result
-  "invalid" for the binding of `external-namespaces` of the input and
-  that class is not `parse-error`, `typo-tag`, or `ignored-tag`, the
-  conforming program gives no tree finding of that class (by
-  `conforming-program` of Text); otherwise, the conforming program gives
-  one for each element of `findings` of that class, with the class and
-  the subject that the element states, and no other tree finding of that
-  class. When the conforming program gives the spot of such a finding,
-  the conforming program gives the spot that the element states.
+  classes that the requirements `give-file-findings` and
+  `give-tree-findings` name: if a conforming program of the design
+  Identifiers gives the result "invalid" for the binding of
+  `external-namespaces` of the input and that class is not `parse-error`,
+  `typo-tag`, or `ignored-tag`, the conforming program gives no tree
+  finding of that class (by `conforming-program` of Text); otherwise,
+  the conforming program gives one for each element of `findings` of
+  that class, with the class and the subject that the element states,
+  and no other tree finding of that class. When the conforming program
+  gives the spot of such a finding, the conforming program gives the
+  spot that the element states.
 
 These lines of the file are vectors of the group:
 
@@ -3483,9 +3459,8 @@ These lines of the file are vectors of the group:
 The group `code` has the vectors of trees that can have code files.
 Its vectors follow from the requirements of the group `markdown`, and
 from the requirements `give-tests`, `give-code-hashes`, and
-`give-code-texts`. Each vector checks a conforming program only when the
-program reaches no limit of its own. Each vector of the group has the
-member `values`, and no vector has the member `result`.
+`give-code-texts`. Each vector of the group has the member `values`, and
+no vector has the member `result`.
 
 Inside the members `input` and `values`, each JSON value that this
 schema names as a text, a whole number, a run, a position, a path set, a
