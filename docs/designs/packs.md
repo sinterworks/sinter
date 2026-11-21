@@ -159,7 +159,7 @@ their matching.
 | [result of a reading](sinter:#reading-result=v1) | the result of a reading of a text, as the text of a file at a valid path, with a valid pack: "no grammar", "parse failure", or "parsed" |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
-| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, when the code of that instantiation or invocation exhausts the call stack, or when its code never ends |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, or when the execution of its code, as the WebAssembly Core Specification 2.0 defines it, does not terminate |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack in which the file of a grammar is a WebAssembly module with an import that the program does not provide, or in which a query file holds a pattern that, without the predicates of that pattern, matches no part of any parse tree that the language of the grammar of that query file can give |
 | [adapter module](sinter:#adapter-module=v1) | a WebAssembly module that imports nothing and exports `memory`, `sinter_interface`, `sinter_alloc`, `sinter_recognise`, and `sinter_bind` with the types of the interface |
 | [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, an adapter module that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
@@ -1804,10 +1804,9 @@ file grammar of a valid path that has no file grammar.
 
 ### 5.9 Conformance
 
-A program conforms to the specification `descriptor` when the program is
-a [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
-requirement that the specification declares.
+A program conforms to the specification `descriptor` when it is a
+[conforming program](sinter:text#conforming-program=v1) of this
+specification.
 
 The vectors of this specification are in the file
 [`packs.descriptor.test-vectors.jsonl`](packs.descriptor.test-vectors.jsonl),
@@ -1978,8 +1977,9 @@ An instance of an adapter of a WebAssembly module, for a program, is a
 new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
 execution, with the program as its embedder. An instantiation or an
-invocation fails when that instantiation or invocation traps, when its
-code exhausts the call stack, or when its code never ends.
+invocation fails when that instantiation or invocation traps, or when
+the execution of its code, as the WebAssembly Core Specification 2.0
+defines it, does not terminate.
 
 #### 6.1.2 Adapter modules
 
@@ -2404,10 +2404,8 @@ adapter.
 ### 6.10 Conformance
 
 A program conforms to the specification `adapters` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
-requirement that the specification declares. The requirement
-`isolate-adapters` has no vectors.
+[conforming program](sinter:text#conforming-program=v1) of this
+specification. The requirement `isolate-adapters` has no vectors.
 
 The vectors of this specification are in the file
 [`packs.adapters.test-vectors.jsonl`](packs.adapters.test-vectors.jsonl),
@@ -2988,10 +2986,9 @@ process that acts for the conforming program.
 
 ## 8. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design:
-when it meets every requirement of this design, the requirements of the
-specifications of this design included. The vectors of the requirements
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
+The vectors of the requirements
 that the design holds directly, outside its specifications, are in the
 file [`packs.test-vectors.jsonl`](packs.test-vectors.jsonl), in the same
 folder as this design. The file is a test-vector set, in the form that
