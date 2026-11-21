@@ -2547,8 +2547,7 @@ forms of a group. No vector follows from the requirements
 `report-cut-job-range`, `reject-job-under-invalid-bindings`,
 `reject-job-without-ledger-objects`, `reject-job-on-invalid-ledger`,
 `reject-job-without-default-branch`, `reject-job-without-git-identity`,
-`reject-job-under-agent-marker`, `fail-job-at-limits`,
-`omit-work-missing-base-report`, `report-work-missing-base`, and
+`reject-job-under-agent-marker`, `fail-job-at-limits`, and
 `omit-work-findings-under-invalid-bindings`.
 
 Each requirement from which vectors follow applies only when a program
@@ -2954,19 +2953,22 @@ no other finding of that class.
         malformed-delivery-finding=v1, stale-delivery-finding=v1,
         delivery-without-change-finding=v1, unplanned-change-finding=v1,
         give-work-commit-findings=v1, give-work-change-findings=v1,
+        omit-work-missing-base-report=v1, report-work-missing-base=v1,
         acceptance-vector=v1,
     },
 }
 
 The group `change-findings` holds the vectors of the requirements
 `give-work-commit-findings` (for the classes `malformed-delivery` and
-`stale-delivery`) and `give-work-change-findings` (for the classes
-`delivery-without-change` and `unplanned-change`). Each vector gives a
-ledger, a valid binding of `exempt-paths`, optional commits of the
-change of a commit, and optional changed files with hunks between the
-base tree and the tree of that commit, and gives the resulting findings
-at the point after the last ledger entry of that ledger. The group uses
-no need, so these forms give no need names.
+`stale-delivery`), `give-work-change-findings` (for the classes
+`delivery-without-change` and `unplanned-change`),
+`omit-work-missing-base-report`, and `report-work-missing-base`. Each
+vector gives a ledger, a valid binding of `exempt-paths`, optional
+commits of the change of a commit, and optional changed files with hunks
+between the base tree and the tree of that commit, and gives the
+resulting findings at the point after the last ledger entry of that
+ledger, and whether the program gives the result "no base" for that
+change. The group uses no need, so these forms give no need names.
 
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects, a valid binding of `file-readers`, a
@@ -2974,8 +2976,8 @@ binding of `external-namespaces` for which a conforming program of
 Identifiers gives the result "valid", a valid binding of
 `default-branch-name` (under which the default branch has a commit when
 `commits` is present, has no commit when `commits` is absent, and the
-change has a base when `changed-files` is present), and undisturbed
-repository reads.
+change has a base when, and only when, `changed-files` is present), and
+undisturbed repository reads.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
@@ -3009,26 +3011,36 @@ current revision is that pin run's text (the same as `false`).
     commit tree, omitted when the file was deleted).
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
-- `values`: a JSON object with one member, `findings`, a JSON object
-  holding:
-  - `malformed-delivery`: a JSON array of finding subjects in code point
-    order;
-  - `stale-delivery`: a JSON array of finding subjects in code point
-    order;
-  - when `commits` and `changed-files` are present,
-    `delivery-without-change`: a JSON array of task id subjects in code
-    point order;
-  - when `commits` and `changed-files` are present, `unplanned-change`:
-    a JSON array, in code point order of `subject`, of JSON objects with
-    `subject` and `has-spot` (`true` when the finding has the valid path
-    alone as its spot, `false` when the finding has no spot).
+- `values`: a JSON object with the member `findings` and the optional
+  member `no-base`:
+  - `findings`: a JSON object holding:
+    - `malformed-delivery`: a JSON array of finding subjects in code
+      point order;
+    - `stale-delivery`: a JSON array of finding subjects in code point
+      order;
+    - when `commits` and `changed-files` are present,
+      `delivery-without-change`: a JSON array of task id subjects in
+      code point order;
+    - when `commits` and `changed-files` are present,
+      `unplanned-change`: a JSON array, in code point order of
+      `subject`, of JSON objects with `subject` and `has-spot` (`true`
+      when the finding has the valid path alone as its spot, `false`
+      when the finding has no spot);
+  - `no-base`: `true` when `changed-files` is absent, and `false` when
+    `changed-files` is present.
 
 When the program reaches no limit of its own and a conforming program
 gives the findings of any class named in `findings`, it gives one
 finding for each element of that member (with no spot for
 `malformed-delivery`, `stale-delivery`, and `delivery-without-change`,
 and with or without a spot as `has-spot` says for `unplanned-change`),
-and no other finding of that class.
+and no other finding of that class. When the program reaches no limit
+of its own and a conforming program gives the findings of the class
+`delivery-without-change` or `unplanned-change` of the tree of the
+commit: when `no-base` is `true`, the program gives exactly one result,
+and only "no base", for the change of that commit, and gives no finding
+of that class; when `no-base` is `false`, the program does not give the
+result "no base" for the change of that commit.
 
 ```
 {"form":"#change-findings-vector=v1","group":"change-findings","input":{"changed-files":[{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/billing/a.ml"},{"base":{"lines":[{"pins":[],"text":"old"}],"readable":true},"head":{"lines":[{"pins":[],"text":"new"}],"readable":true},"path":"src/other/b.ml"}],"commits":[{"id":"1111111111111111111111111111111111111111","text":"Delivers: t-000000000001 000000\nDelivers: t-000000000002 e0cbba\nDelivers: bad\n"}],"exempt-paths":[],"ledger":[{"def":1,"kind":"task","name":"Billing","paths":["src/billing/**"],"promises":[],"waits":[],"work-item":"t-000000000001"}]},"note":"malformed-delivery for malformed line and stale-delivery for stale hash and missing task; stale well-formed line still contributes task paths","values":{"findings":{"delivery-without-change":[],"malformed-delivery":["1111111111111111111111111111111111111111@L3"],"stale-delivery":["1111111111111111111111111111111111111111@L1","1111111111111111111111111111111111111111@L2"],"unplanned-change":[{"has-spot":true,"subject":"src/other/b.ml"}]}}}
