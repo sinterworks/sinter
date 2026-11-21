@@ -1,0 +1,11 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_markdown_tag_texts)
+ (public_name sinter.markdown_tag_texts)
+ (libraries sinter_text sinter_origins sinter_markdown_limits cmarkit)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

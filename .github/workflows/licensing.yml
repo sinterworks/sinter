@@ -89,10 +89,11 @@ jobs:
         run: |
           set -eu
           licenses=$(mktemp)
-          cargo metadata --format-version 1 --locked \
-            --manifest-path bridge/Cargo.toml |
-            jq -r '.packages[] | "\(.name)\t\(.license // "unknown")"' \
-            > "$licenses"
+          for manifest in bridge/Cargo.toml wasm_engine/Cargo.toml; do
+            cargo metadata --format-version 1 --locked \
+              --manifest-path "$manifest" |
+              jq -r '.packages[] | "\(.name)\t\(.license // "unknown")"'
+          done > "$licenses"
           awk -F'\t' '
             {
               name = $1; expression = $2

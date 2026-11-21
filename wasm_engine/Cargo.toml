@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 The Sinter Authors
+
+[package]
+name = "sinter-wasm-engine"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+description = "The C interface that Sinter uses to compile, instantiate, and run WebAssembly Core 2.0 modules"
+
+[lib]
+name = "sinter_wasm_engine"
+crate-type = ["staticlib"]
+
+[dependencies]
+wasmtime = { version = "=50.0.1", default-features = false, features = ["runtime", "cranelift", "std", "gc", "gc-null"] }
+
+[profile.release]
+opt-level = 2

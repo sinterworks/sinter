@@ -1,0 +1,17 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_git_object_store)
+ (public_name sinter.git_object_store)
+ (libraries
+  sinter_repository_files
+  sinter_git_objects
+  decompress.de
+  decompress.zl
+  digestif)
+ (private_modules inflate saturating)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

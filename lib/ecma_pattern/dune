@@ -1,0 +1,18 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(copy_files#
+ %{workspace_root}/third_party/quickjs/{libregexp.c,libunicode.c,cutils.c,libregexp.h,libregexp-opcode.h,libunicode.h,libunicode-table.h,cutils.h})
+
+(library
+ (name sinter_ecma_pattern)
+ (public_name sinter.ecma_pattern)
+ (libraries sinter_text)
+ (foreign_stubs
+  (language c)
+  (names libregexp libunicode cutils ecma_pattern_stubs)
+  (flags :standard -O2 -std=gnu11))
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))
