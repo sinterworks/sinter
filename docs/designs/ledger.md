@@ -185,21 +185,23 @@ program appends nothing to a newer ledger (requirement
 A program reads the ledger of a git repository from its ledger objects
 (term `ledger-object`). A git repository can lack some of them, as a
 partial clone can lack blobs. A program may fetch the ledger objects and
-the history objects that the git repository lacks, as a partial clone
-can. Nothing requires or forbids fetching those objects. A program that
-does not fetch the ledger objects that the git repository lacks reports
-that the git repository lacks its ledger objects (requirement
-`report-missing-ledger-objects`), gives no result for whether the ledger
-is valid, gives no ledger entry of the ledger, gives no state at a point
-of the ledger, appends nothing, makes no repair, and makes no push from
-or to that git repository (requirements `give-stored-ledgers`,
-`validate-ledgers`, `give-states-only-from-valid-ledgers`,
-`append-only-to-valid-ledgers`, `push-only-extensions`, and
+the history objects that the git repository does not hold, as a partial
+clone can. Nothing requires or forbids fetching those objects. A program
+that does not fetch the ledger objects that the git repository does not
+hold reports that the git repository does not hold its ledger objects
+(requirement `report-missing-ledger-objects`), gives no result for
+whether the ledger is valid, gives no ledger entry of the ledger, gives
+no state at a point of the ledger, appends nothing, makes no repair,
+makes no push from or to that git repository, and makes no pull into
+that git repository or from that git repository as the shared clone
+(requirements `give-stored-ledgers`, `validate-ledgers`,
+`give-states-only-from-valid-ledgers`, `append-only-to-valid-ledgers`,
+`push-only-extensions`, `refuse-unsafe-pulls`, and
 `repair-no-newer-ledgers`). A program that does not fetch the history
-objects that the git repository lacks reports that the git repository
-lacks its history objects (requirement `report-missing-ledger-objects`)
-and gives no result for whether the history is intact (requirement
-`validate-histories`).
+objects that the git repository does not hold reports that the git
+repository does not hold its history objects (requirement
+`report-missing-ledger-objects`) and gives no result for whether the
+history is intact (requirement `validate-histories`).
 
 The ledger of a git repository that holds its ledger objects is newer,
 valid, or broken (atom `ledger-validity`). For example, a ledger ref
@@ -331,8 +333,8 @@ void where each of them was. A person makes a repair, for example to
 remove a ledger entry that holds a secret, or to make a broken ledger
 valid. A repair of a broken ledger can remove no line, when the repair
 only puts the lines in the form of a valid ledger tree. No program
-repairs a newer ledger or the ledger of a git repository that lacks its
-ledger objects (requirement `repair-no-newer-ledgers`). The
+repairs a newer ledger or the ledger of a git repository that does not
+hold its ledger objects (requirement `repair-no-newer-ledgers`). The
 requirement `repair-ledgers-with-voids` gives the commit that a repair
 makes. Each line that the repair keeps keeps its bytes. For each text
 that is the `id` of a removed line, the new commit holds one void whose
@@ -1030,14 +1032,14 @@ the ledger ref of A.
     ontology#{ledger=v1},
     text#{conforming-program=v1, code-span=v1},
     #{
-        ledger-ref=v1, chunk=v1, shared-clone=v1, valid-ledger-tree=v1,
-        ledger-validity=v1, accounted-line=v1,
+        ledger-ref=v1, ledger-object=v1, chunk=v1, shared-clone=v1,
+        valid-ledger-tree=v1, ledger-validity=v1, accounted-line=v1,
     },
 }
 
 A conforming program must pull into a git repository A the ledger
-entries of the shared clone of A from a commit s only when one of these
-is true:
+entries of the shared clone S of A from a commit s only when A holds its
+ledger objects, S holds its ledger objects, and one of these is true:
 
 1. A has no ledger commit.
 2. The git tree object of s accounts for each line of the git tree
@@ -1086,7 +1088,7 @@ and commands that the requirement `changes#run-no-configured-programs`
 forbids in a fetch from that shared clone or in a push to that shared
 clone.
 
-### 5.17 No repair of a newer ledger or without ledger objects
+### 5.17 No repair of a newer ledger or of a ledger whose objects are missing
 
 @req repair-no-newer-ledgers=v1
 @cites {
@@ -1196,35 +1198,45 @@ that holds external items, such as the title or the state of an issue.
 @req report-missing-ledger-objects=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, state=v1, repair=v1},
+    changes#{remote-transfer=v1},
     text#{conforming-program=v1},
     #{
         ledger-object=v1, stored-ledger=v1, ledger-validity=v1,
-        intact-history=v1,
+        intact-history=v1, shared-clone=v1,
     },
 }
 
 When a conforming program runs an operation on a git repository that
 needs the ledger objects of that git repository, no other process
 changes that git repository while the conforming program reads that git
-repository, and that git repository does not hold its ledger objects,
-the conforming program must report that that git repository lacks its
-ledger objects. Those operations are reading the stored ledger of that
-git repository, checking whether the ledger of that git repository is
-valid, reading a state at a point of that ledger, appending ledger
-entries to that ledger, making a repair of that ledger, and pushing
-ledger entries from or to that git repository. When a conforming program
-checks whether the history of the ledger of a git repository is intact,
-no other process changes that git repository while the conforming
-program reads that git repository, and that git repository does not hold
-its history objects, the conforming program must report that that git
-repository lacks its history objects. For a git repository that no other
-process changes while a conforming program reads that git repository,
-the conforming program must report that that git repository lacks its
-ledger objects only when that git repository does not hold its ledger
-objects. For a git repository that no other process changes while a
-conforming program reads that git repository, the conforming program
-must report that that git repository lacks its history objects only when
-that git repository does not hold its history objects.
+repository, and that git repository does not hold its ledger objects
+after each fetch of git objects that the conforming program makes for
+that operation, the conforming program must report that the git
+repository does not hold its ledger objects. Those operations are
+reading the stored ledger of that git repository, checking whether the
+ledger of that git repository is valid, reading a state at a point of
+that ledger, appending ledger entries to that ledger, making a repair of
+that ledger, pushing ledger entries from or to that git repository,
+pulling into that git repository the ledger entries of its shared clone,
+and pulling from that git repository as the shared clone. When a
+conforming program runs an operation to check whether the history of the
+ledger of a git repository is intact, no other process changes that git
+repository while the conforming program reads that git repository, and
+that git repository does not hold its history objects after each fetch
+of git objects that the conforming program makes for that operation, the
+conforming program must report that the git repository does not hold its
+history objects. When a conforming program runs an operation on a git
+repository that no other process changes while the conforming program
+reads that git repository, the conforming program must report that the
+git repository does not hold its ledger objects only when the git
+repository does not hold its ledger objects after each fetch of git
+objects that the conforming program makes for that operation. When a
+conforming program runs an operation on a git repository that no other
+process changes while the conforming program reads that git repository,
+the conforming program must report that the git repository does not hold
+its history objects only when the git repository does not hold its
+history objects after each fetch of git objects that the conforming
+program makes for that operation.
 
 ### 5.24 No ledger write after a stop
 
@@ -1242,9 +1254,8 @@ must change no such ledger ref.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`ledger.test-vectors.jsonl`](ledger.test-vectors.jsonl), in the same
