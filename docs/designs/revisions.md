@@ -362,9 +362,8 @@ base, and must give no finding of that class.
 
 ## 5. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 4.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`revisions.test-vectors.jsonl`](revisions.test-vectors.jsonl), in the
@@ -377,9 +376,6 @@ the term [`group-form-list`](sinter:data-forms#group-form-list=v1) gives
 them. No vector follows from the requirements
 `compare-with-change-base`, `omit-missing-base-report`, and
 `report-missing-base`.
-
-By the schema `trees-vector`, a vector checks a program only when the
-program reaches no limit of its own.
 
 ### 5.1 Trees
 
@@ -412,10 +408,9 @@ The group `trees` holds the vectors whose inputs are a base tree, a
 tree, a binding of `file-readers` whose readers are all `markdown`, and
 a binding of `external-namespaces`. Its requirements are
 `give-needs-revision-findings` and `give-suspect-findings`. Each vector
-checks a conforming program only when the program reaches no limit of
-its own. Each vector of the group has the member `values`, and no vector
-has the member `result`. These forms name no question for `result`. The
-group uses no need, so these forms give no need names.
+of the group has the member `values`, and no vector has the member
+`result`. These forms name no question for `result`. The group uses no
+need, so these forms give no need names.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. In the members `input` and `values`, a
