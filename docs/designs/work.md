@@ -148,8 +148,10 @@ A `task` ledger entry records one whole definition of a task (schema
 a plan (schema `plan-field`). A task whose `paths` is empty (`[]`)
 changes no files, so a counting delivery line for it in a change with a
 base gives `delivery-without-change`. When such a task has at least one
-promise, no edge can keep that promise, so only a `done` entry can make
-the task done. For example, a `task` ledger entry with common fields looks
+promise, no edge can keep that promise, so the job records that promise
+as `not-kept` (atom `job-promise-outcome`), and no `delivered` entry
+that the job appends makes the task done. For example, a `task` ledger
+entry with common fields looks
 like this:
 
 ```
