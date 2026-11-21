@@ -525,8 +525,9 @@ A ledger entry of the kind `plan` can also have the optional field
 
 A ledger entry of the kind `plan` meets the schema `plan-field` when,
 and only when, its object has each required field of the kind `plan`
-with a value of the form that this schema gives, and, when its object
-has the member `plan`, the value of `plan` is a plan id.
+with a value of the form that this schema gives, and each optional field
+of the kind `plan` that its object has holds a value of the form that
+this schema gives.
 
 ### 4.8 The fields of `done` ledger entries
 
@@ -562,8 +563,9 @@ A ledger entry of the kind `done` can also have the optional field
 
 A ledger entry of the kind `done` meets the schema `done-field` when,
 and only when, its object has each required field of the kind `done`
-with a value of the form that this schema gives, and, when its object
-has the member `note`, the value of `note` is a string.
+with a value of the form that this schema gives, and each optional field
+of the kind `done` that its object has holds a value of the form that
+this schema gives.
 
 ### 4.9 The fields of `abandoned` ledger entries
 
@@ -613,8 +615,8 @@ short-task-hash  = 6hex-digit
 A promise observation is a JSON object that meets all four of these
 conditions:
 
-1. It has the member `task-hash`, whose value is a string that fits the
-   hash form; the member `kind`, whose value is the string `satisfies`
+1. It has the member `task-hash`, whose value is a string; the member
+   `kind`, whose value is the string `satisfies`
    or the string `verifies`; and the member `req`, whose value is a
    string that matches the production `slug` or the production
    `full-name` of Identifiers.
@@ -864,10 +866,9 @@ an item r of the kind requirement of T under F and N:
 - An accepted `delivered` ledger entry E at its point P records both the
   current revision of r in T and the same revised content as the revised
   content of r in T for a promise of the definition of its task that was
-  current at P when, and only when, `definitions` of E holds the task
-  hash g of that current definition, and `promises` of E holds an
-  element whose value of `task-hash` is g and whose `req` is the name of
-  r in T, that element has both `label` and `extent-hash`, the value of
+  current at P when, and only when, `promises` of E holds an element
+  whose value of `task-hash` is the task hash of that current definition
+  and whose `req` is the name of r in T, that element has both `label` and `extent-hash`, the value of
   `label` of that element is the current revision of r in T, and the
   value of `extent-hash` of that element is the extent hash of r in T
   under F and N.
@@ -939,7 +940,7 @@ A line that meets `delivery-line-form` counts at a point P of a ledger
 when, and only when, the task id of that delivery line names a task that
 exists at P and the short task hash of that delivery line is the first
 six characters of the task hash of the current definition of that task
-at P. This holds whatever the state of that task at P.
+at P.
 
 ### 4.20 Promise outcomes in the job
 
@@ -995,7 +996,7 @@ is one of "kept" and "not-kept":
     files#{path=v1, path-set-membership=v1},
     data-forms#{group-form-list=v1},
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, read-file=v1, tree-edge=v1},
+    documents#{file-readers=v1, tree-edge=v1},
     packs#{runner-settings=v1, test-runner=v1},
     evidence#{
         import=v1, report-file=v1, tree-evidence=v1, tree-outcome=v1,
@@ -1012,7 +1013,7 @@ has evidence, valid bindings of `runner-settings` for the test runners
 of the report files of the imports of V.
 
 An edge e of T under F and N is a qualifying `verifies` edge for a
-`verifies` promise q in T when, and only when, each of these four
+`verifies` promise q in T when, and only when, each of these three
 conditions is true:
 
 1. The edge e is of the kind `verifies`, says what the kind of edge
@@ -1023,7 +1024,6 @@ conditions is true:
    includes the requirement that the item of the kind requirement whose
    name is the `req` of q declares.
 3. The edge e is not suspect in T.
-4. The file of e is a read file of T.
 
 For a task definition d and a promise q of d, the class promise outcome
 of q for d in T under F, N, V, and those bindings of `runner-settings`
@@ -1270,7 +1270,7 @@ only when, all three of these conditions are true:
 3. For each whole number k from 1 to that number such that line text k
    of f in B is not the same text as line text k of f in T:
    - The number m of citation pins of f in B on line k equals the
-     number of citation pins of f in T on line k, and m is at least 1.
+     number of citation pins of f in T on line k.
    - For each i from 0 to m, the i-th frame text of line k of f in B is
      the same text as the i-th frame text of line k of f in T.
    - For each j from 1 to m such that the text of the j-th pin run of
@@ -1421,9 +1421,8 @@ the ledger of R:
      VH, and those bindings of `runner-settings`.
 
 The subject of that finding is the task id of t. That finding has no
-spot. That tree finding holds only its class, its subject, and no spot
-(`documents#tree-finding`), and is not a result for whether a `verifies`
-promise is kept in a tree in the sense of `evidence#give-promise-sources`.
+spot, and is not a result for whether a `verifies` promise is kept in a
+tree in the sense of `evidence#give-promise-sources`.
 
 ### 4.32 Findings of the class `missing-delivery`
 
@@ -1477,9 +1476,8 @@ that exists at P and meets all five of these conditions:
    VB, and those bindings of `runner-settings`.
 
 The subject of that finding is the task id of t. That finding has no
-spot. That tree finding holds only its class, its subject, and no spot
-(`documents#tree-finding`), and is not a result for whether a `verifies`
-promise is kept in a tree in the sense of `evidence#give-promise-sources`.
+spot, and is not a result for whether a `verifies` promise is kept in a
+tree in the sense of `evidence#give-promise-sources`.
 
 ### 4.33 Findings of the class `delivery-without-change`
 
@@ -1628,10 +1626,9 @@ comes before the origin position of the citation entry of e2 in the
 order of positions. The spot of that finding is the spot of the run of
 the citation entry of the first edge of T in outside-edge order that is
 known to keep q outside the paths of the current definition of t at P
-in T, in the text of the file of that edge. That tree finding holds only
-its class, its subject, and its spot (`documents#tree-finding`), and is
-not a result for whether a `verifies` promise is kept in a tree in the
-sense of `evidence#give-promise-sources`.
+in T, in the text of the file of that edge. That finding is not a
+result for whether a `verifies` promise is kept in a tree in the sense
+of `evidence#give-promise-sources`.
 
 ### 4.36 Findings of the class `unmet-promise`
 
@@ -1670,9 +1667,8 @@ outcome in T under F, N, V, and those bindings of `runner-settings` is
 
 The subject of that finding is the task id of t, then a space, then the
 `kind` of q (`satisfies` or `verifies`), then a space, then the `req`
-of q. That finding has no spot. That tree finding holds only its class,
-its subject, and no spot (`documents#tree-finding`), and is not a result
-for whether a `verifies` promise is kept in a tree in the sense of
+of q. That finding has no spot, and is not a result for whether a
+`verifies` promise is kept in a tree in the sense of
 `evidence#give-promise-sources`.
 
 ## 5. Requirements
