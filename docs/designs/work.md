@@ -3054,7 +3054,7 @@ result "no base" for the change of that commit.
     gitdoc/gitglossary,
     text#{
         conforming-program=v1, input=v1, text=v1, character=v1,
-        result=v1, code-point-order=v1, code-span=v1,
+        result=v1, code-span=v1,
     },
     data-forms#{
         json-value=v1, vector-line=v1, group-form-list=v1,
@@ -3165,8 +3165,8 @@ are the characters of the text, in order.
     runs the execution, and `false` otherwise.
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
-- `values`: a JSON object with the members `error`, `appended`, and
-  `verifies`, and the optional member `report`:
+- `values`: a JSON object with the members `error` and `appended`, and
+  the optional member `report`:
   - `report`: the one of the eight results "already recorded", "cannot
     see range", "invalid bindings", "invalid ledger", "missing ledger
     objects", "no default branch commit", "no git identity", and "agent
@@ -3177,15 +3177,7 @@ are the characters of the text, in order.
   - `appended`: a JSON array of the `delivered` ledger entries that the
     execution appends, in the order of the appends, each as a JSON
     object that holds `kind`, `by`, and each field of the kind
-    `delivered`, with the values that the execution writes;
-  - `verifies`: a JSON array, in code point order of `task-hash` and
-    then of `req`, of JSON objects with `task-hash`, `req`, and
-    `outcome`, one for each distinct pair of a value of `task-hash` and
-    a value of `req` of a promise observation of the kind `verifies` in
-    `appended`; `outcome` (`"kept"` or `"not-kept"`) is the result that
-    the execution gives, apart from the appended ledger entries, for
-    whether that promise is kept in the tree of H for the definition
-    with that task hash.
+    `delivered`, with the values that the execution writes.
 
 When the program reaches no limit of its own, a conforming program that
 runs the job on the input of a vector gives the result of `report` once
@@ -3193,9 +3185,12 @@ and no other of the eight results, or none of the eight results when
 `report` is omitted; ends with an error when `error` is `true`, and
 without an error when `error` is `false`; appends the `delivered` ledger
 entries of `appended`, in that order and with those values, and no other
-`delivered` ledger entry; and gives the result of `outcome` for the
-promise and the definition of each element of `verifies`.
+`delivered` ledger entry; and, for each promise observation of the kind
+`verifies` in `appended`, gives, apart from the appended `delivered`
+ledger entry, exactly one result for whether that promise is kept in the
+tree of H for the definition with that `task-hash`, and only the value
+of `outcome` of that observation.
 
 ```
-{"form":"#job-vector=v1","group":"job","input":{"agent":false,"bindings":{"default-branch-name":true,"external-namespaces":true,"file-readers":true,"runner-settings":true},"commits":[{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","parents":[],"text":"Initial\n"},{"id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],"text":"Enforce the limit\n\nDelivers: t-000000000001 de291f\n"},{"id":"cccccccccccccccccccccccccccccccccccccccc","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],"text":"Merge the limit\n"},{"id":"dddddddddddddddddddddddddddddddddddddddd","parents":["cccccccccccccccccccccccccccccccccccccccc"],"text":"Test the limit\n\nDelivers: t-000000000002 e9677a\n"},{"id":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","parents":["cccccccccccccccccccccccccccccccccccccccc","dddddddddddddddddddddddddddddddddddddddd"],"text":"Merge the test\n"}],"default-branch":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","identity":"Ada Lovelace <ada@example.com>","ledger":[{"def":1,"kind":"task","name":"T","paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":1,"kind":"task","name":"T","paths":["test/billing/**"],"promises":[{"kind":"verifies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000002"},{"def":1,"kind":"task","name":"T","paths":[],"promises":[],"waits":[],"work-item":"t-000000000009"},{"commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","definitions":["e0cbbad5090116c0db98e30089719b47d07a9bcdef1c72d8f168ee88327b0411"],"hash":"e0cbba","head":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"delivered","merge":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","promises":[],"work-item":"t-000000000009"}],"tree":{"edges":[{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"satisfies","line":1,"path":"src/billing/a.ml","req":"billing#limit"},{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"verifies","line":1,"path":"test/billing/a_test.ml","req":"billing#limit","test-outcome":"passed"}],"has-evidence":true,"requirements":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit"}]}},"note":"two merges in one push: each entry records its own landing commit as merge and the commit of the default branch as head","values":{"appended":[{"by":"Ada Lovelace <ada@example.com>","commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","definitions":["de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"],"hash":"de291f","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"cccccccccccccccccccccccccccccccccccccccc","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"}],"work-item":"t-000000000001"},{"by":"Ada Lovelace <ada@example.com>","commit":"dddddddddddddddddddddddddddddddddddddddd","definitions":["e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"],"hash":"e9677a","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"verifies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"}],"work-item":"t-000000000002"}],"error":false,"verifies":[{"outcome":"kept","req":"billing#limit","task-hash":"e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"}]}}
+{"form":"#job-vector=v1","group":"job","input":{"agent":false,"bindings":{"default-branch-name":true,"external-namespaces":true,"file-readers":true,"runner-settings":true},"commits":[{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","parents":[],"text":"Initial\n"},{"id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],"text":"Enforce the limit\n\nDelivers: t-000000000001 de291f\n"},{"id":"cccccccccccccccccccccccccccccccccccccccc","parents":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],"text":"Merge the limit\n"},{"id":"dddddddddddddddddddddddddddddddddddddddd","parents":["cccccccccccccccccccccccccccccccccccccccc"],"text":"Test the limit\n\nDelivers: t-000000000002 e9677a\n"},{"id":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","parents":["cccccccccccccccccccccccccccccccccccccccc","dddddddddddddddddddddddddddddddddddddddd"],"text":"Merge the test\n"}],"default-branch":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","identity":"Ada Lovelace <ada@example.com>","ledger":[{"def":1,"kind":"task","name":"T","paths":["src/billing/**"],"promises":[{"kind":"satisfies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000001"},{"def":1,"kind":"task","name":"T","paths":["test/billing/**"],"promises":[{"kind":"verifies","req":"billing#limit"}],"waits":[],"work-item":"t-000000000002"},{"def":1,"kind":"task","name":"T","paths":[],"promises":[],"waits":[],"work-item":"t-000000000009"},{"commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","definitions":["e0cbbad5090116c0db98e30089719b47d07a9bcdef1c72d8f168ee88327b0411"],"hash":"e0cbba","head":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"delivered","merge":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","promises":[],"work-item":"t-000000000009"}],"tree":{"edges":[{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"satisfies","line":1,"path":"src/billing/a.ml","req":"billing#limit"},{"col":1,"end-col":30,"end-line":1,"fits":true,"kind":"verifies","line":1,"path":"test/billing/a_test.ml","req":"billing#limit","test-outcome":"passed"}],"has-evidence":true,"requirements":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"v1","req":"billing#limit"}]}},"note":"two merges in one push: each entry records its own landing commit as merge and the commit of the default branch as head","values":{"appended":[{"by":"Ada Lovelace <ada@example.com>","commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","definitions":["de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"],"hash":"de291f","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"cccccccccccccccccccccccccccccccccccccccc","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"satisfies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"de291f3f7d292d0bb2d3153cb5c4ae0089b9db46852a8c23a3e2058982c63a13"}],"work-item":"t-000000000001"},{"by":"Ada Lovelace <ada@example.com>","commit":"dddddddddddddddddddddddddddddddddddddddd","definitions":["e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"],"hash":"e9677a","head":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","kind":"delivered","merge":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","promises":[{"extent-hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"verifies","label":"v1","outcome":"kept","req":"billing#limit","task-hash":"e9677a84464756d1e0fc90a034cacfeff5e9e8f13291322ada784eb0c22c01de"}],"work-item":"t-000000000002"}],"error":false}}
 ```
