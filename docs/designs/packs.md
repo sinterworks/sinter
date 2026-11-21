@@ -159,10 +159,10 @@ their matching.
 | [result of a reading](sinter:#reading-result=v1) | the result of a reading of a text, as the text of a file at a valid path, with a valid pack: "no grammar", "parse failure", or "parsed" |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
-| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder, under limits that the program has of its own on the resources of the instance and on the time that the code of the instance runs; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, when the code of that instantiation or invocation exhausts the call stack, or when the program stops that instantiation or invocation |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, when the code of that instantiation or invocation exhausts the call stack, or when its code never ends |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack in which the file of a grammar is a WebAssembly module with an import that the program does not provide, or in which a query file holds a pattern that, without the predicates of that pattern, matches no part of any parse tree that the language of the grammar of that query file can give |
 | [adapter module](sinter:#adapter-module=v1) | a WebAssembly module that imports nothing and exports `memory`, `sinter_interface`, `sinter_alloc`, `sinter_recognise`, and `sinter_bind` with the types of the interface |
-| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, an adapter module that the program does not refuse for limits of its own and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, an adapter module that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-settings=v1) | a finite set of pairs that gives values for some of the runner settings of one test runner; each pair is a name, which is a text, and a TOML value |
 | [value of a runner setting](sinter:#runner-setting-value=v1) | under a valid binding of `runner-settings`, the TOML value of the pair whose name is the name of the runner setting, or the default value of the runner setting when no pair has the name of the runner setting |
@@ -240,13 +240,6 @@ the quality of an implementation. When the results of a grammar depend
 on what the WebAssembly Core Specification 2.0 leaves to its embedder,
 what a program gives with that grammar is a matter of the quality of an
 implementation. In those cases, the rules of this paragraph still hold.
-
-A conforming program may refuse a pack, a text, or a byte sequence that
-goes beyond limits that the conforming program has of its own, such as
-limits on size, memory, or the time that code runs. When the conforming
-program refuses a pack, a text, or a byte sequence for those limits, the
-conforming program gives "invalid" for the pack or the adapter, "parse
-failure" for the reading, and "failed" for the call.
 
 ### 2.2 The pack hash
 
@@ -1984,12 +1977,9 @@ decision whether a byte sequence is a valid adapter.
 An instance of an adapter of a WebAssembly module, for a program, is a
 new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
-execution, with the program as its embedder. The limits of a program are
-limits of its own on the resources of an instance of an adapter and on
-the time that the code of that instance runs. An instantiation or an
+execution, with the program as its embedder. An instantiation or an
 invocation fails when that instantiation or invocation traps, when its
-code exhausts the call stack, or when the program stops that
-instantiation or invocation.
+code exhausts the call stack, or when its code never ends.
 
 #### 6.1.2 Adapter modules
 
@@ -2035,8 +2025,7 @@ A byte sequence is a valid adapter, in one decision of a program whether
 the byte sequence is a valid adapter, when, and only when, the byte
 sequence meets each of these conditions:
 
-1. The byte sequence is an adapter module. In that decision, the program
-   does not refuse the byte sequence for the program's own limits.
+1. The byte sequence is an adapter module.
 2. In a new instance of an adapter of the module, for that program, the
    decision runs the instantiation and then one invocation of
    `sinter_interface`, and nothing else in that instance. The
@@ -2162,8 +2151,7 @@ that decision is not the instance of the steps of the call. When the
 adapter of the call is not a valid adapter in that decision, the call
 fails. Otherwise, the call runs these steps in a new instance of an
 adapter of the module of the adapter of the call, for that program. When
-one of these steps fails, such as when the program stops that step for
-the limits of the program, the call fails. In that instance, the program
+one of these steps fails, the call fails. In that instance, the program
 makes only the instantiation and the invocations of steps 2 to 4, in
 that order. In that instance, the program changes no byte of the memory
 of the instance other than by the writes of steps 2 and 3. The memory of
@@ -2752,20 +2740,17 @@ has no pack hash.
 When a conforming program gives a result for whether a pack is valid,
 the program must give exactly one result: "valid" or "invalid". When the
 program gives that result for a pack that is not valid, the program must
-give "invalid". When the program gives that result for a pack that the
-program refuses for limits of its own, the program must give "invalid".
-When the program gives that result for a valid pack that the program
-does not refuse for limits of its own, the program must give "valid",
-except that the program can give "invalid" in two cases. First, when the
-program gives that result, the program can give "invalid" when the
-content of the file of a grammar of the pack is a WebAssembly module
-with an import that the program does not provide. Second, when the
-program gives that result, the program can give "invalid" when a query
-file of the pack holds a pattern that, without the predicates of that
-pattern, matches no part of any parse tree that the language of the
-grammar of that query file can give. The result "invalid" in either of
-those two cases is a choice of the program in a decision whether a pack
-is valid.
+give "invalid". When the program gives that result for a valid pack, the
+program must give "valid", except that the program can give "invalid" in
+two cases. First, when the program gives that result, the program can
+give "invalid" when the content of the file of a grammar of the pack is
+a WebAssembly module with an import that the program does not provide.
+Second, when the program gives that result, the program can give
+"invalid" when a query file of the pack holds a pattern that, without
+the predicates of that pattern, matches no part of any parse tree that
+the language of the grammar of that query file can give. The result
+"invalid" in either of those two cases is a choice of the program in a
+decision whether a pack is valid.
 
 ### 7.9 The values of the descriptor of a valid pack
 
@@ -2807,16 +2792,13 @@ a text with a pack that is not valid.
 @cites {
     files#{path=v1},
     text#{conforming-program=v1, result=v1, text=v1},
-    #{valid-pack=v1, reading-result=v1, file-grammar=v1},
+    #{valid-pack=v1, reading-result=v1},
 }
 
 When a conforming program gives a result of a reading of a text, as the
 text of a file at a valid path, with a valid pack, the program must give
-exactly one result: "no grammar", "parse failure", or "parsed". When the
-program gives that result, that valid path has a file grammar, and the
-program refuses the text for limits of its own, the program must give
-"parse failure". Otherwise, when the program gives that result, the
-program must give the result of that reading.
+exactly one result: the result of that reading. The result of that
+reading is "no grammar", "parse failure", or "parsed".
 
 ### 7.12 The nodes of readings
 
@@ -2874,9 +2856,9 @@ that node, and no other value instead of that value.
 When the result of a reading of a text with a valid pack is not
 "parsed", a conforming program must give no comment node, definition
 node, decoration node, or test node of that reading. When a conforming
-program gives the result "parse failure" for a reading of a text with a
-valid pack, the conforming program must give no comment node, definition
-node, decoration node, or test node of that reading.
+program stops a reading of a text with a valid pack for limits of its
+own, the conforming program must give no comment node, definition node,
+decoration node, or test node of that reading.
 
 ### 7.15 What the code of a grammar can touch
 
