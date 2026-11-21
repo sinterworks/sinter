@@ -940,17 +940,16 @@ that no other common ancestor of the two reaches.
     text#{code-span=v1},
     #{
         commit=v1, change-of-a-commit=v1, merge-base=v1,
-        default-branch-name=v1, default-branch-commit=v1,
+        branch-name=v1, default-branch-name=v1, default-branch-commit=v1,
     },
 }
 
-Under a binding of `default-branch-name` that meets the schema
-`default-branch-name`, the base of the change of a commit h is the merge
-base of h and the commit of the default branch under that binding, when
-these two commits have exactly one merge base. Under that binding, when
-they have no merge base, or more than one, the change of h has no base.
-Under that binding, when the default branch has no commit under that
-binding, the change of h has no base.
+Under a binding of `default-branch-name` that is a branch name, the base
+of the change of a commit h is the merge base of h and the commit of the
+default branch under that binding, when these two commits have exactly
+one merge base. Under that binding, when they have no merge base, or
+more than one, the change of h has no base. Under that binding, when the
+default branch has no commit, the change of h has no base.
 
 ### 4.21 First-parent lines
 
@@ -1397,24 +1396,25 @@ commit.
 @req give-default-branch-commits=v1
 @cites {
     #{
-        commit=v1, git-configuration=v1, default-branch-name=v1,
-        default-branch-commit=v1, repository-read=v1, undisturbed-read=v1,
+        commit=v1, git-configuration=v1, branch-name=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
 When a conforming program gives the commit of the default branch of a
-git repository under a binding of `default-branch-name` that meets the
-schema `default-branch-name`, or gives that the default branch has no
-commit under that binding, in an undisturbed repository read, the
-conforming program must give the commit of the default branch under that
-binding, and no other commit as the commit of the default branch under
-that binding, when the default branch has a commit under that binding,
-and must give that the default branch has no commit under that binding
-when the default branch has no commit under that binding. In that read,
-it must not give both a commit of the default branch under that binding
-and that the default branch has no commit under that binding.
+git repository under a binding of `default-branch-name` that is a branch
+name, or gives that the default branch has no commit under that binding,
+in an undisturbed repository read, the conforming program must give the
+commit of the default branch under that binding, and no other commit as
+the commit of the default branch under that binding, when the default
+branch has a commit under that binding, and must give that the default
+branch has no commit under that binding when the default branch has no
+commit under that binding. In that read, it must not give both a commit
+of the default branch under that binding and that the default branch has
+no commit under that binding.
 
 ### 5.7 Head commits
 
@@ -1566,23 +1566,24 @@ range.
 @req give-changes-of-commits=v1
 @cites {
     #{
-        commit=v1, git-configuration=v1, default-branch-name=v1,
-        change-of-a-commit=v1, default-branch-commit=v1,
-        repository-read=v1, undisturbed-read=v1,
+        commit=v1, git-configuration=v1, branch-name=v1,
+        default-branch-name=v1, change-of-a-commit=v1,
+        default-branch-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
     ontology#{default-branch=v1, parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
 When a conforming program gives the commits of the change of a commit h
-of a git repository under a binding of `default-branch-name` that meets
-the schema `default-branch-name`, or gives that h has no change under
-that binding, in an undisturbed repository read, the conforming program
-must give exactly the commits of the change of h when the default branch
-has a commit under that binding, and must give that h has no change when
-the default branch has no commit under that binding. In that read, it
-must not give both commits of the change of h under that binding and
-that h has no change under that binding.
+of a git repository under a binding of `default-branch-name` that is a
+branch name, or gives that h has no change under that binding, in an
+undisturbed repository read, the conforming program must give exactly
+the commits of the change of h when the default branch has a commit
+under that binding, and must give that h has no change when the default
+branch has no commit under that binding. In that read, it must not give
+both commits of the change of h under that binding and that h has no
+change under that binding.
 
 ### 5.15 Merge bases
 
@@ -1604,25 +1605,25 @@ must give exactly the merge bases of those two commits.
 @req give-change-bases=v1
 @cites {
     #{
-        commit=v1, git-configuration=v1, default-branch-name=v1,
-        change-of-a-commit=v1, change-base=v1, repository-read=v1,
-        undisturbed-read=v1,
+        commit=v1, git-configuration=v1, branch-name=v1,
+        default-branch-name=v1, change-of-a-commit=v1, change-base=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
     ontology#{parameter=v1},
     text#{conforming-program=v1, code-span=v1},
 }
 
 When a conforming program gives the base of the change of a commit h of
-a git repository under a binding of `default-branch-name` that meets the
-schema `default-branch-name`, or gives that the change of h has no base
-under that binding, in an undisturbed repository read, the conforming
-program must give the base of the change of h under that binding, and no
-other commit as the base of the change of h under that binding, when the
-change of h has a base under that binding, and must give that the change
-of h has no base under that binding when the change of h has no base
-under that binding. In that read, it must not give both a base of the
-change of h under that binding and that the change of h has no base
-under that binding.
+a git repository under a binding of `default-branch-name` that is a
+branch name, or gives that the change of h has no base under that
+binding, in an undisturbed repository read, the conforming program must
+give the base of the change of h under that binding, and no other commit
+as the base of the change of h under that binding, when the change of h
+has a base under that binding, and must give that the change of h has no
+base under that binding when the change of h has no base under that
+binding. In that read, it must not give both a base of the change of h
+under that binding and that the change of h has no base under that
+binding.
 
 ### 5.17 First-parent lines
 
@@ -1736,7 +1737,7 @@ of p between those trees.
 @req give-change-diffs=v1
 @cites {
     #{
-        git-configuration=v1, default-branch-name=v1,
+        git-configuration=v1, branch-name=v1, default-branch-name=v1,
         change-of-a-commit=v1, change-diff=v1, line-map=v1, hunk=v1,
         repository-read=v1, change-base=v1, undisturbed-read=v1,
     },
@@ -1746,15 +1747,15 @@ of p between those trees.
 }
 
 When a conforming program gives a diff of the change of a commit h of a
-git repository under a binding of `default-branch-name` that meets the
-schema `default-branch-name`, or gives that the change of h has no diff
-under that binding, in an undisturbed repository read, the conforming
-program must give one diff of the change of h under that binding, with
-exactly the hunks of that diff and no other hunk, when the change of h
-has a base, and must give that the change of h has no diff when the
-change of h has no base under that binding. In that read, it must not
-give both a diff of the change of h under that binding and that the
-change of h has no diff under that binding.
+git repository under a binding of `default-branch-name` that is a branch
+name, or gives that the change of h has no diff under that binding, in an
+undisturbed repository read, the conforming program must give one diff
+of the change of h under that binding, with exactly the hunks of that
+diff and no other hunk, when the change of h has a base, and must give
+that the change of h has no diff when the change of h has no base under
+that binding. In that read, it must not give both a diff of the change
+of h under that binding and that the change of h has no diff under that
+binding.
 
 ### 5.23 No change to the repository by a read
 
@@ -1923,9 +1924,8 @@ In each repository read, the conforming program, itself or through any program t
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`changes.test-vectors.jsonl`](changes.test-vectors.jsonl), in the same
