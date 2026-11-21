@@ -1121,16 +1121,21 @@ accepted `delivered` entry of R, or none when there is none.
 
 A commit c of R has a missing parent when, and only when, c is not a
 shallow commit of R and the commit object of c names, as a parent, a git
-object that is not a commit of R. A set of commits of R is complete in R
-when, and only when, no commit in that set is a shallow commit of R and
-no commit in that set has a missing parent.
+object that is not a commit of R. For a commit c of R, let A(c) be the
+smallest set of commits of R that holds c and that, for each commit x in
+A(c) that is not a shallow commit of R, holds each commit of R that the
+commit object of x names as a parent. R holds the ancestry of c when,
+and only when, no commit in A(c) has a missing parent. A set of commits
+of R is complete in R when, and only when, no commit in that set is a
+shallow commit of R and no commit in that set has a missing parent.
 
 The run status of a run for R and H is one of already recorded, ready
 to record (with a commit range), and cut:
 
-1. When the run has no start object name: let C be the commit range
-   from no commit to H. When C is complete in R, the run status is
-   ready to record with range C. Otherwise, the run status is cut.
+1. When the run has no start object name: when R does not hold the
+   ancestry of H, the run status is cut. Otherwise, let C be the commit
+   range from no commit to H; when C is complete in R, the run status is
+   ready to record with range C, and otherwise the run status is cut.
 2. When the run has a start object name s and s is the commit object
    name of H: the run status is already recorded.
 3. When the run has a start object name s, s is not the commit object
@@ -1140,9 +1145,11 @@ to record (with a commit range), and cut:
    - When R has at least one shallow commit: the run status is cut.
 4. When the run has a start object name s, s is not the commit object
    name of H, and R holds a commit J whose commit object name is s:
-   - When J is a shallow commit of R or has a missing parent: the run
-     status is cut.
+   - When J is a shallow commit of R or R does not hold the ancestry of
+     J: the run status is cut.
    - Otherwise, when J reaches H: the run status is already recorded.
+   - Otherwise, when R does not hold the ancestry of H: the run status
+     is cut.
    - Otherwise, when H reaches J: let C be the commit range from J to
      H. When C is complete in R, the run status is ready to record with
      range C. Otherwise, the run status is cut.
