@@ -2043,8 +2043,8 @@ program must give nothing else as that canonical form.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it
-meets every requirement of section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in
