@@ -84,9 +84,9 @@ JSON text.
 | [`!` member](sinter:#path-set=v1) | a path set member that starts with `!`, such as `!docs/old/` |
 | [glob text of a path set member](sinter:#path-set=v1) | the text after the `!` of a `!` member, or the whole path set member for a plain member; the glob text of a path set member can be a text that is not a valid glob |
 | [valid path set](sinter:#valid-path-set=v1) | a path set in which the glob text of each path set member is a valid glob, no two path set members are the same text, and, when the path set holds a path set member, at least one path set member is a plain member |
-| [set of a path set](sinter:#path-set-membership=v1) | when the glob text of each path set member is a valid glob, the valid paths that fit the glob text of a plain member of the path set and fit the glob text of no `!` member of the path set |
+| [set of a path set](sinter:#path-set-membership=v1) | for a valid path set, the valid paths that fit the glob text of a plain member of the valid path set and fit the glob text of no `!` member of the valid path set |
 | validate | to validate a text as a path, a text as a glob, or a path set is to make an operation, other than a file read, to give one of the results "valid" and "invalid" for that text or that path set; a validation is one such operation, also when the program gives another thing in that operation, or nothing |
-| decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a path set in which the glob text of each path set member is a valid glob is to make an operation to give one of the results "in the set" and "not in the set"; the program decides in such an operation also when the program gives another thing in that operation, or nothing |
+| decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a valid path set is to make an operation to give one of the results "in the set" and "not in the set"; the program decides in such an operation also when the program gives another thing in that operation, or nothing |
 | [file object](sinter:#file-object=v1) | a JSON object that stands for a file, and for the permissions of a program for it: its member `type`, such as `"regular file"`; by its type, its member `entries`, `content`, or `reference`, or none of them; and the members `read`, `search`, `write`, and `owned-by-other` only when their values differ from the values that apply without them |
 | [folder tree object](sinter:#folder-tree-object=v1) | the file object of the root of a folder tree, where that file object is the member `file` of no entry object; the folder tree of a folder tree object is the folder tree whose root that folder tree object stands for |
 | [store the folder tree of a folder tree object](sinter:#stored-folder-tree=v1) | for a file system, for a process of a program: have that whole folder tree on that file system, with the entry names, the file types, the contents, the references, the permissions of that process, and, for each file, whether the user ID of the owner of that file differs from the effective user ID of that process, as the folder tree object gives them |
@@ -353,17 +353,6 @@ member is a plain member, and the glob text of that path set member is
 the path set member. The glob text of a path set member can be a text
 that is not a valid glob.
 
-When the glob text of each path set member is a valid glob, the path set
-gives a set of valid paths, the set of the path set. A valid path is in
-the set of the path set when the valid path fits the glob text of a
-plain member, and fits the glob text of no `!` member. So a `!` member
-removes valid paths from the set. The order of the path set members does
-not change the set. No valid path is in the set of the empty path set.
-
-Example: with the path set members `docs/` and `!docs/old/`, the valid
-path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
-`a.md` are not.
-
 A path set is valid when:
 
 1. the glob text of each path set member is a valid glob;
@@ -371,10 +360,19 @@ A path set is valid when:
 3. when the path set holds at least one path set member, at least one
    path set member is a plain member.
 
-The empty path set is valid. A path set that is not valid can still give
-a set of valid paths. The path set with the path set members `a/` and
-`a/` is not valid, because two path set members are the same text. The
-valid path `a/b` is in the set of that path set.
+The empty path set is valid.
+
+A valid path set gives a set of valid paths, the set of the path set. A
+valid path is in the set of a valid path set when the valid path fits
+the glob text of a plain member, and fits the glob text of no `!`
+member. So a `!` member removes valid paths from the set. The order of
+the path set members does not change the set. No valid path is in the
+set of the empty path set. A path set that is not valid gives no set of
+valid paths.
+
+Example: with the path set members `docs/` and `!docs/old/`, the valid
+path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
+`a.md` are not.
 
 ## 3. Definitions
 
@@ -723,19 +721,18 @@ set member is a plain member.
 
 @atom path-set-membership=v1
 @cites {
-    #{path=v1, glob=v1, glob-fit=v1, path-set=v1},
+    #{path=v1, glob-fit=v1, path-set=v1, valid-path-set=v1},
     text#{text=v1, result=v1, code-span=v1},
 }
 
-For a path set in which the glob text of each path set member is a
-valid glob, a valid path is in the set of the path set when, and only
-when, the valid path fits the glob text of at least one plain member of
-the path set, and the valid path fits the glob text of no `!` member of
-the path set.
+For a valid path set, a valid path is in the set of the valid path set
+when, and only when, the valid path fits the glob text of at least one
+plain member of the valid path set, and the valid path fits the glob
+text of no `!` member of the valid path set.
 
-For a valid path and a path set in which the glob text of each path set
-member is a valid glob, the result is "in the set" when the valid path
-is in the set of the path set, and "not in the set" when it is not.
+For a valid path and a valid path set, the result is "in the set" when
+the valid path is in the set of the valid path set, and "not in the set"
+when it is not.
 
 ### 3.22 File objects
 
@@ -1098,21 +1095,20 @@ valid, and "invalid" when the path set is not valid.
 
 @req decide-path-set-membership=v1
 @cites {
-    #{path-set=v1, glob=v1, path=v1, path-set-membership=v1},
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    #{path-set=v1, valid-path-set=v1, path=v1, path-set-membership=v1},
+    text#{conforming-program=v1, result=v1, requirement=v1},
 }
 
-To decide whether a valid path is in the set of a path set in which the
-glob text of each path set member is a valid glob is to make an
-operation to give one of the results "in the set" and "not in the set"
-for whether that valid path is in the set of that path set. In such an
-operation, a program decides whether a valid path is in the set of that
-path set also when the program gives another thing in that operation, or
-nothing. Each time a conforming program decides whether a valid path is
-in the set of a path set in which the glob text of each path set member
-is a valid glob, the conforming program must give exactly one result:
-"in the set" when the valid path is in the set of the path set, and "not
-in the set" when the valid path is not in the set of the path set.
+To decide whether a valid path is in the set of a valid path set is to
+make an operation to give one of the results "in the set" and "not in
+the set" for whether that valid path is in the set of that valid path
+set. In such an operation, a program decides whether a valid path is in
+the set of that valid path set also when the program gives another thing
+in that operation, or nothing. Each time a conforming program decides
+whether a valid path is in the set of a valid path set, the conforming
+program must give exactly one result: "in the set" when the valid path
+is in the set of the valid path set, and "not in the set" when the valid
+path is not in the set of the valid path set.
 
 ## 5. Conformance
 
@@ -1540,7 +1536,7 @@ result.
     rfc/8259,
     #{
         vector-line=v1, decide-path-set-membership=v1, path-set=v1,
-        valid-path-set=v1, glob=v1, path=v1, path-set-membership=v1,
+        valid-path-set=v1, path=v1, path-set-membership=v1,
     },
     text#{
         conforming-program=v1, input=v1, text=v1, line=v1, sequence=v1,
@@ -1550,28 +1546,27 @@ result.
 
 The group `memberships` holds the vectors of the requirement
 `decide-path-set-membership`. Each vector line of the group meets the
-schema `vector-line`. Each vector gives a path set, a valid path, and
-the result that a conforming program gives when that conforming program
-decides whether the valid path is in the set of the path set. In the
-path set of each vector, the glob text of each path set member is a
-valid glob. The path set does not have to be valid. The group
-`path-sets` holds a vector of each path set of the group `memberships`.
+schema `vector-line`. Each vector gives a valid path set, a valid path,
+and the result that a conforming program gives when that conforming
+program decides whether the valid path is in the set of the valid path
+set. The group `path-sets` holds a vector of each valid path set of the
+group `memberships`, with the result "valid".
 
 - `input`: a JSON object, as RFC 8259 defines JSON values, with two
-  members. The member `path-set` is the path set, as the sequence of its
-  path set members. The member `path` is the valid path, as a text.
+  members. The member `path-set` is the valid path set, as the sequence
+  of its path set members. The member `path` is the valid path, as a
+  text.
 - `result`: the result of each operation in which a conforming program
-  decides whether the valid path is in the set of the path set: "in the
-  set" or "not in the set".
+  decides whether the valid path is in the set of the valid path set:
+  "in the set" or "not in the set".
 - `values`: no vector of the group has this member.
 - `needs`: the group `memberships` uses no need, so this schema gives no
   need names, and no vector of the group has this member.
 
 Each time a conforming program decides whether the valid path is in the
-set of the path set, that conforming program gives the result that
+set of the valid path set, that conforming program gives the result that
 `result` holds, and no other result.
 
 ```
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"docs/a.md","path-set":["docs/","!docs/old/"]},"result":"in the set"}
-{"form":"#membership-vector=v1","group":"memberships","input":{"path":"a/b","path-set":["a/","a/"]},"result":"in the set"}
 ```

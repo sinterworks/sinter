@@ -175,7 +175,6 @@
 {"form":"#path-set-vector=v1","group":"path-sets","input":["!docs/"],"note":"no plain member","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","docs/"],"note":"two path set members are the same text","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["a/","a/"],"note":"two path set members are the same text","result":"invalid"}
-{"form":"#membership-vector=v1","group":"memberships","input":{"path":"a/b","path-set":["a/","a/"]},"result":"in the set"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","!"],"note":"the glob text of `!` is the empty text, which is not a valid glob","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","!/x"],"note":"the glob text of `!/x` starts with `/`","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["a?"],"note":"the glob text of `a?` holds `?`","result":"invalid"}
