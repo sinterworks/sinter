@@ -7,7 +7,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, give lines, line numbers, the positions of characters, and the starts and ends of spans, report stops at limits of their own, and report and reject inputs that are not valid.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when the
@@ -47,9 +47,11 @@ design has one JSON text on each line of the text of that file.
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
 | [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with the general requirements on stops at limits and on inputs that are not valid; requirements bind for valid inputs and where the program reaches no limit of its own, except safety obligations and requirements for those cases |
+| [safety obligation](sinter:#conforming-program=v1) | a requirement that protects against harm by stating what a conforming program never does, or by obliging a conforming program to end code or an operation that the conforming program runs |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
+| [input](sinter:#input=v1) | a thing that a program takes, such as a byte sequence or a text; an input is not valid when its owner design says that the input is not valid, and is valid otherwise |
+| [owner design](sinter:#input=v1) | a design that defines when an input is valid |
 | decode | a conforming program decodes a byte sequence as UTF-8 when the conforming program gives a result for whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
 | [result](sinter:#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input. The double quotes are not part of the result. A conforming program gives a result when the conforming program gives something that stands for that result and for no other result. |
 | [whole number](sinter:#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
@@ -358,18 +360,35 @@ design is a part of the design that has a name of its own and that
 declares some of the obligations and definitions of the design.
 
 A conforming program of a design is a program, or a part of a program,
-that meets every requirement of the design. A conforming program of a
-specification meets every requirement that the specification declares,
-and the conforming program need not meet the other requirements of the
-design. So one program can hold conforming programs of several designs
-and of several specifications. In a specification of a design, a
-conforming program is a conforming program of that specification.
-Elsewhere in a design, a conforming program is a conforming program of
-that design. Each obligation that a requirement states with the word
-must is an obligation of each conforming program of the design that
-declares the requirement. When a specification of that design declares
-that requirement, that obligation is also an obligation of each
-conforming program of that specification.
+that meets every requirement of the design together with the two general
+requirements `report-stops-at-limits` and `reject-invalid-inputs` (term
+`conforming-program`). A conforming program of a specification meets
+every requirement that the specification declares, together with those
+two general requirements, and the conforming program need not meet the
+remaining requirements of the design. So one program can hold conforming
+programs of several designs and of several specifications. In a
+specification of a design, a conforming program is a conforming program
+of that specification. Elsewhere in a design, a conforming program is a
+conforming program of that design. Each obligation that a requirement
+states with the word must is an obligation of each conforming program of
+the design that declares the requirement. When a specification of that
+design declares that requirement, that obligation is also an obligation
+of each conforming program of that specification.
+
+By the term `conforming-program`, a requirement binds a conforming
+program only when each input on which what the requirement obliges
+depends is valid, and only where the conforming program reaches no limit
+of its own, except for safety obligations and requirements that state
+what a program gives or does at a limit or under an input that is not
+valid. When a program stops at a limit of its own,
+`report-stops-at-limits` obliges the program to report where the program
+stopped, and no requirement other than a safety obligation or a
+requirement for limits fixes what the program gives or does. When
+a program takes an input that is not valid, `reject-invalid-inputs`
+obliges the program to report which input is not valid and where, to
+give nothing that depends on that input, and to do nothing that depends
+on that input, unless a requirement of the owner design states what a
+program gives or does for that input in that case.
 
 ### 2.6 Code spans and blocks
 
@@ -442,8 +461,11 @@ so the character `a` matches `hex-digit`.
 
 ### 2.8 Inputs and results
 
-An input is a thing that a conforming program takes, such as a byte
-sequence or a text. A conforming program decodes a byte sequence as
+An input is a thing that a program takes, such as a byte sequence or a
+text. A design can define when an input is valid; that design is the
+owner design of that input and can name the report for an input that is
+not valid, such as a result word (term `input`). A conforming program
+decodes a byte sequence as
 UTF-8 when the conforming program gives a result for whether the byte
 sequence is valid UTF-8 and, when the byte sequence is valid UTF-8,
 gives the text of the byte sequence. A result of a requirement is a text
@@ -958,28 +980,66 @@ the design.
 ### 3.35 Conforming programs
 
 @term conforming-program=v1
-@cites #{design=v1, requirement=v1, specification=v1}
+@cites #{
+    design=v1, requirement=v1, specification=v1, input=v1,
+    report-stops-at-limits=v1, reject-invalid-inputs=v1,
+}
 
 A conforming program of a design is a program, or a part of a program,
-that meets every requirement of the design. A conforming program of a
-specification of a design is a program, or a part of a program, that
-meets every requirement that the specification declares. In a
-specification of a design, a conforming program is a conforming program
-of that specification. Elsewhere in a design, a conforming program is a
-conforming program of that design. Each obligation that a requirement of
-a design states with the word must is an obligation of each conforming
-program of that design. When a specification of a design declares a
-requirement of that design, each obligation that the requirement states
-with the word must is also an obligation of each conforming program of
-that specification.
+that meets every requirement of the design, `report-stops-at-limits`,
+and `reject-invalid-inputs`. A conforming program of a specification of
+a design is a program, or a part of a program, that meets every
+requirement that the specification declares, `report-stops-at-limits`,
+and `reject-invalid-inputs`. In a specification of a design, a
+conforming program is a conforming program of that specification.
+Elsewhere in a design, a conforming program is a conforming program of
+that design.
+
+Each obligation that a requirement of a design states with the word must
+is an obligation of each conforming program of that design. When a
+specification of a design declares a requirement of that design, each
+obligation that the requirement states with the word must is also an
+obligation of each conforming program of that specification. Each
+obligation that `report-stops-at-limits` or `reject-invalid-inputs`
+states with the word must is an obligation of each conforming program of
+every design and of every specification of a design.
+
+For anything that a requirement obliges a conforming program to give or
+do, that requirement binds the conforming program only when each input
+on which that thing depends is valid, and only where the conforming
+program reaches no limit of its own, such as a limit of the program or
+of its machine on size, memory, time, or depth. Three kinds of
+requirement bind a conforming program beyond that scope:
+
+- A safety obligation binds a conforming program always, both under an
+  input that is not valid and where the conforming program reaches a
+  limit of its own. A safety obligation is a requirement that protects
+  against harm by stating what a conforming program never does, or by
+  obliging a conforming program to end code or an operation that the
+  conforming program runs.
+- A requirement that itself states what a program gives or does at a
+  limit of its own binds a conforming program where the conforming
+  program reaches a limit of its own, whether or not the inputs are
+  valid.
+- A requirement that itself states what a program gives or does under an
+  input that is not valid binds a conforming program under an input that
+  is not valid, where the conforming program reaches no limit of its
+  own.
+
+Where a conforming program reaches a limit of its own, no other
+requirement fixes what the conforming program gives or does.
 
 ### 3.36 Inputs
 
 @term input=v1
-@cites #{conforming-program=v1, byte-sequence=v1, text=v1}
+@cites #{design=v1, byte-sequence=v1, text=v1}
 
-An input is a thing that a conforming program takes, such as a byte
-sequence or a text.
+An input is a thing that a program takes, such as a byte sequence or a
+text. A design can define when an input is valid. When a design defines
+when an input is valid, that design is the owner design of that input,
+and that design can name the report for an input that is not valid. An
+input is not valid when its owner design says that the input is not
+valid, and is valid otherwise.
 
 ### 3.37 Results
 
@@ -1302,6 +1362,26 @@ text, it must give the line number of the end of that span, and no other
 line number, for the end of that span. When a conforming program gives a
 column for the end of a span of a text, it must give the column of the
 end of that span, and no other column, for the end of that span.
+
+### 4.11 Stops at a program's own limits
+
+@req report-stops-at-limits=v1
+
+When a program stops at a limit of its own, such as a limit of the
+program or of its machine on size, memory, time, or depth, the program
+must report where the program stopped.
+
+### 4.12 Inputs that are not valid
+
+@req reject-invalid-inputs=v1
+@cites #{design=v1, requirement=v1, input=v1}
+
+When a program takes an input that is not valid, the program must report
+which input is not valid and where, must give nothing that depends on
+that input, and must do nothing that depends on that input. When a
+requirement of the owner design of that input states what a program
+gives or does for that input in that case, that requirement takes
+precedence.
 
 ## 5. Conformance
 
