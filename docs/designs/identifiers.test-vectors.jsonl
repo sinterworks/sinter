@@ -510,3 +510,25 @@
 {"form":"#inline-citation-vector=v1","group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[the form](sinter:schema:catalog#record-line=v1)"},"values":{"links":[{"result":"valid","values":{"kind-word":"schema","link-text":"the form","part-name":"record-line","revision":"v1","slug":"catalog"}}]}}
 {"form":"#inline-citation-vector=v1","group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[the state](sinter:atom:catalog#late-fee=v1)"},"values":{"links":[{"result":"valid","values":{"kind-word":"atom","link-text":"the state","part-name":"late-fee","revision":"v1","slug":"catalog"}}]}}
 {"form":"#inline-citation-vector=v1","group":"inline-citations","input":{"binding":[{"id-pattern":"[1-9][0-9]*","namespace-name":"gh"},{"id-pattern":"[1-9][0-9]*","namespace-name":"rfc"}],"text":"[x](sinter:catalog#descriptor[*])"},"note":"an inline citation allows no vector selection","values":{"links":[{"result":"invalid","values":{}}]}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"0AZz","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[!\"0<>AZz~]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[0-0]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[9-9]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[A-A]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[Z-Z]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[z-z]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[--]a","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[0-]","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"(a)|b","result":"valid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"a)","note":"`)` is not a literal and closes no subpattern","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"#","note":"`#` is not a literal","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"$","note":"`$` is not a literal","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"@","note":"`@` is not a literal","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"^","note":"`^` is not a literal","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"{","note":"`{` is not a literal","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[ ]","note":"a space is not a member of a character class","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[/]","note":"`/` is not a member of a character class","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[@]","note":"`@` is not a member of a character class","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[[]","note":"`[` is not a member of a character class","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[}]","note":"`}` is not a member of a character class","result":"invalid","values":{}}
+{"form":"#id-pattern-vector=v1","group":"id-patterns","input":"[0-a]","note":"the two ends of a range are of one kind: digits, upper-case letters, or lower-case letters","result":"invalid","values":{}}
