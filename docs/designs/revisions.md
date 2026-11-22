@@ -3,6 +3,7 @@
 
 # Revisions
 @design revisions=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
@@ -49,7 +50,9 @@ namespace names and id patterns, and the result "valid" of such a
 binding. From Files and paths (`files`), it takes valid paths and path
 sets. From Text and notation (`text`), it takes characters, texts,
 boundaries, spans, valid UTF-8, code point order, code spans, decimal
-numerals, and what a conforming program and a result are. From RFC 8259,
+numerals, and what a result is. From Conformance (`conformance`), it
+takes conforming programs, inputs, and the general requirements that
+bind every conforming program, including `reject-invalid-inputs`. From RFC 8259,
 it takes JSON values, with their objects, members, arrays, strings, and
 numbers.
 
@@ -256,7 +259,8 @@ the edge.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     documents#{file-readers=v1, tree-finding=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{needs-revision-finding=v1},
 }
 
@@ -275,7 +279,8 @@ give no other finding of that class.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     documents#{file-readers=v1, tree-finding=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{suspect-finding=v1},
 }
 
@@ -298,7 +303,8 @@ under these bindings once, and must give no other finding of that class.
         undisturbed-read=v1,
     },
     documents#{file-readers=v1, tree-finding=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{needs-revision-finding=v1},
 }
 
@@ -326,7 +332,7 @@ other finding of that class.
         default-branch-name=v1, commit=v1, change-of-a-commit=v1,
         change-base=v1, repository-read=v1, undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 This requirement applies for a commit h under a valid binding of
@@ -348,7 +354,7 @@ base.
         default-branch-name=v1, commit=v1, change-of-a-commit=v1,
         change-base=v1, repository-read=v1, undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 This requirement applies for a commit h under a valid binding of
@@ -363,7 +369,7 @@ base, and must give no finding of that class.
 ## 5. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`revisions.test-vectors.jsonl`](revisions.test-vectors.jsonl), in the
@@ -382,10 +388,11 @@ them. No vector follows from the requirements
 @schema trees-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1, reject-invalid-inputs=v1},
     text#{
-        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
-        character=v1, valid-utf-8=v1, result=v1, code-point-order=v1,
-        span=v1, boundary=v1, decimal-numeral=v1, code-span=v1,
+        text=v1, character=v1, valid-utf-8=v1, result=v1,
+        code-point-order=v1, span=v1, boundary=v1, decimal-numeral=v1,
+        code-span=v1,
     },
     files#{path=v1, path-set=v1},
     data-forms#{
@@ -408,7 +415,7 @@ The group `trees` holds the vectors whose inputs are a base tree, a
 tree, a binding of `file-readers` whose readers are all `markdown`, and
 a binding of `external-namespaces`. Its requirements are
 `give-needs-revision-findings`, `give-suspect-findings`, and
-`reject-invalid-inputs` of Text. Each vector
+`reject-invalid-inputs` of Conformance. Each vector
 of the group has the member `values`, and no vector has the member
 `result`. These forms name no question for `result`. The group uses no
 need, so these forms give no need names.
@@ -466,7 +473,7 @@ numeral.
 For the input of a vector, when a conforming program reaches no limit of
 its own, that conforming program gives what `values` states. When
 `values` is `{}`, that conforming program gives no finding of either
-class for the tree (by `reject-invalid-inputs` of Text). When `values` is
+class for the tree (by `reject-invalid-inputs` of Conformance). When `values` is
 not `{}` and that conforming program gives the findings of the class
 `needs-revision` of the tree against the base tree under the two
 bindings of the input, that conforming program gives one finding of that

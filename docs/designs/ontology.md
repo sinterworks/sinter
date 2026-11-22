@@ -4,6 +4,7 @@
 # Ontology
 @design ontology=v1
 @cites identifiers=v1
+@cites conformance=v1
 @cites text=v1
 @cites files=v1
 @cites data-forms=v1
@@ -33,10 +34,12 @@ ids; the productions `declaration-line`, `citation-line`, `every-part`,
 and `inline-destination`, and the matches of texts by productions; the
 parameter `external-namespaces` with its bindings; and the result
 "valid" that a conforming program of Identifiers gives for an input.
-From Text and notation, the design takes texts, lines, and whole
-numbers; byte sequences, valid UTF-8, and the text of a byte sequence;
-and what a design, a specification, a requirement, a conforming program,
-an input, and a result are. From Files and paths, the design takes valid
+From Conformance (`conformance`), the design takes designs,
+specifications, requirements, conforming programs, inputs, and the
+general requirements that bind every conforming program. From Text and
+notation, the design takes texts, lines, and whole numbers; byte
+sequences, valid UTF-8, and the text of a byte sequence; and what a
+result is. From Files and paths, the design takes valid
 paths, path sets, and the set of the valid paths that a path set gives.
 From the specification `test-vectors` of Data forms, the design takes
 test-vector sets with their vector lines; the objects, the forms, and
@@ -84,9 +87,9 @@ schema labels; the forms of a group; and the meaning of a vector.
 | [item of the kind design](sinter:#declared-item=v1) | a declared item whose declaration word is `@design`; it is a design |
 | [item of the kind specification](sinter:#declared-item=v1) | a declared item whose declaration word is `@spec`; it declares one specification of the design of which it is a part |
 | [item of the kind requirement](sinter:#declared-item=v1) | a declared item whose declaration word is `@req`; it declares one requirement of the design of which it is a part |
-| [design](sinter:text#design=v1) | a document that declares, each under a name, obligations and definitions |
-| [requirement](sinter:text#requirement=v1) | an obligation that a design declares under a name and states with the word must |
-| [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
+| [design](sinter:conformance#design=v1) | a document that declares, each under a name, obligations and definitions |
+| [requirement](sinter:conformance#requirement=v1) | an obligation that a design declares under a name and states with the word must |
+| [specification](sinter:conformance#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | [schema](sinter:#schema=v1) | a declared item whose declaration word is `@schema`; the schema gives the form of a thing that crosses the boundary of a conforming program: the layout of the thing and every constraint that is a property of the thing itself |
 | [atom](sinter:#atom=v1) | a declared item whose declaration word is `@atom`; the atom defines a named verdict that a conforming program gives, with the condition under which the conforming program gives that name |
 | [term](sinter:#term=v1) | a declared item whose declaration word is `@term`; it says what one word or one fixed phrase means, gives a form, or defines a computed value |
@@ -405,7 +408,7 @@ for one person: the person who runs it.
 ### 3.6 The job
 
 @term job=v1
-@cites {text#{conforming-program=v1}, #{default-branch=v1}}
+@cites {conformance#{conforming-program=v1}, #{default-branch=v1}}
 
 The job is an execution of a conforming program that continuous
 integration starts at each push to the default branch of a repository.
@@ -418,10 +421,11 @@ integration starts at each push to the default branch of a repository.
         declaration=v1, sinter-tag-word=v1, external-namespaces=v1,
         give-line-results=v1, line-result=v1,
     },
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
-        conforming-program=v1, result=v1,
+        conforming-program=v1,
     },
+    text#{result=v1},
     #{tree=v1},
 }
 
@@ -472,7 +476,7 @@ belongs to no item of the kind specification.
 ### 3.9 Schemas
 
 @term schema=v1
-@cites {text#{conforming-program=v1}, #{declared-item=v1}}
+@cites {conformance#{conforming-program=v1}, #{declared-item=v1}}
 
 A schema is a declared item whose declaration word is `@schema`. A
 schema gives the form of a thing that crosses the boundary of a
@@ -482,7 +486,7 @@ a property of the thing itself.
 ### 3.10 Atoms
 
 @term atom=v1
-@cites {text#{conforming-program=v1}, #{declared-item=v1}}
+@cites {conformance#{conforming-program=v1}, #{declared-item=v1}}
 
 An atom is a declared item whose declaration word is `@atom`. An atom
 defines a named verdict that a conforming program gives, with the
@@ -562,7 +566,7 @@ the item declares gives the forms of a group for each of its groups.
     data-forms#{
         vector-line=v1, vector-object=v1, vector-meaning=v1,
     },
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
         conforming-program=v1, input=v1,
     },
@@ -685,7 +689,8 @@ external item too.
     identifiers#{
         label=v1, declaration=v1, declaration-line=v1, match=v1,
     },
-    text#{text=v1, design=v1},
+    conformance#{design=v1},
+    text#{text=v1},
     #{
         item=v1, declared-item=v1, containment=v1, term=v1,
         conformance-vector-group=v1, vector-set=v1, task=v1, plan=v1,
@@ -742,7 +747,8 @@ revised content has no revision.
         link-result=v1,
     },
     data-forms#{vector-line=v1, form-pin=v1},
-    text#{design=v1, conforming-program=v1, result=v1},
+    conformance#{design=v1, conforming-program=v1},
+    text#{result=v1},
     #{
         item=v1, tree=v1, edge-source=v1, item-name=v1,
         external-item=v1, vector-set=v1, conformance-vector-group=v1,
@@ -893,7 +899,9 @@ its cited item.
 
 @term verifies-edge=v1
 @cites {
-    text#{input=v1, conforming-program=v1, design=v1, specification=v1},
+    conformance#{
+        input=v1, conforming-program=v1, design=v1, specification=v1,
+    },
     #{
         edge=v1, declared-item=v1, schema=v1, test=v1,
         conformance-vector=v1, conformance-vector-group=v1,
@@ -989,7 +997,7 @@ one external item. A task has no description of its own and no branch.
     identifiers#{citation=v1},
     files#{path=v1, path-set-membership=v1},
     data-forms#{group-form-list=v1},
-    text#{requirement=v1, design=v1},
+    conformance#{requirement=v1, design=v1},
     #{
         task=v1, edge=v1, declared-item=v1, item-name=v1, test=v1,
         tree=v1, test-evidence=v1, satisfies-edge=v1, verifies-edge=v1,
@@ -1251,7 +1259,7 @@ kept.
 
 @atom work-item-state=v1
 @cites {
-    text#{design=v1},
+    conformance#{design=v1},
     #{
         ledger=v1, ledger-entry=v1, definition-entry=v1, work-item=v1,
         task=v1, plan=v1, work-item-definition=v1, promise=v1,
@@ -1327,7 +1335,8 @@ of a ledger.
         status-tag=v1, external-namespaces=v1, give-line-results=v1,
         line-result=v1,
     },
-    text#{design=v1, conforming-program=v1, result=v1},
+    conformance#{design=v1, conforming-program=v1},
+    text#{result=v1},
     #{
         declared-item=v1, schema=v1, atom=v1, term=v1,
         decision-record=v1, tree=v1, edge-source=v1,
@@ -1346,7 +1355,7 @@ replaces the item.
 
 @term approval-state=v1
 @cites {
-    text#{design=v1},
+    conformance#{design=v1},
     #{
         subject-of-approval=v1, person=v1, revised-content=v1,
         containment=v1, schema=v1, atom=v1, term=v1, declared-item=v1,
@@ -1527,7 +1536,8 @@ of a ledger, when, and only when, one of these is true at that point:
 
 @term parameter=v1
 @cites {
-    text#{design=v1}, identifiers#{external-namespaces=v1, part-name=v1},
+    conformance#{design=v1},
+    identifiers#{external-namespaces=v1, part-name=v1},
     #{schema=v1},
 }
 
@@ -1543,7 +1553,7 @@ defines it.
 
 @term state-input=v1
 @cites {
-    text#{design=v1},
+    conformance#{design=v1},
     #{
         tree=v1, default-branch=v1, delivery-line=v1, task-line=v1,
         ledger=v1, test-evidence=v1, parameter=v1,
@@ -1567,7 +1577,7 @@ A state input of a repository is one of these things:
 
 @req compute-states-from-artifacts=v1
 @cites {
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     #{
         state=v1, state-input=v1, item=v1, edge=v1, wait=v1,
         subject-of-approval=v1,
@@ -1585,7 +1595,7 @@ inputs that meet both of these conditions:
 
 @req treat-ledger-entries-alike=v1
 @cites {
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     #{
         state=v1, item=v1, edge=v1, wait=v1, subject-of-approval=v1,
         ledger-entry=v1, person=v1,
@@ -1603,7 +1613,7 @@ inputs that meet both of these conditions:
 
 @req change-ledger-only-by-appends=v1
 @cites {
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger=v1, ledger-entry=v1, repair=v1},
 }
 
@@ -1615,7 +1625,7 @@ ledger entries between clones of the repository.
 
 @req write-only-definitions-for-agents=v1
 @cites {
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     #{
         agent=v1, ledger=v1, definition-entry=v1, repair=v1,
         ledger-entry=v1,
@@ -1630,7 +1640,7 @@ than a definition entry, and must make no repair.
 
 @req write-judgments-only-for-persons=v1
 @cites {
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{judgment=v1, person=v1, ledger=v1, repair=v1},
 }
 
@@ -1643,7 +1653,8 @@ of the program cannot give.
 
 @req use-declared-tasks-only-for-briefs=v1
 @cites {
-    text#{text=v1, conforming-program=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     #{agent=v1, task=v1, state-input=v1},
 }
 
@@ -1657,6 +1668,6 @@ session for nothing other than the brief of that session.
 ## 5. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 No requirement of section 4 names a result for an input, so there are no
 conformance vectors.

@@ -3,6 +3,7 @@
 
 # Changes
 @design changes=v1
+@cites conformance=v1
 @cites text=v1
 @cites files=v1
 @cites ontology=v1
@@ -91,11 +92,13 @@ and 3 of the pack format, with pack indexes in the versions 1 and 2, as
 the page gitformat-pack gives them; the reftable format in its versions
 1 and 2; and git's index in its versions 2 to 4.
 
+From Conformance (`conformance`), the design takes conforming programs,
+inputs, and the general requirements that bind every conforming program.
 From Text and notation (`text`), the design takes characters, texts,
 bytes, byte sequences, decimal numerals, 0x numerals, hex digits, valid
 UTF-8, the text of a byte sequence, UTF-8 encodings, lines, line
-numbers, whole numbers, code spans, code point order, and what a
-conforming program and a result are. From Files and paths (`files`), the
+numbers, whole numbers, code spans, code point order, and what a result
+is. From Files and paths (`files`), the
 design takes the system, file systems, folder trees, folders and their
 folder entries, regular files and their contents, symbolic links, files
 of another kind, the bytes that a program takes from a file, valid paths
@@ -201,7 +204,7 @@ Conformance section of the design name.
 | [repository read](sinter:#repository-read=v1) | A repository read is an operation in which a program takes, from a git repository or from a working tree of that git repository, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give those things or to use those things. A fetch, a push, and a change of a ref that the program makes are not repository reads. Each fetch into the git repository that the program makes, itself or through any program that the program uses, during a repository read is part of that repository read. No push, and no other change of a ref, is part of a repository read. A repository read lasts from the first time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read until the last time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read. A program gives a thing in a repository read when the program gives what that repository read took. |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | An undisturbed repository read is a repository read during which no process, the program that makes that repository read included, does either of two actions, other than in an own change of that repository read when the file of that own change is not a file of a working tree. The first action is to create, delete, or change a repository file from which that repository read takes bytes. The second action is to change which file a pathname names, or to change whether that pathname names a file, when that repository read uses that pathname to reach or look for a repository file. |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | An own change of a repository read is the creation, the deletion, or the change of one file by the program that makes the repository read, itself or through any program that the program uses, when that file is of one of four kinds. The first kind is a file of a loose object or a pack that the program creates in the repository read, with the files that are for that pack alone, or a folder of the folder tree of an object database. The second kind is a commit-graph file in a fetch that is part of the repository read. The third kind is git's index, a file that the format of git's index names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before the change. The fourth kind is a lock file or a temporary file that the program creates in one of the folders of the first three kinds and deletes, or renames to one of the files of the first three kinds. A change of one of the folders of the first three kinds counts as an own change only when each folder entry that the change creates, deletes, or changes names a file of one of the four kinds that is not a folder, or names a folder that the program created in the repository read. A file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give no own change, not even as a temporary file of the fourth kind. An own change keeps a repository read undisturbed only when the file of that own change is not a file of a working tree. |
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
@@ -1286,7 +1289,7 @@ remote for a push, as the page git-push defines pushes.
 ### 4.33 Program files
 
 @term program-file=v1
-@cites {files#{system=v1}, text#{conforming-program=v1}}
+@cites {files#{system=v1}, conformance#{conforming-program=v1}}
 
 The program files of a conforming program are two kinds of files. The
 first kind is the files that the system loads to start the conforming
@@ -1322,7 +1325,8 @@ that file.
 @req validate-branch-names=v1
 @cites {
     #{branch-name=v1},
-    text#{conforming-program=v1, result=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1},
 }
 
 When a conforming program gives a result for whether a text is a branch
@@ -1334,7 +1338,8 @@ name, and "invalid" when the text is not a branch name.
 @req decide-reach=v1
 @cites {
     #{commit=v1, reach=v1, repository-read=v1, undisturbed-read=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
 }
 
 When, in an undisturbed repository read, a conforming program gives a
@@ -1348,7 +1353,7 @@ not reach c′.
 @req give-commit-parents=v1
 @cites {
     #{commit=v1, repository-read=v1, undisturbed-read=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the parents of a commit of a git
@@ -1363,7 +1368,8 @@ must give exactly the parents of that commit, in their order.
         commit=v1, message-text=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
 }
 
 When a conforming program gives the text of the message of a commit of a
@@ -1380,7 +1386,7 @@ and that the message has no text.
 @req give-ref-commits=v1
 @cites {
     #{ref-commit=v1, repository-read=v1, undisturbed-read=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the commit of a ref of a git repository,
@@ -1401,7 +1407,8 @@ commit.
         repository-read=v1, undisturbed-read=v1,
     },
     ontology#{default-branch=v1, parameter=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 When a conforming program gives the commit of the default branch of a
@@ -1424,7 +1431,7 @@ no commit under that binding.
         commit=v1, working-tree=v1, head-commit=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the head commit of a working tree of a
@@ -1446,7 +1453,7 @@ that working tree and that the working tree has no head commit.
     },
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the valid paths of the files of the tree
@@ -1468,7 +1475,7 @@ the conforming program gives, exactly the content of that file.
     },
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When, in an undisturbed repository read, a conforming program gives the
@@ -1491,7 +1498,7 @@ tree and that the tree has no file with the valid path p.
     },
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the valid paths of the files of the tree
@@ -1514,7 +1521,7 @@ the content of that file.
     },
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When, in an undisturbed repository read, a conforming program gives the
@@ -1536,7 +1543,7 @@ valid path p.
         commit=v1, commit-range=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the commits of the range from a commit,
@@ -1552,7 +1559,7 @@ that range.
         commit=v1, commit-range=v1, parents-first-order=v1,
         repository-read=v1, undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the commits of a range of a git
@@ -1572,7 +1579,8 @@ range.
         undisturbed-read=v1,
     },
     ontology#{default-branch=v1, parameter=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 When a conforming program gives the commits of the change of a commit h
@@ -1593,7 +1601,7 @@ change under that binding.
         commit=v1, merge-base=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the merge bases of two commits of a git
@@ -1610,7 +1618,8 @@ must give exactly the merge bases of those two commits.
         repository-read=v1, undisturbed-read=v1,
     },
     ontology#{parameter=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 When a conforming program gives the base of the change of a commit h of
@@ -1633,7 +1642,7 @@ binding.
         commit=v1, first-parent-line=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the first-parent line of a commit of a
@@ -1649,7 +1658,7 @@ order of that first-parent line.
         commit=v1, reach=v1, first-parent-line=v1, landing-commit=v1,
         repository-read=v1, undisturbed-read=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When a conforming program gives the landing commit of a commit c on the
@@ -1673,7 +1682,7 @@ no landing commit on that first-parent line.
         commit-file=v1, working-tree-file=v1, undisturbed-read=v1},
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When it gives the hunks of a valid path p between an old tree and a new
@@ -1697,8 +1706,9 @@ obligation holds only in an undisturbed repository read.
     },
     ontology#{tree=v1},
     files#{path=v1},
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, line=v1, line-number=v1, whole-number=v1,
+        line=v1, line-number=v1, whole-number=v1,
         text-of-a-byte-sequence=v1,
     },
 }
@@ -1723,7 +1733,7 @@ undisturbed repository read.
     #{line-map=v1, hunk=v1, new-line-number=v1},
     ontology#{tree=v1},
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 When, in one execution of the program, a conforming program gives hunks
@@ -1743,7 +1753,8 @@ of p between those trees.
     },
     ontology#{parameter=v1},
     files#{path=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 When a conforming program gives a diff of the change of a commit h of a
@@ -1763,7 +1774,7 @@ binding.
 @cites {
     posix/2024,
     #{repository-read=v1, repository-file=v1, undisturbed-read=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 During each repository read, a conforming program, itself or through any
@@ -1784,7 +1795,7 @@ output.
         remote-transfer=v1,
     },
     files#{system=v1, symbolic-link=v1, taken-byte=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 In each repository read, a conforming program, itself or through any
@@ -1816,7 +1827,7 @@ program that it uses, must take bytes only from these:
     posix/2024,
     #{repository-read=v1},
     files#{system=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 Permissions and appropriate privileges are as POSIX.1-2024 defines them,
@@ -1845,7 +1856,8 @@ conforming program.
         program-file=v1,
     },
     files#{system=v1, folder-tree=v1, symbolic-link=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 In each execution in which a conforming program makes a repository read,
@@ -1905,7 +1917,8 @@ that runs in this sense.
         remote-transfer=v1,
     },
     files#{symbolic-link=v1, folder=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 In each repository read, a conforming program, itself or through any
@@ -1925,7 +1938,7 @@ In each repository read, the conforming program, itself or through any program t
 ## 6. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`changes.test-vectors.jsonl`](changes.test-vectors.jsonl), in the same
@@ -1955,10 +1968,8 @@ gives for the input.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{
-        conforming-program=v1, text=v1, character=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{text=v1, character=v1, result=v1, code-span=v1},
     #{validate-branch-names=v1, branch-name=v1},
 }
 
@@ -1989,7 +2000,8 @@ result.
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{default-branch=v1, parameter=v1},
-    text#{conforming-program=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, code-span=v1},
     #{
         branch-name-vector=v1, give-default-branch-commits=v1,
         default-branch-name=v1, branch-name=v1, default-branch-commit=v1,
@@ -2048,7 +2060,8 @@ binding.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         give-head-commits=v1, head-commit=v1, working-tree=v1,
@@ -2100,10 +2113,11 @@ commit.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{path=v1},
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, byte-sequence=v1, byte=v1,
-        utf-8-encoding=v1, hex-digit=v1, whole-number=v1, line-feed=v1,
-        0x-numeral=v1, code-point-order=v1, code-span=v1,
+        text=v1, byte-sequence=v1, byte=v1, utf-8-encoding=v1,
+        hex-digit=v1, whole-number=v1, line-feed=v1, 0x-numeral=v1,
+        code-point-order=v1, code-span=v1,
     },
     #{
         branch-name-vector=v1, give-commit-files=v1,
@@ -2173,9 +2187,10 @@ its entry. The vectors do not give that content.
         path=v1, file-object=v1, folder-tree-object=v1,
         stored-folder-tree=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, byte=v1, utf-8-encoding=v1,
-        valid-utf-8=v1, 0x-numeral=v1, code-span=v1,
+        text=v1, byte=v1, utf-8-encoding=v1, valid-utf-8=v1,
+        0x-numeral=v1, code-span=v1,
     },
     #{
         branch-name-vector=v1, commit-file-vector=v1,
@@ -2260,7 +2275,8 @@ each need is, and when a vector has it.
     rfc/8259,
     gitdoc/gitrepository-layout,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, text=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, result=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         decide-reach=v1, commit=v1, reach=v1, repository-read=v1,
@@ -2303,7 +2319,8 @@ gives the result that `result` holds, and no other result.
     rfc/8259,
     gitdoc/gitrepository-layout,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{
         default-branch-commit-vector=v1, give-commit-parents=v1,
         commit=v1, repository-read=v1, undisturbed-read=v1,
@@ -2343,7 +2360,8 @@ elements of `parents`, in their order, and no other commit.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         give-ref-commits=v1, commit=v1, ref-commit=v1,
@@ -2389,7 +2407,8 @@ the ref and that the ref has no commit.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
         parent-vector=v1, give-ranges=v1, give-parents-first-orders=v1,
@@ -2433,7 +2452,8 @@ order as their parents-first order.
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{default-branch=v1, parameter=v1},
-    text#{conforming-program=v1, code-point-order=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-point-order=v1, code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
         give-changes-of-commits=v1, give-merge-bases=v1,
@@ -2492,7 +2512,8 @@ the change of h has no base.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{
         default-branch-commit-vector=v1, reach-vector=v1,
         parent-vector=v1, give-first-parent-lines=v1,
@@ -2547,7 +2568,8 @@ that first-parent line and that c has no landing commit.
     rfc/8259,
     gitdoc/git-commit-tree,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    text#{conforming-program=v1, text=v1, byte-sequence=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, byte-sequence=v1, code-span=v1},
     #{
         branch-name-vector=v1, commit-file-vector=v1,
         give-message-texts=v1, commit=v1, message-text=v1,
@@ -2597,10 +2619,10 @@ and that the message has no text.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{path=v1},
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, line=v1,
-        line-number=v1, whole-number=v1, decimal-numeral=v1,
-        code-span=v1,
+        byte-sequence=v1, line=v1, line-number=v1, whole-number=v1,
+        decimal-numeral=v1, code-span=v1,
     },
     #{
         commit-file-vector=v1, give-hunks=v1, give-new-line-numbers=v1,
@@ -2675,10 +2697,8 @@ number.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1, default-branch=v1, parameter=v1},
     files#{path=v1},
-    text#{
-        conforming-program=v1, byte-sequence=v1, code-point-order=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, code-point-order=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         commit-file-vector=v1, reach-vector=v1, hunk-vector=v1,
@@ -2746,7 +2766,8 @@ change of h and that the change of h has no diff.
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{default-branch=v1, parameter=v1},
-    text#{conforming-program=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
         give-default-branch-commits=v1, default-branch-name=v1,
@@ -2806,9 +2827,10 @@ binding.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{folder=v1, regular-file=v1, path=v1},
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, character=v1, code-point=v1,
-        byte-sequence=v1, code-span=v1,
+        text=v1, character=v1, code-point=v1, byte-sequence=v1,
+        code-span=v1,
     },
     #{
         branch-name-vector=v1, commit-file-vector=v1,
