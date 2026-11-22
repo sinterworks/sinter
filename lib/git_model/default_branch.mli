@@ -12,15 +12,16 @@
 val commit :
   upstream:(Sinter_branch_names.Branch_name.t -> (string option, 'e) result) ->
   refs:('id, 'e) Ref_commit.refs ->
-  Sinter_text.Text.t ->
+  Sinter_branch_names.Branch_name.t ->
   ('id option, 'e) result
-(** [commit ~upstream ~refs binding] is the commit of the default branch under
-    the binding [binding] of [default-branch-name], in the git repository whose
-    refs are [refs]. [upstream b] is the name of the upstream of the branch name
-    [b], or [None] when [b] has no upstream, or [Error e] when it cannot be
-    read. The result is [Some c] when the first of the three refs that exists
-    has the commit [c], as {!Ref_commit.commit} gives it. It is [None] when
-    [binding] is not a branch name, so that it does not meet the schema
-    [default-branch-name], when none of the three refs exists, or when the first
-    of them that exists has no commit. The names of the refs are the UTF-8
-    encodings of their texts. *)
+(** [commit ~upstream ~refs b] is the commit of the default branch under the
+    binding [b] of [default-branch-name], a branch name, in the git repository
+    whose refs are [refs]. [upstream b] is the name of the upstream of [b], or
+    [None] when [b] has no upstream, or [Error e] when it cannot be read. The
+    result is [Some c] when the first of the three refs that exists has the
+    commit [c], as {!Ref_commit.commit} gives it. It is [None] when none of the
+    three refs exists, or when the first of them that exists has no commit. The
+    names of the refs are the UTF-8 encodings of their texts. A binding that is
+    not a branch name is not valid, and
+    {!Sinter_branch_names.Branch_name.of_text} rejects it before this function.
+*)

@@ -1923,7 +1923,11 @@ let real_git_tests =
             | Error _ -> Alcotest.fail "error");
           Alcotest.(check (option string))
             "default branch commit" (Some main_hex)
-            (let binding = Result.get_ok (Text.decode "main") in
+            (let binding =
+               Result.get_ok
+                 (Sinter_branch_names.Branch_name.of_text
+                    (Result.get_ok (Text.decode "main")))
+             in
              match
                Default_branch.commit
                  ~upstream:(fun _ -> Ok None)
@@ -2660,7 +2664,9 @@ let default_branch_on ~version (vector : Vectors.vector) =
   commit_values !commits
     (Default_branch.commit ~upstream
        ~refs:(Refs.refs refs ~is_commit)
-       (Result.get_ok (Text.decode binding)))
+       (Result.get_ok
+          (Sinter_branch_names.Branch_name.of_text
+             (Result.get_ok (Text.decode binding)))))
 
 let upstreams_on (vector : Vectors.vector) =
   let binding =
@@ -2748,7 +2754,9 @@ let upstreams_on (vector : Vectors.vector) =
   commit_values commits
     (Default_branch.commit ~upstream
        ~refs:(Refs.refs refs ~is_commit)
-       (Result.get_ok (Text.decode binding)))
+       (Result.get_ok
+          (Sinter_branch_names.Branch_name.of_text
+             (Result.get_ok (Text.decode binding)))))
 
 (* @verifies changes[ref-commits]
    Each vector of `ref-commits` is encoded into a reftable stack (version 1

@@ -45,6 +45,11 @@ let text_of bytes =
   | Ok text -> text
   | Error _ -> Alcotest.failf "%S is not valid UTF-8" bytes
 
+let branch_of bytes =
+  match Sinter_branch_names.Branch_name.of_text (text_of bytes) with
+  | Ok branch -> branch
+  | Error _ -> Alcotest.failf "%S is not a branch name" bytes
+
 let path_of bytes =
   match Path.of_text (text_of bytes) with
   | Ok path -> path
@@ -133,7 +138,7 @@ let default_commit ~binding ~upstream ~local ~remote =
   in
   ok
     (Default_branch.commit ~upstream:upstream_of ~refs:(refs_of_list refs)
-       (text_of binding))
+       (branch_of binding))
 
 let give_default_branch (vector : Vectors.vector) =
   let ref_ name =
@@ -401,12 +406,14 @@ let errors_of_the_refs_come_back () =
     (Ref_commit.head_commit refs (Ref_commit.Ref "refs/heads/a"));
   Alcotest.(check (result (option string) string))
     "a ref of the default branch" (Error "refs/heads/main")
-    (Default_branch.commit ~upstream:(fun _ -> Ok None) ~refs (text_of "main"));
+    (Default_branch.commit
+       ~upstream:(fun _ -> Ok None)
+       ~refs (branch_of "main"));
   Alcotest.(check (result (option string) string))
     "an upstream" (Error "upstream")
     (Default_branch.commit
        ~upstream:(fun _ -> Error "upstream")
-       ~refs (text_of "main"))
+       ~refs (branch_of "main"))
 
 let a_long_chain_of_symbolic_refs () =
   let length = 200_000 in
@@ -474,7 +481,7 @@ let an_upstream_that_does_not_exist_is_skipped () =
     "the local branch" (Ok (Some "l"))
     (Default_branch.commit
        ~upstream:(fun _ -> Ok (Some "refs/remotes/origin/gone"))
-       ~refs (text_of "main"))
+       ~refs (branch_of "main"))
 
 let a_broken_ref_of_the_default_branch_decides () =
   let refs =
@@ -486,7 +493,9 @@ let a_broken_ref_of_the_default_branch_decides () =
   in
   Alcotest.(check (result (option string) unit))
     "no commit" (Ok None)
-    (Default_branch.commit ~upstream:(fun _ -> Ok None) ~refs (text_of "main"))
+    (Default_branch.commit
+       ~upstream:(fun _ -> Ok None)
+       ~refs (branch_of "main"))
 
 let the_upstream_takes_the_branch_name () =
   let seen = ref [] in
@@ -496,7 +505,7 @@ let the_upstream_takes_the_branch_name () =
   in
   ignore
     (Default_branch.commit ~upstream ~refs:(refs_of_list [])
-       (text_of "release/2.0"));
+       (branch_of "release/2.0"));
   Alcotest.(check (list string)) "the names" [ "release/2.0" ] !seen
 
 let header =

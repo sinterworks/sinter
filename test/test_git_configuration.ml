@@ -4625,7 +4625,10 @@ let default_branch_commit configuration input =
     match member "binding" input with
     | Some (`String b) -> (
         match Text.decode b with
-        | Ok text -> text
+        | Ok text -> (
+            match Branch_name.of_text text with
+            | Ok branch -> branch
+            | Error _ -> Alcotest.fail "not a branch name")
         | Error _ -> Alcotest.fail "not UTF-8")
     | _ -> Alcotest.fail "no binding"
   and refs =
