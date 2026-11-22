@@ -39,7 +39,9 @@ let give_id_pattern (vector : Vectors.vector) =
   let result =
     match Id_pattern.of_string (json_string vector.input) with
     | Ok _ -> "valid"
-    | Error _ -> "invalid"
+    | Error (Id_pattern.Invalid _) -> "invalid"
+    | Error (Id_pattern.Stopped _) ->
+        Alcotest.fail "a vector id pattern stopped at a limit"
   in
   `Assoc [ ("result", str result); ("values", `Assoc []) ]
 
@@ -47,7 +49,10 @@ let give_fit (vector : Vectors.vector) =
   match
     Id_pattern.of_string (json_string (json_member "id-pattern" vector.input))
   with
-  | Error _ -> `Assoc [ ("result", str "the id pattern is invalid") ]
+  | Error (Id_pattern.Stopped _) ->
+      Alcotest.fail "a vector id pattern stopped at a limit"
+  | Error (Id_pattern.Invalid _) ->
+      `Assoc [ ("result", str "the id pattern is invalid") ]
   | Ok pattern ->
       let id = json_string (json_member "id" vector.input) in
       `Assoc
@@ -62,6 +67,8 @@ let give_binding (vector : Vectors.vector) =
   let result =
     match Binding.make (pairs_of_json vector.input) with
     | Ok _ -> "valid"
+    | Error (Binding.Stopped_id_pattern _) ->
+        Alcotest.fail "a vector binding stopped at a limit"
     | Error _ -> "invalid"
   in
   `Assoc [ ("result", str result); ("values", `Assoc []) ]
@@ -85,72 +92,86 @@ let binding_vectors =
   Vectors.group set ~name:"bindings" ~form:"#binding-vector=v1" give_binding
 
 (* @verifies identifiers#validate-id-patterns=v1
-   Each id pattern gives the error that the interface states for it: a text
-   that is not a valid id pattern, or a valid id pattern beyond one of the
-   program's own limits on the length, a count, and the size. *)
+   @verifies text#reject-invalid-inputs=v1
+   Each text that is not a valid id pattern gives Invalid with its fault,
+   never Ok and never Stopped. *)
 let id_pattern_errors () =
   List.iter
     (fun (pattern, want) ->
       Alcotest.(check bool)
         (Printf.sprintf "the error of %S" pattern)
         true
-        (Id_pattern.of_string pattern = Error want))
+        (Id_pattern.of_string pattern = Error (Id_pattern.Invalid want)))
     [
-      ("[" ^ String.make 999 'a' ^ "]", Id_pattern.Stopped Too_long);
-      ("^", Id_pattern.Invalid Unmatched);
-      ("", Id_pattern.Invalid Unmatched);
-      ("a b", Id_pattern.Invalid Unmatched);
-      ("[]", Id_pattern.Invalid Unmatched);
-      ("[^a]", Id_pattern.Invalid Unmatched);
-      ("[a-Z]", Id_pattern.Invalid Unmatched);
-      ("[a-9]", Id_pattern.Invalid Unmatched);
-      ("a{,3}", Id_pattern.Invalid Unmatched);
-      ("a{1,2,3}", Id_pattern.Invalid Unmatched);
-      ("a{ 1}", Id_pattern.Invalid Unmatched);
-      ("{1}", Id_pattern.Invalid Unmatched);
-      ("|a", Id_pattern.Invalid Unmatched);
-      ("(|a)", Id_pattern.Invalid Unmatched);
-      ("a||b", Id_pattern.Invalid Unmatched);
-      ("a?+", Id_pattern.Invalid Unmatched);
-      ("(a", Id_pattern.Invalid Unmatched);
-      ("a)", Id_pattern.Invalid Unmatched);
-      ("\\d", Id_pattern.Invalid Unmatched);
-      ("a\xff", Id_pattern.Invalid Unmatched);
-      ("[a-", Id_pattern.Invalid Unmatched);
-      ("[0-", Id_pattern.Invalid Unmatched);
-      ("x[A-", Id_pattern.Invalid Unmatched);
-      ("[9-0]", Id_pattern.Invalid Reversed_range);
-      ("[Z-A]", Id_pattern.Invalid Reversed_range);
-      ("x[b-a]", Id_pattern.Invalid Reversed_range);
-      ("a{256}", Id_pattern.Stopped Large_count);
-      ("a{1,256}", Id_pattern.Stopped Large_count);
-      ("a{256,}", Id_pattern.Stopped Large_count);
-      ("a{99999999999999999999999}", Id_pattern.Stopped Large_count);
-      ("a{2,1}", Id_pattern.Invalid Reversed_bounds);
-      ("a{255,0}", Id_pattern.Invalid Reversed_bounds);
-      ("((a|b){250}){2}c", Id_pattern.Stopped Oversized);
-      ("(a{250,}){4}", Id_pattern.Stopped Oversized);
-      ("(((a|b){250}){2}){1,}", Id_pattern.Stopped Oversized);
-      ("((a{1,}){250}){2}b", Id_pattern.Stopped Oversized);
-      ("(((a|b){250}){2})?c", Id_pattern.Stopped Oversized);
-      ("((a?){250}){4}b", Id_pattern.Stopped Oversized);
-      ("((a*){250}){4}b", Id_pattern.Stopped Oversized);
-      ("((a+){250}){4}b", Id_pattern.Stopped Oversized);
-      ("((a{0,0}){250}){4}b", Id_pattern.Stopped Oversized);
-      ("(((a|b){250}){2})*c", Id_pattern.Stopped Oversized);
-      ("(((a|b){250}){2})+c", Id_pattern.Stopped Oversized);
-      ("((a|b){250}){2}c{0,0}", Id_pattern.Stopped Oversized);
-      ("b((a{0}|a{0}){255}){4}", Id_pattern.Stopped Oversized);
+      ("^", Id_pattern.Unmatched);
+      ("", Id_pattern.Unmatched);
+      ("a b", Id_pattern.Unmatched);
+      ("[]", Id_pattern.Unmatched);
+      ("[^a]", Id_pattern.Unmatched);
+      ("[a-Z]", Id_pattern.Unmatched);
+      ("[a-9]", Id_pattern.Unmatched);
+      ("a{,3}", Id_pattern.Unmatched);
+      ("a{1,2,3}", Id_pattern.Unmatched);
+      ("a{ 1}", Id_pattern.Unmatched);
+      ("{1}", Id_pattern.Unmatched);
+      ("|a", Id_pattern.Unmatched);
+      ("(|a)", Id_pattern.Unmatched);
+      ("a||b", Id_pattern.Unmatched);
+      ("a?+", Id_pattern.Unmatched);
+      ("(a", Id_pattern.Unmatched);
+      ("a)", Id_pattern.Unmatched);
+      ("\\d", Id_pattern.Unmatched);
+      ("a\xff", Id_pattern.Unmatched);
+      ("[a-", Id_pattern.Unmatched);
+      ("[0-", Id_pattern.Unmatched);
+      ("x[A-", Id_pattern.Unmatched);
+      ("[9-0]", Id_pattern.Reversed_range);
+      ("[Z-A]", Id_pattern.Reversed_range);
+      ("x[b-a]", Id_pattern.Reversed_range);
+      ("a{2,1}", Id_pattern.Reversed_bounds);
+      ("a{255,0}", Id_pattern.Reversed_bounds);
       ( String.concat "" (List.init 600 (fun _ -> "\xc3\xa9")),
-        Id_pattern.Invalid Unmatched );
-      ("a{0}", Id_pattern.Invalid Empty_id_fits);
-      ("a?", Id_pattern.Invalid Empty_id_fits);
-      ("a{0,}", Id_pattern.Invalid Empty_id_fits);
-      ("a{0,3}", Id_pattern.Invalid Empty_id_fits);
-      ("(a*)+", Id_pattern.Invalid Empty_id_fits);
-      ("a|b*", Id_pattern.Invalid Empty_id_fits);
-      ("(a?b?)", Id_pattern.Invalid Empty_id_fits);
-      ("a{0}b{0}", Id_pattern.Invalid Empty_id_fits);
+        Id_pattern.Unmatched );
+      ("a{0}", Id_pattern.Empty_id_fits);
+      ("a?", Id_pattern.Empty_id_fits);
+      ("a{0,}", Id_pattern.Empty_id_fits);
+      ("a{0,3}", Id_pattern.Empty_id_fits);
+      ("(a*)+", Id_pattern.Empty_id_fits);
+      ("a|b*", Id_pattern.Empty_id_fits);
+      ("(a?b?)", Id_pattern.Empty_id_fits);
+      ("a{0}b{0}", Id_pattern.Empty_id_fits);
+    ]
+
+(* @verifies text#report-stops-at-limits=v1
+   Each valid id pattern past one of the program's own limits on length,
+   count, or size gives Stopped with that limit, never Invalid and never Ok. *)
+let id_pattern_limit_stops () =
+  List.iter
+    (fun (pattern, want) ->
+      Alcotest.(check bool)
+        (Printf.sprintf "the stop of %S" pattern)
+        true
+        (Id_pattern.of_string pattern = Error (Id_pattern.Stopped want)))
+    [
+      ("[" ^ String.make 999 'a' ^ "]", Id_pattern.Too_long);
+      (String.make 1001 'a', Id_pattern.Too_long);
+      ("a{256}", Id_pattern.Large_count);
+      ("a{1,256}", Id_pattern.Large_count);
+      ("a{256,}", Id_pattern.Large_count);
+      ("a{99999999999999999999999}", Id_pattern.Large_count);
+      ("((a|b){250}){2}c", Id_pattern.Oversized);
+      ("(a{250,}){4}", Id_pattern.Oversized);
+      ("(((a|b){250}){2}){1,}", Id_pattern.Oversized);
+      ("((a{1,}){250}){2}b", Id_pattern.Oversized);
+      ("(((a|b){250}){2})?c", Id_pattern.Oversized);
+      ("((a?){250}){4}b", Id_pattern.Oversized);
+      ("((a*){250}){4}b", Id_pattern.Oversized);
+      ("((a+){250}){4}b", Id_pattern.Oversized);
+      ("((a{0,0}){250}){4}b", Id_pattern.Oversized);
+      ("(((a|b){250}){2})*c", Id_pattern.Oversized);
+      ("(((a|b){250}){2})+c", Id_pattern.Oversized);
+      ("((a|b){250}){2}c{0,0}", Id_pattern.Oversized);
+      ("b((a{0}|a{0}){255}){4}", Id_pattern.Oversized);
     ]
 
 let id_patterns_that_are_valid () =
@@ -237,22 +258,29 @@ let fit_takes_no_exponential_time () =
     ]
 
 (* @verifies identifiers#validate-id-patterns=v1
+   @verifies text#report-stops-at-limits=v1
    The interface promises that of_string takes time linear in the length of
    the text. In this shape, a quantifier repeats an alternation of elements
    that each repeat 0 times, and the size counts each of those elements as one
    copy. The work of of_string must grow with the number of branches and no
-   faster. *)
+   faster, stopping at Oversized. *)
 let of_string_grows_linearly_with_empty_copies () =
-  Counted_work.check_growth ~margin:1.5 ~sizes:(8, 32)
-    ~input:(fun branches ->
-      "b(("
-      ^ String.concat "|" (List.init branches (fun _ -> "a{0}"))
-      ^ "){255}){4}")
+  let make branches =
+    "b(("
+    ^ String.concat "|" (List.init branches (fun _ -> "a{0}"))
+    ^ "){255}){4}"
+  in
+  Alcotest.(check bool)
+    "the empty-copy pattern stops at Oversized" true
+    (Id_pattern.of_string (make 8) = Error (Id_pattern.Stopped Oversized));
+  Counted_work.check_growth ~margin:1.5 ~sizes:(8, 32) ~input:make
     Id_pattern.of_string
 
 (* @verifies identifiers#validate-bindings=v1
+   @verifies text#reject-invalid-inputs=v1
    Each binding gives Ok when it meets the schema external-namespaces within
-   the program's limits, and gives the error of its bad pair otherwise. *)
+   the program's limits, and gives the invalid-input error of its bad pair
+   otherwise. *)
 let binding_cases () =
   List.iter
     (fun (pairs, want) ->
@@ -284,26 +312,41 @@ let binding_cases () =
         Some
           (Binding.Invalid_id_pattern
              { namespace_name = "a"; error = Id_pattern.Reversed_range }) );
-      ( [ ("a", "x{256}") ],
-        Some
-          (Binding.Stopped_id_pattern
-             { namespace_name = "a"; limit = Id_pattern.Large_count }) );
       ( [ ("a", "x{2,1}") ],
         Some
           (Binding.Invalid_id_pattern
              { namespace_name = "a"; error = Id_pattern.Reversed_bounds }) );
-      ( [ ("a", "((a|b){250}){2}c") ],
-        Some
-          (Binding.Stopped_id_pattern
-             { namespace_name = "a"; limit = Id_pattern.Oversized }) );
-      ( [ ("a", "[" ^ String.make 999 'x' ^ "]") ],
-        Some
-          (Binding.Stopped_id_pattern
-             { namespace_name = "a"; limit = Id_pattern.Too_long }) );
       ( [ ("b", "x"); ("a", "x?") ],
         Some
           (Binding.Invalid_id_pattern
              { namespace_name = "a"; error = Id_pattern.Empty_id_fits }) );
+    ]
+
+(* @verifies text#report-stops-at-limits=v1
+   A binding whose id pattern exceeds a program limit reports
+   Stopped_id_pattern with the namespace name of that pair and the limit,
+   never Invalid_id_pattern and never Ok. *)
+let binding_limit_stops () =
+  List.iter
+    (fun (pairs, want) ->
+      Alcotest.(check bool)
+        (String.concat ", "
+           (List.map (fun (name, pattern) -> name ^ " " ^ pattern) pairs))
+        true
+        (Binding.make pairs = Error want))
+    [
+      ( [ ("a", "x{256}") ],
+        Binding.Stopped_id_pattern
+          { namespace_name = "a"; limit = Id_pattern.Large_count } );
+      ( [ ("a", "((a|b){250}){2}c") ],
+        Binding.Stopped_id_pattern
+          { namespace_name = "a"; limit = Id_pattern.Oversized } );
+      ( [ ("a", "[" ^ String.make 999 'x' ^ "]") ],
+        Binding.Stopped_id_pattern
+          { namespace_name = "a"; limit = Id_pattern.Too_long } );
+      ( [ ("gh", "[1-9][0-9]*"); ("rfc", "x{256}") ],
+        Binding.Stopped_id_pattern
+          { namespace_name = "rfc"; limit = Id_pattern.Large_count } );
     ]
 
 let binding_gives_its_pairs () =
@@ -535,23 +578,56 @@ let pattern_bytes_gen =
           ]))
 
 (* @verifies identifiers#validate-id-patterns=v1
-   Every text gives an accepted id pattern or an error. An accepted id pattern
-   keeps its text, holds 1,000 characters at most, which is the program's own
-   limit on the length, and the empty id does not fit it. *)
+   Every text gives an accepted id pattern, an Invalid error, or a Stopped
+   limit report. An accepted id pattern keeps its text, holds 1,000 characters
+   at most, and does not fit the empty id. *)
 let id_pattern_answers_every_text =
   property ~count:2000
     ~name:
-      "of_string gives a pattern or an error for every text, and never raises"
+      "of_string gives a pattern, an invalid error, or a limit stop for every \
+       text, and never raises"
     ~print:(Printf.sprintf "%S")
     (Gen.oneof
        [ pattern_bytes_gen; Gen.string_size ~gen:Gen.char (Gen.int_range 0 20) ])
     (fun text ->
       match Id_pattern.of_string text with
-      | Error _ -> true
+      | Error (Id_pattern.Invalid _ | Id_pattern.Stopped _) -> true
       | Ok pattern ->
           String.equal (Id_pattern.to_string pattern) text
           && (not (Id_pattern.fits pattern ""))
           && String.length text <= 1000)
+
+(* @verifies text#report-stops-at-limits=v1
+   Generated valid id patterns that exceed the length limit, the count limit,
+   or the size limit give Stopped with that limit in Id_pattern.of_string and
+   Stopped_id_pattern naming the namespace in Binding.make, never Invalid. *)
+let id_pattern_limits_report_stops =
+  let over_limit_gen =
+    Gen.oneof
+      [
+        Gen.map
+          (fun extra -> (String.make (1001 + extra) 'a', Id_pattern.Too_long))
+          (Gen.int_range 0 50);
+        Gen.map
+          (fun count -> (Printf.sprintf "a{%d}" count, Id_pattern.Large_count))
+          (Gen.int_range 256 999);
+        Gen.map2
+          (fun inner outer ->
+            (Printf.sprintf "(a{%d}){%d}" inner outer, Id_pattern.Oversized))
+          (Gen.int_range 201 255) (Gen.int_range 5 10);
+      ]
+  in
+  let ns_gen = one_of [ "gh"; "rfc"; "a"; "a-b"; "n1" ] in
+  property ~count:500
+    ~name:"valid id patterns past a program limit report Stopped, not Invalid"
+    ~print:(fun (ns, (pattern, _)) -> Printf.sprintf "%s %S" ns pattern)
+    (Gen.pair ns_gen over_limit_gen)
+    (fun (ns, (pattern, expected_limit)) ->
+      Id_pattern.of_string pattern = Error (Id_pattern.Stopped expected_limit)
+      && Binding.make [ (ns, pattern) ]
+         = Error
+             (Binding.Stopped_id_pattern
+                { namespace_name = ns; limit = expected_limit }))
 
 let namespace_name_matches text =
   let length = String.length text in
@@ -603,14 +679,17 @@ let binding_gen =
           ]))
 
 (* @verifies identifiers#validate-bindings=v1
+   @verifies text#report-stops-at-limits=v1
    Binding.make accepts a list of pairs when, and only when, every namespace
    name matches namespace-name, no two pairs share a namespace name, and
-   Id_pattern.of_string accepts every id pattern. *)
+   Id_pattern.of_string accepts every id pattern. When an id pattern stops at a
+   limit and no earlier fault occurs, Binding.make reports Stopped_id_pattern
+   with that pair's namespace name and limit. *)
 let bindings_follow_their_pairs =
   property ~count:1000
     ~name:
       "a binding is valid when, and only when, its names are well formed and \
-       distinct and its patterns valid"
+       distinct and its patterns are accepted"
     ~print:(fun pairs ->
       String.concat ", "
         (List.map
@@ -626,16 +705,21 @@ let bindings_follow_their_pairs =
        ])
     (fun pairs ->
       let names = List.map fst pairs in
-      let want =
+      let names_ok =
         List.for_all namespace_name_matches names
         && List.length (List.sort_uniq String.compare names) = List.length names
-        && List.for_all
-             (fun (_, pattern) -> Option.is_some (accepts pattern))
-             pairs
+      in
+      let pattern_results =
+        List.map
+          (fun (name, pattern) -> (name, Id_pattern.of_string pattern))
+          pairs
+      in
+      let all_accepted =
+        List.for_all (fun (_, r) -> Result.is_ok r) pattern_results
       in
       match Binding.make pairs with
       | Ok binding ->
-          want
+          names_ok && all_accepted
           && List.map fst (Binding.pairs binding)
              = List.sort String.compare names
           && List.for_all
@@ -644,7 +728,20 @@ let bindings_follow_their_pairs =
                    (Binding.id_pattern binding name)
                  = Some pattern)
                pairs
-      | Error _ -> not want)
+      | Error (Binding.Stopped_id_pattern { namespace_name; limit }) ->
+          List.exists
+            (fun (name, r) ->
+              name = namespace_name && r = Error (Id_pattern.Stopped limit))
+            pattern_results
+      | Error (Binding.Invalid_id_pattern { namespace_name; error }) ->
+          List.exists
+            (fun (name, r) ->
+              name = namespace_name && r = Error (Id_pattern.Invalid error))
+            pattern_results
+      | Error (Binding.Malformed_namespace_name name) ->
+          List.mem name names && not (namespace_name_matches name)
+      | Error (Binding.Repeated_namespace_name name) ->
+          List.length (List.filter (String.equal name) names) >= 2)
 
 let vector_groups = [ id_pattern_vectors; fit_vectors; binding_vectors ]
 
@@ -653,6 +750,8 @@ let tests =
   @ [
       Alcotest.test_case "id patterns give the error of their one fault" `Quick
         id_pattern_errors;
+      Alcotest.test_case "id patterns past a program limit report Stopped"
+        `Quick id_pattern_limit_stops;
       Alcotest.test_case "id patterns that the grammar allows are valid" `Quick
         id_patterns_that_are_valid;
       Alcotest.test_case "ids fit id patterns" `Quick fit_cases;
@@ -662,10 +761,13 @@ let tests =
         fit_takes_no_exponential_time;
       Alcotest.test_case "bindings give the error of their bad pair" `Quick
         binding_cases;
+      Alcotest.test_case "bindings past a program limit report Stopped" `Quick
+        binding_limit_stops;
       Alcotest.test_case "a binding gives its pairs" `Quick
         binding_gives_its_pairs;
       generated_patterns_are_valid_and_fit_their_ids;
       ids_with_a_foreign_character_do_not_fit;
       id_pattern_answers_every_text;
+      id_pattern_limits_report_stops;
       bindings_follow_their_pairs;
     ]
