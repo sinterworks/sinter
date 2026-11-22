@@ -3,6 +3,7 @@
 
 # Test evidence
 @design evidence=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
@@ -48,10 +49,12 @@ as a `verifies` edge whose test did not run.
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
 
-From Text and notation, the design takes texts, characters, spaces,
-places, runs, positions, and spans; whole numbers and decimal numerals;
-bytes and byte sequences; the notation of productions; and conforming
-programs, inputs, and results. From Identifiers, the design takes
+From Conformance (`conformance`), the design takes requirements,
+conforming programs, inputs, and the general requirements that bind
+every conforming program. From Text and notation, the design takes
+texts, characters, spaces, places, runs, positions, and spans; whole
+numbers and decimal numerals; bytes and byte sequences; the notation of
+productions; and results. From Identifiers, the design takes
 citation entries, id patterns, the fit of a text to an id pattern, and
 the bindings of `external-namespaces` with the results that a conforming
 program of Identifiers gives for those bindings. From Files and paths,
@@ -428,7 +431,8 @@ descriptor of that pack.
 @term import=v1
 @cites {
     ontology#{tree=v1, test=v1, test-evidence=v1},
-    text#{text=v1, input=v1, whole-number=v1},
+    conformance#{input=v1},
+    text#{text=v1, whole-number=v1},
     #{report-file=v1},
 }
 
@@ -1125,7 +1129,7 @@ are true:
         edge=v1, edge-source=v1, verifies-edge=v1, schema=v1, test=v1,
         tree=v1, conformance-vector-group=v1, vector-set=v1,
     },
-    text#{requirement=v1},
+    conformance#{requirement=v1},
     documents#{
         tree-edge=v1, origin=v1, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
@@ -1152,7 +1156,7 @@ of the file.
         edge=v1, edge-source=v1, verifies-edge=v1, schema=v1, test=v1,
         tree=v1, conformance-vector-group=v1, vector-set=v1,
     },
-    text#{requirement=v1},
+    conformance#{requirement=v1},
     documents#{
         tree-edge=v1, origin=v1, origin-position=v1,
         position-subject=v1, run-spot=v1, tree-finding=v1,
@@ -1232,7 +1236,8 @@ item alone, with no span.
         adapter-call=v1,
     },
     ontology#{parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{runner-data=v1, default-recognition=v1},
 }
 
@@ -1250,7 +1255,8 @@ that binding.
 @cites {
     documents#{file-readers=v1},
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
@@ -1266,7 +1272,8 @@ under that binding.
 @cites {
     documents#{file-readers=v1},
     ontology#{tree=v1, test-evidence=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
@@ -1283,7 +1290,8 @@ duration when it has them, and no other test result of that reading.
 @cites {
     documents#{file-readers=v1},
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
@@ -1299,7 +1307,8 @@ that binding once, and no other result link of that reading.
 @cites {
     documents#{file-readers=v1},
     ontology#{tree=v1, test-evidence=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{report-file=v1, import=v1, reading-of-a-report-file=v1},
 }
 
@@ -1315,7 +1324,7 @@ binding is not "bound".
     documents#{file-readers=v1},
     ontology#{tree=v1, parameter=v1},
     packs#{adapter-request=v1, adapter-call=v1, test-entry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{report-file=v1, import=v1, reading-entry=v1, reading-of-a-report-file=v1},
 }
 
@@ -1333,7 +1342,8 @@ these test entries as the test entry ids of the call.
 @cites {
     w3c/rec-xml-20081126,
     packs#{adapter-call=v1},
-    text#{conforming-program=v1, byte=v1},
+    conformance#{conforming-program=v1},
+    text#{byte=v1},
     #{default-recognition=v1, default-reader-result=v1},
 }
 
@@ -1346,7 +1356,10 @@ from a resource of a network that the report content names.
 ### 4.8 Readings that end
 
 @req end-report-readings=v1
-@cites {text#{conforming-program=v1}, #{reading-of-a-report-file=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    #{reading-of-a-report-file=v1},
+}
 
 A conforming program must end each reading of a report file that it
 makes.
@@ -1356,7 +1369,7 @@ makes.
 @req take-evidence-for-own-tree=v1
 @cites {
     ontology#{tree=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{import=v1, tree-evidence=v1},
 }
 
@@ -1369,7 +1382,8 @@ only when that import is given for that tree.
 @cites {
     documents#{file-readers=v1},
     ontology#{test=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{import=v1, tree-evidence=v1, import-outcome=v1, tree-outcome=v1},
 }
 
@@ -1389,7 +1403,7 @@ run": the outcome of that test in that evidence under that binding.
 @cites {
     documents#{file-readers=v1},
     ontology#{test=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
 }
 
@@ -1409,7 +1423,8 @@ other source.
         promise=v1, verifies-edge=v1, edge-source=v1, test=v1, tree=v1,
         parameter=v1,
     },
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{tree-evidence=v1, tree-outcome=v1, outcome-source=v1},
 }
 
@@ -1441,7 +1456,8 @@ promise as the term `promise` of the Ontology states.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, tree-finding=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         tree-evidence=v1, never-ran-finding=v1, failed-finding=v1,
         ambiguous-result-finding=v1,
@@ -1464,7 +1480,8 @@ that class.
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1, tree-finding=v1},
     ontology#{declared-item=v1, finding-class=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, input=v1, result=v1},
+    conformance#{conforming-program=v1, input=v1},
+    text#{result=v1},
     #{tree-evidence=v1, unverified-vector-finding=v1},
 }
 
@@ -1480,7 +1497,7 @@ these bindings once, and no other finding of that class.
 ## 5. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`evidence.test-vectors.jsonl`](evidence.test-vectors.jsonl), in the
@@ -1506,9 +1523,10 @@ the input.
 @schema recognition-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, character=v1, byte-sequence=v1,
-        utf-8-encoding=v1, result=v1, code-span=v1,
+        text=v1, character=v1, byte-sequence=v1, utf-8-encoding=v1,
+        result=v1, code-span=v1,
     },
     data-forms#{
         hex-text=v1, toml-value=v1, vector-line=v1, group-form-list=v1,
@@ -1584,9 +1602,10 @@ where, and gives neither "recognised" nor "not recognised".
 @schema reading-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, byte-sequence=v1,
-        whole-number=v1, code-point-order=v1, result=v1, code-span=v1,
+        text=v1, byte-sequence=v1, whole-number=v1, code-point-order=v1,
+        result=v1, code-span=v1,
     },
     data-forms#{
         toml-value=v1, vector-line=v1, group-form-list=v1,
@@ -1699,10 +1718,8 @@ no test result, and no result link.
 @schema outcome-vector=v1
 @cites {
     rfc/8259,
-    text#{
-        conforming-program=v1, text=v1, whole-number=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{text=v1, whole-number=v1, result=v1, code-span=v1},
     files#{path=v1},
     data-forms#{
         hash=v1, vector-line=v1, group-form-list=v1, vector-meaning=v1,
@@ -1845,10 +1862,8 @@ source, and no finding of the class `ambiguous-result` for that import.
 @schema finding-vector=v1
 @cites {
     rfc/8259,
-    text#{
-        conforming-program=v1, text=v1, code-point-order=v1, input=v1,
-        result=v1, requirement=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1, requirement=v1},
+    text#{text=v1, code-point-order=v1, result=v1, code-span=v1},
     data-forms#{vector-line=v1, group-form-list=v1, vector-meaning=v1},
     identifiers#{
         external-namespaces=v1, validate-bindings=v1, citation-entry=v1,

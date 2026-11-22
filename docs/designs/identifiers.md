@@ -3,6 +3,7 @@
 
 # Identifiers
 @design identifiers=v1
+@cites conformance=v1
 @cites text=v1
 @cites rfc/5234
 @cites rfc/7405
@@ -27,11 +28,13 @@ text. An inline citation cites in the same way.
 The productions use ABNF (RFC 5234), with the case-sensitive strings of
 RFC 7405.
 
+From Conformance (`conformance`), the design takes designs,
+requirements, conforming programs, inputs, and the general requirements
+that bind every conforming program. The design narrows what an input is.
 From Text and notation (`text`), the design takes the basics of
 characters, texts, runs, lines, numerals, and productions; sequences and
 algorithms; canonical vector lines for the vector file of the design;
-and what a conforming program and a result are. The design narrows what
-an input is. From CommonMark 0.31.2, the design takes the links and
+and what a result is. From CommonMark 0.31.2, the design takes the links and
 images of CommonMark 0.31.2, the link destinations of those links and
 images, and the block and inline elements that hold those links and
 images. From RFC 8259, the design takes JSON texts, with their objects,
@@ -43,7 +46,7 @@ JSON text.
 
 | word or phrase | meaning |
 |---|---|
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [production](sinter:text#production=v1) | a rule of ABNF, such as `slug = segment *( "/" segment )`, which gives the texts that its rule name, here `slug`, matches |
 | [character](sinter:text#character=v1) | a character, whose code point is a Unicode scalar value: a code point that is not from U+D800 to U+DFFF |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
@@ -1099,9 +1102,12 @@ An inline description can be empty.
 ### 4.27 Id patterns
 
 @term id-pattern=v1
-@cites text#{
-    text=v1, conforming-program=v1, decimal-numeral=v1, whole-number=v1,
-    code-span=v1, production=v1, rule-name=v1,
+@cites {
+    conformance#{conforming-program=v1},
+    text#{
+        text=v1, decimal-numeral=v1, whole-number=v1, code-span=v1,
+        production=v1, rule-name=v1,
+    },
 }
 
 An id pattern is a text that a conforming program takes as a pattern, on
@@ -1138,7 +1144,11 @@ the second `count`.
 ### 4.28 Ids
 
 @term id=v1
-@cites {#{id-pattern=v1}, text#{text=v1, conforming-program=v1}}
+@cites {
+    #{id-pattern=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
+}
 
 An id is a text for which a conforming program decides whether that text
 has the form that an id pattern gives.
@@ -1225,7 +1235,8 @@ conditions holds:
 @term external-namespace=v1
 @cites {
     #{external-namespaces=v1, id-pattern=v1, link=v1},
-    text#{line=v1, conforming-program=v1},
+    conformance#{conforming-program=v1},
+    text#{line=v1},
 }
 
 Each pair of a binding is an external namespace of that binding, with
@@ -1564,10 +1575,8 @@ matches the production `inline-destination`.
         continuation-line=v1, citation=v1, link=v1, id-pattern=v1, id=v1,
         external-namespaces=v1,
     },
-    text#{
-        input=v1, conforming-program=v1, line=v1, text=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{input=v1, conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The inputs of a conforming program are these:
@@ -1664,7 +1673,11 @@ in which each of these conditions holds:
 ### 4.46 Values
 
 @term value=v1
-@cites {#{tag-line=v1, input=v1}, text#{text=v1, conforming-program=v1, result=v1}}
+@cites {
+    #{tag-line=v1, input=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, result=v1},
+}
 
 A value is a text or a fact that a conforming program gives together
 with a result, under a value name. The value name tells what the value
@@ -1810,7 +1823,8 @@ input is one of three results:
 @req use-one-binding=v1
 @cites {
     #{external-namespaces=v1, link=v1},
-    text#{conforming-program=v1, requirement=v1, line=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{line=v1, code-span=v1},
 }
 
 A conforming program must read each line, link, and image under exactly
@@ -1821,7 +1835,8 @@ one binding of `external-namespaces`.
 @req validate-id-patterns=v1
 @cites {
     #{input=v1, id-pattern=v1, valid-id-pattern=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 For each id pattern that is an input, a conforming program must give
@@ -1837,7 +1852,8 @@ pattern is a valid id pattern, a conforming program must give the result
 @req decide-fit=v1
 @cites {
     #{input=v1, id-pattern=v1, id=v1, fit=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 For each input that is a pair of an id pattern and an id, a conforming
@@ -1853,7 +1869,8 @@ pattern, a conforming program must give the result "does not fit".
 @req validate-bindings=v1
 @cites {
     #{input=v1, external-namespaces=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 For each binding of `external-namespaces` that is an input, a conforming
@@ -1870,10 +1887,8 @@ conforming program must give the result "valid".
 @req give-no-results-under-rejected-bindings=v1
 @cites {
     #{external-namespaces=v1, link=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, line=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, line=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1885,10 +1900,8 @@ a link, or an image.
 @req give-line-results=v1
 @cites {
     #{external-namespaces=v1, input=v1, line-result=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, line=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, line=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1904,9 +1917,8 @@ give the line result of that input under that binding.
 @req give-link-results=v1
 @cites {
     #{external-namespaces=v1, input=v1, link=v1, link-result=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1922,7 +1934,8 @@ program must give the link result of that input under that binding.
 @req give-tag-words=v1
 @cites {
     #{external-namespaces=v1, input=v1, tag-line=v1, tag-word=v1, value=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1948,10 +1961,8 @@ first cell of the row of that value:
         vector-selection=v1, external-id=v1, namespace-name=v1,
         revision=v1, label=v1, match=v1,
     },
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, text=v1,
-        code-span=v1, production=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, code-span=v1, production=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1991,7 +2002,8 @@ the value name in the first cell of the row of that value:
 @req give-no-other-values=v1
 @cites {
     #{input=v1, value=v1, give-values=v1, give-tag-words=v1},
-    text#{conforming-program=v1, requirement=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{code-span=v1},
 }
 
 A conforming program must give no value for an input other than the
@@ -2003,7 +2015,8 @@ for that input.
 @req give-no-results-for-non-inputs=v1
 @cites {
     #{input=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 A conforming program must give no result for anything that is not an
@@ -2018,10 +2031,8 @@ input.
         canonical-entry=v1, slug=v1, kind-word=v1, inline-citation=v1,
         target=v1,
     },
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, text=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -2044,7 +2055,7 @@ program must give nothing else as that canonical form.
 ## 6. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in
@@ -2068,12 +2079,12 @@ and notation.
         external-namespaces=v1, namespace-name=v1, id-pattern=v1,
         citation=v1, citation-entry=v1, value=v1,
     },
+    conformance#{design=v1, conforming-program=v1},
     text#{
-        canonical-vector-line=v1, design=v1, byte-sequence=v1,
-        valid-utf-8=v1, text-of-a-byte-sequence=v1, text=v1,
-        character=v1, carriage-return=v1, line=v1, line-feed=v1, tab=v1,
-        u-numeral=v1, code-span=v1, production=v1,
-        conforming-program=v1, result=v1, sequence=v1,
+        canonical-vector-line=v1, byte-sequence=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, text=v1, character=v1,
+        carriage-return=v1, line=v1, line-feed=v1, tab=v1, u-numeral=v1,
+        code-span=v1, production=v1, result=v1, sequence=v1,
     },
 }
 
@@ -2166,10 +2177,8 @@ line of the vector file is a vector line that meets the schema
         slug=v1, part-name=v1, kind-word=v1, revision=v1, id=v1,
         match=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, space=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, space=v1, code-span=v1},
 }
 
 Five groups hold the vectors of texts that have one line each. Each
@@ -2268,9 +2277,8 @@ value for the line.
         external-namespaces=v1, input=v1, value=v1, continuation-line=v1,
         citation=v1, tag-line=v1, link=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `continuation-lines` holds texts that start with a tag line.
@@ -2323,9 +2331,8 @@ gives no result for a continuation line on its own.
         link-text=v1, inline-citation=v1, link-result=v1, tag-line=v1,
         match=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `inline-citations` holds texts whose markdown documents can
@@ -2381,9 +2388,8 @@ state these results.
         vector-line=v1, validate-id-patterns=v1,
         give-no-other-values=v1, input=v1, value=v1, id-pattern=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `id-patterns` holds id patterns that a program takes on their
@@ -2409,9 +2415,8 @@ own. The vectors of the group follow from `validate-id-patterns` and
         give-no-other-values=v1, input=v1, value=v1, id-pattern=v1,
         id=v1, fit=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `fit` holds pairs of an id pattern and an id that a program
@@ -2442,7 +2447,8 @@ the schema `vector-line`.
         vector-line=v1, validate-bindings=v1, give-no-other-values=v1,
         input=v1, value=v1, external-namespaces=v1,
     },
-    text#{conforming-program=v1, line=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{line=v1, result=v1, code-span=v1},
 }
 
 The group `bindings` holds bindings of `external-namespaces` that a
@@ -2470,9 +2476,8 @@ schema `vector-line`.
         validate-bindings=v1, give-no-other-values=v1, input=v1,
         value=v1, external-namespaces=v1, link=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `rejected-bindings` holds texts that a program reads under a
@@ -2510,9 +2515,8 @@ binding of `external-namespaces` for which the program gives the result
         inline-citation=v1, canonical-entry=v1, slug=v1, kind-word=v1,
         tag-line=v1, link=v1, target=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `canonical-entries` holds valid citations and valid inline

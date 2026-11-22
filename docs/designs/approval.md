@@ -3,6 +3,7 @@
 
 # Approval
 @design approval=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
@@ -73,7 +74,9 @@ sequence; the hash form; the forms of a group and the meaning of a
 vector; and test-vector sets. The file that holds the conformance
 vectors of the design is a test-vector set. From Text and notation
 (`text`), the design takes texts, code point order, the notation of
-productions, and what a conforming program, an input, and a result are.
+productions, and what a result is. From Conformance (`conformance`), the
+design takes conforming programs, inputs, and the general requirements
+that bind every conforming program.
 
 The production `subject-text` is written in ABNF, the notation of RFC
 5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
@@ -313,7 +316,7 @@ that is broken or newer, also for a kind that does not need approval
 (requirement `ledger#give-states-only-from-valid-ledgers`). For a git
 repository that does not hold its ledger objects, the program reports
 that the git repository lacks its ledger objects, and gives nothing and
-does nothing that needs them (requirement `text#report-missing-parts`).
+does nothing that needs them (requirement `conformance#report-missing-parts`).
 
 When the default branch has a commit under a valid binding of
 `default-branch-name` and the first-parent line of that commit is
@@ -524,7 +527,8 @@ only when, each of these is true:
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{extent-hash=v1, file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         subject-text=v1, judgment-field=v1, ledger-index=v1,
         judgment-acceptance-rule=v1,
@@ -561,7 +565,8 @@ before P for which all three conditions are true.
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{extent-hash=v1, file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
 }
 
 This term is for a git repository R, a tree T, a valid binding D of
@@ -595,7 +600,8 @@ R under D, F, and N.
     },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, latest-judgment=v1,
         merged-content=v1,
@@ -641,7 +647,8 @@ is neither approved nor declined.
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{approval-kinds=v1, approval-need=v1},
 }
 
@@ -675,7 +682,8 @@ A when, and only when, one or both of these conditions are true:
     },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-state=v1,
         merge-read-edge=v1,
@@ -740,7 +748,8 @@ either of these two conditions is true:
     },
     ledger#{stored-ledger=v1},
     findings#{finding-subject=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-text=v1,
         subject-state=v1, merge-read-edge=v1, bound-in-force-item=v1,
@@ -789,7 +798,8 @@ of the file of that declared item.
     },
     ledger#{stored-ledger=v1},
     findings#{finding-subject=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-text=v1,
         subject-state=v1, merge-read-edge=v1, bound-in-force-item=v1,
@@ -840,7 +850,8 @@ of the file of that declared item.
         default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-state=v1,
         merge-read-edge=v1, bound-in-force-item=v1,
@@ -889,7 +900,8 @@ file of the edge.
     },
     ledger#{stored-ledger=v1},
     documents#{file-readers=v1, read-file=v1, extent-hash=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, latest-judgment=v1,
         declined-finding=v1, awaiting-approval-finding=v1,
@@ -994,7 +1006,8 @@ which a conforming program of the design Identifiers gives the result
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     documents#{file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-state=v1,
         incomplete-first-parent-line=v1,
@@ -1059,7 +1072,8 @@ the trees of its commits:
         stored-ledger=v1,
     },
     ontology#{ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{judgment-acceptance-rule=v1},
 }
 
@@ -1082,7 +1096,8 @@ conforming program must give exactly one result, and only "accepted" or
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     documents#{extent-hash=v1, file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{subject-text=v1, judgment-field=v1},
 }
 
@@ -1112,7 +1127,8 @@ has in T under F and N, all of these rules apply to that ledger entry:
         revised-content=v1, tree=v1, ledger=v1,
     },
     ledger#{ledger-ref=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
 }
 
 When a conforming program stops at a limit of its own while it reads a
@@ -1126,7 +1142,8 @@ change no ledger ref for that decision.
 @req record-seen-judgments=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, person=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{judgment-field=v1, judgment-acceptance-rule=v1},
 }
 
@@ -1152,7 +1169,8 @@ entry at the point at which the program appends it.
     },
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     documents#{file-readers=v1, tree-finding=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, merge-read-edge=v1,
         declined-finding=v1, awaiting-approval-finding=v1,
@@ -1202,7 +1220,7 @@ default branch and the files of the trees of its commits:
 ## 6. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`approval.test-vectors.jsonl`](approval.test-vectors.jsonl), in the
@@ -1227,10 +1245,8 @@ the program gives for the input.
 @schema acceptance-vector=v1
 @cites {
     rfc/8259,
-    text#{
-        conforming-program=v1, text=v1, character=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{text=v1, character=v1, result=v1, code-span=v1},
     data-forms#{
         group-form-list=v1, vector-meaning=v1, json-value=v1,
         hash-form=v1,
@@ -1298,10 +1314,10 @@ program gives "not accepted" when that element of `accepted` is `false`.
 @schema findings-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, character=v1, whole-number=v1,
-        decimal-numeral=v1, code-point-order=v1, result=v1,
-        code-span=v1,
+        text=v1, character=v1, whole-number=v1, decimal-numeral=v1,
+        code-point-order=v1, result=v1, code-span=v1,
     },
     data-forms#{
         index=v1, group-form-list=v1, vector-meaning=v1, json-value=v1,
@@ -1419,9 +1435,10 @@ program gives no other finding of that class.
 @schema states-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, character=v1,
-        code-point-order=v1, result=v1, code-span=v1,
+        text=v1, character=v1, code-point-order=v1, result=v1,
+        code-span=v1,
     },
     data-forms#{group-form-list=v1, vector-meaning=v1, json-value=v1},
     identifiers#{external-namespaces=v1, validate-bindings=v1},

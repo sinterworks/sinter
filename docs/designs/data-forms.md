@@ -3,6 +3,7 @@
 
 # Data forms
 @design data-forms=v1
+@cites conformance=v1
 @cites text=v1
 @cites rfc/3339
 @cites rfc/5234
@@ -44,12 +45,14 @@ then the first hex digits of a hash. A test-vector set is a byte
 sequence that holds vector lines. The object of a vector line can state
 a vector.
 
-From Text and notation, the design takes characters, texts, and the
-places, boundaries, and runs of texts; bytes, byte sequences, and UTF-8;
-byte order marks and bodies; lines, line numbers, positions, and spans;
-whole numbers, decimal numerals, 0x numerals, U+ numerals, and hex
-digits; code spans and the notation of productions; and conforming
-programs, inputs, and results.
+From Conformance (`conformance`), the design takes designs,
+specifications, requirements, conforming programs, inputs, and the
+general requirements that bind every conforming program. From Text and
+notation, the design takes characters, texts, and the places,
+boundaries, and runs of texts; bytes, byte sequences, and UTF-8; byte
+order marks and bodies; lines, line numbers, positions, and spans; whole
+numbers, decimal numerals, 0x numerals, U+ numerals, and hex digits;
+code spans and the notation of productions; and results.
 
 From RFC 8259, the design takes JSON texts and the rule `JSON-text` of
 the ABNF of RFC 8259. Canonical forms and vector lines write JSON values
@@ -74,9 +77,9 @@ case-sensitive strings of RFC 7405.
 
 | word or phrase | meaning |
 |---|---|
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares; in a specification, a conforming program of that specification |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares; in a specification, a conforming program of that specification |
 | must | states an obligation of a conforming program |
-| [input](sinter:text#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
+| [input](sinter:conformance#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input; the double quotes are not part of the result; a conforming program gives a result when it gives something that stands for that result and for no other result |
 | [whole number](sinter:text#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
 | [decimal numeral](sinter:text#decimal-numeral=v1) | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
@@ -145,7 +148,7 @@ case-sensitive strings of RFC 7405.
 | [id prefix](sinter:#id-prefix=v1) | one or more of the letters `a` to `z`, then `-`, such as `e-` |
 | [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
-| [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
+| [specification](sinter:conformance#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | schema | a definition that a design declares under a name, such as `test-vector-set`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
 | [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
@@ -458,7 +461,8 @@ fractions, exponents, and the literal names `true`, `false`, and
 
 @req write-canonical-json=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, canonical-byte-sequence=v1},
 }
 
@@ -469,7 +473,8 @@ thing, only the canonical byte sequence of that thing.
 
 @req write-canonical-line=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -480,10 +485,8 @@ the canonical line of that thing.
 
 @req read-canonical-line=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -497,7 +500,8 @@ canonical line of a line object.
 
 @req give-only-line-objects=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -508,10 +512,8 @@ only the line object whose canonical line the byte sequence is.
 
 @req read-json-text=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
@@ -524,7 +526,8 @@ byte sequence has no JSON value.
 
 @req give-only-json-values=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
@@ -534,8 +537,8 @@ only the JSON value of that byte sequence.
 ### 4.8 Conformance
 
 A program conforms to the specification `json-lines` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): it meets every
 requirement that the specification declares.
 
 The file
@@ -554,9 +557,10 @@ the term `group-form-list` gives them.
 
 @schema write-json-vector=v1
 @cites {
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, byte=v1, byte-sequence=v1,
-        character=v1, utf-8-encoding=v1, 0x-numeral=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, character=v1, utf-8-encoding=v1,
+        0x-numeral=v1, code-span=v1,
     },
     #{
         write-canonical-json=v1, json-value=v1,
@@ -592,10 +596,8 @@ sequence of the input, it gives the byte sequence of
 
 @schema write-line-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, input=v1, byte-sequence=v1,
-        character=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{byte-sequence=v1, character=v1, code-span=v1},
     #{
         write-json-vector=v1, write-canonical-line=v1, json-value=v1,
         line-object=v1, canonical-line=v1, hex-text=v1, vector-line=v1,
@@ -630,10 +632,8 @@ sequence as the canonical line of the input.
 
 @schema read-line-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, byte-sequence=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, result=v1, code-span=v1},
     #{
         write-json-vector=v1, read-canonical-line=v1,
         give-only-line-objects=v1, json-value=v1, line-object=v1,
@@ -673,10 +673,8 @@ object as the line object of the byte sequence.
 
 @schema read-json-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, byte-sequence=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, result=v1, code-span=v1},
     #{
         write-json-vector=v1, read-json-text=v1,
         give-only-json-values=v1, json-value=v1,
@@ -1245,10 +1243,8 @@ key, TOML key, or location.
 
 @req read-toml=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{toml-document=v1},
 }
 
@@ -1261,7 +1257,8 @@ the byte sequence is not a TOML document.
 
 @req give-only-root-tables=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{
         toml-value=v1, toml-value-equality=v1, root-table=v1,
         toml-document=v1,
@@ -1275,9 +1272,10 @@ only the root table of the TOML document that the byte sequence is.
 
 @req give-only-toml-spans=v1
 @cites {
+    conformance#{requirement=v1, conforming-program=v1},
     text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        text-of-a-byte-sequence=v1, result=v1, span=v1, position=v1,
+        byte-sequence=v1, text-of-a-byte-sequence=v1, result=v1,
+        span=v1, position=v1,
     },
     #{toml-document=v1, toml-span-pair=v1},
 }
@@ -1299,8 +1297,8 @@ byte sequence is, only the column of that start or that end.
 ### 5.5 Conformance
 
 A program conforms to the specification `toml` when the program is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -1319,10 +1317,10 @@ groups, as the term `group-form-list` gives those forms.
 
 @schema toml-document-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, utf-8-encoding=v1,
-        text=v1, line-feed=v1, whole-number=v1, decimal-numeral=v1,
-        result=v1, code-span=v1,
+        byte-sequence=v1, utf-8-encoding=v1, text=v1, line-feed=v1,
+        whole-number=v1, decimal-numeral=v1, result=v1, code-span=v1,
     },
     #{
         read-toml=v1, give-only-root-tables=v1, toml-document=v1,
@@ -1439,9 +1437,10 @@ table of the byte sequence.
 @schema toml-span-vector=v1
 @cites {
     toml-lang/1.1.0,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, span=v1,
-        position=v1, line-number=v1, result=v1, code-span=v1,
+        byte-sequence=v1, text=v1, span=v1, position=v1, line-number=v1,
+        result=v1, code-span=v1,
     },
     #{
         toml-document-vector=v1, read-toml=v1, give-only-toml-spans=v1,
@@ -1556,7 +1555,8 @@ hash-form  = 64hex-digit
 
 @req compute-hash=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{hash=v1},
 }
 
@@ -1567,7 +1567,8 @@ the hash of that byte sequence.
 
 @req validate-hash=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, text=v1, result=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{text=v1, result=v1},
     #{hash-form=v1},
 }
 
@@ -1578,8 +1579,8 @@ the hash form, and "invalid" when the text does not fit the hash form.
 ### 6.4 Conformance
 
 A program conforms to the specification `hashes` when the program is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -1598,9 +1599,9 @@ the term `group-form-list` gives them.
 
 @schema compute-hash-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1, text=v1,
-        character=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, text=v1, character=v1, code-span=v1,
     },
     #{
         compute-hash=v1, hash=v1, json-value=v1, hex-text=v1,
@@ -1630,10 +1631,8 @@ sequence, it gives the text of `hash`, and no other text.
 
 @schema validate-hash-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, text=v1, character=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{text=v1, character=v1, result=v1, code-span=v1},
     #{
         compute-hash-vector=v1, validate-hash=v1, hash-form=v1,
         json-value=v1, vector-line=v1, group-form-list=v1,
@@ -1717,10 +1716,8 @@ exactly n characters that are each a hex digit.
 
 @req compute-hash-id=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, whole-number=v1,
-        byte-sequence=v1, text=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{whole-number=v1, byte-sequence=v1, text=v1},
     #{hash-id=v1},
 }
 
@@ -1731,10 +1728,8 @@ with a text p and a whole number n, only the hash id of b with p and n.
 
 @req validate-hash-id=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, text=v1,
-        whole-number=v1, result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{text=v1, whole-number=v1, result=v1},
     #{id-prefix=v1, hash-id-form=v1},
 }
 
@@ -1747,8 +1742,8 @@ n.
 ### 7.4 Conformance
 
 A program conforms to the specification `hash-ids` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): it meets every
 requirement that the specification declares.
 
 The file
@@ -1767,9 +1762,10 @@ the term `group-form-list` gives them.
 
 @schema compute-hash-id-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1, text=v1,
-        character=v1, whole-number=v1, hex-digit=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, text=v1, character=v1,
+        whole-number=v1, hex-digit=v1, code-span=v1,
     },
     #{
         compute-hash-id=v1, id-prefix=v1, hash-id=v1, json-value=v1,
@@ -1806,9 +1802,10 @@ text of `hash-id`, and no other text.
 
 @schema validate-hash-id-vector=v1
 @cites {
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, text=v1, character=v1,
-        whole-number=v1, hex-digit=v1, result=v1, code-span=v1,
+        text=v1, character=v1, whole-number=v1, hex-digit=v1, result=v1,
+        code-span=v1,
     },
     #{
         compute-hash-id-vector=v1, validate-hash-id=v1, id-prefix=v1,
@@ -1879,7 +1876,10 @@ give.
 #### 8.1.1 Test-vector file names
 
 @term test-vector-file-name=v1
-@cites text#{design=v1, specification=v1, text=v1, code-span=v1}
+@cites {
+    conformance#{design=v1, specification=v1},
+    text#{text=v1, code-span=v1},
+}
 
 For the name x of a design and the name y of a specification of that
 design, the test-vector file name of x and y is the text x, then `.`,
@@ -1978,10 +1978,13 @@ test-vector set whose group is that group.
 
 @term group-form-list=v1
 @cites {
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
-        conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
-        byte-sequence=v1, line=v1, code-span=v1,
+        conforming-program=v1, input=v1,
+    },
+    text#{
+        result=v1, text=v1, place=v1, byte-sequence=v1, line=v1,
+        code-span=v1,
     },
     #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
@@ -2059,10 +2062,11 @@ place of a conforming program of S.
 
 @term vector-meaning=v1
 @cites {
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
-        conforming-program=v1, input=v1, result=v1, code-span=v1,
+        conforming-program=v1, input=v1,
     },
+    text#{result=v1, code-span=v1},
     #{
         json-value=v1, form-pin=v1, vector-object=v1, vector-line=v1,
         test-vector-set=v1, group-form-list=v1,
@@ -2144,10 +2148,8 @@ group g, the object of a vector line that states a vector states this:
 
 @req read-test-vector-set=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{test-vector-set=v1},
 }
 
@@ -2160,7 +2162,8 @@ the byte sequence is not a test-vector set.
 
 @req give-objects-of-test-vector-sets=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, vector-line=v1, test-vector-set=v1},
 }
 
@@ -2172,8 +2175,8 @@ the order of the vector lines, and no other object.
 ### 8.4 Conformance
 
 A program conforms to the specification `test-vectors` when the program
-is a [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+is a [conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -2195,9 +2198,10 @@ the term `group-form-list` gives them.
 
 @schema read-set-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1,
-        utf-8-encoding=v1, 0x-numeral=v1, result=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1,
+        result=v1, code-span=v1,
     },
     #{
         read-test-vector-set=v1, give-objects-of-test-vector-sets=v1,

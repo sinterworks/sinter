@@ -3,6 +3,7 @@
 
 # Documents
 @design documents=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
@@ -38,11 +39,13 @@ case-sensitive strings of RFC 7405. A production, such as
 `front-matter-line = ( "+++" / "---" ) *WSP`, gives the texts that its
 rule name matches.
 
-From Text and notation, the design takes characters, texts, places,
-boundaries, runs, bodies, line endings, lines, line numbers, positions,
-and spans; whole numbers and decimal numerals; bytes and 0x numerals;
-valid UTF-8 and UTF-8 encodings; the notation of productions and code
-spans; sequences and algorithms; and conforming programs, inputs, and
+From Conformance (`conformance`), the design takes conforming programs,
+inputs, and the general requirements that bind every conforming program,
+including `reject-invalid-inputs`. From Text and notation, the design
+takes characters, texts, places, boundaries, runs, bodies, line endings,
+lines, line numbers, positions, and spans; whole numbers and decimal
+numerals; bytes and 0x numerals; valid UTF-8 and UTF-8 encodings; the
+notation of productions and code spans; sequences and algorithms; and
 results. From Identifiers, the design takes tag lines, tag words, and
 Sinter tag words; declarations, citations, citation entries, status
 tags, directives, and continuation lines; links, inline citations, their
@@ -1038,7 +1041,8 @@ lines is a line of that set.
         citation=v1, validate-bindings=v1, give-line-results=v1,
         give-link-results=v1, line-result=v1, link-result=v1,
     },
-    text#{conforming-program=v1, result=v1, line=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, line=v1},
     ontology#{tree=v1, parameter=v1},
     #{
         read-file=v1, unreadable-file=v1, tag-text=v1, front-matter=v1,
@@ -2299,10 +2303,10 @@ A tree has these tree findings of the class `extern-mismatch`:
         plain-string-content=v1, input=v1, external-namespaces=v1,
         give-link-results=v1, link-result=v1, target=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
         text=v1, character=v1, space=v1, tab=v1, line-feed=v1,
-        code-span=v1, conforming-program=v1, result=v1, algorithm=v1,
-        sequence=v1,
+        code-span=v1, result=v1, algorithm=v1, sequence=v1,
     },
     ontology#{declared-item=v1, parameter=v1},
     #{
@@ -2845,7 +2849,7 @@ lines, for a tag text *t* at depth *k*, a declared item *d*, and a set
 @req give-read-files=v1
 @cites {
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{read-file=v1, file-readers=v1},
 }
 
@@ -2862,7 +2866,8 @@ file, and no other read file.
         external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
     },
     ontology#{declared-item=v1, item-name=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         file-readers=v1, item-file=v1, tree-containment=v1,
         origin-position=v1,
@@ -2884,7 +2889,8 @@ declaration of that declared item, and no other declared item.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{declared-item=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, extent=v1, file-line=v1},
 }
 
@@ -2901,7 +2907,8 @@ as that extent.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{declared-item=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, extent-hash=v1},
 }
 
@@ -2917,7 +2924,8 @@ else as that extent hash.
 @req give-code-hashes=v1
 @cites {
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1, boundary=v1},
+    conformance#{conforming-program=v1},
+    text#{boundary=v1},
     #{file-readers=v1, code-hash=v1, comment-run=v1, read-file=v1},
 }
 
@@ -2934,7 +2942,8 @@ comments, and no other run of comments with a code hash.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{declared-item=v1, containment=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, tree-containment=v1},
 }
 
@@ -2952,7 +2961,7 @@ when the declared item belongs to none, and nothing else as that item.
 @req give-tests=v1
 @cites {
     ontology#{test=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{file-readers=v1, file-test=v1, read-file=v1},
 }
 
@@ -2968,7 +2977,8 @@ that test, and no other test and no other comment on a test.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{site=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, tree-site=v1, read-file=v1, file-line=v1},
 }
 
@@ -2989,7 +2999,8 @@ site and the file lines of that site, and no other site.
     },
     data-forms#{vector-line=v1},
     ontology#{edge=v1, edge-source=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         file-readers=v1, accepted-input=v1, tree-edge=v1,
         named-item=v1, selected-item=v1, vector-file=v1, item-part=v1,
@@ -3016,7 +3027,8 @@ item of that edge or that the edge has none, and no other edge.
         tag-line-text=v1,
     },
     ontology#{edge-source=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         file-readers=v1, accepted-input=v1, item-part=v1,
         tree-site=v1, file-test=v1, origin-position=v1,
@@ -3041,7 +3053,8 @@ status tag.
         external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
     },
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         file-readers=v1, accepted-input=v1, extern-mark=v1,
         valid-extern-mark=v1, origin-position=v1,
@@ -3063,7 +3076,8 @@ mark is valid, and no other extern mark.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{declared-item=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, vector-file=v1},
 }
 
@@ -3081,7 +3095,8 @@ the item has none, and nothing else as that vector file.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         file-readers=v1, tree-finding=v1,
         invalid-target-finding=v1, duplicate-finding=v1,
@@ -3106,7 +3121,7 @@ class.
 @req give-file-findings=v1
 @cites {
     ontology#{finding-class=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{
         file-readers=v1, tree-finding=v1, parse-error-finding=v1,
         typo-tag-finding=v1, ignored-tag-finding=v1,
@@ -3125,7 +3140,8 @@ finding of that class.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{declared-item=v1, tree=v1, parameter=v1},
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{file-readers=v1, extent-hash=v1},
 }
 
@@ -3141,7 +3157,7 @@ else as that hash text.
 @req give-code-texts=v1
 @cites {
     ontology#{tree=v1, parameter=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{
         file-readers=v1, code-hash=v1, comment-run=v1,
         attachment=v1, read-file=v1,
@@ -3157,7 +3173,7 @@ target, and nothing else as that code text.
 ## 6. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`documents.test-vectors.jsonl`](documents.test-vectors.jsonl), in the
@@ -3180,11 +3196,12 @@ checks that program only on the declared items.
 @schema markdown-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1, reject-invalid-inputs=v1},
     text#{
-        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
-        character=v1, whole-number=v1, decimal-numeral=v1, boundary=v1,
-        run=v1, line-number=v1, position=v1, byte-order-mark=v1,
-        valid-utf-8=v1, result=v1, code-point-order=v1, code-span=v1,
+        text=v1, character=v1, whole-number=v1, decimal-numeral=v1,
+        boundary=v1, run=v1, line-number=v1, position=v1,
+        byte-order-mark=v1, valid-utf-8=v1, result=v1,
+        code-point-order=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
     data-forms#{
@@ -3221,7 +3238,7 @@ Its vectors follow from the requirements `give-read-files`,
 `give-hash-texts`, `give-containment`, `give-sites`, `give-edges`,
 `give-status-tag-items`, `give-extern-marks`, `give-vector-files`,
 `give-tree-findings`, and `give-file-findings`, and from the requirement
-`reject-invalid-inputs` of Text. Each vector of the group has the member
+`reject-invalid-inputs` of Conformance. Each vector of the group has the member
 `values`, and no vector has the member `result`.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
@@ -3380,7 +3397,7 @@ its own and reads the tree under the two bindings of the input, that
 conforming program gives what `values` states. For each member that this
 schema gives for `values` and that `values` omits, the conforming
 program gives, for the tree, none of the things that that member names
-(by `reject-invalid-inputs` of Text when `file-readers` or
+(by `reject-invalid-inputs` of Conformance when `file-readers` or
 `external-namespaces` is not valid; when `values` omits `items`, the
 conforming program also gives no extent, no hash text, no extent hash,
 no item to which a declared item belongs, and no vector file). When
@@ -3414,7 +3431,7 @@ for those things:
   Identifiers gives the result "invalid" for the binding of
   `external-namespaces` of the input and that class is not `parse-error`,
   `typo-tag`, or `ignored-tag`, the conforming program gives no tree
-  finding of that class (by `reject-invalid-inputs` of Text); otherwise,
+  finding of that class (by `reject-invalid-inputs` of Conformance); otherwise,
   the conforming program gives one for each element of `findings` of
   that class, with the class and the subject that the element states,
   and no other tree finding of that class. When the conforming program
@@ -3434,10 +3451,10 @@ These lines of the file are vectors of the group:
 @schema code-vector=v1
 @cites {
     rfc/8259,
+    conformance#{conforming-program=v1, reject-invalid-inputs=v1},
     text#{
-        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
-        whole-number=v1, run=v1, boundary=v1, position=v1, valid-utf-8=v1,
-        code-point-order=v1, code-span=v1,
+        text=v1, whole-number=v1, run=v1, boundary=v1, position=v1,
+        valid-utf-8=v1, code-point-order=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
     data-forms#{index=v1, group-form-list=v1, vector-meaning=v1},
