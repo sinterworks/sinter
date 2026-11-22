@@ -113,12 +113,12 @@ file or reports a device error for that file. The folder tree stays
 valid and lacks that file's content (term `input`). When a thing that a
 requirement obliges needs that file's content, the program reports which
 file it could not read, gives nothing that needs that file's content,
-and does nothing that needs that file's content. In every case, the program gives and does every thing
-that does not need that file's content (`report-missing-parts`). By
-contrast, when the program stops reading that file because the file is
-too large for the program's memory, the program reaches a limit of its
-own (term `own-limit`) and reports where it reached that limit
-(`report-stops-at-limits`).
+and does nothing that needs that file's content. In every case, the
+program gives and does every thing that does not need that file's
+content (`report-missing-parts`). By contrast, when the program stops
+reading that file because the file is too large for the program's
+memory, the program reaches a limit of its own (term `own-limit`) and
+reports where it reached that limit (`report-stops-at-limits`).
 
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
@@ -154,9 +154,9 @@ conforming program gives and does the same things before and after the
 move for every part that the requirement defines from those canonical
 objects and not from any other property of those inputs. Things that a
 requirement defines from another property of an input can still change.
-Examples are a result that depends
-on the path of a file, and a place in an input that a requirement
-obliges a program to give for an object (such as a line of a file).
+Examples are a result that depends on the path of a file, and a place in
+an input that a requirement obliges a program to give for an object
+(such as a line of a file).
 
 When a requirement R defines what a program gives or does over objects
 of a kind, a conforming program that meets R takes every object of that
