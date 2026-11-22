@@ -195,6 +195,37 @@ let refuses_an_unknown_wasm_kind () =
     (malformed "a grammar error has the kind 4")
     (error_message (fun () -> Decode.language_error (failure [ 1; 4 ] "m")))
 
+(* @cites rust-bridge
+   Decode.query_error decodes a query compilation failure buffer for each
+   Query.kind value that the bridge writes (codes 0 through 6), including
+   Query.Language (code 6), where row, column, and offset are 0. The test fails
+   when any documented query error kind fails to decode to its matching
+   Query.Invalid value. *)
+let decodes_each_query_error_kind () =
+  let cases =
+    [
+      (0, B.Query.Syntax, 1, 2, 3);
+      (1, B.Query.Node_type, 1, 2, 3);
+      (2, B.Query.Field, 1, 2, 3);
+      (3, B.Query.Capture, 1, 2, 3);
+      (4, B.Query.Predicate, 1, 0, 0);
+      (5, B.Query.Structure, 1, 2, 3);
+      (6, B.Query.Language, 0, 0, 0);
+    ]
+  in
+  List.iter
+    (fun (code, kind, row, column, offset) ->
+      let expected =
+        B.Query.Invalid { kind; row; column; offset; message = "m" }
+      in
+      let given =
+        Decode.query_error (failure [ 5; code; row; column; offset ] "m")
+      in
+      Alcotest.(check bool)
+        (Printf.sprintf "query error kind %d" code)
+        true (given = expected))
+    cases
+
 let refuses_an_unknown_query_kind () =
   Alcotest.(check string)
     "the message names the kind"
@@ -278,6 +309,8 @@ let tests =
     Alcotest.test_case "refuses an unknown code" `Quick refuses_an_unknown_code;
     Alcotest.test_case "refuses an unknown wasm kind" `Quick
       refuses_an_unknown_wasm_kind;
+    Alcotest.test_case "decodes each query error kind" `Quick
+      decodes_each_query_error_kind;
     Alcotest.test_case "refuses an unknown query kind" `Quick
       refuses_an_unknown_query_kind;
     Alcotest.test_case "refuses an unknown input" `Quick
