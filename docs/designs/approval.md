@@ -41,21 +41,22 @@ edge says what its kind of edge says; findings, finding classes, and
 parameters with their bindings; and the requirement
 `ontology#treat-ledger-entries-alike`.
 
-From the Ledger (`ledger`), the design takes the fields of a kind of
-ledger entry and the common fields, acceptance rules, and when a ledger
-entry is accepted at a point; the ledger of a git repository, which is
-the stored ledger of that git repository; and when that ledger is broken
-or newer, and the ledger objects of a git repository; clones, the shared
-clone, pulls, pushes, and the ledger entries that leave in a pull; and
-the requirements `ledger#append-only-accepted-entries`,
+From the Ledger (`ledger`), the design takes the ledger ref, the fields
+of a kind of ledger entry and the common fields, acceptance rules, and
+when a ledger entry is accepted at a point; the ledger of a git
+repository, which is the stored ledger of that git repository; and when
+that ledger is valid, broken, or newer, and the ledger objects of a git
+repository; clones, the shared clone, pulls, pushes, and the ledger
+entries that leave in a pull; and the requirements
+`ledger#append-only-accepted-entries`,
 `ledger#give-states-only-from-valid-ledgers`, and
 `ledger#report-leaving-entries`.
 
 From Documents (`documents`), the design takes the declared items of a
 tree with their files and declarations, the bindings of the parameter
-`file-readers`, read files, sets of stopped files, extent hashes, the
-edges of a tree, origins and origin positions, position subjects, the
-order of positions, the spots of runs, and tree findings. From Changes
+`file-readers`, read files, extent hashes, the edges of a tree, origins
+and origin positions, position subjects, the order of positions, the
+spots of runs, and tree findings. From Changes
 (`changes`), the design takes commits and their parents, the files of
 the tree of a commit, the parameter `default-branch-name` with its
 bindings, the commit of the default branch, first-parent lines, shallow
@@ -105,17 +106,17 @@ strings, numbers, and the literal names `true` and `false`.
 | [judgment before a ledger entry at a point](sinter:#judgment-acceptance-rule=v1) | of a ledger entry E of the kind `approval` or `decline` at a point P: the ledger entry at the greatest index before P at which the ledger entry counts and has the values of `subject` and `hash` of E, or none; none when E lacks `subject` or `hash` |
 | [acceptance rule of `approval` and `decline`](sinter:#judgment-acceptance-rule=v1) | the acceptance rule holds for a ledger entry E of the kind `approval` or `decline` at a point P when the `saw` of E is the kind of the judgment before E at P, or `none` when there is no judgment before E at P, and, when E is an approval, the `saw` of E is not `approval` |
 | [read file](sinter:documents#read-file=v1) | under a valid binding of `file-readers`, a file of a tree whose valid path has a reader, has no line feed, and has no space and no tab as its first character or as its last character |
-| [set of stopped files](sinter:documents#unreadable-file=v1) | a set of files of a tree that a program takes as an input of its own: the markdown files whose reading the program stops for limits of its own, the code files for whose reading the program gives the result "parse failure" for limits of its own, and the files of the tree whose content the program stops reading as a test-vector set for limits of its own; any set of files of a tree can be a set of stopped files |
-| [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a binding of `file-readers`, a binding of `external-namespaces`, and a set of stopped files of the tree: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree under those bindings and that set, the one at the greatest index, or none |
+| [latest judgment](sinter:#latest-judgment=v1) | of a subject of approval of a tree at a point of a ledger, under a valid binding of `file-readers` and a valid binding of `external-namespaces`: of the ledger entries of the kind `approval` or `decline` that count at their indexes before the point and that name the subject text and the extent hash that the subject of approval has in the tree under those bindings, the one at the greatest index, or none |
 | [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
 | [shallow commit](sinter:changes#shallow-commit=v1) | a commit of a git repository that the file `shallow` of its git folder names |
 | [repository read](sinter:changes#repository-read=v1) | an operation in which a program takes things from a git repository or from a working tree of that git repository, with each fetch into that git repository that the program makes during that operation as part of it |
-| [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a binding of `default-branch-name` |
-| [incomplete first-parent line](sinter:#incomplete-first-parent-line=v1) | the first-parent line of the commit of the default branch of a git repository under a valid binding of `file-readers`, for the repository reads from which a program takes that first-parent line and the files of the trees of the commits of that first-parent line, when a commit of that first-parent line is a shallow commit, when a commit of that first-parent line is not a shallow commit and the commit object of that commit names as the first parent of that commit a git object that is not a commit of the git repository at the end of those repository reads, or when at the end of those repository reads the git repository does not hold the git tree object of a commit of that first-parent line, does not hold a git tree object that a tree entry of the git tree object of that commit names, or does not hold the blob that a regular-file entry of the git tree object of that commit names when that regular-file entry gives a read file of the tree of that commit under that binding |
-| [has merged](sinter:#merged-content=v1) | under bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, and one set of stopped files of each tree that is a tree T or, when the default branch of a git repository has a commit, is the tree of a commit of the first-parent line of that commit, the revised content of a subject of approval in T has merged into the default branch of that git repository when the default branch of that git repository has a commit, and the tree of a commit of that first-parent line gives the same subject of approval the same extent hash under those bindings and those sets |
-| [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree T, at a point of the ledger of a git repository, under the bindings of the parameters and one set of stopped files of each tree that is T or, when the default branch of that git repository has a commit, is the tree of a commit of the first-parent line of that commit |
+| [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a valid binding of `default-branch-name` |
+| [incomplete first-parent line](sinter:#incomplete-first-parent-line=v1), [complete](sinter:#incomplete-first-parent-line=v1), [visibly merged](sinter:#incomplete-first-parent-line=v1) | under a valid binding of `default-branch-name` and a valid binding of `file-readers`, for the repository reads from which a program takes the first-parent line of the commit of the default branch and the files of the trees of its commits, a commit of that first-parent line is complete when the git repository holds its git tree object, every subtree object, and every blob of a read file of its tree; that first-parent line is incomplete when any commit of it is a shallow commit, has a first parent that is not a commit of the git repository, or is not complete; revised content has visibly merged when some complete commit of that incomplete first-parent line gives the same subject of approval the same extent hash |
+| [has merged](sinter:#merged-content=v1) | under valid bindings of `default-branch-name`, `file-readers`, and `external-namespaces`, the revised content of a subject of approval in a tree T has merged into the default branch of a git repository when the default branch of that git repository has a commit, and the tree of a commit of the first-parent line of that commit gives the same subject of approval the same extent hash under those bindings |
+| [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree T, at a point of the ledger of a git repository, under the bindings of the parameters |
+| [reads a merge](sinter:#merge-read-edge=v1) | a `supersedes` edge reads a merge when the state approved of its source can depend on a merge: its source has a subject of approval that does not need approval, or its source is an item of the kind design that holds an item of the kind specification, or holds directly a schema, item of the kind requirement, atom, or term, whose subject of approval does not need approval |
 | [in force](sinter:ontology#in-force-item=v1) | a declared item is in force in a tree, at a point of a ledger, when it is not retired there: when it still applies |
-| [in force under the bindings](sinter:#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, where the state approved of the source of each `supersedes` edge follows from the states that the atom `subject-state` gives, and where each declared item, status tag, and edge is read under the bindings of `file-readers` and `external-namespaces` and the set of stopped files of the tree |
+| [in force under the bindings](sinter:#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, where the state approved of the source of each `supersedes` edge follows from the states that the atom `subject-state` gives, and where each declared item, status tag, and edge is read under the bindings of `file-readers` and `external-namespaces` |
 | [subject order](sinter:#subject-order=v1) | the order of the subjects of approval of a tree by the valid paths of the files of their declared items, and then by the positions of the declarations of those declared items |
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
@@ -163,10 +164,13 @@ The field `hash` names the revised content by the extent hash of that
 revised content. That extent hash is the extent hash of the declared
 item of the subject of approval in the tree in which the subject of
 approval has the revised content that the person approved or declined
-(requirement `record-judged-content`). After an edit back to a revised
-content that a person approved or declined, the latest judgment of the
-subject of approval can be the same ledger entry again, and that ledger
-entry decides the state again.
+(requirement `record-judged-content`). When a program stops at a limit
+of its own while it reads that tree for that revised content, it appends
+no `approval` or `decline` ledger entry for that decision and changes
+no ledger ref for that decision (requirement `omit-judgments-at-limits`). After an edit
+back to a revised content that a person approved or declined, the latest
+judgment of the subject of approval can be the same ledger entry again,
+and that ledger entry decides the state again.
 
 Conditions 1 and 2 of the acceptance rule (atom
 `judgment-acceptance-rule`) and the requirement `record-seen-judgments`
@@ -287,38 +291,46 @@ only those earlier commits held has not merged. When a person moves the
 default branch back, revised content that only the commits that left the
 line held has not merged.
 
-When the default branch has no commit, no revised content has merged.
+When the default branch has no commit under a valid binding of
+`default-branch-name`, no revised content has merged.
 
 ### 2.6 Bindings and missing inputs
 
 The extent hashes that a state uses, in the tree and in the trees of the
-commits of the first-parent line, are those that one binding of
-`file-readers`, one binding of `external-namespaces`, and one set of
-stopped files of each tree among them give. When two commits of the
-first-parent line have the same tree, or when the tree is the tree of
-a commit of that first-parent line, that tree has one set of
-stopped files in every place where the state reads that tree. The state
-is under one binding of `approval-kinds` (atom `subject-state`). The
-commit of the default branch is the commit that one binding of
-`default-branch-name` gives (atom `subject-state`). The states and the
-findings are of a tree at a point of the ledger of one git repository.
-The rule for merges reads the default branch of that git repository. The
-requirement `give-no-states-under-invalid-bindings` covers bindings of
-`file-readers` and of `external-namespaces` that are not valid. The
-requirement `ledger#give-states-only-from-valid-ledgers` covers a ledger
-that is broken or newer and a git repository that does not hold its
-ledger objects, also for a kind that does not need approval. The
-requirement `give-no-findings-from-invalid-ledgers` covers the findings
-for such a ledger and such a git repository. When the first-parent line
-of the commit of the default branch is incomplete for the repository
-reads from which a program takes that first-parent line and the files of
-the trees of its commits (term `incomplete-first-parent-line`), by the
-requirement `give-subject-states`, that program gives the state that the
-atom `subject-state` gives, or gives no state. When that first-parent
-line is incomplete for those repository reads, by the requirement
-`give-approval-findings`, that program gives the findings of a class
-that the atom of that class gives, or does not give the findings of that
-class.
+commits of the first-parent line, are those that one valid binding of
+`file-readers` and one valid binding of `external-namespaces` give. The
+state is under one valid binding of `approval-kinds` (atom
+`subject-state`). For a subject of approval that does not need approval
+by a person, the commit of the default branch is the commit that one
+valid binding of `default-branch-name` gives (atom `subject-state`).
+Under a binding of `default-branch-name` that is not valid, the program
+gives every finding that holds whatever the merges are (requirement
+`give-approval-findings`). The
+states and the findings are of a tree at a point of the ledger of one
+git repository, and the rule for merges reads the default branch of that
+git repository. The requirement `ledger#give-states-only-from-valid-ledgers`
+covers a ledger that is broken or newer and a git repository that does
+not hold its ledger objects, also for a kind that does not need
+approval.
+
+When the default branch has a commit under a valid binding of
+`default-branch-name` and the first-parent line of that commit is
+incomplete for the repository reads from which a program takes that
+first-parent line and the files of the trees of its commits (term
+`incomplete-first-parent-line`), a program still gives every state and
+every finding that does not need the missing part of that first-parent
+line. For a subject of approval that needs approval by a person, or
+whose revised content has visibly merged in a complete commit of that
+first-parent line, the program gives that state (requirement
+`give-subject-states`). For a subject of approval that does not need
+approval by a person and whose revised content has not visibly merged,
+the program gives no state and gives that it cannot see the whole
+history. For each of the three finding classes, the program gives every
+finding that holds whether or not the missing part of that first-parent
+line holds earlier merges, omits any finding that depends on the missing
+part, and gives that it cannot see the whole history when any finding of
+that class depends on the missing part (requirement
+`give-approval-findings`).
 
 What a program gives while another process changes a file, a ref, or
 the ledger is a matter of the quality of an implementation.
@@ -326,9 +338,8 @@ the ledger is a matter of the quality of an implementation.
 ### 2.7 Findings
 
 Each of these classes has an atom that gives the findings of that class
-at a point of a ledger, under the bindings of the parameters and one set
-of stopped files of each tree that the atom reads. Each of those
-findings is a
+at a point of a ledger, under the bindings of the parameters. Each of
+those findings is a
 [tree finding](sinter:documents#tree-finding=v1). No finding of these
 classes is ackable.
 
@@ -509,71 +520,62 @@ only when, each of these is true:
     ontology#{
         subject-of-approval=v1, ledger=v1, ledger-entry=v1, tree=v1,
     },
-    identifiers#{external-namespaces=v1},
-    documents#{extent-hash=v1, file-readers=v1, unreadable-file=v1},
-    text#{code-span=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{extent-hash=v1, file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{
         subject-text=v1, judgment-field=v1, ledger-index=v1,
         judgment-acceptance-rule=v1,
     },
 }
 
-This term is for a tree T, a binding F of `file-readers`, a binding N of
-`external-namespaces`, a set of stopped files of T, a subject of
-approval S that T has under F, N, and that set of stopped files, and a
-point P of a ledger. The latest judgment of S at P under F, N, and that
-set of stopped files is the ledger entry at the greatest index k before
-P for which all three of these conditions are true:
+This term is for a tree T, a valid binding F of `file-readers`, a
+binding N of `external-namespaces` for which a conforming program of the
+design Identifiers gives the result "valid", a subject of approval S
+that T has under F and N, and a point P of a ledger. The latest judgment
+of S at P under F and N is the ledger entry at the greatest index k
+before P for which all three of these conditions are true:
 
 1. The ledger entry at the index k counts at that index.
 2. The value of `subject` of the ledger entry at the index k is the
    subject text of S in T.
 3. The value of `hash` of the ledger entry at the index k is the extent
-   hash of the declared item of S in T under F, N, and that set of
-   stopped files.
+   hash of the declared item of S in T under F and N.
 
-S has no latest judgment at P under F, N, and that set of stopped files
-when there is no index k before P for which all three conditions are
-true.
+S has no latest judgment at P under F and N when there is no index k
+before P for which all three conditions are true.
 
 ### 4.7 The rule for merges
 
 @term merged-content=v1
 @cites {
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ontology#{
         subject-of-approval=v1, revised-content=v1, default-branch=v1,
         tree=v1, parameter=v1,
     },
-    identifiers#{external-namespaces=v1},
-    documents#{extent-hash=v1, file-readers=v1, unreadable-file=v1},
-    text#{code-span=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{extent-hash=v1, file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
 }
 
-This term is for a git repository R, a tree T, a binding D of
-`default-branch-name`, a binding F of `file-readers`, a binding N of
-`external-namespaces`, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. For a subject of approval S
-that T has under F, N, and the set of stopped files of T, the revised
-content of S in T has merged into the default branch of R under D, F, N,
-and these sets of stopped files when, and only when, two conditions are
-true. First, the default branch of R has a commit H under D. Second,
-some commit C of the first-parent line of H has a tree that has, under
-F, N, and the set of stopped files of the tree of C, a subject of
-approval S2 that is the same subject of approval as S, and in the tree
-of C the declared item of S2 has, under F, N, and the set of stopped
-files of the tree of C, the extent hash that the declared item of S has
-in T under F, N, and the set of stopped files of T. When the default
-branch of R has no commit under D, the revised content of no subject of
-approval has merged into the default branch of R under D, F, N, and
-these sets of stopped files.
+This term is for a git repository R, a tree T, a valid binding D of
+`default-branch-name`, a valid binding F of `file-readers`, and a
+binding N of `external-namespaces` for which a conforming program of the
+design Identifiers gives the result "valid". For a subject of approval S
+that T has under F and N, the revised content of S in T has merged into
+the default branch of R under D, F, and N when, and only when, two
+conditions are true. First, the default branch of R has a commit H under
+D. Second, some commit C of the first-parent line of H has a tree that
+has, under F and N, a subject of approval S2 that is the same subject of
+approval as S, and in the tree of C the declared item of S2 has, under F
+and N, the extent hash that the declared item of S has in T under F and
+N. When the default branch of R has no commit under D, the revised
+content of no subject of approval has merged into the default branch of
+R under D, F, and N.
 
 ### 4.8 The states of subjects of approval
 
@@ -584,14 +586,14 @@ these sets of stopped files.
         subject-of-approval=v1, tree=v1, ledger=v1, state=v1,
         default-branch=v1, parameter=v1,
     },
-    identifiers#{external-namespaces=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
-    documents#{file-readers=v1, unreadable-file=v1},
-    text#{code-span=v1},
+    documents#{file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, latest-judgment=v1,
         merged-content=v1,
@@ -599,39 +601,62 @@ these sets of stopped files.
 }
 
 This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. Each subject of approval S
-that T has under F, N, and the set of stopped files of T is in exactly
-one of the states approved, declined, and neither, in T at P under A, D,
-F, N, and these sets of stopped files:
+`approval-kinds`, a valid binding F of `file-readers`, a binding N of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a tree T, a point P of the ledger
+of R, and, for a subject of approval that does not need approval under
+A, a valid binding D of `default-branch-name`. Each subject of approval
+S that T has under F and N is in exactly one of the states approved,
+declined, and neither, in T at P under A, F, and N (and D when S does
+not need approval under A):
 
 - When S needs approval under A, S is approved when, and only when, the
-  latest judgment of S at P under F, N, and the set of stopped files of
-  T is of the kind `approval`. When S needs approval under A, S is
-  declined when, and only when, the latest judgment of S at P under F,
-  N, and the set of stopped files of T is of the kind `decline`. When S
-  needs approval under A, S is neither when, and only when, S has no
-  latest judgment at P under F, N, and the set of stopped files of T.
+  latest judgment of S at P under F and N is of the kind `approval`.
+  When S needs approval under A, S is declined when, and only when, the
+  latest judgment of S at P under F and N is of the kind `decline`. When
+  S needs approval under A, S is neither when, and only when, S has no
+  latest judgment at P under F and N.
 - When S does not need approval under A, S is approved when, and only
   when, the revised content of S in T has merged into the default branch
-  of R under D, F, N, and these sets of stopped files. When S does not
-  need approval under A, S is neither when the revised content of S in T
-  has not merged into the default branch of R under D, F, N, and these
-  sets of stopped files. When S does not need approval under A, S is
-  never declined.
+  of R under D, F, and N. When S does not need approval under A, S is
+  neither when the revised content of S in T has not merged into the
+  default branch of R under D, F, and N. When S does not need approval
+  under A, S is never declined.
 
 The states approved and declined that this atom gives are the states
 approved and declined of S in T at P that the term
 `ontology#approval-state` names. A subject of approval that is neither
 is neither approved nor declined.
 
-### 4.9 In force under the bindings
+### 4.9 Edges that read a merge
+
+@term merge-read-edge=v1
+@cites {
+    ontology#{
+        edge=v1, supersedes-edge=v1, declared-item=v1,
+        subject-of-approval=v1, approval-state=v1, schema=v1, atom=v1,
+        term=v1, containment=v1, tree=v1, parameter=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
+    #{approval-kinds=v1, approval-need=v1},
+}
+
+Under a valid binding A of `approval-kinds`, a valid binding F of
+`file-readers`, and a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid",
+a `supersedes` edge that a tree T has under F and N reads a merge under
+A when, and only when, one or both of these conditions are true:
+
+1. The source of the edge has a subject of approval, and that subject
+   of approval does not need approval under A.
+2. The source of the edge is an item of the kind design, and the subject
+   of approval of an item of the kind specification that the source
+   holds, or of a schema, an item of the kind requirement, an atom, or a
+   term that the source holds directly, does not need approval under A.
+
+### 4.10 In force under the bindings
 
 @term bound-in-force-item=v1
 @cites {
@@ -639,41 +664,42 @@ is neither approved nor declined.
         declared-item=v1, in-force-item=v1, retired-item=v1,
         effective-supersedes-edge=v1, supersedes-edge=v1,
         approval-state=v1, edge=v1, tree=v1, ledger=v1, parameter=v1,
+        subject-of-approval=v1,
     },
-    identifiers#{external-namespaces=v1, status-tag=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
-    documents#{file-readers=v1, unreadable-file=v1},
-    text#{code-span=v1},
-    #{approval-kinds=v1, subject-state=v1},
+    documents#{file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
+    #{
+        approval-kinds=v1, approval-need=v1, subject-state=v1,
+        merge-read-edge=v1,
+    },
 }
 
 This term is for a git repository R, a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. A declared item that T has
-under F, N, and the set of stopped files of T is in force in T at P
-under A, D, F, N, and these sets of stopped files when, and only when,
+`approval-kinds`, a valid binding F of `file-readers`, a binding N of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a tree T, a point P of the ledger
+of R, and, when T has under F and N a `supersedes` edge that reads a
+merge under A (term `merge-read-edge`), a valid binding D of
+`default-branch-name`. A declared item that T has under F
+and N is in force in T at P under these bindings when, and only when,
 that declared item is in force in T at P (atom
 `ontology#in-force-item`), read as this term gives. The atoms
 `ontology#effective-supersedes-edge` and `ontology#retired-item` read
 the state approved of the source of each `supersedes` edge. That state
 follows, by the term `ontology#approval-state`, from the states that the
-atom `subject-state` gives for R, T, and P under A, D, F, N, and these
-sets of stopped files. When any of the atoms `ontology#in-force-item`,
+atom `subject-state` gives for R, T, and P under these bindings. When
+any of the atoms `ontology#in-force-item`,
 `ontology#effective-supersedes-edge`, and `ontology#retired-item` reads
 a declared item, a status tag, or an edge, that atom reads that declared
-item, status tag, or edge under F, N, and the set of stopped files of T.
+item, status tag, or edge under F and N.
 
-### 4.10 The subject order
+### 4.11 The subject order
 
 @term subject-order=v1
 @cites {
@@ -691,185 +717,197 @@ either of these two conditions is true:
 1. The valid path of the file of the declared item of S1 comes before the valid path of the file of the declared item of S2 in code point order.
 2. The valid path of the file of the declared item of S1 and the valid path of the file of the declared item of S2 are the same, and the origin position of the text of the tag line of the declaration of the declared item of S1 comes before the origin position of the text of the tag line of the declaration of the declared item of S2 in the order of positions.
 
-### 4.11 Findings of the class `declined`
+### 4.12 Findings of the class `declined`
 
 @atom declined-finding=v1
 @cites {
     ontology#{
-        subject-of-approval=v1, declared-item=v1, tree=v1, ledger=v1,
-        parameter=v1,
+        subject-of-approval=v1, declared-item=v1, supersedes-edge=v1,
+        tree=v1, ledger=v1, parameter=v1,
     },
-    identifiers#{external-namespaces=v1, tag-line-text=v1},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
+    },
     documents#{
         file-readers=v1, item-file=v1, origin=v1, run-spot=v1,
-        tree-finding=v1, unreadable-file=v1,
+        tree-finding=v1,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
     findings#{finding-subject=v1},
-    text#{code-span=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{
-        approval-kinds=v1, subject-text=v1, subject-state=v1,
-        bound-in-force-item=v1, subject-order=v1,
+        approval-kinds=v1, approval-need=v1, subject-text=v1,
+        subject-state=v1, merge-read-edge=v1, bound-in-force-item=v1,
+        subject-order=v1,
     },
 }
 
 This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. T has, at P under A, D, F,
-N, and these sets of stopped files, one tree finding of the class
-`declined` for each text t that is the subject text of a subject of
-approval S that T has under F, N, and the set of stopped files of T such
+`approval-kinds`, a valid binding F of `file-readers`, a binding N of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a tree T, a point P of the ledger
+of R, and, when T has under F and N a `supersedes` edge that reads a
+merge under A (term `merge-read-edge`), a valid binding D of
+`default-branch-name`. T has, at P under these bindings,
+one tree finding of the class `declined` for each text t that is the
+subject text of a subject of approval S that T has under F and N such
 that both of these are true:
 
-1. S is declined in T at P under A, D, F, N, and these sets of stopped
-   files.
-2. The declared item of S is in force in T at P under A, D, F, N, and
-   these sets of stopped files.
+1. S is declined in T at P under A, F, and N.
+2. The declared item of S is in force in T at P under these bindings.
 
 Its subject is t. Its spot is the spot of the run of the text of the tag
 line of the declaration of the declared item of the first subject of
 approval, in the subject order, whose subject text is t among the
-subjects of approval that T has under F, N, and the set of stopped files
-of T; that run is in the text of the file of that declared item.
+subjects of approval that T has under F and N; that run is in the text
+of the file of that declared item.
 
-### 4.12 Findings of the class `awaiting-approval`
+### 4.13 Findings of the class `awaiting-approval`
 
 @atom awaiting-approval-finding=v1
 @cites {
     ontology#{
-        subject-of-approval=v1, declared-item=v1, tree=v1, ledger=v1,
-        parameter=v1,
+        subject-of-approval=v1, declared-item=v1, supersedes-edge=v1,
+        tree=v1, ledger=v1, parameter=v1,
     },
-    identifiers#{external-namespaces=v1, tag-line-text=v1},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
+    },
     documents#{
         file-readers=v1, item-file=v1, origin=v1, run-spot=v1,
-        tree-finding=v1, unreadable-file=v1,
+        tree-finding=v1,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
     findings#{finding-subject=v1},
-    text#{code-span=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-text=v1,
-        subject-state=v1, bound-in-force-item=v1, subject-order=v1,
+        subject-state=v1, merge-read-edge=v1, bound-in-force-item=v1,
+        subject-order=v1,
     },
 }
 
 This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. T has, at P under A, D, F,
-N, and these sets of stopped files, one tree finding of the class
-`awaiting-approval` for each text t that is the subject text of a
-subject of approval S that T has under F, N, and the set of stopped
-files of T such that each of these is true:
+`approval-kinds`, a valid binding F of `file-readers`, a binding N of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a tree T, a point P of the ledger
+of R, and, when T has under F and N a `supersedes` edge that reads a
+merge under A (term `merge-read-edge`), a valid binding D of
+`default-branch-name`. T has, at P under these bindings,
+one tree finding of the class `awaiting-approval` for each text t that
+is the subject text of a subject of approval S that T has under F and N
+such that each of these is true:
 
 1. S needs approval under A.
-2. The declared item of S is in force in T at P under A, D, F, N, and
-   these sets of stopped files.
-3. S is neither in T at P under A, D, F, N, and these sets of stopped
-   files.
+2. The declared item of S is in force in T at P under these bindings.
+3. S is neither in T at P under A, F, and N.
 
 Its subject is t. Its spot is the spot of the run of the text of the tag
 line of the declaration of the declared item of the first subject of
 approval, in the subject order, whose subject text is t among the
-subjects of approval that T has under F, N, and the set of stopped files
-of T; that run is in the text of the file of that declared item.
+subjects of approval that T has under F and N; that run is in the text
+of the file of that declared item.
 
-### 4.13 Findings of the class `unapproved-req`
+### 4.14 Findings of the class `unapproved-req`
 
 @atom unapproved-req-finding=v1
 @cites {
-    identifiers#{external-namespaces=v1, citation-entry=v1},
+    identifiers#{
+        external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
+    },
     ontology#{
-        edge=v1, satisfies-edge=v1, verifies-edge=v1,
+        edge=v1, satisfies-edge=v1, verifies-edge=v1, supersedes-edge=v1,
         subject-of-approval=v1, declared-item=v1, schema=v1, tree=v1,
         ledger=v1, parameter=v1,
     },
     documents#{
         file-readers=v1, tree-edge=v1, origin=v1,
         origin-position=v1, position-subject=v1, run-spot=v1,
-        tree-finding=v1, unreadable-file=v1,
+        tree-finding=v1,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     ledger#{stored-ledger=v1},
-    text#{code-span=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{
         approval-kinds=v1, approval-need=v1, subject-state=v1,
-        bound-in-force-item=v1,
+        merge-read-edge=v1, bound-in-force-item=v1,
     },
 }
 
 This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a binding D of `default-branch-name`, a binding F of
-`file-readers`, a binding N of `external-namespaces`, a tree T, a point
-P of the ledger of R, and, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H, one set of stopped files of U. Each such
-tree U has that one set as the set of stopped files of U, also when two
-commits of that first-parent line have the same tree or when T is the
-tree of a commit of that first-parent line. T has, at P under A, D, F,
-N, and these sets of stopped files, one tree finding of the class
-`unapproved-req` for each edge that T has under F, N, and the set of
-stopped files of T such that all four of these conditions are true:
+`approval-kinds`, a valid binding F of `file-readers`, a binding N of
+`external-namespaces` for which a conforming program of the design
+Identifiers gives the result "valid", a tree T, a point P of the ledger
+of R, and, when T has under F and N a `supersedes` edge that reads a
+merge under A (term `merge-read-edge`), a valid binding D of
+`default-branch-name`. T has, at P under these bindings,
+one tree finding of the class `unapproved-req` for each edge that T has
+under F and N such that all four of these conditions are true:
 
 1. The edge is of the kind `satisfies` or `verifies`, and says what its
    kind of edge says.
 2. The cited item of the edge is an item of the kind requirement that
    has a subject of approval, or a schema that has a subject of
    approval.
-3. That cited item is in force in T at P under A, D, F, N, and these
-   sets of stopped files.
+3. That cited item is in force in T at P under these bindings.
 4. The subject of approval of that cited item needs approval under A and
-   is not approved in T at P under A, D, F, N, and these sets of stopped
-   files.
+   is not approved in T at P under A, F, and N.
 
 The subject of that tree finding is the position subject of the origin
 position of the citation entry of the edge. The spot of that tree
 finding is the spot of the run of that citation entry in the text of the
 file of the edge.
 
-### 4.14 Incomplete first-parent lines
+### 4.15 Incomplete first-parent lines
 
 @term incomplete-first-parent-line=v1
 @cites {
-    ontology#{default-branch=v1, tree=v1, parameter=v1},
+    ontology#{
+        default-branch=v1, tree=v1, ledger=v1, parameter=v1,
+        subject-of-approval=v1, revised-content=v1, declared-item=v1,
+        in-force-item=v1, retired-item=v1, effective-supersedes-edge=v1,
+        supersedes-edge=v1, edge=v1, approval-state=v1,
+    },
+    identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
     changes#{
         commit=v1, commit-file=v1, shallow-commit=v1,
         default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1, repository-read=v1,
     },
-    documents#{file-readers=v1, read-file=v1},
-    text#{code-span=v1},
+    ledger#{stored-ledger=v1},
+    documents#{file-readers=v1, read-file=v1, extent-hash=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
+    #{
+        approval-kinds=v1, approval-need=v1, latest-judgment=v1,
+        declined-finding=v1, awaiting-approval-finding=v1,
+        unapproved-req-finding=v1,
+    },
 }
 
-This term is for a git repository R, a binding D of `default-branch-name`
-under which the default branch of R has a commit H, a valid binding F of
+For a git repository R, a valid binding D of `default-branch-name` under
+which the default branch of R has a commit H, a valid binding F of
 `file-readers`, and the repository reads from which a program takes the
 first-parent line of H and the files of the trees of the commits of that
-first-parent line. In this term, R holds a git object when R holds that
-git object at the end of those repository reads.
+first-parent line, R holds a git object when R holds that git object at
+the end of those repository reads.
+
+A commit C of the first-parent line of H is complete in R under F for
+those repository reads when, and only when, R holds the git tree object
+of C, every git tree object that a tree entry of the git tree object of
+C names, and every blob that a regular-file entry of the git tree object
+of C names when that regular-file entry gives a file of the tree of C
+that is a read file of the tree of C under F.
 
 The first-parent line of H under F is incomplete for those repository
 reads when, and only when, one or more of these three conditions is
@@ -879,12 +917,62 @@ true:
 2. For some commit C of the first-parent line of H, C is not a shallow
    commit of R, and the commit object of C names as the first parent of
    C a git object that is not a commit of R.
-3. For some commit C of the first-parent line of H, R does not hold the
-   git tree object of C, does not hold a git tree object that a tree
-   entry of the git tree object of C names, or does not hold the blob
-   that a regular-file entry of the git tree object of C names when that
-   regular-file entry gives a file of the tree of C that is a read file
-   of the tree of C under F.
+3. Some commit C of the first-parent line of H is not complete in R
+   under F for those repository reads.
+
+Under a binding N of `external-namespaces` for which a conforming
+program of the design Identifiers gives the result "valid", when the
+first-parent line of H under F is incomplete for those repository reads,
+the revised content of a subject of approval S of a tree T has visibly
+merged in R under D, F, and N for those repository reads when, and only
+when, some commit C of the first-parent line of H that is complete in R
+under F for those repository reads has a tree that has, under F and N, a
+subject of approval S2 that is the same subject of approval as S and
+whose declared item has in the tree of C under F and N the extent hash
+that the declared item of S has in T under F and N.
+
+Under a valid binding A of `approval-kinds`, D, F, and N, at a point P
+of the ledger of R, when the first-parent line of H under F is
+incomplete for those repository reads:
+
+- Under the least merge for those repository reads, each subject of
+  approval S that T has under F and N that needs approval under A is
+  approved when, and only when, its latest judgment at P under F and N
+  is of the kind `approval`, and each subject of approval S that T has
+  under F and N that does not need approval under A is approved when,
+  and only when, the revised content of S in T has visibly merged in R
+  under D, F, and N for those repository reads.
+- For each of the classes `declined`, `awaiting-approval`, and
+  `unapproved-req`, the findings of that class under the least merge for
+  those repository reads are the tree findings that the atom of that
+  class (`declined-finding`, `awaiting-approval-finding`, or
+  `unapproved-req-finding`) gives for T at P under A, F, and N when
+  `ontology#in-force-item`, `ontology#retired-item`, and
+  `ontology#effective-supersedes-edge` read the state approved of the
+  source of each `supersedes` edge, by the term
+  `ontology#approval-state`, from the states under the least merge for
+  those repository reads (and read each declared item, status tag, and
+  edge under F and N).
+
+For a git repository R, a valid binding A of `approval-kinds`, a valid
+binding F of `file-readers`, a binding N of `external-namespaces` for
+which a conforming program of the design Identifiers gives the result
+"valid", a tree T, and a point P of the ledger of R:
+
+- Under the greatest merge, each subject of approval S that T has under
+  F and N that needs approval under A is approved when, and only when,
+  its latest judgment at P under F and N is of the kind `approval`, and
+  each other subject of approval that T has under F and N is approved.
+- For each of the classes `declined`, `awaiting-approval`, and
+  `unapproved-req`, the findings of that class under the greatest merge
+  are the tree findings that the atom of that class (`declined-finding`,
+  `awaiting-approval-finding`, or `unapproved-req-finding`) gives for T
+  at P under A, F, and N, with no binding of `default-branch-name`, when
+  `ontology#in-force-item`, `ontology#retired-item`, and
+  `ontology#effective-supersedes-edge` read the state approved of the
+  source of each `supersedes` edge, by the term
+  `ontology#approval-state`, from the states under the greatest merge
+  (and read each declared item, status tag, and edge under F and N).
 
 ## 5. Requirements
 
@@ -898,65 +986,84 @@ true:
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1, repository-read=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1,
     },
-    ledger#{stored-ledger=v1},
-    documents#{file-readers=v1, unreadable-file=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    documents#{file-readers=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{
-        approval-kinds=v1, subject-state=v1,
+        approval-kinds=v1, approval-need=v1, subject-state=v1,
         incomplete-first-parent-line=v1,
     },
 }
 
-This requirement applies under a valid binding A of `approval-kinds`, a
-binding D of `default-branch-name`, a valid binding F of `file-readers`,
-and a binding N of `external-namespaces` for which a conforming program
-of the design Identifiers gives the result "valid". It applies for a git
-repository R, a tree T, and a point P of the ledger of R. When a
-conforming program gives whether a subject of approval of T is approved
-or declined in T at P under A, D, F, and N, that conforming program must
-use one set of stopped files of U, as the set of stopped files of U, for
-each tree U that is T or, when the default branch of R has a commit H
-under D, is the tree of a commit of the first-parent line of H. To give
-that result, that conforming program must use that same set in every
-place where that conforming program reads U, also when two commits of
-that first-parent line have the same tree or when T is the tree of a
-commit of that first-parent line. For each subject of approval S that T
-has under F, N, and the set of stopped files of T, when that conforming
-program gives whether S is approved or declined in T at P under A, D, F,
-N, and these sets of stopped files, that conforming program must give
-exactly one result, and only "approved", "declined", or "neither":
+This requirement applies for a git repository R that holds its ledger
+objects and whose ledger is valid, a tree T, a point P of the ledger of
+R, a valid binding A of `approval-kinds`, a valid binding F of
+`file-readers`, a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid",
+and a subject of approval S that T has under F and N.
+
+When S needs approval under A and a conforming program gives whether S
+is approved or declined in T at P under A, F, and N, that conforming
+program must give exactly one result, and only "approved", "declined",
+or "neither":
 
 - That conforming program must give "approved" when S is approved in T
-  at P under A, D, F, N, and these sets of stopped files.
+  at P under A, F, and N.
 - That conforming program must give "declined" when S is declined in T
-  at P under A, D, F, N, and these sets of stopped files.
+  at P under A, F, and N.
 - That conforming program must give "neither" when S is neither in T at
-  P under A, D, F, N, and these sets of stopped files.
+  P under A, F, and N.
+- That conforming program must not give that it cannot see the whole
+  history for S.
 
-When the default branch of R has a commit H under D, and the
-first-parent line of H under F is incomplete (term
-`incomplete-first-parent-line`) for the repository reads from which a
-conforming program takes the first-parent line of H and the files of the
-trees of the commits of that first-parent line, for such a subject of
-approval S, that conforming program must either give exactly the one
-result that this requirement states for S and no other result, or give
-no state for S.
+When S does not need approval under A, under a valid binding D of
+`default-branch-name`, when a conforming program gives whether S is
+approved or declined in T at P under A, D, F, and N, these rules apply
+for the repository reads from which that conforming program takes the
+first-parent line of the commit of the default branch and the files of
+the trees of its commits:
+
+- When the default branch of R has no commit under D, or when the
+  default branch of R has a commit H under D and the first-parent line
+  of H under F is not incomplete for those repository reads, that
+  conforming program must give exactly one result, and only "approved"
+  or "neither": "approved" when S is approved in T at P under A, D, F,
+  and N, and "neither" when S is neither in T at P under A, D, F, and N;
+  and that conforming program must not give that it cannot see the whole
+  history for S.
+- When the default branch of R has a commit H under D, the first-parent
+  line of H under F is incomplete for those repository reads, and the
+  revised content of S in T has visibly merged in R under D, F, and N
+  for those repository reads, that conforming program must give exactly
+  one result, and only "approved", and must not give that it cannot see
+  the whole history for S.
+- When the default branch of R has a commit H under D, the first-parent
+  line of H under F is incomplete for those repository reads, and the
+  revised content of S in T has not visibly merged in R under D, F, and
+  N for those repository reads, that conforming program must give no
+  state ("approved", "declined", or "neither") for S and must give that
+  it cannot see the whole history for S.
 
 ### 5.2 The acceptance of `approval` and `decline` ledger entries
 
 @req give-judgment-acceptance=v1
 @cites {
-    ledger#{accepted-entry=v1},
+    ledger#{
+        accepted-entry=v1, ledger-validity=v1, ledger-object=v1,
+        stored-ledger=v1,
+    },
     ontology#{ledger=v1, ledger-entry=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{judgment-acceptance-rule=v1},
 }
 
 When a conforming program gives whether a ledger entry of the kind
-`approval` or `decline` is accepted at a point of a ledger, that
+`approval` or `decline` is accepted at a point of the ledger of a git
+repository that holds its ledger objects and whose ledger is valid, that
 conforming program must give exactly one result, and only "accepted" or
 "not accepted":
 
@@ -971,19 +1078,19 @@ conforming program must give exactly one result, and only "accepted" or
         ledger-entry=v1, person=v1, subject-of-approval=v1,
         revised-content=v1, tree=v1, ledger=v1,
     },
-    identifiers#{external-namespaces=v1},
-    documents#{extent-hash=v1, file-readers=v1, unreadable-file=v1},
-    text#{conforming-program=v1, code-span=v1},
+    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    documents#{extent-hash=v1, file-readers=v1},
+    text#{conforming-program=v1, result=v1, code-span=v1},
     #{subject-text=v1, judgment-field=v1},
 }
 
-This requirement applies for a tree T, a binding F of `file-readers`, a
-binding N of `external-namespaces`, a set of stopped files of T, and a
-subject of approval S that T has under F, N, and that set of stopped
-files. When a conforming program appends to a ledger a ledger entry of
-the kind `approval` or `decline` to record a decision of a person on the
-revised content that S has in T under F, N, and that set of stopped
-files, all of these rules apply to that ledger entry:
+This requirement applies for a tree T, a valid binding F of
+`file-readers`, a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid",
+and a subject of approval S that T has under F and N. When a conforming
+program appends to a ledger a ledger entry of the kind `approval` or
+`decline` to record a decision of a person on the revised content that S
+has in T under F and N, all of these rules apply to that ledger entry:
 
 - That ledger entry must be of the kind `approval` when the person
   approved that revised content.
@@ -992,9 +1099,27 @@ files, all of these rules apply to that ledger entry:
 - The value of `subject` of that ledger entry must be the subject text
   of S in T.
 - The value of `hash` of that ledger entry must be the extent hash of
-  the declared item of S in T under F, N, and that set of stopped files.
+  the declared item of S in T under F and N.
 
-### 5.4 What `saw` records
+### 5.4 No judgment appended at a limit
+
+@req omit-judgments-at-limits=v1
+@cites {
+    ontology#{
+        ledger-entry=v1, person=v1, subject-of-approval=v1,
+        revised-content=v1, tree=v1, ledger=v1,
+    },
+    ledger#{ledger-ref=v1},
+    text#{conforming-program=v1, code-span=v1},
+}
+
+When a conforming program stops at a limit of its own while it reads a
+tree for the revised content of a subject of approval, that conforming
+program must append no ledger entry of the kind `approval` or `decline`
+that records a decision of a person on that revised content, and must
+change no ledger ref for that decision.
+
+### 5.5 What `saw` records
 
 @req record-seen-judgments=v1
 @cites {
@@ -1009,101 +1134,73 @@ before the person whose decision that ledger entry records confirmed the
 decision, the program gave that person the judgment before that ledger
 entry at the point at which the program appends it.
 
-### 5.5 No state under bindings that are not valid
-
-@req give-no-states-under-invalid-bindings=v1
-@cites {
-    ontology#{
-        subject-of-approval=v1, tree=v1, finding-class=v1, parameter=v1,
-    },
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
-    text#{conforming-program=v1, result=v1, code-span=v1},
-    #{
-        subject-state=v1, declined-finding=v1,
-        awaiting-approval-finding=v1, unapproved-req-finding=v1,
-    },
-}
-
-Under a binding of `file-readers` that is not valid, or under a binding
-of `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "invalid", a conforming program must give,
-for any tree, no state approved, declined, or neither of a subject of
-approval, and no finding of the classes `declined`,
-`awaiting-approval`, and `unapproved-req`.
-
-### 5.6 No finding from a ledger that is not valid
-
-@req give-no-findings-from-invalid-ledgers=v1
-@cites {
-    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-    ontology#{tree=v1, ledger=v1, finding-class=v1},
-    text#{conforming-program=v1, code-span=v1},
-    #{
-        declined-finding=v1, awaiting-approval-finding=v1,
-        unapproved-req-finding=v1,
-    },
-}
-
-A conforming program must give no finding of the classes `declined`,
-`awaiting-approval`, and `unapproved-req` of a tree at a point of the
-ledger of a git repository that no other process changes while the
-program reads it, when that ledger is broken or newer, or when the git
-repository does not hold its ledger objects.
-
-### 5.7 The findings of a tree
+### 5.6 The findings of a tree
 
 @req give-approval-findings=v1
 @cites {
-    ontology#{finding-class=v1, tree=v1, ledger=v1, parameter=v1},
+    ontology#{
+        finding-class=v1, subject-of-approval=v1, supersedes-edge=v1,
+        tree=v1, ledger=v1, parameter=v1,
+    },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1, repository-read=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+        repository-read=v1,
     },
-    ledger#{stored-ledger=v1},
-    documents#{file-readers=v1, tree-finding=v1, unreadable-file=v1},
+    ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
+    documents#{file-readers=v1, tree-finding=v1},
     text#{conforming-program=v1, result=v1, code-span=v1},
     #{
-        approval-kinds=v1, declined-finding=v1,
-        awaiting-approval-finding=v1, unapproved-req-finding=v1,
-        incomplete-first-parent-line=v1,
+        approval-kinds=v1, approval-need=v1, merge-read-edge=v1,
+        declined-finding=v1, awaiting-approval-finding=v1,
+        unapproved-req-finding=v1, incomplete-first-parent-line=v1,
     },
 }
 
-This requirement applies under a valid binding A of `approval-kinds`, a
-binding D of `default-branch-name`, a valid binding F of `file-readers`,
-and a binding N of `external-namespaces` for which a conforming program
-of the design Identifiers gives the result "valid". It applies for a git
-repository R, a tree T, and a point P of the ledger of R. When a
-conforming program gives the findings of one of the classes `declined`,
-`awaiting-approval`, and `unapproved-req` of T at P under A, D, F, and
-N, that conforming program must use one set of stopped files of U, as
-the set of stopped files of U, for each tree U that is T or, when the
-default branch of R has a commit H under D, is the tree of a commit of
-the first-parent line of H. To give those findings, that conforming
-program must use that same set in every place where that conforming
-program reads U, also when two commits of that first-parent line have
-the same tree or when T is the tree of a commit of that first-parent
-line. Under these sets of stopped files, when that conforming program
-gives the findings of one of those three classes of T at P under A, D,
-F, and N, that conforming program must give each tree finding of that
-class that T has at P under A, D, F, N, and these sets of stopped files
-once, and must give no other finding of that class. When the default
-branch of R has a commit H under D, and the first-parent line of H under
-F is incomplete (term `incomplete-first-parent-line`) for the repository
-reads from which a conforming program takes the first-parent line of H
-and the files of the trees of the commits of that first-parent line, for
-each of those three classes, that conforming program must either give
-each tree finding of that class that T has at P under A, D, F, N, and
-these sets of stopped files once and no other finding of that class, or
-not give the findings of that class.
+This requirement applies for a git repository R that holds its ledger
+objects and whose ledger is valid, a tree T, a point P of the ledger of
+R, a valid binding A of `approval-kinds`, a valid binding F of
+`file-readers`, a binding N of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid",
+and a binding D of `default-branch-name`. When a conforming program
+gives the findings of one of the classes `declined`,
+`awaiting-approval`, and `unapproved-req` of T at P under these
+bindings, these rules apply for the repository reads from which that
+conforming program takes the first-parent line of the commit of the
+default branch and the files of the trees of its commits:
+
+- When T has under F and N no `supersedes` edge that reads a merge under
+  A (term `merge-read-edge`), or when D is a valid binding of
+  `default-branch-name` and either the default branch of R has no commit
+  under D or the default branch of R has a commit H under D and the
+  first-parent line of H under F is not incomplete for those repository
+  reads, that conforming program must give each tree finding of that
+  class that T has at P under these bindings once, must give no other
+  finding of that class, and must not give that it cannot see the whole
+  history for that class.
+- When T has under F and N a `supersedes` edge that reads a merge under
+  A (term `merge-read-edge`), D is a valid binding of
+  `default-branch-name`, the default branch of R has a commit H under D,
+  and the first-parent line of H under F is incomplete for those
+  repository reads, that conforming program must give each finding of
+  that class under the greatest merge once, and must give no other
+  finding of that class. In that case, when the findings of that class
+  under the least merge for those repository reads hold a finding that
+  the findings of that class under the greatest merge do not hold, that
+  conforming program must give that it cannot see the whole history for
+  that class; otherwise, that conforming program must not give that it
+  cannot see the whole history for that class.
+- When T has under F and N a `supersedes` edge that reads a merge under
+  A (term `merge-read-edge`), and D is not a valid binding of
+  `default-branch-name`, that conforming program must give each finding
+  of that class under the greatest merge once, and must give no other
+  finding of that class.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`approval.test-vectors.jsonl`](approval.test-vectors.jsonl), in the
@@ -1115,10 +1212,8 @@ to them. The vectors are in three groups: `acceptance`, `findings`, and
 `states`. Each group has a subsection below that gives the forms of that
 group, as the term
 [`group-form-list`](sinter:data-forms#group-form-list=v1) gives the
-forms of a group. No vector follows from the requirements
-`record-judged-content`, `record-seen-judgments`,
-`give-no-states-under-invalid-bindings`, and
-`give-no-findings-from-invalid-ledgers`.
+forms of a group. No vector follows from the requirements `record-judged-content`,
+`omit-judgments-at-limits`, and `record-seen-judgments`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that the requirement names, such as whether a ledger
@@ -1140,7 +1235,7 @@ the program gives for the input.
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{ledger=v1, ledger-entry=v1, parameter=v1},
-    changes#{default-branch-commit=v1},
+    changes#{default-branch-name=v1, default-branch-commit=v1},
     documents#{file-readers=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     #{
@@ -1159,9 +1254,10 @@ point. The group uses no need, so these forms give no need names.
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects; for a binding of `file-readers` that is
 valid; for a binding of `external-namespaces` for which a conforming
-program of Identifiers gives the result "valid"; and for one binding of
-`default-branch-name` (the input does not depend on that binding). No
-other process changes these inputs while the program reads them.
+program of Identifiers gives the result "valid"; and for a valid binding
+of `default-branch-name` (the input does not depend on that binding). No
+other process changes these inputs while the program reads them. Each
+vector holds when the program reaches no limit of its own.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
@@ -1217,12 +1313,12 @@ program gives "not accepted" when that element of `accepted` is `false`.
         edge=v1, ledger=v1, finding-class=v1, parameter=v1,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
     documents#{
         file-readers=v1, tree-edge=v1, origin-position=v1,
-        position-subject=v1, tree-finding=v1, unreadable-file=v1,
+        position-subject=v1, tree-finding=v1,
     },
     findings#{finding-subject=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
@@ -1230,7 +1326,7 @@ program gives "not accepted" when that element of `accepted` is `false`.
         approval-kinds=v1, subject-text=v1, subject-state=v1,
         bound-in-force-item=v1, declined-finding=v1,
         awaiting-approval-finding=v1, unapproved-req-finding=v1,
-        give-approval-findings=v1,
+        incomplete-first-parent-line=v1, give-approval-findings=v1,
     },
 }
 
@@ -1247,12 +1343,12 @@ no need, so these forms give no need names.
 The input of each vector stands for a valid ledger of a git repository
 that holds its ledger objects; for a binding of `file-readers` that is
 valid; for a binding of `external-namespaces` for which a conforming
-program of Identifiers gives the result "valid"; and for one binding of
-`default-branch-name` (the input does not depend on that binding). Each
-vector is for the empty set of stopped files of each tree that is the
-tree or, when the default branch has a commit, is the tree of a commit
-of the first-parent line of that commit. No other process changes these
-inputs while the program reads them.
+program of Identifiers gives the result "valid"; and for a valid binding
+of `default-branch-name` (the input does not depend on that binding)
+under which, when the default branch has a commit, its first-parent line
+is not incomplete. No other process changes these inputs while the
+program reads them. Each vector holds when the program reaches no limit
+of its own.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
@@ -1272,51 +1368,45 @@ item of the kind design holds directly.
   JSON object with three members: `subject`, `state`, and `in-force`.
   `subject` is the subject text of that subject of approval. `state` is
   the state of that subject of approval in the tree at the point under
-  the bindings and those empty sets of stopped files, one of the JSON
-  strings `"approved"`, `"declined"`, and `"neither"`. `in-force` is
-  `true` when the declared item of that subject of approval is in force
-  in the tree at the point under the bindings and those empty sets of
-  stopped files (term `bound-in-force-item`), and `false` when that
-  declared item is not in force in the tree at the point under the
-  bindings and those empty sets of stopped files. `edges` is the edges
-  of the tree, as a sequence. Each edge in `edges` is a JSON object with
-  the members `kind`, `fits`, and `at`, and, when the cited item of that
-  edge is an item of the kind requirement that has a subject of
-  approval, or a schema that has a subject of approval, two more
-  members, `cited` and `in-force`. `kind` is the kind of edge of that
-  edge, a text. `fits` is `true` when that edge says what its kind of
-  edge says, and `false` when that edge does not say what its kind of
-  edge says. `at` is the position subject of the origin position of the
-  citation entry of that edge, of the origin position of the inline
-  citation of that edge, or of the form position of the vector line of
-  that edge. An inline citation and a vector line give only edges of the
-  kind `cites`. When the cited item of an edge in `edges` is an item of
-  the kind requirement that has a subject of approval, or a schema that
-  has a subject of approval, `cited` is the index of that subject of
-  approval in `subjects`, a JSON number written as the decimal numeral
-  of a whole number of 1 or more, counted from 1. When the cited item of
-  an edge in `edges` is an item of the kind requirement that has a
-  subject of approval, or a schema that has a subject of approval,
-  `in-force` is `true` when that cited item is in force in the tree at
-  the point under the bindings and those empty sets of stopped files
-  (term `bound-in-force-item`), and `false` when that cited item is not
-  in force in the tree at the point under the bindings and those empty
-  sets of stopped files.
+  the bindings, one of the JSON strings `"approved"`, `"declined"`, and
+  `"neither"`. `in-force` is `true` when the declared item of that
+  subject of approval is in force in the tree at the point under the
+  bindings (term `bound-in-force-item`), and `false` when that declared
+  item is not in force in the tree at the point under the bindings.
+  `edges` is the edges of the tree, as a sequence. Each edge in `edges`
+  is a JSON object with the members `kind`, `fits`, and `at`, and, when
+  the cited item of that edge is an item of the kind requirement that
+  has a subject of approval, or a schema that has a subject of approval,
+  two more members, `cited` and `in-force`. `kind` is the kind of edge
+  of that edge, a text. `fits` is `true` when that edge says what its
+  kind of edge says, and `false` when that edge does not say what its
+  kind of edge says. `at` is the position subject of the origin position
+  of the citation entry of that edge, of the origin position of the
+  inline citation of that edge, or of the form position of the vector
+  line of that edge. An inline citation and a vector line give only
+  edges of the kind `cites`. When the cited item of an edge in `edges`
+  is an item of the kind requirement that has a subject of approval, or a
+  schema that has a subject of approval, `cited` is the index of that
+  subject of approval in `subjects`, a JSON number written as the
+  decimal numeral of a whole number of 1 or more, counted from 1. When
+  the cited item of an edge in `edges` is an item of the kind
+  requirement that has a subject of approval, or a schema that has a
+  subject of approval, `in-force` is `true` when that cited item is in
+  force in the tree at the point under the bindings (term
+  `bound-in-force-item`), and `false` when that cited item is not in
+  force in the tree at the point under the bindings.
 - `result`: no vector of the group has this member; these forms name no
   question for `result`.
 - `values`: a JSON object with one member, `findings`. `findings` is a
   JSON object with three members: `awaiting-approval`, `declined`, and
   `unapproved-req`. Each of those three members is a JSON array of the
   subjects of the tree findings of that class that the tree has at the
-  point under the bindings and those empty sets of stopped files, with
-  each subject once, in code point order.
+  point under the bindings, with each subject once, in code point order.
 
 When a conforming program gives the findings of one of the three classes
-of the tree at the point under the empty set of stopped files of each
-tree that is the tree or, when the default branch has a commit, is the
-tree of a commit of the first-parent line of that commit, the program
-gives one finding with each subject that the member of `findings` for
-that class holds, and the program gives no other finding of that class.
+of the tree at the point, the program gives one finding with each
+subject that the member of `findings` for that class holds, and the
+program gives no other finding of that class.
 
 ```
 {"form":"#findings-vector=v1","group":"findings","input":{"binding":["req"],"edges":[],"subjects":[{"in-force":true,"state":"declined","subject":"req:billing#limit"},{"in-force":true,"state":"declined","subject":"req:billing#limit"},{"in-force":true,"state":"neither","subject":"req:billing#limit"}]},"note":"two declared items with the same kind and name give one finding of a class","values":{"findings":{"awaiting-approval":["req:billing#limit"],"declined":["req:billing#limit"],"unapproved-req":[]}}}
@@ -1338,15 +1428,15 @@ that class holds, and the program gives no other finding of that class.
         default-branch=v1, parameter=v1,
     },
     changes#{
-        commit=v1, commit-file=v1, default-branch-commit=v1,
-        first-parent-line=v1,
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
     },
-    documents#{file-readers=v1, extent-hash=v1, unreadable-file=v1},
+    documents#{file-readers=v1, extent-hash=v1},
     ledger#{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
     #{
         approval-kinds=v1, subject-text=v1, subject-state=v1,
-        give-subject-states=v1, acceptance-vector=v1,
-        findings-vector=v1,
+        incomplete-first-parent-line=v1, give-subject-states=v1,
+        acceptance-vector=v1, findings-vector=v1,
     },
 }
 
@@ -1364,16 +1454,15 @@ The input of each vector stands for a valid ledger of a git repository
 that holds the ledger objects of that git repository; for a binding of
 `file-readers` that is valid; for a binding of `external-namespaces` for
 which a conforming program of Identifiers gives the result "valid"; and
-for one binding of `default-branch-name`. Under that binding of
-`default-branch-name`, when the input has the member `line`, the default
-branch of that git repository has the commit whose first-parent line the
-member `line` of the input gives. Under that binding of
-`default-branch-name`, when the input has no member `line`, the default
-branch of that git repository has no commit. Each vector is for the
-empty set of stopped files of each tree that is the tree or, when the
-default branch has a commit, is the tree of a commit of the first-parent
-line of that commit. No other process changes these inputs while the
-program reads them.
+for a valid binding of `default-branch-name`. Under that valid binding
+of `default-branch-name`, when the input has the member `line`, the
+default branch of that git repository has the commit whose first-parent
+line the member `line` of the input gives, and that first-parent line is
+not incomplete. Under that valid binding of `default-branch-name`, when
+the input has no member `line`, the default branch of that git
+repository has no commit. No other process changes these inputs while
+the program reads them. Each vector holds when the program reaches no
+limit of its own.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `result`, a
@@ -1404,25 +1493,20 @@ for a valid binding of `approval-kinds`.
   that commit. When the default branch has no commit, the input has no
   member `line`.
 - `result`: when a conforming program gives whether the subject of
-  approval is approved or declined in the tree at the point under those
-  empty sets of stopped files, `result` is that result. That result is
-  "approved" when the subject of approval is approved in the tree at the
-  point under those empty sets of stopped files. That result is
-  "declined" when the subject of approval is declined in the tree at the
-  point under those empty sets of stopped files. That result is
-  "neither" when the subject of approval is neither in the tree at the
-  point under those empty sets of stopped files.
+  approval is approved or declined in the tree at the point, `result` is
+  that result. That result is "approved" when the subject of approval is
+  approved in the tree at the point. That result is "declined" when the
+  subject of approval is declined in the tree at the point. That result
+  is "neither" when the subject of approval is neither in the tree at
+  the point.
 - `values`: no vector of the group has this member. These forms give no
   fixed form for `values`.
 
 When a conforming program gives whether the subject of approval is
-approved or declined in the tree at the point under the empty set of
-stopped files of each tree that is the tree or, when the default branch
-has a commit, is the tree of a commit of the first-parent line of that
-commit, the program gives "approved" when `result` is `approved`, the
-program gives "declined" when `result` is `declined`, the program gives
-"neither" when `result` is `neither`, and the program gives no other
-result.
+approved or declined in the tree at the point, the program gives
+"approved" when `result` is `approved`, the program gives "declined"
+when `result` is `declined`, the program gives "neither" when `result` is
+`neither`, and the program gives no other result.
 
 ```
 {"form":"#states-vector=v1","group":"states","input":{"binding":["spec"],"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","ledger":[],"line":[[{"hash":"3fc4ccfe745870e2c0d99f71f30ff0656c8dedd41cc1d7d3d376b0dbe685e2f3","subject":"req:billing#limit"}],[{"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","subject":"req:billing#limit"}],[]],"subject":"req:billing#limit"},"note":"the revised content is in the tree of an earlier commit of the first-parent line","result":"approved"}
