@@ -15,41 +15,55 @@ type storage_error =
   | Unknown_format of string option
   | Payload of string
 
-let last settings key =
-  List.fold_left
-    (fun found (k, value) ->
-      if Config.equal_key k key then Some value else found)
-    None settings
+let ( let* ) = Result.bind
+
+let named_format text =
+  let payload name =
+    let prefix = name ^ "://" in
+    if text = name then Some ""
+    else if String.starts_with ~prefix text then
+      Some
+        (String.sub text (String.length prefix)
+           (String.length text - String.length prefix))
+    else None
+  in
+  match (payload "files", payload "reftable") with
+  | Some payload, _ -> Some (Files, payload)
+  | _, Some payload -> Some (Reftable, payload)
+  | None, None -> None
 
 (* @satisfies changes#{give-ref-commits=v1, give-head-commits=v1, read-only-repository-files=v1}
    The ref storage format is the one that the last value of the setting
-   extensions.refStorage of the file config names, files when no value is
-   set; a format holds only with the repository format version 1, and any
-   payload that is not empty gives an error, so no folder outside the
-   repository files is read. *)
+   extensions.refStorage of the file config names, by the rules of git.
+   Each value of core.repositoryformatversion must be an integer, and each
+   value of extensions.refStorage must name a format. With no format
+   version, or the version -1, the format is files. A named format holds
+   only with the version 1 or a negative version other than -1. A payload
+   that is not empty gives an error, so no folder outside the repository
+   files is read. *)
 let storage settings =
-  match last settings (Config.key ~section:"extensions" "refStorage") with
-  | None -> Ok Files
-  | Some value -> (
-      match
-        last settings (Config.key ~section:"core" "repositoryformatversion")
-      with
-      | Some (Some "1") -> (
-          let payload format =
-            Option.bind value (fun text ->
-                let prefix = format ^ "://" in
-                if String.starts_with ~prefix text then
-                  Some
-                    (String.sub text (String.length prefix)
-                       (String.length text - String.length prefix))
-                else None)
-          in
-          match (value, payload "files", payload "reftable") with
-          | Some "files", _, _ | _, Some "", _ -> Ok Files
-          | Some "reftable", _, _ | _, _, Some "" -> Ok Reftable
-          | _, Some path, _ | _, _, Some path -> Error (Payload path)
-          | _ -> Error (Unknown_format value))
-      | _ -> Error Not_version_1)
+  let* version =
+    Result.map_error
+      (fun value -> Not_a_version value)
+      (Config.format_version settings)
+  in
+  let wanted = Config.key ~section:"extensions" "refStorage" in
+  let* named =
+    List.fold_left
+      (fun found (key, value) ->
+        let* _ = found in
+        if not (Config.equal_key key wanted) then found
+        else
+          match Option.bind value named_format with
+          | Some named -> Ok (Some named)
+          | None -> Error (Unknown_format value))
+      (Ok None) settings
+  in
+  match (named, version) with
+  | None, _ | _, None -> Ok Files
+  | Some _, Some version when version = 0 || version >= 2 -> Error Not_version_1
+  | Some (format, ""), Some _ -> Ok format
+  | Some (_, payload), Some _ -> Error (Payload payload)
 
 type working_tree = Main | Linked of string
 
@@ -68,8 +82,6 @@ type error =
   | Malformed_table of { pathname : string; error : Reftable.error }
 
 type 'e failure = Refs of error | Objects of 'e
-
-let ( let* ) = Result.bind
 
 module Make (R : Files.READER) = struct
   type t = {
