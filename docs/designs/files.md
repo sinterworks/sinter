@@ -3,6 +3,7 @@
 
 # Files and paths
 @design files=v1
+@cites conformance=v1
 @cites text=v1
 @cites rfc/5234
 @cites rfc/7405
@@ -23,11 +24,13 @@ The productions in the section Definitions are productions as Text and
 notation defines them, in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
 
-From Text and notation, the design takes characters, texts, places,
-boundaries, runs, code spans, bytes, byte sequences, valid UTF-8, the
-text of a byte sequence, UTF-8 encodings, the notation of productions,
-requirements, conforming programs, results, and canonical vector lines
-for its vector file. From POSIX.1-2024, the
+From Conformance (`conformance`), the design takes designs,
+requirements, conforming programs, inputs, and the general requirements
+that bind every conforming program. From Text and notation, the design
+takes characters, texts, places, boundaries, runs, code spans, bytes,
+byte sequences, valid UTF-8, the text of a byte sequence, UTF-8
+encodings, the notation of productions, results, and canonical vector
+lines for its vector file. From POSIX.1-2024, the
 design takes files, processes, and what a file system is; the file
 types, such as a directory, a regular file, and a symbolic link; the
 directory entries of a directory, and the names `.` and `..` in a
@@ -880,10 +883,8 @@ folder tree object, for that process.
 @req validate-paths=v1
 @cites {
     #{path=v1, file-read=v1},
-    text#{
-        conforming-program=v1, result=v1, text=v1, production=v1,
-        code-span=v1, requirement=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, production=v1, code-span=v1},
 }
 
 A validation of a text as a path is an operation, other than a file
@@ -900,7 +901,8 @@ when the text does not match `path`.
 @req give-invalid-for-non-paths=v1
 @cites {
     #{folder-tree=v1, path=v1, file-read=v1},
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1},
 }
 
 In each file read of a text in a folder tree, when the text is not a
@@ -918,7 +920,8 @@ is a valid path, a conforming program must not give the result
         system=v1, folder-tree=v1, path=v1, file-read=v1,
         file-read-result=v1,
     },
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1},
 }
 
 In each file read of a valid path in a folder tree that no other process
@@ -944,7 +947,8 @@ conditions holds:
         folder-tree=v1, regular-file=v1, path=v1, file-read=v1,
         file-read-result=v1,
     },
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1},
 }
 
 When a conforming program gives the result "found" in a file read of a
@@ -961,7 +965,8 @@ text as the text of the content.
 @req omit-texts-of-other-results=v1
 @cites {
     #{folder-tree=v1, regular-file=v1, path=v1, file-read=v1},
-    text#{conforming-program=v1, result=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1},
 }
 
 When a conforming program reads a text as a path in a folder tree and
@@ -973,7 +978,8 @@ that file read, no text as the text of the content of a regular file.
 @req follow-no-symbolic-links=v1
 @cites {
     #{folder-tree=v1, symbolic-link=v1, file-read=v1},
-    text#{conforming-program=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{text=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
@@ -989,7 +995,8 @@ a symbolic link.
         folder-tree=v1, folder=v1, regular-file=v1, taken-byte=v1,
         path=v1, file-read=v1, path-file=v1,
     },
-    text#{conforming-program=v1, text=v1, byte=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{text=v1, byte=v1},
 }
 
 For each file read of a text in a folder tree, a conforming program must
@@ -1004,7 +1011,8 @@ no bytes.
 @req avoid-waits=v1
 @cites {
     #{folder-tree=v1, file-of-another-kind=v1, file-read=v1},
-    text#{conforming-program=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{text=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
@@ -1017,7 +1025,8 @@ the other end of a pipe.
 @req keep-folder-trees-unchanged=v1
 @cites {
     #{file-system=v1, folder-tree=v1, file-read=v1},
-    text#{conforming-program=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{text=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
@@ -1031,7 +1040,8 @@ of the time of last access.
 @cites {
     posix/2024,
     #{folder-tree=v1, file-read=v1},
-    text#{conforming-program=v1, text=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{text=v1},
 }
 
 In each file read of a text in a folder tree, a conforming program must
@@ -1043,10 +1053,8 @@ defines these, that its process has without a change by the program.
 @req validate-globs=v1
 @cites {
     #{glob=v1},
-    text#{
-        conforming-program=v1, result=v1, text=v1, production=v1,
-        code-span=v1, requirement=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, production=v1, code-span=v1},
 }
 
 A validation of a text as a glob is an operation that a program makes to
@@ -1062,7 +1070,8 @@ matches `glob`, and "invalid" when the text does not match `glob`.
 @req decide-glob-fit=v1
 @cites {
     #{glob=v1, path=v1, glob-fit=v1},
-    text#{conforming-program=v1, result=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 To decide whether a valid path fits a valid glob is to make an operation
@@ -1080,7 +1089,8 @@ valid glob.
 @req validate-path-sets=v1
 @cites {
     #{path-set=v1, valid-path-set=v1},
-    text#{conforming-program=v1, result=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 A validation of a path set is an operation that a program makes to give
@@ -1096,7 +1106,8 @@ valid, and "invalid" when the path set is not valid.
 @req decide-path-set-membership=v1
 @cites {
     #{path-set=v1, valid-path-set=v1, path=v1, path-set-membership=v1},
-    text#{conforming-program=v1, result=v1, requirement=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 To decide whether a valid path is in the set of a valid path set is to
@@ -1113,7 +1124,7 @@ path is not in the set of the valid path set.
 ## 5. Conformance
 
 A program conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector file,
@@ -1134,13 +1145,13 @@ and list the need names that the group uses, if any.
         regular-file=v1, folder-tree=v1, path=v1, file-read=v1,
         glob=v1, path-set=v1,
     },
+    conformance#{design=v1, conforming-program=v1, input=v1},
     text#{
-        canonical-vector-line=v1, design=v1, conforming-program=v1,
-        input=v1, text=v1, character=v1, run=v1, line=v1, line-feed=v1,
-        carriage-return=v1, byte-sequence=v1, valid-utf-8=v1,
-        text-of-a-byte-sequence=v1, whole-number=v1, decimal-numeral=v1,
-        code-point-order=v1, u-numeral=v1, sequence=v1, result=v1,
-        code-span=v1,
+        canonical-vector-line=v1, text=v1, character=v1, run=v1,
+        line=v1, line-feed=v1, carriage-return=v1, byte-sequence=v1,
+        valid-utf-8=v1, text-of-a-byte-sequence=v1, whole-number=v1,
+        decimal-numeral=v1, code-point-order=v1, u-numeral=v1,
+        sequence=v1, result=v1, code-span=v1,
     },
 }
 
@@ -1240,10 +1251,8 @@ line of the vector file is a vector line that meets the schema
 @schema path-vector=v1
 @cites {
     #{vector-line=v1, validate-paths=v1, path=v1},
-    text#{
-        conforming-program=v1, input=v1, text=v1, line=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, line=v1, result=v1, code-span=v1},
 }
 
 The group `paths` holds the vectors of the requirement `validate-paths`.
@@ -1281,10 +1290,11 @@ no other result.
         file-of-another-kind=v1, folder-tree=v1, path=v1, file-read=v1,
         file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
     },
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, text=v1, run=v1, line=v1,
-        byte=v1, byte-sequence=v1, valid-utf-8=v1, code-point-order=v1,
-        0x-numeral=v1, result=v1, code-span=v1,
+        text=v1, run=v1, line=v1, byte=v1, byte-sequence=v1,
+        valid-utf-8=v1, code-point-order=v1, 0x-numeral=v1, result=v1,
+        code-span=v1,
     },
 }
 
@@ -1428,10 +1438,8 @@ when the program does not give the result of the vector.
 @schema glob-vector=v1
 @cites {
     #{vector-line=v1, validate-globs=v1, glob=v1},
-    text#{
-        conforming-program=v1, input=v1, text=v1, line=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, line=v1, result=v1, code-span=v1},
 }
 
 The group `globs` holds the vectors of the requirement `validate-globs`.
@@ -1464,10 +1472,8 @@ no other result.
         vector-line=v1, decide-glob-fit=v1, glob=v1, path=v1,
         glob-fit=v1,
     },
-    text#{
-        conforming-program=v1, input=v1, text=v1, line=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, line=v1, result=v1, code-span=v1},
 }
 
 The group `fits` holds the vectors of the requirement `decide-glob-fit`.
@@ -1501,10 +1507,8 @@ holds, and no other result.
 @schema path-set-vector=v1
 @cites {
     #{vector-line=v1, validate-path-sets=v1, path-set=v1},
-    text#{
-        conforming-program=v1, input=v1, text=v1, line=v1, sequence=v1,
-        result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, line=v1, sequence=v1, result=v1, code-span=v1},
 }
 
 The group `path-sets` holds the vectors of the requirement
@@ -1538,10 +1542,8 @@ result.
         vector-line=v1, decide-path-set-membership=v1, path-set=v1,
         valid-path-set=v1, path=v1, path-set-membership=v1,
     },
-    text#{
-        conforming-program=v1, input=v1, text=v1, line=v1, sequence=v1,
-        result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, line=v1, sequence=v1, result=v1, code-span=v1},
 }
 
 The group `memberships` holds the vectors of the requirement
