@@ -45,7 +45,7 @@ val make : ('pack reader * Text.t list) list -> ('pack t, error) result
     order, and the [k]-th element is the pair with the number [k]. It is [Error]
     when the path set of a pair is not a valid path set. *)
 
-val pairs : 'pack t -> ('pack reader * Path_set.t) list
+val pairs : 'pack t -> ('pack reader * Path_set.valid) list
 (** [pairs binding] is the pairs of [binding], in the order of their numbers. *)
 
 val reader : 'pack t -> Path.t -> (int * 'pack reader) option

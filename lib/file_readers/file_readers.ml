@@ -4,7 +4,7 @@
 open Sinter_paths
 
 type 'pack reader = Markdown | Pack of 'pack
-type 'pack t = ('pack reader * Path_set.t) list
+type 'pack t = ('pack reader * Path_set.valid) list
 
 type error =
   | Invalid_glob of { pair : int; error : Path_set.glob_error }
@@ -24,7 +24,7 @@ let make pairs =
         | Ok set -> (
             match Path_set.validate set with
             | Error fault -> Error (Invalid_path_set { pair = k; fault })
-            | Ok () -> check (k + 1) ((reader, set) :: acc) rest))
+            | Ok valid -> check (k + 1) ((reader, valid) :: acc) rest))
   in
   check 1 [] pairs
 

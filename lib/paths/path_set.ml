@@ -6,6 +6,7 @@ module Seen = Map.Make (String)
 
 type member = { text : Text.t; excluding : bool; glob : Glob.t }
 type t = member list
+type valid = member list
 type glob_error = { member : int; error : Glob.error }
 
 type fault =
@@ -56,11 +57,12 @@ let validate set =
   | None ->
       if set <> [] && List.for_all (fun member -> member.excluding) set then
         Error No_plain_member
-      else Ok ()
+      else Ok set
 
 (* @satisfies files#decide-path-set-membership=v1
-   A valid path is in the set when it fits the glob text of a plain member and
-   the glob text of no `!` member. *)
+   A valid path is in the set of a valid path set when it fits the glob text of
+   a plain member and the glob text of no `!` member; only a valid path set
+   reaches this function. *)
 let mem set path =
   let fits excluding =
     List.exists

@@ -26,6 +26,10 @@ type error =
       (** part [k] holds two [*] together and is not [**]; it holds none of the
           characters of [Forbidden_character] *)
 
+(* @satisfies text#reject-invalid-inputs=v1
+   A text that is not a valid glob gives its fault with the number of the part
+   that has it, and no value of the type [t], so nothing that needs a valid
+   glob depends on it. *)
 val of_text : Sinter_text.Text.t -> (t, error) result
 (** [of_text text] is [Ok glob] when [text] is a valid glob, and [glob] then
     holds [text]. It is [Error] when [text] is not a valid glob, with the fault

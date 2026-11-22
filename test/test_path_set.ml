@@ -8,8 +8,11 @@ module Path_set = Sinter_paths.Path_set
 
 let valid_set members =
   match Path_set.of_texts members with
-  | Ok set -> set
   | Error _ -> Alcotest.fail "a glob text is not a valid glob"
+  | Ok set -> (
+      match Path_set.validate set with
+      | Ok valid -> valid
+      | Error _ -> Alcotest.fail "the path set is not valid")
 
 let is_valid_path_set members =
   match Path_set.of_texts members with
@@ -155,7 +158,7 @@ let path_set_names_its_first_fault =
                      List.length (Paths_reference.glob_text member)
                      < List.length member)
                    members
-          | Ok (), None -> Paths_reference.is_valid_path_set members
+          | Ok _, None -> Paths_reference.is_valid_path_set members
           | _ -> false))
 
 let vector_groups = [ path_set_vectors; membership_vectors ]

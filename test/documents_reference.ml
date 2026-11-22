@@ -95,7 +95,9 @@ let path_set texts =
   match Path_set.of_texts (List.map text_of texts) with
   | Error _ -> None
   | Ok set -> (
-      match Path_set.validate set with Ok () -> Some set | Error _ -> None)
+      match Path_set.validate set with
+      | Ok valid -> Some valid
+      | Error _ -> None)
 
 let read_files binding files =
   let sets = List.map (fun (_, texts) -> path_set texts) binding in
