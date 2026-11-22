@@ -1325,9 +1325,8 @@ do not end a line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line. A vector line
 meets the schema `canonical-vector-line`, and its JSON object has the
-members `form`, `group`, `input`, `note`, `result`, and `values`, in
-that order, and no other member, with `note` and `result` only where
-these rules state:
+members `form`, `group`, `input`, `note`, `result`, and `values`, and no
+other member, with `note` and `result` only where these rules state:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label. That label is `v`, then
@@ -1467,12 +1466,12 @@ and the lines of the text. Each vector line of the group meets the
 schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number, a
-run, and a sequence have these forms:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more, a run, and a sequence have these forms:
 
-- A whole number, such as a place, a boundary, a line number, or a
-  column, is a JSON number, such as `12`, written as the decimal numeral
-  of that whole number.
+- A whole number of 0 or more, such as a place, a boundary, a line
+  number, or a column, is a JSON number, such as `12`, written as the
+  decimal numeral of that whole number.
 - A run is a JSON object with two members: `from`, the boundary where
   the run starts, and `to`, the boundary where the run ends. So the run
   that starts at boundary 1 and ends at boundary 4 is
@@ -1527,9 +1526,9 @@ body of the text, and the position of the character at that place. Each
 vector line of the group meets the schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number has
-the JSON form that `line-vector` states. Inside `input` and `values`, a
-position has this form:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more has the JSON form that `line-vector` states. Inside `input` and
+`values`, a position has this form:
 
 - A position is a JSON object with two members: `line`, the line number
   of the position, and `column`, the column of the position. So the
@@ -1571,9 +1570,9 @@ The group `spans` holds the vectors of the requirements
 span of the text, and the start and the end of the span. Each vector
 line of the group meets the schema `vector-line`. Inside `input` and
 `values`, a text has the JSON form that `decode-vector` states. Inside
-`input` and `values`, a whole number and a run have the JSON forms that
-`line-vector` states. Inside `input` and `values`, a position has the
-JSON form that `character-position-vector` states.
+`input` and `values`, a whole number of 0 or more and a run have the
+JSON forms that `line-vector` states. Inside `input` and `values`, a
+position has the JSON form that `character-position-vector` states.
 
 The members `input` and `values` of the JSON object of a vector line
 hold these things:
