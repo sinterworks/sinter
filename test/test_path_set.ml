@@ -43,7 +43,7 @@ let path_set_vectors =
 
 (* @verifies files[memberships]
    The vectors check "in the set" and "not in the set" for a valid path and a
-   path set whose glob texts are valid globs. *)
+   valid path set. *)
 let membership_vectors =
   Vectors.group files_set ~name:"memberships" ~form:"#membership-vector=v1"
     give_membership
@@ -54,7 +54,23 @@ let member_gen =
     (Gen.oneof_weighted [ (3, Gen.return false); (1, Gen.return true) ])
     glob_gen
 
-let path_set_gen = Gen.list_size (Gen.int_bound 4) member_gen
+let dedup members =
+  List.fold_left
+    (fun kept member ->
+      if List.mem member kept then kept else kept @ [ member ])
+    [] members
+
+let valid_path_set_gen =
+  Gen.oneof_weighted
+    [
+      (1, Gen.return []);
+      ( 5,
+        Gen.map2
+          (fun plain rest -> dedup (plain :: rest))
+          glob_gen
+          (Gen.list_size (Gen.int_bound 4) member_gen) );
+    ]
+
 let any_member_gen = Gen.oneof [ member_gen; text_gen ]
 
 let print_members members =
@@ -85,11 +101,12 @@ let print_membership (path, members) =
 
 (* @verifies files#decide-path-set-membership=v1
    A decision that differed from path-set-membership for a generated valid
-   path and path set fails the comparison with a direct reading of the atom. *)
+   path and valid path set fails the comparison with a direct reading of the
+   atom. *)
 let membership_follows_the_atom =
   property ~count:1000
     ~name:"a valid path is in the set as path-set-membership says"
-    ~print:print_membership (Gen.pair path_gen path_set_gen)
+    ~print:print_membership (Gen.pair path_gen valid_path_set_gen)
     (fun (path, members) ->
       Bool.equal
         (in_set ~path:(of_uchars path) (List.map of_uchars members))
@@ -97,7 +114,7 @@ let membership_follows_the_atom =
 
 let order_does_not_change_the_set =
   property ~name:"the order of the path set members does not change the set"
-    ~print:print_membership (Gen.pair path_gen path_set_gen)
+    ~print:print_membership (Gen.pair path_gen valid_path_set_gen)
     (fun (path, members) ->
       Bool.equal
         (in_set ~path:(of_uchars path) (List.map of_uchars members))
@@ -129,6 +146,9 @@ let repeated members =
         indexed)
     indexed
 
+(* @verifies text#reject-invalid-inputs=v1
+   A path set that is not valid gives no valid path set for membership and
+   names the invalid member or fault of lowest number. *)
 let path_set_names_its_first_fault =
   property ~count:1000
     ~name:"a path set names its member or its fault of the lowest number"
@@ -161,6 +181,36 @@ let path_set_names_its_first_fault =
           | Ok _, None -> Paths_reference.is_valid_path_set members
           | _ -> false))
 
+(* @verifies text#reject-invalid-inputs=v1
+   Each path set that is not valid, such as a repeated member, only bang
+   members, or a bad glob, is rejected with its fault and gives no valid path
+   set for membership. *)
+let invalid_path_sets_are_rejected () =
+  let check_fault name texts expected =
+    match Path_set.of_texts (List.map text_of texts) with
+    | Error _ -> Alcotest.failf "%s: expected valid globs" name
+    | Ok set ->
+        Alcotest.(check bool)
+          name true
+          (match Path_set.validate set with
+          | Error found -> found = expected
+          | Ok _ -> false)
+  in
+  check_fault "repeated member" [ "a/"; "a/" ]
+    (Path_set.Repeated_member { first = 1; second = 2 });
+  check_fault "repeated non-adjacent member" [ "a/"; "!b/"; "a/" ]
+    (Path_set.Repeated_member { first = 1; second = 3 });
+  check_fault "only bang members" [ "!a/" ] Path_set.No_plain_member;
+  check_fault "repeated bang members report repetition first" [ "!a/"; "!a/" ]
+    (Path_set.Repeated_member { first = 1; second = 2 });
+  match Path_set.of_texts (List.map text_of [ "a/"; "docs/**.md" ]) with
+  | Error { member; error } ->
+      Alcotest.(check int) "bad glob member" 2 member;
+      Alcotest.(check bool)
+        "bad glob error" true
+        (error = Sinter_paths.Glob.Adjacent_stars 2)
+  | Ok _ -> Alcotest.fail "bad glob was accepted"
+
 let vector_groups = [ path_set_vectors; membership_vectors ]
 
 let tests =
@@ -171,4 +221,6 @@ let tests =
       order_does_not_change_the_set;
       empty_set_holds_no_path;
       path_set_names_its_first_fault;
+      Alcotest.test_case "invalid path sets are rejected with their fault"
+        `Quick invalid_path_sets_are_rejected;
     ]

@@ -136,6 +136,9 @@ let glob_error =
         | Glob.Adjacent_stars k -> Printf.sprintf "Adjacent_stars %d" k))
     ( = )
 
+(* @verifies text#reject-invalid-inputs=v1
+   A text that is not a valid glob fails Glob.of_text with the error of its
+   first bad part. *)
 let glob_names_the_first_part_with_a_fault () =
   List.iter
     (fun (text, error) ->
