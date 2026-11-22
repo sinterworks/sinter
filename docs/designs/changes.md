@@ -174,7 +174,7 @@ Conformance section of the design name.
 | [parameter](sinter:ontology#parameter=v1), binding | a parameter is a word, such as `default-branch-name`, whose value a design leaves open; a binding of a parameter is a value that configuration gives for it |
 | [tree](sinter:ontology#tree=v1) | a set of files, each with a valid path and a content, in which no two files have the same valid path, such as the files at a commit or in a working tree |
 | [file of the tree of a commit](sinter:#commit-file=v1) | a file that a regular-file entry gives, through the git tree object of the commit, when its path is a valid path |
-| [file of the tree of a working tree](sinter:#working-tree-file=v1) | a regular file that a valid path names from the root folder of a working tree, outside each folder entry `.git`, the folder entry `.jj` of the root folder, and the folders of other git repositories, that git tracks or does not ignore |
+| [file of the tree of a working tree](sinter:#working-tree-file=v1) | a regular file that a valid path names from the root folder of a working tree, outside the folder entries `.git` and `.jj` of the root folder and the folders of other git repositories, that git tracks or does not ignore |
 | [range](sinter:#commit-range=v1) | the set of the commits that one commit reaches and that another commit does not reach |
 | [parents-first order](sinter:#parents-first-order=v1) | the order in which a walk from the commit h of a range from s to h, which takes the parents of each commit in their order, finishes the commits of the range; each commit comes after each of its parents in the range |
 | change | a set of commits whose work is to merge into the default branch as one unit, such as the commits of a pull request |
@@ -205,7 +205,7 @@ Conformance section of the design name.
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | An undisturbed repository read is a repository read during which no process, the program that makes that repository read included, does either of two actions, other than in an own change of that repository read when the file of that own change is not a file of a working tree. The first action is to create, delete, or change a repository file from which that repository read takes bytes. The second action is to change which file a pathname names, or to change whether that pathname names a file, when that repository read uses that pathname to reach or look for a repository file. |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | An own change of a repository read is the creation, the deletion, or the change of one file by the program that makes the repository read, itself or through any program that the program uses, when that file is of one of four kinds. The first kind is a file of a loose object or a pack that the program creates in the repository read, with the files that are for that pack alone, or a folder of the folder tree of an object database. The second kind is a commit-graph file in a fetch that is part of the repository read. The third kind is git's index, a file that the format of git's index names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before the change. The fourth kind is a lock file or a temporary file that the program creates in one of the folders of the first three kinds and deletes, or renames to one of the files of the first three kinds. A change of one of the folders of the first three kinds counts as an own change only when each folder entry that the change creates, deletes, or changes names a file of one of the four kinds that is not a folder, or names a folder that the program created in the repository read. A file that holds a ref, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give no own change, not even as a temporary file of the fourth kind. An own change keeps a repository read undisturbed only when the file of that own change is not a file of a working tree. |
 | [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
-| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [schema](sinter:ontology#schema=v1) | a declared item of the kind schema (the text encoding declares a schema with `@schema`); the schema gives the form of a thing that crosses the edge of a conforming program: the layout of the thing and every constraint that is a property of the thing itself |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
@@ -862,8 +862,7 @@ folder tree whose root is the root folder of the working tree, when p
 meets each of these conditions, the file whose valid path is p and whose
 content is the content of F.
 
-1. No file name of p is `.git`, and the first file name of p is not
-   `.jj`.
+1. The first file name of p is not `.git` and is not `.jj`.
 2. No folder of the path of p, other than the root, holds a folder entry
    whose entry name is the UTF-8 encoding of the text `.git`.
 3. Git's index of the working tree holds an entry for the UTF-8
@@ -902,11 +901,12 @@ walk a commit c of R is to do these three steps in order:
 
 1. start c;
 2. take each parent of c in turn, in the order of the parents, and walk that parent when that parent is in R and is not started when the walk takes that parent;
-3. finish c. The
-walk of R walks h when h is in R, and walks no commit when R is empty.
-The parents-first order of R is the order in which the walk of R
-finishes the commits of R. So each commit of R comes after each of its
-parents that is in R.
+3. finish c.
+
+When h is in R, the walk of R walks h. Otherwise, R is empty, and the
+walk of R walks no commit. The parents-first order of R is the order in
+which the walk of R finishes the commits of R. So each commit of R comes
+after each of its parents that is in R.
 
 ### 4.18 The change of a commit
 
@@ -2149,13 +2149,16 @@ stands for an undisturbed repository read.
   lists, in the order in which that git tree object lists those entries.
   The JSON object of an entry has the member `name`, the name of the
   entry, a byte sequence, and the member `mode`, the mode of the entry,
-  a text of octal digits, such as `100644`, or `40000`, which the page
-  gitdatamodel writes as `040000`. The JSON object of a tree entry also
+  one of six texts: `40000` (which the page gitdatamodel writes as
+  `040000`) for a tree entry; `100644`, `100664`, or `100755` for a
+  regular-file entry; `120000` for a symbolic-link entry; and `160000`
+  for a submodule entry. The JSON object of a tree entry also
   has the member `entries`, in the same form, for the entries that the
   git tree object that the tree entry names lists. A regular-file entry
   and a symbolic-link entry name blobs, and a submodule entry names a
   commit of another git repository; the vectors do not give their
-  contents.
+  contents. No two entries of the git tree object of the commit have the
+  same byte path.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `paths`: the set of the valid
   paths of the files of the tree of the commit.
@@ -2226,7 +2229,8 @@ commit.
   holds an entry for the UTF-8 encoding of p, as a set of texts.
   `ignored` is the set of the valid paths of the regular files of the
   folder tree that are ignored in the working tree, as a set of texts.
-  `ignored` can hold a path that `tracked` also holds. The input stands
+  Each element of `ignored` is the valid path of a regular file of
+  `folder-tree`. `ignored` can hold a path that `tracked` also holds. The input stands
   for an undisturbed repository read of the working tree during which a
   file system stores the folder tree of `folder-tree`, as a stored
   folder tree, for the process of the program, apart from the files and
@@ -2273,14 +2277,13 @@ each need is, and when a vector has it.
 @schema reach-vector=v1
 @cites {
     rfc/8259,
-    gitdoc/gitrepository-layout,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     conformance#{conforming-program=v1},
     text#{text=v1, result=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
-        decide-reach=v1, commit=v1, reach=v1, repository-read=v1,
-        undisturbed-read=v1,
+        decide-reach=v1, commit=v1, shallow-commit=v1, reach=v1,
+        repository-read=v1, undisturbed-read=v1,
     },
 }
 
@@ -2295,7 +2298,7 @@ key of the member is the name of the commit. The value of the member is
 a JSON array of the names of the parents of the commit, in their order.
 So `{"a":[],"b":["a"]}` is a commit `a` with no parents and a commit `b`
 whose first parent is `a`. A commit with no parents in a commit graph
-can also stand for a commit that the file `shallow` names. Each vector
+can also stand for a shallow commit. Each vector
 stands for an undisturbed repository read.
 
 - `input`: a JSON object. Its member `commits` is the commit graph. The
@@ -2317,19 +2320,19 @@ gives the result that `result` holds, and no other result.
 @schema parent-vector=v1
 @cites {
     rfc/8259,
-    gitdoc/gitrepository-layout,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     conformance#{conforming-program=v1},
     text#{code-span=v1},
     #{
         default-branch-commit-vector=v1, give-commit-parents=v1,
-        commit=v1, repository-read=v1, undisturbed-read=v1,
+        commit=v1, shallow-commit=v1, repository-read=v1,
+        undisturbed-read=v1,
     },
 }
 
 The group `parents` holds the vectors of the requirement
 `give-commit-parents`. Each vector gives what a commit object names as
-its parents, whether the file `shallow` names the commit, and the
+its parents, whether the commit is a shallow commit, and the
 parents of the commit. JSON objects, members, arrays, strings, and the
 literal names `true` and `false` are as RFC 8259 defines them. A commit
 and short commit names are as `default-branch-commit-vector` gives. A
@@ -2340,9 +2343,9 @@ other commit. Each vector stands for an undisturbed repository read.
 
 - `input`: a JSON object. Its member `named` is the commits that the
   commit object names as its parents, as a sequence. The member
-  `shallow` of `input` is the JSON literal name `true` when the file
-  `shallow` names the commit, and `false` when the file `shallow` does
-  not name the commit.
+  `shallow` of `input` is the JSON literal name `true` when the commit
+  is a shallow commit, and `false` when the commit is not a shallow
+  commit.
 - `result`: no vector of the group has this member.
 - `values`: a JSON object with one member, `parents`: the parents of the
   commit, as a sequence.
@@ -2764,6 +2767,7 @@ change of h and that the change of h has no diff.
 @schema upstream-vector=v1
 @cites {
     rfc/8259,
+    gitdoc/git-config,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{default-branch=v1, parameter=v1},
     conformance#{conforming-program=v1},
@@ -2793,13 +2797,17 @@ order. Each vector stands for an undisturbed repository read.
   `settings` of `input` is a JSON object with one member for each
   setting of the git configuration of the git repository. For each such
   setting, the key of its member in `settings` is the name of the
-  setting, a text such as `branch.main.remote`. For each such setting,
-  the value of its member in `settings` is the values of the setting, as
-  a list of texts. The member `refs` of `input` is a JSON object with
-  one member for each ref of the git repository. For each such ref, the
-  key of its member in `refs` is the name of the ref, a text. For each
-  such ref, the value of its member in `refs` is the commit to which the
-  ref points.
+  setting, a text such as `branch.main.remote`. In each key of
+  `settings`, the section name and the variable name, as the page
+  git-config defines them, hold no upper-case letter from `A` to `Z`,
+  and no two keys of `settings` name the same setting. For each such
+  setting, the value of its member in `settings` is the values of the
+  setting, as a list of texts. The setting `branch.<name>.merge`, with
+  b for `<name>`, has at most one value. The member `refs` of `input` is
+  a JSON object with one member for each ref of the git repository. For
+  each such ref, the key of its member in `refs` is the name of the ref,
+  a text. For each such ref, the value of its member in `refs` is the
+  commit to which the ref points.
 - `result`: no vector of the group has this member.
 - `values`: when the default branch has a commit, a JSON object with one
   member, `commit`: that commit. When it has none, the empty JSON
@@ -2830,7 +2838,8 @@ binding.
     conformance#{conforming-program=v1},
     text#{
         text=v1, character=v1, code-point=v1, byte-sequence=v1,
-        code-span=v1,
+        valid-utf-8=v1, text-of-a-byte-sequence=v1, carriage-return=v1,
+        u-numeral=v1, code-span=v1,
     },
     #{
         branch-name-vector=v1, commit-file-vector=v1,
@@ -2852,7 +2861,9 @@ of texts are as `commit-file-vector` gives. The git repository of a
 vector holds no commit.
 
 - `input`: a JSON object with two members. `gitignore` is the content of
-  the file `.gitignore`, as a byte sequence. `names` is the set of the
+  the file `.gitignore`, as a byte sequence. That byte sequence is valid
+  UTF-8, and the text of that byte sequence does not end with a carriage
+  return and holds no U+0000. `names` is the set of the
   file names of the other regular files of the root folder, as a set of
   texts. No element of `names` is `.git` or `.gitignore`. Each element
   of `names` holds only characters whose code points are less than 128.
