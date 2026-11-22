@@ -39,13 +39,22 @@ type 'result outcome = private {
 }
 (** The result of a call. [cause] is [Some _] exactly when the call failed
     before it gave a response; the result is then "failed" with no error text.
-    The cause is for a person, and it is never the error text of the adapter. *)
+    The cause is for a person, and it is never the error text of the adapter.
+    The result "failed" also comes for a stop at a limit of the program, as
+    {!recognise} says, so a caller reads [cause] to tell a stop at a limit from
+    another failure: a stop in a step of the call gives [Failed Stack_exhausted]
+    or [Failed (Stopped _)], and a stop in the decision that the call uses gives
+    [Not_valid (Instantiation_failed f)] or [Not_valid (Interface_failed f)],
+    with [f] [Stack_exhausted] or [Stopped _]. *)
 
 val too_long : int -> bool
 (** [too_long length] is [true] exactly when a request or a report content of
     [length] bytes is too long for a call: when [length] is 4,294,967,296 or
     more. *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A stop at a limit of the program in a step of the call gives the cause
+   [Failed] with the failure of that step, which names the limit. *)
 val recognise :
   limits:Instance.limits ->
   Adapter.decision ->
@@ -73,12 +82,20 @@ val recognise :
       size of the memory.
 
     Each address and each length is unsigned. The call fails when one of these
-    fails; when the program stops the instantiation or an invocation at a limit
-    of [limits], the cause is [Failed (Stopped _)]. Otherwise its result is
-    {!Response.recognise} of the response: the length bytes of the memory from
-    the address on. The call releases its instance. The function ends: the fuel
-    of [limits] bounds the code that it runs. It raises [Failure] only when the
-    engine stops on an internal fault, and no other exception. *)
+    fails. When the code of the instantiation or of an invocation exhausts its
+    call stack, or the program stops it at a limit of [limits], the cause is
+    [Failed Stack_exhausted] or [Failed (Stopped _)], and the result is
+    "failed". A stop at fuel or an exhausted call stack ends code that can be
+    code that never ends, and the program cannot tell such code from code that
+    needs more fuel or more stack; a stop at memory or table elements can also
+    come from code that never ends, such as a loop that grows a memory without
+    end. So the program gives for each of them the result that a fault of the
+    input gives, and the failure names the limit at which the program stopped.
+    Otherwise its result is {!Response.recognise} of the response: the length
+    bytes of the memory from the address on. The call releases its instance. The
+    function ends: the fuel of [limits] bounds the code that it runs. It raises
+    [Failure] only when the engine stops on an internal fault, and no other
+    exception. *)
 
 val bind :
   limits:Instance.limits ->

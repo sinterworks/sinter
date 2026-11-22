@@ -88,6 +88,11 @@ val load_limits : Instance.limits
     of fuel, 268,435,456 bytes (256 MiB) of memory, and 1,048,576 table
     elements. *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A stop at a limit of the program in the decision gives [Link_failed] with
+   the failure that names the limit; a memory alignment of more than 4 and a
+   table alignment of more than 0 give [Link_failed (Stopped Memory)] and
+   [Link_failed (Stopped Table)]. *)
 val decide :
   ?limits:Instance.limits ->
   Core.t ->
@@ -136,8 +141,15 @@ val decide :
     the table traps, and gives [Link_failed (Trap _)]: so does a language whose
     list of the names of its symbols lies outside the memory.
 
-    When the program stops the code at a limit of [limits], the result is
-    [Error (Link_failed (Stopped _))]: a decision with other [limits] can give
+    When the code exhausts its call stack, or the program stops the code at a
+    limit of [limits], the result is [Error (Link_failed f)], with [f]
+    [Stack_exhausted] or [Stopped _]: "invalid". A stop at fuel or an exhausted
+    call stack ends code that can be code that never ends, and the program
+    cannot tell such code from code that needs more fuel or more stack; a stop
+    at memory or table elements can also come from code that never ends, such as
+    a loop that grows a memory without end. So the program gives for each of
+    them the result that a fault of the input gives, and the failure names the
+    limit at which the program stopped. A decision with other [limits] can give
     another result only for such a byte sequence. Two alignments give such a
     stop whatever [limits] is, as limits of the program: a memory alignment of
     more than 4 gives [Error (Link_failed (Stopped Memory))], and a table
@@ -189,6 +201,9 @@ val too_long : int -> bool
 (** [too_long bytes] is [true] exactly when a parse text of [bytes] bytes is too
     long for {!parse}: when [bytes] is 4,294,967,296 or more. *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A stop at a limit of the program in a parse gives [Failed] with the failure
+   that names the limit. *)
 val parse :
   limits:Instance.limits -> t -> Text.t -> (Parse_tree.t, parse_failure) result
 (** [parse ~limits grammar text] is the parse tree of [text] with [grammar]: the
@@ -198,11 +213,13 @@ val parse :
     links the module and invokes its functions as {!decide} does. It is
     [Error Too_long] when the number of bytes of the parse text is {!too_long},
     and [Error] when the parsing gives no parse tree, and when the
-    instantiation, the link, or an invocation fails in that instance; a stop at
-    a limit of [limits] gives [Error (Failed (Stopped _))]; {!parse_limits}
-    gives limits for a text. The function returns after at most the fuel of
-    [limits] in the code that it runs. Apart from the time of the code that the
-    parse runs, the time of the function is in O(m + n log m) for a parse text
-    of m bytes and a parse tree of n nodes (see {!Parse_tree.decode}).
+    instantiation, the link, or an invocation fails in that instance. An
+    exhausted call stack or a stop at a limit of [limits] gives
+    [Error (Failed Stack_exhausted)] or [Error (Failed (Stopped _))], which
+    names the limit, and no parse tree. {!parse_limits} gives limits for a text.
+    The function returns after at most the fuel of [limits] in the code that it
+    runs. Apart from the time of the code that the parse runs, the time of the
+    function is in O(m + n log m) for a parse text of m bytes and a parse tree
+    of n nodes (see {!Parse_tree.decode}).
 
     @raise Failure when the engine stops on an internal fault. *)

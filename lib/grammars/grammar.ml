@@ -353,6 +353,11 @@ let parse_tree grammar text bytes linked =
 
 let too_long bytes = bytes > 0xFFFF_FFFF
 
+(* @satisfies packs#omit-nodes-of-unparsed-readings=v1
+   A parse that gives no parse tree, such as a text that is too long, a parse
+   with no tree, a record that is not a parse tree, a failure of the code, or
+   a stop at a limit of the program, gives an error and no parse tree, so the
+   reading gives no node. *)
 let parse ~limits grammar text =
   let bytes, length = measured text in
   if too_long length then Error Too_long

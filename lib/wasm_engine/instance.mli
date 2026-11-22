@@ -54,10 +54,15 @@ val limits :
     [Error (Negative l)] for the first of [fuel], [memory], and [table] that is
     negative, in that order. *)
 
-(** Why an instantiation or an invocation failed. *)
+(** Why an instantiation or an invocation failed. [Stack_exhausted] and
+    [Stopped _] are stops at limits of the program, which code that never ends
+    can also give: a caller cannot tell such a stop from code that never ends.
+*)
 type failure =
   | Trap of string  (** the code trapped, with the message of the engine *)
-  | Stack_exhausted  (** the code exhausted its call stack *)
+  | Stack_exhausted
+      (** the code exhausted its call stack: a stop at the limit of the program
+          on the stack *)
   | Stopped of limit
       (** the program stopped the code at this limit: the code used all of its
           fuel, or the instantiation or an instruction [memory.grow] or
@@ -77,6 +82,11 @@ type t
    Each instance is a new instance of its module, made with no import in a new
    store, and its code runs as the WebAssembly Core Specification 2.0 defines,
    with the program as its embedder and these limits as its only choices. *)
+
+(* @satisfies text#report-stops-at-limits=v1
+   A stop of the code at a limit of the program gives [Stack_exhausted] or
+   [Stopped] with the limit, apart from a trap, so the caller can report the
+   limit at which the program stopped. *)
 
 (* @satisfies packs#end-adapter-code=v1
    Every instance has limits, and its fuel bounds all of its code: the

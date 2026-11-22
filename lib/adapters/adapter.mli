@@ -34,6 +34,10 @@ val compiled : t -> Wasm_module.t
 type decision = (t, invalid) result
 (** The result of one decision: [Ok] for "valid" and [Error] for "invalid". *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A stop at a limit of the program in the decision gives the failure of the
+   instantiation or of the invocation of sinter_interface, which names the step,
+   with the limit. *)
 val decide : limits:Instance.limits -> Engine.t -> string -> decision
 (** [decide ~limits engine bytes] decides whether [bytes] is a valid adapter. It
     is [Ok] when [bytes] is a WebAssembly module of the WebAssembly Core
@@ -47,8 +51,15 @@ val decide : limits:Instance.limits -> Engine.t -> string -> decision
     releases it. It is [Error] in each other case, with the first condition that
     does not hold, in the order above.
 
-    When the program stops the instantiation or the invocation at a limit of
-    [limits], the result is [Error (Instantiation_failed (Stopped _))] or
-    [Error (Interface_failed (Stopped _))]: "invalid". A decision with other
+    When the code of the instantiation or of the invocation exhausts its call
+    stack, or the program stops it at a limit of [limits], the result is
+    [Error (Instantiation_failed f)] or [Error (Interface_failed f)], with [f]
+    [Stack_exhausted] or [Stopped _]: "invalid". A stop at fuel or an exhausted
+    call stack ends code that can be code that never ends, and the program
+    cannot tell such code from code that needs more fuel or more stack; a stop
+    at memory or table elements can also come from code that never ends, such as
+    a loop that grows a memory without end. So the program gives for each of
+    them the result that a fault of the input gives, and the failure names the
+    limit and the step at which the program stopped. A decision with other
     [limits] can give another result only for such a module. The function never
     raises, and it ends: the fuel of [limits] bounds the code that it runs. *)
