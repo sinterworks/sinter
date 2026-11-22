@@ -1583,7 +1583,11 @@ The members of a vector line have these forms:
   of the report content for the test runner, when the data of the
   runner is valid. A vector whose data of the runner is not valid has
   no member `result`.
-- `values`: the empty JSON object, `{}`.
+- `values`: the empty JSON object, `{}`. When the vector has a member
+  `result`, `values` stands for no value other than the default
+  recognition. When the vector has no member `result`, `values` stands
+  for reporting that the data of the runner is not valid and where, and
+  for giving neither "recognised" nor "not recognised".
 
 When the vector has a member `result` and a conforming program gives
 the default recognition of the report content of the input for the test
@@ -1703,11 +1707,12 @@ other test result. When the vector has a member `result` and a
 conforming program gives the result links of the reading, the
 conforming program gives the result links that `links` gives, and no
 other result link. When `values` is `{}` and the vector has a member
-`result`, a conforming program gives no test result and no result link.
-When the vector has no member `result`, the data of the runner of the
-input is not valid, and a conforming program reports that the data of
-the runner is not valid and where, and gives no result of that reading,
-no test result, and no result link.
+`result`, a conforming program gives no test result of that reading and
+no result link of that reading. When the vector has no member `result`,
+the data of the runner of the input is not valid, and a conforming
+program reports that the data of the runner is not valid and where, and
+gives no result of that reading, no test result of that reading, and no
+result link of that reading.
 
 ```
 {"form":"#reading-vector=v1","group":"readings","input":{"match":{"file":["classname"],"path":["name"],"placeholders":["%[sdifjoOc]","[$][A-Za-z_][A-Za-z0-9_.]*"],"suite-separator":" > ","test-separator":" > "},"report":"<testsuites name=\"vitest tests\"><testsuite name=\"src/math.test.ts\"><testcase classname=\"src/math.test.ts\" name=\"outer &gt; each 1 + 2 = 3\" time=\"0.001\"/></testsuite></testsuites>","settings":{"recognise":["testsuites@name=vitest tests"]},"tests":[{"eline":9,"id":"src/math.test.ts#1","line":1,"names":[[{"text":"outer"}]],"path":"src/math.test.ts","suite":true},{"eline":4,"id":"src/math.test.ts#2","line":2,"names":[[{"text":"outer"}],[{"text":"each %i + %i = %i"}]],"path":"src/math.test.ts","suite":false}]},"note":"each %i becomes a placeholder, and the file matches the path","result":"bound","values":{"links":[[1,"src/math.test.ts#2"]],"results":[{"file":"src/math.test.ts","ms":1,"name":"outer > each 1 + 2 = 3","status":"pass"}]}}
