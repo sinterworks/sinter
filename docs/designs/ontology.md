@@ -1244,7 +1244,8 @@ delivery line names, and for each promise of that definition:
 For each promise of each definition of that task that the delivery line
 names, that record of the job also records whether the promise was kept
 or was not kept. A promise with no item of the kind requirement with its
-name, or with two or more such items, was not kept.
+name in that tree, or with two or more such items in that tree, was not
+kept.
 
 ### 3.49 The states of work items
 
