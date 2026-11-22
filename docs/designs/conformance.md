@@ -18,11 +18,11 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [specification](sinter:#specification=v1) | a declared item of the kind specification that has a name of its own and declares some of the requirements and definitions of a design |
 | [requirement](sinter:#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree |
+| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take because the system refused a permission or reported an input or output error is a part that the input lacks |
 | [owner design](sinter:#input=v1) | for a requirement, the design that defines the thing as which that requirement names an input |
 | [depends on](sinter:#dependence=v1) | a thing that a program gives or does depends on an input, a part of an input, or a reading or computation when a change to that input or part can change what a requirement obliges for that thing, or when the program computes or chooses that thing from it |
 | [needs](sinter:#dependence=v1) | which parts of a valid input a thing that a requirement obliges requires, as the owner design or the declaring design says, or by default every part on which that thing depends |
-| [limit of a program's own](sinter:#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks is not a limit of its own |
+| [limit of a program's own](sinter:#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks, code that never ends, a permission that the system refuses, and an input or output error are not limits of a program's own |
 | [report](sinter:#report=v1) | a thing that a program gives to identify a stop at a limit of its own, an input that is not valid, or a missing part of a valid input |
 | [safety obligation](sinter:#safety-obligation=v1) | an obligation of a requirement that states that a program reads, alters, writes, follows, or runs no thing other than the things that the requirement allows, or gains no permission; that a program never gives an answer that permits an action to proceed; or that a program ends code or an operation that the program runs |
 | [object](sinter:#object=v1) | a thing of a kind that a design defines as a kind of object by citing `object` and stating that things of that kind are objects; each object has one canonical form |
@@ -105,6 +105,19 @@ part is missing, gives nothing and does nothing that needs the missing
 commits, and gives and does every thing that does not need those missing
 commits (`report-missing-parts`).
 
+Content that a program could not take because the system refused a
+permission or reported an input or output error is also a part that the
+input lacks for every owner design (term `input`), and is not a limit of
+the program's own (term `own-limit`). For example, suppose a program
+reads a folder tree of files, and the system refuses the program
+permission to read one file or reports an input or output error for that
+file. The program reports which file it could not read, gives nothing
+and does nothing that needs that file's content, and gives and does
+every thing that does not need that file's content
+(`report-missing-parts`). By contrast, when the program stops reading
+that file because the file is too large for the program's memory, the
+program reaches a limit of its own (`own-limit`).
+
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
 An object is a thing of a kind that a design defines as a kind of object
@@ -123,7 +136,7 @@ source files in a folder tree and a second encoding that stores objects
 of the same kinds in a file of records.
 
 When a requirement defines what a program gives or does over objects,
-what the program gives and does for that requirement is what that
+what the program gives and does about those objects is what that
 requirement obliges for the set of the canonical objects that all valid
 encoding inputs and valid program's own stores taken for that
 requirement hold together (`give-results-over-canonical-objects`).
@@ -132,7 +145,10 @@ encoding without changing the object's canonical form, and all inputs
 before and after the move are valid. Both sets of inputs hold the same
 set of canonical objects. So, for each requirement that defines what a
 program gives or does over objects, a conforming program gives and does
-the same things before and after the move.
+the same things about those objects before and after the move. Only two
+things can change: any place in an input that a requirement gives for an
+object, such as a line of a file, and what requirements about an input
+in an encoding itself oblige.
 
 When a requirement R defines what a program gives or does over objects
 of a kind, a conforming program that meets R takes every object of that
@@ -220,7 +236,11 @@ input for R says so.
 
 An input can have parts, such as the commits of a history or the files
 of a folder tree. The owner design of an input defines which parts such
-an input has and which parts a valid input can lack.
+an input has and which parts a valid input can lack. In addition, for
+every owner design, when the system refuses a program a permission, or
+reports an input or output error, while the program reads an input or a
+part of an input, the content that the program could not take is a part
+that the input lacks. In that case, the input does not hold that part.
 
 ### 3.5 Dependence
 
@@ -273,7 +293,14 @@ stops a reading or computation because of such a bound, or its machine
 ends the program because of such a bound. Code that never ends makes the
 input that supplies it not valid and is not a limit of a program's own,
 so a program that ends code that never ends reaches no limit of its own
-by ending that code.
+by ending that code. A permission that the system refuses, or an input
+or output error that the system reports, while a program reads an input
+or a part of an input makes the content that the program could not take
+a part that the input lacks. Neither that refusal nor that error is a
+limit of a program's own, so a program reaches no limit of its own when
+it stops reading because of that refusal or error. A program that stops
+reading a file because of a bound on a resource, such as a file that is
+too large for the program's memory, reaches a limit of its own.
 
 ### 3.7 Reports
 
@@ -511,8 +538,8 @@ its requirement.
 
 @req give-results-over-canonical-objects=v1
 @cites #{
-    design=v1, requirement=v1, input=v1, object=v1, encoding=v1,
-    own-store=v1,
+    design=v1, requirement=v1, input=v1, dependence=v1, object=v1,
+    encoding=v1, own-store=v1,
 }
 
 When a requirement R defines what a program gives or does over objects,
@@ -525,6 +552,15 @@ obliges:
   for R;
 - each valid program's own store from which the program takes objects
   for R.
+
+This requirement binds what R obliges a program to give or do about
+those objects. A place in an input that R obliges a program to give for
+an object, such as a line of a file, depends on the input in which the
+program found that object. This requirement does not bind whether R
+obliges such a place or which place R obliges. This requirement also
+does not bind a requirement that defines what a program gives or does
+about an input in an encoding itself, rather than about objects. What
+such a requirement obliges depends on the input in that encoding.
 
 Because two objects with the same canonical form are the same canonical
 object, a canonical object that two or more of those inputs hold appears
