@@ -383,9 +383,9 @@ them. No vector follows from the requirements
 @cites {
     rfc/8259,
     text#{
-        conforming-program=v1, text=v1, character=v1, valid-utf-8=v1,
-        result=v1, code-point-order=v1, span=v1, boundary=v1,
-        decimal-numeral=v1, code-span=v1,
+        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
+        character=v1, valid-utf-8=v1, result=v1, code-point-order=v1,
+        span=v1, boundary=v1, decimal-numeral=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1},
     data-forms#{
@@ -407,7 +407,8 @@ them. No vector follows from the requirements
 The group `trees` holds the vectors whose inputs are a base tree, a
 tree, a binding of `file-readers` whose readers are all `markdown`, and
 a binding of `external-namespaces`. Its requirements are
-`give-needs-revision-findings` and `give-suspect-findings`. Each vector
+`give-needs-revision-findings`, `give-suspect-findings`, and
+`reject-invalid-inputs` of Text. Each vector
 of the group has the member `values`, and no vector has the member
 `result`. These forms name no question for `result`. The group uses no
 need, so these forms give no need names.
@@ -465,7 +466,7 @@ numeral.
 For the input of a vector, when a conforming program reaches no limit of
 its own, that conforming program gives what `values` states. When
 `values` is `{}`, that conforming program gives no finding of either
-class for the tree (by `conforming-program` of Text). When `values` is
+class for the tree (by `reject-invalid-inputs` of Text). When `values` is
 not `{}` and that conforming program gives the findings of the class
 `needs-revision` of the tree against the base tree under the two
 bindings of the input, that conforming program gives one finding of that
