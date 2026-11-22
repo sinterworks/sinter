@@ -160,15 +160,14 @@ val ref_commit : (string * target) list -> string -> string option
     ref. *)
 
 val default_branch_commit :
-  binding:string ->
   upstream:string option option ->
   local:string option option ->
   remote:string option option ->
   string option
-(** [default_branch_commit ~binding ~upstream ~local ~remote] is the commit of
-    the default branch by the term [default-branch-commit]: each ref is [None]
-    when it does not exist, and [Some commit] when it exists, with [commit]
-    [None] when it has no commit. *)
+(** [default_branch_commit ~upstream ~local ~remote] is the commit of the
+    default branch by the term [default-branch-commit] under a binding that is a
+    branch name: each ref is [None] when it does not exist, and [Some commit]
+    when it exists, with [commit] [None] when it has no commit. *)
 
 val message : string -> string
 (** [message content] is the message of a commit object with [content]: the

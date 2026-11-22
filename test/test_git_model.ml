@@ -9,6 +9,7 @@ module Tree = Sinter_tree.Tree
 module Line_map = Sinter_line_maps.Line_map
 module Graph = Sinter_commit_graphs.Commit_graph.Make (String)
 module Ref_commit = Sinter_git_model.Ref_commit
+module Branch_name = Sinter_branch_names.Branch_name
 module Default_branch = Sinter_git_model.Default_branch
 module Message = Sinter_git_model.Message
 module Commit_files = Sinter_git_model.Commit_files
@@ -44,11 +45,6 @@ let text_of bytes =
   match Text.decode bytes with
   | Ok text -> text
   | Error _ -> Alcotest.failf "%S is not valid UTF-8" bytes
-
-let branch_of bytes =
-  match Sinter_branch_names.Branch_name.of_text (text_of bytes) with
-  | Ok branch -> branch
-  | Error _ -> Alcotest.failf "%S is not a branch name" bytes
 
 let path_of bytes =
   match Path.of_text (text_of bytes) with
@@ -116,6 +112,11 @@ let head_commit_vectors =
   Vectors.group set ~name:"head-commits" ~form:"#head-commit-vector=v1"
     give_head_commit
 
+let branch_name_of bytes =
+  match Branch_name.of_text (text_of bytes) with
+  | Ok name -> name
+  | Error _ -> Alcotest.failf "%S is not a branch name" bytes
+
 let upstream_name = "refs/remotes/upstream/the-branch"
 
 let default_commit ~binding ~upstream ~local ~remote =
@@ -138,7 +139,7 @@ let default_commit ~binding ~upstream ~local ~remote =
   in
   ok
     (Default_branch.commit ~upstream:upstream_of ~refs:(refs_of_list refs)
-       (branch_of binding))
+       (branch_name_of binding))
 
 let give_default_branch (vector : Vectors.vector) =
   let ref_ name =
@@ -155,10 +156,9 @@ let give_default_branch (vector : Vectors.vector) =
        ~upstream:(ref_ "upstream") ~local:(ref_ "local") ~remote:(ref_ "remote"))
 
 (* @verifies changes[default-branch-commits]
-   Each vector gives a binding and which of the three refs exist, with their
-   commits; a program that takes the refs in another order, skips a ref that
-   exists with no commit, or takes a binding that is not a branch name, gives
-   another commit. *)
+   Each vector gives a valid binding (a branch name) and which of the three
+   refs exist, with their commits; a program that takes the refs in another
+   order or skips a ref that exists with no commit gives another commit. *)
 let default_branch_vectors =
   Vectors.group set ~name:"default-branch-commits"
     ~form:"#default-branch-commit-vector=v1" give_default_branch
@@ -408,12 +408,12 @@ let errors_of_the_refs_come_back () =
     "a ref of the default branch" (Error "refs/heads/main")
     (Default_branch.commit
        ~upstream:(fun _ -> Ok None)
-       ~refs (branch_of "main"));
+       ~refs (branch_name_of "main"));
   Alcotest.(check (result (option string) string))
     "an upstream" (Error "upstream")
     (Default_branch.commit
        ~upstream:(fun _ -> Error "upstream")
-       ~refs (branch_of "main"))
+       ~refs (branch_name_of "main"))
 
 let a_long_chain_of_symbolic_refs () =
   let length = 200_000 in
@@ -462,18 +462,49 @@ let print_default (binding, upstream, local, remote) =
     (show local) (show remote)
 
 (* @verifies changes#give-default-branch-commits=v1
-   For generated bindings of `default-branch-name`, whether they meet the
-   schema `default-branch-name` or not, and each way in which the three refs
-   exist or not, the function must give the commit of the first ref that exists
-   and no other commit, or no commit when none exists or the binding does not
-   meet the schema, never both. Another order of the refs, or a skip of a ref
-   with no commit, fails. *)
+   @verifies text#reject-invalid-inputs=v1
+   For generated bindings of `default-branch-name`, a binding that is a branch
+   name gives the commit of the first ref that exists and no other commit, or
+   no commit when none exists, never both. A binding that is not a branch name
+   is rejected by `Branch_name.of_text` with the lowest failing condition and
+   cannot be passed to `Default_branch.commit`. *)
 let default_branch_follows_the_term =
   property ~name:"the commit of the default branch is that of the first ref"
     ~print:print_default default_gen (fun (binding, upstream, local, remote) ->
       String.is_valid_utf_8 binding
-      && default_commit ~binding ~upstream ~local ~remote
-         = Model.default_branch_commit ~binding ~upstream ~local ~remote)
+      &&
+      match Branch_name.of_text (text_of binding) with
+      | Ok _ ->
+          Model.is_branch_name binding
+          && default_commit ~binding ~upstream ~local ~remote
+             = Model.default_branch_commit ~upstream ~local ~remote
+      | Error (Branch_name.Condition k) -> (
+          match Model.branch_name_faults binding with
+          | lowest :: _ -> k = lowest
+          | [] -> false))
+
+(* @verifies text#reject-invalid-inputs=v1
+   A binding of `default-branch-name` that is not a branch name, such as
+   `refs/heads/main`, is rejected with its failing condition and gives no
+   `Branch_name.t` for `Default_branch.commit`. *)
+let invalid_default_branch_bindings_are_rejected () =
+  List.iter
+    (fun (binding, expected_condition) ->
+      match Branch_name.of_text (text_of binding) with
+      | Error (Branch_name.Condition got) ->
+          Alcotest.(check int)
+            (Printf.sprintf "condition for %S" binding)
+            expected_condition got
+      | Ok _ -> Alcotest.failf "%S was accepted as a branch name" binding)
+    [
+      ("refs/heads/main", 8);
+      ("", 1);
+      ("HEAD", 7);
+      ("-main", 7);
+      ("a..b", 3);
+      ("a/.b", 2);
+      ("a/", 1);
+    ]
 
 let an_upstream_that_does_not_exist_is_skipped () =
   let refs = refs_of_list [ ("refs/heads/main", Ref_commit.Commit "l") ] in
@@ -481,7 +512,7 @@ let an_upstream_that_does_not_exist_is_skipped () =
     "the local branch" (Ok (Some "l"))
     (Default_branch.commit
        ~upstream:(fun _ -> Ok (Some "refs/remotes/origin/gone"))
-       ~refs (branch_of "main"))
+       ~refs (branch_name_of "main"))
 
 let a_broken_ref_of_the_default_branch_decides () =
   let refs =
@@ -495,17 +526,17 @@ let a_broken_ref_of_the_default_branch_decides () =
     "no commit" (Ok None)
     (Default_branch.commit
        ~upstream:(fun _ -> Ok None)
-       ~refs (branch_of "main"))
+       ~refs (branch_name_of "main"))
 
 let the_upstream_takes_the_branch_name () =
   let seen = ref [] in
   let upstream name =
-    seen := Text.encode (Sinter_branch_names.Branch_name.to_text name) :: !seen;
+    seen := Text.encode (Branch_name.to_text name) :: !seen;
     Ok None
   in
   ignore
     (Default_branch.commit ~upstream ~refs:(refs_of_list [])
-       (branch_of "release/2.0"));
+       (branch_name_of "release/2.0"));
   Alcotest.(check (list string)) "the names" [ "release/2.0" ] !seen
 
 let header =
@@ -836,6 +867,9 @@ let tests =
         "a chain of 200,000 symbolic refs on a stack of 512 KiB" `Quick
         a_long_chain_of_symbolic_refs;
       default_branch_follows_the_term;
+      Alcotest.test_case
+        "invalid default-branch-name bindings are rejected with their condition"
+        `Quick invalid_default_branch_bindings_are_rejected;
       Alcotest.test_case "an upstream that does not exist is skipped" `Quick
         an_upstream_that_does_not_exist_is_skipped;
       Alcotest.test_case "a broken ref of the default branch decides" `Quick

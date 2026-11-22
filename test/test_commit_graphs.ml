@@ -234,10 +234,11 @@ let merge_bases_are_each_once =
           List.length bases = List.length (List.sort_uniq String.compare bases)))
 
 (* @verifies changes#give-changes-of-commits=v1
-   For every commit as the commit of the default branch under a binding of
-   `default-branch-name`, the change of each commit must be exactly the commits
-   of the range from that default commit. With no commit of the default branch,
-   the function must give no change, never both commits and no change. *)
+   For every commit as the commit of the default branch under a valid binding
+   of `default-branch-name` (a branch name), the change of each commit must be
+   exactly the commits of the range from that default commit. With no commit
+   of the default branch, the function must give no change, never both commits
+   and no change. *)
 let changes_follow_the_term =
   property ~name:"the change of a commit is the range from the default commit"
     both_gen (fun model ->
@@ -256,10 +257,11 @@ let change_keeps_the_order_of_the_range =
           = Some (ok (Graph.range graph ~from:(Some d) h))))
 
 (* @verifies changes#give-change-bases=v1
-   For every two commits under a binding of `default-branch-name`, the base
-   must be the single merge base and no other commit when there is exactly one
-   merge base. When there are none, several, or no default commit, the function
-   must give no base, never both a base and no base. *)
+   For every two commits under a valid binding of `default-branch-name` (a
+   branch name), the base must be the single merge base and no other commit
+   when there is exactly one merge base. When there are none, several, or no
+   default commit, the function must give no base, never both a base and no
+   base. *)
 let change_bases_follow_the_term =
   property ~name:"the base is the one merge base, or none" both_gen
     (fun model ->

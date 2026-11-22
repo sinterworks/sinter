@@ -466,6 +466,9 @@ let files_tests =
             "";
             "refs/heads/\xff";
           ]);
+    (* @verifies text#report-stops-at-limits=v1
+       A loose ref file or packed-refs file larger than its limit stops and
+       reports Unread with Too_large and the pathname of the file. *)
     case "a file larger than its limit gives no target, one inside gives it"
       (fun () ->
         let content = h1 ^ "\n" in

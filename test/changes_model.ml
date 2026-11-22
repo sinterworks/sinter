@@ -391,12 +391,10 @@ let ref_commit refs name =
   in
   go [] name
 
-let default_branch_commit ~binding ~upstream ~local ~remote =
-  if not (is_branch_name binding) then None
-  else
-    match List.find_opt Option.is_some [ upstream; local; remote ] with
-    | Some (Some commit) -> commit
-    | _ -> None
+let default_branch_commit ~upstream ~local ~remote =
+  match List.find_opt Option.is_some [ upstream; local; remote ] with
+  | Some (Some commit) -> commit
+  | _ -> None
 
 let message content =
   let k = String.length content in
