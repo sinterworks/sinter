@@ -654,21 +654,41 @@ let global_files context =
       List.filter_map Fun.id
         [ xdg; Option.map (fun home -> home ^ "/.gitconfig") home ]
 
-let worktree_config ~working_tree_folder settings =
+let reads_worktree_config settings =
+  let* version =
+    Result.map_error
+      (fun _ -> Not_an_integer (key ~section:"core" "repositoryformatversion"))
+      (format_version settings)
+  in
   let wanted = key ~section:"extensions" "worktreeConfig" in
-  match
-    List.rev
-      (List.filter_map
-         (fun (key, value) -> if key = wanted then Some value else None)
-         settings)
-  with
-  | [] -> Ok []
-  | value :: _ -> (
-      match boolean value with
-      | Some true ->
-          Ok [ Filename.concat working_tree_folder "config.worktree" ]
-      | Some false -> Ok []
-      | None -> Error (Not_a_boolean wanted))
+  let* enabled =
+    List.fold_left
+      (fun found (key, value) ->
+        let* _ = found in
+        if not (equal_key key wanted) then found
+        else
+          match boolean value with
+          | Some enabled -> Ok enabled
+          | None -> Error (Not_a_boolean wanted))
+      (Ok false) settings
+  in
+  Ok (enabled && match version with Some n -> n <= 1 | None -> false)
+
+let repository_file context pathname =
+  let* file = read_file context pathname in
+  match file with
+  | No_file | Folder -> Ok None
+  | Unreadable -> Error (Unreadable_file pathname)
+  | Content { content; identity } -> (
+      match parse content with
+      | Error { line } -> Error (Syntax { pathname; line })
+      | Ok settings -> Ok (Some ((pathname, identity), settings)))
+
+let apply_repository_file context = function
+  | None -> Ok ()
+  | Some (((pathname, _) as file), settings) ->
+      apply context ~pathname:(Some pathname) ~inclusion:Plain ~chain:[ file ]
+        settings
 
 let rec each f = function
   | [] -> Ok ()
@@ -676,8 +696,8 @@ let rec each f = function
       let* () = f x in
       each f rest
 
-let collect ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
-    ~git_directories ~urls =
+let collect ~limits ~environment ~read ~real_path ~branch ~git_folder
+    ~worktree_folder ~git_directories ~urls =
   if limits.max_files < 0 || limits.max_values < 0 then
     invalid_arg "Sinter_git_config: a negative limit";
   let context =
@@ -695,31 +715,23 @@ let collect ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
       count = 0;
     }
   in
-  let local = Filename.concat git_folder "config" in
   let* system = system_files context in
   let* () = each (outer_file context) system in
   let* () = each (outer_file context) (global_files context) in
-  let* local_file = read_file context local in
-  let* local_settings =
-    match local_file with
-    | No_file -> Ok []
-    | Folder | Unreadable -> Error (Unreadable_file local)
-    | Content { content; identity } -> (
-        match parse content with
-        | Error { line } -> Error (Syntax { pathname = local; line })
-        | Ok settings ->
-            let* () =
-              apply context ~pathname:(Some local) ~inclusion:Plain
-                ~chain:[ (local, identity) ]
-                settings
-            in
-            Ok settings)
+  let* local = repository_file context (Filename.concat git_folder "config") in
+  let* reads_worktree =
+    reads_worktree_config
+      (match local with None -> [] | Some (_, settings) -> settings)
   in
-  let* extra = extra local_settings in
+  let* () = apply_repository_file context local in
   let* () =
-    each
-      (fun pathname -> include_file context ~chain:[] ~inclusion:Plain pathname)
-      extra
+    if reads_worktree then
+      let* file =
+        repository_file context
+          (Filename.concat worktree_folder "config.worktree")
+      in
+      apply_repository_file context file
+    else Ok ()
   in
   let* () = environment_settings context in
   Ok
@@ -728,11 +740,11 @@ let collect ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
       | After_hasconfig -> true
       | Before_hasconfig _ -> false )
 
-let build ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
-    ~git_directories =
+let build ~limits ~environment ~read ~real_path ~branch ~git_folder
+    ~worktree_folder ~git_directories =
   let* settings, conditional =
-    collect ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
-      ~git_directories ~urls:None
+    collect ~limits ~environment ~read ~real_path ~branch ~git_folder
+      ~worktree_folder ~git_directories ~urls:None
   in
   let* settings =
     if not conditional then Ok settings
@@ -749,8 +761,8 @@ let build ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
           (Ok []) settings
       in
       let* settings, _ =
-        collect ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
-          ~git_directories ~urls:(Some urls)
+        collect ~limits ~environment ~read ~real_path ~branch ~git_folder
+          ~worktree_folder ~git_directories ~urls:(Some urls)
       in
       Ok settings
   in
@@ -763,14 +775,12 @@ let build ~limits ~environment ~read ~real_path ~branch ~git_folder ~extra
 let of_repository ~limits ~environment ~read ~real_path ~git_directories ~branch
     git_folder =
   build ~limits ~environment ~read ~real_path ~branch ~git_folder
-    ~extra:(fun _ -> Ok [])
-    ~git_directories
+    ~worktree_folder:git_folder ~git_directories
 
 let of_working_tree ~limits ~environment ~read ~real_path ~git_folder
     ~git_directories ~branch working_tree_folder =
   build ~limits ~environment ~read ~real_path ~branch ~git_folder
-    ~extra:(worktree_config ~working_tree_folder)
-    ~git_directories
+    ~worktree_folder:working_tree_folder ~git_directories
 
 type upstream_error = No_value_of of key | Invalid_refspec of string
 
