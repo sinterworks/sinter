@@ -1190,7 +1190,7 @@ member:
 - `needs`: the needs of the vector, as a JSON array of one or more need
   names, each a JSON string, in code point order with no repeated name.
   A need is a condition of the run of a vector that a runner can be
-  unable to make true and that a need name names. Each schema of a
+  unable to make hold and that a need name names. Each schema of a
   vector group lists the need names that its group uses, each with the
   need that it stands for; a need name stands for the same need in every
   schema of this design. A vector has this member only when it has a
@@ -1382,13 +1382,14 @@ values of a vector are the same on every file system that stores its
 folder tree.
 
 A need of a vector is a condition of its run that a runner can be unable
-to make true and that a need name names: a condition on the file system
+to make hold and that a need name names: a condition on the file system
 that holds the folder tree, on the process of the program, or on the
 owners of the files of the folder tree. These are the need names that
 the group `file-reads` uses, what each need is, and when a vector of the
 group has it. No other need name stands in a vector of the group. A name
-in the member `needs` that is not one of these need names allows no
-skip.
+in the member `needs` that is not one of these need names stands for no
+need. A skip of a vector because of a name that is not one of these need
+names decides that the program does not give what the vector states.
 
 - `names-kept`: the folder tree is on a file system that keeps each
   entry name of the folder tree as the runner makes that entry name,
@@ -1422,10 +1423,12 @@ no other name. For each vector that a run of the vectors does not skip,
 the run uses a file system that stores the folder tree of that vector
 and a process of the program for which the conditions of the input of
 that vector hold. A skip of a vector decides nothing about that vector
-when the runner cannot make true a need that the member `needs` of the
-vector names, and the runner reports the skipped vector and each such
-need. Any other skip of a vector makes the run of the vectors fail, as
-when the program does not give the result of the vector.
+when the runner cannot make a need of the vector hold, the member
+`needs` of the vector names that need, and the runner reports that need.
+Each other skip of a vector decides that the program does not give what
+the vector states. What a run of the vectors decides about a vector, a
+skip included, belongs to that run, and not to a reader of what that run
+reports.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}

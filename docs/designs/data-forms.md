@@ -536,10 +536,10 @@ only the JSON value of that byte sequence.
 
 ### 4.8 Conformance
 
-A program conforms to the specification `json-lines` when it is a
-[conforming program](sinter:conformance#conforming-program=v1) of that
-[specification](sinter:conformance#specification=v1): it meets every
-requirement that the specification declares.
+A program conforms to the specification `json-lines` when the program is
+a [conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets
+every requirement that the specification declares.
 
 The file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
@@ -1741,10 +1741,10 @@ n.
 
 ### 7.4 Conformance
 
-A program conforms to the specification `hash-ids` when it is a
+A program conforms to the specification `hash-ids` when the program is a
 [conforming program](sinter:conformance#conforming-program=v1) of that
-[specification](sinter:conformance#specification=v1): it meets every
-requirement that the specification declares.
+[specification](sinter:conformance#specification=v1): the program meets
+every requirement that the specification declares.
 
 The file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
