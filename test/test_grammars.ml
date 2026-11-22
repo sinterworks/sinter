@@ -1037,11 +1037,91 @@ let own_cases =
           (List.map table [ 0; elements - 1; elements; elements + 5 ]));
   ]
 
+(* @verifies text#report-stops-at-limits=v1
+   A grammar with a memory alignment of 5 or more or a table alignment of 1 or
+   more is usable and places its own bytes and own elements at multiples of
+   their alignments; when the required bytes or elements with alignment room
+   exceed the instance limits or 4,294,967,295, the decision stops with
+   Link_failed (Stopped Memory) or Link_failed (Stopped Table). *)
 let own_stop_cases =
   [
     case
-      "a memory alignment of more than 4 and a table alignment of more than 0 \
-       stop, whatever the limits" (fun () ->
+      "a memory alignment of 5 or more places the own bytes at a multiple of \
+       its alignment" (fun () ->
+        List.iter
+          (fun a ->
+            let mask = (1 lsl a) - 1 in
+            let size = 64 in
+            Alcotest.(check int)
+              (Printf.sprintf "memory alignment 2^%d" a)
+              0
+              (reported
+                 {
+                   (G.report
+                      (Printf.sprintf
+                         "(i32.or (i32.and (global.get $mb) (i32.const %d)) \
+                          (i32.or (i32.eqz (global.get $mb)) (i32.gt_u \
+                          (i32.add (global.get $mb) (i32.const %d)) (i32.mul \
+                          (memory.size) (i32.const 65536)))))"
+                         mask size))
+                   with
+                   memory_size = size;
+                   memory_alignment = a;
+                 }))
+          [ 0; 1; 4; 5; 6; 10 ]);
+    case
+      "a table alignment of 1 or more places the own elements at the first \
+       multiple of its alignment" (fun () ->
+        let before =
+          reported
+            {
+              (G.report "(global.get $tb)") with
+              table_size = 1;
+              table_alignment = 0;
+            }
+        in
+        List.iter
+          (fun a ->
+            let align = 1 lsl a in
+            let mask = align - 1 in
+            let expected_base = (before + mask) land lnot mask in
+            let size = 5 in
+            Alcotest.(check int)
+              (Printf.sprintf "table base for alignment 2^%d" a)
+              expected_base
+              (reported
+                 {
+                   (G.report "(global.get $tb)") with
+                   table_size = size;
+                   table_alignment = a;
+                 });
+            Alcotest.(check int)
+              (Printf.sprintf "table own elements for alignment 2^%d" a)
+              2
+              (reported
+                 {
+                   (G.report
+                      (Printf.sprintf
+                         "(i32.add (ref.is_null (table.get 0 (i32.add \
+                          (global.get $tb) (i32.const %d)))) (i32.ge_u \
+                          (table.size 0) (i32.add (global.get $tb) (i32.const \
+                          %d))))"
+                         (size - 1) size))
+                   with
+                   table_size = size;
+                   table_alignment = a;
+                 }))
+          [ 1; 2; 3; 4 ]);
+    case
+      "an alignment whose room passes the limits or 2^32 - 1 stops at memory \
+       or table" (fun () ->
+        let small = limits ~fuel:50_000_000 ~memory:(8 lsl 20) ~table:1_000 in
+        refused "memory alignment 24 under 8 MiB" ~limits:small
+          (Grammar.Link_failed (Stopped Memory))
+          (G.grammar { G.base with memory_alignment = 24 });
+        refused "table alignment 12 under 1,000 elements" ~limits:small
+          (Link_failed (Stopped Table))
+          (G.grammar { G.base with table_alignment = 12 });
         let big = limits ~fuel:max_int ~memory:max_int ~table:max_int in
         List.iter
           (fun (what, expected, spec) ->
@@ -1049,18 +1129,30 @@ let own_stop_cases =
               (fun limits -> refused what ?limits expected (G.grammar spec))
               [ None; Some big ])
           [
-            ( "memory alignment 5",
+            ( "memory size 1 with alignment 32",
               Grammar.Link_failed (Stopped Memory),
-              { G.base with memory_alignment = 5 } );
+              { G.base with memory_size = 1; memory_alignment = 32 } );
+            ( "memory size 0 with alignment 33",
+              Link_failed (Stopped Memory),
+              { G.base with memory_size = 0; memory_alignment = 33 } );
+            ( "memory size 2^32 - 1 with alignment 1",
+              Link_failed (Stopped Memory),
+              { G.base with memory_size = 0xFFFF_FFFF; memory_alignment = 1 } );
+            ( "memory alignment 40",
+              Link_failed (Stopped Memory),
+              { G.base with memory_alignment = 40 } );
             ( "memory alignment 2^32 - 1",
               Link_failed (Stopped Memory),
               { G.base with memory_alignment = 0xFFFF_FFFF } );
-            ( "table alignment 1",
+            ( "table size 1 with alignment 32",
               Link_failed (Stopped Table),
-              { G.base with table_alignment = 1 } );
-            ( "table alignment 32",
+              { G.base with table_size = 1; table_alignment = 32 } );
+            ( "table size 0 with alignment 33",
               Link_failed (Stopped Table),
-              { G.base with table_alignment = 32 } );
+              { G.base with table_size = 0; table_alignment = 33 } );
+            ( "table size 2^32 - 1 with alignment 1",
+              Link_failed (Stopped Table),
+              { G.base with table_size = 0xFFFF_FFFF; table_alignment = 1 } );
             ( "table alignment 61",
               Link_failed (Stopped Table),
               { G.base with table_alignment = 61 } );
@@ -1071,11 +1163,6 @@ let own_stop_cases =
               Link_failed (Stopped Table),
               { G.base with table_alignment = 0xFFFF_FFFF } );
           ]);
-    case "a memory alignment of 4 or less is usable" (fun () ->
-        List.iter
-          (fun a ->
-            ignore (usable "t" (G.grammar { G.base with memory_alignment = a })))
-          [ 0; 1; 4 ]);
     case "own bytes of 2^32 - 1 in all give no address and trap" (fun () ->
         refused_by "own bytes and alignment of 2^32 - 1" traps
           (G.grammar
@@ -1084,6 +1171,11 @@ let own_stop_cases =
 
 let small_limits = limits ~fuel:50_000_000 ~memory:(8 lsl 20) ~table:100_000
 
+(* @verifies packs#end-grammar-code=v1
+   @verifies text#report-stops-at-limits=v1
+   Grammar code that loops without end or that exhausts fuel, memory, or
+   table limits during loading stops at the instance limits and names the
+   limit that stopped it. *)
 let limit_cases =
   [
     case "the default limits of a decision" (fun () ->
@@ -1124,10 +1216,6 @@ let limit_cases =
           "2^32 - 1, 2^32, 2^32 + 1" [ false; true; true ]
           (List.map Grammar.too_long
              [ 0xFFFF_FFFF; 0x1_0000_0000; 0x1_0000_0001 ]));
-    (* @verifies packs#end-grammar-code=v1
-       Grammar code that loops without end, or that exhausts fuel, memory, or
-       table limits during validation, stops at the instance limits and gives
-       an error. *)
     case "code that does not end stops at the fuel" (fun () ->
         refused "a loop" ~limits:small_limits (Link_failed (Stopped Fuel))
           (G.grammar { G.base with prelude = "(loop $l (br $l))" }));
@@ -1276,11 +1364,13 @@ let tree_facts tree subject =
     (walk tree)
   && List.length (walk tree) = Parse_tree.node_count tree
 
-(* @verifies packs#{give-reading-results=v1, end-grammar-code=v1}
-   A parse that tree-sitter cancels, in which grammar code or the core
-   instance traps, or that stops at fuel, memory, or table limits gives no
-   parse tree (parse failure), and grammar code during parsing always ends
-   within the instance limits. *)
+(* @verifies packs#{give-reading-results=v1, omit-nodes-of-unparsed-readings=v1, end-grammar-code=v1}
+   @verifies text#report-stops-at-limits=v1
+   A parse that tree-sitter cancels gives No_tree and no nodes. A parse in
+   which grammar code or the core instance traps gives Failed (Trap _) and no
+   nodes. A parse that stops at fuel, memory, or table limits ends within the
+   instance limits, gives Failed (Stopped _) with the limit that stopped it,
+   and gives no nodes. *)
 let parse_cases =
   [
     case "a parse that the parsing of tree-sitter cancels gives No_tree"

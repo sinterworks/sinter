@@ -331,9 +331,10 @@ let decision_cases =
         is_invalid "elements outside the table" trap
           (F.text "(table 1 funcref) (elem (i32.const 1) func $s) (func $s)"));
     (* @verifies packs#end-adapter-code=v1
+       @verifies text#report-stops-at-limits=v1
        Code that never ends, in the start function or in sinter_interface,
        must end in the decision; with small limits the decision ends at once
-       and gives "invalid". *)
+       and gives "invalid", naming the step and the fuel or stack limit. *)
     case "the decision ends code that never ends" (fun () ->
         within_seconds 30. "the decisions" (fun () ->
             is_invalid ~limits:small "a loop in sinter_interface"
@@ -353,14 +354,22 @@ let decision_cases =
                    "(loop $l (memory.fill (i32.const 0) (i32.const 7) \
                     (i32.const 1048576)) (br $l)) (i32.const 1)"
                  "");
-            is_invalid "a recursion that never ends"
+            is_invalid "a recursion that never ends in sinter_interface"
               (function
                 | Adapter.Interface_failed Stack_exhausted -> true | _ -> false)
               (F.text ~interface:"(call $r)" "(func $r (result i32) (call $r))");
+            is_invalid "a recursion that never ends in the start function"
+              (function
+                | Adapter.Instantiation_failed Stack_exhausted -> true
+                | _ -> false)
+              (F.text "(func $r (call $r)) (start $r)");
             is_invalid "a loop under the limits of the vectors"
               (function Adapter.Interface_failed _ -> true | _ -> false)
               (interface_gives loops)));
-    case "a stop at a limit gives invalid" (fun () ->
+    (* @verifies text#report-stops-at-limits=v1
+       A decision that stops at the memory or table limit names both the step
+       (instantiation or sinter_interface) and the limit that stopped it. *)
+    case "a stop at a limit reports the limit and step" (fun () ->
         is_invalid ~limits:small "a memory past the limit"
           (function
             | Adapter.Instantiation_failed (Stopped Memory) -> true | _ -> false)
@@ -369,10 +378,18 @@ let decision_cases =
           (function
             | Adapter.Instantiation_failed (Stopped Table) -> true | _ -> false)
           (F.text "(table 5000 funcref)");
-        is_invalid ~limits:small "a growth past the limit"
+        is_invalid ~limits:small "a memory growth past the limit"
           (function
             | Adapter.Interface_failed (Stopped Memory) -> true | _ -> false)
-          (interface_gives "(drop (memory.grow (i32.const 100))) (i32.const 1)"));
+          (interface_gives "(drop (memory.grow (i32.const 100))) (i32.const 1)");
+        is_invalid ~limits:small "a table growth past the limit"
+          (function
+            | Adapter.Interface_failed (Stopped Table) -> true | _ -> false)
+          (F.text
+             ~interface:
+               "(drop (table.grow (ref.null func) (i32.const 5000))) \
+                (i32.const 1)"
+             "(table 1 funcref)"));
     (* @verifies packs#validate-adapters=v1
        A growth past the maximum of a memory or a table is not a choice of the
        program: memory.grow and table.grow give -1 and the code goes on, so,
@@ -755,8 +772,8 @@ let step_cases =
     (* @verifies packs#end-adapter-code=v1
        A recursion without end, in a decision and in a call, on the main thread
        and on the thread of a Domain, whose own stack can be smaller than the
-       stack of the engine, must end with "invalid" and "failed", and the
-       process must live. *)
+       stack of the engine, ends with Interface_failed Stack_exhausted and
+       Failed Stack_exhausted, and the process lives. *)
     case "a recursion without end ends on any thread" (fun () ->
         let deep =
           F.text ~interface:"(call $i)" ~alloc:"(call $bump (local.get $n))"
@@ -787,7 +804,11 @@ let step_cases =
         in
         run ();
         Domain.join (Domain.spawn run));
-    case "a stop of the instantiation of the call fails the call" (fun () ->
+    (* @verifies text#report-stops-at-limits=v1
+       When a call stops at fuel, memory, or table limits, or when the adapter
+       decision stopped at a limit, outcome.cause names the limit so a caller
+       can tell a stop from a fault of the adapter. *)
+    case "a stop at a limit reports the limit in outcome.cause" (fun () ->
         List.iter
           (fun (what, bytes, limit) ->
             let decision = decide bytes in
@@ -813,7 +834,50 @@ let step_cases =
             ( "a table of 5,000 elements",
               F.text "(table 5000 funcref)",
               Instance.Table );
-          ]);
+          ];
+        let fuel_bound =
+          bind ~limits:small (F.text ~bind:"(loop $l (br $l)) (i64.const 0)" "")
+        in
+        (match (fuel_bound.result, fuel_bound.cause) with
+        | Bind_failed None, Some (Failed (Stopped Fuel)) -> ()
+        | result, cause ->
+            Alcotest.failf "fuel in bind: %s with %s"
+              (fst (binding_form result))
+              (cause_text cause));
+        let stopped_decisions =
+          [
+            ( "memory in instantiation",
+              decide ~limits:small (F.text ~memory:"(memory 32)" ""),
+              Adapter.Instantiation_failed (Stopped Memory) );
+            ( "fuel in sinter_interface",
+              decide ~limits:small (interface_gives loops),
+              Adapter.Interface_failed (Stopped Fuel) );
+            ( "stack in sinter_interface",
+              decide
+                (F.text ~interface:"(call $r)"
+                   "(func $r (result i32) (call $r))"),
+              Adapter.Interface_failed Stack_exhausted );
+          ]
+        in
+        List.iter
+          (fun (what, stopped_decision, expected) ->
+            let rec_out =
+              Call.recognise ~limits:generous stopped_decision ~request ~content
+            in
+            fails_before_response ("recognise with " ^ what)
+              (Call.Not_valid expected) rec_out;
+            let bind_out =
+              Call.bind ~limits:generous stopped_decision ~ids:[] ~request
+                ~content
+            in
+            match (bind_out.result, bind_out.cause) with
+            | Bind_failed None, Some (Call.Not_valid got) when got = expected ->
+                ()
+            | result, cause ->
+                Alcotest.failf "bind with %s: %s with %s" what
+                  (fst (binding_form result))
+                  (cause_text cause))
+          stopped_decisions);
     case "an adapter that is not valid in the decision fails the call"
       (fun () ->
         let bytes = interface_gives "(i32.const 2)" in
