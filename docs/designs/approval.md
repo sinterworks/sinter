@@ -308,10 +308,12 @@ gives every finding that holds whatever the merges are (requirement
 `give-approval-findings`). The
 states and the findings are of a tree at a point of the ledger of one
 git repository, and the rule for merges reads the default branch of that
-git repository. The requirement `ledger#give-states-only-from-valid-ledgers`
-covers a ledger that is broken or newer and a git repository that does
-not hold its ledger objects, also for a kind that does not need
-approval.
+git repository. A program gives no state and no finding from a ledger
+that is broken or newer, also for a kind that does not need approval
+(requirement `ledger#give-states-only-from-valid-ledgers`). For a git
+repository that does not hold its ledger objects, the program reports
+that the git repository lacks its ledger objects, and gives nothing and
+does nothing that needs them (requirement `text#report-missing-parts`).
 
 When the default branch has a commit under a valid binding of
 `default-branch-name` and the first-parent line of that commit is
