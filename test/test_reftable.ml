@@ -396,6 +396,8 @@ let storage_tests =
             "[core]\n\trepositoryformatversion = 0\n";
             "[core]\n\trepositoryformatversion = 1\n";
             "[core]\n\trepositoryformatversion = 2\n";
+            "[core]\n\trepositoryformatversion = -1\n";
+            "[core]\n\trepositoryformatversion = -2\n";
           ]);
     case "storage accepts files and reftable formats under version 1" (fun () ->
         List.iter
@@ -433,7 +435,7 @@ let storage_tests =
                \trepositoryformatversion = 0\n\
                \trepositoryformatversion = 1\n\
                [extensions]\n\
-               \trefstorage = bogus\n\
+               \trefstorage = files\n\
                \trefstorage = reftable\n",
               "reftable" );
             ( "[core]\n\
@@ -451,7 +453,6 @@ let storage_tests =
               (Printf.sprintf "%S" cfg) expected
               (show_storage (Refs.storage (parse_config cfg))))
           [
-            ("[extensions]\n\trefstorage = reftable\n", "error: not version 1");
             ( "[core]\n\
                \trepositoryformatversion = 0\n\
                [extensions]\n\
@@ -471,7 +472,7 @@ let storage_tests =
                \trepositoryformatversion\n\
                [extensions]\n\
                \trefstorage = reftable\n",
-              "error: not version 1" );
+              "error: not a version none" );
             ( "[core]\n\
                \trepositoryformatversion = 1\n\
                \trepositoryformatversion = 0\n\
@@ -529,6 +530,206 @@ let storage_tests =
                \trefstorage = files://rel\n",
               "error: payload \"rel\"" );
           ]);
+    (* @verifies changes#give-ref-commits=v1
+       The ref storage format of a git repository comes from the file `config`
+       of its git folder by the rules of git 2.54.0. `Refs.storage` reads
+       `core.repositoryformatversion` as a git integer and rejects any
+       non-integer value with `Not_a_version` first. Next, it rejects any
+       unknown value of `extensions.refStorage` with `Unknown_format`. It
+       returns `Files` when the version is absent or -1. It rejects version 0
+       or 2 or more with `Not_version_1`, and uses the last format under
+       version 1 or a version below -1. *)
+    case
+      "storage follows git rules for integer versions, absent or negative \
+       versions, and all values" (fun () ->
+        List.iter
+          (fun (name, cfg, expected) ->
+            Alcotest.(check string)
+              name expected
+              (show_storage (Refs.storage (parse_config cfg))))
+          [
+            ( "version 01",
+              "[core]\n\
+               \trepositoryformatversion = 01\n\
+               [extensions]\n\
+               \trefstorage = reftable\n",
+              "reftable" );
+            ( "version absent ignores valid refStorage",
+              "[extensions]\n\trefstorage = reftable\n",
+              "files" );
+            ( "version absent ignores valid refStorage with payload",
+              "[extensions]\n\trefstorage = reftable:///abs/path\n",
+              "files" );
+            ( "version -1 ignores valid refStorage",
+              "[core]\n\
+               \trepositoryformatversion = -1\n\
+               [extensions]\n\
+               \trefstorage = reftable\n",
+              "files" );
+            ( "version -2 uses reftable",
+              "[core]\n\
+               \trepositoryformatversion = -2\n\
+               [extensions]\n\
+               \trefstorage = reftable\n",
+              "reftable" );
+            ( "version -2 still rejects payload",
+              "[core]\n\
+               \trepositoryformatversion = -2\n\
+               [extensions]\n\
+               \trefstorage = reftable:///abs\n",
+              "error: payload \"/abs\"" );
+            ( "earlier payload overridden by plain reftable succeeds",
+              "[core]\n\
+               \trepositoryformatversion = 1\n\
+               [extensions]\n\
+               \trefstorage = reftable:///abs\n\
+               \trefstorage = reftable\n",
+              "reftable" );
+            ( "non-integer version without refStorage fails",
+              "[core]\n\trepositoryformatversion = one\n",
+              "error: not a version \"one\"" );
+            ( "bad version then good version reports first bad version",
+              "[core]\n\
+               \trepositoryformatversion = one\n\
+               \trepositoryformatversion = two\n\
+               \trepositoryformatversion = 1\n\
+               [extensions]\n\
+               \trefstorage = reftable\n",
+              "error: not a version \"one\"" );
+            ( "bad version wins over bad refStorage",
+              "[extensions]\n\
+               \trefstorage = bogus\n\
+               [core]\n\
+               \trepositoryformatversion = one\n",
+              "error: not a version \"one\"" );
+            ( "unknown format then valid format fails on first unknown",
+              "[core]\n\
+               \trepositoryformatversion = 1\n\
+               [extensions]\n\
+               \trefstorage = bogus\n\
+               \trefstorage = other\n\
+               \trefstorage = reftable\n",
+              "error: unknown format \"bogus\"" );
+            ( "unknown format fails when version is absent",
+              "[extensions]\n\trefstorage = bogus\n",
+              "error: unknown format \"bogus\"" );
+            ( "unknown format fails when version is 0",
+              "[core]\n\
+               \trepositoryformatversion = 0\n\
+               [extensions]\n\
+               \trefstorage = bogus\n",
+              "error: unknown format \"bogus\"" );
+          ]);
+    (* @verifies changes#give-ref-commits=v1
+       Over generated lists of interleaved `core.repositoryformatversion`,
+       `extensions.refStorage`, and other settings, `Refs.storage` checks every
+       version value first and every `extensions.refStorage` value next. It
+       returns `Files` when `extensions.refStorage` is absent or
+       `format_version` gives `None`. It returns `Not_version_1` for version 0
+       or 2 or more, and decodes the last `extensions.refStorage` value
+       otherwise. *)
+    property ~count:400
+      ~name:"storage follows the specification on generated settings"
+      ~print:(fun items ->
+        String.concat "; "
+          (List.map
+             (function
+               | `Ver None -> "ver=<no =>"
+               | `Ver (Some s) -> Printf.sprintf "ver=%S" s
+               | `Ref None -> "ref=<no =>"
+               | `Ref (Some s) -> Printf.sprintf "ref=%S" s
+               | `Other -> "other")
+             items))
+      Gen.(
+        let ver_val =
+          oneof_list
+            [
+              Some "0";
+              Some "1";
+              Some "01";
+              Some "+1";
+              Some "0x1";
+              Some " 1";
+              Some "0k";
+              Some "-1";
+              Some "-01";
+              Some "-2";
+              Some "2";
+              Some "1k";
+              Some "one";
+              Some "";
+              Some "08";
+              None;
+            ]
+        in
+        let ref_val =
+          oneof_list
+            [
+              Some "files";
+              Some "files://";
+              Some "files:///p";
+              Some "reftable";
+              Some "reftable://";
+              Some "reftable:///p";
+              Some "bogus";
+              Some "Reftable";
+              Some "";
+              None;
+            ]
+        in
+        list_size (int_range 0 6)
+          (oneof
+             [
+               map (fun v -> `Ver v) ver_val;
+               map (fun s -> `Ref s) ref_val;
+               return `Other;
+             ]))
+      (fun items ->
+        let k_ver = Config.key ~section:"core" "repositoryformatversion" in
+        let k_ref = Config.key ~section:"extensions" "refStorage" in
+        let k_other = Config.key ~section:"core" "bare" in
+        let settings =
+          List.map
+            (function
+              | `Ver v -> (k_ver, v)
+              | `Ref s -> (k_ref, s)
+              | `Other -> (k_other, Some "false"))
+            items
+        in
+        let storages =
+          List.filter_map (function `Ref s -> Some s | _ -> None) items
+        in
+        let parse_fmt = function
+          | Some "files" | Some "files://" -> Ok (Refs.Files, "")
+          | Some "reftable" | Some "reftable://" -> Ok (Refs.Reftable, "")
+          | Some s when String.starts_with ~prefix:"files://" s ->
+              Ok (Refs.Files, String.sub s 8 (String.length s - 8))
+          | Some s when String.starts_with ~prefix:"reftable://" s ->
+              Ok (Refs.Reftable, String.sub s 11 (String.length s - 11))
+          | other -> Error other
+        in
+        let expected =
+          match Config.format_version settings with
+          | Error bad -> Error (Refs.Not_a_version bad)
+          | Ok ver -> (
+              match
+                List.find_map
+                  (fun v ->
+                    match parse_fmt v with Ok _ -> None | Error e -> Some e)
+                  storages
+              with
+              | Some bad -> Error (Refs.Unknown_format bad)
+              | None -> (
+                  match (List.rev storages, ver) with
+                  | [], _ | _, None -> Ok Refs.Files
+                  | _, Some n when n = 0 || n >= 2 -> Error Refs.Not_version_1
+                  | last :: _, Some _ -> (
+                      match parse_fmt last with
+                      | Ok (fmt, "") -> Ok fmt
+                      | Ok (_, payload) -> Error (Refs.Payload payload)
+                      | Error bad -> Error (Refs.Unknown_format bad))))
+        in
+        Refs.storage settings = expected);
     case "storage agrees with git config on real repositories" (fun () ->
         let rt = init_reftable () in
         let fl = Git_fixture.init () in

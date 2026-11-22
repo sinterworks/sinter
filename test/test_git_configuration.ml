@@ -64,8 +64,8 @@ let content ?identity text = Config.Content { content = text; identity }
 let git_folder = "/r/.git"
 let config_path = git_folder ^ "/config"
 
-let run_with ?limits ?(git_directories = [ git_folder ]) ?branch ?working_tree
-    world =
+let run_with ?limits ?(real_path = fun pathname -> Some pathname)
+    ?(git_directories = [ git_folder ]) ?branch ?working_tree world =
   let limits =
     Option.value limits
       ~default:{ Config.max_files = 1_000; max_values = 100_000 }
@@ -81,18 +81,18 @@ let run_with ?limits ?(git_directories = [ git_folder ]) ?branch ?working_tree
   let result =
     match working_tree with
     | None ->
-        Config.of_repository ~limits ~environment ~read
-          ~real_path:(fun pathname -> Some pathname)
+        Config.of_repository ~limits ~environment ~read ~real_path
           ~git_directories ~branch git_folder
     | Some working_tree_folder ->
-        Config.of_working_tree ~limits ~environment ~read
-          ~real_path:(fun pathname -> Some pathname)
-          ~git_folder ~git_directories ~branch working_tree_folder
+        Config.of_working_tree ~limits ~environment ~read ~real_path ~git_folder
+          ~git_directories ~branch working_tree_folder
   in
   (result, List.rev !reads)
 
-let configuration_of ?git_directories ?branch ?working_tree world =
-  match fst (run_with ?git_directories ?branch ?working_tree world) with
+let configuration_of ?real_path ?git_directories ?branch ?working_tree world =
+  match
+    fst (run_with ?real_path ?git_directories ?branch ?working_tree world)
+  with
   | Ok configuration -> configuration
   | Error error -> Alcotest.failf "the configuration: %s" (error_name error)
 
@@ -756,17 +756,15 @@ let more_environment_tests =
     }
   in
   [
-    case "a relative gitdir from the environment names its value" (fun () ->
-        Alcotest.(check string)
-          "relative"
-          ("relative without file " ^ show_value (Some "./x/"))
-          (match
-             fst
-               (run_with
-                  (env_world [ ("includeIf.gitdir:./x/.path", "/yes.inc") ]))
-           with
-          | Ok _ -> "no error"
-          | Error error -> error_name error));
+    case "a relative gitdir from the environment is met" (fun () ->
+        let world = env_world [ ("includeIf.gitdir:./x/.path", "/yes.inc") ] in
+        let world =
+          {
+            world with
+            files = ("/yes.inc", content "[s]\na = 1\n") :: world.files;
+          }
+        in
+        check_values "included" [ Some "1" ] (configuration world) "s.a");
     case "an include from the environment is no conditional include" (fun () ->
         let world = env_world [ ("include.path", "/abs.inc") ] in
         let world =
@@ -1131,8 +1129,8 @@ let include_tests =
         check_values "absolute" [ Some "1" ] configuration "s.a");
   ]
 
-let conditional ?(git_directories = [ git_folder ]) ?(env = no_system) ?branch
-    ?working_tree condition =
+let conditional ?real_path ?(git_directories = [ git_folder ])
+    ?(env = no_system) ?branch ?working_tree condition =
   let world =
     include_world ~env
       [
@@ -1143,7 +1141,9 @@ let conditional ?(git_directories = [ git_folder ]) ?(env = no_system) ?branch
         ("/yes.inc", content "[s]\nmet = 1\n");
       ]
   in
-  match fst (run_with ~git_directories ?branch ?working_tree world) with
+  match
+    fst (run_with ?real_path ~git_directories ?branch ?working_tree world)
+  with
   | Ok configuration ->
       if Config.values configuration (key "s.met") = [] then "not met"
       else "met"
@@ -1529,7 +1529,10 @@ let more_condition_tests =
                 [ ("/global.gitconfig", url) ] );
             ( "the file config.worktree",
               urls ~working_tree:git_folder
-                ("[extensions]\nworktreeConfig = true\n" ^ hasconfig)
+                ("[core]\n\
+                  repositoryformatversion = 1\n\
+                  [extensions]\n\
+                  worktreeConfig = true\n" ^ hasconfig)
                 [ (git_folder ^ "/config.worktree", url) ] );
             ( "a plain include from the environment",
               urls
@@ -1792,7 +1795,12 @@ let unmet_hasconfig_tests =
               refused "/url.inc",
               run_result ~working_tree:git_folder
                 [
-                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" );
                   ( git_folder ^ "/config.worktree",
                     content (unmet ^ "path = /url.inc\n") );
                   ("/url.inc", url_file);
@@ -1874,7 +1882,12 @@ let unmet_hasconfig_tests =
           configuration_of ~working_tree:git_folder
             (include_world
                [
-                 (config_path, content "[extensions]\nworktreeConfig = true\n");
+                 ( config_path,
+                   content
+                     "[core]\n\
+                      repositoryformatversion = 1\n\
+                      [extensions]\n\
+                      worktreeConfig = true\n" );
                  ( git_folder ^ "/config.worktree",
                    content (unmet ^ "path = /plain.inc\n[s]\nw = 2\n") );
                  ("/plain.inc", plain_file);
@@ -2943,7 +2956,10 @@ let follow_git_tests =
        file that a met condition includes. The rules for a remote URL in a file
        that a met condition includes apply to the file of a met condition
        `onbranch:`. An unmet condition `onbranch:` includes no file. The read
-       of a git repository reads no file `config.worktree`. *)
+       of a git repository reads the file `config.worktree` of the git folder
+       when the format version is at most 1 and `extensions.worktreeConfig` is
+       true, and reads no file `config.worktree` when the format version is
+       absent. *)
     case
       "a condition onbranch in a git repository applies with hasconfig and \
        across sources" (fun () ->
@@ -3084,7 +3100,26 @@ let follow_git_tests =
         in
         check_values "onbranch applies without working tree" [ Some "1" ]
           no_worktree_cfg "s.met";
-        check_values "config.worktree stays unread" [] no_worktree_cfg "s.wt");
+        check_values "config.worktree stays unread without format version" []
+          no_worktree_cfg "s.wt";
+        let with_worktree_cfg =
+          configuration_of ~branch:"main"
+            (include_world
+               [
+                 ( config_path,
+                   content
+                     ("[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" ^ onbranch "/yes.inc") );
+                 (git_folder ^ "/config.worktree", content "[s]\nwt = 2\n");
+                 ("/yes.inc", yes_file);
+               ])
+        in
+        check_values "onbranch applies with config.worktree" [ Some "1" ]
+          with_worktree_cfg "s.met";
+        check_values "config.worktree applies with format version 1"
+          [ Some "2" ] with_worktree_cfg "s.wt");
     (* @verifies changes#give-default-branch-commits=v1
        The settings of the git configuration decide the upstream of the
        default branch. When `branch` is `Some name`, `of_repository` and
@@ -3196,7 +3231,12 @@ let follow_git_tests =
             ( "config.worktree",
               run_result ~working_tree:git_folder
                 [
-                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" );
                   ( git_folder ^ "/config.worktree",
                     content "[includeIf \"gitdir:~/w/\"]\npath = /syntax.inc\n"
                   );
@@ -3290,7 +3330,12 @@ let follow_git_tests =
               unread (git_folder ^ "/config.worktree") (Some "/yes.inc"),
               run_result ~env:empty_home ~working_tree:git_folder
                 [
-                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" );
                   ( git_folder ^ "/config.worktree",
                     content "[includeIf \"gitdir:~/x/\"]\npath = /yes.inc\n" );
                 ] );
@@ -3603,7 +3648,12 @@ let follow_git_tests =
           (configuration_of ~working_tree:git_folder
              (include_world ~env:home_git
                 [
-                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" );
                   ( git_folder ^ "/config.worktree",
                     content "[includeIf \"gitdir:~\"]\npath = /yes.inc\n" );
                   ("/yes.inc", yes_file);
@@ -3732,7 +3782,12 @@ let follow_git_tests =
               unread (git_folder ^ "/config.worktree") (Some "bar"),
               run_result ~env:empty_home ~working_tree:git_folder
                 [
-                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = 1\n\
+                       [extensions]\n\
+                       worktreeConfig = true\n" );
                   ( git_folder ^ "/config.worktree",
                     content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
                 ] );
@@ -4096,10 +4151,12 @@ let follow_git_tests =
   ]
 
 let worktree_tests =
+  let format_1 = "[core]\nrepositoryformatversion = 1\n" in
   let world extension =
     include_world
       [
         (config_path, content ("[s]\na = 1\n" ^ extension));
+        (git_folder ^ "/config.worktree", content "[s]\na = 3\n");
         ("/r/.git/worktrees/w/config.worktree", content "[s]\na = 2\n");
         ("/r/.git/x.inc", content "[extensions]\nworktreeConfig = true\n");
       ]
@@ -4117,11 +4174,12 @@ let worktree_tests =
         Alcotest.(check string)
           "on"
           (show_values [ Some "1"; Some "2" ])
-          (values "[extensions]\nworktreeConfig = true\n");
+          (values (format_1 ^ "[extensions]\nworktreeConfig = true\n"));
         Alcotest.(check string)
           "off" (show_values [ Some "1" ])
-          (values "[extensions]\nworktreeConfig = false\n");
-        Alcotest.(check string) "none" (show_values [ Some "1" ]) (values "");
+          (values (format_1 ^ "[extensions]\nworktreeConfig = false\n"));
+        Alcotest.(check string)
+          "none" (show_values [ Some "1" ]) (values format_1);
         Alcotest.(check string)
           "a remote URL in config.worktree"
           (show_values [ Some "/u" ])
@@ -4131,7 +4189,9 @@ let worktree_tests =
                   (include_world
                      [
                        ( config_path,
-                         content "[extensions]\nworktreeConfig = true\n" );
+                         content
+                           (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                       );
                        ( "/r/.git/worktrees/w/config.worktree",
                          content "[remote \"o\"]\nurl = /u\n" );
                      ]))
@@ -4141,10 +4201,10 @@ let worktree_tests =
           | Error error -> error_name error);
         Alcotest.(check string)
           "through an include" (show_values [ Some "1" ])
-          (values "[include]\npath = x.inc\n");
+          (values (format_1 ^ "[include]\npath = x.inc\n"));
         Alcotest.(check string)
           "not a boolean" "not a boolean"
-          (values "[extensions]\nworktreeConfig = maybe\n"));
+          (values (format_1 ^ "[extensions]\nworktreeConfig = maybe\n")));
     (* @verifies changes#give-default-branch-commits=v1
        The settings of the git configuration decide the upstream of the
        default branch. An integer value of `extensions.worktreeConfig` must decide whether the
@@ -4155,7 +4215,8 @@ let worktree_tests =
           (fun (value, expected) ->
             Alcotest.(check string)
               value expected
-              (values ("[extensions]\nworktreeConfig = " ^ value ^ "\n")))
+              (values
+                 (format_1 ^ "[extensions]\nworktreeConfig = " ^ value ^ "\n")))
           [
             ("2", show_values [ Some "1"; Some "2" ]);
             ("-1", show_values [ Some "1"; Some "2" ]);
@@ -4165,12 +4226,18 @@ let worktree_tests =
             ("08", "not a boolean");
             ("2147483648", "not a boolean");
           ]);
-    case "the configuration of a git repository has no file config.worktree"
+    case
+      "the configuration of a git repository reads its own file config.worktree"
       (fun () ->
-        let configuration =
+        let without_version =
           configuration (world "[extensions]\nworktreeConfig = true\n")
         in
-        check_values "values" [ Some "1" ] configuration "s.a");
+        check_values "absent version" [ Some "1" ] without_version "s.a";
+        let with_version =
+          configuration
+            (world (format_1 ^ "[extensions]\nworktreeConfig = true\n"))
+        in
+        check_values "version 1" [ Some "1"; Some "3" ] with_version "s.a");
   ]
 
 let branch text =
@@ -4696,10 +4763,1799 @@ let upstream_vectors =
 
 let vector_groups = [ design_upstream_vectors ]
 
+let integer_and_format_version_tests =
+  let show_fmt = function
+    | Ok None -> "none"
+    | Ok (Some n) -> Printf.sprintf "some %d" n
+    | Error v -> "error " ^ show_value v
+  in
+  [
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. `Config.integer` decodes a git integer in base 10, 8, or
+       16, with leading whitespace, an optional sign, and an optional unit `k`,
+       `m`, or `g`, in the signed 32-bit range. It returns `None` for `None`
+       and for any value outside that form or range. *)
+    case "integer decodes git integers in 32 bits and rejects other values"
+      (fun () ->
+        Alcotest.(check (option int)) "no value" None (Config.integer None);
+        List.iter
+          (fun (text, expected) ->
+            Alcotest.(check (option int))
+              (Printf.sprintf "%S" text) expected
+              (Config.integer (Some text)))
+          [
+            ("0", Some 0);
+            ("1", Some 1);
+            ("-0", Some 0);
+            ("+1", Some 1);
+            ("-1", Some (-1));
+            ("42", Some 42);
+            ("2147483647", Some 2147483647);
+            ("-2147483648", Some (-2147483648));
+            ("00", Some 0);
+            ("007", Some 7);
+            ("017777777777", Some 2147483647);
+            ("-020000000000", Some (-2147483648));
+            ("0x0", Some 0);
+            ("0X1f", Some 31);
+            ("0x1A", Some 26);
+            ("0x7fffffff", Some 2147483647);
+            ("-0x80000000", Some (-2147483648));
+            (" \t\n\011\012\r-1", Some (-1));
+            ("0k", Some 0);
+            ("1k", Some 1024);
+            ("-1K", Some (-1024));
+            ("2097151k", Some (2097151 * 1024));
+            ("-2097152k", Some (-2147483648));
+            ("1m", Some 1048576);
+            ("-1M", Some (-1048576));
+            ("2047m", Some (2047 * 1048576));
+            ("-2048m", Some (-2147483648));
+            ("1g", Some 1073741824);
+            ("-2G", Some (-2147483648));
+            ("0x1k", Some 1024);
+            ("010k", Some 8192);
+            ("", None);
+            (" ", None);
+            ("08", None);
+            ("0x", None);
+            ("0xk", None);
+            ("00x1", None);
+            ("1kb", None);
+            ("1t", None);
+            ("k", None);
+            ("-k", None);
+            ("-", None);
+            ("1.0", None);
+            ("1 ", None);
+            ("+ 1", None);
+            ("1 k", None);
+            ("0 x1", None);
+            ("true", None);
+            ("2147483648", None);
+            ("-2147483649", None);
+            ("2097152k", None);
+            ("-2097153k", None);
+            ("2048m", None);
+            ("-2049m", None);
+            ("2g", None);
+            ("-3g", None);
+            ("0x80000000", None);
+            ("020000000000", None);
+            ("99999999999999999999", None);
+            ("\0081", None);
+            ("\0141", None);
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. For generated git integers with whitespace, sign, base,
+       and unit, `Config.integer` returns `Some n` in the signed 32-bit range
+       and `None` outside it. `Config.boolean` agrees with `Config.integer`. *)
+    property ~count:500
+      ~name:"integer decodes generated base-10, base-8, and base-16 numerals"
+      ~print:(fun (ws, sign, base, mag, unit_opt) ->
+        Printf.sprintf "(%S, %S, %d, %Ld, %s)" ws sign base mag
+          (Option.value unit_opt ~default:"none"))
+      Gen.(
+        let ws =
+          string_size
+            ~gen:(oneof_list [ ' '; '\t'; '\n'; '\011'; '\012'; '\r' ])
+            (int_range 0 3)
+        in
+        let sign = oneof_list [ ""; "+"; "-" ] in
+        let base = oneof_list [ 8; 10; 16 ] in
+        let mag =
+          oneof
+            [
+              int_range 0 5000 |> map Int64.of_int;
+              oneof_list
+                [
+                  0L;
+                  1L;
+                  2L;
+                  2047L;
+                  2048L;
+                  2049L;
+                  2097151L;
+                  2097152L;
+                  2097153L;
+                  2147483647L;
+                  2147483648L;
+                  2147483649L;
+                ];
+            ]
+        in
+        let unit_opt =
+          oneof_list
+            [ None; Some "k"; Some "K"; Some "m"; Some "M"; Some "g"; Some "G" ]
+        in
+        let+ ws and+ sign and+ base and+ mag and+ unit_opt in
+        (ws, sign, base, mag, unit_opt))
+      (fun (ws, sign, base, mag, unit_opt) ->
+        let digits =
+          match base with
+          | 8 -> Printf.sprintf "0%Lo" mag
+          | 16 -> Printf.sprintf "0x%Lx" mag
+          | _ -> Printf.sprintf "%Ld" mag
+        in
+        let unit_str = Option.value unit_opt ~default:"" in
+        let text = ws ^ sign ^ digits ^ unit_str in
+        let mult =
+          match Option.map String.lowercase_ascii unit_opt with
+          | None -> 1L
+          | Some "k" -> 1024L
+          | Some "m" -> 1048576L
+          | Some _ -> 1073741824L
+        in
+        let min_i32 = -2147483648L in
+        let max_i32 = 2147483647L in
+        let expected =
+          if mag > Int64.div Int64.max_int mult then None
+          else
+            let product = Int64.mul mag mult in
+            let signed = if sign = "-" then Int64.neg product else product in
+            if signed >= min_i32 && signed <= max_i32 then
+              Some (Int64.to_int signed)
+            else None
+        in
+        let got = Config.integer (Some text) in
+        got = expected
+        && Config.boolean (Some text) = Option.map (fun n -> n <> 0) expected);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. `Config.integer` must be total over arbitrary values and
+       must return only integers in the signed 32-bit range. *)
+    property ~count:1000
+      ~name:"integer takes any value without raising and stays in 32 bits"
+      ~print:show_value
+      Gen.(
+        option
+          (oneof
+             [
+               string_size ~gen:char (int_range 0 32);
+               string_size
+                 ~gen:
+                   (oneof_list
+                      [
+                        ' ';
+                        '\t';
+                        '+';
+                        '-';
+                        '0';
+                        '1';
+                        '7';
+                        '8';
+                        '9';
+                        'x';
+                        'X';
+                        'a';
+                        'f';
+                        'k';
+                        'K';
+                        'm';
+                        'M';
+                        'g';
+                        'G';
+                      ])
+                 (int_range 0 20);
+             ]))
+      (fun v ->
+        match Config.integer v with
+        | None -> true
+        | Some n -> n >= -2147483648 && n <= 2147483647);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. `Config.format_version` returns `Error v` with the first
+       value of `core.repositoryformatversion` that is not a git integer.
+       Otherwise it returns `Ok None` when the setting is absent or its last
+       value is -1, and `Ok (Some n)` for any other last integer. *)
+    case "format_version decodes repositoryformatversion by the rules of git"
+      (fun () ->
+        List.iter
+          (fun (name, cfg, expected) ->
+            Alcotest.(check string)
+              name expected
+              (show_fmt (Config.format_version (parsed cfg))))
+          [
+            ("absent", "", "none");
+            ("unrelated setting", "[core]\nbare = false\n", "none");
+            ( "subsection ignored",
+              "[core \"sub\"]\nrepositoryformatversion = one\n",
+              "none" );
+            ("0", "[core]\nrepositoryformatversion = 0\n", "some 0");
+            ("1", "[core]\nrepositoryformatversion = 1\n", "some 1");
+            ("0x1", "[core]\nrepositoryformatversion = 0x1\n", "some 1");
+            ("1k", "[core]\nrepositoryformatversion = 1k\n", "some 1024");
+            ("2", "[core]\nrepositoryformatversion = 2\n", "some 2");
+            ("-1", "[core]\nrepositoryformatversion = -1\n", "none");
+            ("-0x1", "[core]\nrepositoryformatversion = -0x1\n", "none");
+            ("-2", "[core]\nrepositoryformatversion = -2\n", "some -2");
+            ( "case insensitive",
+              "[CORE]\nRepositoryFormatVersion = 1\n",
+              "some 1" );
+            ( "0 then 1",
+              "[core]\n\
+               repositoryformatversion = 0\n\
+               repositoryformatversion = 1\n",
+              "some 1" );
+            ( "1 then -1",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               repositoryformatversion = -1\n",
+              "none" );
+            ( "-1 then 0",
+              "[core]\n\
+               repositoryformatversion = -1\n\
+               repositoryformatversion = 0\n",
+              "some 0" );
+            ("no value", "[core]\nrepositoryformatversion\n", "error <no =>");
+            ("one", "[core]\nrepositoryformatversion = one\n", "error \"one\"");
+            ( "first invalid wins before valid",
+              "[core]\n\
+               repositoryformatversion = one\n\
+               repositoryformatversion = two\n\
+               repositoryformatversion = 1\n",
+              "error \"one\"" );
+            ( "valid then invalid",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               repositoryformatversion\n\
+               repositoryformatversion = one\n",
+              "error <no =>" );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. Over generated lists of settings, `Config.format_version`
+       reports the first non-integer value of `core.repositoryformatversion`.
+       When every value is an integer, it returns `Ok None` when absent or when
+       the last value is -1, and `Ok (Some n)` otherwise. *)
+    property ~count:400
+      ~name:"format_version agrees with integer on generated setting lists"
+      ~print:(fun items ->
+        String.concat "; "
+          (List.map
+             (fun (is_ver, v) ->
+               Printf.sprintf "(%b, %s)" is_ver (show_value v))
+             items))
+      Gen.(
+        list_size (int_range 0 6)
+          (pair bool
+             (oneof_list
+                [
+                  Some "0";
+                  Some "1";
+                  Some "01";
+                  Some "+1";
+                  Some "0x1";
+                  Some "0k";
+                  Some "-1";
+                  Some "-01";
+                  Some "-2";
+                  Some "2";
+                  Some "1k";
+                  Some "one";
+                  Some "";
+                  Some "08";
+                  Some "2147483648";
+                  None;
+                ])))
+      (fun items ->
+        let k_ver = Config.key ~section:"core" "repositoryformatversion" in
+        let k_other = Config.key ~section:"core" "bare" in
+        let settings =
+          List.map
+            (fun (is_ver, v) -> ((if is_ver then k_ver else k_other), v))
+            items
+        in
+        let ver_values =
+          List.filter_map
+            (fun (is_ver, v) -> if is_ver then Some v else None)
+            items
+        in
+        let expected =
+          match List.find_opt (fun v -> Config.integer v = None) ver_values with
+          | Some bad -> Error bad
+          | None -> (
+              match List.rev ver_values with
+              | [] -> Ok None
+              | last :: _ -> (
+                  match Config.integer last with
+                  | Some -1 -> Ok None
+                  | Some n -> Ok (Some n)
+                  | None -> Error last))
+        in
+        Config.format_version settings = expected);
+  ]
+
+let follow_up_tests =
+  let yes_file = content "[s]\nmet = 1\n" in
+  let plain_file = content "[s]\nv = 1\n" in
+  let url_file = content "[remote \"o\"]\nurl = /u\n" in
+  let syntax_file = content "[s\n" in
+  let unmet = "[includeIf \"hasconfig:remote.*.url:nothing\"]\n" in
+  let format_1 = "[core]\nrepositoryformatversion = 1\n" in
+  let unread pathname value =
+    Printf.sprintf "unread pathname %s %s" pathname (show_value value)
+  in
+  let no_real pathname path =
+    Printf.sprintf "no real path %s %s" pathname path
+  in
+  let run_result ?real_path ?(env = no_system) ?git_directories ?working_tree
+      ?branch files =
+    match
+      fst
+        (run_with ?real_path ?git_directories ?working_tree ?branch
+           (include_world ~env files))
+    with
+    | Ok _ -> "no error"
+    | Error error -> error_name error
+  in
+  let env_world pairs =
+    {
+      (only_config "") with
+      env =
+        no_system
+        @ [ ("GIT_CONFIG_COUNT", string_of_int (List.length pairs)) ]
+        @ List.concat
+            (List.mapi
+               (fun n (k, v) ->
+                 [
+                   ("GIT_CONFIG_KEY_" ^ string_of_int n, k);
+                   ("GIT_CONFIG_VALUE_" ^ string_of_int n, v);
+                 ])
+               pairs);
+    }
+  in
+  [
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. Inside one file, a syntax error comes before the errors
+       of its settings and of the files that it includes. In the file `config`,
+       `Not_an_integer` and `Not_a_boolean` come after a syntax error of
+       `config` and before the errors of its settings and of its includes.
+       `Not_an_integer` comes before `Not_a_boolean`. Errors of earlier files
+       come first. *)
+    case "error order inside one file and in config matches the interface"
+      (fun () ->
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "config syntax beats earlier path without value",
+              "syntax " ^ config_path ^ ":3",
+              run_result [ (config_path, content "[include]\npath\n[bad\n") ] );
+            ( "config syntax beats earlier included syntax error",
+              "syntax " ^ config_path ^ ":3",
+              run_result
+                [
+                  (config_path, content "[include]\npath = /syntax.inc\n[bad\n");
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "included file syntax beats earlier include without HOME",
+              "syntax /via.inc:3",
+              run_result
+                [
+                  (config_path, content "[include]\npath = /via.inc\n");
+                  ("/via.inc", content "[include]\npath = ~/x.inc\n[bad\n");
+                ] );
+            ( "global file syntax beats earlier path without value",
+              "syntax /global:3",
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content "[include]\npath\n[bad\n");
+                  (config_path, content "");
+                ] );
+            ( "config.worktree syntax beats earlier path without value",
+              "syntax " ^ git_folder ^ "/config.worktree:3",
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  ( git_folder ^ "/config.worktree",
+                    content "[include]\npath\n[bad\n" );
+                ] );
+            ( "config syntax beats Not_an_integer",
+              "syntax " ^ config_path ^ ":3",
+              run_result
+                [
+                  ( config_path,
+                    content "[core]\nrepositoryformatversion = one\n[bad\n" );
+                ] );
+            ( "config syntax beats Not_a_boolean",
+              "syntax " ^ config_path ^ ":3",
+              run_result
+                [
+                  ( config_path,
+                    content "[extensions]\nworktreeConfig = notbool\n[bad\n" );
+                ] );
+            ( "Not_an_integer beats earlier setting error in config",
+              "not an integer",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[include]\npath\n[core]\nrepositoryformatversion = one\n"
+                  );
+                ] );
+            ( "Not_an_integer beats earlier included file error in config",
+              "not an integer",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[include]\n\
+                       path = /syntax.inc\n\
+                       [core]\n\
+                       repositoryformatversion = one\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "Not_a_boolean beats earlier setting error in config",
+              "not a boolean",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[include]\n\
+                       path\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                ] );
+            ( "Not_a_boolean beats earlier included file error in config",
+              "not a boolean",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[include]\n\
+                       path = /syntax.inc\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "Not_an_integer beats an earlier Not_a_boolean",
+              "not an integer",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[extensions]\n\
+                       worktreeConfig = notbool\n\
+                       [core]\n\
+                       repositoryformatversion = one\n" );
+                ] );
+            ( "Not_an_integer beats a later Not_a_boolean",
+              "not an integer",
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = one\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                ] );
+            ( "global error beats config Not_an_integer",
+              unread "/global" None,
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content "[include]\npath\n");
+                  ( config_path,
+                    content "[core]\nrepositoryformatversion = one\n" );
+                ] );
+            ( "inside one file, included file error comes at include line \
+               before later setting error",
+              "syntax /syntax.inc:1",
+              run_result
+                [
+                  (config_path, content "[include]\npath = /syntax.inc\npath\n");
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "inside one file, earlier setting error beats later included \
+               file error",
+              unread config_path None,
+              run_result
+                [
+                  (config_path, content "[include]\npath\npath = /syntax.inc\n");
+                  ("/syntax.inc", syntax_file);
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. In a condition `gitdir:` or `gitdir/i:` whose pattern
+       is `~` or starts with `~/`, the leading `~` becomes `real_path` of
+       `HOME`, and the rest of the pattern stays as written. When `real_path`
+       gives `None` for `HOME`, each setting under that condition gives
+       `No_real_path` in any source and in a file under an unmet `hasconfig`.
+       When `HOME` is empty, the result stays `Unread_pathname`. `include.path`
+       and `Config.pathname` do not call `real_path`. *)
+    case "real paths of HOME in gitdir and gitdir/i patterns" (fun () ->
+        let map_real pairs path =
+          match List.assoc_opt path pairs with
+          | Some res -> res
+          | None -> Some path
+        in
+        let home_map =
+          map_real
+            [
+              ("/w/link-r", Some "/w/r");
+              ("/w/link-git", Some "/w/r/.git");
+              ("/w/r/", Some "/w/r");
+              (".", Some "/w/r");
+              ("/w/link-r-upper", Some "/W/R");
+              ("/", Some "/");
+              ("/w/missing", Some "/w/missing");
+              ("/w/missing/", None);
+              ("/w/missing/sub", None);
+            ]
+        in
+        let dirs = [ "/w/r/.git" ] in
+        List.iter
+          (fun (name, home, condition, expected) ->
+            Alcotest.(check string)
+              name expected
+              (conditional ~real_path:home_map ~git_directories:dirs
+                 ~env:(no_system @ [ ("HOME", home) ])
+                 condition))
+          [
+            ("symlink HOME with gitdir:~/", "/w/link-r", "gitdir:~/", "met");
+            ("relative HOME with gitdir:~/.git", ".", "gitdir:~/.git", "met");
+            ("symlink to gitdir with gitdir:~", "/w/link-git", "gitdir:~", "met");
+            ( "trailing slash on parent dir stripped for gitdir:~",
+              "/w/r/",
+              "gitdir:~",
+              "not met" );
+            ("HOME=/ with gitdir:~ becomes /**", "/", "gitdir:~", "met");
+            ("HOME=/ with gitdir:~/ becomes //**", "/", "gitdir:~/", "not met");
+            ( "missing last name without trailing slash",
+              "/w/missing",
+              "gitdir:~/",
+              "not met" );
+            ( "gitdir/i case folding on real path",
+              "/w/link-r-upper",
+              "gitdir/i:~/",
+              "met" );
+            ( "gitdir case sensitive on real path",
+              "/w/link-r-upper",
+              "gitdir:~/",
+              "not met" );
+            ( "missing last name with trailing slash fails",
+              "/w/missing/",
+              "gitdir:~/",
+              no_real config_path "/w/missing/" );
+            ( "missing last name with trailing slash and gitdir:~ fails",
+              "/w/missing/",
+              "gitdir:~",
+              no_real config_path "/w/missing/" );
+            ( "gitdir/i missing earlier name fails",
+              "/w/missing/sub",
+              "gitdir/i:~/",
+              no_real config_path "/w/missing/sub" );
+          ];
+        let calls = ref [] in
+        let tracked_real path =
+          calls := path :: !calls;
+          home_map path
+        in
+        Alcotest.(check string)
+          "link inside pattern after ~ stays unexpanded" "not met"
+          (conditional ~real_path:tracked_real ~git_directories:dirs
+             ~env:(no_system @ [ ("HOME", "/w") ])
+             "gitdir:~/link-r/.git");
+        Alcotest.(check (list string))
+          "real_path called only on HOME, not on pattern rest" [ "/w" ]
+          (List.rev !calls);
+        let unset_calls = ref [] in
+        let tracking_none path =
+          unset_calls := path :: !unset_calls;
+          None
+        in
+        Alcotest.(check string)
+          "HOME unset does not call real_path" "not met"
+          (conditional ~real_path:tracking_none "gitdir:~/");
+        Alcotest.(check (list string)) "no call when HOME unset" [] !unset_calls;
+        Alcotest.(check string)
+          "gitdir:~x/ does not call real_path" "not met"
+          (conditional ~real_path:tracking_none
+             ~env:(no_system @ [ ("HOME", "/w/missing/sub") ])
+             "gitdir:~x/");
+        Alcotest.(check (list string)) "no call for ~x/" [] !unset_calls;
+        Alcotest.(check string)
+          "empty HOME still gives Unread_pathname even when real_path gives \
+           None"
+          (unread config_path (Some "/yes.inc"))
+          (conditional ~real_path:tracking_none
+             ~env:(no_system @ [ ("HOME", "") ])
+             "gitdir:~/x/");
+        Alcotest.(check (list string)) "no call when HOME empty" [] !unset_calls;
+        let include_calls = ref [] in
+        let inc_cfg =
+          configuration_of
+            ~real_path:(fun p ->
+              include_calls := p :: !include_calls;
+              Some "/wrong")
+            (include_world
+               ~env:(no_system @ [ ("HOME", "/h") ])
+               [
+                 (config_path, content "[include]\npath = ~/yes.inc\n");
+                 ("/h/yes.inc", yes_file);
+               ])
+        in
+        check_values "include.path ~/ keeps raw HOME" [ Some "1" ] inc_cfg
+          "s.met";
+        Alcotest.(check (list string))
+          "include.path does not call real_path" [] !include_calls;
+        let bad_home = no_system @ [ ("HOME", "/w/missing/sub") ] in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "non-path foo=bar under gitdir:~/x/",
+              no_real config_path "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "non-path foo without value under gitdir:~",
+              no_real config_path "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [ (config_path, content "[includeIf \"gitdir:~\"]\nfoo\n") ] );
+            ( "non-path foo under gitdir/i:~/x/",
+              no_real config_path "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "empty section gives no error",
+              "no error",
+              run_result ~real_path:home_map ~env:bad_home
+                [ (config_path, content "[includeIf \"gitdir:~/x/\"]\n") ] );
+            ( "global file No_real_path",
+              no_real "/global" "/w/missing/sub",
+              run_result ~real_path:home_map
+                ~env:(bad_home @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n");
+                  (config_path, content "");
+                ] );
+            ( "config.worktree No_real_path",
+              no_real (git_folder ^ "/config.worktree") "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  ( git_folder ^ "/config.worktree",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "environment No_real_path",
+              no_real "<environment>" "/w/missing/sub",
+              run_result ~real_path:home_map
+                ~env:
+                  (bad_home
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/x/.foo");
+                      ("GIT_CONFIG_VALUE_0", "bar");
+                    ])
+                [ (config_path, content "") ] );
+            ( "unmet hasconfig to gitdir:~/x/ No_real_path",
+              no_real "/via.inc" "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "unmet gitdir to gitdir:~/x/ is unread",
+              "no error",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:/nothing/\"]\npath = /via.inc\n" );
+                  ( "/via.inc",
+                    content "[includeIf \"gitdir:~/x/\"]\nfoo = bar\n" );
+                ] );
+            ( "No_real_path comes before later syntax include",
+              no_real config_path "/w/missing/sub",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"gitdir:~/x/\"]\n\
+                       foo = bar\n\
+                       [include]\n\
+                       path = /syntax.inc\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+            ( "earlier syntax include comes before No_real_path",
+              "syntax /syntax.inc:1",
+              run_result ~real_path:home_map ~env:bad_home
+                [
+                  ( config_path,
+                    content
+                      "[include]\n\
+                       path = /syntax.inc\n\
+                       [includeIf \"gitdir:~/x/\"]\n\
+                       foo = bar\n" );
+                  ("/syntax.inc", syntax_file);
+                ] );
+          ];
+        check_values "environment gitdir:~ uses real_path of HOME" [ Some "1" ]
+          (configuration_of ~real_path:home_map ~git_directories:dirs
+             (include_world
+                ~env:
+                  (no_system
+                  @ [
+                      ("HOME", "/w/link-r");
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "includeIf.gitdir:~/.path");
+                      ("GIT_CONFIG_VALUE_0", "/yes.inc");
+                    ])
+                [ (config_path, content ""); ("/yes.inc", yes_file) ]))
+          "s.met");
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. In a condition `gitdir:./` or `gitdir/i:./` inside a
+       file, `./` becomes the folder of `real_path` of that file, followed by
+       `/`. When the file itself is a symbolic link, `./` follows that link,
+       while a relative `include.path` keeps the folder of the link. A symbolic
+       link in the rest of the pattern stays as written. When `real_path` gives
+       `None` for the file's pathname, each setting under that condition gives
+       `No_real_path`. *)
+    case "real paths of ./ in gitdir and gitdir/i patterns" (fun () ->
+        let dirs = [ "/w/r/.git" ] in
+        let real_map pairs path =
+          match List.assoc_opt path pairs with
+          | Some res -> res
+          | None -> Some path
+        in
+        let check_inc name ~real_path ~env files expected =
+          let cfg =
+            configuration_of ~real_path ~git_directories:dirs
+              (include_world ~env files)
+          in
+          check_values name expected cfg "s.met"
+        in
+        let sym_cfg =
+          configuration_of
+            ~real_path:
+              (real_map [ ("/w/other/link.inc", Some "/w/r/real.inc") ])
+            ~git_directories:dirs
+            (include_world
+               [
+                 (config_path, content "[include]\npath = /w/other/link.inc\n");
+                 ( "/w/other/link.inc",
+                   content
+                     "[includeIf \"gitdir:./\"]\n\
+                      path = /yes.inc\n\
+                      [include]\n\
+                      path = rel.inc\n" );
+                 ("/w/other/rel.inc", content "[s]\nrel = other\n");
+                 ("/w/r/rel.inc", content "[s]\nrel = target\n");
+                 ("/yes.inc", yes_file);
+               ])
+        in
+        check_values "symlinked config file resolves file real path for ./"
+          [ Some "1" ] sym_cfg "s.met";
+        check_values "relative include.path in symlinked file uses link folder"
+          [ Some "other" ] sym_cfg "s.rel";
+        check_inc "reverse symlinked config file does not meet gitdir:./"
+          ~real_path:(real_map [ ("/w/r/link.inc", Some "/w/other/real.inc") ])
+          ~env:no_system
+          [
+            (config_path, content "[include]\npath = /w/r/link.inc\n");
+            ( "/w/r/link.inc",
+              content "[includeIf \"gitdir:./\"]\npath = /yes.inc\n" );
+            ("/yes.inc", yes_file);
+          ]
+          [];
+        check_inc "relative GIT_CONFIG_GLOBAL resolves via real_path"
+          ~real_path:
+            (real_map [ ("global.gitconfig", Some "/w/r/global.gitconfig") ])
+          ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "global.gitconfig") ])
+          [
+            ( "global.gitconfig",
+              content "[includeIf \"gitdir:./\"]\npath = /yes.inc\n" );
+            (config_path, content "");
+            ("/yes.inc", yes_file);
+          ]
+          [ Some "1" ];
+        check_inc "gitdir/i:./ folds case on resolved folder"
+          ~real_path:(real_map [ ("/w/link-r/cond.inc", Some "/W/R/cond.inc") ])
+          ~env:no_system
+          [
+            (config_path, content "[include]\npath = /w/link-r/cond.inc\n");
+            ( "/w/link-r/cond.inc",
+              content "[includeIf \"gitdir/i:./\"]\npath = /yes.inc\n" );
+            ("/yes.inc", yes_file);
+          ]
+          [ Some "1" ];
+        check_inc "link inside pattern after ./ stays unexpanded"
+          ~real_path:(real_map [ ("/w/link-r/.git", Some "/w/r/.git") ])
+          ~env:no_system
+          [
+            (config_path, content "[include]\npath = /w/in.inc\n");
+            ( "/w/in.inc",
+              content "[includeIf \"gitdir:./link-r/.git\"]\npath = /yes.inc\n"
+            );
+            ("/yes.inc", yes_file);
+          ]
+          [];
+        check_inc "control: literal path after ./ matches"
+          ~real_path:(fun p -> Some p)
+          ~env:no_system
+          [
+            (config_path, content "[include]\npath = /w/in.inc\n");
+            ( "/w/in.inc",
+              content "[includeIf \"gitdir:./r/.git\"]\npath = /yes.inc\n" );
+            ("/yes.inc", yes_file);
+          ]
+          [ Some "1" ];
+        let fail_file target path = if path = target then None else Some path in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "config gitdir:./ with real_path None",
+              no_real config_path config_path,
+              run_result ~real_path:(fail_file config_path)
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:./\"]\npath = /yes.inc\n" );
+                ] );
+            ( "config gitdir/i:./ non-path setting with real_path None",
+              no_real config_path config_path,
+              run_result ~real_path:(fail_file config_path)
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:./x/\"]\nfoo = bar\n" );
+                ] );
+            ( "included file gitdir:./ with real_path None",
+              no_real "/via.inc" "/via.inc",
+              run_result ~real_path:(fail_file "/via.inc")
+                [
+                  (config_path, content "[include]\npath = /via.inc\n");
+                  ("/via.inc", content "[includeIf \"gitdir:./\"]\nfoo = bar\n");
+                ] );
+            ( "global file gitdir:./ with real_path None",
+              no_real "/global" "/global",
+              run_result ~real_path:(fail_file "/global")
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ( "/global",
+                    content "[includeIf \"gitdir:./\"]\npath = /yes.inc\n" );
+                  (config_path, content "");
+                ] );
+            ( "unmet hasconfig to gitdir:./ with real_path None",
+              no_real "/via.inc" "/via.inc",
+              run_result ~real_path:(fail_file "/via.inc")
+                [
+                  (config_path, content (unmet ^ "path = /via.inc\n"));
+                  ("/via.inc", content "[includeIf \"gitdir:./\"]\nfoo = bar\n");
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. For generated `gitdir:` and `gitdir/i:` patterns, `HOME`
+       states, and `real_path` results, the reader expands `~` and `~/` through
+       `real_path` of `HOME` and expands `./` through the folder of `real_path`
+       of the file. It reports `Unread_pathname` when `HOME` is empty and
+       `No_real_path` when `real_path` returns `None`. It includes a file only
+       when the pattern matches and the variable name is `path`. *)
+    property ~count:300
+      ~name:"gitdir real_path expansion follows the specification"
+      ~print:(fun
+          (case_fold, pattern, var_name, var_value, home_st, file_rp, git_dir)
+        ->
+        Printf.sprintf "(%b, %S, %S, %s, %s, %s, %S)" case_fold pattern var_name
+          (show_value var_value)
+          (match home_st with
+          | `Unset -> "unset"
+          | `Empty -> "empty"
+          | `Some (h, r) ->
+              Printf.sprintf "%S->%s" h
+                (match r with
+                | None -> "None"
+                | Some s -> Printf.sprintf "%S" s))
+          (match file_rp with
+          | None -> "None"
+          | Some s -> Printf.sprintf "%S" s)
+          git_dir)
+      Gen.(
+        let+ case_fold = bool
+        and+ pattern = oneof_list [ "~"; "~/"; "~/w/"; "./"; "./w/"; "~x/" ]
+        and+ var_name = oneof_list [ "path"; "PATH"; "foo" ]
+        and+ var_value =
+          oneof_list [ Some "/yes.inc"; Some "missing.inc"; None ]
+        and+ home_st =
+          oneof_list
+            [
+              `Unset;
+              `Empty;
+              `Some ("/link-h", Some "/h");
+              `Some ("/link-g", Some "/r/.git");
+              `Some ("/link-G", Some "/R/.GIT");
+              `Some ("/", Some "/");
+              `Some ("/bad/sub", None);
+            ]
+        and+ file_rp =
+          oneof_list
+            [
+              Some "/h/cond.inc";
+              Some "/R/cond.inc";
+              Some "/other/cond.inc";
+              None;
+            ]
+        and+ git_dir =
+          oneof_list [ "/r/.git"; "/h/w/.git"; "/r/~x/repo/.git" ]
+        in
+        (case_fold, pattern, var_name, var_value, home_st, file_rp, git_dir))
+      (fun (case_fold, pattern, var_name, var_value, home_st, file_rp, git_dir)
+         ->
+        let prefix = if case_fold then "gitdir/i:" else "gitdir:" in
+        let condition = prefix ^ pattern in
+        let setting_line =
+          match var_value with
+          | None -> var_name ^ "\n"
+          | Some v -> var_name ^ " = " ^ v ^ "\n"
+        in
+        let env =
+          match home_st with
+          | `Unset -> no_system
+          | `Empty -> no_system @ [ ("HOME", "") ]
+          | `Some (h, _) -> no_system @ [ ("HOME", h) ]
+        in
+        let cond_file = "/link/cond.inc" in
+        let real_path p =
+          if p = cond_file then file_rp
+          else match home_st with `Some (h, r) when p = h -> r | _ -> Some p
+        in
+        let world =
+          include_world ~env
+            [
+              (config_path, content ("[include]\npath = " ^ cond_file ^ "\n"));
+              ( cond_file,
+                content
+                  (Printf.sprintf "[includeIf \"%s\"]\n%s" condition
+                     setting_line) );
+              ("/yes.inc", yes_file);
+            ]
+        in
+        let result, _ =
+          run_with ~real_path ~git_directories:[ git_dir ] world
+        in
+        let is_tilde =
+          pattern = "~" || String.starts_with ~prefix:"~/" pattern
+        in
+        let is_dot = String.starts_with ~prefix:"./" pattern in
+        let is_path = String.lowercase_ascii var_name = "path" in
+        let check_expanded expanded =
+          let with_prefix =
+            if String.starts_with ~prefix:"/" expanded then expanded
+            else "**/" ^ expanded
+          in
+          let full =
+            if String.ends_with ~suffix:"/" with_prefix then with_prefix ^ "**"
+            else with_prefix
+          in
+          let matched =
+            Sinter_wildmatch.matches
+              (Sinter_wildmatch.compile ~case_fold full)
+              git_dir
+          in
+          if matched && is_path then
+            match var_value with
+            | None -> (
+                match result with
+                | Error err -> error_name err = unread cond_file None
+                | Ok _ -> false)
+            | Some "/yes.inc" -> (
+                match result with
+                | Ok cfg -> Config.values cfg (key "s.met") = [ Some "1" ]
+                | Error _ -> false)
+            | Some _ -> (
+                match result with
+                | Ok cfg -> Config.values cfg (key "s.met") = []
+                | Error _ -> false)
+          else
+            match result with
+            | Ok cfg -> Config.values cfg (key "s.met") = []
+            | Error _ -> false
+        in
+        if is_tilde then
+          match home_st with
+          | `Unset -> (
+              match result with
+              | Ok cfg -> Config.values cfg (key "s.met") = []
+              | Error _ -> false)
+          | `Empty -> (
+              match result with
+              | Error err -> error_name err = unread cond_file var_value
+              | Ok _ -> false)
+          | `Some (h, None) -> (
+              match result with
+              | Error err -> error_name err = no_real cond_file h
+              | Ok _ -> false)
+          | `Some (_, Some resolved) ->
+              let rest = String.sub pattern 1 (String.length pattern - 1) in
+              check_expanded (resolved ^ rest)
+        else if is_dot then
+          match file_rp with
+          | None -> (
+              match result with
+              | Error err -> error_name err = no_real cond_file cond_file
+              | Ok _ -> false)
+          | Some resolved ->
+              let dir = Filename.dirname resolved in
+              let rest = String.sub pattern 2 (String.length pattern - 2) in
+              check_expanded (dir ^ "/" ^ rest)
+        else check_expanded pattern);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. In the environment, a condition `gitdir:./` or
+       `gitdir/i:./` is met in both `of_repository` and `of_working_tree`, and
+       counts as a met conditional include for `hasconfig:remote.*.url:`. A
+       relative include path still gives `Relative_without_file`. Non-path
+       settings stay as settings, and `.x/` and `.` are not `./` patterns. *)
+    case "gitdir:./ and gitdir/i:./ in the environment follow git 2.54.0"
+      (fun () ->
+        let real_calls = ref [] in
+        let tracked_real p =
+          real_calls := p :: !real_calls;
+          None
+        in
+        let run_env ?working_tree ?(extra_env = []) ?(extra_files = []) pairs =
+          let w = env_world pairs in
+          let w =
+            {
+              files = (("/yes.inc", yes_file) :: extra_files) @ w.files;
+              env = extra_env @ w.env;
+            }
+          in
+          fst (run_with ~real_path:tracked_real ?working_tree w)
+        in
+        let check_met ?working_tree name pairs =
+          match run_env ?working_tree pairs with
+          | Ok cfg -> check_values name [ Some "1" ] cfg "s.met"
+          | Error err -> Alcotest.failf "%s: %s" name (error_name err)
+        in
+        check_met "gitdir/i:./x/ in of_repository"
+          [ ("includeIf.gitdir/i:./x/.path", "/yes.inc") ];
+        check_met ~working_tree:git_folder "gitdir:./x/ in of_working_tree"
+          [ ("includeIf.gitdir:./x/.path", "/yes.inc") ];
+        Alcotest.(check (list string))
+          "real_path not called for env gitdir:./" [] !real_calls;
+        (match
+           run_env
+             ~extra_env:[ ("HOME", "/h") ]
+             ~extra_files:[ ("/h/yes.inc", yes_file) ]
+             [ ("includeIf.gitdir:./x/.path", "~/yes.inc") ]
+         with
+        | Ok cfg ->
+            check_values "tilde value with HOME set" [ Some "1" ] cfg "s.met"
+        | Error err -> Alcotest.failf "tilde with HOME: %s" (error_name err));
+        (match
+           run_env [ ("includeIf.gitdir:./x/.path", "/yes.inc"); ("x.w", "w") ]
+         with
+        | Ok cfg ->
+            check_values "two settings: included" [ Some "1" ] cfg "s.met";
+            check_values "two settings: second env" [ Some "w" ] cfg "x.w"
+        | Error err -> Alcotest.failf "two settings: %s" (error_name err));
+        (match run_env [ ("includeIf.gitdir:./x/.foo", "bar") ] with
+        | Ok cfg ->
+            check_values "non-path setting kept" [ Some "bar" ] cfg
+              "includeIf.gitdir:./x/.foo"
+        | Error err -> Alcotest.failf "non-path: %s" (error_name err));
+        (match run_env [ ("includeIf.gitdir:.x/.path", "/yes.inc") ] with
+        | Ok cfg -> check_values ".x/ is not ./" [] cfg "s.met"
+        | Error err -> Alcotest.failf ".x/: %s" (error_name err));
+        (match run_env [ ("includeIf.gitdir:..path", "/yes.inc") ] with
+        | Ok cfg -> check_values ". is not ./" [] cfg "s.met"
+        | Error err -> Alcotest.failf ".: %s" (error_name err));
+        (match
+           run_env
+             ~extra_files:[ ("/url.inc", url_file) ]
+             [ ("includeIf.gitdir:./x/.path", "/url.inc") ]
+         with
+        | Ok cfg ->
+            check_values "url without hasconfig kept" [ Some "/u" ] cfg
+              "remote.o.url"
+        | Error err ->
+            Alcotest.failf "url without hasconfig: %s" (error_name err));
+        List.iter
+          (fun (name, expected, res) ->
+            Alcotest.(check string)
+              name expected
+              (match res with Ok _ -> "no error" | Error e -> error_name e))
+          [
+            ( "relative value gives Relative_without_file",
+              "relative without file " ^ show_value (Some "plain.inc"),
+              run_env [ ("includeIf.gitdir:./x/.path", "plain.inc") ] );
+            ( "tilde value without HOME gives Unread_pathname",
+              unread "<environment>" (Some "~/yes.inc"),
+              run_env [ ("includeIf.gitdir:./x/.path", "~/yes.inc") ] );
+            ( "url with hasconfig is refused as conditional include",
+              "remote url in conditional include /url.inc",
+              run_env
+                ~extra_files:
+                  [ ("/url.inc", url_file); ("/plain.inc", plain_file) ]
+                [
+                  ("includeIf.gitdir:./x/.path", "/url.inc");
+                  ("includeIf.hasconfig:remote.*.url:other.path", "/plain.inc");
+                ] );
+          ]);
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. Both `of_repository` and `of_working_tree` read
+       `config.worktree` when `format_version` of `config` gives `Some n` with
+       `n` at most 1 and the last value of `extensions.worktreeConfig` in
+       `config` is true. Under any format version, any non-integer
+       `core.repositoryformatversion` in `config` gives `Not_an_integer` with
+       that key, and any non-boolean `extensions.worktreeConfig` in `config`
+       gives `Not_a_boolean` with that key. `Folder` holds no setting at
+       `config`, `config.worktree`, a system file, or a global file, and gives
+       `Unreadable_file` at an included file. *)
+    case
+      "config.worktree, Folder, and format version in of_repository and \
+       of_working_tree" (fun () ->
+        let wt_repo = git_folder ^ "/config.worktree" in
+        let wt_linked = "/r/.git/worktrees/lt/config.worktree" in
+        let check_both name cfg_text expected =
+          let world =
+            include_world
+              [
+                (config_path, content ("[x]\nv = local\n" ^ cfg_text));
+                (wt_repo, content "[s]\nwt = repo\n");
+                (wt_linked, content "[s]\nwt = linked\n");
+              ]
+          in
+          let show_res = function
+            | Ok cfg ->
+                show_values (Config.values cfg (key "x.v"))
+                ^ "|"
+                ^ show_values (Config.values cfg (key "s.wt"))
+            | Error err -> error_name err
+          in
+          Alcotest.(check string)
+            (name ^ " (of_repository)")
+            (match expected with
+            | `Read -> "[\"local\"]|[\"repo\"]"
+            | `Unread -> "[\"local\"]|[]"
+            | `Err s -> s)
+            (show_res (fst (run_with world)));
+          Alcotest.(check string)
+            (name ^ " (of_working_tree linked)")
+            (match expected with
+            | `Read -> "[\"local\"]|[\"linked\"]"
+            | `Unread -> "[\"local\"]|[]"
+            | `Err s -> s)
+            (show_res
+               (fst (run_with ~working_tree:"/r/.git/worktrees/lt" world)))
+        in
+        List.iter
+          (fun (name, cfg_text, expected) -> check_both name cfg_text expected)
+          [
+            ( "format 0, worktreeConfig true",
+              "[core]\n\
+               repositoryformatversion = 0\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Read );
+            ( "format 1, worktreeConfig true",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Read );
+            ( "format 01, worktreeConfig true",
+              "[core]\n\
+               repositoryformatversion = 01\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Read );
+            ( "format -2, worktreeConfig true",
+              "[core]\n\
+               repositoryformatversion = -2\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Read );
+            ( "uppercase CORE and EXTENSIONS",
+              "[CORE]\n\
+               RepositoryFormatVersion = 1\n\
+               [EXTENSIONS]\n\
+               WorktreeConfig = yes\n",
+              `Read );
+            ( "worktreeConfig with no value counts as true",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig\n",
+              `Read );
+            ( "format 2 then 0",
+              "[core]\n\
+               repositoryformatversion = 2\n\
+               repositoryformatversion = 0\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Read );
+            ( "format absent, worktreeConfig true",
+              "[extensions]\nworktreeConfig = true\n",
+              `Unread );
+            ( "format -1, worktreeConfig true",
+              "[core]\n\
+               repositoryformatversion = -1\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Unread );
+            ( "format 2, worktreeConfig true keeps other settings",
+              "[core]\n\
+               repositoryformatversion = 2\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Unread );
+            ( "format 1, worktreeConfig true then false",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig = true\n\
+               worktreeConfig = false\n",
+              `Unread );
+            ( "format one without worktreeConfig",
+              "[core]\nrepositoryformatversion = one\n",
+              `Err "not an integer" );
+            ( "format no value without worktreeConfig",
+              "[core]\nrepositoryformatversion\n",
+              `Err "not an integer" );
+            ( "format one then 1 still fails",
+              "[core]\n\
+               repositoryformatversion = one\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Err "not an integer" );
+            ( "format 1 then one still fails",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               repositoryformatversion = one\n\
+               [extensions]\n\
+               worktreeConfig = true\n",
+              `Err "not an integer" );
+            ( "worktreeConfig notbool with format absent",
+              "[extensions]\nworktreeConfig = notbool\n",
+              `Err "not a boolean" );
+            ( "worktreeConfig notbool with format 0",
+              "[core]\n\
+               repositoryformatversion = 0\n\
+               [extensions]\n\
+               worktreeConfig = notbool\n",
+              `Err "not a boolean" );
+            ( "worktreeConfig notbool with format 2",
+              "[core]\n\
+               repositoryformatversion = 2\n\
+               [extensions]\n\
+               worktreeConfig = notbool\n",
+              `Err "not a boolean" );
+            ( "worktreeConfig notbool then true still fails",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig = notbool\n\
+               worktreeConfig = true\n",
+              `Err "not a boolean" );
+            ( "worktreeConfig true then notbool still fails",
+              "[core]\n\
+               repositoryformatversion = 1\n\
+               [extensions]\n\
+               worktreeConfig = true\n\
+               worktreeConfig = notbool\n",
+              `Err "not a boolean" );
+          ];
+        (match
+           fst
+             (run_with
+                (include_world
+                   [
+                     ( config_path,
+                       content "[core]\nrepositoryformatversion = one\n" );
+                   ]))
+         with
+        | Error (Config.Not_an_integer k) ->
+            Alcotest.(check bool)
+              "Not_an_integer carries core.repositoryformatversion" true
+              (Config.equal_key k (key "core.repositoryformatversion"))
+        | _ -> Alcotest.fail "expected Not_an_integer");
+        (match
+           fst
+             (run_with
+                (include_world
+                   [
+                     ( config_path,
+                       content "[extensions]\nworktreeConfig = notbool\n" );
+                   ]))
+         with
+        | Error (Config.Not_a_boolean k) ->
+            Alcotest.(check bool)
+              "Not_a_boolean carries extensions.worktreeConfig" true
+              (Config.equal_key k (key "extensions.worktreeConfig"))
+        | _ -> Alcotest.fail "expected Not_a_boolean");
+        let check_source_ignored name ?(env = no_system) files =
+          let cfg = configuration_of (include_world ~env files) in
+          check_values name [] cfg "s.wt"
+        in
+        check_source_ignored "format only in included file"
+          [
+            ( config_path,
+              content
+                "[include]\n\
+                 path = /fmt.inc\n\
+                 [extensions]\n\
+                 worktreeConfig = true\n" );
+            ("/fmt.inc", content format_1);
+            (wt_repo, content "[s]\nwt = 2\n");
+          ];
+        check_source_ignored "extension only in global file"
+          ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+          [
+            ("/global", content "[extensions]\nworktreeConfig = true\n");
+            (config_path, content format_1);
+            (wt_repo, content "[s]\nwt = 2\n");
+          ];
+        check_values "env worktreeConfig=false does not disable config.worktree"
+          [ Some "2" ]
+          (configuration_of
+             (include_world
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_COUNT", "1");
+                      ("GIT_CONFIG_KEY_0", "extensions.worktreeConfig");
+                      ("GIT_CONFIG_VALUE_0", "false");
+                    ])
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (wt_repo, content "[s]\nwt = 2\n");
+                ]))
+          "s.wt";
+        check_values "bad format and extension outside config give no error"
+          [ Some "ok" ]
+          (configuration_of
+             (include_world
+                ~env:
+                  (no_system
+                  @ [
+                      ("GIT_CONFIG_GLOBAL", "/global");
+                      ("GIT_CONFIG_COUNT", "2");
+                      ("GIT_CONFIG_KEY_0", "core.repositoryformatversion");
+                      ("GIT_CONFIG_VALUE_0", "one");
+                      ("GIT_CONFIG_KEY_1", "extensions.worktreeConfig");
+                      ("GIT_CONFIG_VALUE_1", "notbool");
+                    ])
+                [
+                  ( "/global",
+                    content
+                      "[core]\n\
+                       repositoryformatversion = one\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                  ( config_path,
+                    content
+                      (format_1
+                     ^ "[extensions]\n\
+                        worktreeConfig = true\n\
+                        [include]\n\
+                        path = /bad.inc\n\
+                        [x]\n\
+                        v = ok\n") );
+                  ( "/bad.inc",
+                    content
+                      "[core]\n\
+                       repositoryformatversion = one\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                  ( wt_repo,
+                    content
+                      "[core]\n\
+                       repositoryformatversion = one\n\
+                       [extensions]\n\
+                       worktreeConfig = notbool\n" );
+                ]))
+          "x.v";
+        check_values "config.worktree can include a file in of_repository"
+          [ Some "1" ]
+          (configuration_of
+             (include_world
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (wt_repo, content "[include]\npath = /yes.inc\n");
+                  ("/yes.inc", yes_file);
+                ]))
+          "s.met";
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "config.worktree syntax error fails in of_repository",
+              "syntax " ^ wt_repo ^ ":1",
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (wt_repo, syntax_file);
+                ] );
+            ( "config.worktree Unreadable fails in of_repository",
+              "unreadable " ^ wt_repo,
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (wt_repo, Config.Unreadable);
+                ] );
+            ( "config.worktree Folder holds no setting",
+              "no error",
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (wt_repo, Config.Folder);
+                ] );
+            ( "config.worktree No_file holds no setting",
+              "no error",
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                ] );
+            ( "config.worktree syntax error ignored when format version absent",
+              "no error",
+              run_result
+                [
+                  (config_path, content "[extensions]\nworktreeConfig = true\n");
+                  (wt_repo, syntax_file);
+                ] );
+            ( "Folder at config holds no setting",
+              "no error",
+              run_result
+                [ (config_path, Config.Folder); (wt_repo, syntax_file) ] );
+            ( "Folder at system and global files holds no setting",
+              "no error",
+              run_result
+                ~env:
+                  [
+                    ("GIT_CONFIG_SYSTEM", "/sys");
+                    ("GIT_CONFIG_GLOBAL", "/global");
+                  ]
+                [
+                  ("/sys", Config.Folder);
+                  ("/global", Config.Folder);
+                  (config_path, content "");
+                ] );
+            ( "Folder at included file gives Unreadable_file",
+              "unreadable /dir.inc",
+              run_result
+                [
+                  (config_path, content "[include]\npath = /dir.inc\n");
+                  ("/dir.inc", Config.Folder);
+                ] );
+            ( "empty include.path naming Folder gives Unreadable_file",
+              "unreadable " ^ git_folder ^ "/",
+              run_result
+                [
+                  (config_path, content "[include]\npath =\n");
+                  (git_folder ^ "/", Config.Folder);
+                ] );
+          ];
+        let lim_world =
+          include_world
+            [
+              ( config_path,
+                content (format_1 ^ "[extensions]\nworktreeConfig = true\n") );
+              (wt_repo, content "[s]\nwt = 2\n");
+            ]
+        in
+        Alcotest.(check string)
+          "config.worktree counts toward max_files" "limit exceeded"
+          (match
+             fst
+               (run_with
+                  ~limits:{ Config.max_files = 1; max_values = 100 }
+                  lim_world)
+           with
+          | Ok _ -> "no error"
+          | Error e -> error_name e);
+        Alcotest.(check string)
+          "config.worktree counts toward max_values" "limit exceeded"
+          (match
+             fst
+               (run_with
+                  ~limits:{ Config.max_files = 10; max_values = 2 }
+                  lim_world)
+           with
+          | Ok _ -> "no error"
+          | Error e -> error_name e));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. Over generated lists of `core.repositoryformatversion`
+       and `extensions.worktreeConfig` values in `config`, with either section
+       first, both `of_repository` and `of_working_tree` reject any
+       non-integer version and any non-boolean `extensions.worktreeConfig`.
+       Otherwise each reads its own file `config.worktree` when and only when
+       `format_version` gives `Some n` with `n` at most 1 and the last value
+       of `extensions.worktreeConfig` is true. *)
+    property ~count:300
+      ~name:
+        "config.worktree enablement follows format_version and worktreeConfig"
+      ~print:(fun (versions, exts, extensions_first) ->
+        Printf.sprintf "versions=[%s] exts=[%s] extensions_first=%b"
+          (String.concat "; " (List.map show_value versions))
+          (String.concat "; " (List.map show_value exts))
+          extensions_first)
+      Gen.(
+        triple
+          (list_size (int_range 0 3)
+             (oneof_list
+                [
+                  Some "0";
+                  Some "1";
+                  Some "01";
+                  Some "+1";
+                  Some "0k";
+                  Some "-1";
+                  Some "-2";
+                  Some "2";
+                  Some "1k";
+                  Some "one";
+                  Some "";
+                  None;
+                ]))
+          (list_size (int_range 0 3)
+             (oneof_list
+                [
+                  Some "true";
+                  Some "false";
+                  Some "yes";
+                  Some "00";
+                  Some "2";
+                  Some "";
+                  Some "notbool";
+                  Some "08";
+                  None;
+                ]))
+          bool)
+      (fun (versions, exts, extensions_first) ->
+        let lines_of section name vals =
+          match vals with
+          | [] -> ""
+          | _ ->
+              Printf.sprintf "[%s]\n" section
+              ^ String.concat ""
+                  (List.map
+                     (function
+                       | None -> name ^ "\n" | Some v -> name ^ " = " ^ v ^ "\n")
+                     vals)
+        in
+        let core = lines_of "core" "repositoryformatversion" versions in
+        let extensions = lines_of "extensions" "worktreeConfig" exts in
+        let cfg_text =
+          if extensions_first then extensions ^ core else core ^ extensions
+        in
+        let world =
+          include_world
+            [
+              (config_path, content cfg_text);
+              (git_folder ^ "/config.worktree", content "[s]\nwt = repo\n");
+              ( "/r/.git/worktrees/w/config.worktree",
+                content "[s]\nwt = linked\n" );
+            ]
+        in
+        let bad_ver = List.exists (fun v -> Config.integer v = None) versions in
+        let bad_ext = List.exists (fun v -> Config.boolean v = None) exts in
+        let check_one wt_val res =
+          match (bad_ver, bad_ext, res) with
+          | true, _, Error (Config.Not_an_integer k) ->
+              Config.equal_key k (key "core.repositoryformatversion")
+          | false, true, Error (Config.Not_a_boolean k) ->
+              Config.equal_key k (key "extensions.worktreeConfig")
+          | false, false, Ok cfg ->
+              let ver_ok =
+                match List.rev versions with
+                | [] -> false
+                | last :: _ -> (
+                    match Config.integer last with
+                    | Some -1 | None -> false
+                    | Some n -> n <= 1)
+              in
+              let ext_ok =
+                match List.rev exts with
+                | [] -> false
+                | last :: _ -> Config.boolean last = Some true
+              in
+              let expected = if ver_ok && ext_ok then [ Some wt_val ] else [] in
+              Config.values cfg (key "s.wt") = expected
+          | _ -> false
+        in
+        check_one "repo" (fst (run_with world))
+        && check_one "linked"
+             (fst (run_with ~working_tree:"/r/.git/worktrees/w" world)));
+    (* @verifies changes#give-default-branch-commits=v1
+       The settings of the git configuration decide the upstream of the
+       default branch. A setting `path` with no value gives `Unread_pathname`
+       with `None` for `include`, for a met condition `gitdir:`, `gitdir/i:`,
+       `onbranch:`, or `hasconfig:remote.*.url:`, and for an unmet condition
+       `hasconfig:remote.*.url:`, in any file. It gives no error for an unmet
+       condition `gitdir:`, `gitdir/i:`, or `onbranch:`, for an unknown
+       condition, for `gitdir:~/` when `HOME` is unset or has a missing last
+       name, for `[includeIf]` with no subsection, and for `[include "sub"]`. *)
+    case "a setting path with no value gives an error exactly where git stops"
+      (fun () ->
+        let real_missing = function
+          | "/w/missing" -> Some "/w/missing"
+          | "/w/missing/sub" -> None
+          | p -> Some p
+        in
+        List.iter
+          (fun (name, expected, actual) ->
+            Alcotest.(check string) name expected actual)
+          [
+            ( "include.PATH",
+              unread config_path None,
+              run_result [ (config_path, content "[include]\nPATH\n") ] );
+            ( "met gitdir",
+              unread config_path None,
+              run_result
+                [
+                  (config_path, content "[includeIf \"gitdir:/r/.git\"]\npath\n");
+                ] );
+            ( "met gitdir/i",
+              unread config_path None,
+              run_result
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:/R/.GIT\"]\npath\n" );
+                ] );
+            ( "met onbranch in of_repository",
+              unread config_path None,
+              run_result ~branch:"main"
+                [
+                  (config_path, content "[includeIf \"onbranch:main\"]\npath\n");
+                ] );
+            ( "met gitdir:./",
+              unread "/r/met.inc" None,
+              run_result
+                [
+                  (config_path, content "[include]\npath = /r/met.inc\n");
+                  ("/r/met.inc", content "[includeIf \"gitdir:./\"]\npath\n");
+                ] );
+            ( "met hasconfig",
+              unread config_path None,
+              run_result
+                [
+                  ( config_path,
+                    content
+                      "[includeIf \"hasconfig:remote.*.url:/u\"]\n\
+                       path\n\
+                       [remote \"o\"]\n\
+                       url = /u\n" );
+                ] );
+            ( "global include.path",
+              unread "/global" None,
+              run_result
+                ~env:(no_system @ [ ("GIT_CONFIG_GLOBAL", "/global") ])
+                [
+                  ("/global", content "[include]\npath\n");
+                  (config_path, content "");
+                ] );
+            ( "config.worktree include.path",
+              unread (git_folder ^ "/config.worktree") None,
+              run_result
+                [
+                  ( config_path,
+                    content (format_1 ^ "[extensions]\nworktreeConfig = true\n")
+                  );
+                  (git_folder ^ "/config.worktree", content "[include]\npath\n");
+                ] );
+            ( "unmet hasconfig includes file with include.path",
+              unread "/noval.inc" None,
+              run_result
+                [
+                  (config_path, content (unmet ^ "path = /noval.inc\n"));
+                  ("/noval.inc", content "[include]\npath\n");
+                ] );
+            ( "gitdir:~/ with HOME missing earlier name gives No_real_path",
+              no_real config_path "/w/missing/sub",
+              run_result ~real_path:real_missing
+                ~env:(no_system @ [ ("HOME", "/w/missing/sub") ])
+                [ (config_path, content "[includeIf \"gitdir:~/\"]\npath\n") ]
+            );
+            ( "unmet gitdir gives no error",
+              "no error",
+              run_result
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir:/nowhere/\"]\npath\n" );
+                ] );
+            ( "unmet gitdir/i gives no error",
+              "no error",
+              run_result
+                [
+                  ( config_path,
+                    content "[includeIf \"gitdir/i:/NOWHERE/\"]\npath\n" );
+                ] );
+            ( "unmet onbranch gives no error",
+              "no error",
+              run_result ~branch:"main"
+                [
+                  (config_path, content "[includeIf \"onbranch:other\"]\npath\n");
+                ] );
+            ( "detached onbranch gives no error",
+              "no error",
+              run_result
+                [ (config_path, content "[includeIf \"onbranch:**\"]\npath\n") ]
+            );
+            ( "unknown condition gives no error",
+              "no error",
+              run_result
+                [ (config_path, content "[includeIf \"foo:bar\"]\npath\n") ] );
+            ( "gitdir:~/ with HOME missing last name gives no error",
+              "no error",
+              run_result ~real_path:real_missing
+                ~env:(no_system @ [ ("HOME", "/w/missing") ])
+                [ (config_path, content "[includeIf \"gitdir:~/\"]\npath\n") ]
+            );
+            ( "unmet gitdir:./ gives no error",
+              "no error",
+              run_result
+                [ (config_path, content "[includeIf \"gitdir:./\"]\npath\n") ]
+            );
+            ( "includeIf without subsection gives no error",
+              "no error",
+              run_result [ (config_path, content "[includeIf]\npath\n") ] );
+            ( "include with subsection gives no error",
+              "no error",
+              run_result [ (config_path, content "[include \"sub\"]\npath\n") ]
+            );
+          ]);
+  ]
+
 let tests =
   Vectors.tests "changes" vector_groups
   @ key_tests @ syntax_tests @ boolean_tests @ integer_boolean_tests
-  @ pathname_tests @ order_tests @ read_tests @ environment_tests
-  @ more_environment_tests @ file_tests @ include_tests @ limit_tests
-  @ condition_tests @ more_condition_tests @ unmet_hasconfig_tests
-  @ follow_git_tests @ worktree_tests @ upstream_tests @ [ upstream_vectors ]
+  @ integer_and_format_version_tests @ pathname_tests @ order_tests @ read_tests
+  @ environment_tests @ more_environment_tests @ file_tests @ include_tests
+  @ limit_tests @ condition_tests @ more_condition_tests @ unmet_hasconfig_tests
+  @ follow_git_tests @ worktree_tests @ follow_up_tests @ upstream_tests
+  @ [ upstream_vectors ]
