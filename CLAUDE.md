@@ -8,10 +8,19 @@ person, a person's coding agent, or a subagent runs the session.
 
 Before you change anything, complete these three steps in order:
 
-1. **Orient.** Read "What Sinter is" and "Layout" below. Then read the
-   documents that apply to your task: `docs/design-notes.md` for the
-   design, `spec/` for the formats, `docs/roadmap.md` for the work
-   ahead, and `docs/decisions/` for what is already decided.
+1. **Orient.** Read "What Sinter is" and "Layout" below. Sinter's
+   design is being rewritten as a stack of layered designs (decision
+   record `layered-designs`). Until that rewrite ends, the design notes
+   (`docs/design-notes.md`), the specifications in `spec/`, and the
+   decision records about the earlier design describe a design that no
+   longer holds. Do not treat them as the current design. Follow the
+   brief of your task: the written task that your session receives
+   when it starts. Without a brief, follow the person you work with, or
+   the plan step, the issue, or the request of step 3. `docs/roadmap.md`
+   and `.plans/` still apply. So do the decision records that
+   `CONTRIBUTING.md` and the files in `docs/contributing/` name for the
+   project's procedures, such as commit messages and code comments
+   (decision record `orient-on-brief`).
 2. **Learn the rules.** Read `CONTRIBUTING.md` in full.
    `CONTRIBUTING.md` contains the writing rules for prose, for code
    comments, and for the messages that the tool prints.
@@ -47,7 +56,7 @@ applies to Sinter.
 | `bin/` | the `sinter` executable | Apache-2.0 |
 | `bridge/` | the Rust crate that loads grammars through wasmtime | Apache-2.0 |
 | `test/` | the test suite and its fixtures | Apache-2.0 |
-| `spec/` | the seven normative specifications | CC-BY-4.0 |
+| `spec/` | the seven specifications of the earlier design | CC-BY-4.0 |
 | `docs/` | the design notes, the roadmap, the decision records, and the procedures for contributors | CC-BY-4.0 |
 | `.plans/` | plan files and their journals | Apache-2.0 |
 | `plugins/` | the Claude Code plugin with the project's skills | Apache-2.0 |
@@ -55,10 +64,12 @@ applies to Sinter.
 
 ## Which document wins
 
-When the code and a specification disagree, the specification wins.
-When a specification and the design notes disagree, the specification
-is the newer document. Tell the person you work with about that
-disagreement. `docs/roadmap.md` lists agreed directions that do not
+Until the rewrite ends, your brief, or without one the person you work
+with, wins over the code and over the documents of the earlier design.
+When your brief and such a document disagree, follow the brief, and
+tell the person you work with about the disagreement. After the
+rewrite, when the code and a specification disagree, the specification
+wins. `docs/roadmap.md` lists agreed directions that do not
 have designs yet. Until the maintainer asks, do not design a direction
 from `docs/roadmap.md`.
 
