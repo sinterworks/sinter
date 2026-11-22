@@ -232,6 +232,28 @@ let order_cases =
       Result_size_differs );
   ]
 
+(* @cites changes#commit=v1
+   Delta.apply checks each instruction in order. When an instruction would
+   give more bytes than the stated result size, Delta.apply returns
+   Error Result_size_differs before Delta.apply checks any later instruction. *)
+let later_copy_past_result_size =
+  case
+    "apply gives result size differs when a later copy passes the result size"
+    (fun () ->
+      let base = "abc" in
+      let check_case label instructions =
+        check label (Error Result_size_differs)
+          (Delta.apply ~max_size:10 ~base
+             (O.delta ~base_size:3 ~result_size:2 instructions))
+      in
+      check_case "a second copy past the result size"
+        [ O.Copy (0, 1); O.Copy (1, 2) ];
+      check_case "a copy after an insert past the result size"
+        [ O.Insert "a"; O.Copy (0, 2) ];
+      check_case
+        "a later copy past the result size before a reserved instruction"
+        [ O.Copy (0, 1); O.Copy (1, 2); O.Raw_instruction "\x00" ])
+
 let error_tests =
   List.map
     (fun (name, base, delta, expected) ->
@@ -245,6 +267,7 @@ let error_tests =
         case ("apply checks " ^ name) (fun () ->
             check name (Error expected) (Delta.apply ~max_size:10 ~base delta)))
       order_cases
+  @ [ later_copy_past_result_size ]
 
 let max_size_tests =
   [
