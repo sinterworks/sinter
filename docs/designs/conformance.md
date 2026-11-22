@@ -18,7 +18,7 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [specification](sinter:#specification=v1) | a declared item of the kind specification that has a name of its own and declares some of the requirements and definitions of a design |
 | [requirement](sinter:#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take when the system refuses a permission or reports an input or output error while the program reads the input (other than from a resource bound or a refusal that the program itself causes) is a part that a valid input can lack |
+| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take when the system refuses a permission or reports an input or output error while the program reads the input (other than from a resource bound, a refusal that the program itself causes, or content that the program takes on a later attempt in the same run) is a part that a valid input can lack |
 | [owner design](sinter:#input=v1) | for a requirement, the design that defines the thing as which that requirement names an input |
 | [depends on](sinter:#dependence=v1) | a thing that a program gives or does depends on an input, a part of an input, or a reading or computation when a change to that input or part can change what a requirement obliges for that thing, or when the program computes or chooses that thing from it |
 | [needs](sinter:#dependence=v1) | which parts of a valid input a thing that a requirement obliges requires, as the owner design or the declaring design says, or by default every part on which that thing depends |
@@ -141,9 +141,7 @@ When a requirement defines what a program gives or does over objects,
 what the program gives and does is what that requirement obliges for the
 set of the canonical objects that all valid encoding inputs and valid
 program's own stores taken for that requirement hold together
-(`give-results-over-canonical-objects`). That rule applies only to the
-part that the requirement defines from those canonical objects, and not
-from any other property of those inputs. Suppose a person moves an
+(`give-results-over-canonical-objects`). Suppose a person moves an
 object from one encoding into a second encoding without changing the
 object's canonical form. Suppose also that, before and after the move,
 all inputs are valid and hold every part that any obliged thing needs,
@@ -330,14 +328,11 @@ so a program that ends code that never ends reaches no limit of its own
 by ending that code. A refused permission or an input or output error
 that makes content a part that an input lacks under the term `input` is
 not a limit of a program's own, so a program reaches no limit of its own
-when it stops reading because of that refusal or that error. By
-contrast, when the system refuses a permission or reports an error
-because the program, its run, or its machine reached a bound on a
-resource—such as a bound on open files, file size, memory, or time—and
-the program stops reading because of that refusal or that error, the
-program reaches a limit of its own. For example, a program that stops
-reading a file because the file is too large for the program's memory
-reaches a limit of its own.
+when it stops reading because of that refusal or that error. For
+example, when the system reports an error for too many open files and
+the program stops reading because of that error, or when a program stops
+reading a file because the file is too large for the program's memory,
+the program reaches a limit of its own.
 
 ### 3.7 Reports
 
