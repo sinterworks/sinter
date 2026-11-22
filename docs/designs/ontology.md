@@ -1239,21 +1239,13 @@ delivery line names, and for each promise of that definition:
 - when that tree has no item of the kind requirement with the name of
   that promise, or has two or more items of the kind requirement with
   the name of that promise, that record of the job records no revision
-  and no revised content for that promise. For that promise, that record
-  of the job records no result when that promise is a `verifies` promise
-  for which the job gives no result for whether that promise is kept,
-  and otherwise records that the promise was not kept.
+  and no revised content for that promise.
 
-For each `satisfies` promise of each definition of that task that the
-delivery line names, that record of the job also records whether the
-promise was kept or was not kept. For each `verifies` promise of each
-definition of that task that the delivery line names, that record of the
-job also records one of three values: that the promise was kept, that
-the promise was not kept, or no result. A record of the job records no
-result for a `verifies` promise of a definition when, and only when, the
-job gives no result for whether that promise is kept. When a record of
-the job records no result for a promise of a definition, that promise
-counts as not kept for that definition in that record.
+For each promise of each definition of that task that the delivery line
+names, that record of the job also records whether the promise was kept
+or was not kept. A promise with no item of the kind requirement with its
+name in that tree, or with two or more such items in that tree, was not
+kept.
 
 ### 3.49 The states of work items
 
@@ -1664,6 +1656,7 @@ session for nothing other than the brief of that session.
 
 ## 5. Conformance
 
-A program, or a part of a program, conforms to the design Ontology when
-it meets every requirement of section 4. No requirement of section 4
-names a result for an input, so there are no conformance vectors.
+A program, or a part of a program, conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
+No requirement of section 4 names a result for an input, so there are no
+conformance vectors.
