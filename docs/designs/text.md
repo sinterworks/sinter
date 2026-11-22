@@ -7,7 +7,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, give lines, line numbers, the positions of characters, and the starts and ends of spans, report where they reach limits of their own, report inputs that are not valid and give and do nothing that depends on them, and report missing parts of valid inputs and give nothing that needs them.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, give lines, line numbers, the positions of characters, and the starts and ends of spans, report where they reach limits of their own, report inputs that are not valid and give and do nothing that depends on them, and report missing parts of valid inputs and give and do nothing that needs them.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when the
@@ -47,8 +47,8 @@ design has one JSON text on each line of the text of that file.
 | [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
 | [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions |
 | [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `reject-invalid-inputs`, and `report-missing-parts`; the term says for which inputs, and where, each requirement binds |
-| [safety obligation](sinter:#conforming-program=v1) | a requirement that states, in one sentence, one of these things: that a conforming program never reads, changes, or runs a thing outside what it gives, or gains a permission, such as a ref, a ledger, a file, a symbolic link, or code that a repository supplies; that a conforming program never gives an outcome of a check that lets a change pass, such as "does not block"; or that a conforming program ends code or an operation that it runs |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `reject-invalid-inputs`, and `report-missing-parts`; the term says for which inputs, and where, each requirement and each of its obligations binds |
+| [safety obligation](sinter:#conforming-program=v1) | a requirement that states one of these things: that a conforming program reads, changes, or runs no thing other than the things that the requirement allows, or gains no permission, where such a thing is, for example, a ref, a ledger, a file, a symbolic link, or code that a repository supplies; that a conforming program never gives an outcome of a check that lets a change pass, such as "does not block"; or that a conforming program ends code or an operation that it runs |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
 | [input](sinter:#input=v1) | a thing that a program takes, such as a byte sequence or a text; an input is not valid when its owner design says that such a thing is not valid; an input can also have parts, such as the commits of a history or the objects of a git repository |
 | [owner design](sinter:#input=v1) | the design that defines the thing as which a program takes an input |
@@ -382,10 +382,12 @@ program then reports where it reached that limit
 (`report-stops-at-limits`), and `give-lines` does not fix the lines
 that the program gives for that text (term `conforming-program`). A
 program that takes an input that is not valid follows
-`reject-invalid-inputs`, and even where the program reaches a limit of
-its own, the program still gives nothing and does nothing that depends
-on that invalid input (term `conforming-program`). A program that takes
-a valid input that lacks a part follows `report-missing-parts`.
+`reject-invalid-inputs`, and the term `conforming-program` says which
+obligations of `reject-invalid-inputs` bind where the program reaches a
+limit of its own. A program that takes a valid input that lacks a part
+follows `report-missing-parts`, and the term `conforming-program` says
+which obligations of `report-missing-parts` bind where the program
+reaches a limit of its own.
 
 ### 2.6 Code spans and blocks
 
@@ -1019,13 +1021,13 @@ of requirement bind a conforming program beyond that scope:
 - A safety obligation binds a conforming program always: under an input
   that is not valid, under a valid input that lacks a part, and where
   the conforming program reaches a limit of its own. A safety obligation
-  is a requirement that states, in one sentence, one of these things:
-  that a conforming program never reads, changes, or runs a thing
-  outside what it gives, or gains a permission, such as a ref, a ledger,
-  a file, a symbolic link, or code that a repository supplies; that a
-  conforming program never gives an outcome of a check that lets a
-  change pass, such as "does not block"; or that a conforming program
-  ends code or an operation that it runs.
+  is a requirement that states one of these things: that a conforming
+  program reads, changes, or runs no thing other than the things that
+  the requirement allows, or gains no permission, where such a thing is,
+  for example, a ref, a ledger, a file, a symbolic link, or code that a
+  repository supplies; that a conforming program never gives an outcome
+  of a check that lets a change pass, such as "does not block"; or that
+  a conforming program ends code or an operation that it runs.
 - A requirement that itself states what a program gives or does at a
   limit of its own binds a conforming program where the conforming
   program reaches a limit of its own, whether or not the inputs are
@@ -1042,14 +1044,21 @@ of requirement bind a conforming program beyond that scope:
 - A requirement that itself states what a program gives or does when a
   valid input lacks a part binds a conforming program when a valid input
   lacks a part, where the conforming program reaches no limit of its
-  own.
+  own. The obligations of `report-missing-parts` to give nothing that
+  needs a missing part and to do nothing that needs that part bind a
+  conforming program also where the conforming program reaches a limit
+  of its own. The obligation of `report-missing-parts` to report which
+  part is missing, and its obligation for each thing that does not need
+  that missing part, bind only where the conforming program reaches no
+  limit of its own.
 
 Where a conforming program reaches a limit of its own, only safety
 obligations, requirements that themselves state what a program gives or
-does at a limit of its own, and the obligations of
-`reject-invalid-inputs` to give nothing and to do nothing that depends
-on an input that is not valid fix what the conforming program gives or
-does.
+does at a limit of its own, the obligations of `reject-invalid-inputs`
+to give nothing and to do nothing that depends on an input that is not
+valid, and the obligations of `report-missing-parts` to give nothing and
+to do nothing that needs a missing part fix what the conforming program
+gives or does.
 
 ### 3.36 Inputs
 
@@ -1410,8 +1419,10 @@ must report where the program reached that limit.
 When a program takes an input that is not valid, the program must report
 which input is not valid and where, must give nothing that depends on
 that input, and must do nothing that depends on that input. This
-requirement does not forbid what a requirement of the owner design of
-that input states that a program gives or does for that input in that
+requirement does not forbid a report of which input is not valid and
+where, or a report of where a program reached a limit of its own. This
+requirement also does not forbid what a requirement of the owner design
+of that input states that a program gives or does for that input in that
 case, and a report that such a requirement states is the report of that
 input.
 
@@ -1422,14 +1433,14 @@ input.
 
 When a program takes a valid input I, and a thing that a requirement R
 obliges the program to give or do needs a part that I lacks, the program
-must report which part is missing and must give nothing that needs that
-part. In that case, for each thing that a requirement obliges the
-program to give and that does not need that missing part, when each
-input on which that thing depends is valid and holds every part that
-that thing needs, the program must give that thing. This requirement
-does not forbid what a requirement of the owner design of I, or of the
-design that declares R, states that a program gives or does for I in
-that case, and a report that such a requirement states is the report of
+must report which part is missing, must give nothing that needs that
+part, and must do nothing that needs that part. In that case, for each
+thing that does not need that missing part, the program must give what
+the requirements oblige the program to give for that thing. When a
+requirement of the owner design of I, or of the design that declares R,
+states a report for that missing part, that report is the report of that
+missing part. When both of those designs state a report for that missing
+part, the report that the design that declares R states is the report of
 that missing part.
 
 ## 5. Conformance
