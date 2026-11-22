@@ -37,38 +37,55 @@ The static library is about 40 MB. It holds wasmtime and the
 Cranelift compiler.
 
 `dune build` at the repository root builds the crate as well, through
-a rule in `lib/bridge/dune`. That rule writes its output under the
-user cache, by default `~/.cache/sinter-bridge-build`, in a directory
-of its own for each checkout. `lib/bridge/build.sh` chooses the
-directory, names it from the path of the crate, and writes the path
-of the checkout into a file named `checkout` inside it. Two checkouts
-must not share one: cargo would call the second checkout fresh and
-leave the first checkout's library in place. `CONTRIBUTING.md`, in
-"The bridge's build directory", says how to remove the directories of
-checkouts that are gone.
+a rule in `lib/bridge/dune`. That rule runs `lib/bridge/build.sh`,
+which calls `lib/cargo-build.sh` to write cargo's output under the
+user cache, by default `~/.cache/sinter-bridge-build`. The script names
+each build directory from a SHA-256 hash of every file in the crate
+working tree except top-level `target/`, `.git/`, and `.DS_Store`.
+Checkouts with the same crate content share one directory. Cargo runs
+inside the crate directory so that `rust-toolchain.toml` selects the
+toolchain and cargo's fingerprint checks the configuration that cargo
+uses and the environment variables that the build scripts declare. When
+the crate content differs, the script makes a separate directory as a
+copy of the most recently used build directory of the same package
+where available, cleans the crate package, and compiles the crate. Each
+build marks its directory as used and removes every other unlocked
+build directory that no build used in the last 7 days.
+`CONTRIBUTING.md`, in "The bridge's build directory", states the cache
+variables and cleanup rules.
 
 The command above writes to `bridge/target` instead, so a contributor
-who runs both has two copies of the build. `dune clean` removes
-neither. To build the crate from nothing, remove one by hand.
+who runs both has two copies of the build. `lib/cargo-build.sh`
+excludes `bridge/target` from the content hash. `dune clean` removes
+neither. To build the crate from nothing, remove the directory by hand
+when no build runs.
 
 ## Checking the build directory rule
 
-Each checkout builds the crate in its own directory. When
-`lib/bridge/build.sh` changes, check the rule by hand; the check is
-not part of CI, because it builds the crate twice from nothing.
+Checkouts with the same crate content share one build directory, and
+checkouts with different crate content build in separate directories.
+When `lib/cargo-build.sh` or `lib/bridge/build.sh` changes, check the
+rule by hand. CI does not run this full check because it builds the
+crate from nothing.
 
-1. Unpack the branch into two directories, A and B.
-2. In B, add `#[no_mangle] pub static RB_MARKER: [u8; 16] =
+1. Unpack the branch into three directories, A, B, and C, so that A
+   and C hold the same crate content.
+2. In B, add `#[unsafe(no_mangle)] pub static RB_MARKER: [u8; 16] =
    *b"RBE2EMARKERXYZZY";` to `bridge/src/lib.rs`, and run `touch` on
-   that file so that B's sources are the newer ones.
-3. Point `CARGO_TARGET_DIR` at one empty directory for both.
-4. Run `dune build` in B, then in A. Use the same command in both;
-   a plain `cargo build` in one of them hides the failure, because the
-   dune rule adds `--print native-static-libs` to the command line,
-   and cargo keeps a separate freshness record for it.
+   that file so that B's source file is newer than A's source file.
+3. Point `CARGO_TARGET_DIR` at one empty directory for all three
+   checkouts.
+4. Run `dune build` in B, then in A, then in C. Use `dune build` in
+   each checkout so that each build runs `lib/bridge/build.sh` with
+   the same `cargo rustc -- --print native-static-libs` invocation.
 5. Count the marker in each `_build/default/lib/bridge/libsinter_bridge.a`
-   with `strings -a ... | grep -c XYZZY`. The right answer is 1 in B
-   and 0 in A. With one shared directory it is 1 in both.
+   with `strings -a ... | grep -c XYZZY`. The right answer is 1 in B,
+   0 in A, and 0 in C. With the same `CARGO_TARGET_DIR` as step 3,
+   check that `sh lib/bridge/build.sh --target-dir bridge` prints the
+   same directory in A and C and a different directory in B.
+6. To check the reverse order, run `dune clean` in A and B, point
+   `CARGO_TARGET_DIR` at a second empty directory, and run `dune build`
+   in A, then in B. The right answer is 0 in A and 1 in B.
 
 ## The C interface
 
