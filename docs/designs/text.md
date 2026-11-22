@@ -29,7 +29,8 @@ algorithm is a header sentence, then numbered steps, such as
 of forms.
 
 From Conformance (`conformance`), the design takes what a design, a
-requirement, a conforming program, and an input are.
+definition, a schema, a requirement, a conforming program, and an input
+are.
 
 From RFC 3629, the design takes UTF-8: how a byte sequence encodes a
 text, the rule `UTF8-char`, and the rule `UTF8-octets`. The rule
@@ -44,6 +45,12 @@ design has one JSON text on each line of the text of that file.
 
 | word or phrase | meaning |
 |---|---|
+| [design](sinter:conformance#design=v1) | a document of Sinter that declares items under names, each with a kind and a revision |
+| [definition](sinter:conformance#design=v1) | a term, a schema, or an atom that a design declares under a name |
+| [schema](sinter:conformance#design=v1) | a definition that a design declares under a name that gives the form of a concrete thing that crosses the edge of a program, or the form of a file of test cases for a design: its layout and every constraint that is a property of the thing itself |
+| [requirement](sinter:conformance#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
+| [input](sinter:conformance#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree |
 | decode | a conforming program decodes a byte sequence as UTF-8 when the conforming program gives a result for whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
 | [result](sinter:#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input. The double quotes are not part of the result. A conforming program gives a result when the conforming program gives something that stands for that result and for no other result. |
 | [whole number](sinter:#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
@@ -1240,7 +1247,8 @@ end of that span, and no other column, for the end of that span.
 ## 5. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
-[conforming program](sinter:conformance#conforming-program=v1) of this design.
+[conforming program](sinter:conformance#conforming-program=v1) of this
+design.
 
 The vectors of this design are in the file
 [`text.test-vectors.jsonl`](text.test-vectors.jsonl), in the same
