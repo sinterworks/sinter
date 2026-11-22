@@ -108,19 +108,19 @@ literal names `true` and `false`.
 | [result link](sinter:#reading-of-a-report-file=v1) | a pair of a test result and a test entry that a reading gives with the result "bound" |
 | [test entries of a reading](sinter:#reading-entry=v1) | one test entry for each test node of the code files of the tree that can be read and whose pack has, in its descriptor, a test runner with the name of the test runner of the report file, each with the test entry id that the term gives |
 | [reading of a report file](sinter:#reading-of-a-report-file=v1) | "bound" with test results and result links, "unreadable", or "stopped": the call of bind of the adapter of the test runner of the report file, or the default reading |
-| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | the test results of the readings of the report files of the import with the result "bound"; a test result is linked to a test of the tree when a result link joins the test result to a test entry with the path, the name, and the kind of the test, and the test result has no file or has a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
+| [test results of an import](sinter:#linked-test=v1), [linked](sinter:#linked-test=v1) | when the reading of each report file of the import has a result, the test results of those readings with the result "bound"; a test result is linked to a test of the tree when a result link joins the test result to a test entry with the path, the name, and the kind of the test, and the test result has no file or has a file that matches that path; a test result is linked to a test suite only when that test suite holds a test |
 | [narrowing](sinter:#import=v1), [valid narrowing](sinter:#narrowing-of-an-import=v1) | a set of triples of the number of a report file of the import, the number of a test result, and a test, each of which can stand for a pair of a test result and a test; a narrowing is valid when each triple stands for a pair, and the test result of each pair is linked to the test of the pair, and to a test alike to no test with which a triple pairs that test result; two tests are alike when they have one file, equal names, and test nodes of one kind, and a test is alike to itself |
-| [a test result names a test](sinter:#named-test=v1) | under a valid narrowing, a test result names a test when the test result is linked to that test, and the narrowing has no triple for the pair of the test result and a test alike to that test |
+| [a test result names a test](sinter:#named-test=v1) | under a valid narrowing and when the reading of each report file of the import has a result, a test result names a test when the test result is linked to that test, and the narrowing has no triple for the pair of the test result and a test alike to that test |
 | [says passed, says failed](sinter:#status-meaning=v1) | a test result with the status `pass` says that the tests that the test result names passed; a test result with the status `fail` or `error` says that the tests that the test result names failed; a test result with the status `skip` says neither |
 | [hold](sinter:#held-test=v1) | in a tree, a test T holds a test U of the file of T when the test node of T is a test suite that encloses the test node of U |
 | [suite rule](sinter:#suite-rule=v1) | the rule by which test evidence shows that a test T that holds other tests passed: T holds at least one test case, each test case that T holds has a test result that names that test case and says passed, and no test result that names T or a test that T holds says failed |
-| [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test |
-| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise "failed" when the outcome in one or more imports of the evidence is "failed"; otherwise "not run" |
-| [sources of an outcome](sinter:#outcome-source=v1) | for each import of the evidence: for each report file of that import, the hash of the report content of that report file and the result of the reading of that report file; the outcome in that import; the triples of the narrowing that remove a pair of the test, of a test that the test holds, or of a test alike to one of these; and the test results that made that outcome (for "not run", the test results with the status `skip`), each test result with the number and the hash of the report content of the report file of that test result, the number of that test result, the name of that test result, and the status of that test result |
+| [outcome in an import](sinter:#import-outcome=v1) | "passed", "failed", or "not run": what the test results of one import say of a test, when the narrowing of the import is valid and the reading of each report file of the import has a result |
+| [outcome in the evidence for a tree](sinter:#tree-outcome=v1) | "passed" when the outcome in one or more imports of the evidence is "passed"; otherwise, when the test has an outcome in each import, "failed" when the outcome in one or more imports is "failed" and otherwise "not run"; a test has no outcome in the evidence when it passed in no import and has no outcome in some import |
+| [sources of an outcome](sinter:#outcome-source=v1) | when the test has an outcome in the evidence, for each import of the evidence in which the test has an outcome: for each report file of that import, the hash of the report content of that report file and the result of the reading of that report file; the outcome in that import; the triples of the narrowing that remove a pair of the test, of a test that the test holds, or of a test alike to one of these; and the test results that made that outcome (for "not run", the test results with the status `skip`), each test result with the number and the hash of the report content of the report file of that test result, the number of that test result, the name of that test result, and the status of that test result |
 | [verified](sinter:#verified-vector=v1) | a group of conformance vectors is verified when that group has at least one conformance vector that says a vector, and a test with a `verifies` edge to that group or to the vector set of that group has the outcome "passed" in the evidence for the tree |
 | [`never-ran`](sinter:#never-ran-finding=v1), [`failed`](sinter:#failed-finding=v1) | the finding classes, for a tree that has evidence, of a `verifies` edge to a requirement, a schema, a group, or a vector set, whose source is a test with the outcome "not run", or "failed", in the evidence for the tree |
 | [`ambiguous-result`](sinter:#ambiguous-result-finding=v1) | the finding class, for a tree that has evidence, of a test T that a test result names, when the test result also names a test that is not alike to T |
-| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, and for a given set S of declared items of the tree, of a group of conformance vectors of a declared item in S, when that group has at least one conformance vector that says a vector, and that group is not verified |
+| [`unverified-vector`](sinter:#unverified-vector-finding=v1) | the finding class, for a tree that has evidence, and for a given set S of declared items of the tree, of a group of conformance vectors of a declared item in S, when that group has at least one conformance vector that says a vector, that group is not verified, and each test of the tree with a `verifies` edge to that group or its vector set has an outcome in the evidence |
 
 ## 2. Report files, readings, and outcomes
 
@@ -893,16 +893,17 @@ test entry that the reading gives with the result "bound".
     packs#{test-entry=v1, test-name=v1, test-node=v1},
     ontology#{test=v1, test-evidence=v1, tree=v1, parameter=v1},
     files#{path=v1},
-    text#{whole-number=v1},
+    text#{whole-number=v1, result=v1},
     #{
-        import=v1, reading-of-a-report-file=v1, report-path-match=v1,
-        held-test=v1,
+        report-file=v1, import=v1, reading-of-a-report-file=v1,
+        report-path-match=v1, held-test=v1,
     },
 }
 
-Under a valid binding of `file-readers`, the test results of an import
-are the test results of those readings of its report files, under that
-binding, that have the result "bound". The test
+Under a valid binding of `file-readers`, for an import in which the
+reading of each report file has a result, the test results of the import
+are the test results of those readings, under that binding, that have
+the result "bound". The test
 results of an import are the test results, as the Ontology means them,
 of the execution of test runners for which the import stands. The number
 of a test result is 1 more than the number of the test results before it
@@ -943,10 +944,15 @@ true:
 @term named-test=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, tree=v1},
-    #{import=v1, linked-test=v1, narrowing-of-an-import=v1},
+    text#{result=v1},
+    #{
+        report-file=v1, import=v1, reading-of-a-report-file=v1,
+        linked-test=v1, narrowing-of-an-import=v1,
+    },
 }
 
-For an import whose narrowing is valid, a test result of that import
+For an import whose narrowing is valid and in which the reading of each
+report file has a result, a test result of that import
 names a test of the tree of that import, as the Ontology means it, when,
 and only when, both of these conditions are true:
 
@@ -1014,13 +1020,16 @@ conditions are true:
 @refines ontology#promise=v1
 @cites {
     ontology#{test=v1, test-evidence=v1, tree=v1},
+    text#{result=v1},
     #{
-        import=v1, linked-test=v1, held-test=v1, narrowing-of-an-import=v1,
+        report-file=v1, import=v1, reading-of-a-report-file=v1,
+        linked-test=v1, held-test=v1, narrowing-of-an-import=v1,
         named-test=v1, status-meaning=v1, suite-rule=v1,
     },
 }
 
-For an import whose narrowing is valid, the outcome of a test T of the
+For an import whose narrowing is valid and in which the reading of each
+report file has a result, the outcome of a test T of the
 tree of that import, in that import, is one of these:
 
 - "passed" when the test evidence of the execution for which the import
@@ -1036,19 +1045,16 @@ tree of that import, in that import, is one of these:
 @atom tree-outcome=v1
 @cites {
     ontology#{test=v1, tree=v1},
-    #{
-        tree-evidence=v1, import=v1, narrowing-of-an-import=v1,
-        import-outcome=v1,
-    },
+    #{tree-evidence=v1, import=v1, import-outcome=v1},
 }
 
-When each import of the evidence for a tree has a valid narrowing, the
-outcome of a test of that tree in the evidence for that tree is one of
-these:
-
-- "passed" when the outcome of that test in one or more imports of the evidence is "passed";
-- otherwise, "failed" when the outcome of that test in one or more imports of the evidence is "failed";
-- otherwise, "not run".
+The outcome of a test of a tree in the evidence for that tree is "passed"
+when the outcome of that test in one or more imports of the evidence is
+"passed". When that test has an outcome in each import of the evidence
+and its outcome in the evidence is not "passed", its outcome in the
+evidence is "failed" when its outcome in one or more imports of the
+evidence is "failed", and otherwise "not run". In each other case, the
+test has no outcome in the evidence for that tree.
 
 ### 3.23 The sources of outcomes
 
@@ -1064,9 +1070,9 @@ these:
     },
 }
 
-When each import of the evidence for a tree has a valid narrowing, the
-sources of the outcome of a test T of that tree in the evidence for that
-tree are one source for each import of the evidence, each time the
+When a test T of a tree has an outcome in the evidence for that tree,
+the sources of that outcome are one source for each import of the
+evidence in which T has an outcome, each time the
 import stands in the evidence, with these values:
 
 - for each report file of the import, in their order, the hash of its
@@ -1175,8 +1181,7 @@ of the file.
     #{tree-evidence=v1, import=v1, named-test=v1, narrowing-of-an-import=v1},
 }
 
-When each import of the evidence for a tree has a valid narrowing, a
-tree that has evidence has one tree finding of the class
+A tree that has evidence has one tree finding of the class
 `ambiguous-result` for each test T of the tree that a test result of an
 import of the evidence names, when that test result also names a test of
 the tree that is not alike to T. A tree that has no evidence has no tree
@@ -1192,19 +1197,23 @@ the finding is the spot of that run.
     ontology#{
         conformance-vector=v1, conformance-vector-group=v1,
         vector-set=v1, declared-item=v1, item-name=v1, tree=v1,
+        test=v1, edge=v1, verifies-edge=v1, edge-source=v1,
     },
-    documents#{vector-file=v1, tree-finding=v1},
+    documents#{tree-edge=v1, vector-file=v1, tree-finding=v1},
     findings#{spot=v1},
     files#{path=v1},
     text#{span=v1, code-span=v1},
-    #{tree-evidence=v1, verified-vector=v1},
+    #{tree-evidence=v1, tree-outcome=v1, verified-vector=v1},
 }
 
 When a tree T has evidence, T has, for a set S of declared items of T,
 one tree finding of the class `unverified-vector` for each group of
 conformance vectors of the vector set that a declared item in S has in
 T, when that group has at least one conformance vector that says a
-vector, and that group is not verified in the evidence for T. A tree
+vector, that group is not verified in the evidence for T, and each test
+of T that is the source of a `verifies` edge whose cited item is that
+group or the vector set of that group has an outcome in the evidence
+for T. A tree
 that has no evidence has no tree finding of the class `unverified-vector`
 for any set of its declared items. The subject of the finding is the
 name of the item of the vector set of the group of conformance vectors,
@@ -1470,9 +1479,8 @@ these bindings once, and no other finding of that class.
 
 ## 5. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 4.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`evidence.test-vectors.jsonl`](evidence.test-vectors.jsonl), in the
@@ -1724,7 +1732,7 @@ The group `outcomes` has the vectors of the requirements
 `give-test-outcomes` and `give-outcome-sources`, and, for the class
 `ambiguous-result`, of the requirement `give-evidence-findings`. Each
 vector gives tests of a tree, the evidence for that tree, and one test.
-When each import of the evidence has a valid narrowing, the vector also
+When the test has an outcome in the evidence, the vector also
 gives the outcome of that test in the evidence, with the sources of
 that outcome, and whether the tree has a finding of the class
 `ambiguous-result` for that test. The readings of the report files are
@@ -1784,16 +1792,17 @@ The members of a vector line have these forms:
   - `test` is the index in `tests` of the test whose outcome the vector
     gives.
 - `result`: "passed", "failed", or "not run": the outcome of that test
-  in the evidence for the tree, when each import of the evidence has a
-  valid narrowing. A vector that has an import whose narrowing is not
-  valid has no member `result`.
-- `values`: when each import of the evidence has a valid narrowing, a
-  JSON object with the members `ambiguous` and `sources`. The member
+  in the evidence for the tree, when that test has an outcome in the
+  evidence for the tree. A vector in which that test has no outcome in
+  the evidence for the tree has no member `result`.
+- `values`: when that test has an outcome in the evidence for the tree,
+  a JSON object with the members `ambiguous` and `sources`. The member
   `ambiguous` is true when the tree has a finding of the class
   `ambiguous-result` for that test, and false when the tree has none.
   The member `sources` is a JSON array of the sources of the outcome,
-  with one source for each import. In the vector, the elements of
-  `sources` stand in the order of `imports`. A source is a JSON object
+  with one source for each import in which that test has an outcome. In
+  the vector, the elements of `sources` stand in the order of `imports`.
+  A source is a JSON object
   with the members `files`, `narrowing`, `outcome`, and `results`. The
   member `files` is a JSON array with a JSON object for each report file
   of the import, in the order of the report files of the import. Each
@@ -1808,8 +1817,8 @@ The members of a vector line have these forms:
   the members `report-number`, `report`, `n`, `name`, and `status`. The
   member `report-number` is the number of the report file of that test
   result. The member `report` is the hash of the report content of that
-  report file. The member `n` is the number of that test result. When an
-  import of the evidence has a narrowing that is not valid, `values` is
+  report file. The member `n` is the number of that test result. When
+  that test has no outcome in the evidence for the tree, `values` is
   the empty JSON object, `{}`.
 
 When the vector has a member `result` and a conforming program gives the
@@ -1822,10 +1831,10 @@ part of what that conforming program gives. When the vector has a member
 `ambiguous-result` of the tree, that conforming program gives one
 finding of that class for that test when `ambiguous` is true, and none
 for that test when `ambiguous` is false. When the vector has no member
-`result`, an import of the input has a narrowing that is not valid, and
-a conforming program reports the narrowing and where, and gives no
-outcome, no source, and no finding of the class `ambiguous-result` for
-that import.
+`result`, an import of the input has a narrowing that is not valid and
+that test has no outcome in the evidence for the tree, and a conforming
+program reports the narrowing and where, and gives no outcome, no
+source, and no finding of the class `ambiguous-result` for that import.
 
 ```
 {"form":"#outcome-vector=v1","group":"outcomes","input":{"imports":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound","results":[{"links":[1],"name":"small","status":"pass"},{"links":[2],"name":"large","status":"pass"}]}]}],"test":0,"tests":[{"name":["limits"],"path":"t.ts","suite":true,"suites":[]},{"name":["limits","small"],"path":"t.ts","suite":false,"suites":[0]},{"name":["limits","large"],"path":"t.ts","suite":false,"suites":[0]}]},"note":"a test that holds tests passed: each test that it holds passed","result":"passed","values":{"ambiguous":false,"sources":[{"files":[{"hash":"0000000000000000000000000000000000000000000000000000000000000001","reading":"bound"}],"narrowing":[],"outcome":"passed","results":[{"n":1,"name":"small","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"},{"n":2,"name":"large","report":"0000000000000000000000000000000000000000000000000000000000000001","report-number":1,"status":"pass"}]}]}}
