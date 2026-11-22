@@ -196,7 +196,14 @@ let own_bytes store core (information : Dylink.t) =
 let own_elements store core (information : Dylink.t) =
   let alignment = information.table_alignment in
   let elements = with_room information.table_size alignment in
-  if elements > largest then stopped Table
+  if
+    (elements > largest)
+    [@mutaml.skip
+      "The table of the core holds at least one element before this growth. So \
+       a growth by 4,294,967,295 elements passes the maximum of 4,294,967,295 \
+       elements that a table holds. Store.grow_table then gives Error (Stopped \
+       Table), the same result as this check."]
+  then stopped Table
   else
     Result.map
       (fun start -> round_up start alignment)
