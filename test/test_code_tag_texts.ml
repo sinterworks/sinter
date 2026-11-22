@@ -1554,6 +1554,115 @@ let make_keeps_constant_stack_depth_on_nested_comments () =
         (print_run r.run)
   | _ -> Alcotest.fail "one run of comments"
 
+(* @verifies documents#give-tests=v1
+   @cites text#position=v1
+   @cites documents#{comment-run=v1, attachment=v1}
+   The boundary between the carriage return and the line feed of a line ending
+   has the line number of the line before that line ending. A comment node
+   whose run starts at that boundary has that line number as its first line
+   number. The test fails when the first line number differs, when code on that
+   line does not block attachment to a following test node, or when a comment
+   node at that boundary on an empty line does not attach to a test node on the
+   next line. *)
+let comment_at_crlf_boundary () =
+  let source = "a\r\nfn t() {}\r\n" in
+  let target = test_node (find source "fn t() {}") in
+  let nodes = [ tagged (run 2 2); target ] in
+  (match Code_file.comment_runs (code_file line_sigils source nodes) with
+  | [ r ] ->
+      Alcotest.(check (pair int int))
+        "line numbers between carriage return and line feed of line 1" (1, 1)
+        (r.first_line, r.last_line);
+      Alcotest.(check bool)
+        "code on line 1 blocks attachment" true (r.target = None)
+  | _ -> Alcotest.fail "one run of comments");
+  Alcotest.(check (list (pair string (list string))))
+    "the test has no comment"
+    [ (print_run target.run, []) ]
+    (List.map
+       (fun (_, _, code, comments) -> (code, comments))
+       (given_tests source line_sigils nodes));
+  let source = "\r\n\r\nfn t() {}\r\n" in
+  let target = test_node (find source "fn t() {}") in
+  let nodes = [ tagged (run 3 3); target ] in
+  (match Code_file.comment_runs (code_file line_sigils source nodes) with
+  | [ r ] ->
+      Alcotest.(check (pair int int))
+        "line numbers between carriage return and line feed of line 2" (2, 2)
+        (r.first_line, r.last_line);
+      Alcotest.(check (option string))
+        "attaches to the test node on line 3"
+        (Some (print_run target.run))
+        (Option.map (fun (n : Reading.node) -> print_run n.run) r.target)
+  | _ -> Alcotest.fail "one run of comments");
+  Alcotest.(check (list (pair string (list string))))
+    "the test has the comment on line 2"
+    [ (print_run target.run, [ "3-3" ]) ]
+    (List.map
+       (fun (_, _, code, comments) -> (code, comments))
+       (given_tests source line_sigils nodes))
+
+(* @verifies documents#give-tests=v1
+   @cites documents#attachment=v1
+   Attachment checks only the lines whose line numbers lie strictly between the
+   last line number of the run of comments and the first line number of the
+   attachment target. An earlier code line or blank line before the run of
+   comments does not block attachment across a decoration line. The test fails
+   when a run of comments after an earlier code line or blank line does not
+   attach across a decoration line to a following test node, or when a blank
+   line between the run of comments and the decoration line does not block
+   attachment. *)
+let attachment_after_earlier_lines () =
+  let source =
+    "fn before() {}\n// @verifies x#y=v1\n#[test]\nfn after() {}\n"
+  in
+  let comment = find source "// @verifies x#y=v1" in
+  let target = test_node (find source "fn after() {}") in
+  let nodes =
+    [
+      definition (find source "fn before() {}");
+      tagged comment;
+      decoration (find source "#[test]");
+      target;
+    ]
+  in
+  Alcotest.(check (list (pair string (option string))))
+    "attaches across a decoration line after an earlier function"
+    [ (print_run comment, Some (print_run target.run)) ]
+    (summary (code_file line_sigils source nodes));
+  Alcotest.(check (list (pair string (list string))))
+    "the test after an earlier function gets the comment"
+    [ (print_run target.run, [ print_run comment ]) ]
+    (List.map
+       (fun (_, _, code, comments) -> (code, comments))
+       (given_tests source line_sigils nodes));
+  let source = "\n// @verifies x#y=v1\n#[test]\nfn after() {}\n" in
+  let comment = find source "// @verifies x#y=v1" in
+  let target = test_node (find source "fn after() {}") in
+  let nodes = [ tagged comment; decoration (find source "#[test]"); target ] in
+  Alcotest.(check (list (pair string (option string))))
+    "attaches across a decoration line after an earlier blank line"
+    [ (print_run comment, Some (print_run target.run)) ]
+    (summary (code_file line_sigils source nodes));
+  let source =
+    "fn before() {}\n// @verifies x#y=v1\n\n#[test]\nfn after() {}\n"
+  in
+  let comment = find source "// @verifies x#y=v1" in
+  let target = test_node (find source "fn after() {}") in
+  let nodes =
+    [
+      definition (find source "fn before() {}");
+      tagged comment;
+      decoration (find source "#[test]");
+      target;
+    ]
+  in
+  Alcotest.(check (list (pair string (option string))))
+    "a blank line between the comment and the decoration still blocks \
+     attachment"
+    [ (print_run comment, None) ]
+    (summary (code_file line_sigils source nodes))
+
 let tests =
   [
     code_characters_follow_the_term;
@@ -1594,6 +1703,12 @@ let tests =
     Alcotest.test_case
       "the last line number of a node whose run has its line feed" `Quick
       last_line_of_a_node_with_its_line_feed;
+    Alcotest.test_case
+      "a comment node at the boundary between carriage return and line feed"
+      `Quick comment_at_crlf_boundary;
+    Alcotest.test_case
+      "attachment across a decoration line after earlier code or blank lines"
+      `Quick attachment_after_earlier_lines;
     Alcotest.test_case "the origin position of a tag line in a comment is its @"
       `Quick origins_of_code_tag_texts;
     Alcotest.test_case "a link over two comment lines" `Quick
