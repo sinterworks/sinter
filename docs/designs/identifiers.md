@@ -571,9 +571,7 @@ character class can hold characters that a literal leaves out, such as
 `.` and `+`: `[.]`, `[+]`.
 
 This condition also applies to an id pattern: the empty id does not fit
-the id pattern. So `[0-9]*` is invalid. The requirement
-`validate-id-patterns` lets a program give the result "invalid" for an
-id pattern that goes beyond limits of its own.
+the id pattern. So `[0-9]*` is invalid.
 
 | id pattern | ids that fit it |
 |---|---|
@@ -1832,8 +1830,7 @@ as that result. For each id pattern that is an input, when the id
 pattern is not a valid id pattern, a conforming program must give the
 result "invalid". For each id pattern that is an input, when the id
 pattern is a valid id pattern, a conforming program must give the result
-"valid", except that the program may give the result "invalid" when that
-id pattern goes beyond the program's own limits.
+"valid".
 
 ### 5.3 The fit of ids
 
@@ -1855,7 +1852,7 @@ pattern, a conforming program must give the result "does not fit".
 
 @req validate-bindings=v1
 @cites {
-    #{input=v1, external-namespaces=v1, id-pattern=v1},
+    #{input=v1, external-namespaces=v1},
     text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
 }
 
@@ -1866,9 +1863,7 @@ program must give exactly one result, and the program must give only
 the schema `external-namespaces`, a conforming program must give the
 result "invalid". For each binding of `external-namespaces` that is an
 input, when the binding meets the schema `external-namespaces`, a
-conforming program must give the result "valid", except that the program
-may give the result "invalid" when that binding holds an id pattern that
-goes beyond the program's own limits.
+conforming program must give the result "valid".
 
 ### 5.5 Rejected bindings
 
@@ -2048,8 +2043,8 @@ program must give nothing else as that canonical form.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it
-meets every requirement of section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in

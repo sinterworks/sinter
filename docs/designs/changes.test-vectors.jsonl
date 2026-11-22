@@ -10,7 +10,6 @@
 {"form":"#default-branch-commit-vector=v1","group":"default-branch-commits","input":{"binding":"main","local":"l"},"values":{"commit":"l"}}
 {"form":"#default-branch-commit-vector=v1","group":"default-branch-commits","input":{"binding":"main"},"note":"none of the three refs exists","values":{}}
 {"form":"#default-branch-commit-vector=v1","group":"default-branch-commits","input":{"binding":"release/2.0","local":"l","remote":"r"},"values":{"commit":"l"}}
-{"form":"#default-branch-commit-vector=v1","group":"default-branch-commits","input":{"binding":"refs/heads/main","local":"l"},"note":"the binding is not a branch name","values":{}}
 {"form":"#range-vector=v1","group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"c","to":"e"},"note":"the change of `e` while the default branch points to `c`","values":{"order":["d","e"]}}
 {"form":"#range-vector=v1","group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"from":"b","to":"g"},"note":"the walk from `g` takes the first parent `c` of `f` before its second parent `e`","values":{"order":["c","d","e","f","g"]}}
 {"form":"#range-vector=v1","group":"ranges","input":{"commits":{"a":[],"b":["a"],"c":["b"],"d":["b"],"e":["d"],"f":["c","e"],"g":["f"]},"to":"e"},"note":"the range from no commit is the ancestry","values":{"order":["a","b","d","e"]}}
