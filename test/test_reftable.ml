@@ -2991,7 +2991,7 @@ let security_and_limits_tests =
         Alcotest.(check int)
           "no extra calls after cached error" (List.length calls1)
           (List.length (Test_repository_files.calls ())));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        A tables.list file larger than max_tables_list_size or a table larger
        than the remaining max_stack_size stops and reports Unread with
        Too_large and the pathname of that file. *)

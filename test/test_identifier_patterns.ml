@@ -92,7 +92,7 @@ let binding_vectors =
   Vectors.group set ~name:"bindings" ~form:"#binding-vector=v1" give_binding
 
 (* @verifies identifiers#validate-id-patterns=v1
-   @verifies text#reject-invalid-inputs=v1
+   @verifies conformance#reject-invalid-inputs=v1
    Each text that is not a valid id pattern gives Invalid with its fault,
    never Ok and never Stopped. *)
 let id_pattern_errors () =
@@ -142,7 +142,7 @@ let id_pattern_errors () =
       ("a{0}b{0}", Id_pattern.Empty_id_fits);
     ]
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    Each valid id pattern past one of the program's own limits on length,
    count, or size gives Stopped with that limit, never Invalid and never Ok. *)
 let id_pattern_limit_stops () =
@@ -258,7 +258,7 @@ let fit_takes_no_exponential_time () =
     ]
 
 (* @verifies identifiers#validate-id-patterns=v1
-   @verifies text#report-stops-at-limits=v1
+   @verifies conformance#report-stops-at-limits=v1
    The interface promises that of_string takes time linear in the length of
    the text. In this shape, a quantifier repeats an alternation of elements
    that each repeat 0 times, and the size counts each of those elements as one
@@ -277,7 +277,7 @@ let of_string_grows_linearly_with_empty_copies () =
     Id_pattern.of_string
 
 (* @verifies identifiers#validate-bindings=v1
-   @verifies text#reject-invalid-inputs=v1
+   @verifies conformance#reject-invalid-inputs=v1
    Each binding gives Ok when it meets the schema external-namespaces within
    the program's limits, and gives the invalid-input error of its bad pair
    otherwise. *)
@@ -322,7 +322,7 @@ let binding_cases () =
              { namespace_name = "a"; error = Id_pattern.Empty_id_fits }) );
     ]
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    A binding whose id pattern exceeds a program limit reports
    Stopped_id_pattern with the namespace name of that pair and the limit,
    never Invalid_id_pattern and never Ok. *)
@@ -597,7 +597,7 @@ let id_pattern_answers_every_text =
           && (not (Id_pattern.fits pattern ""))
           && String.length text <= 1000)
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    Generated valid id patterns that exceed the length limit, the count limit,
    or the size limit give Stopped with that limit in Id_pattern.of_string and
    Stopped_id_pattern naming the namespace in Binding.make, never Invalid. *)
@@ -679,7 +679,7 @@ let binding_gen =
           ]))
 
 (* @verifies identifiers#validate-bindings=v1
-   @verifies text#report-stops-at-limits=v1
+   @verifies conformance#report-stops-at-limits=v1
    Binding.make accepts a list of pairs when, and only when, every namespace
    name matches namespace-name, no two pairs share a namespace name, and
    Id_pattern.of_string accepts every id pattern. When an id pattern stops at a

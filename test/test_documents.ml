@@ -499,7 +499,7 @@ let read_files_follow_the_terms =
                given)
 
 (* @verifies documents#file-readers=v1
-   @verifies text#reject-invalid-inputs=v1
+   @verifies conformance#reject-invalid-inputs=v1
    A binding of file-readers with a path set that is not valid does not meet
    the schema file-readers; the test checks that File_readers.make refuses
    every such binding at its first invalid pair. *)
@@ -633,7 +633,7 @@ let read_files_give_their_lines () =
       | _ -> Alcotest.fail "two read files")
 
 (* @verifies documents#{give-read-files=v1, give-tests=v1}
-   @verifies text#reject-invalid-inputs=v1
+   @verifies conformance#reject-invalid-inputs=v1
    Invalid external-namespaces bindings fail Binding.make, while
    Read_file.read_files and File_test.of_file depend only on file-readers and
    still give read files and tests. *)

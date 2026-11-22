@@ -147,7 +147,7 @@ type damage = {
 (** A place that gives nothing, because it is not in its form or does not give
     the object of its id. *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A size above the limit gives [Too_large] with the pathname of the file, and
    with the offset of the entry for a packed entry or [None] for a loose
    object; a file [info/alternates] above its limit gives [Unread] with its

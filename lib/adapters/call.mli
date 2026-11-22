@@ -52,7 +52,7 @@ val too_long : int -> bool
     [length] bytes is too long for a call: when [length] is 4,294,967,296 or
     more. *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop at a limit of the program in a step of the call gives the cause
    [Failed] with the failure of that step, which names the limit. *)
 val recognise :

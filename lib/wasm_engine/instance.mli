@@ -83,7 +83,7 @@ type t
    store, and its code runs as the WebAssembly Core Specification 2.0 defines,
    with the program as its embedder and these limits as its only choices. *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop of the code at a limit of the program gives [Stack_exhausted] or
    [Stopped] with the limit, apart from a trap, so the caller can report the
    limit at which the program stopped. *)

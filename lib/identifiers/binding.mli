@@ -34,7 +34,7 @@ type error =
    A binding at which the program stops at no limit gets "valid" as [Ok] and
    "invalid" as [Error] with one of the first three errors, and only [Ok]
    gives a binding under which a text can be read. *)
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A binding that does not meet the schema gives an error that names the pair
    that makes it not valid, and no value of the type [t], so nothing that
    needs a binding comes from it. *)

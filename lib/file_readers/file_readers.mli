@@ -36,7 +36,7 @@ type error =
           a valid glob, and {!Path_set.validate} gives [fault] for that path set
       *)
 
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A binding of file-readers that is not valid gives an error that names the
    pair whose path set is not valid, and no value of the type [t], so no read
    file, and nothing that a read file gives, depends on it. *)

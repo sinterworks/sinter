@@ -34,7 +34,7 @@ val compiled : t -> Wasm_module.t
 type decision = (t, invalid) result
 (** The result of one decision: [Ok] for "valid" and [Error] for "invalid". *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop at a limit of the program in the decision gives the failure of the
    instantiation or of the invocation of sinter_interface, which names the step,
    with the limit. *)

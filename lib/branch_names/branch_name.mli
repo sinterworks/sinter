@@ -26,7 +26,7 @@ type error =
       (** The text does not meet condition [k] of the eight, and it meets each
           condition with a lower number. [k] is from 1 to 8. *)
 
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A binding of default-branch-name that is not a branch name gives the first
    condition that it does not meet, and no value of the type [t], so no commit
    of the default branch, change, base, or diff depends on it. *)

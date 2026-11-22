@@ -1037,7 +1037,7 @@ let own_cases =
           (List.map table [ 0; elements - 1; elements; elements + 5 ]));
   ]
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    A grammar with a memory alignment of 5 or more or a table alignment of 1 or
    more is usable and places its own bytes and own elements at multiples of
    their alignments; when the required bytes or elements with alignment room
@@ -1172,7 +1172,7 @@ let own_stop_cases =
 let small_limits = limits ~fuel:50_000_000 ~memory:(8 lsl 20) ~table:100_000
 
 (* @verifies packs#end-grammar-code=v1
-   @verifies text#report-stops-at-limits=v1
+   @verifies conformance#report-stops-at-limits=v1
    Grammar code that loops without end or that exhausts fuel, memory, or
    table limits during loading stops at the instance limits and names the
    limit that stopped it. *)
@@ -1365,7 +1365,7 @@ let tree_facts tree subject =
   && List.length (walk tree) = Parse_tree.node_count tree
 
 (* @verifies packs#{give-reading-results=v1, omit-nodes-of-unparsed-readings=v1, end-grammar-code=v1}
-   @verifies text#report-stops-at-limits=v1
+   @verifies conformance#report-stops-at-limits=v1
    A parse that tree-sitter cancels gives No_tree and no nodes. A parse in
    which grammar code or the core instance traps gives Failed (Trap _) and no
    nodes. A parse that stops at fuel, memory, or table limits ends within the

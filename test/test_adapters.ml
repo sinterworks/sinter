@@ -331,7 +331,7 @@ let decision_cases =
         is_invalid "elements outside the table" trap
           (F.text "(table 1 funcref) (elem (i32.const 1) func $s) (func $s)"));
     (* @verifies packs#end-adapter-code=v1
-       @verifies text#report-stops-at-limits=v1
+       @verifies conformance#report-stops-at-limits=v1
        Code that never ends, in the start function or in sinter_interface,
        must end in the decision; with small limits the decision ends at once
        and gives "invalid", naming the step and the fuel or stack limit. *)
@@ -366,7 +366,7 @@ let decision_cases =
             is_invalid "a loop under the limits of the vectors"
               (function Adapter.Interface_failed _ -> true | _ -> false)
               (interface_gives loops)));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        A decision that stops at the memory or table limit names both the step
        (instantiation or sinter_interface) and the limit that stopped it. *)
     case "a stop at a limit reports the limit and step" (fun () ->
@@ -804,7 +804,7 @@ let step_cases =
         in
         run ();
         Domain.join (Domain.spawn run));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        When a call stops at fuel, memory, or table limits, or when the adapter
        decision stopped at a limit, outcome.cause names the limit so a caller
        can tell a stop from a fault of the adapter. *)

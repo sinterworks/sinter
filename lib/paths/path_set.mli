@@ -31,7 +31,7 @@ type fault =
       (** the path set holds at least one path set member, and each path set
           member is a [!] member *)
 
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A sequence of texts in which a glob text is not a valid glob gives the
    number of that path set member and the fault of its glob text, and no value
    of the type [t], so no path set depends on it. *)
@@ -41,7 +41,7 @@ val of_texts : Sinter_text.Text.t list -> (t, glob_error) result
     members are [members], in order. It is [Error] otherwise, with the path set
     member of the lowest number whose glob text is not a valid glob. *)
 
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A path set that is not valid gives its fault, which names the two path set
    members that are the same text, or says that each path set member is a `!`
    member, and no value of the type [valid], so no membership depends on it. *)

@@ -462,7 +462,7 @@ let print_default (binding, upstream, local, remote) =
     (show local) (show remote)
 
 (* @verifies changes#give-default-branch-commits=v1
-   @verifies text#reject-invalid-inputs=v1
+   @verifies conformance#reject-invalid-inputs=v1
    For generated bindings of `default-branch-name`, a binding that is a branch
    name gives the commit of the first ref that exists and no other commit, or
    no commit when none exists, never both. A binding that is not a branch name
@@ -483,7 +483,7 @@ let default_branch_follows_the_term =
           | lowest :: _ -> k = lowest
           | [] -> false))
 
-(* @verifies text#reject-invalid-inputs=v1
+(* @verifies conformance#reject-invalid-inputs=v1
    A binding of `default-branch-name` that is not a branch name, such as
    `refs/heads/main`, is rejected with its failing condition and gives no
    `Branch_name.t` for `Default_branch.commit`. *)

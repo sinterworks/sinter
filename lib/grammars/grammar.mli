@@ -88,7 +88,7 @@ val load_limits : Instance.limits
     of fuel, 268,435,456 bytes (256 MiB) of memory, and 1,048,576 table
     elements. *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop at a limit of the program in the decision gives [Link_failed] with
    the failure that names the limit; a number of own bytes or own elements,
    with the room for its alignment, above 4,294,967,295 gives
@@ -207,7 +207,7 @@ val too_long : int -> bool
 (** [too_long bytes] is [true] exactly when a parse text of [bytes] bytes is too
     long for {!parse}: when [bytes] is 4,294,967,296 or more. *)
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop at a limit of the program in a parse gives [Failed] with the failure
    that names the limit. *)
 val parse :

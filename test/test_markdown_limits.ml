@@ -762,7 +762,7 @@ let check_stopped what expected_path expected_limit result =
   | Error (Readable_file.Invalid_reading _) ->
       Alcotest.failf "%s: expected Stopped, got Invalid_reading" what
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    Each markdown file whose size, bracket depth, or container depth exceeds its
    limit stops and reports Readable_file.Stopped with its path and that limit,
    apart from Cannot_be_read; a file at the limit can be read; invalid UTF-8 is
@@ -832,7 +832,7 @@ let readable_file_limits_cases () =
   | _ -> Alcotest.fail "markdown limits must not stop a code file");
   Alcotest.(check int) "pack was called once for the code file" 1 !pack_called
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    @verifies documents#give-declared-items=v1
    Each markdown file past a limit stops and reports Readable_file.Stopped with
    its path and that limit, giving no declared items, while every other readable
@@ -1018,7 +1018,7 @@ let stopped_file_costs_at_most_linear_time () =
   Time_growth.check ~bound:10. ~size:2_000 ~input:over_containers (fun file ->
       Readable_file.read container_limits no_pack file)
 
-(* @verifies text#report-stops-at-limits=v1
+(* @verifies conformance#report-stops-at-limits=v1
    For generated markdown and code files, valid or invalid UTF-8, and varied
    limits, Readable_file.read checks UTF-8 first, stops markdown files past a
    limit with Readable_file.Stopped carrying the file path and the limit that

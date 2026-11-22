@@ -129,7 +129,7 @@ let path_error =
         | Path.Null_character k -> Printf.sprintf "Null_character %d" k))
     ( = )
 
-(* @verifies text#reject-invalid-inputs=v1
+(* @verifies conformance#reject-invalid-inputs=v1
    A text that is not a valid path fails Path.of_text with the error of its
    first bad part. *)
 let path_names_the_first_part_that_is_no_file_name () =

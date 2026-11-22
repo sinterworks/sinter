@@ -89,7 +89,7 @@ let parse text =
           | _ -> (value, i)
         in
         let value, i = digits i 0 in
-        (* @satisfies text#report-stops-at-limits=v1
+        (* @satisfies conformance#report-stops-at-limits=v1
            The limit of the program on a count: at a count above 255, the
            program stops at that limit, so the size and the automaton stay
            small. *)
@@ -98,7 +98,7 @@ let parse text =
     | _ -> raise No_match
   in
   let expect c i = if peek i = Some c then i + 1 else raise No_match in
-  (* @satisfies text#report-stops-at-limits=v1
+  (* @satisfies conformance#report-stops-at-limits=v1
      The limit of the program on the size: each quantifier gives the number of
      copies of its element that the size counts. *)
   let quantifier i =
@@ -187,7 +187,7 @@ let size_cap =
     "the size is only compared with 1,000, so every cap above 1,000 gives the \
      same results"])
 
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    The limit of the program on the size: these functions compute the size of
    an id pattern, and at a size above 1,000 the program stops at that limit. *)
 let rec size_of_branches branches =
@@ -278,16 +278,16 @@ let in_alphabet = function
    An id pattern at which the program stops at no limit gets exactly one
    result: [Ok] ("valid") for a valid id pattern, and [Error (Invalid _)]
    ("invalid") for each other id pattern. *)
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    An id pattern that is not valid gives [Error (Invalid e)], with a condition
    e that makes it not valid, and no value of the type [t], so no fit depends
    on it. *)
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    At a limit on the length, a count, or the size, the result is
    [Error (Stopped l)], which names the limit l, and not "invalid". *)
 let of_string text =
   if not (String.for_all in_alphabet text) then Error (Invalid Unmatched)
-    (* @satisfies text#report-stops-at-limits=v1
+    (* @satisfies conformance#report-stops-at-limits=v1
        The limit of the program on the length: at an id pattern of more than
        1,000 characters, the program stops at that limit. *)
   else if String.length text > 1000 then Error (Stopped Too_long)

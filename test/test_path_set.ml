@@ -146,7 +146,7 @@ let repeated members =
         indexed)
     indexed
 
-(* @verifies text#reject-invalid-inputs=v1
+(* @verifies conformance#reject-invalid-inputs=v1
    A path set that is not valid gives no valid path set for membership and
    names the invalid member or fault of lowest number. *)
 let path_set_names_its_first_fault =
@@ -181,7 +181,7 @@ let path_set_names_its_first_fault =
           | Ok _, None -> Paths_reference.is_valid_path_set members
           | _ -> false))
 
-(* @verifies text#reject-invalid-inputs=v1
+(* @verifies conformance#reject-invalid-inputs=v1
    Each path set that is not valid, such as a repeated member, only bang
    members, or a bad glob, is rejected with its fault and gives no valid path
    set for membership. *)

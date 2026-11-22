@@ -1098,7 +1098,7 @@ let limit_tests =
             S.find sha1 (oid Id.Sha256 (String.make 32 'a')));
         raises_invalid "sha1 id" (fun () ->
             S.find sha256 (oid Id.Sha1 (String.make 20 'a'))));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        A loose object whose size exceeds max_content_size reports Too_large
        with its pathname and gives no object. *)
     case
@@ -1111,7 +1111,7 @@ let limit_tests =
           (Error
              (Store.Too_large { pathname = loose_pathname x; offset = None }))
           (with_limits (size 99) [ node ]));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        A packed object whose size exceeds max_content_size reports Too_large
        with the pack pathname and entry offset and gives no object. *)
     case
@@ -1261,7 +1261,7 @@ let limit_tests =
           (finder ~limits:(dbs 3)
              (M.create (alternates ~db:"/b" "/g/objects\n/a\n" :: chain))
              x));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        A pack directory with more packs than max_packs stops and reports
        Too_many_packs with the pathname of that pack directory. *)
     case "max_packs packs are read, and one more is too many" (fun () ->
@@ -1331,7 +1331,7 @@ let limit_tests =
              (List.filter
                 (function M.Listing q -> q = db ^ "/pack" | _ -> false)
                 (M.calls system))));
-    (* @verifies text#report-stops-at-limits=v1
+    (* @verifies conformance#report-stops-at-limits=v1
        An alternates file larger than max_alternates_size stops and reports
        Unread with Too_large and the pathname of the alternates file. *)
     case

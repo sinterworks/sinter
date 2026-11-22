@@ -20,7 +20,7 @@ type error =
   | Dot_part of int  (** part [k] is [.] or [..] *)
   | Null_character of int  (** part [k] holds U+0000 *)
 
-(* @satisfies text#reject-invalid-inputs=v1
+(* @satisfies conformance#reject-invalid-inputs=v1
    A text that is not a valid path gives its fault with the number of the part
    that has it, and no value of the type [t], so nothing that needs a valid
    path depends on it. *)

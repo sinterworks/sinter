@@ -75,7 +75,7 @@ let validation_takes_any_text =
         (Result.is_ok (Branch_name.of_text (text_of text)))
         (Model.is_branch_name text))
 
-(* @verifies text#reject-invalid-inputs=v1
+(* @verifies conformance#reject-invalid-inputs=v1
    A text that is not a branch name gives Error naming the lowest failing
    condition and no Branch_name.t. *)
 let error_names_the_lowest_condition =

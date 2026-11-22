@@ -16,7 +16,7 @@ type error =
    [Ok] ("valid") when it meets the schema `external-namespaces`, and [Error]
    ("invalid") when a namespace name does not match `namespace-name`, two
    pairs have the same namespace name, or an id pattern is not valid. *)
-(* @satisfies text#report-stops-at-limits=v1
+(* @satisfies conformance#report-stops-at-limits=v1
    A stop at a limit on an id pattern gives the limit with the namespace name
    of its pair, and no result "valid" or "invalid". *)
 let make pairs =

@@ -25,7 +25,7 @@ let read limits pack file =
   | Ok lines -> (
       match Read_file.reader file with
       | File_readers.Markdown -> (
-          (* @satisfies text#report-stops-at-limits=v1
+          (* @satisfies conformance#report-stops-at-limits=v1
              When a limit of the caller stops the text of a markdown file, the
              program stops at a limit of its own at that file: the error names
              the valid path of the file and that limit, and the file gives no
