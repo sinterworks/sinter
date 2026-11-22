@@ -1239,12 +1239,12 @@ delivery line names, and for each promise of that definition:
 - when that tree has no item of the kind requirement with the name of
   that promise, or has two or more items of the kind requirement with
   the name of that promise, that record of the job records no revision
-  and no revised content for that promise, and records that the promise
-  was not kept.
+  and no revised content for that promise.
 
 For each promise of each definition of that task that the delivery line
 names, that record of the job also records whether the promise was kept
-or was not kept.
+or was not kept. A promise with no item of the kind requirement with its
+name, or with two or more such items, was not kept.
 
 ### 3.49 The states of work items
 
@@ -1655,9 +1655,7 @@ session for nothing other than the brief of that session.
 
 ## 5. Conformance
 
-A program, or a part of a program, conforms to the design Ontology when
-it is a conforming program of the design Ontology: when it meets every
-requirement of section 4 and the two general requirements of Text and
-notation (`report-stops-at-limits` and `reject-invalid-inputs`). No
-requirement of section 4 names a result for an input, so there are no
+A program, or a part of a program, conforms to this design when it is a
+[conforming program](sinter:text#conforming-program=v1) of this design.
+No requirement of section 4 names a result for an input, so there are no
 conformance vectors.
