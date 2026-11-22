@@ -860,10 +860,40 @@ let deep_json_texts_need_no_deep_stack () =
   Alcotest.(check bool) "the deep value with spaces" true (is_value read_spaced);
   Alcotest.(check bool) "the unclosed value" true (Option.is_none unclosed)
 
+(* @verifies data-forms#{read-json-text=v1, give-only-json-values=v1}
+   @cites data-forms#json-value-of-a-byte-sequence=v1
+   A `\u` escape sequence of a high surrogate writes a character only when a
+   `\u` escape sequence of a low surrogate follows it directly. Four hex digits
+   of a low surrogate after another escape or after a literal `u` do not form a
+   surrogate pair. The test fails when read_json_text gives a JSON value for a
+   string or member name whose high surrogate escape is followed by `\n`, `\U`,
+   or `au` and four hex digits of a low surrogate, or gives no JSON value for a
+   valid surrogate pair. *)
+let high_surrogate_requires_backslash_u_for_low_surrogate () =
+  List.iter
+    (fun (label, bytes) ->
+      Alcotest.(check bool)
+        label true
+        (Option.is_none (Json.read_json_text bytes)))
+    [
+      ("literal au then low surrogate digits", "\"\\ud800audc00\"");
+      ("literal au then 0xDFFF digits", "\"\\ud800audfff\"");
+      ("newline escape then low surrogate digits", "\"\\ud800\\ndc00\"");
+      ("uppercase U escape then low surrogate digits", "\"\\ud800\\Udc00\"");
+      ( "object key with literal au then low surrogate digits",
+        "{\"\\ud800audc00\":1}" );
+    ];
+  Alcotest.(check (option string))
+    "valid surrogate pair gives U+10000" (Some "\"\xf0\x90\x80\x80\"")
+    (Option.map Json.canonical_byte_sequence
+       (Json.read_json_text "\"\\ud800\\udc00\""))
+
 let tests_of_json_texts =
   [
     Alcotest.test_case "deep JSON texts need no deep stack" `Quick
       deep_json_texts_need_no_deep_stack;
+    Alcotest.test_case "a high surrogate escape requires a following \\u escape"
+      `Quick high_surrogate_requires_backslash_u_for_low_surrogate;
     read_json_text_gives_back_each_json_value;
     read_json_text_takes_exactly_the_json_values;
     read_json_text_answers_any_bytes;
