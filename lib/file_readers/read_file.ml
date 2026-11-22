@@ -27,7 +27,7 @@ let readable_path path =
    Each file of the tree is looked at once, so each read file comes once, and
    a file is kept only when its valid path has a reader and meets the rule of
    readable_path, so no other file comes. *)
-let read_files readers _namespaces tree =
+let read_files readers tree =
   List.filter_map
     (fun (path, content) ->
       match File_readers.reader readers path with

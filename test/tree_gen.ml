@@ -481,6 +481,6 @@ let read (case : case) =
         match Readable_file.read unlimited pack file with
         | Ok readable -> Some (path_text (Read_file.path file), readable)
         | Error _ -> None)
-      (Read_file.read_files readers namespaces tree)
+      (Read_file.read_files readers tree)
   in
   (tree, readables)

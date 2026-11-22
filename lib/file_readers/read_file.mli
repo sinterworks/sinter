@@ -20,21 +20,14 @@
 open Sinter_text
 open Sinter_paths
 open Sinter_tree
-open Sinter_identifiers
 
 type 'pack t
 (** A read file of a tree, with its reader. *)
 
-(* @satisfies documents#give-nothing-under-invalid-bindings=v1
-   The read files come only from a valid binding of file-readers and a binding
-   of external-namespaces that the program accepts, so under any other binding
-   a program that uses this interface gives no read file. *)
-val read_files : 'pack File_readers.t -> Binding.t -> Tree.t -> 'pack t list
-(** [read_files readers namespaces tree] is the read files of [tree] under the
-    binding [readers] of [file-readers] and the binding [namespaces] of
-    [external-namespaces]: each read file once, and no other file. They are in
-    the order of {!Tree.files}. The binding [namespaces] does not change the
-    result. *)
+val read_files : 'pack File_readers.t -> Tree.t -> 'pack t list
+(** [read_files readers tree] is the read files of [tree] under the binding
+    [readers] of [file-readers]: each read file once, and no other file. They
+    are in the order of {!Tree.files}. *)
 
 val path : 'pack t -> Path.t
 (** [path file] is the valid path of [file]. *)

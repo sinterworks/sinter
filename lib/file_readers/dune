@@ -4,7 +4,7 @@
 (library
  (name sinter_file_readers)
  (public_name sinter.file_readers)
- (libraries sinter_text sinter_paths sinter_tree sinter_identifiers)
+ (libraries sinter_text sinter_paths sinter_tree)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation

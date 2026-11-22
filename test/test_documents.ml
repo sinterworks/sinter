@@ -241,7 +241,7 @@ let file_tests read_files =
     (fun file ->
       match Readable_file.read unlimited pack_reading file with
       | Ok readable -> File_test.of_file readable
-      | Error (Readable_file.Cannot_be_read _) -> []
+      | Error (Readable_file.Cannot_be_read _ | Readable_file.Stopped _) -> []
       | Error (Readable_file.Invalid_reading _) ->
           Alcotest.fail "a vector gives a reading that fails the checks")
     read_files
@@ -255,7 +255,7 @@ let give (vector : Vectors.vector) =
     with
     | Ok readers, Ok binding ->
         let tree = tree input in
-        let read_files = Read_file.read_files readers binding tree in
+        let read_files = Read_file.read_files readers tree in
         let declared =
           match Declared_items.make tree (tree_files binding read_files) with
           | Ok declared -> declared
@@ -449,12 +449,10 @@ let read_files_follow_the_terms =
       | Error _, None -> true
       | Ok _, None | Error _, Some _ -> false
       | Ok readers, Some expected ->
-          let given =
-            Read_file.read_files readers Binding.empty (tree_of files)
-          in
+          let given = Read_file.read_files readers (tree_of files) in
           let other =
             match Binding.make [ ("gh", "[1-9][0-9]*") ] with
-            | Ok binding -> Read_file.read_files readers binding (tree_of files)
+            | Ok _ -> Read_file.read_files readers (tree_of files)
             | Error _ -> []
           in
           List.map (fun file -> Read_file.path file) other
@@ -575,8 +573,7 @@ let an_empty_binding_reads_no_file () =
       Alcotest.(check int)
         "no read file" 0
         (List.length
-           (Read_file.read_files readers Binding.empty
-              (tree_of [ ("a.md", "# A\n") ])))
+           (Read_file.read_files readers (tree_of [ ("a.md", "# A\n") ])))
 
 let read_files_give_their_lines () =
   match File_readers.make [ (File_readers.Markdown, [ text_of "**" ]) ] with
@@ -585,7 +582,7 @@ let read_files_give_their_lines () =
       let tree =
         tree_of [ ("b.md", "\xff"); ("a.md", "\xef\xbb\xbf# A\r\n") ]
       in
-      match Read_file.read_files readers Binding.empty tree with
+      match Read_file.read_files readers tree with
       | [ a; b ] -> (
           Alcotest.(check string)
             "the first path" "a.md"

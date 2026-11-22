@@ -41,12 +41,6 @@ type item
 type t
 (** The declared items of one tree. A value never changes after {!make}. *)
 
-(* @satisfies documents#give-nothing-under-invalid-bindings=v1
-   The declared items come only from read files that can be read, and these
-   exist only under a valid binding of file-readers and a binding of
-   external-namespaces that the program accepts, so under any other binding no
-   declared item, extent, containment, or vector file exists. *)
-
 (** Why {!make} gives no value. *)
 type error =
   | Repeated_path of Path.t

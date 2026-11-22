@@ -21,9 +21,6 @@ type 'pack reader =
   | Markdown  (** the text [markdown] *)
   | Pack of 'pack  (** a valid pack *)
 
-(* @satisfies documents#give-nothing-under-invalid-bindings=v1
-   A value of this type exists only for a valid binding, and every read file
-   comes from one, so no read file exists under a binding that is not valid. *)
 type 'pack t
 (** A valid binding of [file-readers] whose packs have the type ['pack]. *)
 
@@ -39,6 +36,10 @@ type error =
           a valid glob, and {!Path_set.validate} gives [fault] for that path set
       *)
 
+(* @satisfies text#reject-invalid-inputs=v1
+   A binding of file-readers that is not valid gives an error that names the
+   pair whose path set is not valid, and no value of the type [t], so no read
+   file, and nothing that a read file gives, depends on it. *)
 val make : ('pack reader * Text.t list) list -> ('pack t, error) result
 (** [make pairs] is [Ok binding] when the binding of [pairs] is valid: each
     element of [pairs] is a reader and the path set members of a path set, in

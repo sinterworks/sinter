@@ -741,13 +741,13 @@ let read_file_of ~markdown path content =
     | Ok t -> t
     | Error _ -> Alcotest.fail "valid tree"
   in
-  match Read_file.read_files readers Binding.empty tree with
+  match Read_file.read_files readers tree with
   | [ file ] -> file
   | _ -> Alcotest.fail "one read file"
 
 let check_stopped what expected_limit result =
   match result with
-  | Error (Readable_file.Cannot_be_read (Readable_file.Stopped actual)) ->
+  | Error (Readable_file.Stopped { limit = actual; _ }) ->
       Alcotest.(check limit_testable) what expected_limit actual
   | Ok _ -> Alcotest.failf "%s: expected Stopped, got Ok" what
   | Error (Readable_file.Cannot_be_read (Readable_file.Not_utf_8 _)) ->
@@ -875,7 +875,7 @@ let stopped_files_do_not_prevent_reading_the_rest_of_the_tree () =
         ] )
   in
   let limits = { Markdown_limits.size = 80; brackets = 3; containers = 3 } in
-  let read_files = Read_file.read_files readers Binding.empty tree in
+  let read_files = Read_file.read_files readers tree in
   let stopped = ref [] in
   let tree_files =
     List.filter_map
@@ -884,7 +884,7 @@ let stopped_files_do_not_prevent_reading_the_rest_of_the_tree () =
         match Readable_file.read limits pack file with
         | Ok readable ->
             Some (Tree_file.make Binding.empty (Read_file.path file) readable)
-        | Error (Readable_file.Cannot_be_read (Readable_file.Stopped lim)) ->
+        | Error (Readable_file.Stopped { limit = lim; _ }) ->
             stopped := (name, lim) :: !stopped;
             None
         | Error _ -> Alcotest.fail ("unexpected error for " ^ name))
@@ -1065,10 +1065,7 @@ let readable_file_read_with_limits_property =
               Text.equal
                 (Lines.text (Markdown_limits.lines accepted))
                 (Lines.text lines)
-          | ( Error l,
-              Error (Readable_file.Cannot_be_read (Readable_file.Stopped l')) )
-            ->
-              l = l'
+          | Error l, Error (Readable_file.Stopped { limit = l'; _ }) -> l = l'
           | _ -> false)
       | Ok _, false, Ok (Readable_file.Code_file _) -> !calls = 1
       | _ -> false)

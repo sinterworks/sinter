@@ -1134,7 +1134,7 @@ let read_one ?(path = "lib/a.rs") ?(markdown = false) bytes pack =
     | Ok tree -> tree
     | Error _ -> Alcotest.fail "a tree"
   in
-  match Read_file.read_files readers Binding.empty tree with
+  match Read_file.read_files readers tree with
   | [ file ] ->
       let result = Readable_file.read unlimited pack file in
       (result, List.rev !calls)
