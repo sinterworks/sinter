@@ -102,13 +102,14 @@ type 'pack given = {
   declared : Declared_items.t;
 }
 
-let read_files_member given =
+let read_files_of read_files =
   `Assoc
     (List.map
        (fun file ->
          (path_text (Read_file.path file), `Int (Read_file.pair file)))
-       given.read_files)
+       read_files)
 
+let read_files_member given = read_files_of given.read_files
 let texts json = List.map (fun s -> text_of (string s)) (list json)
 
 let sigils pack =
@@ -176,7 +177,7 @@ let reading_of pack path =
 
 let pack_reading pack path _text = (sigils pack, reading_of pack path)
 
-let tests_member given =
+let tests_of tests =
   `List
     (List.map
        (fun (test : File_test.t) ->
@@ -191,7 +192,15 @@ let tests_member given =
              ("code", json_of_run test.code);
              ("comments", `List (List.map json_of_run test.comments));
            ])
-       given.tests)
+       tests)
+
+let tests_member given = tests_of given.tests
+
+let unimplemented_members =
+  [ "code-hashes"; "edges"; "extern-marks"; "findings"; "sites"; "status-tags" ]
+
+let not_given_from stated =
+  List.filter (fun (name, _) -> List.mem name unimplemented_members) stated
 
 let not_given_members = [ "extent-hash"; "hash-text" ]
 
@@ -233,7 +242,11 @@ let tree_files binding read_files =
       match Readable_file.read unlimited pack_reading file with
       | Ok readable ->
           Some (Tree_file.make binding (Read_file.path file) readable)
-      | Error _ -> None)
+      | Error (Readable_file.Cannot_be_read _) -> None
+      | Error (Readable_file.Stopped _) ->
+          Alcotest.fail "a vector stops at markdown limits"
+      | Error (Readable_file.Invalid_reading _) ->
+          Alcotest.fail "a vector gives a reading that fails the checks")
     read_files
 
 let file_tests read_files =
@@ -241,18 +254,45 @@ let file_tests read_files =
     (fun file ->
       match Readable_file.read unlimited pack_reading file with
       | Ok readable -> File_test.of_file readable
-      | Error (Readable_file.Cannot_be_read _ | Readable_file.Stopped _) -> []
+      | Error (Readable_file.Cannot_be_read _) -> []
+      | Error (Readable_file.Stopped _) ->
+          Alcotest.fail "a vector stops at markdown limits"
       | Error (Readable_file.Invalid_reading _) ->
           Alcotest.fail "a vector gives a reading that fails the checks")
     read_files
 
+let independent_unimplemented_members group =
+  if String.equal group "code" then [ "code-hashes"; "findings" ]
+  else [ "findings" ]
+
 let give (vector : Vectors.vector) =
   let input = vector.input in
+  let stated =
+    match vector.values with Some (`Assoc fields) -> fields | _ -> []
+  in
   let values =
     match
       ( File_readers.make (reader_pairs ~group:vector.group input),
         namespaces input )
     with
+    | Error _, _ -> `Assoc []
+    | Ok _, Error (Binding.Stopped_id_pattern _) ->
+        Alcotest.fail "a vector binding stopped at a limit"
+    | Ok readers, Error _ ->
+        let tree = tree input in
+        let read_files = Read_file.read_files readers tree in
+        let keep = independent_unimplemented_members vector.group in
+        let not_given =
+          List.filter (fun (name, _) -> List.mem name keep) stated
+        in
+        let given =
+          [ ("read-files", read_files_of read_files) ]
+          @
+          if String.equal vector.group "code" then
+            [ ("tests", tests_of (file_tests read_files)) ]
+          else []
+        in
+        `Assoc (not_given @ given)
     | Ok readers, Ok binding ->
         let tree = tree input in
         let read_files = Read_file.read_files readers tree in
@@ -262,18 +302,10 @@ let give (vector : Vectors.vector) =
           | Error _ -> Alcotest.fail "two read files have one valid path"
         in
         let given = { read_files; tests = file_tests read_files; declared } in
-        let stated =
-          match vector.values with Some (`Assoc fields) -> fields | _ -> []
-        in
         let members = members stated vector.group in
-        let not_given =
-          List.filter
-            (fun (name, _) -> not (List.mem_assoc name members))
-            stated
-        in
         `Assoc
-          (not_given @ List.map (fun (name, give) -> (name, give given)) members)
-    | _ -> `Assoc []
+          (not_given_from stated
+          @ List.map (fun (name, give) -> (name, give given)) members)
   in
   `Assoc [ ("values", values) ]
 
@@ -283,10 +315,12 @@ let set = Vectors.read "documents"
    The test compares the read files that the program gives, and the declared
    items, each with its kind, name, file, origin position, extent, design,
    specification, and vector file, in the order of the member, with the
-   members read-files and items of each vector of the group, and checks that
-   the program gives none of them under bindings that are not valid, by the
-   values {}. The program gives no extent hash or hash text, so the test
-   checks it on no member of these. *)
+   members read-files and items of each vector of the group. Under a valid
+   file-readers binding and an invalid external-namespaces binding, the test
+   compares read-files and checks that items is omitted. Under an invalid
+   file-readers binding, the test checks that the program gives {}. The
+   program gives no extent hash or hash text, so the test checks it on no
+   member of these. *)
 let markdown_vectors =
   Vectors.group set ~name:"markdown" ~form:"#markdown-vector=v1" give
 
@@ -296,8 +330,11 @@ let markdown_vectors =
    code, and comments, and the declared items, each with its kind, name, file,
    origin position, extent, design, specification, and vector file, in the
    order of each member, with the members read-files, tests, and items of each
-   vector of the group. The program gives no extent hash, hash text, or code
-   hash, so the test checks it on no member of these. *)
+   vector of the group. Under a valid file-readers binding and an invalid
+   external-namespaces binding, the test compares read-files and tests and
+   checks that items is omitted. Under an invalid file-readers binding, the
+   test checks that the program gives {}. The program gives no extent hash,
+   hash text, or code hash, so the test checks it on no member of these. *)
 let code_vectors = Vectors.group set ~name:"code" ~form:"#code-vector=v1" give
 let vector_groups = [ code_vectors; markdown_vectors ]
 
@@ -450,18 +487,10 @@ let read_files_follow_the_terms =
       | Ok _, None | Error _, Some _ -> false
       | Ok readers, Some expected ->
           let given = Read_file.read_files readers (tree_of files) in
-          let other =
-            match Binding.make [ ("gh", "[1-9][0-9]*") ] with
-            | Ok _ -> Read_file.read_files readers (tree_of files)
-            | Error _ -> []
-          in
-          List.map (fun file -> Read_file.path file) other
-          = List.map (fun file -> Read_file.path file) given
-          && List.map
-               (fun file ->
-                 (path_text (Read_file.path file), Read_file.pair file))
-               given
-             = expected
+          List.map
+            (fun file -> (path_text (Read_file.path file), Read_file.pair file))
+            given
+          = expected
           && List.for_all
                (fun file ->
                  let k = Read_file.pair file in
@@ -469,11 +498,11 @@ let read_files_follow_the_terms =
                  = reader_of (fst (List.nth binding (k - 1))))
                given)
 
-(* @verifies documents#{file-readers=v1, give-nothing-under-invalid-bindings=v1}
+(* @verifies documents#file-readers=v1
+   @verifies text#reject-invalid-inputs=v1
    A binding of file-readers with a path set that is not valid does not meet
-   the schema file-readers and would give a value from which read files follow;
-   the test checks that File_readers.make refuses every such binding at its
-   first invalid pair. *)
+   the schema file-readers; the test checks that File_readers.make refuses
+   every such binding at its first invalid pair. *)
 let no_binding_from_invalid_path_sets =
   property ~count:1000
     ~name:"a binding with a path set that is not valid is refused"
@@ -535,7 +564,10 @@ let errors_carry_what_path_sets_give =
           | Ok _ -> false)
       | Error (File_readers.Invalid_path_set { pair; fault }) -> (
           match Path_set.of_texts (of_pair pair) with
-          | Ok set -> Path_set.validate set = Error fault
+          | Ok set -> (
+              match Path_set.validate set with
+              | Error found -> found = fault
+              | Ok _ -> false)
           | Error _ -> false))
 
 let pairs_keep_the_binding () =
@@ -600,6 +632,83 @@ let read_files_give_their_lines () =
           | Ok _ -> Alcotest.fail "the content is not valid UTF-8")
       | _ -> Alcotest.fail "two read files")
 
+(* @verifies documents#{give-read-files=v1, give-tests=v1}
+   @verifies text#reject-invalid-inputs=v1
+   Invalid external-namespaces bindings fail Binding.make, while
+   Read_file.read_files and File_test.of_file depend only on file-readers and
+   still give read files and tests. *)
+let read_files_and_tests_do_not_depend_on_namespaces () =
+  (match Binding.make [ ("GH", "[1-9][0-9]*") ] with
+  | Error (Binding.Malformed_namespace_name _) -> ()
+  | _ -> Alcotest.fail "expected Malformed_namespace_name");
+  (match Binding.make [ ("gh", "[1-9][0-9]*"); ("gh", "[a-z]+") ] with
+  | Error (Binding.Repeated_namespace_name _) -> ()
+  | _ -> Alcotest.fail "expected Repeated_namespace_name");
+  let readers =
+    match
+      File_readers.make
+        [
+          (File_readers.Markdown, [ text_of "docs/" ]);
+          (File_readers.Pack (), [ text_of "lib/" ]);
+        ]
+    with
+    | Ok readers -> readers
+    | Error _ -> Alcotest.fail "the binding is valid"
+  in
+  let tree =
+    tree_of
+      [ ("docs/a.md", "# A\n"); ("lib/t.rs", "// @verifies x=v1\nfn t() {}") ]
+  in
+  let read_files = Read_file.read_files readers tree in
+  Alcotest.(check (list (pair string int)))
+    "read files from valid file-readers"
+    [ ("docs/a.md", 1); ("lib/t.rs", 2) ]
+    (List.map
+       (fun file -> (path_text (Read_file.path file), Read_file.pair file))
+       read_files);
+  let pack () _path _text =
+    ( { Comment_sigils.line = [ text_of "//" ]; block = []; inner = [] },
+      Reading.Parsed
+        [
+          {
+            Reading.run = { Text.from = 0; until = 17 };
+            comment = Some Reading.Tagged;
+            body = None;
+            decoration = false;
+            test = None;
+          };
+          {
+            Reading.run = { Text.from = 18; until = 27 };
+            comment = None;
+            body = Some [ { Text.from = 25; until = 27 } ];
+            decoration = false;
+            test = Some [ [ Reading.Text_piece (text_of "t") ] ];
+          };
+        ] )
+  in
+  let tests =
+    List.concat_map
+      (fun file ->
+        match Readable_file.read unlimited pack file with
+        | Ok readable -> File_test.of_file readable
+        | Error _ -> Alcotest.fail "expected readable file")
+      read_files
+  in
+  match tests with
+  | [ test ] ->
+      Alcotest.(check string)
+        "the file of the test" "lib/t.rs" (path_text test.file);
+      Alcotest.(check bool)
+        "the name of the test" true
+        (test.name = [ [ Reading.Text_piece (text_of "t") ] ]);
+      Alcotest.(check bool)
+        "the code of the test" true
+        (test.code = { Text.from = 18; until = 27 });
+      Alcotest.(check bool)
+        "the comments of the test" true
+        (test.comments = [ { Text.from = 0; until = 17 } ])
+  | _ -> Alcotest.fail "expected one test from the code file"
+
 let tests =
   Vectors.tests "documents" vector_groups
   @ [ Vectors.covers "documents" set vector_groups ]
@@ -615,4 +724,7 @@ let tests =
         an_empty_binding_reads_no_file;
       Alcotest.test_case "a read file gives the lines of its text" `Quick
         read_files_give_their_lines;
+      Alcotest.test_case
+        "read files and tests do not depend on external-namespaces" `Quick
+        read_files_and_tests_do_not_depend_on_namespaces;
     ]

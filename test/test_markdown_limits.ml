@@ -745,10 +745,13 @@ let read_file_of ~markdown path content =
   | [ file ] -> file
   | _ -> Alcotest.fail "one read file"
 
-let check_stopped what expected_limit result =
+let check_stopped what expected_path expected_limit result =
   match result with
-  | Error (Readable_file.Stopped { limit = actual; _ }) ->
-      Alcotest.(check limit_testable) what expected_limit actual
+  | Error (Readable_file.Stopped { path; limit }) ->
+      Alcotest.(check string)
+        (what ^ " path") expected_path
+        (Text.encode (Path.to_text path));
+      Alcotest.(check limit_testable) what expected_limit limit
   | Ok _ -> Alcotest.failf "%s: expected Stopped, got Ok" what
   | Error (Readable_file.Cannot_be_read (Readable_file.Not_utf_8 _)) ->
       Alcotest.failf "%s: expected Stopped, got Not_utf_8" what
@@ -759,12 +762,11 @@ let check_stopped what expected_limit result =
   | Error (Readable_file.Invalid_reading _) ->
       Alcotest.failf "%s: expected Stopped, got Invalid_reading" what
 
-(* @verifies documents#give-declared-items=v1
+(* @verifies text#report-stops-at-limits=v1
    Each markdown file whose size, bracket depth, or container depth exceeds its
-   limit goes into the set of stopped files and gives Cannot_be_read (Stopped)
-   with that limit, so it gives no declared items; a file at the limit can be
-   read; invalid UTF-8 is reported before limits; code files are unaffected by
-   markdown limits. *)
+   limit stops and reports Readable_file.Stopped with its path and that limit,
+   apart from Cannot_be_read; a file at the limit can be read; invalid UTF-8 is
+   reported before limits; code files are unaffected by markdown limits. *)
 let readable_file_limits_cases () =
   let pack_called = ref 0 in
   let fail_pack () _path _text =
@@ -782,13 +784,13 @@ let readable_file_limits_cases () =
         "the readable markdown file has 2 list items" 2
         (List.length (Markdown_file.list_items md))
   | _ -> Alcotest.fail "file at all three limits must be read");
-  check_stopped "over size" Markdown_limits.Size
+  check_stopped "over size" "docs/big.md" Markdown_limits.Size
     (Readable_file.read limits fail_pack
        (read_file_of ~markdown:true "docs/big.md" (String.make 21 'a')));
-  check_stopped "over brackets" Markdown_limits.Brackets
+  check_stopped "over brackets" "docs/brk.md" Markdown_limits.Brackets
     (Readable_file.read limits fail_pack
        (read_file_of ~markdown:true "docs/brk.md" "[[[a]]]"));
-  check_stopped "over containers" Markdown_limits.Containers
+  check_stopped "over containers" "docs/ctr.md" Markdown_limits.Containers
     (Readable_file.read limits fail_pack
        (read_file_of ~markdown:true "docs/ctr.md" "- - - a\n"));
   (match
@@ -802,14 +804,14 @@ let readable_file_limits_cases () =
   Alcotest.(check int) "pack was never called for markdown" 0 !pack_called;
   let hostile_brackets = rep "[" 50 ^ "a" ^ rep "]" 50 in
   check_stopped "50 nested brackets stop before cmarkit runs"
-    Markdown_limits.Brackets
+    "docs/hostile-brk.md" Markdown_limits.Brackets
     (Readable_file.read
        { size = 1024; brackets = 5; containers = 16 }
        fail_pack
        (read_file_of ~markdown:true "docs/hostile-brk.md" hostile_brackets));
   let hostile_lists = rep "- " 20_000 ^ "a\n" in
   check_stopped "20,000 nested list items stop before cmarkit runs"
-    Markdown_limits.Containers
+    "docs/hostile-ctr.md" Markdown_limits.Containers
     (Readable_file.read
        { size = 100_000; brackets = 5; containers = 16 }
        fail_pack
@@ -830,10 +832,11 @@ let readable_file_limits_cases () =
   | _ -> Alcotest.fail "markdown limits must not stop a code file");
   Alcotest.(check int) "pack was called once for the code file" 1 !pack_called
 
-(* @verifies documents#give-declared-items=v1
-   A stopped markdown file cannot be read and gives no declared items, while
-   every other readable markdown file and code file in the tree is read and
-   gives its declared items. *)
+(* @verifies text#report-stops-at-limits=v1
+   @verifies documents#give-declared-items=v1
+   Each markdown file past a limit stops and reports Readable_file.Stopped with
+   its path and that limit, giving no declared items, while every other readable
+   markdown file and code file in the tree is read and gives its declared items. *)
 let stopped_files_do_not_prevent_reading_the_rest_of_the_tree () =
   let files =
     [
@@ -884,8 +887,8 @@ let stopped_files_do_not_prevent_reading_the_rest_of_the_tree () =
         match Readable_file.read limits pack file with
         | Ok readable ->
             Some (Tree_file.make Binding.empty (Read_file.path file) readable)
-        | Error (Readable_file.Stopped { limit = lim; _ }) ->
-            stopped := (name, lim) :: !stopped;
+        | Error (Readable_file.Stopped { path; limit }) ->
+            stopped := (Text.encode (Path.to_text path), limit) :: !stopped;
             None
         | Error _ -> Alcotest.fail ("unexpected error for " ^ name))
       read_files
@@ -999,11 +1002,13 @@ let stopped_file_costs_at_most_linear_time () =
     make_file (rep "[" 30 ^ rep "*_" n ^ "a" ^ rep "_*" n ^ rep "]" 30)
   in
   let over_containers n = make_file (rep "- " 100 ^ "a\n" ^ rep "a\n" n) in
-  check_stopped "over_size stops with Size" Markdown_limits.Size
+  check_stopped "over_size stops with Size" "docs/hostile.md"
+    Markdown_limits.Size
     (Readable_file.read size_limits no_pack (over_size 50));
-  check_stopped "over_brackets stops with Brackets" Markdown_limits.Brackets
+  check_stopped "over_brackets stops with Brackets" "docs/hostile.md"
+    Markdown_limits.Brackets
     (Readable_file.read bracket_limits no_pack (over_brackets 50));
-  check_stopped "over_containers stops with Containers"
+  check_stopped "over_containers stops with Containers" "docs/hostile.md"
     Markdown_limits.Containers
     (Readable_file.read container_limits no_pack (over_containers 50));
   Time_growth.check ~bound:10. ~size:2_000 ~input:over_size (fun file ->
@@ -1013,12 +1018,12 @@ let stopped_file_costs_at_most_linear_time () =
   Time_growth.check ~bound:10. ~size:2_000 ~input:over_containers (fun file ->
       Readable_file.read container_limits no_pack file)
 
-(* @verifies documents#give-declared-items=v1
+(* @verifies text#report-stops-at-limits=v1
    For generated markdown and code files, valid or invalid UTF-8, and varied
    limits, Readable_file.read checks UTF-8 first, stops markdown files past a
-   limit with the limit that stopped them so they give no declared items,
-   never stops code files for markdown limits, and calls the pack only for
-   valid-UTF-8 code files. *)
+   limit with Readable_file.Stopped carrying the file path and the limit that
+   stopped them, never stops code files for markdown limits, and calls the pack
+   only for valid-UTF-8 code files. *)
 let readable_file_read_with_limits_property =
   let content_gen =
     Gen.oneof_weighted
@@ -1028,6 +1033,7 @@ let readable_file_read_with_limits_property =
         (1, Gen.oneof_list [ "\xff"; "a\xc3"; "[[[\xff]]]" ]);
       ]
   in
+  let md_path_gen = Gen.oneof_list [ "docs/a.md"; "notes/b.md"; "README.md" ] in
   let limits_gen =
     Gen.map3
       (fun size brackets containers ->
@@ -1038,12 +1044,13 @@ let readable_file_read_with_limits_property =
   in
   property ~count:600
     ~name:"Readable_file.read applies markdown limits as promised"
-    ~print:(fun (markdown, content, (l : Markdown_limits.t)) ->
-      Printf.sprintf "markdown=%b size=%d brackets=%d containers=%d content=%S"
-        markdown l.size l.brackets l.containers content)
-    (Gen.triple Gen.bool content_gen limits_gen)
-    (fun (markdown, content, limits) ->
-      let path = if markdown then "docs/a.md" else "lib/a.rs" in
+    ~print:(fun (markdown, md_path, content, (l : Markdown_limits.t)) ->
+      Printf.sprintf
+        "markdown=%b path=%s size=%d brackets=%d containers=%d content=%S"
+        markdown md_path l.size l.brackets l.containers content)
+    (Gen.quad Gen.bool md_path_gen content_gen limits_gen)
+    (fun (markdown, md_path, content, limits) ->
+      let path = if markdown then md_path else "lib/a.rs" in
       let rf = read_file_of ~markdown path content in
       let calls = ref 0 in
       let pack () _path _text =
@@ -1065,7 +1072,8 @@ let readable_file_read_with_limits_property =
               Text.equal
                 (Lines.text (Markdown_limits.lines accepted))
                 (Lines.text lines)
-          | Error l, Error (Readable_file.Stopped { limit = l'; _ }) -> l = l'
+          | Error l, Error (Readable_file.Stopped { path = p'; limit = l' }) ->
+              l = l' && Text.encode (Path.to_text p') = path
           | _ -> false)
       | Ok _, false, Ok (Readable_file.Code_file _) -> !calls = 1
       | _ -> false)
@@ -1081,11 +1089,13 @@ let tests =
     Alcotest.test_case "check enforces limit boundaries, BOM, and priority"
       `Quick check_limit_boundaries;
     Alcotest.test_case
-      "readable files enforce limits and report which limit stopped them" `Quick
-      readable_file_limits_cases;
+      "readable files enforce limits and report the path and limit that \
+       stopped them"
+      `Quick readable_file_limits_cases;
     Alcotest.test_case
-      "stopped files cannot be read and the rest of the tree is read" `Quick
-      stopped_files_do_not_prevent_reading_the_rest_of_the_tree;
+      "stopped markdown files report their stops while the rest of the tree is \
+       read"
+      `Quick stopped_files_do_not_prevent_reading_the_rest_of_the_tree;
     Alcotest.test_case
       "bracket_depth is linear in length and bounds memory past the limit"
       `Quick bracket_depth_grows_linearly_and_bounds_memory;
