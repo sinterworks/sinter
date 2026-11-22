@@ -178,24 +178,36 @@ CI runs all of them.
 ### The bridge's build directory
 
 The dune rule that builds the bridge runs cargo outside `_build`, in a
-directory of its own for each checkout, so that two checkouts never
-link each other's library. The directory sits under the first of
-these that is set: `CARGO_TARGET_DIR`; `$XDG_CACHE_HOME/sinter-bridge-build`;
-`~/.cache/sinter-bridge-build`. Its name is a hash of the checkout's
-path, and a file named `checkout` inside it holds that path. Each one
-is about 500 MB. `dune clean` does not remove them, so a machine with
-many worktrees collects them. This loop removes every directory whose
-checkout is gone:
+directory named from the content of the crate. The directory sits under
+the first of these that is set: `CARGO_TARGET_DIR`;
+`$XDG_CACHE_HOME/sinter-bridge-build`; `~/.cache/sinter-bridge-build`.
+The directory name is a SHA-256 hash of every file in the crate working
+tree except top-level `target/`, `.git/`, and `.DS_Store`.
 
-```
-for d in "${XDG_CACHE_HOME:-$HOME/.cache}"/sinter-bridge-build/*/; do
-  p=$(cat "$d/checkout" 2>/dev/null) || continue
-  [ -d "$p" ] || rm -rf "$d"
-done
-```
+Checkouts whose crates hold the same content share one build directory.
+Each build runs cargo inside the crate directory so that
+`rust-toolchain.toml` selects the toolchain and cargo's fingerprint
+checks the configuration that cargo uses and the environment variables
+that the build scripts declare. A build in a second checkout with the
+same content reuses the compiled dependencies and compiles at most the
+crate itself. When the crate content changes, a new directory starts as
+a copy of the most recently used build directory of the same package,
+cleans the crate package, and compiles the crate. The copy shares
+blocks where the file system supports it (`cp -c` on macOS APFS and
+`cp --reflink=auto` on Linux).
 
-A directory with no `checkout` file predates the file; remove it by
-hand, and the next build writes a new one.
+Each build marks its directory as used in a `last-used` file. It then
+removes every other unlocked build directory that no build used in the
+last 7 days. For a directory without a `last-used` file, the age comes
+from the time of its last build (`checkout`, `native-static-libs.log`,
+`package`, or `CACHEDIR.TAG`). A build also removes the directories of
+the earlier rule, named from the path of a checkout, that no build used
+in 7 days. On a machine with many such directories, that build takes
+longer. Per-directory file locks under `.locks/` coordinate concurrent
+builds and prevent pruning from removing a directory that another build
+uses. The empty lock files stay under `.locks/`. `dune clean` does not
+remove these directories. To clear the cache by hand, remove the parent
+directory when no build runs.
 
 ### Coverage
 

@@ -1039,6 +1039,1028 @@ let canary_tests =
             status 2 (canary root [ "lib/none.muts" ]).status));
   ]
 
+let cargo_build_repo_root = Filename.dirname scripts
+
+let fake_cargo =
+  {|#!/bin/sh
+set -eu
+log=${FAKE_CARGO_LOG:-/dev/null}
+sub=$1
+shift
+target=
+pkg=
+while [ "$#" -gt 0 ]; do
+  case $1 in
+    --target-dir) target=$2; shift 2 ;;
+    -p) pkg=$2; shift 2 ;;
+    --) shift; break ;;
+    *) shift ;;
+  esac
+done
+printf '%s target=%s pkg=%s cwd=%s\n' "$sub" "$target" "$pkg" "$(pwd -P)" >>"$log"
+if [ -n "${FAKE_CARGO_SLEEP:-}" ] && [ "$sub" = "rustc" ]; then
+  sleep "$FAKE_CARGO_SLEEP"
+fi
+if [ -n "${FAKE_CARGO_MUTATE_SRC:-}" ] && [ "$sub" = "rustc" ]; then
+  printf '\n// mutated during build\n' >>src/lib.rs
+fi
+if [ "$sub" = "clean" ]; then
+  if [ ! -f "$target/CACHEDIR.TAG" ]; then
+    echo "error: missing CACHEDIR.TAG" >&2
+    exit 101
+  fi
+  rm -f "$target"/release/lib*.a "$target"/release/crate.marker
+  exit 0
+fi
+if [ "$sub" = "rustc" ]; then
+  if [ ! -d "$target" ]; then
+    mkdir -p "$target"
+    printf 'Signature: 8a477f597d28d172789f06886806bc55\n' >"$target/CACHEDIR.TAG"
+  fi
+  mkdir -p "$target/release/deps"
+  if [ ! -f "$target/release/deps/dep.rlib" ]; then
+    printf 'dep-from:%s\n' "$(cat Cargo.lock 2>/dev/null || echo none)" >"$target/release/deps/dep.rlib"
+  fi
+  archive_name=${FAKE_ARCHIVE_NAME:-libsinter_bridge.a}
+  if [ ! -f "$target/release/crate.marker" ] ||
+      [ src/lib.rs -nt "$target/release/crate.marker" ] ||
+      [ -n "${FAKE_CARGO_FLAG:-}" ]; then
+    {
+      printf 'src=%s\n' "$(cat src/lib.rs)"
+      printf 'dep=%s\n' "$(cat "$target/release/deps/dep.rlib")"
+      printf 'flag=%s\n' "${FAKE_CARGO_FLAG:-}"
+    } >"$target/release/$archive_name"
+    : >"$target/release/crate.marker"
+  fi
+  printf 'note: native-static-libs: -liconv -lSystem -lc -lm\n' >&2
+  exit 0
+fi
+exit 1
+|}
+
+let fake_cmake = {|#!/bin/sh
+exit 0
+|}
+
+let write_crate ?(pkg = "sinter-bridge") ?(lib = "sinter_bridge")
+    ?(lock = "lock-v1\n") ?(toolchain = "channel = \"1.99.1\"\n")
+    ?(src = "pub fn value() -> u32 { 1 }\n") dir =
+  write (dir / "Cargo.toml")
+    (Printf.sprintf "[package]\nname = \"%s\"\n\n[lib]\nname = \"%s\"\n" pkg lib);
+  write (dir / "Cargo.lock") lock;
+  write (dir / "rust-toolchain.toml") toolchain;
+  write (dir / "src/lib.rs") src
+
+let find_in_path name =
+  let dirs =
+    String.split_on_char ':'
+      (Option.value (Sys.getenv_opt "PATH") ~default:"/usr/bin:/bin:/sbin")
+  in
+  List.find_map
+    (fun dir ->
+      let candidate = dir / name in
+      if dir <> "" && Sys.file_exists candidate then Some candidate else None)
+    dirs
+
+let make_restricted_bin ~omit root dir_name =
+  let bin = root / dir_name in
+  make_dir bin;
+  let tools =
+    [
+      "sh";
+      "find";
+      "sort";
+      "awk";
+      "sed";
+      "tr";
+      "grep";
+      "cut";
+      "mkdir";
+      "rm";
+      "mv";
+      "cp";
+      "cat";
+      "touch";
+      "ls";
+      "basename";
+      "dirname";
+      "pwd";
+      "uname";
+      "readlink";
+      "sha256sum";
+      "shasum";
+      "perl";
+      "flock";
+    ]
+  in
+  List.iter
+    (fun name ->
+      if not (List.mem name omit) then
+        Option.iter
+          (fun target -> Unix.symlink target (bin / name))
+          (find_in_path name))
+    tools;
+  bin
+
+let cargo_env ?(env = []) root =
+  let path =
+    (root / "fake") ^ ":"
+    ^ Option.value (Sys.getenv_opt "PATH") ~default:"/usr/bin:/bin"
+  in
+  let excluded =
+    [
+      "PATH=";
+      "HOME=";
+      "CARGO_TARGET_DIR=";
+      "XDG_CACHE_HOME=";
+      "CARGO_BUILD_TARGET=";
+      "FAKE_";
+    ]
+  in
+  let inherited =
+    Array.to_list (Unix.environment ())
+    |> List.filter (fun binding ->
+        not
+          (List.exists
+             (fun prefix -> String.starts_with ~prefix binding)
+             excluded))
+  in
+  let defaults = [ ("HOME", root / "home") ] in
+  let merged =
+    List.filter (fun (k, _) -> not (List.mem_assoc k env)) defaults @ env
+  in
+  let path_binding =
+    if List.mem_assoc "PATH" merged then [] else [ "PATH=" ^ path ]
+  in
+  Array.of_list
+    (path_binding @ List.map (fun (k, v) -> k ^ "=" ^ v) merged @ inherited)
+
+let run_cargo_script ?(env = []) root script args =
+  (match List.rev args with
+  | flags :: archive :: _ when List.length args >= 4 ->
+      make_dir (Filename.dirname archive);
+      make_dir (Filename.dirname flags)
+  | _ -> ());
+  let out_path = root / ".out" and err_path = root / ".err" in
+  let open_output path =
+    Unix.openfile path [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ] 0o644
+  in
+  let out = open_output out_path and err = open_output err_path in
+  let argv =
+    Array.of_list
+      ("/bin/sh" :: "-c" :: {|cd "$0" && exec sh "$@"|} :: root :: script
+     :: args)
+  in
+  let pid =
+    Unix.create_process_env "/bin/sh" argv (cargo_env ~env root) Unix.stdin out
+      err
+  in
+  Unix.close out;
+  Unix.close err;
+  let status =
+    match snd (Unix.waitpid [] pid) with
+    | Unix.WEXITED code -> code
+    | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> -1
+  in
+  { status; out = read out_path; err = read err_path }
+
+let in_cargo_project f =
+  let root = Filename.temp_dir "sinter-cargo-build" "" in
+  Fun.protect
+    ~finally:(fun () -> remove root)
+    (fun () ->
+      write ~mode:0o755
+        (root / "lib/cargo-build.sh")
+        (read (cargo_build_repo_root / "lib/cargo-build.sh"));
+      write ~mode:0o755
+        (root / "lib/bridge/build.sh")
+        (read (cargo_build_repo_root / "lib/bridge/build.sh"));
+      write ~mode:0o755 (root / "fake/cargo") fake_cargo;
+      write ~mode:0o755 (root / "fake/cmake") fake_cmake;
+      make_dir (root / "home");
+      f root)
+
+let trimmed s = String.trim s
+
+let cargo_build_tests =
+  [
+    Alcotest.test_case
+      "two checkouts with the same content get the same target directory" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            write_crate a;
+            write_crate b;
+            let env = [ ("CARGO_TARGET_DIR", root / "cache") ] in
+            let r1 =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [ "--target-dir"; a ]
+            in
+            let r2 =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [ "--target-dir"; b ]
+            in
+            status 0 r1.status;
+            status 0 r2.status;
+            Alcotest.(check string)
+              "same target" (trimmed r1.out) (trimmed r2.out)));
+    Alcotest.test_case
+      "an edit changes the target directory and top-level target does not"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            write_crate a;
+            write_crate b;
+            write (b / "target/debug/junk") "ignored";
+            let env = [ ("CARGO_TARGET_DIR", root / "cache") ] in
+            let dir_of p =
+              let r =
+                run_cargo_script ~env root "lib/bridge/build.sh"
+                  [ "--target-dir"; p ]
+              in
+              status 0 r.status;
+              trimmed r.out
+            in
+            let d_a = dir_of a in
+            Alcotest.(check string) "top-level target ignored" d_a (dir_of b);
+            write (b / "src/target/mod.rs") "pub fn nested() {}\n";
+            Alcotest.(check bool)
+              "nested src/target counted" true
+              (d_a <> dir_of b)));
+    Alcotest.test_case
+      "a symbolic link to a directory inside the crate is rejected" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and outside = root / "outside" in
+            write_crate a;
+            write (outside / "extra.rs") "pub fn extra() {}\n";
+            Unix.symlink outside (a / "linked");
+            let env = [ ("CARGO_TARGET_DIR", root / "cache") ] in
+            let r =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [ "--target-dir"; a ]
+            in
+            status 1 r.status;
+            mentions "symbolic link to a directory" r.err));
+    Alcotest.test_case
+      "missing sha256sum and shasum fails without touching the parent folder"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and cache = root / "cache" in
+            write_crate a;
+            write (cache / "keepme/file") "stay\n";
+            write (cache / "0123456789abcdef0123456789abcdef/last-used") "";
+            let bin =
+              make_restricted_bin ~omit:[ "sha256sum"; "shasum" ] root
+                "bin-no-sha"
+            in
+            let env =
+              [
+                ("PATH", (root / "fake") ^ ":" ^ bin);
+                ("CARGO_TARGET_DIR", cache);
+              ]
+            in
+            let r_dir =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [ "--target-dir"; a ]
+            in
+            status 1 r_dir.status;
+            mentions "sha256sum or shasum" r_dir.err;
+            let r_build =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [
+                  a;
+                  "fallback";
+                  root / "out/libsinter_bridge.a";
+                  root / "out/link_flags.sexp";
+                ]
+            in
+            status 1 r_build.status;
+            mentions "sha256sum or shasum" r_build.err;
+            Alcotest.(check bool)
+              "unrelated folder kept" true
+              (Sys.file_exists (cache / "keepme/file"));
+            Alcotest.(check bool)
+              "existing build folder kept" true
+              (Sys.file_exists
+                 (cache / "0123456789abcdef0123456789abcdef/last-used"))));
+    Alcotest.test_case "a failing sha256sum exits with an error message" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and cache = root / "cache" in
+            write_crate a;
+            let bin =
+              make_restricted_bin ~omit:[ "sha256sum"; "shasum" ] root
+                "bin-bad-sha"
+            in
+            write ~mode:0o755 (bin / "sha256sum") "#!/bin/sh\nexit 1\n";
+            let env =
+              [
+                ("PATH", (root / "fake") ^ ":" ^ bin);
+                ("CARGO_TARGET_DIR", cache);
+              ]
+            in
+            let r =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [ "--target-dir"; a ]
+            in
+            status 1 r.status;
+            mentions "sha256sum failed" r.err));
+    Alcotest.test_case "an empty build parent directory or / is refused" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" in
+            write_crate a;
+            let r_root =
+              run_cargo_script
+                ~env:[ ("CARGO_TARGET_DIR", "/") ]
+                root "lib/bridge/build.sh" [ "--target-dir"; a ]
+            in
+            status 1 r_root.status;
+            mentions "Refusing to use /" r_root.err;
+            let r_empty =
+              run_cargo_script
+                ~env:[ ("HOME", "") ]
+                root "lib/bridge/build.sh"
+                [
+                  a;
+                  "";
+                  root / "out/libsinter_bridge.a";
+                  root / "out/link_flags.sexp";
+                ]
+            in
+            status 1 r_empty.status;
+            mentions "build directory is empty" r_empty.err));
+    Alcotest.test_case "missing perl and flock fails with an error message"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and cache = root / "cache" in
+            write_crate a;
+            let bin =
+              make_restricted_bin ~omit:[ "perl"; "flock" ] root "bin-no-lock"
+            in
+            let env =
+              [
+                ("PATH", (root / "fake") ^ ":" ^ bin);
+                ("CARGO_TARGET_DIR", cache);
+              ]
+            in
+            let r =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [
+                  a;
+                  "fallback";
+                  root / "out/libsinter_bridge.a";
+                  root / "out/link_flags.sexp";
+                ]
+            in
+            status 1 r.status;
+            mentions "perl or flock" r.err));
+    Alcotest.test_case
+      "CARGO_TARGET_DIR, XDG_CACHE_HOME, and HOME choose the parent directory"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" in
+            write_crate a;
+            let dir_with env =
+              let r =
+                run_cargo_script ~env root "lib/bridge/build.sh"
+                  [ "--target-dir"; a ]
+              in
+              status 0 r.status;
+              trimmed r.out
+            in
+            let d_ctd =
+              dir_with
+                [
+                  ("CARGO_TARGET_DIR", root / "explicit");
+                  ("XDG_CACHE_HOME", root / "xdg");
+                ]
+            in
+            let d_xdg = dir_with [ ("XDG_CACHE_HOME", root / "xdg") ] in
+            let d_home = dir_with [] in
+            Alcotest.(check bool)
+              "CARGO_TARGET_DIR wins" true
+              (String.starts_with ~prefix:(root / "explicit/") d_ctd);
+            Alcotest.(check bool)
+              "XDG_CACHE_HOME second" true
+              (String.starts_with
+                 ~prefix:(root / "xdg/sinter-bridge-build/")
+                 d_xdg);
+            Alcotest.(check bool)
+              "HOME third" true
+              (String.starts_with
+                 ~prefix:(root / "home/.cache/sinter-bridge-build/")
+                 d_home)));
+    Alcotest.test_case
+      "a second checkout with identical content shares the folder and runs \
+       cargo"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" and log = root / "cargo.log" in
+            write_crate a;
+            write_crate b;
+            let env extra =
+              [ ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_LOG", log) ] @ extra
+            in
+            let r1 =
+              run_cargo_script ~env:(env []) root "lib/bridge/build.sh"
+                [
+                  a;
+                  "fallback";
+                  root / "out-a/libsinter_bridge.a";
+                  root / "out-a/link_flags.sexp";
+                ]
+            in
+            status 0 r1.status;
+            let r2 =
+              run_cargo_script
+                ~env:(env [ ("FAKE_CARGO_FLAG", "cfg-marker") ])
+                root "lib/bridge/build.sh"
+                [
+                  b;
+                  "fallback";
+                  root / "out-b/libsinter_bridge.a";
+                  root / "out-b/link_flags.sexp";
+                ]
+            in
+            status 0 r2.status;
+            Alcotest.(check int)
+              "cargo ran twice" 2
+              (List.length (lines (read log)));
+            Alcotest.(check bool)
+              "second build sees new flag through cargo" true
+              (contains ~sub:"flag=cfg-marker"
+                 (read (root / "out-b/libsinter_bridge.a")));
+            Alcotest.(check string)
+              "flags filtered" "(-liconv -lm )\n"
+              (read (root / "out-b/link_flags.sexp"))));
+    Alcotest.test_case
+      "an older checkout of other content gets its own library from a seeded \
+       folder"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" and log = root / "cargo.log" in
+            write_crate ~src:"MARKER_A\n" a;
+            write_crate ~src:"MARKER_B\n" b;
+            let future = Unix.gettimeofday () +. 120.0 in
+            Unix.utimes (b / "src/lib.rs") future future;
+            let env =
+              [ ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_LOG", log) ]
+            in
+            let rb =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [
+                  b;
+                  "fallback";
+                  root / "out-b/libsinter_bridge.a";
+                  root / "out-b/link_flags.sexp";
+                ]
+            in
+            status 0 rb.status;
+            let ra =
+              run_cargo_script ~env root "lib/bridge/build.sh"
+                [
+                  a;
+                  "fallback";
+                  root / "out-a/libsinter_bridge.a";
+                  root / "out-a/link_flags.sexp";
+                ]
+            in
+            status 0 ra.status;
+            let arch_a = read (root / "out-a/libsinter_bridge.a") in
+            let arch_b = read (root / "out-b/libsinter_bridge.a") in
+            Alcotest.(check bool)
+              "B has MARKER_B" true
+              (contains ~sub:"MARKER_B" arch_b);
+            Alcotest.(check bool)
+              "A has MARKER_A" true
+              (contains ~sub:"MARKER_A" arch_a);
+            Alcotest.(check bool)
+              "A does not have MARKER_B" false
+              (contains ~sub:"MARKER_B" arch_a);
+            let calls = lines (read log) in
+            Alcotest.(check bool)
+              "clean ran on seeded folder" true
+              (List.exists
+                 (fun line ->
+                   contains ~sub:"clean " line
+                   && contains ~sub:"pkg=sinter-bridge" line)
+                 calls)));
+    Alcotest.test_case
+      "a newer checkout of other content gets its own library from a seeded \
+       folder"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" and log = root / "cargo.log" in
+            write_crate ~src:"MARKER_A\n" a;
+            write_crate ~src:"MARKER_B\n" b;
+            let env =
+              [ ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_LOG", log) ]
+            in
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   a;
+                   "fallback";
+                   root / "out-a/libsinter_bridge.a";
+                   root / "out-a/link_flags.sexp";
+                 ])
+                .status;
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   b;
+                   "fallback";
+                   root / "out-b/libsinter_bridge.a";
+                   root / "out-b/link_flags.sexp";
+                 ])
+                .status;
+            Alcotest.(check bool)
+              "A has MARKER_A" true
+              (contains ~sub:"MARKER_A"
+                 (read (root / "out-a/libsinter_bridge.a")));
+            Alcotest.(check bool)
+              "B has MARKER_B" true
+              (contains ~sub:"MARKER_B"
+                 (read (root / "out-b/libsinter_bridge.a")));
+            Alcotest.(check bool)
+              "clean ran on seeded folder" true
+              (contains ~sub:"clean " (read log))));
+    Alcotest.test_case
+      "a Cargo.lock change seeds from the newest folder of the same package"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" and log = root / "cargo.log" in
+            write_crate ~lock:"lock-v1\n" ~src:"A\n" a;
+            write_crate ~lock:"lock-v2\n" ~src:"B\n" b;
+            let env =
+              [ ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_LOG", log) ]
+            in
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   a;
+                   "fallback";
+                   root / "out-a/libsinter_bridge.a";
+                   root / "out-a/link_flags.sexp";
+                 ])
+                .status;
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   b;
+                   "fallback";
+                   root / "out-b/libsinter_bridge.a";
+                   root / "out-b/link_flags.sexp";
+                 ])
+                .status;
+            Alcotest.(check bool)
+              "B seeded dependencies from A" true
+              (contains ~sub:"dep=dep-from:lock-v1"
+                 (read (root / "out-b/libsinter_bridge.a")));
+            Alcotest.(check bool)
+              "clean ran on seeded folder" true
+              (contains ~sub:"clean " (read log))));
+    Alcotest.test_case
+      "a crate edit during a build fails and discards the target folder" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" in
+            let cache = root / "cache" in
+            write_crate a;
+            let env = [ ("CARGO_TARGET_DIR", cache) ] in
+            let target =
+              let r =
+                run_cargo_script ~env root "lib/bridge/build.sh"
+                  [ "--target-dir"; a ]
+              in
+              status 0 r.status;
+              trimmed r.out
+            in
+            let build =
+              run_cargo_script
+                ~env:
+                  [
+                    ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_MUTATE_SRC", "1");
+                  ]
+                root "lib/bridge/build.sh"
+                [
+                  a;
+                  "fallback";
+                  root / "out/libsinter_bridge.a";
+                  root / "out/link_flags.sexp";
+                ]
+            in
+            status 1 build.status;
+            mentions "changed during the build" build.err;
+            Alcotest.(check bool)
+              "contaminated target removed" false (Sys.file_exists target)));
+    Alcotest.test_case
+      "a leftover building mark forces a package clean before cargo runs" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" in
+            let cache = root / "cache" in
+            write_crate ~src:"MARKER_A\n" a;
+            let env = [ ("CARGO_TARGET_DIR", cache) ] in
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   a;
+                   "fallback";
+                   root / "out1/libsinter_bridge.a";
+                   root / "out1/link_flags.sexp";
+                 ])
+                .status;
+            let target =
+              let r =
+                run_cargo_script ~env root "lib/bridge/build.sh"
+                  [ "--target-dir"; a ]
+              in
+              status 0 r.status;
+              trimmed r.out
+            in
+            let key = Filename.basename target in
+            write (target / "release/libsinter_bridge.a") "STALE_OTHER\n";
+            let future = Unix.gettimeofday () +. 120.0 in
+            Unix.utimes (target / "release/crate.marker") future future;
+            let building = cache / ".locks" / (key ^ ".building") in
+            write building "";
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   a;
+                   "fallback";
+                   root / "out2/libsinter_bridge.a";
+                   root / "out2/link_flags.sexp";
+                 ])
+                .status;
+            let arch = read (root / "out2/libsinter_bridge.a") in
+            Alcotest.(check bool)
+              "rebuilt with MARKER_A" true
+              (contains ~sub:"MARKER_A" arch);
+            Alcotest.(check bool)
+              "stale archive gone" false
+              (contains ~sub:"STALE_OTHER" arch);
+            Alcotest.(check bool)
+              "building mark removed" false (Sys.file_exists building)));
+    Alcotest.test_case
+      "pruning removes marked folders unused for 7 days and spares recent, \
+       locked, unrelated, and symlink entries"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" in
+            let cache = root / "cache" in
+            write_crate a;
+            let now = Unix.gettimeofday () in
+            let eight_days = now -. (8.0 *. 86400.0) in
+            let six_days = now -. (6.0 *. 86400.0) in
+            let stale_dir = cache / "0123456789abcdef0123456789abcdef" in
+            let legacy_dir = cache / "fedcba9876543210" in
+            let killed_dir = cache / "11111111111111111111111111111111" in
+            let unrelated_dir = cache / "22222222222222222222222222222222" in
+            let link_target = root / "external-target" in
+            let hex_link = cache / "33333333333333333333333333333333" in
+            let recent_dir = cache / "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in
+            let locked_dir = cache / "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in
+            let orphan_stage =
+              cache / ".stage-cccccccccccccccccccccccccccccccc-99999"
+            in
+            let active_stage =
+              cache / ".stage-dddddddddddddddddddddddddddddddd-99998"
+            in
+            write (stale_dir / "last-used") "";
+            Unix.utimes (stale_dir / "last-used") eight_days eight_days;
+            write (legacy_dir / "checkout") "/gone\n";
+            Unix.utimes (legacy_dir / "checkout") eight_days eight_days;
+            write
+              (killed_dir / "CACHEDIR.TAG")
+              "Signature: 8a477f597d28d172789f06886806bc55\n";
+            Unix.utimes (killed_dir / "CACHEDIR.TAG") eight_days eight_days;
+            write (unrelated_dir / "notes.txt") "keep me\n";
+            Unix.utimes (unrelated_dir / "notes.txt") eight_days eight_days;
+            Unix.utimes unrelated_dir eight_days eight_days;
+            write (link_target / "last-used") "";
+            Unix.utimes (link_target / "last-used") eight_days eight_days;
+            Unix.symlink link_target hex_link;
+            write (recent_dir / "last-used") "";
+            Unix.utimes (recent_dir / "last-used") six_days six_days;
+            write (locked_dir / "last-used") "";
+            Unix.utimes (locked_dir / "last-used") eight_days eight_days;
+            write (orphan_stage / "junk") "";
+            write (active_stage / "junk") "";
+            make_dir (cache / ".locks");
+            let hold_lock lock_path flag_path =
+              let holder =
+                {|use Fcntl qw(:flock);
+open(my $fh, "+>>", $ARGV[0]) or die $!;
+flock($fh, LOCK_SH) or die $!;
+open(my $f, ">", $ARGV[1]) or die $!;
+close($f);
+sleep 30;
+|}
+              in
+              let pid =
+                Unix.create_process "perl"
+                  [| "perl"; "-e"; holder; lock_path; flag_path |]
+                  Unix.stdin Unix.stdout Unix.stderr
+              in
+              let rec wait_ready n =
+                if Sys.file_exists flag_path then ()
+                else if n = 0 then failwith "lock holder did not start"
+                else (
+                  Unix.sleepf 0.02;
+                  wait_ready (n - 1))
+              in
+              wait_ready 100;
+              pid
+            in
+            let p1 =
+              hold_lock
+                (cache / ".locks/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.lock")
+                (root / ".lock1")
+            in
+            let p2 =
+              hold_lock
+                (cache / ".locks/dddddddddddddddddddddddddddddddd.lock")
+                (root / ".lock2")
+            in
+            let kill_holder pid =
+              (try Unix.kill pid Sys.sigkill with _ -> ());
+              ignore (Unix.waitpid [] pid)
+            in
+            Fun.protect
+              ~finally:(fun () ->
+                kill_holder p1;
+                kill_holder p2)
+              (fun () ->
+                let env = [ ("CARGO_TARGET_DIR", cache) ] in
+                let r =
+                  run_cargo_script ~env root "lib/bridge/build.sh"
+                    [
+                      a;
+                      "fallback";
+                      root / "out/libsinter_bridge.a";
+                      root / "out/link_flags.sexp";
+                    ]
+                in
+                status 0 r.status;
+                Alcotest.(check bool)
+                  "stale removed" false
+                  (Sys.file_exists stale_dir);
+                Alcotest.(check bool)
+                  "legacy stale removed" false
+                  (Sys.file_exists legacy_dir);
+                Alcotest.(check bool)
+                  "killed build with CACHEDIR.TAG removed" false
+                  (Sys.file_exists killed_dir);
+                Alcotest.(check bool)
+                  "unrelated hex folder kept" true
+                  (Sys.file_exists (unrelated_dir / "notes.txt"));
+                Alcotest.(check bool)
+                  "hex symlink kept" true
+                  (match Unix.lstat hex_link with
+                  | { Unix.st_kind = Unix.S_LNK; _ } -> true
+                  | _ -> false
+                  | exception Unix.Unix_error _ -> false);
+                Alcotest.(check bool)
+                  "symlink target kept" true
+                  (Sys.file_exists (link_target / "last-used"));
+                Alcotest.(check bool)
+                  "recent kept" true
+                  (Sys.file_exists recent_dir);
+                Alcotest.(check bool)
+                  "locked stale kept" true
+                  (Sys.file_exists locked_dir);
+                Alcotest.(check bool)
+                  "orphan stage removed" false
+                  (Sys.file_exists orphan_stage);
+                Alcotest.(check bool)
+                  "locked stage kept" true
+                  (Sys.file_exists active_stage));
+            let env = [ ("CARGO_TARGET_DIR", cache) ] in
+            status 0
+              (run_cargo_script ~env root "lib/bridge/build.sh"
+                 [
+                   a;
+                   "fallback";
+                   root / "out2/libsinter_bridge.a";
+                   root / "out2/link_flags.sexp";
+                 ])
+                .status;
+            Alcotest.(check bool)
+              "unlocked stale removed" false
+              (Sys.file_exists locked_dir);
+            Alcotest.(check bool)
+              "unlocked stage removed" false
+              (Sys.file_exists active_stage)));
+    Alcotest.test_case
+      "concurrent builds of identical content serialize cleanly" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" and log = root / "cargo.log" in
+            write_crate ~src:"CONCURRENT_SAME\n" a;
+            write_crate ~src:"CONCURRENT_SAME\n" b;
+            let env =
+              cargo_env
+                ~env:
+                  [
+                    ("CARGO_TARGET_DIR", cache);
+                    ("FAKE_CARGO_LOG", log);
+                    ("FAKE_CARGO_SLEEP", "0.3");
+                  ]
+                root
+            in
+            let spawn crate out_dir =
+              make_dir out_dir;
+              let out =
+                Unix.openfile (out_dir / "stdout")
+                  [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ]
+                  0o644
+              in
+              let err =
+                Unix.openfile (out_dir / "stderr")
+                  [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ]
+                  0o644
+              in
+              let argv =
+                Array.of_list
+                  [
+                    "/bin/sh";
+                    "-c";
+                    {|cd "$0" && exec sh "$@"|};
+                    root;
+                    "lib/bridge/build.sh";
+                    crate;
+                    "fallback";
+                    out_dir / "libsinter_bridge.a";
+                    out_dir / "link_flags.sexp";
+                  ]
+              in
+              let pid =
+                Unix.create_process_env "/bin/sh" argv env Unix.stdin out err
+              in
+              Unix.close out;
+              Unix.close err;
+              pid
+            in
+            let p1 = spawn a (root / "out-1") in
+            let p2 = spawn b (root / "out-2") in
+            let wait_ok pid =
+              match snd (Unix.waitpid [] pid) with
+              | Unix.WEXITED 0 -> ()
+              | _ -> Alcotest.fail "concurrent build failed"
+            in
+            wait_ok p1;
+            wait_ok p2;
+            Alcotest.(check bool)
+              "first got content" true
+              (contains ~sub:"CONCURRENT_SAME"
+                 (read (root / "out-1/libsinter_bridge.a")));
+            Alcotest.(check bool)
+              "second got content" true
+              (contains ~sub:"CONCURRENT_SAME"
+                 (read (root / "out-2/libsinter_bridge.a")))));
+    Alcotest.test_case
+      "concurrent builds of different content seed and build without \
+       interference"
+      `Quick (fun () ->
+        in_cargo_project (fun root ->
+            let base_c = root / "co-base/bridge" in
+            let a = root / "co-a/bridge" and b = root / "co-b/bridge" in
+            let cache = root / "cache" in
+            write_crate ~src:"BASE\n" base_c;
+            write_crate ~src:"DIFF_A\n" a;
+            write_crate ~src:"DIFF_B\n" b;
+            status 0
+              (run_cargo_script
+                 ~env:[ ("CARGO_TARGET_DIR", cache) ]
+                 root "lib/bridge/build.sh"
+                 [
+                   base_c;
+                   "fallback";
+                   root / "out-base/libsinter_bridge.a";
+                   root / "out-base/link_flags.sexp";
+                 ])
+                .status;
+            let env =
+              cargo_env
+                ~env:
+                  [ ("CARGO_TARGET_DIR", cache); ("FAKE_CARGO_SLEEP", "0.2") ]
+                root
+            in
+            let spawn crate out_dir =
+              make_dir out_dir;
+              let out =
+                Unix.openfile (out_dir / "stdout")
+                  [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ]
+                  0o644
+              in
+              let err =
+                Unix.openfile (out_dir / "stderr")
+                  [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ]
+                  0o644
+              in
+              let argv =
+                Array.of_list
+                  [
+                    "/bin/sh";
+                    "-c";
+                    {|cd "$0" && exec sh "$@"|};
+                    root;
+                    "lib/bridge/build.sh";
+                    crate;
+                    "fallback";
+                    out_dir / "libsinter_bridge.a";
+                    out_dir / "link_flags.sexp";
+                  ]
+              in
+              let pid =
+                Unix.create_process_env "/bin/sh" argv env Unix.stdin out err
+              in
+              Unix.close out;
+              Unix.close err;
+              pid
+            in
+            let p1 = spawn a (root / "out-a") in
+            let p2 = spawn b (root / "out-b") in
+            let wait_ok pid =
+              match snd (Unix.waitpid [] pid) with
+              | Unix.WEXITED 0 -> ()
+              | _ -> Alcotest.fail "concurrent build failed"
+            in
+            wait_ok p1;
+            wait_ok p2;
+            Alcotest.(check bool)
+              "A got DIFF_A" true
+              (contains ~sub:"DIFF_A"
+                 (read (root / "out-a/libsinter_bridge.a")));
+            Alcotest.(check bool)
+              "B got DIFF_B" true
+              (contains ~sub:"DIFF_B"
+                 (read (root / "out-b/libsinter_bridge.a")))));
+    Alcotest.test_case
+      "a second crate shares the parent folder without cross-seeding" `Quick
+      (fun () ->
+        in_cargo_project (fun root ->
+            let bridge = root / "bridge" and wasm = root / "wasm_engine" in
+            let log = root / "cargo.log" in
+            write_crate ~lock:"bridge-lock\n" ~src:"BRIDGE\n" bridge;
+            write_crate ~pkg:"sinter-wasm-engine" ~lib:"sinter_wasm_engine"
+              ~lock:"wasm-lock\n" ~src:"WASM_ENGINE\n" wasm;
+            let env extra =
+              [ ("XDG_CACHE_HOME", root / "xdg"); ("FAKE_CARGO_LOG", log) ]
+              @ extra
+            in
+            status 0
+              (run_cargo_script ~env:(env []) root "lib/bridge/build.sh"
+                 [
+                   bridge;
+                   "fallback";
+                   root / "out-bridge/libsinter_bridge.a";
+                   root / "out-bridge/link_flags.sexp";
+                 ])
+                .status;
+            let dir =
+              run_cargo_script ~env:(env []) root "lib/cargo-build.sh"
+                [ "--target-dir"; wasm ]
+            in
+            status 0 dir.status;
+            Alcotest.(check bool)
+              "uses shared sinter-bridge-build parent" true
+              (String.starts_with
+                 ~prefix:(root / "xdg/sinter-bridge-build/")
+                 (trimmed dir.out));
+            let build =
+              run_cargo_script
+                ~env:(env [ ("FAKE_ARCHIVE_NAME", "libsinter_wasm_engine.a") ])
+                root "lib/cargo-build.sh"
+                [
+                  wasm;
+                  "fallback";
+                  root / "out-wasm/libsinter_wasm_engine.a";
+                  root / "out-wasm/link_flags.sexp";
+                ]
+            in
+            status 0 build.status;
+            let arch = read (root / "out-wasm/libsinter_wasm_engine.a") in
+            Alcotest.(check bool)
+              "built wasm engine archive" true
+              (contains ~sub:"WASM_ENGINE" arch);
+            Alcotest.(check bool)
+              "did not cross-seed bridge deps" true
+              (contains ~sub:"dep=dep-from:wasm-lock" arch);
+            Alcotest.(check bool)
+              "clean did not run without matching package seed" false
+              (contains ~sub:"clean " (read log))));
+  ]
+
 let () =
   Alcotest.run "scripts"
     [
@@ -1047,4 +2069,5 @@ let () =
       ("mutant share", share_tests);
       ("mutant count", count_tests);
       ("mutant canary", canary_tests);
+      ("cargo build", cargo_build_tests);
     ]

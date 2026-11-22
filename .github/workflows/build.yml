@@ -79,7 +79,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', 'lib/cargo-build.sh', '.github/workflows/build.yml') }}
           restore-keys: ${{ env.SAVE_CACHES != 'true' && format('cargo-bridge-{0}-{1}-{2}-', steps.image.outputs.os, runner.arch, env.RUST_TOOLCHAIN) || '' }}
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -110,17 +110,27 @@ jobs:
           echo "$prefix/bin" >>"$GITHUB_PATH"
           echo "OPAM_SWITCH_PREFIX=$prefix" >>"$GITHUB_ENV"
           echo "CAML_LD_LIBRARY_PATH=$prefix/lib/stublibs:$prefix/lib/ocaml/stublibs" >>"$GITHUB_ENV"
-      - name: Check that two checkouts do not share a build directory
+      - name: Check that the bridge build directory follows crate content
         run: |
           set -eu
           first=$(mktemp -d)/bridge
           second=$(mktemp -d)/bridge
-          mkdir -p "$first" "$second"
+          cp -R bridge "$first"
+          cp -R bridge "$second"
           one=$(sh lib/bridge/build.sh --target-dir "$first")
           two=$(sh lib/bridge/build.sh --target-dir "$second")
-          echo "one: $one"
-          echo "two: $two"
-          test "$one" != "$two"
+          echo "same first:  $one"
+          echo "same second: $two"
+          test "$one" = "$two"
+          mkdir -p "$second/target"
+          printf 'ignored\n' >"$second/target/marker"
+          with_target=$(sh lib/bridge/build.sh --target-dir "$second")
+          echo "with target: $with_target"
+          test "$one" = "$with_target"
+          printf '\n// change\n' >>"$second/src/lib.rs"
+          changed=$(sh lib/bridge/build.sh --target-dir "$second")
+          echo "changed:     $changed"
+          test "$one" != "$changed"
       - name: Build
         id: build
         run: dune build
@@ -318,7 +328,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', 'lib/cargo-build.sh', '.github/workflows/build.yml') }}
           restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -567,7 +577,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', 'lib/cargo-build.sh', '.github/workflows/build.yml') }}
           restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.opam.outputs.cache-hit != 'true'
@@ -898,7 +908,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cache/sinter-bridge-build
-          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', '.github/workflows/build.yml') }}
+          key: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('bridge/Cargo.lock', 'bridge/Cargo.toml', 'bridge/rust-toolchain.toml', 'lib/bridge/build.sh', 'lib/cargo-build.sh', '.github/workflows/build.yml') }}
           restore-keys: cargo-bridge-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-
       - name: Turn off git background maintenance
         if: steps.scope.outputs.measure == 'true' && steps.opam.outputs.cache-hit != 'true'
