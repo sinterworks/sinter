@@ -3181,10 +3181,10 @@ checks that program only on the declared items.
 @cites {
     rfc/8259,
     text#{
-        conforming-program=v1, text=v1, character=v1, whole-number=v1,
-        decimal-numeral=v1, boundary=v1, run=v1, line-number=v1,
-        position=v1, byte-order-mark=v1, valid-utf-8=v1, result=v1,
-        code-point-order=v1, code-span=v1,
+        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
+        character=v1, whole-number=v1, decimal-numeral=v1, boundary=v1,
+        run=v1, line-number=v1, position=v1, byte-order-mark=v1,
+        valid-utf-8=v1, result=v1, code-point-order=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
     data-forms#{
@@ -3220,8 +3220,9 @@ Its vectors follow from the requirements `give-read-files`,
 `give-declared-items`, `give-extents`, `give-extent-hashes`,
 `give-hash-texts`, `give-containment`, `give-sites`, `give-edges`,
 `give-status-tag-items`, `give-extern-marks`, `give-vector-files`,
-`give-tree-findings`, and `give-file-findings`. Each vector of the group
-has the member `values`, and no vector has the member `result`.
+`give-tree-findings`, and `give-file-findings`, and from the requirement
+`reject-invalid-inputs` of Text. Each vector of the group has the member
+`values`, and no vector has the member `result`.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. Inside the members `input` and `values`,
@@ -3379,7 +3380,7 @@ its own and reads the tree under the two bindings of the input, that
 conforming program gives what `values` states. For each member that this
 schema gives for `values` and that `values` omits, the conforming
 program gives, for the tree, none of the things that that member names
-(by `conforming-program` of Text when `file-readers` or
+(by `reject-invalid-inputs` of Text when `file-readers` or
 `external-namespaces` is not valid; when `values` omits `items`, the
 conforming program also gives no extent, no hash text, no extent hash,
 no item to which a declared item belongs, and no vector file). When
@@ -3413,7 +3414,7 @@ for those things:
   Identifiers gives the result "invalid" for the binding of
   `external-namespaces` of the input and that class is not `parse-error`,
   `typo-tag`, or `ignored-tag`, the conforming program gives no tree
-  finding of that class (by `conforming-program` of Text); otherwise,
+  finding of that class (by `reject-invalid-inputs` of Text); otherwise,
   the conforming program gives one for each element of `findings` of
   that class, with the class and the subject that the element states,
   and no other tree finding of that class. When the conforming program
@@ -3434,9 +3435,9 @@ These lines of the file are vectors of the group:
 @cites {
     rfc/8259,
     text#{
-        conforming-program=v1, text=v1, whole-number=v1, run=v1,
-        boundary=v1, position=v1, valid-utf-8=v1, code-point-order=v1,
-        code-span=v1,
+        conforming-program=v1, reject-invalid-inputs=v1, text=v1,
+        whole-number=v1, run=v1, boundary=v1, position=v1, valid-utf-8=v1,
+        code-point-order=v1, code-span=v1,
     },
     files#{path=v1, path-set=v1, path-set-membership=v1},
     data-forms#{index=v1, group-form-list=v1, vector-meaning=v1},
