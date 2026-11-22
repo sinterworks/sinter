@@ -168,14 +168,39 @@ let call store instance name arguments =
 
 let stopped limit = Error (Instance.Stopped limit)
 let page = 65_536
+let largest = 0xFFFF_FFFF
+
+let alignment_cap =
+  (33
+  [@mutaml.skip
+    "2 to the power 33, minus 1, is above 4,294,967,295, so from an alignment \
+     of 33 on, each number with the room for the alignment is above that \
+     bound, and every cap from 33 to 61 gives the same results"])
+
+let spare alignment = (1 lsl min alignment alignment_cap) - 1
+let with_room size alignment = size + spare alignment
+
+let round_up start alignment =
+  let spare = spare alignment in
+  (start + spare) land lnot spare
 
 let own_bytes store core (information : Dylink.t) =
-  if information.memory_alignment > 4 then stopped Memory
-  else call store core "calloc" [ 1; information.memory_size ]
+  let alignment = information.memory_alignment in
+  let bytes = with_room information.memory_size alignment in
+  if bytes > largest then stopped Memory
+  else
+    Result.map
+      (fun address -> round_up address alignment)
+      (call store core "calloc" [ 1; bytes ])
 
 let own_elements store core (information : Dylink.t) =
-  if information.table_alignment > 0 then stopped Table
-  else Store.grow_table store core core_table information.table_size
+  let alignment = information.table_alignment in
+  let elements = with_room information.table_size alignment in
+  if elements > largest then stopped Table
+  else
+    Result.map
+      (fun start -> round_up start alignment)
+      (Store.grow_table store core core_table elements)
 
 let grow_to_minimums store core imports =
   List.fold_left

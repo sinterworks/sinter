@@ -90,9 +90,9 @@ val load_limits : Instance.limits
 
 (* @satisfies text#report-stops-at-limits=v1
    A stop at a limit of the program in the decision gives [Link_failed] with
-   the failure that names the limit; a memory alignment of more than 4 and a
-   table alignment of more than 0 give [Link_failed (Stopped Memory)] and
-   [Link_failed (Stopped Table)]. *)
+   the failure that names the limit; a number of own bytes or own elements,
+   with the room for its alignment, above 4,294,967,295 gives
+   [Link_failed (Stopped Memory)] or [Link_failed (Stopped Table)]. *)
 val decide :
   ?limits:Instance.limits ->
   Core.t ->
@@ -126,20 +126,30 @@ val decide :
     + The name of each symbol is valid UTF-8.
 
     In the instance of a grammar, the program takes the own bytes of the module
-    from the memory of the core, as one space that the allocation functions of
-    the core give: they lie inside that memory, they start at [__memory_base], a
-    multiple of 16, and so of 2 to the power of the memory alignment of the
-    module, which is at most 4; and each of them is 0 when the program
-    instantiates the module. It takes the own elements of the module from new
-    null elements at the end of the table of the core: they lie inside that
-    table, and they start at [__table_base], the number of elements that the
-    table had before. Then, before the instantiation, it grows the memory of the
-    core to the minimum of the type of the import [memory] when the memory has
-    fewer pages, and the table of the core to the minimum of the type of the
-    import [__indirect_function_table] when the table has fewer elements; it
-    does not grow them otherwise. An access of the code outside the memory or
-    the table traps, and gives [Link_failed (Trap _)]: so does a language whose
-    list of the names of its symbols lies outside the memory.
+    from the memory of the core, inside one space that the allocation functions
+    of the core give for the number of own bytes plus 2 to the power of the
+    memory alignment of the module, minus 1: they lie inside that space, they
+    start at [__memory_base], the first multiple of 2 to the power of the memory
+    alignment at or after the start of that space, and each of them is 0 when
+    the program instantiates the module. It takes the own elements of the module
+    from new null elements at the end of the table of the core, as many as the
+    number of own elements plus 2 to the power of the table alignment of the
+    module, minus 1: they lie inside those new elements, and they start at
+    [__table_base], the first multiple of 2 to the power of the table alignment
+    at or after the number of elements that the table had before. The allocation
+    functions of the core take a number of bytes of at most 4,294,967,295, and a
+    table holds at most 4,294,967,295 elements. So when the number of bytes of
+    that space is more than 4,294,967,295, the result is
+    [Error (Link_failed (Stopped Memory))]. When the number of those new
+    elements is more than 4,294,967,295, the result is
+    [Error (Link_failed (Stopped Table))]. Then, before the instantiation, it
+    grows the memory of the core to the minimum of the type of the import
+    [memory] when the memory has fewer pages, and the table of the core to the
+    minimum of the type of the import [__indirect_function_table] when the table
+    has fewer elements; it does not grow them otherwise. An access of the code
+    outside the memory or the table traps, and gives [Link_failed (Trap _)]: so
+    does a language whose list of the names of its symbols lies outside the
+    memory.
 
     When the code exhausts its call stack, or the program stops the code at a
     limit of [limits], the result is [Error (Link_failed f)], with [f]
@@ -150,15 +160,11 @@ val decide :
     a loop that grows a memory without end. So the program gives for each of
     them the result that a fault of the input gives, and the failure names the
     limit at which the program stopped. A decision with other [limits] can give
-    another result only for such a byte sequence. Two alignments give such a
-    stop whatever [limits] is, as limits of the program: a memory alignment of
-    more than 4 gives [Error (Link_failed (Stopped Memory))], and a table
-    alignment of more than 0 gives [Error (Link_failed (Stopped Table))]. The
-    default of [limits] is {!load_limits}. The function returns after at most
-    the fuel of [limits] in the code that it runs. The time is that of one
-    compilation of [bytes], plus that of the code that it runs, plus a time
-    linear in the length of [bytes] and in the number of the symbols and the
-    bytes of their names.
+    another result only for such a byte sequence. The default of [limits] is
+    {!load_limits}. The function returns after at most the fuel of [limits] in
+    the code that it runs. The time is that of one compilation of [bytes], plus
+    that of the code that it runs, plus a time linear in the length of [bytes]
+    and in the number of the symbols and the bytes of their names.
 
     @raise Failure when the engine stops on an internal fault. *)
 
