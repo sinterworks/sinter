@@ -10,21 +10,27 @@
     pattern. *)
 
 type t
-(** An id pattern that the program accepts: a valid id pattern within the
-    program's own limits. It matches the production [pattern], and none of the
-    conditions of {!error} holds for it. *)
+(** A valid id pattern at which the program stops at no limit of its own. It
+    matches the production [pattern], and none of the conditions of {!error} and
+    {!limit} holds for it. *)
 
-(** Why an id pattern is invalid. When several conditions hold, the error is one
-    of them. *)
+(** Why an id pattern is not a valid id pattern. When several conditions hold,
+    the error is one of them. *)
 type error =
-  | Too_long  (** the id pattern holds more than 1,000 characters *)
   | Unmatched  (** the id pattern does not match the production [pattern] *)
   | Reversed_range
       (** the id pattern uses a [range] whose first character comes after its
           last character in code point order *)
-  | Large_count  (** the id pattern uses a [count] whose number exceeds 255 *)
   | Reversed_bounds
       (** the id pattern uses a quantifier [{n,m}] in which [n] exceeds [m] *)
+  | Empty_id_fits  (** the empty id fits the id pattern *)
+
+(** A limit of the program on an id pattern. No rule of the design
+    [identifiers=v1] makes an id pattern that passes one of these limits not
+    valid. *)
+type limit =
+  | Too_long  (** the id pattern holds more than 1,000 characters *)
+  | Large_count  (** the id pattern uses a [count] whose number exceeds 255 *)
   | Oversized
       (** the size of the id pattern exceeds 1,000. The size counts the literals
           and the character classes of the id pattern when each quantifier is
@@ -36,12 +42,22 @@ type error =
           for each id pattern that it accepts an automaton whose number of
           states is at most a constant times the size. So {!of_string} stays
           linear in the length of the text, and {!fits} keeps its bound. *)
-  | Empty_id_fits  (** the empty id fits the id pattern *)
 
-val of_string : string -> (t, error) result
-(** [of_string text] is [Ok pattern] when the program accepts [text] as an id
-    pattern, and [Error] with a condition that rejects it otherwise. The time is
-    linear in the length of [text]. *)
+(** Why {!of_string} gives no id pattern. *)
+type rejection =
+  | Invalid of error
+      (** the id pattern is not a valid id pattern: the result "invalid" *)
+  | Stopped of limit
+      (** the program stops at this limit of its own on the id pattern: no
+          result "valid" or "invalid" *)
+
+val of_string : string -> (t, rejection) result
+(** [of_string text] is [Ok pattern] when [text] is a valid id pattern at which
+    the program stops at no limit of its own. It is [Error (Invalid e)] when
+    [text] is not a valid id pattern, with a condition [e] that holds for it,
+    and [Error (Stopped l)] when the program stops at the limit [l] on [text].
+    When [text] is not a valid id pattern and passes a limit, the result is one
+    of these two errors. The time is linear in the length of [text]. *)
 
 val to_string : t -> string
 (** [to_string pattern] is the text that {!of_string} took. *)

@@ -7,15 +7,9 @@ and branch = piece list
 
 type state = Step of (char * char) list * int | Split of int * int | Accept
 type t = { text : string; states : state array; start : int }
-
-type error =
-  | Too_long
-  | Unmatched
-  | Reversed_range
-  | Large_count
-  | Reversed_bounds
-  | Oversized
-  | Empty_id_fits
+type error = Unmatched | Reversed_range | Reversed_bounds | Empty_id_fits
+type limit = Too_long | Large_count | Oversized
+type rejection = Invalid of error | Stopped of limit
 
 exception No_match
 
@@ -63,8 +57,9 @@ let same_range_kind a b =
 let count_cap =
   (1_000_000
   [@mutaml.skip
-    "each count above 255 makes the id pattern invalid before its size or its \
-     automaton is computed, so every cap above 255 gives the same results"])
+    "each count above 255 stops the program at its limit before the size or \
+     the automaton of the id pattern is computed, so every cap above 255 gives \
+     the same results"])
 
 type flags = {
   mutable reversed_range : bool;
@@ -75,7 +70,7 @@ type flags = {
 (* @satisfies identifiers#validate-id-patterns=v1
    An id pattern that does not match the production `pattern` is not a valid
    id pattern; the parse also notes each reversed range, each reversed pair
-   of quantifier bounds, and each count above the program's own limit. *)
+   of quantifier bounds, and each count above the limit of the program. *)
 let parse text =
   let n = String.length text in
   let flags =
@@ -94,16 +89,17 @@ let parse text =
           | _ -> (value, i)
         in
         let value, i = digits i 0 in
-        (* @satisfies identifiers#validate-id-patterns=v1
-           The program's own limit on a count: a count above 255 makes the id
-           pattern invalid, so the size and the automaton stay small. *)
+        (* @satisfies text#report-stops-at-limits=v1
+           The limit of the program on a count: at a count above 255, the
+           program stops at that limit, so the size and the automaton stay
+           small. *)
         if value > 255 then flags.large_count <- true;
         (value, i)
     | _ -> raise No_match
   in
   let expect c i = if peek i = Some c then i + 1 else raise No_match in
-  (* @satisfies identifiers#validate-id-patterns=v1
-     The program's own limit on the size: each quantifier gives the number of
+  (* @satisfies text#report-stops-at-limits=v1
+     The limit of the program on the size: each quantifier gives the number of
      copies of its element that the size counts. *)
   let quantifier i =
     match peek i with
@@ -191,9 +187,9 @@ let size_cap =
     "the size is only compared with 1,000, so every cap above 1,000 gives the \
      same results"])
 
-(* @satisfies identifiers#validate-id-patterns=v1
-   The program's own limit on the size: these functions compute the size of
-   an id pattern, and a size above 1,000 makes the id pattern invalid. *)
+(* @satisfies text#report-stops-at-limits=v1
+   The limit of the program on the size: these functions compute the size of
+   an id pattern, and at a size above 1,000 the program stops at that limit. *)
 let rec size_of_branches branches =
   List.fold_left
     (fun total b -> min size_cap (total + size_of_branch b))
@@ -279,24 +275,31 @@ let in_alphabet = function
   | _ -> false
 
 (* @satisfies identifiers#validate-id-patterns=v1
-   An id pattern gets exactly one result: [Ok] ("valid") for a valid id
-   pattern within the program's own limits, and [Error] ("invalid") for each
-   other id pattern. *)
+   An id pattern at which the program stops at no limit gets exactly one
+   result: [Ok] ("valid") for a valid id pattern, and [Error (Invalid _)]
+   ("invalid") for each other id pattern. *)
+(* @satisfies text#reject-invalid-inputs=v1
+   An id pattern that is not valid gives [Error (Invalid e)], with a condition
+   e that makes it not valid, and no value of the type [t], so no fit depends
+   on it. *)
+(* @satisfies text#report-stops-at-limits=v1
+   At a limit on the length, a count, or the size, the result is
+   [Error (Stopped l)], which names the limit l, and not "invalid". *)
 let of_string text =
-  if not (String.for_all in_alphabet text) then Error Unmatched
-    (* @satisfies identifiers#validate-id-patterns=v1
-       The program's own limit on the length: an id pattern of more than 1,000
-       characters is invalid. *)
-  else if String.length text > 1000 then Error Too_long
+  if not (String.for_all in_alphabet text) then Error (Invalid Unmatched)
+    (* @satisfies text#report-stops-at-limits=v1
+       The limit of the program on the length: at an id pattern of more than
+       1,000 characters, the program stops at that limit. *)
+  else if String.length text > 1000 then Error (Stopped Too_long)
   else
     match parse text with
-    | None -> Error Unmatched
-    | Some (_, { reversed_range = true; _ }) -> Error Reversed_range
-    | Some (_, { large_count = true; _ }) -> Error Large_count
-    | Some (_, { reversed_bounds = true; _ }) -> Error Reversed_bounds
+    | None -> Error (Invalid Unmatched)
+    | Some (_, { reversed_range = true; _ }) -> Error (Invalid Reversed_range)
+    | Some (_, { large_count = true; _ }) -> Error (Stopped Large_count)
+    | Some (_, { reversed_bounds = true; _ }) -> Error (Invalid Reversed_bounds)
     | Some (branches, _) ->
-        if size_of_branches branches > 1000 then Error Oversized
-        else if nullable_branches branches then Error Empty_id_fits
+        if size_of_branches branches > 1000 then Error (Stopped Oversized)
+        else if nullable_branches branches then Error (Invalid Empty_id_fits)
         else
           let states, start = compile branches in
           Ok { text; states; start }

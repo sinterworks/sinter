@@ -96,61 +96,61 @@ let id_pattern_errors () =
         true
         (Id_pattern.of_string pattern = Error want))
     [
-      ("[" ^ String.make 999 'a' ^ "]", Id_pattern.Too_long);
-      ("^", Id_pattern.Unmatched);
-      ("", Id_pattern.Unmatched);
-      ("a b", Id_pattern.Unmatched);
-      ("[]", Id_pattern.Unmatched);
-      ("[^a]", Id_pattern.Unmatched);
-      ("[a-Z]", Id_pattern.Unmatched);
-      ("[a-9]", Id_pattern.Unmatched);
-      ("a{,3}", Id_pattern.Unmatched);
-      ("a{1,2,3}", Id_pattern.Unmatched);
-      ("a{ 1}", Id_pattern.Unmatched);
-      ("{1}", Id_pattern.Unmatched);
-      ("|a", Id_pattern.Unmatched);
-      ("(|a)", Id_pattern.Unmatched);
-      ("a||b", Id_pattern.Unmatched);
-      ("a?+", Id_pattern.Unmatched);
-      ("(a", Id_pattern.Unmatched);
-      ("a)", Id_pattern.Unmatched);
-      ("\\d", Id_pattern.Unmatched);
-      ("a\xff", Id_pattern.Unmatched);
-      ("[a-", Id_pattern.Unmatched);
-      ("[0-", Id_pattern.Unmatched);
-      ("x[A-", Id_pattern.Unmatched);
-      ("[9-0]", Id_pattern.Reversed_range);
-      ("[Z-A]", Id_pattern.Reversed_range);
-      ("x[b-a]", Id_pattern.Reversed_range);
-      ("a{256}", Id_pattern.Large_count);
-      ("a{1,256}", Id_pattern.Large_count);
-      ("a{256,}", Id_pattern.Large_count);
-      ("a{99999999999999999999999}", Id_pattern.Large_count);
-      ("a{2,1}", Id_pattern.Reversed_bounds);
-      ("a{255,0}", Id_pattern.Reversed_bounds);
-      ("((a|b){250}){2}c", Id_pattern.Oversized);
-      ("(a{250,}){4}", Id_pattern.Oversized);
-      ("(((a|b){250}){2}){1,}", Id_pattern.Oversized);
-      ("((a{1,}){250}){2}b", Id_pattern.Oversized);
-      ("(((a|b){250}){2})?c", Id_pattern.Oversized);
-      ("((a?){250}){4}b", Id_pattern.Oversized);
-      ("((a*){250}){4}b", Id_pattern.Oversized);
-      ("((a+){250}){4}b", Id_pattern.Oversized);
-      ("((a{0,0}){250}){4}b", Id_pattern.Oversized);
-      ("(((a|b){250}){2})*c", Id_pattern.Oversized);
-      ("(((a|b){250}){2})+c", Id_pattern.Oversized);
-      ("((a|b){250}){2}c{0,0}", Id_pattern.Oversized);
-      ("b((a{0}|a{0}){255}){4}", Id_pattern.Oversized);
+      ("[" ^ String.make 999 'a' ^ "]", Id_pattern.Stopped Too_long);
+      ("^", Id_pattern.Invalid Unmatched);
+      ("", Id_pattern.Invalid Unmatched);
+      ("a b", Id_pattern.Invalid Unmatched);
+      ("[]", Id_pattern.Invalid Unmatched);
+      ("[^a]", Id_pattern.Invalid Unmatched);
+      ("[a-Z]", Id_pattern.Invalid Unmatched);
+      ("[a-9]", Id_pattern.Invalid Unmatched);
+      ("a{,3}", Id_pattern.Invalid Unmatched);
+      ("a{1,2,3}", Id_pattern.Invalid Unmatched);
+      ("a{ 1}", Id_pattern.Invalid Unmatched);
+      ("{1}", Id_pattern.Invalid Unmatched);
+      ("|a", Id_pattern.Invalid Unmatched);
+      ("(|a)", Id_pattern.Invalid Unmatched);
+      ("a||b", Id_pattern.Invalid Unmatched);
+      ("a?+", Id_pattern.Invalid Unmatched);
+      ("(a", Id_pattern.Invalid Unmatched);
+      ("a)", Id_pattern.Invalid Unmatched);
+      ("\\d", Id_pattern.Invalid Unmatched);
+      ("a\xff", Id_pattern.Invalid Unmatched);
+      ("[a-", Id_pattern.Invalid Unmatched);
+      ("[0-", Id_pattern.Invalid Unmatched);
+      ("x[A-", Id_pattern.Invalid Unmatched);
+      ("[9-0]", Id_pattern.Invalid Reversed_range);
+      ("[Z-A]", Id_pattern.Invalid Reversed_range);
+      ("x[b-a]", Id_pattern.Invalid Reversed_range);
+      ("a{256}", Id_pattern.Stopped Large_count);
+      ("a{1,256}", Id_pattern.Stopped Large_count);
+      ("a{256,}", Id_pattern.Stopped Large_count);
+      ("a{99999999999999999999999}", Id_pattern.Stopped Large_count);
+      ("a{2,1}", Id_pattern.Invalid Reversed_bounds);
+      ("a{255,0}", Id_pattern.Invalid Reversed_bounds);
+      ("((a|b){250}){2}c", Id_pattern.Stopped Oversized);
+      ("(a{250,}){4}", Id_pattern.Stopped Oversized);
+      ("(((a|b){250}){2}){1,}", Id_pattern.Stopped Oversized);
+      ("((a{1,}){250}){2}b", Id_pattern.Stopped Oversized);
+      ("(((a|b){250}){2})?c", Id_pattern.Stopped Oversized);
+      ("((a?){250}){4}b", Id_pattern.Stopped Oversized);
+      ("((a*){250}){4}b", Id_pattern.Stopped Oversized);
+      ("((a+){250}){4}b", Id_pattern.Stopped Oversized);
+      ("((a{0,0}){250}){4}b", Id_pattern.Stopped Oversized);
+      ("(((a|b){250}){2})*c", Id_pattern.Stopped Oversized);
+      ("(((a|b){250}){2})+c", Id_pattern.Stopped Oversized);
+      ("((a|b){250}){2}c{0,0}", Id_pattern.Stopped Oversized);
+      ("b((a{0}|a{0}){255}){4}", Id_pattern.Stopped Oversized);
       ( String.concat "" (List.init 600 (fun _ -> "\xc3\xa9")),
-        Id_pattern.Unmatched );
-      ("a{0}", Id_pattern.Empty_id_fits);
-      ("a?", Id_pattern.Empty_id_fits);
-      ("a{0,}", Id_pattern.Empty_id_fits);
-      ("a{0,3}", Id_pattern.Empty_id_fits);
-      ("(a*)+", Id_pattern.Empty_id_fits);
-      ("a|b*", Id_pattern.Empty_id_fits);
-      ("(a?b?)", Id_pattern.Empty_id_fits);
-      ("a{0}b{0}", Id_pattern.Empty_id_fits);
+        Id_pattern.Invalid Unmatched );
+      ("a{0}", Id_pattern.Invalid Empty_id_fits);
+      ("a?", Id_pattern.Invalid Empty_id_fits);
+      ("a{0,}", Id_pattern.Invalid Empty_id_fits);
+      ("a{0,3}", Id_pattern.Invalid Empty_id_fits);
+      ("(a*)+", Id_pattern.Invalid Empty_id_fits);
+      ("a|b*", Id_pattern.Invalid Empty_id_fits);
+      ("(a?b?)", Id_pattern.Invalid Empty_id_fits);
+      ("a{0}b{0}", Id_pattern.Invalid Empty_id_fits);
     ]
 
 let id_patterns_that_are_valid () =
@@ -286,20 +286,20 @@ let binding_cases () =
              { namespace_name = "a"; error = Id_pattern.Reversed_range }) );
       ( [ ("a", "x{256}") ],
         Some
-          (Binding.Invalid_id_pattern
-             { namespace_name = "a"; error = Id_pattern.Large_count }) );
+          (Binding.Stopped_id_pattern
+             { namespace_name = "a"; limit = Id_pattern.Large_count }) );
       ( [ ("a", "x{2,1}") ],
         Some
           (Binding.Invalid_id_pattern
              { namespace_name = "a"; error = Id_pattern.Reversed_bounds }) );
       ( [ ("a", "((a|b){250}){2}c") ],
         Some
-          (Binding.Invalid_id_pattern
-             { namespace_name = "a"; error = Id_pattern.Oversized }) );
+          (Binding.Stopped_id_pattern
+             { namespace_name = "a"; limit = Id_pattern.Oversized }) );
       ( [ ("a", "[" ^ String.make 999 'x' ^ "]") ],
         Some
-          (Binding.Invalid_id_pattern
-             { namespace_name = "a"; error = Id_pattern.Too_long }) );
+          (Binding.Stopped_id_pattern
+             { namespace_name = "a"; limit = Id_pattern.Too_long }) );
       ( [ ("b", "x"); ("a", "x?") ],
         Some
           (Binding.Invalid_id_pattern
