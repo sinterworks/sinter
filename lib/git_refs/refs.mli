@@ -57,6 +57,10 @@ type limits = {
     is such a file. Names larger than what [max_names_size] leaves give
     [Malformed_table] with {!Reftable.Names_too_large}. *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A file larger than its limit gives [Unread] with the pathname of the file
+   and the failure [Too_large], so the report names the limit and the file at
+   which the read reached it. *)
 type error =
   | Unread of { pathname : string; failure : Sinter_repository_files.failure }
       (** the read of the file at [pathname] failed *)

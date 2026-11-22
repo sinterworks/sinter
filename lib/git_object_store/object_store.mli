@@ -147,6 +147,13 @@ type damage = {
 (** A place that gives nothing, because it is not in its form or does not give
     the object of its id. *)
 
+(* @satisfies text#report-stops-at-limits=v1
+   A size above the limit gives [Too_large] with the pathname of the file, and
+   with the offset of the entry for a packed entry or [None] for a loose
+   object; a file [info/alternates] above its limit gives [Unread] with its
+   pathname and the failure [Too_large]; and more packs than the limit give
+   [Too_many_packs] with the pathname of the folder. So the report names the
+   limit and where the lookup reached it. *)
 type failure =
   | Unread of { pathname : string; failure : Sinter_repository_files.failure }
       (** a read of the file at [pathname] failed with [failure]. [No_file] at
