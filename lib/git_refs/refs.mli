@@ -11,12 +11,15 @@ type storage =
   | Reftable  (** the reftable format *)
 
 type storage_error =
+  | Not_a_version of string option
+      (** this value of [core.repositoryformatversion] is not an integer by
+          {!Sinter_git_config.integer} *)
   | Not_version_1
-      (** the file gives a ref storage format, and the last value of
-          [core.repositoryformatversion] is not [1] *)
+      (** the file gives a ref storage format, and the repository format version
+          that {!Sinter_git_config.format_version} gives is 0, or 2 or more *)
   | Unknown_format of string option
-      (** the last value of [extensions.refStorage] is not one of [files],
-          [files://], [reftable], and [reftable://] *)
+      (** this value of [extensions.refStorage] is not [files] or [reftable],
+          alone or followed by [://] and zero or more bytes *)
   | Payload of string
       (** the last value of [extensions.refStorage] is [files://] or
           [reftable://] followed by this payload, which is not empty *)
@@ -26,9 +29,16 @@ val storage :
   (storage, storage_error) result
 (** [storage settings] is the ref storage format of a git repository whose file
     [config] of the git folder holds the settings [settings], as
-    {!Sinter_git_config.parse} gives them, with no include applied: [Files] when
-    no setting is [extensions.refStorage], and otherwise the format that the
-    last value of [extensions.refStorage] names. *)
+    {!Sinter_git_config.parse} gives them, with no include applied, by the rules
+    of git. First, a value of [core.repositoryformatversion] that is not an
+    integer gives [Not_a_version], and then a value of [extensions.refStorage]
+    that names no format gives [Unknown_format], each for the first such value.
+    Then the format is [Files] when no setting is [extensions.refStorage] or
+    when {!Sinter_git_config.format_version} gives [None]. With the version 0,
+    or 2 or more, the result is [Not_version_1]. With the version 1, or a
+    version below -1, the format is the one that the last value of
+    [extensions.refStorage] names, and a payload there that is not empty gives
+    [Payload]. *)
 
 (** The working tree whose refs are read. *)
 type working_tree =

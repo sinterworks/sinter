@@ -43,6 +43,11 @@ let error_name = function
         (show_value value)
   | Config.Relative_without_file value ->
       "relative without file " ^ show_value value
+  | Config.No_real_path { pathname; path } ->
+      Printf.sprintf "no real path %s %s"
+        (Option.value pathname ~default:"<environment>")
+        path
+  | Config.Not_an_integer _ -> "not an integer"
   | Config.Not_a_boolean _ -> "not a boolean"
   | Config.Include_cycle pathname -> "include cycle " ^ pathname
   | Config.Remote_url_in_conditional_include pathname ->
@@ -76,11 +81,13 @@ let run_with ?limits ?(git_directories = [ git_folder ]) ?branch ?working_tree
   let result =
     match working_tree with
     | None ->
-        Config.of_repository ~limits ~environment ~read ~git_directories ~branch
-          git_folder
+        Config.of_repository ~limits ~environment ~read
+          ~real_path:(fun pathname -> Some pathname)
+          ~git_directories ~branch git_folder
     | Some working_tree_folder ->
-        Config.of_working_tree ~limits ~environment ~read ~git_folder
-          ~git_directories ~branch working_tree_folder
+        Config.of_working_tree ~limits ~environment ~read
+          ~real_path:(fun pathname -> Some pathname)
+          ~git_folder ~git_directories ~branch working_tree_folder
   in
   (result, List.rev !reads)
 

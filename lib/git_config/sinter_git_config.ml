@@ -28,7 +28,7 @@ let digit_value base c =
   in
   if value < base then Some value else None
 
-let integer text =
+let integer_of_text text =
   let length = String.length text in
   let rec skip k =
     if k < length && (text.[k] = ' ' || (text.[k] >= '\t' && text.[k] <= '\r'))
@@ -74,13 +74,28 @@ let integer text =
       else None
   | _ -> None
 
+let integer value = Option.bind value integer_of_text
+
 let boolean = function
   | None -> Some true
   | Some text -> (
       match lower text with
       | "yes" | "on" | "true" | "1" -> Some true
       | "no" | "off" | "false" | "0" | "" -> Some false
-      | _ -> Option.map (fun number -> number <> 0) (integer text))
+      | _ -> Option.map (fun number -> number <> 0) (integer_of_text text))
+
+let format_version settings =
+  let wanted = key ~section:"core" "repositoryformatversion" in
+  List.fold_left
+    (fun found (key, value) ->
+      let* _ = found in
+      if not (equal_key key wanted) then found
+      else
+        match integer value with
+        | Some -1 -> Ok None
+        | Some version -> Ok (Some version)
+        | None -> Error value)
+    (Ok None) settings
 
 type pathname = Pathname of string | Names_no_file
 type pathname_error = No_home | Unread_form | No_value
@@ -299,6 +314,7 @@ let last configuration key =
 
 type file =
   | No_file
+  | Folder
   | Unreadable
   | Content of { content : string; identity : (int * int) option }
 
@@ -308,6 +324,8 @@ type error =
   | Environment of string
   | Unread_pathname of { pathname : string option; value : value }
   | Relative_without_file of value
+  | No_real_path of { pathname : string option; path : string }
+  | Not_an_integer of key
   | Not_a_boolean of key
   | Include_cycle of string
   | Remote_url_in_conditional_include of string
@@ -452,7 +470,7 @@ let rec include_file context ~chain ~inclusion pathname =
   let* file = read_file context pathname in
   match file with
   | No_file -> Ok ()
-  | Unreadable -> Error (Unreadable_file pathname)
+  | Folder | Unreadable -> Error (Unreadable_file pathname)
   | Content { content; identity } ->
       if List.exists (same_file (pathname, identity)) chain then
         Error (Include_cycle pathname)
@@ -529,7 +547,7 @@ let outer_file context pathname =
   else
     let* file = read_file context pathname in
     match file with
-    | No_file | Unreadable -> Ok ()
+    | No_file | Folder | Unreadable -> Ok ()
     | Content { content; identity } ->
         apply_content context ~chain:[] ~inclusion:Plain (pathname, identity)
           content
@@ -667,7 +685,7 @@ let collect ~limits ~environment ~read ~branch ~git_folder ~extra
   let* local_settings =
     match local_file with
     | No_file -> Ok []
-    | Unreadable -> Error (Unreadable_file local)
+    | Folder | Unreadable -> Error (Unreadable_file local)
     | Content { content; identity } -> (
         match parse content with
         | Error { line } -> Error (Syntax { pathname = local; line })
@@ -724,14 +742,14 @@ let build ~limits ~environment ~read ~branch ~git_folder ~extra ~git_directories
          Keys.add key (value :: values table key) table)
        Keys.empty (List.rev settings))
 
-let of_repository ~limits ~environment ~read ~git_directories ~branch git_folder
-    =
+let of_repository ~limits ~environment ~read ~real_path:_ ~git_directories
+    ~branch git_folder =
   build ~limits ~environment ~read ~branch ~git_folder
     ~extra:(fun _ -> Ok [])
     ~git_directories
 
-let of_working_tree ~limits ~environment ~read ~git_folder ~git_directories
-    ~branch working_tree_folder =
+let of_working_tree ~limits ~environment ~read ~real_path:_ ~git_folder
+    ~git_directories ~branch working_tree_folder =
   build ~limits ~environment ~read ~branch ~git_folder
     ~extra:(worktree_config ~working_tree_folder)
     ~git_directories

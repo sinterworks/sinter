@@ -10,6 +10,7 @@ module Config = Sinter_git_config
 type storage = Files | Reftable
 
 type storage_error =
+  | Not_a_version of string option
   | Not_version_1
   | Unknown_format of string option
   | Payload of string

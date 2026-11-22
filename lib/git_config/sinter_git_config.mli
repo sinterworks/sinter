@@ -33,18 +33,23 @@ type value = string option
 (** A value of a setting: [Some bytes], or [None] for a line that names the
     variable with no [=] after it. *)
 
+val integer : value -> int option
+(** [integer value] is the value as an integer, by the rules of git. It is
+    [Some n] when both of these hold: the value is, in order, zero or more of
+    the bytes 0x20 and 0x09 to 0x0D; [+], [-], or neither; [0x] or [0X] and one
+    or more hex digits, or [0] and zero or more of the digits [0] to [7], or a
+    digit [1] to [9] and zero or more digits, as a number in base 16, 8, or 10;
+    and at most one of [k], [m], and [g], in either case, which multiplies the
+    number by 2{^ 10}, 2{^ 20}, or 2{^ 30}; and [n], that number with its sign,
+    is from -2{^ 31} to 2{^ 31}-1. It is [None] for [None] and for any other
+    value. *)
+
 val boolean : value -> bool option
 (** [boolean value] is the value as a boolean, by the rules of git: [Some true]
     for [None] and for [yes], [on], [true], and [1]; [Some false] for [no],
     [off], [false], [0], and the empty byte sequence; the letters in any case.
-    Any other value is an integer when it is, in order: zero or more of the
-    bytes 0x20 and 0x09 to 0x0D; [+], [-], or neither; [0x] or [0X] and one or
-    more hex digits, or [0] and zero or more of the digits [0] to [7], or a
-    digit [1] to [9] and zero or more digits, as a number in base 16, 8, or 10;
-    and at most one of [k], [m], and [g], in either case, which multiplies the
-    number by 2{^ 10}, 2{^ 20}, or 2{^ 30}. Such an integer from -2{^ 31} to
-    2{^ 31}-1 gives [Some true] when it is not 0 and [Some false] when it is 0.
-    It is [None] for any other value. *)
+    Any other value gives [Some true] when it is an integer other than 0 by
+    {!integer}, [Some false] when it is the integer 0, and [None] otherwise. *)
 
 type pathname =
   | Pathname of string  (** the value names the file at this pathname *)
@@ -94,6 +99,16 @@ val parse : string -> ((key * value) list, syntax_error) result
     other byte, a double quote with no end on its line, a byte 0x00, and a [\ ]
     at the end of the content are errors. *)
 
+val format_version : (key * value) list -> (int option, value) result
+(** [format_version settings] is the repository format version that the settings
+    [settings] of the file [config] of a git folder give, as {!parse} gives them
+    with no include applied, by the rules of git. It is [Error value] when a
+    value of the setting [core.repositoryformatversion] is not an integer by
+    {!integer}, with [value] the first such value. Otherwise, it is [Ok None]
+    when no setting is [core.repositoryformatversion], or when the last value of
+    that setting is the integer -1, and [Ok (Some n)] in other cases, with [n]
+    the integer of that last value. *)
+
 (** {1 Configurations} *)
 
 type t
@@ -112,7 +127,10 @@ val last : t -> key -> value option
 (** What a read of a file gives. *)
 type file =
   | No_file  (** no file is at the pathname *)
-  | Unreadable  (** a file is there, and it cannot be read as a regular file *)
+  | Folder  (** a folder is at the pathname *)
+  | Unreadable
+      (** a file that is not a folder is there, and it cannot be read as a
+          regular file *)
   | Content of { content : string; identity : (int * int) option }
       (** the whole content of the regular file there, and, when the system
           gives one, its identity: the number of its device and its file serial
@@ -123,8 +141,9 @@ type error =
       (** the file at [pathname] is not in the syntax of {!parse}, from [line]
       *)
   | Unreadable_file of string
-      (** the file [config] of the git folder, the file [config.worktree], or an
-          included file at this pathname gives [Unreadable] *)
+      (** the file [config] of the git folder or the file [config.worktree] at
+          this pathname gives [Unreadable], or an included file at this pathname
+          gives [Unreadable] or [Folder] *)
   | Environment of string
       (** the environment variable with this name has a value that the page
           git-config does not give a meaning: [GIT_CONFIG_NOSYSTEM] that is not
@@ -141,10 +160,19 @@ type error =
           in the environment when [pathname] is [None] *)
   | Relative_without_file of value
       (** a value of [include.path] or of [includeIf.<condition>.path] that
-          includes a file, or a condition [gitdir:./] or [gitdir/i:./], that is
-          relative to a file comes from the environment, which is no file *)
+          includes a file and is relative to a file comes from the environment,
+          which is no file *)
+  | No_real_path of { pathname : string option; path : string }
+      (** the function [real_path] of {!of_repository} gives [None] for [path],
+          which is the value of [HOME] or the pathname of the file that holds
+          the setting, for a setting [includeIf.<condition>.<name>] in the file
+          at [pathname], or in the environment when [pathname] is [None] *)
+  | Not_an_integer of key
+      (** a value of this setting in the file [config] of the git folder itself,
+          with no include applied, is not an integer by {!integer} *)
   | Not_a_boolean of key
-      (** the last value of this setting is not a boolean by {!boolean} *)
+      (** a value of this setting in the file [config] of the git folder itself,
+          with no include applied, is not a boolean by {!boolean} *)
   | Include_cycle of string
       (** an include, in turn, of the file at this pathname comes from that same
           file or from a file that it includes, in turn. Two files are the same
@@ -182,17 +210,30 @@ val of_repository :
   limits:limits ->
   environment:(string -> string option) ->
   read:(string -> file) ->
+  real_path:(string -> string option) ->
   git_directories:string list ->
   branch:string option ->
   string ->
   (t, error) result
-(** [of_repository ~limits ~environment ~read ~git_directories ~branch
-     git_folder] is the git configuration of the git repository whose git folder
-    is at the pathname [git_folder]. [environment name] is the value of the
-    environment variable [name], and [read pathname] is what the file at
-    [pathname] gives. [branch] is [Some name] when the HEAD of [git_folder]
-    names a branch, with [name] its name after [refs/heads/], and [None]
-    otherwise. The files, in this order:
+(** [of_repository ~limits ~environment ~read ~real_path ~git_directories
+     ~branch git_folder] is the git configuration of the git repository whose
+    git folder is at the pathname [git_folder]. [environment name] is the value
+    of the environment variable [name], and [read pathname] is what the file at
+    [pathname] gives. [real_path pathname] is the real path of the file at
+    [pathname] as git gives it, or [None] when git gives none. The real path is
+    the absolute pathname of that file, relative to the folder in which the
+    program started when [pathname] does not start with [/], with each symbolic
+    link on the way followed, with no name [.] or [..] and no empty name, and
+    with no final [/] other than for the root folder. When the last name of
+    [pathname] has no [/] after it and names no file, the real path is the real
+    path of the folder before that name, with that name after it; a symbolic
+    link whose reference ends in such a name gives a real path in the same way.
+    [real_path] gives [None] when it finds no real path by these rules: for
+    example, when a name before the last name names no file or a file that is
+    not a folder, when the program cannot search a folder on the way, or in a
+    cycle of symbolic links. [branch] is [Some name] when the HEAD of
+    [git_folder] names a branch, with [name] its name after [refs/heads/], and
+    [None] otherwise. The files, in this order:
 
     + the system file: the value of [GIT_CONFIG_SYSTEM], or [/etc/gitconfig]
       when that variable is not set; none when [GIT_CONFIG_NOSYSTEM] is true by
@@ -202,6 +243,10 @@ val of_repository :
       [XDG_CONFIG_HOME] is not set or empty, and then [$HOME/.gitconfig], each
       only when the variables that it needs are set;
     + the file [config] of the git folder;
+    + the file [config.worktree] of the git folder, when both of these hold for
+      the settings of that file [config] itself, with no include applied:
+      {!format_version} gives [Some n] with [n] at most 1, and the last value of
+      [extensions.worktreeConfig] is true by {!boolean};
     + the settings [GIT_CONFIG_KEY_<n>] and [GIT_CONFIG_VALUE_<n>] for each
       [<n>] from 0 to the value of [GIT_CONFIG_COUNT] less 1, in that order. A
       key [GIT_CONFIG_KEY_<n>] splits at its first and its last [.]: the bytes
@@ -212,8 +257,13 @@ val of_repository :
       when there is a subsection.
 
     An empty pathname names no file. A system file or a global file that gives
-    [No_file] or [Unreadable] holds no setting; any other file that gives
-    [No_file] holds no setting. [GIT_CONFIG] has no effect.
+    [No_file], [Folder], or [Unreadable] holds no setting. The file [config] and
+    the file [config.worktree] that give [No_file] or [Folder] hold no setting.
+    An included file that gives [No_file] holds no setting. A value of
+    [core.repositoryformatversion] in the file [config] itself that is not an
+    integer by {!integer} gives [Not_an_integer], and a value of
+    [extensions.worktreeConfig] there that is not a boolean by {!boolean} gives
+    [Not_a_boolean], with any format version. [GIT_CONFIG] has no effect.
 
     A value of [include.path], and of [includeIf.<condition>.path] when the
     condition is met, includes the file that the value names by {!pathname},
@@ -225,16 +275,22 @@ val of_repository :
     - [gitdir:] and a pattern is met when the pattern matches one of the
       pathnames [git_directories], by {!Sinter_wildmatch.matches}, after these
       steps: when the pattern is [~] or starts with [~/], the [~] at its start
-      becomes the value of [HOME]; a [./] at its start becomes the folder of the
-      file that holds it, then [/]; a pattern that then does not start with [/]
-      gets [**/] before it; and a pattern that ends with [/] gets [**] after it.
-      [gitdir/i:] is the same with [~case_fold:true]. A pattern that starts with
-      [~] and then a byte other than [/] keeps its [~]. When [HOME] is not set,
-      a condition [gitdir:] or [gitdir/i:] whose pattern is [~] or starts with
-      [~/] is not met. When the value of [HOME] is empty, each setting
-      [includeIf.<condition>.<name>] with such a condition, for any [<name>] and
-      with a value or with none, gives [Unread_pathname] where the read meets
-      that setting.
+      becomes [real_path] of the value of [HOME]; a [./] at its start becomes
+      the folder of [real_path] of the pathname of the file that holds it, then
+      [/]; a pattern that then does not start with [/] gets [**/] before it; and
+      a pattern that ends with [/] gets [**] after it. [gitdir/i:] is the same
+      with [~case_fold:true]. A pattern that starts with [~] and then a byte
+      other than [/] keeps its [~]. When [HOME] is not set, a condition
+      [gitdir:] or [gitdir/i:] whose pattern is [~] or starts with [~/] is not
+      met. In the environment, a condition [gitdir:] or [gitdir/i:] whose
+      pattern starts with [./] is met. Each setting
+      [includeIf.<condition>.<name>] with a condition [gitdir:] or [gitdir/i:],
+      for any [<name>] and with a value or with none, gives these errors where
+      the read meets that setting: when the pattern is [~] or starts with [~/],
+      [Unread_pathname] when the value of [HOME] is empty, and [No_real_path]
+      when [real_path] gives [None] for that value; when the pattern starts with
+      [./] in a file, [No_real_path] when [real_path] gives [None] for the
+      pathname of that file.
     - [hasconfig:remote.*.url:] and a pattern is met when the pattern matches a
       value of a setting [remote.<name>.url] of the configuration in which no
       such condition is met.
@@ -266,32 +322,35 @@ val of_repository :
     met condition includes, in turn, gives [Remote_url_in_conditional_include]
     there, with the pathname of the first such file.
 
-    The configuration of a git repository has no settings of a file
-    [config.worktree]. The result is the first error that the files give, in
-    their order. Past one of [limits], the result is [Limit_exceeded], and no
-    part of the configuration. It raises [Invalid_argument] when a limit is
-    negative. *)
+    The result is the first error that the read meets, in the order of the
+    files. [Not_an_integer] and [Not_a_boolean] come after a syntax error of the
+    file [config] and before the errors of its settings and of the files that it
+    includes. [Not_an_integer] comes before [Not_a_boolean]. Inside one file, a
+    syntax error of the file by {!parse} comes before the errors of its settings
+    and of the files that it includes. The errors of its settings come in the
+    order of their lines, and the errors of a file that a setting includes come
+    at the place of that setting. Past one of [limits], the result is
+    [Limit_exceeded], and no part of the configuration. It raises
+    [Invalid_argument] when a limit is negative. *)
 
 val of_working_tree :
   limits:limits ->
   environment:(string -> string option) ->
   read:(string -> file) ->
+  real_path:(string -> string option) ->
   git_folder:string ->
   git_directories:string list ->
   branch:string option ->
   string ->
   (t, error) result
-(** [of_working_tree ~limits ~environment ~read ~git_folder ~git_directories
-     ~branch working_tree_folder] is the git configuration of the working tree
-    whose folder is at the pathname [working_tree_folder], of the git repository
-    whose git folder is at [git_folder], as {!of_repository} gives it, with one
-    more rule. The file [config.worktree] of [working_tree_folder] comes after
-    the file [config] of the git folder, when the last value of
-    [extensions.worktreeConfig] in that file [config] itself, with no include
-    applied, is true by {!boolean}; a value that is not a boolean gives
-    [Not_a_boolean]. In this function, [branch] is [Some name] when the HEAD of
-    the working tree names a branch, with [name] its name after [refs/heads/],
-    and [None] otherwise. *)
+(** [of_working_tree ~limits ~environment ~read ~real_path ~git_folder
+     ~git_directories ~branch working_tree_folder] is the git configuration of
+    the working tree whose folder is at the pathname [working_tree_folder], of
+    the git repository whose git folder is at [git_folder], as {!of_repository}
+    gives it, with the file [config.worktree] of [working_tree_folder] in place
+    of the file [config.worktree] of the git folder. In this function, [branch]
+    is [Some name] when the HEAD of the working tree names a branch, with [name]
+    its name after [refs/heads/], and [None] otherwise. *)
 
 (** {1 The upstream of a branch} *)
 

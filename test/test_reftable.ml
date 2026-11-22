@@ -67,6 +67,8 @@ let show_list_error = function
   | Reftable.Repeated_table_name s -> Printf.sprintf "repeated table name %S" s
 
 let show_storage_error = function
+  | Refs.Not_a_version None -> "not a version none"
+  | Refs.Not_a_version (Some s) -> Printf.sprintf "not a version %S" s
   | Refs.Not_version_1 -> "not version 1"
   | Refs.Unknown_format None -> "unknown format none"
   | Refs.Unknown_format (Some s) -> Printf.sprintf "unknown format %S" s
@@ -2737,6 +2739,7 @@ let upstreams_on (vector : Vectors.vector) =
           if Sys.file_exists path then
             Config.Content { content = read_file path; identity = None }
           else Config.No_file)
+        ~real_path:(fun pathname -> Some pathname)
         ~git_directories:[ root ] ~branch:None root
     with
     | Ok c -> c
