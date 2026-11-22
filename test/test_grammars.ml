@@ -1167,6 +1167,30 @@ let own_stop_cases =
         refused_by "own bytes and alignment of 2^32 - 1" traps
           (G.grammar
              { G.base with memory_size = 0xFFFF_FFFE; memory_alignment = 0 }));
+    (* @verifies conformance#report-stops-at-limits=v1
+       The allocation functions of the core take at most 4,294,967,295 bytes.
+       When the number of own bytes plus the room for their alignment is
+       4,294,967,295, the decision passes that number to the allocation
+       function and reports no stop at the memory limit. Because the memory
+       cannot grow to hold 4,294,967,295 bytes, the allocation function traps,
+       and the decision gives Link_failed (Trap _). *)
+    case
+      "own bytes with alignment room of exactly 2^32 - 1 trap and do not stop \
+       at memory" (fun () ->
+        let big = limits ~fuel:max_int ~memory:max_int ~table:max_int in
+        List.iter
+          (fun (what, spec) ->
+            List.iter
+              (fun limits -> refused_by what ?limits traps (G.grammar spec))
+              [ None; Some big ])
+          [
+            ( "memory size 2^32 - 1 with alignment 0",
+              { G.base with memory_size = 0xFFFF_FFFF; memory_alignment = 0 } );
+            ( "memory size 2^32 - 2 with alignment 1",
+              { G.base with memory_size = 0xFFFF_FFFE; memory_alignment = 1 } );
+            ( "memory size 0 with alignment 32",
+              { G.base with memory_size = 0; memory_alignment = 32 } );
+          ]);
   ]
 
 let small_limits = limits ~fuel:50_000_000 ~memory:(8 lsl 20) ~table:100_000
