@@ -278,6 +278,29 @@ let refuses_a_size_that_does_not_fit_an_int () =
     (Decode.adapter_error (with_size (Int64.of_int max_int))
     = B.Adapter.Memory_limit max_int)
 
+(* @cites rust-bridge
+   Each decoder in Sinter_bridge.Decode takes one whole buffer of its kind and
+   raises Error for any other bytes. A failure buffer that ends inside the
+   64-bit size field of Memory_limit (code 11), Alloc (code 12), or
+   Response_outside_memory (code 13) is not one whole buffer of a failure.
+   Decode.adapter_error raises Error for each of these short buffers. *)
+let refuses_a_failure_cut_inside_a_size () =
+  let cases =
+    [
+      ("Memory_limit cut before size", buffer ~kind:5 [ 11 ]);
+      ("Memory_limit cut inside size", buffer ~kind:5 [ 11; 0 ] ^ "\000\000\000");
+      ("Alloc cut inside memory_size", buffer ~kind:5 [ 12; 0; 0; 0; 0 ]);
+      ( "Response_outside_memory cut inside memory_size",
+        buffer ~kind:5 [ 13; 0; 0; 0 ] );
+    ]
+  in
+  List.iter
+    (fun (label, b) ->
+      Alcotest.(check bool)
+        label true
+        (raises_error (fun () -> Decode.adapter_error b)))
+    cases
+
 let names_a_failure_of_another_family () =
   Alcotest.(check string)
     "the message says the failure does not belong"
@@ -323,6 +346,8 @@ let tests =
       refuses_a_missing_export_with_two_names;
     Alcotest.test_case "refuses a size that does not fit an int" `Quick
       refuses_a_size_that_does_not_fit_an_int;
+    Alcotest.test_case "refuses a failure cut inside a size" `Quick
+      refuses_a_failure_cut_inside_a_size;
     Alcotest.test_case "names a failure of another family" `Quick
       names_a_failure_of_another_family;
     Alcotest.test_case "names the count of a report buffer with two records"
