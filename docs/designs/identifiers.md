@@ -3,6 +3,7 @@
 
 # Identifiers
 @design identifiers=v1
+@cites conformance=v1
 @cites text=v1
 @cites rfc/5234
 @cites rfc/7405
@@ -15,23 +16,26 @@ A tag line starts, after any spaces and tabs, with a tag word such as
 yields a name and a revision. Only a declaration with the tag word
 `@term` can leave out the revision. A citation, such as
 `@cites catalog#size-limit=v2`, is a tag line that yields what it cites:
-a name and a revision, a name and a vector selection, or an external id.
-A citation can also cite several things in a target list or a scoped
-list, such as `@cites {#notation=v1, gh/42}` and
+a name and a revision, a name and a vector selection, an external id, or
+a content id. A citation can also cite several things in a target list or
+a scoped list, such as `@cites {#notation=v1, gh/42}` and
 `@cites catalog#{size=v1, descriptor=v2}`. A vector selection, such as
 `[offsets]` in `@verifies catalog#descriptor[offsets]`, can follow the
 name in place of a revision in a single target of `@cites` or
 `@verifies`. An inline citation is a link in the markdown document of a
-text. An inline citation cites in the same way.
+text. An inline citation cites a name and a revision, an external id, or
+a content id.
 
 The productions use ABNF (RFC 5234), with the case-sensitive strings of
 RFC 7405.
 
+From Conformance (`conformance`), the design takes designs,
+requirements, conforming programs, inputs, and the general requirements
+that bind every conforming program. The design narrows what an input is.
 From Text and notation (`text`), the design takes the basics of
 characters, texts, runs, lines, numerals, and productions; sequences and
 algorithms; canonical vector lines for the vector file of the design;
-and what a conforming program and a result are. The design narrows what
-an input is. From CommonMark 0.31.2, the design takes the links and
+and what a result is. From CommonMark 0.31.2, the design takes the links and
 images of CommonMark 0.31.2, the link destinations of those links and
 images, and the block and inline elements that hold those links and
 images. From RFC 8259, the design takes JSON texts, with their objects,
@@ -43,7 +47,7 @@ JSON text.
 
 | word or phrase | meaning |
 |---|---|
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
 | [production](sinter:text#production=v1) | a rule of ABNF, such as `slug = segment *( "/" segment )`, which gives the texts that its rule name, here `slug`, matches |
 | [character](sinter:text#character=v1) | a character, whose code point is a Unicode scalar value: a code point that is not from U+D800 to U+DFFF |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
@@ -59,7 +63,7 @@ JSON text.
 | [tag word](sinter:#tag-word=v1) | the `@` that starts a tag line after its spaces and tabs, with the longest run of ASCII letters, ASCII digits, and `-` right after that `@`, such as `@req` |
 | [Sinter tag word](sinter:#sinter-tag-word=v1) | one of the fifteen tag words of Sinter, such as `@req` and `@cites` |
 | [declaration](sinter:#declaration=v1) | a tag line whose tag word is `@atom`, `@decision`, `@design`, `@req`, `@schema`, `@spec`, or `@term`, such as `@req size-limit=v2`; the schema `declaration-line` gives its [form](sinter:#declaration-line=v1) |
-| [citation](sinter:#citation=v1) | a tag line whose tag word is `@cites`, `@refines`, `@satisfies`, `@supersedes`, or `@verifies`, such as `@cites catalog#size-limit=v2` |
+| [citation](sinter:#citation=v1) | a tag line whose tag word is `@cites`, `@refines`, `@satisfies`, `@supersedes`, or `@verifies`, such as `@cites catalog#size-limit=v2`; the schema `citation-line` gives its [form](sinter:#citation-line=v1) |
 | [status tag](sinter:#status-tag=v1) | a tag line with `@deprecated`, which has no target; the schema `status-line` gives its [form](sinter:#status-line=v1) |
 | [directive](sinter:#directive=v1) | a tag line with `@ack` or `@extern`, each of which has a form of its own |
 | [`@extern` line](sinter:#directive=v1) | a directive with the tag word `@extern`, such as `@extern spec:descriptor`; the schema `extern-line` gives its [form](sinter:#extern-line=v1) |
@@ -82,19 +86,20 @@ JSON text.
 | [part name](sinter:#part-name=v1) | a segment, such as `descriptor` in `catalog#descriptor` |
 | [full name](sinter:#full-name=v1) | a slug, `#`, and a part name, such as `catalog#descriptor` |
 | [name](sinter:#name=v1) | a slug, a full name, or `#` and a part name |
-| [kind word](sinter:#kind-word=v1) | one of seven words, such as `req`, that can stand with a `:` at the start of a target, as in `req:catalog#size-limit=v2` |
+| [kind word](sinter:#kind-word=v1) | one of seven words, such as `req`, that can stand with a `:` at the start of a target that holds a name, a part name, or an external id, as in `req:catalog#size-limit=v2` |
+| [object kind word](sinter:#content-id=v1) | one of twenty-five words, such as `req`, `task`, or `task-def`, that stands before `:` in a content id |
+| [content id](sinter:#content-id=v1) | an object kind word, `:`, and 32 hex digits, such as `req:0123456789abcdef0123456789abcdef` |
 | [label](sinter:#label=v1) | a text of printable ASCII characters other than `/`, `#`, `@`, `*`, `=`, `,`, `{`, `}`, `[`, and `]`, such as `v2` |
-| [revision](sinter:#revision=v1) | a label, or `*`, which stands for any label; in a target, a revision follows a name and `=`, as `v2` in `docs#size=v2` and `v3` in `docs=v3#*` |
-| [every-part target](sinter:#citation-line=v1) | a slug, `=`, a label, and `#*`, such as `docs=v3#*` |
+| [revision](sinter:#revision=v1) | a label, or `*`, which stands for any label; in a target, a revision follows a name and `=`, as `v2` in `docs#size=v2` |
 | [vector selection](sinter:#vector-selection=v1) | `[`, a group name, and `]`, or `[*]`; a vector selection can follow the name in place of a revision in a single target of `@cites` or `@verifies`, such as `[offsets]` in `catalog#descriptor[offsets]`; a vector selection gives a group name or every vector |
 | [group name](sinter:#vector-selection=v1) | the name in a vector selection: lower-case ASCII letters and ASCII digits that start with a letter, with one `-` at most between two of them, such as `offsets` in `[offsets]` |
 | [scoped list](sinter:#citation-entry=v1) | an optional kind word and `:`, an optional slug, `#{`, part names, each with a revision or a vector selection, separated by `,`, and `}`, such as `catalog#{size=v1, descriptor=v2}`, which stands for `catalog#size=v1` and `catalog#descriptor=v2` |
 | target list | `{`, one or more single targets or scoped lists separated by `,`, and `}`: a target of a citation, such as `{#notation=v1, gh/42}` |
 | [single target](sinter:#citation-entry=v1) | a target, or an element of a target list, that is neither a target list nor a scoped list, such as `catalog#size=v1` |
 | [citation entry](sinter:#citation-entry=v1) | a single target of a citation, or a single target for which a part of a scoped list stands |
-| [entry name](sinter:#citation-entry=v1) | the name in a citation entry: its slug, its full name, its `#` and part name, or its external id with its `#` and part name; for an every-part target, its slug |
+| [entry name](sinter:#citation-entry=v1) | the name in a citation entry: its slug, its full name, its `#` and part name, its external id with its `#` and part name, or its content id |
 | [canonical identifier](sinter:#canonical-id=v1) | a kind word, `:`, and a slug, a full name, or an external id with an optional `#` and part name, such as `req:catalog#size-limit`; or, with no kind word, the slug, the full name, or the external id alone, such as `gh/42` |
-| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that gives one name to a citation entry or to the target of an inline citation, with a slug or no slug and a kind word or no kind word, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term`; a canonical form of a citation entry holds no revision |
+| [canonical form of a citation entry](sinter:#canonical-entry=v1) | the text that gives one name to a citation entry or to the target of an inline citation, with a slug or no slug and a kind word or no kind word, such as `term:docs#notation` for `#notation=v1` with the slug `docs` and the kind word `term`; for a content id, that content id itself; a canonical form of a citation entry holds no revision |
 | parameter | a word, such as `external-namespaces`, for which a conforming program takes a binding |
 | [`external-namespaces`](sinter:#external-namespaces=v1) | the parameter whose bindings give the external namespaces; the schema `external-namespaces` gives the form of a binding |
 | [binding](sinter:#external-namespaces=v1) | a finite set of pairs of a namespace name and an id pattern, which a conforming program takes for the parameter `external-namespaces` |
@@ -107,7 +112,7 @@ JSON text.
 | [valid id pattern](sinter:#valid-id-pattern=v1) | an id pattern that matches `pattern`, uses no reversed range and no reversed quantifier bounds, and that the empty id does not fit |
 | [fit](sinter:#fit=v1) | an id fits an id pattern when the id has the form that the id pattern gives, such as `42` for `[1-9][0-9]*` |
 | [head](sinter:#external-target=v1) | the text of a target or a citation entry without its kind word and the `:` after that kind word, up to its first `#`, `=`, or `[` |
-| [external target](sinter:#external-target=v1) | the target of a declaration or of an inline citation, or a citation entry, whose head starts with the namespace name of an external namespace of its tag line or its inline citation, followed by `/` or by the end of the head |
+| [external target](sinter:#external-target=v1) | the target of a declaration or of an inline citation, or a citation entry, that does not match `content-id` and whose head starts with the namespace name of an external namespace of its tag line or its inline citation, followed by `/` or by the end of the head |
 | [plain string content](sinter:#plain-string-content=v1) | the text that a link text shows without its markup, such as `the limit` for `*the* limit` |
 | [blank character](sinter:#blank-character=v1) | a Unicode whitespace character of CommonMark 0.31.2, such as a space, a tab, a line feed, or U+00A0, the no-break space; or one of U+200B, U+200C, U+200D, U+2060, and U+FEFF, such as U+200B, the zero width space |
 | [input](sinter:#input=v1) | a line of a text that a conforming program reads, other than a continuation line, because a citation and its continuation lines are one input; a link or an image of the markdown document of such a text; an id pattern that the program takes on its own or in a pair of an id pattern and an id; a binding of `external-namespaces` that the program takes or under which it reads; a pair of an id pattern and an id that the program takes, when the program accepts the id pattern of that pair; the id patterns of a binding belong to the binding and are not inputs of their own |
@@ -163,7 +168,7 @@ target list or a scoped list, or at the end of the line. The target of a
 citation can also be a target list or a scoped list. A target list or a
 scoped list can hold spaces, tabs, and line feeds of the text of the
 citation between the braces of that list. A target list or a scoped list
-can continue on the lines after the line of the citation (section 2.7).
+can continue on the lines after the line of the citation (section 2.8).
 The inline description is the text after the target, without the spaces
 and tabs at the start of that text. A status tag has no target. The
 inline description of a status tag is the text after the tag word of
@@ -200,15 +205,18 @@ A conforming program gives each name with its case unchanged, so
 ### 2.3 Kind words
 
 The seven kind words are `atom`, `decision`, `design`, `req`, `schema`,
-`spec`, and `term`. A kind word stands at the start of a target, with a
-`:` after that kind word: `req:catalog#size-limit=v2`, `spec:rfc/8259`.
+`spec`, and `term`. A kind word stands at the start of a target that
+holds a name, a part name, or an external id, with a `:` after that
+kind word: `req:catalog#size-limit=v2`, `spec:rfc/8259`.
 
 A single target of a citation, a scoped list, and the target of an
 inline citation can start with a kind word. The target of `@extern`
 always starts with a kind word. The target of a declaration holds no
-kind word. An every-part target holds no kind word. A name holds no `:`.
-So the target `plan:upkeep=*` is invalid: `plan` is not a kind word, and
-`plan:upkeep` is not a slug.
+kind word. A name holds no `:`. So the target `plan:upkeep=*` is
+invalid: `plan` is not a kind word, `plan:upkeep` is not a slug, and
+`upkeep=*` is not 32 hex digits. A content id (section 2.7) starts with
+one of twenty-five object kind words. Seven of those words are the same
+texts as the seven kind words.
 
 ### 2.4 Revisions
 
@@ -217,7 +225,7 @@ characters other than `/`, `#`, `@`, `*`, `=`, `,`, `{`, `}`, `[`, and
 `]`, such as `v2`, `2026-11`, `v1.2.0`, or `rc1`. `*` stands for any
 label.
 
-A revision follows a name after `=`. A single target (section 2.7)
+A revision follows a name after `=`. A single target (section 2.8)
 carries one revision at most.
 
 | target | name | revision |
@@ -231,33 +239,28 @@ carries one revision at most.
 
 Each single target of a declaration or a citation, and the target of an
 inline citation, carries a revision, except an external target, a target
-with a vector selection (section 2.6), and the target of `@term`. The
-target of `@term` carries a revision or none, so `@term segment=v1` and
-`@term invoice` are both valid. The revision of a declaration is a
-label. The revision of a single target of `@cites`, and of the target of
-an inline citation, is a label or `*`. The revision of a single target
-of a citation whose tag word is `@refines`, `@satisfies`, `@supersedes`,
-or `@verifies` is a label. The target of `@extern` carries no revision.
-An `@ack` line carries no revision.
+with a vector selection (section 2.6), a content id (section 2.7), and
+the target of `@term`. The target of `@term` carries a revision or none,
+so `@term segment=v1` and `@term invoice` are both valid. The revision
+of a declaration is a label. The revision of a single target of
+`@cites`, and of the target of an inline citation, is a label or `*`.
+The revision of a single target of a citation whose tag word is
+`@refines`, `@satisfies`, `@supersedes`, or `@verifies` is a label. The
+target of `@extern` carries no revision. An `@ack` line carries no
+revision.
 
 A revision has no default. So a declaration other than `@term`, or a
 citation, is invalid when it has a single target that is not external,
-has no vector selection, and carries no revision. An inline citation
-whose target is not external and carries no revision is invalid too. For
-example, `@cites billing/auth` and `@design billing/auth` are invalid:
-neither target carries a revision.
+is not a content id, has no vector selection, and carries no revision.
+An inline citation whose target is not external, is not a content id,
+and carries no revision is invalid too. For example,
+`@cites billing/auth` and `@design billing/auth` are invalid: neither
+target carries a revision.
 
 The target ends at the first space or tab outside the braces of a target
 list or a scoped list, so in `@cites docs=v1; and more` the label is
 `v1;`. A label holds no `=`, `,`, `{`, `}`, `[`, or `]`, so
 `@cites docs=v=1` and `@cites docs=v1, and more` are invalid.
-
-An every-part target is a slug, `=`, a label, and `#*`, such as
-`docs=v3#*`. Only a single target of `@supersedes` can be an every-part
-target. The revision of an every-part target follows the slug. That
-revision is a label. So `@supersedes docs#*=v3` and
-`@supersedes docs=*#*` are invalid. An every-part target holds no kind
-word, so `@supersedes design:docs=v3#*` is invalid.
 
 ### 2.5 External ids
 
@@ -265,19 +268,21 @@ The parameter `external-namespaces` (section 3) gives the external
 namespaces. Each external namespace has a namespace name, such as `gh`,
 and an id pattern. An external id is a namespace name, `/`, and an id,
 such as `gh/42`. The id of an external id is a text of printable ASCII
-characters other than `#`, `/`, `=`, `@`, `,`, `{`, `}`, `[`, and `]`.
+characters other than `#`, `/`, `=`, `@`, `,`, `{`, `}`, `[`, `]`, `\`,
+and `^`.
 The id of an external id fits the id pattern of the external namespace.
 An external id allows `#` and a part name after it, as in
 `rfc/8259#section-6`. An external id carries no revision.
 
-One rule decides whether a single target (section 2.7) or a citation
+One rule decides whether a single target (section 2.8) or a citation
 entry holds an external id. The head of a single target or a citation
 entry is its text after its kind word and the `:` after the kind word,
 and before its first `#`, `=`, or `[`. When the head starts with a
-namespace name, followed by `/` or by the end of the head, the single
-target or the citation entry is an external target. A conforming program
-interprets an external target only as an external id, with an optional
-`#` and part name after that external id. A conforming program
+namespace name, followed by `/` or by the end of the head, and the
+single target or the citation entry does not match `content-id`, that
+single target or citation entry is an external target. A conforming
+program interprets an external target only as an external id, with an
+optional `#` and part name after that external id. A conforming program
 interprets no other single target and no other citation entry as an
 external id. The target of `@extern` is never an external target, so
 `@extern spec:gh` is valid under a binding with the external namespace
@@ -325,7 +330,37 @@ and `@cites gh/42[offsets]` are invalid. A name, a label, and an id hold
 no `[` and no `]`, so `@cites catalog#descriptor=v1[offsets]` is
 invalid.
 
-### 2.7 Target lists and scoped lists
+### 2.7 Content ids
+
+A content id is an object kind word, `:`, and 32 hex digits, such as
+`req:0123456789abcdef0123456789abcdef` or
+`task-def:0123456789abcdef0123456789abcdef`. The term `content-id` gives
+the twenty-five object kind words. Upper-case letters are not hex
+digits, so `req:0123456789ABCDEF0123456789ABCDEF` is not a content id.
+
+A content id can stand as a single target of any citation (`@cites`,
+`@verifies`, `@refines`, `@satisfies`, or `@supersedes`) and as the
+target of an inline citation, such as
+`@cites task:0123456789abcdef0123456789abcdef` and
+`[the task](sinter:task:0123456789abcdef0123456789abcdef)`. A content id
+can also stand as an element of a target list, such as
+`@cites {req:0123456789abcdef0123456789abcdef, #notation=v1}`. A content
+id carries no extra kind word before it, no `#` and part name, no
+revision, and no vector selection. A declaration, an `@extern` line,
+and a scoped list hold no content id.
+
+Seven object kind words, `atom`, `decision`, `design`, `req`, `schema`,
+`spec`, and `term`, are the same texts as the seven kind words, and 32
+hex digits are a segment. So a kind word, `:`, and 32 hex digits can
+also start a target that is not a content id. For example,
+`@cites req:0123456789abcdef0123456789abcdef=v1` is valid: its target is
+the kind word `req` and the slug `0123456789abcdef0123456789abcdef`,
+with the revision `v1`. In the same way,
+`@extern req:0123456789abcdef0123456789abcdef` is valid: its target is
+the kind word `req` and the part name
+`0123456789abcdef0123456789abcdef`.
+
+### 2.8 Target lists and scoped lists
 
 A citation can cite several things on one line. Its target can be a
 target list, a scoped list, or a target list that holds scoped lists.
@@ -334,7 +369,7 @@ A target list is `{`, one or more single targets or scoped lists
 separated by `,`, and `}`, such as `{#notation=v1, gh/42}`. A single
 target is a target, or an element of a target list, that is neither a
 target list nor a scoped list. A single target has one of the forms of
-sections 2.1 to 2.6.
+sections 2.1 to 2.7.
 
 A scoped list is an optional kind word and `:`, an optional slug, `#{`,
 one or more parts separated by `,`, and `}`, such as
@@ -408,17 +443,19 @@ target of the tag word of its citation:
   under a binding with the external namespace `gh`,
   `@cites gh#{size=v1}` is invalid: it stands for `gh#size=v1`, whose
   head is `gh`.
-- Only a single target of `@supersedes` can be an every-part target. A
-  scoped list stands for no every-part target.
+- A citation entry that is a content id carries no revision, no vector
+  selection, and no extra kind word.
 - Only a citation entry of `@cites` or `@verifies` can hold a vector
   selection.
 
 The entry name of a citation entry is its slug, its full name, its `#`
-and part name, or its external id with its `#` and part name. The entry
-name of an every-part target is its slug. A citation is invalid when two
-citation entries have the same entry name, and either neither of them
-has a vector selection or both have the same vector selection. Their
-kind words and their revisions have no effect on this rule. So
+and part name, its external id with its `#` and part name, or its
+content id. A citation is invalid when two citation entries have the
+same entry name, and either neither of them has a vector selection or
+both have the same vector selection. For a name or an external id, the
+kind word and the revision have no effect on this rule. For a content
+id, the object kind word is part of the content id, so two content ids
+with different object kind words have different entry names. So
 `@cites {docs=v1, docs#size=v2}`,
 `@cites {identifiers#{segments=v1, notation=v1}, gh/42}`, and
 `@cites {catalog#descriptor[offsets], catalog#descriptor[utf-8]}` are
@@ -439,7 +476,7 @@ For a valid citation, no list of values holds a value of another
 citation entry. For a valid citation, a conforming program gives the tag
 word and the inline description of the line once.
 
-### 2.8 The directives `@extern` and `@ack`
+### 2.9 The directives `@extern` and `@ack`
 
 The target of `@extern` is a kind word, `:`, and a part name, such as
 `spec:descriptor`. The target of `@extern` holds no `#`, so no slug
@@ -454,14 +491,15 @@ runs:
   `9` and `a` to `f`.
 - The text between the first run and the last run, without the spaces
   and tabs at its two ends, is the **subject**. The subject can be
-  empty. The subject can hold any character, spaces and `@` included.
+  empty. Apart from a line feed, the subject can hold any character,
+  spaces and `@` included.
 
 Spaces and tabs can follow the hash prefix. Nothing else can follow the
 hash prefix. Example: in `@ack retired docs#size=v2 3f2a9c1d`, the slug
 is `retired`, the subject is `docs#size=v2`, and the hash prefix is
 `3f2a9c1d`.
 
-### 2.9 Inline citations
+### 2.10 Inline citations
 
 An inline citation is a link whose destination starts with the seven
 characters `sinter:`. A link is an inline link, a reference link, or an
@@ -479,12 +517,13 @@ characters and not `#`. As a result,
 `[x](sinter:catalog%23size-limit=v2)` is invalid.
 
 The target of an inline citation is its destination after `sinter:`. The
-target is an optional kind word and `:`, and then either a name, `=`,
-and a revision, or an external id with an optional `#` and part name. As
-in the target of `@cites`, the revision is a label or `*`. As in the
-target of `@cites`, an external id carries no revision. An inline
-citation allows no vector selection, so
-`[x](sinter:catalog#descriptor[offsets])` is invalid. So
+target has one of three forms: an optional kind word and `:`, then a
+name, `=`, and a revision; an optional kind word and `:`, then an
+external id with an optional `#` and part name; or a content id. As in
+the target of `@cites`, the revision is a label
+or `*`. As in the target of `@cites`, an external id and a content id
+each carry no revision. An inline citation allows no vector selection,
+so `[x](sinter:catalog#descriptor[offsets])` is invalid. So
 `[auth](sinter:billing/auth=v3)` cites the slug `billing/auth` with the
 revision `v3`, and `[auth](sinter:billing/auth)` is invalid. The rule of
 external targets (section 2.5) applies as it applies in a tag line. So
@@ -530,8 +569,6 @@ their markup, in their order and joined together:
 - A code span of CommonMark 0.31.2 gives its content.
 - Emphasis and strong emphasis give the plain string content of what
   they hold, so `*the* limit` gives `the limit`.
-- An inline link and a reference link give the plain string content of
-  their link text.
 - An image gives the plain string content of its description.
 - An autolink gives its text between `<` and `>`, with no backslash
   escape, entity reference, or numeric character reference replaced.
@@ -545,7 +582,7 @@ So `[](sinter:catalog#size-limit=v2)`, `[ ](sinter:catalog#size-limit=v2)`,
 `[**](sinter:catalog#size-limit=v2)` is valid, because `**` that opens no
 emphasis is text.
 
-### 2.10 Id patterns
+### 2.11 Id patterns
 
 An id pattern is a small regular expression. An id fits an id pattern
 when the whole id, and not only a run of it, has the form that the id
@@ -571,16 +608,14 @@ character class can hold characters that a literal leaves out, such as
 `.` and `+`: `[.]`, `[+]`.
 
 This condition also applies to an id pattern: the empty id does not fit
-the id pattern. So `[0-9]*` is invalid. The requirement
-`validate-id-patterns` lets a program give the result "invalid" for an
-id pattern that goes beyond limits of its own.
+the id pattern. So `[0-9]*` is invalid.
 
 | id pattern | ids that fit it |
 |---|---|
 | `[1-9][0-9]*` | the numbers of GitHub issues and pull requests, such as `42` |
 | `[A-Z]+-[1-9][0-9]*` | Jira keys whose project key holds only letters, such as `PROJ-1` |
 
-### 2.11 Inputs, results, and values
+### 2.12 Inputs, results, and values
 
 The inputs of a conforming program are: the lines of the texts that the
 program reads; the links and the images of the markdown document of each
@@ -610,18 +645,18 @@ For a tag line, the program gives the tag word. For a valid declaration,
 citation, status tag, directive, or inline citation, the program also
 gives the values that the input holds, such as the kind word, the slug,
 the custom namespace, the part name, the group name, the namespace name
-and the id, the revision, the inline description, the subject and the
-hash prefix, and the link text. For a citation, the program gives a
-separate list of values for each citation entry, in the order of the
-citation entries. For a citation, no list holds a value of another
-citation entry. The program gives each value together with its value
-name, such as "the slug". For each other input, the program gives no
-value other than the tag word of a tag line. For a tag line, each value
-that is a text is the text of a run of the text of the tag line. Each
-value of the target of an inline citation is the text of a run of the
-destination. The link text is the text that section 2.9 describes.
+and the id, the content id, the revision, the inline description, the
+subject and the hash prefix, and the link text. For a citation, the
+program gives a separate list of values for each citation entry, in the
+order of the citation entries. For a citation, no list holds a value of
+another citation entry. The program gives each value together with its
+value name, such as "the slug". For each other input, the program gives
+no value other than the tag word of a tag line. For a tag line, each
+value that is a text is the text of a run of the text of the tag line.
+Each value of the target of an inline citation is the text of a run of
+the destination. The link text is the text that section 2.10 describes.
 
-### 2.12 Canonical forms
+### 2.13 Canonical forms
 
 Several texts can name the same thing. A canonical form writes it in one
 way. The canonical identifier of a kind word and a name is the kind
@@ -640,8 +675,9 @@ canonical form of `#notation=v1` with no slug and the kind word `req` is
 The kind word of the canonical form is the kind word that the program
 takes, and not the kind word of the citation entry. The canonical form
 holds no revision. The canonical form keeps the vector selection of the
-citation entry. The canonical form of an every-part target ends with
-`#*`. Under a binding with the external namespace `gh`:
+citation entry. The canonical form of a content id is that content id
+itself, and the slug and the kind word that the program takes have no
+effect on it. Under a binding with the external namespace `gh`:
 
 | citation entry | slug | kind word | canonical form |
 |---|---|---|---|
@@ -651,13 +687,14 @@ citation entry. The canonical form of an every-part target ends with
 | `req:#notation=v1` | none | none | `#notation` |
 | `#notation=v1` | none | `req` | `req:#notation` |
 | `docs#descriptor[offsets]` | none | `spec` | `spec:docs#descriptor[offsets]` |
-| `docs=v3#*` | none | `design` | `design:docs#*` |
 | `gh/42` | `docs` | none | `gh/42` |
+| `task:0123456789abcdef0123456789abcdef` | `docs` | `req` | `task:0123456789abcdef0123456789abcdef` |
 
 The target of a valid inline citation has a canonical form in the same
-way, from the name or the external id of its destination. So the target
-of `[the notation](sinter:#notation=v1)`, with the slug `docs` and the
-kind word `term`, gives `term:docs#notation`.
+way, from the name, the external id, or the content id of its
+destination. So the target of `[the notation](sinter:#notation=v1)`,
+with the slug `docs` and the kind word `term`, gives
+`term:docs#notation`.
 
 So the two citation entries of `@cites catalog#{size=v1, limit=v2}`,
 with no slug and the kind word `req`, give `req:catalog#size` and
@@ -1033,9 +1070,10 @@ A blank character is one of these characters:
     text#{text=v1, character=v1, line-feed=v1, code-span=v1},
 }
 
-The plain string content of a sequence of inline elements, as CommonMark
-0.31.2 parses them, is a text. The plain string content joins, in the
-order of the elements, the texts that these rules give for the elements:
+The plain string content of a sequence of inline elements inside the
+link text of a link, as CommonMark 0.31.2 parses them, is a text. The
+plain string content joins, in the order of the elements, the texts that
+these rules give for the elements:
 
 - Textual content gives its characters, with each backslash escape,
   entity reference, and numeric character reference replaced by the
@@ -1044,9 +1082,6 @@ order of the elements, the texts that these rules give for the elements:
 - A code span of CommonMark 0.31.2 gives its content.
 - Emphasis and strong emphasis give the plain string content of their
   inline elements.
-- An inline link and a reference link give the plain string content of
-  the inline elements that CommonMark 0.31.2 parses between the `[` that
-  starts the link and the `]` that closes that `[`.
 - An autolink gives its text between `<` and `>`, with no backslash
   escape, entity reference, or numeric character reference replaced.
 - An image gives the plain string content of the inline elements of its
@@ -1101,9 +1136,12 @@ An inline description can be empty.
 ### 4.27 Id patterns
 
 @term id-pattern=v1
-@cites text#{
-    text=v1, conforming-program=v1, decimal-numeral=v1, whole-number=v1,
-    code-span=v1, production=v1, rule-name=v1,
+@cites {
+    conformance#{conforming-program=v1},
+    text#{
+        text=v1, decimal-numeral=v1, whole-number=v1, code-span=v1,
+        production=v1, rule-name=v1,
+    },
 }
 
 An id pattern is a text that a conforming program takes as a pattern, on
@@ -1140,7 +1178,11 @@ the second `count`.
 ### 4.28 Ids
 
 @term id=v1
-@cites {#{id-pattern=v1}, text#{text=v1, conforming-program=v1}}
+@cites {
+    #{id-pattern=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
+}
 
 An id is a text for which a conforming program decides whether that text
 has the form that an id pattern gives.
@@ -1227,7 +1269,8 @@ conditions holds:
 @term external-namespace=v1
 @cites {
     #{external-namespaces=v1, id-pattern=v1, link=v1},
-    text#{line=v1, conforming-program=v1},
+    conformance#{conforming-program=v1},
+    text#{line=v1},
 }
 
 Each pair of a binding is an external namespace of that binding, with
@@ -1262,17 +1305,37 @@ These productions give the form of an external id:
 external-ref  = external-id [ "#" part-name ]
 external-id   = namespace-name "/" id-text
 id-text       = 1*( %x21-22 / %x24-2B / %x2D-2E / %x30-3C / %x3E-3F
-                    / %x41-5A / %x5C / %x5E-7A / %x7C / %x7E )
+                    / %x41-5A / %x5F-7A / %x7C / %x7E )
 ```
 
-### 4.34 External targets
+### 4.34 Content ids
+
+@term content-id=v1
+@cites text#{hex-digit=v1, text=v1, code-span=v1, production=v1, rule-name=v1}
+
+A content id is a text that matches the production `content-id`, and an
+object kind word is a text that matches the production
+`object-kind-word`:
+
+```
+content-id        = object-kind-word ":" 32hex-digit
+object-kind-word  = %s"abandoned" / %s"approval" / %s"atom" / %s"decision"
+                  / %s"decline" / %s"delivered" / %s"design" / %s"done"
+                  / %s"ext" / %s"name" / %s"pin" / %s"plan" / %s"plan-def"
+                  / %s"progress" / %s"req" / %s"schema" / %s"scope"
+                  / %s"spec" / %s"task" / %s"task-def" / %s"term"
+                  / %s"vector-group" / %s"vector-group-def"
+                  / %s"vector-set" / %s"void"
+```
+
+### 4.35 External targets
 
 @term external-target=v1
 @cites {
     #{
-        target=v1, citation-entry=v1, kind-word=v1, declaration=v1,
-        inline-citation=v1, tag-line=v1, external-namespaces=v1,
-        external-namespace=v1,
+        target=v1, citation-entry=v1, kind-word=v1, content-id=v1,
+        declaration=v1, inline-citation=v1, tag-line=v1,
+        external-namespaces=v1, external-namespace=v1,
     },
     text#{text=v1, character=v1, code-span=v1, production=v1},
 }
@@ -1288,7 +1351,8 @@ citation entry that is `#`, `=`, or `[`, or at the end of the target or
 citation entry when the target or citation entry holds no character that
 is `#`, `=`, or `[`. The target of a declaration, the target of an
 inline citation, and a citation entry are each an external target when,
-and only when, one of two conditions holds. First, the head of that
+and only when, that target or that citation entry does not match
+`content-id` and one of two conditions holds. First, the head of that
 target or that citation entry holds a `/`, and the text of that head
 before the first `/` of that head is the namespace name of an external
 namespace of the tag line or the inline citation that holds that target
@@ -1297,7 +1361,7 @@ entry holds no `/`, and the whole head is the namespace name of an
 external namespace of the tag line or the inline citation that holds
 that target or that citation entry.
 
-### 4.35 The layout of tag lines
+### 4.36 The layout of tag lines
 
 @term tag-line-layout=v1
 @cites {
@@ -1312,13 +1376,13 @@ These productions give the spaces and tabs of a tag line and the end of
 a tag line:
 
 ```
-any-char  = %x0-D7FF / %xE000-10FFFF
+line-char = %x0-9 / %xB-D7FF / %xE000-10FFFF
 indent    = *WSP
 gap       = 1*WSP
-rest      = [ gap *any-char ]
+rest      = [ gap *line-char ]
 ```
 
-### 4.36 The form of declarations
+### 4.37 The form of declarations
 
 @schema declaration-line=v1
 @cites {
@@ -1345,14 +1409,15 @@ declaration-line  = indent ( %s"@decision" / %s"@design" )
 A text meets the schema `declaration-line` when, and only when, it
 matches the production `declaration-line`.
 
-### 4.37 The form of citations
+### 4.38 The form of citations
 
 @schema citation-line=v1
 @cites {
     #{
         citation=v1, tag-line-text=v1, tag-line=v1, tag-line-layout=v1,
-        kind-word=v1, name=v1, slug=v1, part-name=v1, label=v1,
-        revision=v1, external-id=v1, vector-selection=v1, match=v1,
+        kind-word=v1, content-id=v1, name=v1, slug=v1, part-name=v1,
+        label=v1, revision=v1, external-id=v1, vector-selection=v1,
+        match=v1,
     },
     text#{text=v1, run=v1, code-span=v1, production=v1, rule-name=v1},
 }
@@ -1364,10 +1429,9 @@ citation-line      = indent %s"@cites" gap ( cites-target / cites-list )
                      rest
                    / indent %s"@verifies" gap
                      ( verifies-target / verifies-list ) rest
-                   / indent ( %s"@refines" / %s"@satisfies" )
-                     gap ( fixed-target / fixed-list ) rest
-                   / indent %s"@supersedes" gap
-                     ( supersedes-target / supersedes-list ) rest
+                   / indent ( %s"@refines" / %s"@satisfies"
+                     / %s"@supersedes" ) gap
+                     ( fixed-target / fixed-list ) rest
 cites-list         = "{" list-space cites-target
                      *( comma cites-target ) [ list-space "," ]
                      list-space "}"
@@ -1377,25 +1441,21 @@ verifies-list      = "{" list-space verifies-target
 fixed-list         = "{" list-space fixed-target
                      *( comma fixed-target ) [ list-space "," ]
                      list-space "}"
-supersedes-list    = "{" list-space supersedes-target
-                     *( comma supersedes-target ) [ list-space "," ]
-                     list-space "}"
 cites-target       = cites-single / cites-scoped
 verifies-target    = verifies-single / verifies-scoped
 fixed-target       = fixed-single / fixed-scoped
-supersedes-target  = supersedes-single / fixed-scoped
 cites-single       = [ kind-word ":" ]
                      ( name "=" revision
                      / name vector-selection
                      / external-ref )
+                   / content-id
 verifies-single    = [ kind-word ":" ]
                      ( name "=" label
                      / name vector-selection
                      / external-ref )
+                   / content-id
 fixed-single       = [ kind-word ":" ] ( name "=" label / external-ref )
-supersedes-single  = [ kind-word ":" ] ( name "=" label / external-ref )
-                   / every-part
-every-part         = slug "=" label "#*"
+                   / content-id
 cites-scoped       = [ kind-word ":" ] [ slug ] "#{" list-space
                      cites-part *( comma cites-part )
                      [ list-space "," ] list-space "}"
@@ -1417,18 +1477,17 @@ has a match by `citation-line` in which no two entries meet both of two
 conditions. First, the two entries have the same entry name. Second,
 either neither of the two entries has a vector selection, or both of the
 two entries have the same vector selection. The entries of a match by
-`citation-line` are each run that `cites-single`, `verifies-single`,
-`fixed-single`, or `supersedes-single` matches, and, for each run that
-`cites-scoped`, `verifies-scoped`, or `fixed-scoped` matches, each run
-within that enclosing run that `cites-part`, `verifies-part`, or
-`fixed-part` matches:
+`citation-line` are each run that `cites-single`, `verifies-single`, or
+`fixed-single` matches, and, for each run that `cites-scoped`,
+`verifies-scoped`, or `fixed-scoped` matches, each run within that
+enclosing run that `cites-part`, `verifies-part`, or `fixed-part`
+matches:
 
-- For a run that `cites-single`, `verifies-single`, `fixed-single`, or
-  `supersedes-single` matches, the entry name of that run is the text
-  that `name` or `external-ref` matches in that run, or, when
-  `every-part` matches that run, the text that `slug` matches in that
-  run. When that run uses `vector-selection`, the vector selection of
-  that run is the text that `vector-selection` matches in that run.
+- For a run that `cites-single`, `verifies-single`, or `fixed-single`
+  matches, the entry name of that run is the text that `name`,
+  `external-ref`, or `content-id` matches in that run. When that run
+  uses `vector-selection`, the vector selection of that run is the text
+  that `vector-selection` matches in that run.
 - For a run that `cites-part`, `verifies-part`, or `fixed-part` matches
   within a run that `cites-scoped`, `verifies-scoped`, or `fixed-scoped`
   matches, when that enclosing run uses `slug`, the entry name of that
@@ -1440,7 +1499,7 @@ within that enclosing run that `cites-part`, `verifies-part`, or
   selection of that part run is the text that `vector-selection` matches
   in that part run.
 
-### 4.38 Citation entries
+### 4.39 Citation entries
 
 @term citation-entry=v1
 @cites {
@@ -1452,23 +1511,20 @@ within that enclosing run that `cites-part`, `verifies-part`, or
 }
 
 In a match of the text of a citation by `citation-line`, a single target
-is a run that `cites-single`, `verifies-single`, `fixed-single`, or
-`supersedes-single` matches. In a match of the text of a citation by
-`citation-line`, a scoped list is a run that `cites-scoped`,
-`verifies-scoped`, or `fixed-scoped` matches. In a scoped list, each run
-that `cites-part`, `verifies-part`, or `fixed-part` matches stands for a
-single target: the text of the scoped list before its `{`, and then the
-text of that run. The citation entries of the match are, in their order
-in the text of the citation, the single targets of the match and the
-single targets for which the parts of the scoped lists of the match
-stand.
+is a run that `cites-single`, `verifies-single`, or `fixed-single`
+matches. In a match of the text of a citation by `citation-line`, a
+scoped list is a run that `cites-scoped`, `verifies-scoped`, or
+`fixed-scoped` matches. In a scoped list, each run that `cites-part`,
+`verifies-part`, or `fixed-part` matches stands for a single target: the
+text of the scoped list before its `{`, and then the text of that run.
+The citation entries of the match are, in their order in the text of the
+citation, the single targets of the match and the single targets for
+which the parts of the scoped lists of the match stand.
 
 When the tag word of the citation is `@cites`, the match of a citation
 entry is the match of that citation entry by `cites-single`. When the
 tag word of the citation is `@verifies`, the match of a citation entry
-is the match of that citation entry by `verifies-single`. When the tag
-word of the citation is `@supersedes`, the match of a citation entry is
-the match of that citation entry by `supersedes-single`. For each other
+is the match of that citation entry by `verifies-single`. For each other
 citation word, the match of a citation entry is the match of that
 citation entry by `fixed-single`. The entry name of a citation entry is
 the entry name that `citation-line` gives for the entry of the match of
@@ -1478,7 +1534,7 @@ the match of a citation entry uses `vector-selection`, the vector
 selection of the citation entry is the text that `vector-selection`
 matches in that match.
 
-### 4.39 The form of status tags
+### 4.40 The form of status tags
 
 @schema status-line=v1
 @cites {
@@ -1495,7 +1551,7 @@ status-line  = indent %s"@deprecated" rest
 A text meets the schema `status-line` when, and only when, it matches
 the production `status-line`.
 
-### 4.40 The form of `@extern` lines
+### 4.41 The form of `@extern` lines
 
 @schema extern-line=v1
 @cites {
@@ -1515,7 +1571,7 @@ extern-line  = indent %s"@extern" gap kind-word ":" part-name rest
 A text meets the schema `extern-line` when, and only when, it matches
 the production `extern-line`.
 
-### 4.41 The form of `@ack` lines
+### 4.42 The form of `@ack` lines
 
 @schema ack-line=v1
 @cites {
@@ -1528,21 +1584,21 @@ These productions give the form of an `@ack` line:
 ```
 ack-line     = indent %s"@ack" gap slug [ gap subject ] gap hash-prefix
                *WSP
-subject      = non-wsp [ *any-char non-wsp ]
-non-wsp      = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
+subject      = non-wsp [ *line-char non-wsp ]
+non-wsp      = %x0-8 / %xB-1F / %x21-D7FF / %xE000-10FFFF
 hash-prefix  = 8*64hex-digit
 ```
 
 A text meets the schema `ack-line` when, and only when, it matches the
 production `ack-line`.
 
-### 4.42 The form of inline citations
+### 4.43 The form of inline citations
 
 @schema inline-destination=v1
 @cites {
     #{
-        inline-citation=v1, destination=v1, kind-word=v1, name=v1,
-        revision=v1, external-id=v1,
+        inline-citation=v1, destination=v1, kind-word=v1, content-id=v1,
+        name=v1, revision=v1, external-id=v1,
     },
     text#{text=v1, code-span=v1, production=v1, rule-name=v1},
 }
@@ -1551,14 +1607,16 @@ This production gives the form of the destination of an inline
 citation:
 
 ```
-inline-destination  = %s"sinter:" [ kind-word ":" ]
-                      ( name "=" revision / external-ref )
+inline-destination  = %s"sinter:"
+                      ( [ kind-word ":" ]
+                        ( name "=" revision / external-ref )
+                      / content-id )
 ```
 
 A text meets the schema `inline-destination` when, and only when, it
 matches the production `inline-destination`.
 
-### 4.43 Inputs
+### 4.44 Inputs
 
 @term input=v1
 @cites {
@@ -1566,10 +1624,8 @@ matches the production `inline-destination`.
         continuation-line=v1, citation=v1, link=v1, id-pattern=v1, id=v1,
         external-namespaces=v1,
     },
-    text#{
-        input=v1, conforming-program=v1, line=v1, text=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{input=v1, conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The inputs of a conforming program are these:
@@ -1590,7 +1646,7 @@ The inputs of a conforming program are these:
   takes, when the conforming program gives the result "valid" for the id
   pattern of that pair of an id pattern and an id.
 
-### 4.44 Matches
+### 4.45 Matches
 
 @term match=v1
 @cites text#{
@@ -1620,7 +1676,7 @@ other rules.
 - A text uses a rule by a production when a match of the text by the
   production uses the rule.
 
-### 4.45 The matches of inputs
+### 4.46 The matches of inputs
 
 @term input-match=v1
 @cites {
@@ -1663,22 +1719,26 @@ in which each of these conditions holds:
   citation. Second, the text that `id-text` matches in that run, as an
   id, fits the id pattern of that external namespace.
 
-### 4.46 Values
+### 4.47 Values
 
 @term value=v1
-@cites {#{tag-line=v1, input=v1}, text#{text=v1, conforming-program=v1, result=v1}}
+@cites {
+    #{tag-line=v1, input=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, result=v1},
+}
 
 A value is a text or a fact that a conforming program gives together
 with a result, under a value name. The value name tells what the value
 is. A conforming program gives a value under a value name when it gives
 the value together with something that stands for that value name and
 for no other value name. A conforming program gives a value that is a
-fact, such as every part or the type of tag line, when the conforming
+fact, such as every vector or the type of tag line, when the conforming
 program gives something that stands for that fact and for no other fact.
 Where an input stands in its text, and an explanation of the result of
 an input, are not values.
 
-### 4.47 Canonical identifiers
+### 4.48 Canonical identifiers
 
 @term canonical-id=v1
 @cites {
@@ -1701,15 +1761,15 @@ that these steps give.
 3. Append *n* to *form*.
 4. Give *form*.
 
-### 4.48 Canonical forms of citation entries
+### 4.49 Canonical forms of citation entries
 
 @term canonical-entry=v1
 @cites {
     #{
         canonical-id=v1, citation=v1, tag-line-text=v1, citation-entry=v1,
-        citation-line=v1, slug=v1, kind-word=v1, vector-selection=v1,
-        match=v1, inline-citation=v1, destination=v1, target=v1,
-        inline-destination=v1, name=v1, external-id=v1,
+        citation-line=v1, slug=v1, kind-word=v1, content-id=v1,
+        vector-selection=v1, match=v1, inline-citation=v1, destination=v1,
+        target=v1, inline-destination=v1, name=v1, external-id=v1,
     },
     text#{
         text=v1, character=v1, code-span=v1, algorithm=v1, production=v1,
@@ -1723,30 +1783,30 @@ destination has a match by `inline-destination`. In this term, *s* is a
 slug or the empty text. In this term, *k* is a kind word or the empty
 text. For the target of an inline citation whose destination has a match
 by `inline-destination`, the entry name of that target is the text that
-`name` or `external-ref` matches in that match of the destination.
+`name`, `external-ref`, or `content-id` matches in that match of the
+destination.
 
 The canonical form of a citation entry *c* with a slug *s* and a kind
 word *k* is the text that these steps give.
 
 1. Let *n* be the entry name of *c*.
-2. If *s* is not empty and the first character of *n* is `#`, then:
+2. If *c* matches `content-id`, give *n*.
+3. If *s* is not empty and the first character of *n* is `#`, then:
    1. Let *full* be *s*.
    2. Append *n* to *full*.
    3. Set *n* to *full*.
-3. Let *form* be the empty text.
-4. If the first character of *n* is `#`, then:
+4. Let *form* be the empty text.
+5. If the first character of *n* is `#`, then:
    1. If *k* is not empty, then:
       1. Append *k* to *form*.
       2. Append `:` to *form*.
    2. Append *n* to *form*.
-5. Otherwise, set *form* to the canonical identifier of *k* and *n*.
-6. If *c* is a citation entry whose match uses `vector-selection`,
+6. Otherwise, set *form* to the canonical identifier of *k* and *n*.
+7. If *c* is a citation entry whose match uses `vector-selection`,
    append the vector selection of *c* to *form*.
-7. If *c* is a citation entry whose match uses `every-part`, append `#*`
-   to *form*.
 8. Give *form*.
 
-### 4.49 Line results
+### 4.50 Line results
 
 @atom line-result=v1
 @cites {
@@ -1771,14 +1831,14 @@ of four results:
 - "not a tag line", when the line is not a tag line;
 - "other tag word", when the line is a tag line whose tag word is not a Sinter tag word;
 - "valid", when all three of these conditions hold:
-- the line is a declaration, a citation, a status tag, or a directive;
-- the text of the tag line meets the schema for its kind of tag line;
-- that input has a match of the input under that binding;
+  - the line is a declaration, a citation, a status tag, or a directive;
+  - the text of the tag line meets the schema for its kind of tag line;
+  - that input has a match of the input under that binding;
 - "invalid", when the line is a declaration, a citation, a status tag, or a directive, and one or more of these conditions hold:
-- the text of the tag line does not meet the schema for its kind of tag line;
-- that input has no match of the input under that binding.
+  - the text of the tag line does not meet the schema for its kind of tag line;
+  - that input has no match of the input under that binding.
 
-### 4.50 Link results
+### 4.51 Link results
 
 @atom link-result=v1
 @cites {
@@ -1797,13 +1857,13 @@ input is one of three results:
 
 - "not an inline citation", when the link or the image is not an inline citation;
 - "valid", when the link or the image is an inline citation and all three of these conditions hold:
-- the destination of the inline citation meets the schema `inline-destination`;
-- the inline citation has a match of the input under that binding;
-- the link text of the inline citation has a plain string content that holds at least one character other than blank characters;
+  - the destination of the inline citation meets the schema `inline-destination`;
+  - the inline citation has a match of the input under that binding;
+  - the link text of the inline citation has a plain string content that holds at least one character other than blank characters;
 - "invalid", when the link or the image is an inline citation and one or more of these conditions hold:
-- the destination of the inline citation does not meet the schema `inline-destination`;
-- the inline citation has no match of the input under that binding;
-- the link text of the inline citation has a plain string content that holds no character other than blank characters.
+  - the destination of the inline citation does not meet the schema `inline-destination`;
+  - the inline citation has no match of the input under that binding;
+  - the link text of the inline citation has a plain string content that holds no character other than blank characters.
 
 ## 5. Requirements
 
@@ -1812,7 +1872,8 @@ input is one of three results:
 @req use-one-binding=v1
 @cites {
     #{external-namespaces=v1, link=v1},
-    text#{conforming-program=v1, requirement=v1, line=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{line=v1, code-span=v1},
 }
 
 A conforming program must read each line, link, and image under exactly
@@ -1823,7 +1884,8 @@ one binding of `external-namespaces`.
 @req validate-id-patterns=v1
 @cites {
     #{input=v1, id-pattern=v1, valid-id-pattern=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 For each id pattern that is an input, a conforming program must give
@@ -1832,15 +1894,15 @@ as that result. For each id pattern that is an input, when the id
 pattern is not a valid id pattern, a conforming program must give the
 result "invalid". For each id pattern that is an input, when the id
 pattern is a valid id pattern, a conforming program must give the result
-"valid", except that the program may give the result "invalid" when that
-id pattern goes beyond the program's own limits.
+"valid".
 
 ### 5.3 The fit of ids
 
 @req decide-fit=v1
 @cites {
     #{input=v1, id-pattern=v1, id=v1, fit=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 For each input that is a pair of an id pattern and an id, a conforming
@@ -1855,8 +1917,9 @@ pattern, a conforming program must give the result "does not fit".
 
 @req validate-bindings=v1
 @cites {
-    #{input=v1, external-namespaces=v1, id-pattern=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
+    #{input=v1, external-namespaces=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 For each binding of `external-namespaces` that is an input, a conforming
@@ -1866,19 +1929,15 @@ program must give exactly one result, and the program must give only
 the schema `external-namespaces`, a conforming program must give the
 result "invalid". For each binding of `external-namespaces` that is an
 input, when the binding meets the schema `external-namespaces`, a
-conforming program must give the result "valid", except that the program
-may give the result "invalid" when that binding holds an id pattern that
-goes beyond the program's own limits.
+conforming program must give the result "valid".
 
 ### 5.5 Rejected bindings
 
 @req give-no-results-under-rejected-bindings=v1
 @cites {
     #{external-namespaces=v1, link=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, line=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, line=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1890,10 +1949,8 @@ a link, or an image.
 @req give-line-results=v1
 @cites {
     #{external-namespaces=v1, input=v1, line-result=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, line=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, line=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1909,9 +1966,8 @@ give the line result of that input under that binding.
 @req give-link-results=v1
 @cites {
     #{external-namespaces=v1, input=v1, link=v1, link-result=v1},
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1927,7 +1983,8 @@ program must give the link result of that input under that binding.
 @req give-tag-words=v1
 @cites {
     #{external-namespaces=v1, input=v1, tag-line=v1, tag-word=v1, value=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1949,14 +2006,12 @@ first cell of the row of that value:
         status-tag=v1, directive=v1, ack-line=v1,
         inline-citation=v1, target=v1, inline-description=v1,
         link-text=v1, input-match=v1, citation-entry=v1, kind-word=v1,
-        slug=v1, segment=v1, part-name=v1, citation-line=v1,
-        vector-selection=v1, external-id=v1, namespace-name=v1,
-        revision=v1, label=v1, match=v1,
+        content-id=v1, slug=v1, segment=v1, part-name=v1,
+        citation-line=v1, vector-selection=v1, external-id=v1,
+        namespace-name=v1, revision=v1, label=v1, match=v1,
     },
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, text=v1,
-        code-span=v1, production=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, code-span=v1, production=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -1984,11 +2039,11 @@ the value name in the first cell of the row of that value:
 | the slug | a match of a declaration whose tag word is `@spec` and whose target holds no `#` | the text that `segment` matches |
 | the custom namespace | a match that uses `slug`, when the text that `slug` matches holds a `/` | the text that `slug` matches, before its last `/` |
 | the part name | a match that uses `part-name` | the text that `part-name` matches |
-| every part | a match that uses `every-part` | no text |
 | the group name | a match that uses `group-name` | the text that `group-name` matches |
 | every vector | a match that uses `every-vector` | no text |
 | the namespace name | a match that uses `external-id` | the text that `namespace-name` matches in `external-id` |
 | the id | a match that uses `external-id` | the text that `id-text` matches |
+| the content id | a match that uses `content-id` | the text that `content-id` matches |
 | the revision | a match that uses `revision` or `label` | the text that `revision` matches, or the text that `label` matches when the match uses no `revision` |
 
 ### 5.10 No other values
@@ -1996,7 +2051,8 @@ the value name in the first cell of the row of that value:
 @req give-no-other-values=v1
 @cites {
     #{input=v1, value=v1, give-values=v1, give-tag-words=v1},
-    text#{conforming-program=v1, requirement=v1, code-span=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{code-span=v1},
 }
 
 A conforming program must give no value for an input other than the
@@ -2008,7 +2064,8 @@ for that input.
 @req give-no-results-for-non-inputs=v1
 @cites {
     #{input=v1},
-    text#{conforming-program=v1, requirement=v1, result=v1},
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1},
 }
 
 A conforming program must give no result for anything that is not an
@@ -2023,10 +2080,8 @@ input.
         canonical-entry=v1, slug=v1, kind-word=v1, inline-citation=v1,
         target=v1,
     },
-    text#{
-        conforming-program=v1, requirement=v1, result=v1, text=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, requirement=v1},
+    text#{result=v1, text=v1, code-span=v1},
 }
 
 Under a binding of `external-namespaces` for which a conforming program
@@ -2048,8 +2103,8 @@ program must give nothing else as that canonical form.
 
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it
-meets every requirement of section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`identifiers.test-vectors.jsonl`](identifiers.test-vectors.jsonl), in
@@ -2073,12 +2128,12 @@ and notation.
         external-namespaces=v1, namespace-name=v1, id-pattern=v1,
         citation=v1, citation-entry=v1, value=v1,
     },
+    conformance#{design=v1, conforming-program=v1},
     text#{
-        canonical-vector-line=v1, design=v1, byte-sequence=v1,
-        valid-utf-8=v1, text-of-a-byte-sequence=v1, text=v1,
-        character=v1, carriage-return=v1, line=v1, line-feed=v1, tab=v1,
-        u-numeral=v1, code-span=v1, production=v1,
-        conforming-program=v1, result=v1, sequence=v1,
+        canonical-vector-line=v1, byte-sequence=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, text=v1, character=v1,
+        carriage-return=v1, line=v1, line-feed=v1, tab=v1, u-numeral=v1,
+        code-span=v1, production=v1, result=v1, sequence=v1,
     },
 }
 
@@ -2162,19 +2217,17 @@ line of the vector file is a vector line that meets the schema
 @cites {
     #{
         vector-line=v1, give-line-results=v1, give-tag-words=v1,
-        give-values=v1, give-no-other-values=v1, validate-bindings=v1,
+        give-values=v1, give-no-other-values=v1,
         external-namespaces=v1, namespace-name=v1, input=v1, value=v1,
         line-result=v1, tag-line=v1, tag-word=v1, sinter-tag-word=v1,
         declaration=v1, citation=v1, citation-line=v1, status-tag=v1,
         directive=v1, ack-line=v1, inline-description=v1,
         citation-entry=v1, vector-selection=v1, link=v1, link-text=v1,
-        slug=v1, part-name=v1, kind-word=v1, revision=v1, id=v1,
-        match=v1,
+        slug=v1, part-name=v1, kind-word=v1, content-id=v1, revision=v1,
+        id=v1, match=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, space=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, space=v1, code-span=v1},
 }
 
 Five groups hold the vectors of texts that have one line each. Each
@@ -2196,14 +2249,16 @@ for that line. Each vector line of these groups meets the schema
 `vector-line`.
 
 - `input`: a JSON object with two members, `binding` and `text`.
-  `binding` is a binding of `external-namespaces` as a JSON array of
+  `binding` is a binding of `external-namespaces` that meets the schema
+  `external-namespaces`, as a JSON array of
   `{"id-pattern":...,"namespace-name":...}` objects. `text` is a JSON
   string whose text has one line and whose markdown document holds no
   link and no image. The program takes the binding, and it reads the
-  text under that binding. In the file, `binding` holds two pairs: `gh`
-  with `[1-9][0-9]*`, and `rfc` with `[1-9][0-9]*`. A conforming program
-  gives the result "valid" for this binding under `validate-bindings`.
-  These vectors do not state that result.
+  text under that binding. A conforming program gives the result "valid"
+  for `binding`. These vectors do not state that result. In the file,
+  `binding` holds two pairs, `gh` with `[1-9][0-9]*` and `rfc` with
+  `[1-9][0-9]*`, or three pairs: those two pairs and
+  `abcdef0123456789abcdef0123456789` with `[1-9][0-9]*`.
 - `result`: the line result of the line: `"not a tag line"` or
   `"other tag word"` in the group `other-lines`, and `"valid"` or
   `"invalid"` in the other four groups.
@@ -2241,11 +2296,11 @@ without "the" at its start and with hyphens in place of spaces.
 | `slug` | the slug | a JSON string |
 | `custom-namespace` | the custom namespace | a JSON string |
 | `part-name` | the part name | a JSON string |
-| `every-part` | every part | the JSON literal `true` |
 | `group-name` | the group name | a JSON string |
 | `every-vector` | every vector | the JSON literal `true` |
 | `namespace-name` | the namespace name | a JSON string |
 | `id` | the id | a JSON string |
+| `content-id` | the content id | a JSON string |
 | `revision` | the revision | a JSON string |
 
 For the line, a conforming program gives each value that `values` holds,
@@ -2269,13 +2324,12 @@ value for the line.
     #{
         vector-line=v1, tag-line-vector=v1, give-line-results=v1,
         give-tag-words=v1, give-values=v1, give-no-other-values=v1,
-        give-no-results-for-non-inputs=v1, validate-bindings=v1,
+        give-no-results-for-non-inputs=v1,
         external-namespaces=v1, input=v1, value=v1, continuation-line=v1,
         citation=v1, tag-line=v1, link=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `continuation-lines` holds texts that start with a tag line.
@@ -2323,14 +2377,13 @@ gives no result for a continuation line on its own.
     #{
         vector-line=v1, tag-line-vector=v1, give-link-results=v1,
         give-values=v1, give-no-other-values=v1,
-        give-no-results-for-non-inputs=v1, validate-bindings=v1,
+        give-no-results-for-non-inputs=v1,
         external-namespaces=v1, input=v1, value=v1, link=v1,
         link-text=v1, inline-citation=v1, link-result=v1, tag-line=v1,
         match=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `inline-citations` holds texts whose markdown documents can
@@ -2386,9 +2439,8 @@ state these results.
         vector-line=v1, validate-id-patterns=v1,
         give-no-other-values=v1, input=v1, value=v1, id-pattern=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `id-patterns` holds id patterns that a program takes on their
@@ -2414,9 +2466,8 @@ own. The vectors of the group follow from `validate-id-patterns` and
         give-no-other-values=v1, input=v1, value=v1, id-pattern=v1,
         id=v1, fit=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `fit` holds pairs of an id pattern and an id that a program
@@ -2447,7 +2498,8 @@ the schema `vector-line`.
         vector-line=v1, validate-bindings=v1, give-no-other-values=v1,
         input=v1, value=v1, external-namespaces=v1,
     },
-    text#{conforming-program=v1, line=v1, result=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{line=v1, result=v1, code-span=v1},
 }
 
 The group `bindings` holds bindings of `external-namespaces` that a
@@ -2475,9 +2527,8 @@ schema `vector-line`.
         validate-bindings=v1, give-no-other-values=v1, input=v1,
         value=v1, external-namespaces=v1, link=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `rejected-bindings` holds texts that a program reads under a
@@ -2510,14 +2561,13 @@ binding of `external-namespaces` for which the program gives the result
 @cites {
     #{
         vector-line=v1, tag-line-vector=v1, give-canonical-entries=v1,
-        validate-bindings=v1, external-namespaces=v1, input=v1, value=v1,
+        external-namespaces=v1, input=v1, value=v1,
         citation=v1, citation-entry=v1, continuation-line=v1,
         inline-citation=v1, canonical-entry=v1, slug=v1, kind-word=v1,
         tag-line=v1, link=v1, target=v1,
     },
-    text#{
-        conforming-program=v1, line=v1, text=v1, result=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{line=v1, text=v1, result=v1, code-span=v1},
 }
 
 The group `canonical-entries` holds valid citations and valid inline

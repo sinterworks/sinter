@@ -3,6 +3,7 @@
 
 # Data forms
 @design data-forms=v1
+@cites conformance=v1
 @cites text=v1
 @cites rfc/3339
 @cites rfc/5234
@@ -39,17 +40,19 @@ document, with the locations of those keys and values.
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is the digest of that byte
-sequence as 64 hex digits. A hash id is an id prefix, such as `e-`, and
+sequence as 64 hex digits. A hash id is an id prefix, such as `req:`, and
 then the first hex digits of a hash. A test-vector set is a byte
 sequence that holds vector lines. The object of a vector line can state
 a vector.
 
-From Text and notation, the design takes characters, texts, and the
-places, boundaries, and runs of texts; bytes, byte sequences, and UTF-8;
-byte order marks and bodies; lines, line numbers, positions, and spans;
-whole numbers, decimal numerals, 0x numerals, U+ numerals, and hex
-digits; code spans and the notation of productions; and conforming
-programs, inputs, and results.
+From Conformance (`conformance`), the design takes designs,
+specifications, requirements, conforming programs, inputs, and the
+general requirements that bind every conforming program. From Text and
+notation, the design takes characters, texts, and the places,
+boundaries, and runs of texts; bytes, byte sequences, and UTF-8; byte
+order marks and bodies; lines, line numbers, positions, and spans; whole
+numbers, decimal numerals, 0x numerals, U+ numerals, and hex digits;
+code spans and the notation of productions; and results.
 
 From RFC 8259, the design takes JSON texts and the rule `JSON-text` of
 the ABNF of RFC 8259. Canonical forms and vector lines write JSON values
@@ -74,9 +77,9 @@ case-sensitive strings of RFC 7405.
 
 | word or phrase | meaning |
 |---|---|
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares; in a specification, a conforming program of that specification |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares; in a specification, a conforming program of that specification |
 | must | states an obligation of a conforming program |
-| [input](sinter:text#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
+| [input](sinter:conformance#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input; the double quotes are not part of the result; a conforming program gives a result when it gives something that stands for that result and for no other result |
 | [whole number](sinter:text#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
 | [decimal numeral](sinter:text#decimal-numeral=v1) | a text of the characters `0` to `9` that writes a whole number of 0 or more in base 10, and whose first character is not `0` unless the text is `0`, such as `42` |
@@ -133,21 +136,22 @@ case-sensitive strings of RFC 7405.
 | [TOML string](sinter:#toml-value=v1), [TOML integer](sinter:#toml-value=v1), [TOML float](sinter:#toml-value=v1), [TOML boolean](sinter:#toml-value=v1), [TOML array](sinter:#toml-value=v1) | a TOML value of the type string, integer, float, boolean, or array of TOML 1.1.0 |
 | [local date](sinter:#toml-value=v1), [local time](sinter:#toml-value=v1), [local date-time](sinter:#toml-value=v1), [offset date-time](sinter:#toml-value=v1) | the TOML values of TOML 1.1.0 that have these names |
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
-| [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
+| [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, offsets that are the same offset, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
 | [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the byte order mark and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
 | [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
 | [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
 | [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what the span is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
 | [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
+| [unknown local offset](sinter:#toml-offset=v1) | the offset of an offset date-time that a document gives as `-00:00`, with the meaning that RFC 3339, section 4.3, gives; it is not a number of minutes and not the offset 0 |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
-| [id prefix](sinter:#id-prefix=v1) | one or more of the letters `a` to `z`, then `-`, such as `e-` |
-| [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
+| [id prefix](sinter:#id-prefix=v1) | a text of the letters `a` to `z` and `-` that starts and ends with a letter and has no two `-` one after the other, then `:`, such as `req:` or `task-def:` |
+| [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `req:ba7816bf8f01cfea414140de5dae2223` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
-| [specification](sinter:text#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
+| [specification](sinter:conformance#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | schema | a definition that a design declares under a name, such as `test-vector-set`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
-| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
+| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design declares outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`; a form pin names the schema that gives the forms of a group and a label of that schema |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
@@ -168,12 +172,6 @@ When a conforming program gives a result for an input that it reads or
 validates, it gives one of two results: "valid" or "invalid". A
 conforming program can also give more, such as the line object of a
 canonical line or the root table of a TOML document.
-
-A conforming program may refuse an input beyond the program's own
-limits, such as a byte sequence too long for the program to hash, a
-number that the program cannot hold, or arrays, objects, or inline
-tables nested deeper than the program reads. When a conforming program
-refuses an input, the conforming program gives no result for that input.
 
 The term `index` gives the index of an element of a finite sequence,
 counted from 1. So the first element of an array has the index 1, and
@@ -458,7 +456,8 @@ fractions, exponents, and the literal names `true`, `false`, and
 
 @req write-canonical-json=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, canonical-byte-sequence=v1},
 }
 
@@ -469,7 +468,8 @@ thing, only the canonical byte sequence of that thing.
 
 @req write-canonical-line=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -480,10 +480,8 @@ the canonical line of that thing.
 
 @req read-canonical-line=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -497,7 +495,8 @@ canonical line of a line object.
 
 @req give-only-line-objects=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{line-object=v1, canonical-line=v1},
 }
 
@@ -508,10 +507,8 @@ only the line object whose canonical line the byte sequence is.
 
 @req read-json-text=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
@@ -524,7 +521,8 @@ byte sequence has no JSON value.
 
 @req give-only-json-values=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, json-value-of-a-byte-sequence=v1},
 }
 
@@ -533,10 +531,10 @@ only the JSON value of that byte sequence.
 
 ### 4.8 Conformance
 
-A program conforms to the specification `json-lines` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
-requirement that the specification declares.
+A program conforms to the specification `json-lines` when the program is
+a [conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets
+every requirement that the specification declares.
 
 The file
 [`data-forms.json-lines.test-vectors.jsonl`](data-forms.json-lines.test-vectors.jsonl),
@@ -554,9 +552,10 @@ the term `group-form-list` gives them.
 
 @schema write-json-vector=v1
 @cites {
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, byte=v1, byte-sequence=v1,
-        character=v1, utf-8-encoding=v1, 0x-numeral=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, character=v1, utf-8-encoding=v1,
+        0x-numeral=v1, code-span=v1,
     },
     #{
         write-canonical-json=v1, json-value=v1,
@@ -592,10 +591,8 @@ sequence of the input, it gives the byte sequence of
 
 @schema write-line-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, input=v1, byte-sequence=v1,
-        character=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{byte-sequence=v1, character=v1, code-span=v1},
     #{
         write-json-vector=v1, write-canonical-line=v1, json-value=v1,
         line-object=v1, canonical-line=v1, hex-text=v1, vector-line=v1,
@@ -630,10 +627,8 @@ sequence as the canonical line of the input.
 
 @schema read-line-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, byte-sequence=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, result=v1, code-span=v1},
     #{
         write-json-vector=v1, read-canonical-line=v1,
         give-only-line-objects=v1, json-value=v1, line-object=v1,
@@ -673,10 +668,8 @@ object as the line object of the byte sequence.
 
 @schema read-json-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, byte-sequence=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, result=v1, code-span=v1},
     #{
         write-json-vector=v1, read-json-text=v1,
         give-only-json-values=v1, json-value=v1,
@@ -762,14 +755,15 @@ local date-time, and an offset date-time, on every date and at every
 hour and minute.
 
 RFC 3339, section 4.2, gives the meaning of a numeric offset, local time
-minus UTC, and section 4.3 gives the meaning of the offset `-00:00`.
-Apart from `-00:00`, the offset of an offset date-time is a signed
-number of minutes: 0 for `Z` and `z`, and the number of minutes that the
-document gives for each other offset, such as 0 for `+00:00` and −420
-for `-07:00`. So the offset date-times `1979-05-27T07:32:00Z` and
-`1979-05-27T07:32:00+00:00` are equal. No offset date-time changes to
-UTC, so `1979-05-27T07:32:00-07:00` and `1979-05-27T14:32:00Z` are not
-equal.
+minus UTC, and section 4.3 gives the meaning of the offset `-00:00`, the
+unknown local offset. Apart from `-00:00`, the offset of an offset
+date-time is a signed number of minutes: 0 for `Z` and `z`, and the
+number of minutes that the document gives for each other offset, such as
+0 for `+00:00` and −420 for `-07:00`. So the offset date-times
+`1979-05-27T07:32:00Z` and `1979-05-27T07:32:00+00:00` are equal, and
+`1979-05-27T07:32:00-00:00` is equal to neither of them. No offset
+date-time changes to UTC, so `1979-05-27T07:32:00-07:00` and
+`1979-05-27T14:32:00Z` are not equal.
 
 The term `toml-value-equality` says when two TOML values are equal. So
 `-0.0` and `0.0` give two TOML floats that are not equal.
@@ -928,7 +922,7 @@ table of TOML 1.1.0.
 @cites {
     ieee/754-2019,
     text#{text=v1, whole-number=v1},
-    #{toml-value=v1, index=v1},
+    #{toml-value=v1, toml-offset=v1, index=v1},
 }
 
 A program gives a TOML value when the program gives something that
@@ -1017,11 +1011,14 @@ date-time, on every date and at every hour and minute.
     #{toml-value=v1},
 }
 
-The offset of an offset date-time is a signed number of minutes: 0 when
-the document gives the offset as `Z` or `z`, and the number of minutes
-that the document gives for each other offset, such as 0 for `+00:00`
-and −420 for `-07:00`, except for `-00:00`, whose meaning
-RFC 3339, section 4.3, gives.
+When the document gives the offset of an offset date-time as `-00:00`,
+the offset is the unknown local offset, whose meaning
+RFC 3339, section 4.3, gives. Otherwise, the offset of an offset
+date-time is a signed number of minutes: 0 when the document gives the
+offset as `Z` or `z`, and the number of minutes that the document gives
+for each other offset, such as 0 for `+00:00` and −420 for `-07:00`.
+The unknown local offset is not a number of minutes, so it is not the
+offset 0.
 
 #### 5.1.10 Newlines in TOML strings
 
@@ -1245,10 +1242,8 @@ key, TOML key, or location.
 
 @req read-toml=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{toml-document=v1},
 }
 
@@ -1261,7 +1256,8 @@ the byte sequence is not a TOML document.
 
 @req give-only-root-tables=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{
         toml-value=v1, toml-value-equality=v1, root-table=v1,
         toml-document=v1,
@@ -1275,9 +1271,10 @@ only the root table of the TOML document that the byte sequence is.
 
 @req give-only-toml-spans=v1
 @cites {
+    conformance#{requirement=v1, conforming-program=v1},
     text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        text-of-a-byte-sequence=v1, result=v1, span=v1, position=v1,
+        byte-sequence=v1, text-of-a-byte-sequence=v1, result=v1,
+        span=v1, position=v1,
     },
     #{toml-document=v1, toml-span-pair=v1},
 }
@@ -1299,8 +1296,8 @@ byte sequence is, only the column of that start or that end.
 ### 5.5 Conformance
 
 A program conforms to the specification `toml` when the program is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -1319,10 +1316,10 @@ groups, as the term `group-form-list` gives those forms.
 
 @schema toml-document-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, utf-8-encoding=v1,
-        text=v1, line-feed=v1, whole-number=v1, decimal-numeral=v1,
-        result=v1, code-span=v1,
+        byte-sequence=v1, utf-8-encoding=v1, text=v1, line-feed=v1,
+        whole-number=v1, decimal-numeral=v1, result=v1, code-span=v1,
     },
     #{
         read-toml=v1, give-only-root-tables=v1, toml-document=v1,
@@ -1387,13 +1384,16 @@ local time of `12:30:00.50` is `"12:30:00.5"`. The string of a local
 date-time is the string of its local date, `T`, and the string of its
 local time. The string of an offset date-time is the string of its local
 date-time, then the string of its offset. For the offset 0, the string
-of the offset is `+00:00`. For each other offset, the string of the
+of the offset is `+00:00`. For the unknown local offset, the string of
+the offset is `-00:00`. For each other offset, the string of the
 offset is `+` when the offset is greater than 0, and `-` when the offset
 is less than 0; then the whole-number quotient of the absolute value of
 the offset divided by 60 as two digits, `:`, and the remainder as two
 digits. So the offset date-time of `1979-05-27T07:32:00Z` is
-`"1979-05-27T07:32:00+00:00"`, and the offset date-time of
-`1979-05-27T00:32:00-07:00` is `"1979-05-27T00:32:00-07:00"`.
+`"1979-05-27T07:32:00+00:00"`, the offset date-time of
+`1979-05-27T07:32:00-00:00` is `"1979-05-27T07:32:00-00:00"`, and the
+offset date-time of `1979-05-27T00:32:00-07:00` is
+`"1979-05-27T00:32:00-07:00"`.
 
 So the form of the root table in which `a` holds a table in which `b`
 holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
@@ -1404,7 +1404,9 @@ The group `give-root-table` holds the vector lines whose vectors each
 give a TOML document and its root table. The requirements of the group
 are `read-toml` and `give-only-root-tables`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with one member, `root-table`: the form of the
@@ -1422,7 +1424,9 @@ The group `reject-byte-sequence` holds the vector lines whose vectors
 each give a byte sequence that is not a TOML document. The requirements
 of the group are `read-toml` and `give-only-root-tables`.
 
-- `input`: the byte sequence.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a byte sequence that is not a TOML document.
 - `result`: "invalid", which is the result when a conforming program
   gives a result for whether the byte sequence is a TOML document.
 - `values`: the empty object, `{}`.
@@ -1439,9 +1443,10 @@ table of the byte sequence.
 @schema toml-span-vector=v1
 @cites {
     toml-lang/1.1.0,
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, span=v1,
-        position=v1, line-number=v1, result=v1, code-span=v1,
+        byte-sequence=v1, text=v1, span=v1, position=v1, line-number=v1,
+        result=v1, code-span=v1,
     },
     #{
         toml-document-vector=v1, read-toml=v1, give-only-toml-spans=v1,
@@ -1469,7 +1474,9 @@ TOML document and one of its span pairs: a span, together with what the
 span is the span of. The requirements of the group are `read-toml` and
 `give-only-toml-spans`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with these members:
@@ -1509,7 +1516,9 @@ TOML document and the location of a TOML value of the TOML document that
 has no span. The requirements of the group are `read-toml` and
 `give-only-toml-spans`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with one member, `no-span-at`: a location.
@@ -1556,7 +1565,8 @@ hash-form  = 64hex-digit
 
 @req compute-hash=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{hash=v1},
 }
 
@@ -1567,7 +1577,8 @@ the hash of that byte sequence.
 
 @req validate-hash=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, text=v1, result=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{text=v1, result=v1},
     #{hash-form=v1},
 }
 
@@ -1578,8 +1589,8 @@ the hash form, and "invalid" when the text does not fit the hash form.
 ### 6.4 Conformance
 
 A program conforms to the specification `hashes` when the program is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -1598,9 +1609,9 @@ the term `group-form-list` gives them.
 
 @schema compute-hash-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1, text=v1,
-        character=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, text=v1, character=v1, code-span=v1,
     },
     #{
         compute-hash=v1, hash=v1, json-value=v1, hex-text=v1,
@@ -1630,10 +1641,8 @@ sequence, it gives the text of `hash`, and no other text.
 
 @schema validate-hash-vector=v1
 @cites {
-    text#{
-        conforming-program=v1, text=v1, character=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{text=v1, character=v1, result=v1, code-span=v1},
     #{
         compute-hash-vector=v1, validate-hash=v1, hash-form=v1,
         json-value=v1, vector-line=v1, group-form-list=v1,
@@ -1667,14 +1676,16 @@ id prefix and a number of hex digits, the program gives "valid" when the
 text fits the hash-id form, and the program gives "invalid" when the
 text does not fit the hash-id form.
 
-The term `id-prefix` gives the id prefixes, such as `e-` or `t-`. The
-term `hash-id` gives the hash ids. The term `hash-id-form` gives the
-hash-id form. For example, with the id prefix `e-` and 12 hex digits,
-the hash id of the three bytes of `abc` is `e-ba7816bf8f01`. With the id
-prefix `e-` and 12 hex digits, the text `e-5b1c0a9d2e11` fits the
-hash-id form. With the id prefix `e-` and 12 hex digits, the texts
-`e-5b1c0a9d2e1`, `e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do not fit the
-hash-id form.
+The term `id-prefix` gives the id prefixes, such as `req:`, `task-def:`,
+or `vector-group-def:`. The term `hash-id` gives the hash ids. The term
+`hash-id-form` gives the hash-id form. For example, with the id prefix
+`req:` and 32 hex digits, the hash id of the three bytes of `abc` is
+`req:ba7816bf8f01cfea414140de5dae2223`. The hash of the byte sequence
+does not depend on the id prefix. With the id prefix `req:` and 12 hex
+digits, the text `req:5b1c0a9d2e11` fits the hash-id form. With the id
+prefix `req:` and 12 hex digits, the texts `req:5b1c0a9d2e1`,
+`req:5B1C0A9D2E11`, and `task-def:5b1c0a9d2e11` do not fit the hash-id
+form.
 
 ### 7.1 Definitions
 
@@ -1686,7 +1697,7 @@ hash-id form.
 An id prefix is a text that matches the production `id-prefix`:
 
 ```abnf
-id-prefix  = 1*%x61-7A "-"
+id-prefix  = 1*%x61-7A *( "-" 1*%x61-7A ) ":"
 ```
 
 #### 7.1.2 Hash ids
@@ -1717,10 +1728,8 @@ exactly n characters that are each a hex digit.
 
 @req compute-hash-id=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, whole-number=v1,
-        byte-sequence=v1, text=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{whole-number=v1, byte-sequence=v1, text=v1},
     #{hash-id=v1},
 }
 
@@ -1731,10 +1740,8 @@ with a text p and a whole number n, only the hash id of b with p and n.
 
 @req validate-hash-id=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, text=v1,
-        whole-number=v1, result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{text=v1, whole-number=v1, result=v1},
     #{id-prefix=v1, hash-id-form=v1},
 }
 
@@ -1746,10 +1753,10 @@ n.
 
 ### 7.4 Conformance
 
-A program conforms to the specification `hash-ids` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
-requirement that the specification declares.
+A program conforms to the specification `hash-ids` when the program is a
+[conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets
+every requirement that the specification declares.
 
 The file
 [`data-forms.hash-ids.test-vectors.jsonl`](data-forms.hash-ids.test-vectors.jsonl),
@@ -1767,9 +1774,10 @@ the term `group-form-list` gives them.
 
 @schema compute-hash-id-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1, text=v1,
-        character=v1, whole-number=v1, hex-digit=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, text=v1, character=v1,
+        whole-number=v1, hex-digit=v1, code-span=v1,
     },
     #{
         compute-hash-id=v1, id-prefix=v1, hash-id=v1, json-value=v1,
@@ -1799,16 +1807,17 @@ sequence with the id prefix and the number of hex digits, it gives the
 text of `hash-id`, and no other text.
 
 ```
-{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"values":{"hash-id":"e-ba7816bf8f01"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"req:","number-of-hex-digits":32},"values":{"hash-id":"req:ba7816bf8f01cfea414140de5dae2223"}}
 ```
 
 #### 7.4.2 The hash-id form
 
 @schema validate-hash-id-vector=v1
 @cites {
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, text=v1, character=v1,
-        whole-number=v1, hex-digit=v1, result=v1, code-span=v1,
+        text=v1, character=v1, whole-number=v1, hex-digit=v1, result=v1,
+        code-span=v1,
     },
     #{
         compute-hash-id-vector=v1, validate-hash-id=v1, id-prefix=v1,
@@ -1838,7 +1847,7 @@ integer, as `compute-hash-id-vector` gives.
 - `values`: the forms of the group give no fixed form for `values`.
 
 ```
-{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"note":"11 hex digits","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e1"},"note":"11 hex digits","result":"invalid"}
 ```
 
 ## 8. Test vectors
@@ -1866,7 +1875,14 @@ The forms of a group are as the term `group-form-list` gives them. A
 schema that a specification declares under a name, or that a design
 declares under a name outside the specifications of that design, gives
 the forms of the group. Each vector line names that schema in the member
-`form` of the vector line.
+`form` of the vector line. For example, the schema `toml-span-vector` of
+the specification `toml` cites the requirements `read-toml` and
+`give-only-toml-spans` of that specification, so the term
+`group-form-list` gives these two requirements as the requirements of
+the groups `give-span` and `omit-span`. The schema `toml-span-vector`
+also cites the schema `toml-document-vector`, which cites
+`give-only-root-tables`, but `give-only-root-tables` is not a
+requirement of these groups.
 
 A vector object can also have the member `needs`, as in
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","needs":["no-privilege"],"result":"valid"}`,
@@ -1879,7 +1895,10 @@ give.
 #### 8.1.1 Test-vector file names
 
 @term test-vector-file-name=v1
-@cites text#{design=v1, specification=v1, text=v1, code-span=v1}
+@cites {
+    conformance#{design=v1, specification=v1},
+    text#{text=v1, code-span=v1},
+}
 
 For the name x of a design and the name y of a specification of that
 design, the test-vector file name of x and y is the text x, then `.`,
@@ -1978,10 +1997,13 @@ test-vector set whose group is that group.
 
 @term group-form-list=v1
 @cites {
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
-        conforming-program=v1, input=v1, result=v1, text=v1, place=v1,
-        byte-sequence=v1, line=v1, code-span=v1,
+        conforming-program=v1, input=v1,
+    },
+    text#{
+        result=v1, text=v1, place=v1, byte-sequence=v1, line=v1,
+        code-span=v1,
     },
     #{json-value=v1, hex-text=v1, group-name=v1, vector-object=v1},
 }
@@ -1991,8 +2013,10 @@ name, and a group name g, Q gives the forms of the group g of S when Q
 gives these five things for g, and these five things are then the forms
 of the group g of S that Q gives:
 
-1. the requirements of the group g, which are requirements that S
-   declares;
+1. the requirements of the group g: the requirements that S declares and
+   that Q itself cites. A requirement that Q cites only through another
+   item that Q cites, such as a schema, is not one of these
+   requirements. Q gives the requirements of the group g by citing them;
 2. what the value of `input` of a vector object in which the value of
    `group` is g stands for: one input of a conforming program of S, or
    several inputs of that conforming program, such as a text and a place
@@ -2049,7 +2073,7 @@ For a design D, a schema Q that D declares under a name outside its
 specifications, and a group name g, Q gives the forms of the group g of
 D when Q gives the same five things for g, and these five things are
 then the forms of the group g of D that Q gives: with the requirements
-that D holds outside its specifications in place of the requirements
+that D declares outside its specifications in place of the requirements
 that S declares, with the schemas that D declares under a name outside
 its specifications in place of the schemas that S declares, with a group
 of D in place of a group of S, and with a conforming program of D in
@@ -2059,10 +2083,11 @@ place of a conforming program of S.
 
 @term vector-meaning=v1
 @cites {
-    text#{
+    conformance#{
         design=v1, specification=v1, requirement=v1,
-        conforming-program=v1, input=v1, result=v1, code-span=v1,
+        conforming-program=v1, input=v1,
     },
+    text#{result=v1, code-span=v1},
     #{
         json-value=v1, form-pin=v1, vector-object=v1, vector-line=v1,
         test-vector-set=v1, group-form-list=v1,
@@ -2072,7 +2097,7 @@ place of a conforming program of S.
 For a specification S of a design, a vector of S is an input and what
 requirements that S declares oblige a conforming program of S to give
 for that input. For a design D, a vector of D is an input and what
-requirements that D holds outside its specifications oblige a
+requirements that D declares outside its specifications oblige a
 conforming program of D to give for that input.
 
 For a specification S, or a design D, and a vector line whose group is g
@@ -2144,10 +2169,8 @@ group g, the object of a vector line that states a vector states this:
 
 @req read-test-vector-set=v1
 @cites {
-    text#{
-        requirement=v1, conforming-program=v1, byte-sequence=v1,
-        result=v1,
-    },
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1, result=v1},
     #{test-vector-set=v1},
 }
 
@@ -2160,7 +2183,8 @@ the byte sequence is not a test-vector set.
 
 @req give-objects-of-test-vector-sets=v1
 @cites {
-    text#{requirement=v1, conforming-program=v1, byte-sequence=v1},
+    conformance#{requirement=v1, conforming-program=v1},
+    text#{byte-sequence=v1},
     #{json-value=v1, vector-line=v1, test-vector-set=v1},
 }
 
@@ -2172,8 +2196,8 @@ the order of the vector lines, and no other object.
 ### 8.4 Conformance
 
 A program conforms to the specification `test-vectors` when the program
-is a [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
+is a [conforming program](sinter:conformance#conforming-program=v1) of that
+[specification](sinter:conformance#specification=v1): the program meets every
 requirement that the specification declares.
 
 The file
@@ -2195,9 +2219,10 @@ the term `group-form-list` gives them.
 
 @schema read-set-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte=v1, byte-sequence=v1,
-        utf-8-encoding=v1, 0x-numeral=v1, result=v1, code-span=v1,
+        byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1,
+        result=v1, code-span=v1,
     },
     #{
         read-test-vector-set=v1, give-objects-of-test-vector-sets=v1,

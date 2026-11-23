@@ -3,6 +3,7 @@
 
 # Language packs
 @design packs=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
@@ -56,19 +57,22 @@ process.
 The productions are written in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
 
+From Conformance (`conformance`), the design takes conforming programs,
+inputs, and the general requirements that bind every conforming program.
 From Text and notation, the design takes characters, code points, texts,
 places, boundaries, runs, and code point order; bytes, byte sequences,
 valid UTF-8, the text of a byte sequence, and UTF-8 encodings; bodies,
-line feeds, lines, line numbers, positions, and spans; whole numbers and
-decimal numerals; the notation of productions; and conforming programs,
-inputs, and results. From Identifiers, the design takes tag words. From
+line feeds, lines, line numbers, positions, and spans; whole numbers,
+decimal numerals, and 0x numerals; the notation of productions; and
+results. From Identifiers, the design takes tag words. From
 Files and paths, the design takes folder trees, folders, regular files,
 symbolic links, and files of another kind, with their contents and
 attributes; valid paths and the files that they name; valid globs and
 the valid paths that fit them; the bytes that a program takes from a
 file; the system of a program; and file objects, folder tree objects,
 and stored folder trees. From Data forms, the design takes TOML
-documents, their root tables, the texts of TOML keys, and TOML values;
+documents, their root tables, the texts of TOML keys, and TOML values
+and their forms in vectors;
 hashes and the hash form; hex texts; JSON values, key order, their
 canonical byte sequences, and the JSON values of byte sequences;
 indexes; and test-vector sets, with the forms of a group, needs and need
@@ -105,7 +109,7 @@ their matching.
 | [pack path](sinter:#pack-path=v1) | a valid path whose characters are each a printable ASCII character other than `\`, such as `grammars/rust.wasm` |
 | [paths of a pack](sinter:#well-named-pack=v1) | the valid paths of the files of the pack, and each part of one of those valid paths from the start of that valid path to right before a `/`, such as `queries` and `queries/rust` for the file `queries/rust/tags.scm` |
 | [ASCII case folding](sinter:#well-named-pack=v1) | the change of each letter from `A` to `Z` of a text to the same letter from `a` to `z`, with no change to any other character |
-| [well named](sinter:#well-named-pack=v1) | a pack is well named when the entry name of each folder entry on the way to a regular file of the folder tree of the pack is the UTF-8 encoding of a file name, each path of the pack is a pack path, and no two paths of the pack are the same text after ASCII case folding |
+| [well named](sinter:#well-named-pack=v1) | a pack is well named when the entry name of each folder entry on the way to a regular file of the folder tree of the pack is the UTF-8 encoding of a file name, the valid path of each file of the pack is a pack path, and no two paths of the pack are the same text after ASCII case folding |
 | [pack listing](sinter:#pack-hash=v1) | the text with one line for each file of a well-named pack, in the code point order of the valid paths of the files: the hash of the content of the file, two spaces, the valid path of the file, and a line feed |
 | [pack hash](sinter:#pack-hash=v1) | the hash of the UTF-8 encoding of the pack listing of a well-named pack |
 | [use of a pack](sinter:#pack-use=v1) | an operation that a program makes to give, for a pack, whether the pack is well named, the valid paths of the files of the pack, the pack listing of the pack, the pack hash of the pack, whether the pack is valid, a value of the content of the file `pack.toml` of the pack as a descriptor, the result of a reading of a text with the pack, the content of one of the files of the pack, or the result of a call of the adapter of one of the test runners of the pack |
@@ -159,10 +163,10 @@ their matching.
 | [result of a reading](sinter:#reading-result=v1) | the result of a reading of a text, as the text of a file at a valid path, with a valid pack: "no grammar", "parse failure", or "parsed" |
 | [reading](sinter:#reading-of-a-text=v1) | the reading of a text, as the text of a file at a valid path, with a valid pack: its result, "no grammar", "parse failure", or "parsed"; with "parsed", the nodes of the text and their values |
 | import, export, instance, trap, embedder | the things of the WebAssembly Core Specification 2.0 with these names |
-| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder, under limits that the program has of its own on the resources of the instance and on the time that the code of the instance runs; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, when the code of that instantiation or invocation exhausts the call stack, or when the program stops that instantiation or invocation |
+| [instance of an adapter](sinter:#adapter-instance=v1) | a new instance of a WebAssembly module that a program makes with no import, in which code runs as the WebAssembly Core Specification 2.0 defines, with the program as the embedder; an instantiation or an invocation in the instance fails when that instantiation or invocation traps, or when the execution of its code, as the WebAssembly Core Specification 2.0 defines it, does not terminate |
 | [choice of the program in a decision whether a pack is valid](sinter:#validate-packs=v1) | the result "invalid" for a pack in which the file of a grammar is a WebAssembly module with an import that the program does not provide, or in which a query file holds a pattern that, without the predicates of that pattern, matches no part of any parse tree that the language of the grammar of that query file can give |
 | [adapter module](sinter:#adapter-module=v1) | a WebAssembly module that imports nothing and exports `memory`, `sinter_interface`, `sinter_alloc`, `sinter_recognise`, and `sinter_bind` with the types of the interface |
-| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, an adapter module that the program does not refuse for limits of its own and that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
+| [valid adapter](sinter:#valid-adapter=v1) | in one decision of a program, an adapter module that gives the version 1 of the interface: the decision runs, in a new instance of the module, only the instantiation and one invocation of `sinter_interface` |
 | [adapter of a test runner](sinter:#valid-pack=v1) | the content of the file `adapters/<r>.wasm` of a valid pack, for the test runner `<r>` with an adapter hash |
 | [binding of `runner-settings`](sinter:#runner-settings=v1) | a finite set of pairs that gives values for some of the runner settings of one test runner; each pair is a name, which is a text, and a TOML value |
 | [value of a runner setting](sinter:#runner-setting-value=v1) | under a valid binding of `runner-settings`, the TOML value of the pair whose name is the name of the runner setting, or the default value of the runner setting when no pair has the name of the runner setting |
@@ -172,13 +176,13 @@ their matching.
 | [report content](sinter:#adapter-call=v1) | the byte sequence that a program gives an adapter, unchanged, in a call, such as the content of a report file |
 | [report name](sinter:#adapter-request=v1) | a text, such as the path of a report file as a person gave it, which the request of a call gives the adapter |
 | [test result](sinter:ontology#test-evidence=v1) | what a test runner gives for one test that the test runner runs; by the adapter, each element of the value of `results` of the response of a call of bind is a test result that the report content holds, with the name and the status of the test result, and, when the test result has them, the file, the line, and the duration of the test result |
-| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, the test entry ids of the call: the call fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise the call runs in a new instance of an adapter and gives a response or fails |
+| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, the test entry ids of the call: the call fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter, or when the request or the report content has 4,294,967,296 bytes or more; otherwise the call runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
 | [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response; a call whose response is no adapter response has the result "failed" |
 | [JSON value of a response](sinter:#adapter-response=v1) | the JSON value of the response as a byte sequence, as Data forms defines the JSON value of a byte sequence |
 | [result of a call](sinter:#call-result=v1) | "recognised", "not recognised", or "failed" for the function recognise; "bound" or "failed" for the function bind |
 | [result object, binding object](sinter:#adapter-response=v1) | an object of the response of bind that gives one test result, with its name and its status, and an object that binds one test result to one test entry, with a reason |
-| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
+| [schema](sinter:ontology#schema=v1) | a declared item of the kind `schema` (in the text encoding, declared with `@schema`); it gives the form of an input or output that crosses the edge of a conforming program, or the form of a file of test cases for a design: its layout and every constraint that is a property of it alone |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
@@ -240,13 +244,6 @@ the quality of an implementation. When the results of a grammar depend
 on what the WebAssembly Core Specification 2.0 leaves to its embedder,
 what a program gives with that grammar is a matter of the quality of an
 implementation. In those cases, the rules of this paragraph still hold.
-
-A conforming program may refuse a pack, a text, or a byte sequence that
-goes beyond limits that the conforming program has of its own, such as
-limits on size, memory, or the time that code runs. When the conforming
-program refuses a pack, a text, or a byte sequence for those limits, the
-conforming program gives "invalid" for the pack or the adapter, "parse
-failure" for the reading, and "failed" for the call.
 
 ### 2.2 The pack hash
 
@@ -560,7 +557,8 @@ content is a byte sequence, such as the content of a report file. The
 call uses one decision of the program whether the adapter is a valid
 adapter, made in another instance, such as a decision that the program
 made before the call. When that decision is that the adapter is not
-valid, the call fails. The call then runs in a new instance of the
+valid, or when the request or the report content has 4,294,967,296 bytes
+or more, the call fails. Otherwise, the call runs in a new instance of the
 module of the adapter, so nothing that one call leaves in its instance
 gets to the next call. In that instance, the program does only this, and
 it changes no byte of the memory other than by the writes of steps 2 and
@@ -701,7 +699,7 @@ these conditions:
   the files of that folder tree, that folder entry has an entry name
   that is the UTF-8 encoding of a text that matches the production
   `file-name`.
-- Each path of the pack is a pack path.
+- The valid path of each file of the pack is a pack path.
 - No two different paths of the pack are the same text after ASCII case
   folding.
 
@@ -1187,7 +1185,8 @@ same role name and the same role node.
 }
 
 This definition is for a valid pack, a grammar of its descriptor, and a
-text that has a parse tree with the usable grammar of that grammar. The
+text that has a parse tree with the usable grammar of that grammar such
+that the root node of that parse tree has no error. The
 comment nodes of the text are the role nodes of the kept matches of the
 query file of the kind comment of that grammar over the text, each node
 once, in the order of the parse tree. A comment node is tagged when, and
@@ -1207,7 +1206,8 @@ only when, it is the role node of a kept match with the role name
 }
 
 This definition is for a valid pack, a grammar of its descriptor, and a
-text that has a parse tree with the usable grammar of that grammar. The
+text that has a parse tree with the usable grammar of that grammar such
+that the root node of that parse tree has no error. The
 definition nodes of the text are the role nodes of the kept matches with
 the role name `definition` of the query file of the kind definition of
 that grammar over the text, in the order of the parse tree. The text has
@@ -1232,7 +1232,8 @@ node alone.
 }
 
 This definition is for a valid pack, a grammar of its descriptor, and a
-text that has a parse tree with the usable grammar of that grammar. The
+text that has a parse tree with the usable grammar of that grammar such
+that the root node of that parse tree has no error. The
 decoration nodes of the text are the role nodes of the kept matches with
 the role name `decoration` of the query file of the kind definition of
 that grammar over the text, in the order of the parse tree. The text has
@@ -1269,7 +1270,8 @@ enclosed node of A when, and only when, A encloses B.
 
 This definition is for a valid pack, a grammar of its descriptor, and a
 text, as the text of a file at a valid path, that has a parse tree with
-the usable grammar of that grammar. The test nodes of the text are the
+the usable grammar of that grammar such that the root node of that parse
+tree has no error. The test nodes of the text are the
 role nodes of the kept matches of the query file of the kind test of
 that grammar over the text, each node once, in the order of the parse
 tree. By the query file of the kind test, each test node is the code of
@@ -1710,7 +1712,11 @@ file-name glob, that valid path has no file grammar.
 ### 5.2 Descriptors as input
 
 @req read-descriptor=v1
-@cites {text#{conforming-program=v1, result=v1, byte-sequence=v1}, #{valid-descriptor=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    text#{result=v1, byte-sequence=v1},
+    #{valid-descriptor=v1},
+}
 
 When a conforming program gives a result for whether a byte sequence is
 a valid descriptor, the program must give exactly one result: "valid"
@@ -1722,7 +1728,7 @@ byte sequence is not a valid descriptor.
 @req give-descriptor-values=v1
 @cites {
     data-forms#{toml-value=v1, toml-value-equality=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{
         spec-version=v1, release-number=v1, valid-descriptor=v1,
         comment-sigil=v1, foreign-tag-word=v1, name-separator=v1,
@@ -1746,7 +1752,8 @@ its default value.
 
 @req omit-invalid-descriptor-values=v1
 @cites {
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{
         spec-version=v1, release-number=v1, valid-descriptor=v1,
         name-separator=v1, comment-sigil=v1, foreign-tag-word=v1,
@@ -1771,7 +1778,10 @@ the name nor the default value of a runner setting.
 ### 5.5 No adapter values for a test runner with no adapter hash
 
 @req omit-absent-adapter-values=v1
-@cites {text#{conforming-program=v1}, #{valid-descriptor=v1, test-runner=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    #{valid-descriptor=v1, test-runner=v1},
+}
 
 A conforming program must give no adapter hash and no adapter license
 for a test runner of a valid descriptor that has no adapter hash.
@@ -1779,7 +1789,10 @@ for a test runner of a valid descriptor that has no adapter hash.
 ### 5.6 No match table for a test runner with none
 
 @req omit-absent-match-tables=v1
-@cites {text#{conforming-program=v1}, #{valid-descriptor=v1, test-runner=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    #{valid-descriptor=v1, test-runner=v1},
+}
 
 A conforming program must give no match table for a test runner of a
 valid descriptor that has no match table.
@@ -1789,7 +1802,7 @@ valid descriptor that has no match table.
 @req give-file-grammars=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{valid-descriptor=v1, descriptor-grammar=v1, file-grammar=v1},
 }
 
@@ -1802,7 +1815,7 @@ give the file grammar of that valid path, and no other grammar.
 @req omit-file-grammars=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{valid-descriptor=v1, descriptor-grammar=v1, file-grammar=v1},
 }
 
@@ -1811,10 +1824,9 @@ file grammar of a valid path that has no file grammar.
 
 ### 5.9 Conformance
 
-A program conforms to the specification `descriptor` when the program is
-a [conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): the program meets every
-requirement that the specification declares.
+A program conforms to the specification `descriptor` when it is a
+[conforming program](sinter:conformance#conforming-program=v1) of this
+specification.
 
 The vectors of this specification are in the file
 [`packs.descriptor.test-vectors.jsonl`](packs.descriptor.test-vectors.jsonl),
@@ -1833,12 +1845,13 @@ vectors stand for, each in a fixed form.
 @schema descriptor-vector=v1
 @cites {
     data-forms#{
-        hex-text=v1, json-value=v1, toml-value=v1, toml-key-text=v1,
-        group-form-list=v1, vector-meaning=v1,
+        hex-text=v1, json-value=v1, toml-value=v1,
+        toml-document-vector=v1, group-form-list=v1, vector-meaning=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, result=v1,
-        code-span=v1, code-point-order=v1,
+        byte-sequence=v1, text=v1, result=v1, code-span=v1,
+        code-point-order=v1,
     },
     #{
         valid-descriptor=v1, read-descriptor=v1,
@@ -1852,17 +1865,9 @@ vectors stand for, each in a fixed form.
 
 In `input` and `values`, a byte sequence is its hex text, as a string,
 such as `"6e616d65"` for the four bytes of `name`. In `input` and
-`values`, a text is a string of the characters of the text. A TOML value
-of the kinds that the vectors use has one of these four forms. A TOML
-string is an object with one member, `string`, whose value is the text
-of the TOML string. A TOML boolean is an object with one member,
-`boolean`, whose value is `true` or `false`. A TOML array is an object
-with one member, `array`, whose value is an array of the forms of the
-TOML values of that TOML array, in their order. A table is an object
-with one member, `table`, whose value is an object with one member for
-each pair of the table. For each pair of the table, the key of that
-member is the text of the TOML key of the pair, and the value of that
-member is the form of the TOML value of the pair.
+`values`, a text is a string of the characters of the text. The form of
+a TOML value is the form of a TOML value that
+`data-forms#toml-document-vector` gives.
 
 The group `descriptors` holds the vectors that each give a byte sequence
 and what a conforming program gives for that byte sequence as a
@@ -1894,7 +1899,8 @@ descriptor. The requirements of the group are `read-descriptor`,
   for that test runner has the members `adapter-hash` and
   `adapter-license`, which are each a text. When the test runner has a
   match table, the object for that test runner has the member `match`,
-  which is the form of the match table of that test runner. Each object
+  which is the form of the match table of that test runner, as a TOML
+  value. Each object
   for a test runner has the member `settings`, which is an array with
   one object for each runner setting of that test runner, in the code
   point order of the names of the runner settings. Each object for a
@@ -1925,7 +1931,8 @@ sets. With `{}`, a conforming program gives none of these values.
     data-forms#{
         hex-text=v1, json-value=v1, group-form-list=v1, vector-meaning=v1,
     },
-    text#{conforming-program=v1, byte-sequence=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, text=v1, code-span=v1},
     #{
         descriptor-vector=v1, valid-descriptor=v1, descriptor-grammar=v1,
         file-grammar=v1, give-file-grammars=v1, omit-file-grammars=v1,
@@ -1984,12 +1991,10 @@ decision whether a byte sequence is a valid adapter.
 An instance of an adapter of a WebAssembly module, for a program, is a
 new instance of that module that the program makes with no import, and
 in which code runs as the WebAssembly Core Specification 2.0 defines its
-execution, with the program as its embedder. The limits of a program are
-limits of its own on the resources of an instance of an adapter and on
-the time that the code of that instance runs. An instantiation or an
-invocation fails when that instantiation or invocation traps, when its
-code exhausts the call stack, or when the program stops that
-instantiation or invocation.
+execution, with the program as its embedder. An instantiation or an
+invocation fails when that instantiation or invocation traps, or when
+the execution of its code, as the WebAssembly Core Specification 2.0
+defines it, does not terminate.
 
 #### 6.1.2 Adapter modules
 
@@ -2024,10 +2029,8 @@ in the memory, `sinter_alloc` gives 0.
 @atom valid-adapter=v1
 @cites {
     wasm-core/2.0,
-    text#{
-        byte-sequence=v1, code-span=v1, conforming-program=v1,
-        result=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, code-span=v1, result=v1},
     #{adapter-module=v1, adapter-instance=v1},
 }
 
@@ -2035,8 +2038,7 @@ A byte sequence is a valid adapter, in one decision of a program whether
 the byte sequence is a valid adapter, when, and only when, the byte
 sequence meets each of these conditions:
 
-1. The byte sequence is an adapter module. In that decision, the program
-   does not refuse the byte sequence for the program's own limits.
+1. The byte sequence is an adapter module.
 2. In a new instance of an adapter of the module, for that program, the
    decision runs the instantiation and then one invocation of
    `sinter_interface`, and nothing else in that instance. The
@@ -2097,7 +2099,8 @@ binding of `runner-settings` for that test runner, a report name, which
 is a text, such as the path of a report file as a person gave it, and,
 for the function bind, a root, which is a text, such as the absolute
 path of the root of a repository, and test entries whose test entry ids
-are each a different text. The request object of the function recognise
+are each a different text and whose first lines and last lines are
+integers. The request object of the function recognise
 is a JSON object with these members, and no other member:
 
 - `interface`: the integer 1.
@@ -2159,11 +2162,11 @@ are a finite set of texts. The export of the function recognise is
 adapter of the call is a valid adapter. An earlier decision of the
 program can serve. When that decision makes an instance, the instance of
 that decision is not the instance of the steps of the call. When the
-adapter of the call is not a valid adapter in that decision, the call
+adapter of the call is not a valid adapter in that decision, or when the
+request or the report content has 4,294,967,296 bytes or more, the call
 fails. Otherwise, the call runs these steps in a new instance of an
 adapter of the module of the adapter of the call, for that program. When
-one of these steps fails, such as when the program stops that step for
-the limits of the program, the call fails. In that instance, the program
+one of these steps fails, the call fails. In that instance, the program
 makes only the instantiation and the invocations of steps 2 to 4, in
 that order. In that instance, the program changes no byte of the memory
 of the instance other than by the writes of steps 2 and 3. The memory of
@@ -2296,7 +2299,11 @@ runs the program.
 ### 6.2 The validation of adapters
 
 @req validate-adapters=v1
-@cites {text#{conforming-program=v1, result=v1, byte-sequence=v1}, #{valid-adapter=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    text#{result=v1, byte-sequence=v1},
+    #{valid-adapter=v1},
+}
 
 When a conforming program gives a result for whether a byte sequence is
 a valid adapter, the program must give exactly one result: "valid" when
@@ -2307,7 +2314,9 @@ when the byte sequence is not a valid adapter in that decision.
 
 @req give-requests=v1
 @cites {
-    text#{conforming-program=v1, byte-sequence=v1, text=v1},
+    conformance#{conforming-program=v1},
+    data-forms#{json-value=v1},
+    text#{byte-sequence=v1, text=v1},
     #{
         valid-descriptor=v1, test-runner=v1, runner-settings=v1,
         adapter-request=v1, adapter-call=v1, test-entry=v1,
@@ -2324,7 +2333,8 @@ request. When a conforming program makes a call of the function bind of
 a byte sequence as the adapter of a test runner of a valid descriptor,
 under a valid binding of `runner-settings` for that test runner, for a
 report name, for a root, and for test entries whose test entry ids are
-each a different text, the program must make the call with the request
+each a different text and whose first lines and last lines are integers,
+the program must make the call with the request
 of the function bind for that test runner, that binding, that report
 name, that root, and those test entries as the request of the call, and
 with no other byte sequence as that request. In that call of the
@@ -2335,7 +2345,8 @@ ids of those test entries as the test entry ids of the call.
 
 @req give-call-results=v1
 @cites {
-    text#{conforming-program=v1, result=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, byte-sequence=v1},
     #{adapter-call=v1, call-result=v1},
 }
 
@@ -2351,7 +2362,8 @@ function bind.
 @req give-call-values=v1
 @cites {
     ontology#{test-evidence=v1},
-    text#{conforming-program=v1, result=v1, text=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1, byte-sequence=v1},
     #{adapter-call=v1, call-result=v1},
 }
 
@@ -2367,7 +2379,8 @@ instead.
 @req omit-call-values=v1
 @cites {
     ontology#{test-evidence=v1},
-    text#{conforming-program=v1, result=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, byte-sequence=v1},
     #{adapter-call=v1, call-result=v1},
 }
 
@@ -2380,7 +2393,8 @@ binding objects, and no warnings of that call.
 
 @req omit-adapter-error-texts=v1
 @cites {
-    text#{conforming-program=v1, result=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, byte-sequence=v1},
     #{adapter-call=v1, call-result=v1},
 }
 
@@ -2393,7 +2407,8 @@ is "failed" and the call gives that error text.
 
 @req isolate-adapters=v1
 @cites {
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{webassembly-module=v1, adapter-instance=v1},
 }
 
@@ -2405,7 +2420,8 @@ module of that byte sequence.
 
 @req end-adapter-code=v1
 @cites {
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{adapter-instance=v1, adapter-call=v1, valid-adapter=v1},
 }
 
@@ -2416,10 +2432,8 @@ adapter.
 ### 6.10 Conformance
 
 A program conforms to the specification `adapters` when it is a
-[conforming program](sinter:text#conforming-program=v1) of that
-[specification](sinter:text#specification=v1): it meets every
-requirement that the specification declares. The requirement
-`isolate-adapters` has no vectors.
+[conforming program](sinter:conformance#conforming-program=v1) of this
+specification. The requirement `isolate-adapters` has no vectors.
 
 The vectors of this specification are in the file
 [`packs.adapters.test-vectors.jsonl`](packs.adapters.test-vectors.jsonl),
@@ -2440,10 +2454,8 @@ vectors stand for, each in a fixed form.
     data-forms#{
         hex-text=v1, json-value=v1, group-form-list=v1, vector-meaning=v1,
     },
-    text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, text=v1, result=v1, code-span=v1},
     #{valid-adapter=v1, validate-adapters=v1, end-adapter-code=v1},
 }
 
@@ -2475,10 +2487,8 @@ The requirements of the group are `validate-adapters` and
         hex-text=v1, json-value=v1, toml-value=v1, group-form-list=v1,
         vector-meaning=v1,
     },
-    text#{
-        conforming-program=v1, byte-sequence=v1, text=v1,
-        utf-8-encoding=v1, code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, text=v1, utf-8-encoding=v1, code-span=v1},
     #{
         adapter-vector=v1, valid-descriptor=v1, test-runner=v1,
         runner-setting=v1, runner-settings=v1, runner-setting-value=v1,
@@ -2512,7 +2522,8 @@ that call. The requirement of the group is `give-requests`.
   with one object for each test entry, in any order. The object of a
   test entry has the members `id`, `path`, `line`, `eline`, `suite`,
   `names`, and `labels`, in the forms that the request object gives
-  them, except that `labels` can be in any order. The call is for a test
+  them, except that `labels` holds each test label of the test entry
+  once, in any order, with no repeated text. The call is for a test
   runner of a valid descriptor, under a valid binding of
   `runner-settings`. The name of that test runner is the value of
   `runner`. Under that binding, the runner settings of that test runner
@@ -2538,10 +2549,8 @@ sequence as that request.
         hex-text=v1, json-value=v1, index=v1, group-form-list=v1,
         vector-meaning=v1,
     },
-    text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, text=v1, result=v1, code-span=v1},
     #{
         adapter-vector=v1, valid-adapter=v1, adapter-call=v1,
         adapter-response=v1, call-result=v1, test-entry=v1,
@@ -2561,8 +2570,9 @@ the call. The requirements of the group are `give-call-results`,
 `give-call-values`, `omit-call-values`, and `omit-adapter-error-texts`.
 
 - `input`: an object with these members: `function`, the text
-  `recognise` or `bind`; `ids`, for the function bind only, an array of
-  the test entry ids of the call, as texts; and `response`, the byte
+  `recognise` or `bind`; `ids`, for the function bind only, an array
+  that holds each test entry id of the call once, as a text, with no
+  repeated text; and `response`, the byte
   sequence of the response.
 - `result`: the result of the call, when a conforming program gives a
   result for it: "recognised", "not recognised", or "failed" for the
@@ -2609,10 +2619,8 @@ these.
     data-forms#{
         hex-text=v1, json-value=v1, group-form-list=v1, vector-meaning=v1,
     },
-    text#{
-        conforming-program=v1, byte-sequence=v1, text=v1, result=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1, text=v1, result=v1, code-span=v1},
     #{
         adapter-vector=v1, response-vector=v1, adapter-call=v1,
         call-result=v1, test-entry=v1, give-call-results=v1,
@@ -2637,7 +2645,8 @@ call. The requirements of the group are `give-call-results`,
   of the adapter; `function`, the text `recognise` or `bind`; `request`,
   the byte sequence of the request; `report-content`, the byte sequence
   of the report content; and `ids`, for the function bind only, an array
-  of the test entry ids of the call, as texts.
+  that holds each test entry id of the call once, as a text, with no
+  repeated text.
 - `result`: the result of the call, when a conforming program gives a
   result for it: "recognised", "not recognised", or "failed" for the
   function recognise, and "bound" or "failed" for the function bind.
@@ -2659,7 +2668,8 @@ these.
 
 @req decide-well-named-packs=v1
 @cites {
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{pack=v1, well-named-pack=v1},
 }
 
@@ -2672,7 +2682,8 @@ well named, and "not well named" when it is not.
 @req give-pack-files=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     #{pack=v1, well-named-pack=v1},
 }
 
@@ -2684,7 +2695,8 @@ and no other text as the valid path of a file of the pack.
 
 @req give-pack-file-contents=v1
 @cites {
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{pack=v1},
 }
 
@@ -2695,7 +2707,8 @@ must give that content, and no other byte sequence as that content.
 
 @req give-pack-listings=v1
 @cites {
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     #{pack=v1, well-named-pack=v1, pack-hash=v1},
 }
 
@@ -2706,10 +2719,7 @@ text, as the pack listing of that pack.
 ### 7.5 No pack listing for a pack that has none
 
 @req omit-pack-listings=v1
-@cites {
-    text#{conforming-program=v1},
-    #{pack=v1, pack-hash=v1},
-}
+@cites {conformance#{conforming-program=v1}, #{pack=v1, pack-hash=v1}}
 
 A conforming program must give no text as the pack listing of a pack
 that has no pack listing.
@@ -2718,7 +2728,8 @@ that has no pack listing.
 
 @req give-pack-hashes=v1
 @cites {
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     #{pack=v1, well-named-pack=v1, pack-hash=v1},
 }
 
@@ -2729,10 +2740,7 @@ pack hash of that pack.
 ### 7.7 No pack hash for a pack that has none
 
 @req omit-pack-hashes=v1
-@cites {
-    text#{conforming-program=v1},
-    #{pack=v1, pack-hash=v1},
-}
+@cites {conformance#{conforming-program=v1}, #{pack=v1, pack-hash=v1}}
 
 A conforming program must give no text as the pack hash of a pack that
 has no pack hash.
@@ -2742,7 +2750,8 @@ has no pack hash.
 @req validate-packs=v1
 @cites {
     wasm-core/2.0,
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{
         pack=v1, valid-pack=v1, webassembly-module=v1, usable-grammar=v1,
         query-language=v1, query-file=v1, parse-tree=v1,
@@ -2752,27 +2761,24 @@ has no pack hash.
 When a conforming program gives a result for whether a pack is valid,
 the program must give exactly one result: "valid" or "invalid". When the
 program gives that result for a pack that is not valid, the program must
-give "invalid". When the program gives that result for a pack that the
-program refuses for limits of its own, the program must give "invalid".
-When the program gives that result for a valid pack that the program
-does not refuse for limits of its own, the program must give "valid",
-except that the program can give "invalid" in two cases. First, when the
-program gives that result, the program can give "invalid" when the
-content of the file of a grammar of the pack is a WebAssembly module
-with an import that the program does not provide. Second, when the
-program gives that result, the program can give "invalid" when a query
-file of the pack holds a pattern that, without the predicates of that
-pattern, matches no part of any parse tree that the language of the
-grammar of that query file can give. The result "invalid" in either of
-those two cases is a choice of the program in a decision whether a pack
-is valid.
+give "invalid". When the program gives that result for a valid pack, the
+program must give "valid", except that the program can give "invalid" in
+two cases. First, when the program gives that result, the program can
+give "invalid" when the content of the file of a grammar of the pack is
+a WebAssembly module with an import that the program does not provide.
+Second, when the program gives that result, the program can give
+"invalid" when a query file of the pack holds a pattern that, without
+the predicates of that pattern, matches no part of any parse tree that
+the language of the grammar of that query file can give. The result
+"invalid" in either of those two cases is a choice of the program in a
+decision whether a pack is valid.
 
 ### 7.9 The values of the descriptor of a valid pack
 
 @req give-pack-descriptor-values=v1
 @cites {
     data-forms#{toml-value=v1, toml-value-equality=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{
         pack=v1, valid-pack=v1, valid-descriptor=v1, spec-version=v1,
         release-number=v1,
@@ -2791,7 +2797,8 @@ instead of it.
 
 @req omit-readings-for-invalid-packs=v1
 @cites {
-    text#{conforming-program=v1, result=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1},
     #{
         pack=v1, valid-pack=v1, parse-tree-order=v1, reading-result=v1,
         reading-of-a-text=v1,
@@ -2806,23 +2813,22 @@ a text with a pack that is not valid.
 @req give-reading-results=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1, result=v1, text=v1},
-    #{valid-pack=v1, reading-result=v1, file-grammar=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1},
+    #{valid-pack=v1, reading-result=v1},
 }
 
 When a conforming program gives a result of a reading of a text, as the
 text of a file at a valid path, with a valid pack, the program must give
-exactly one result: "no grammar", "parse failure", or "parsed". When the
-program gives that result, that valid path has a file grammar, and the
-program refuses the text for limits of its own, the program must give
-"parse failure". Otherwise, when the program gives that result, the
-program must give the result of that reading.
+exactly one result: the result of that reading. The result of that
+reading is "no grammar", "parse failure", or "parsed".
 
 ### 7.12 The nodes of readings
 
 @req give-reading-nodes=v1
 @cites {
-    text#{conforming-program=v1, result=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1},
     #{
         pack=v1, reading-of-a-text=v1, parse-tree-order=v1,
         comment-node=v1, definition-node=v1, decoration-node=v1,
@@ -2843,7 +2849,8 @@ give no other node as a node of that kind.
 
 @req give-reading-node-values=v1
 @cites {
-    text#{conforming-program=v1, result=v1, run=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, run=v1, text=v1},
     #{
         pack=v1, reading-of-a-text=v1, parse-tree-order=v1,
         node-run=v1, node-type=v1, comment-node=v1, definition-node=v1,
@@ -2863,7 +2870,8 @@ that node, and no other value instead of that value.
 
 @req omit-nodes-of-unparsed-readings=v1
 @cites {
-    text#{conforming-program=v1, result=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1, text=v1},
     #{
         valid-pack=v1, reading-result=v1, reading-of-a-text=v1,
         comment-node=v1, definition-node=v1, decoration-node=v1,
@@ -2873,9 +2881,6 @@ that node, and no other value instead of that value.
 
 When the result of a reading of a text with a valid pack is not
 "parsed", a conforming program must give no comment node, definition
-node, decoration node, or test node of that reading. When a conforming
-program gives the result "parse failure" for a reading of a text with a
-valid pack, the conforming program must give no comment node, definition
 node, decoration node, or test node of that reading.
 
 ### 7.15 What the code of a grammar can touch
@@ -2883,7 +2888,8 @@ node, decoration node, or test node of that reading.
 @req isolate-grammars=v1
 @cites {
     files#{taken-byte=v1},
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{usable-grammar=v1},
 }
 
@@ -2898,7 +2904,8 @@ starts a process.
 @req confine-grammars=v1
 @cites {
     wasm-core/2.0,
-    text#{conforming-program=v1, byte-sequence=v1},
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
     #{webassembly-module=v1, adapter-instance=v1},
 }
 
@@ -2916,7 +2923,8 @@ adapter.
 
 @req end-readings=v1
 @cites {
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     #{pack=v1, valid-pack=v1, reading-of-a-text=v1},
 }
 
@@ -2926,7 +2934,11 @@ each decision whether a pack is valid.
 ### 7.18 Code of grammars that ends
 
 @req end-grammar-code=v1
-@cites {text#{conforming-program=v1, byte-sequence=v1}, #{usable-grammar=v1}}
+@cites {
+    conformance#{conforming-program=v1},
+    text#{byte-sequence=v1},
+    #{usable-grammar=v1},
+}
 
 A conforming program must end the code of each byte sequence that it
 uses as a grammar.
@@ -2934,7 +2946,11 @@ uses as a grammar.
 ### 7.19 No symbolic link followed in a pack
 
 @req follow-no-pack-links=v1
-@cites {files#{folder-tree=v1, symbolic-link=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
+@cites {
+    files#{folder-tree=v1, symbolic-link=v1},
+    conformance#{conforming-program=v1},
+    #{pack=v1, pack-use=v1},
+}
 
 In each use of a pack, a conforming program must follow no symbolic link
 that is a file of the folder tree of the pack. In each use of a pack, a
@@ -2946,7 +2962,7 @@ that is a file of the folder tree of the pack.
 @req read-only-pack-files=v1
 @cites {
     files#{folder-tree=v1, folder=v1, regular-file=v1, taken-byte=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{pack=v1, pack-use=v1},
 }
 
@@ -2957,7 +2973,11 @@ regular files.
 ### 7.21 No wait for another process in a pack
 
 @req avoid-pack-waits=v1
-@cites {files#{folder-tree=v1, file-of-another-kind=v1}, text#{conforming-program=v1}, #{pack=v1, pack-use=v1}}
+@cites {
+    files#{folder-tree=v1, file-of-another-kind=v1},
+    conformance#{conforming-program=v1},
+    #{pack=v1, pack-use=v1},
+}
 
 In each use of a pack, a conforming program must not wait for another
 process or for a device to act on a file of another kind that is a file
@@ -2972,7 +2992,7 @@ end of a pipe.
         file-system=v1, folder-tree=v1, folder=v1, regular-file=v1,
         symbolic-link=v1, file-of-another-kind=v1, attribute=v1,
     },
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{pack=v1, pack-use=v1},
 }
 
@@ -2989,7 +3009,7 @@ such as a change of the time of last access.
 @cites {
     posix/2024,
     files#{system=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{pack=v1, pack-use=v1},
 }
 
@@ -3006,10 +3026,9 @@ process that acts for the conforming program.
 
 ## 8. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-[conforming program](sinter:text#conforming-program=v1) of this design:
-when it meets every requirement of this design, the requirements of the
-specifications of this design included. The vectors of the requirements
+A program conforms to this design when it is a
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
+The vectors of the requirements
 that the design holds directly, outside its specifications, are in the
 file [`packs.test-vectors.jsonl`](packs.test-vectors.jsonl), in the same
 folder as this design. The file is a test-vector set, in the form that
@@ -3045,9 +3064,10 @@ group uses, each with the need that it stands for.
         hex-text=v1, json-value=v1, hash=v1, group-form-list=v1,
         vector-meaning=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, byte=v1, text=v1,
-        result=v1, code-span=v1,
+        byte-sequence=v1, byte=v1, text=v1, 0x-numeral=v1, result=v1,
+        code-span=v1,
     },
     #{
         pack=v1, pack-use=v1, valid-pack=v1, valid-descriptor=v1,
@@ -3068,8 +3088,9 @@ the vectors:
 - `entries`, for a folder only: an array with one entry object for each
   folder entry of the folder, in increasing order of the bytes of their
   entry names. An entry object has two members: `name`, the entry name,
-  as a byte sequence, and `file`, the file object of the file of the
-  folder entry.
+  as a byte sequence that is not empty, is not 0x2E (`.`) and not 0x2E,
+  0x2E (`..`), and holds neither 0x00 nor 0x2F (`/`), and `file`, the
+  file object of the file of the folder entry.
 - `content`, for a regular file only: its content as pieces, an array of
   objects that each have the members `bytes`, a byte sequence, and
   `times`, an integer of 1 or more. The content is the bytes of each
@@ -3139,10 +3160,10 @@ that member names this need and no other.
     data-forms#{
         json-value=v1, key-order=v1, group-form-list=v1, vector-meaning=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, byte=v1, text=v1,
-        character=v1, 0x-numeral=v1, result=v1, code-span=v1,
-        code-point-order=v1,
+        byte-sequence=v1, byte=v1, text=v1, character=v1, 0x-numeral=v1,
+        result=v1, code-span=v1, code-point-order=v1,
     },
     #{
         invalid-pack-vector=v1, pack=v1, pack-use=v1, pack-hash=v1,
@@ -3215,10 +3236,10 @@ and no other.
     data-forms#{
         json-value=v1, key-order=v1, group-form-list=v1, vector-meaning=v1,
     },
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, byte-sequence=v1, byte=v1,
-        valid-utf-8=v1, text=v1, character=v1, 0x-numeral=v1, result=v1,
-        code-span=v1,
+        byte-sequence=v1, byte=v1, valid-utf-8=v1, text=v1,
+        character=v1, 0x-numeral=v1, result=v1, code-span=v1,
     },
     #{
         invalid-pack-vector=v1, pack=v1, pack-use=v1,

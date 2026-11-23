@@ -3,12 +3,13 @@
 
 # Findings
 @design findings=v1
+@cites conformance=v1
 @cites text=v1
 @cites identifiers=v1
 @cites files=v1
 @cites data-forms=v1
 @cites ontology=v1
-Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
+Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids, path-finding subjects, and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, that validate sequences of edit descriptions, and that make fixes.
 
 A finding reports one condition at one part of a repository, such as an
 item of the kind requirement that no test cites. Each finding has a
@@ -23,19 +24,21 @@ message and one or more edit sets. Each edit set changes the texts of
 files. Each edit set corrects the finding or adds an acknowledgment of
 the finding by a person.
 
-From Text and notation, the design takes whole numbers, decimal
-numerals, 0x numerals, U+ numerals, and hex digits; bytes and byte
-sequences; texts, characters, spaces, tabs, line feeds, carriage
-returns, code spans, and productions; places, runs, boundaries, byte
-order marks, bodies, line endings, lines, line numbers, columns,
-positions, and spans, with the start and the end of a span; valid UTF-8,
-UTF-8 encodings, and the text of a byte sequence; and conforming
-programs, inputs, and results. From Identifiers, it takes slugs and the
-form of `@ack` lines. From Files and paths, it takes valid paths. From
-the Ontology, it takes findings and finding classes, items, schemas,
-trees, people, and the ledger. From Data forms, the design takes JSON
-values, with the members of objects and their keys, and hex texts. From
-the specification `test-vectors` of Data forms, the design takes
+From Conformance (`conformance`), the design takes conforming programs,
+inputs, and the general requirements that bind every conforming program.
+From Text and notation, the design takes whole numbers, 0x numerals,
+U+ numerals, and hex digits; bytes and byte sequences; texts,
+characters, spaces, tabs, line feeds, carriage returns, code spans, productions,
+and algorithms; places, runs, boundaries, byte order marks, bodies, line
+endings, lines, line numbers, columns, positions, and spans, with the
+start and the end of a span; valid UTF-8, UTF-8 encodings, and the text
+of a byte sequence; and results. From Identifiers, it takes slugs and
+the form of `@ack` lines. From Files and paths, it takes valid paths and
+folders. From the Ontology, it takes findings and finding classes,
+items, schemas, trees, people, and the ledger, with its log branch. From
+Data forms, the design takes JSON values (strings, integers, arrays, and
+objects, with the members of objects and their keys), and hex texts.
+From the specification `test-vectors` of Data forms, the design takes
 test-vector sets. The file that holds the conformance vectors of the
 design is a test-vector set. From that specification, it also takes
 vector lines, the forms of a group, needs and need names, and what a
@@ -48,14 +51,16 @@ vector line states.
 | [finding](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository |
 | [finding class](sinter:ontology#finding-class=v1) | a kind of finding, which a slug names |
 | [item](sinter:ontology#item=v1) | a thing that Sinter traces, such as an item of the kind requirement, a test, or a task |
-| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; the schema gives the form of a thing that crosses the boundary of a conforming program: the layout of the thing and every constraint that is a property of the thing itself |
+| [schema](sinter:ontology#schema=v1) | a declared item of the kind `schema` (in the text encoding, declared with `@schema`); it gives the form of an input or output that crosses the edge of a conforming program, or the form of a file of test cases for a design: its layout and every constraint that is a property of it alone |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | a set of files, such as the files at a commit or the files in a working tree; each file has a valid path and a content, which is a byte sequence, and no two files in the set have the same valid path |
-| [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository, each a record of one event, such as one approval |
+| [ledger](sinter:ontology#ledger=v1) | the statements stored as fixed object files in `.sinter/` of a tree together with the observations and kept objects on the log branch |
+| [log branch](sinter:ontology#log-branch=v1) | a dedicated branch of a repository, named by a parameter, that holds only the observations and kept objects written by the job and that only grows |
 | [person](sinter:ontology#person=v1) | a human who works on a repository |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
+| [folder](sinter:files#folder=v1) | a file that holds folder entries |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
-| [line feed](sinter:text#line-feed=v1), [carriage return](sinter:text#carriage-return=v1) | the characters U+000A and U+000D |
+| [space](sinter:text#space=v1), [tab](sinter:text#tab=v1), [line feed](sinter:text#line-feed=v1), [carriage return](sinter:text#carriage-return=v1) | the characters U+0020, U+0009, U+000A, and U+000D |
 | [place](sinter:text#place=v1) | a whole number, from 1 to the number of the characters of a text, at which a character is in the text |
 | [boundary](sinter:text#boundary=v1) | a whole number from 0 to the number of characters of a text: boundary 0 is before the first character, and each other boundary k is right after the k-th character |
 | [run](sinter:text#run=v1) | the characters of a text from one boundary to the same boundary or a later boundary; a run can be empty |
@@ -67,9 +72,10 @@ vector line states.
 | [span](sinter:text#span=v1) | a run of a text that starts and ends at boundaries of the body |
 | [start of a span, end of a span](sinter:text#span=v1) | the position of the boundary where a span starts; and the position of the boundary right after the last place of the span that is a place of a line, or the start of the span when the span has no such place |
 | [valid UTF-8](sinter:text#valid-utf-8=v1) | a byte sequence is valid UTF-8 when it is the UTF-8 encoding of a text |
-| execution | the work of a program from its start to its end |
-| [conforming program](sinter:text#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
-| [input](sinter:text#input=v1) | a thing that a conforming program takes |
+| [algorithm](sinter:text#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names; a program can get that value in any way |
+| execution | the work of a program from its start to its end; for a part of a program, one call of that part, which Conformance calls a run |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
+| [input](sinter:conformance#input=v1) | a thing that a conforming program takes |
 | [result](sinter:text#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
@@ -77,6 +83,7 @@ vector line states.
 | [message](sinter:#message=v1) | a text for people, not empty, with no line feed and no carriage return, whose words the program that gives it chooses |
 | [`@ack` line](sinter:identifiers#ack-line=v1) | a tag line with the tag word `@ack`, then a slug, then, as an option, a text that matches the production `subject`, then a hash prefix of 8 to 64 hex digits, such as `@ack old-word docs/guide.md@L3C5 3f2a9c1d`; a text that matches `subject` is not empty and does not start or end with a space or a tab |
 | [subject of a finding](sinter:#finding-subject=v1) | the text that names what a finding is about; it matches the production `subject` of the schema `ack-line` of Identifiers and holds no line feed |
+| [path-finding subject](sinter:#path-finding-subject=v1) | for a valid path, that valid path, or `/` followed by that valid path with `%`, line feed, space, and tab percent-encoded when that valid path holds a line feed or starts or ends with a space or a tab |
 | [finding id](sinter:#finding-id=v1) | the text `finding:`, then the slug that names the finding class of a finding, then `:`, then the subject of the finding |
 | [same finding](sinter:#same-finding=v1) | two findings are the same finding when, and only when, the slugs that name their finding classes are the same text and their subjects are the same text, in any tree and in any execution of a program |
 | [spot](sinter:#spot=v1) | a valid path of a file of a tree, alone, or, when the content of the file is valid UTF-8, with a span of the text of that content that starts at no boundary inside a line ending and ends at no boundary inside a line ending |
@@ -146,6 +153,11 @@ that no name names, such as one word on one line, can have a subject
 that holds the valid path of the file of that thing and the position of
 that thing, such as `docs/guide.md@L3C5`. Such a subject changes when
 lines move.
+
+For a finding about a valid path, the path-finding subject gives a valid
+subject for that valid path (term `path-finding-subject`). For example,
+`docs/a.md` has the path-finding subject `docs/a.md`, ` run.sh` has
+`/%20run.sh`, and `tmp.txt ` has `/tmp.txt%20`.
 
 ### 2.2 Spots and their positions
 
@@ -220,8 +232,9 @@ repository. The tree of that spot is a part of the related message. For
 example, a finding about a citation that names an old revision can have,
 as a related message, the message `declared here` with the spot of the
 declaration of the item that the citation names. A related message
-without a spot can tell of something that is in no file, such as an
-entry of the ledger. The related messages of a finding are a set. That
+without a spot can tell of something that is in no file of a tree, such
+as a commit of the log branch of the ledger. The related messages
+of a finding are a set. That
 set is also a part of the finding. Those related messages have no order.
 No two of those related messages are the same message with the same spot
 in the same tree, or the same message with no spot.
@@ -270,7 +283,10 @@ of a fix have numbers from 1, in their order. No two edit sets of a fix
 are the same set. The message of the fix says what the fix does. To make
 a fix is to make the edits of exactly one of its edit sets. So when a
 fix has two or more edit sets, someone chooses one of them. The fix of a
-finding is a fix in the tree of the finding.
+finding is a fix in the tree of the finding. In an execution in which a
+conforming program could not take content of a file or a folder under
+the term `input` of Conformance, that conforming program makes no fix
+(requirement `make-no-fixes-on-unreadable-files`).
 
 An edit set in a tree corrects a finding of that tree when, in the
 edited tree of the edit set, the condition that the finding reports no
@@ -613,7 +629,7 @@ finding by a person can have effect.
     identifiers#{slug=v1},
     files#{path=v1},
     text#{span=v1, run=v1},
-    ontology#{finding-class=v1, tree=v1, ledger=v1},
+    ontology#{finding-class=v1, tree=v1, ledger=v1, log-branch=v1},
     #{
         finding-subject=v1, message=v1, spot=v1, mark=v1,
         related-message=v1, fix=v1, edit-set=v1, edit=v1,
@@ -625,7 +641,7 @@ The parts of a finding are these:
 
 - its tree: the tree in which it reports its condition, when it is a
   finding of a tree; or no tree, when it reports a condition outside
-  every tree, such as a condition of the ledger alone;
+  every tree, such as a condition of the log branch of the ledger;
 - its finding class, by the slug that names that finding class;
 - its subject;
 - its message: a message that says what is wrong;
@@ -667,13 +683,43 @@ when, in the edited tree of the edit set, the condition that the finding
 reports no longer holds for what the finding is about, wherever the
 edits of the edit set move that thing.
 
+### 3.23 Subjects for valid paths
+
+@term path-finding-subject=v1
+@cites {
+    files#{path=v1},
+    text#{
+        text=v1, character=v1, place=v1, space=v1, tab=v1,
+        line-feed=v1, algorithm=v1, code-span=v1,
+    },
+    #{finding-subject=v1},
+}
+
+A valid path needs path encoding when, and only when, it holds a line
+feed, its first character is a space or a tab, or its last character is
+a space or a tab.
+
+The path-finding subject of a valid path *f* is the text that these
+steps give.
+
+1. If *f* does not need path encoding, give *f*.
+2. Let *s* be `/`.
+3. For each *ch* of *f*, in order:
+   1. Let *out* be *ch*.
+   2. If *ch* is `%`, set *out* to `%25`.
+   3. If *ch* is a line feed, set *out* to `%0A`.
+   4. If *ch* is a space, set *out* to `%20`.
+   5. If *ch* is a tab, set *out* to `%09`.
+   6. Append *out* to *s*.
+4. Give *s*.
+
 ## 4. Requirements
 
 ### 4.1 The parts of each finding
 
 @req give-finding-parts=v1
 @cites {
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     ontology#{finding-class=v1},
     #{finding-part=v1},
 }
@@ -686,7 +732,7 @@ of that finding, and nothing else, as that part.
 
 @req omit-absent-finding-parts=v1
 @cites {
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     ontology#{finding-class=v1},
     #{finding-part=v1},
 }
@@ -698,7 +744,8 @@ finding does not have that part.
 
 @req give-finding-ids=v1
 @cites {
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     ontology#{finding-class=v1},
     #{finding-id=v1},
 }
@@ -711,7 +758,7 @@ finding id of that finding.
 
 @req give-consistent-findings=v1
 @cites {
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     ontology#{finding-class=v1, tree=v1},
     #{same-finding=v1, finding-part=v1},
 }
@@ -725,7 +772,8 @@ one tree or both of no tree.
 
 @req give-start-positions=v1
 @cites {
-    text#{conforming-program=v1, position=v1, line-number=v1},
+    conformance#{conforming-program=v1},
+    text#{position=v1, line-number=v1},
     #{spot=v1, start-position=v1},
 }
 
@@ -740,7 +788,8 @@ that start position.
 
 @req give-positions-after-spots=v1
 @cites {
-    text#{conforming-program=v1, position=v1, line-number=v1},
+    conformance#{conforming-program=v1},
+    text#{position=v1, line-number=v1},
     #{spot=v1, position-after-spot=v1},
 }
 
@@ -754,7 +803,8 @@ position after that spot, and no other column, for that position.
 
 @req omit-positions-without-spans=v1
 @cites {
-    text#{conforming-program=v1, position=v1, line-number=v1, span=v1},
+    conformance#{conforming-program=v1},
+    text#{position=v1, line-number=v1, span=v1},
     #{spot=v1, start-position=v1, position-after-spot=v1},
 }
 
@@ -766,7 +816,8 @@ spot.
 
 @req validate-edit-sets=v1
 @cites {
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     ontology#{tree=v1},
     #{edit-description=v1, edit-set-description=v1, edit-set=v1},
 }
@@ -782,7 +833,8 @@ the sequence does not describe an edit set in the tree.
 @req give-edited-texts=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     ontology#{tree=v1},
     #{
         edit-description=v1, edit-set-description=v1, edit-set=v1,
@@ -803,7 +855,8 @@ valid path for that edit set, and no other text.
 @req omit-edited-texts=v1
 @cites {
     files#{path=v1},
-    text#{conforming-program=v1, text=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1},
     ontology#{tree=v1},
     #{
         edit-description=v1, edit-set-description=v1, edit=v1,
@@ -823,7 +876,7 @@ sequence.
 
 @req limit-fix-edit-sets=v1
 @cites {
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     ontology#{finding-class=v1},
     #{
         finding-part=v1, fix=v1, edit-set=v1, correction=v1,
@@ -836,6 +889,22 @@ fix of F, only an edit set that adds no acknowledgment of a finding that
 is not the same finding as F. For a finding F, a conforming program must
 give, as an edit set of the fix of F, only an edit set that corrects F
 or, when F is ackable, adds an acknowledgment of F.
+
+### 4.12 No fix when a file cannot be read
+
+@req make-no-fixes-on-unreadable-files=v1
+@cites {
+    conformance#{conforming-program=v1, input=v1},
+    files#{folder=v1},
+    text#{code-span=v1},
+    ontology#{tree=v1},
+    #{fix=v1},
+}
+
+In an execution in which content of a file or a folder is a part that an
+input lacks under the term `input` of Conformance because a conforming
+program could not take that content, that conforming program must make
+no fix in any tree.
 
 ## 5. Conformance
 
@@ -855,19 +924,19 @@ gives the forms of the group: the requirements that the vectors of the
 group follow from, and the inputs, results, and values of those vectors.
 No group of this design uses a need, so the forms of each group give no
 need names. These requirements have no vectors: `give-finding-parts`,
-`omit-absent-finding-parts`, `give-consistent-findings`, and
-`limit-fix-edit-sets`.
+`omit-absent-finding-parts`, `give-consistent-findings`,
+`limit-fix-edit-sets`, and `make-no-fixes-on-unreadable-files`.
 
 ### 5.1 The edits of edit sets
 
 @schema edit-set-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, character=v1, line-feed=v1,
-        whole-number=v1, decimal-numeral=v1, 0x-numeral=v1,
-        boundary=v1, position=v1, line-number=v1, sequence=v1,
-        valid-utf-8=v1, text-of-a-byte-sequence=v1, result=v1,
-        code-span=v1,
+        text=v1, character=v1, line-feed=v1, whole-number=v1,
+        0x-numeral=v1, boundary=v1, position=v1,
+        line-number=v1, sequence=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1, result=v1, code-span=v1,
     },
     files#{path=v1},
     ontology#{tree=v1},
@@ -890,9 +959,9 @@ sequence, or a tree has this form:
   is a JSON string whose characters are the characters of the text, in
   order. So the text `a`, a line feed, `b` is `"a\nb"`, and the empty
   text is `""`.
-- A whole number, such as a boundary, a line number, or a column, is a
-  JSON number written as the decimal numeral of that whole number, such
-  as `12`.
+- A whole number from −9,007,199,254,740,991 to 9,007,199,254,740,991,
+  such as a boundary, a line number, or a column, is an integer, such as
+  `12` or `-1`.
 - A position is a JSON object with two members: `line`, the line number
   of the position, and `column`, the column of the position. So the
   position line 3, column 7 is `{"column":7,"line":3}`.
@@ -946,7 +1015,8 @@ sequence.
 
 @schema finding-id-vector=v1
 @cites {
-    text#{conforming-program=v1, text=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{text=v1, code-span=v1},
     identifiers#{slug=v1},
     ontology#{finding-class=v1},
     data-forms#{
@@ -984,9 +1054,10 @@ other text.
 
 @schema spot-position-vector=v1
 @cites {
+    conformance#{conforming-program=v1},
     text#{
-        conforming-program=v1, text=v1, whole-number=v1, run=v1,
-        boundary=v1, span=v1, position=v1, line-number=v1, code-span=v1,
+        text=v1, whole-number=v1, run=v1, boundary=v1, span=v1,
+        position=v1, line-number=v1, code-span=v1,
     },
     data-forms#{
         json-value=v1, vector-line=v1, group-form-list=v1,

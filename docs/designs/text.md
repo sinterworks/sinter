@@ -3,11 +3,12 @@
 
 # Text and notation
 @design text=v1
+@cites conformance=v1
 @cites rfc/3629
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; designs, requirements, and code spans; the notation of productions and rule names; sequences and the notation of algorithms; conforming programs, inputs, and results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
+Specifies, as used in Sinter, whole numbers, numerals, and hex digits; code points, characters, code point order, texts, places, boundaries, and runs; bytes and UTF-8; byte order marks, bodies, line endings, lines, line numbers, positions, and spans; code spans and blocks; the notation of productions and rule names; sequences and the notation of algorithms; results; canonical vector lines and the layout of the vector file; and requirements for conforming programs that validate and decode UTF-8, give UTF-8 encodings, and give lines, line numbers, the positions of characters, and the starts and ends of spans.
 
 A text is a finite sequence of characters, such as `docs/a.md`. A byte
 sequence, such as 0x68, 0x69, is the UTF-8 encoding of a text when the
@@ -27,6 +28,10 @@ algorithm is a header sentence, then numbered steps, such as
 `1. Let *s* be the empty text.`, and each step is in one of a fixed set
 of forms.
 
+From Conformance (`conformance`), the design takes what a design, a
+definition, a schema, a requirement, a conforming program, and an input
+are.
+
 From RFC 3629, the design takes UTF-8: how a byte sequence encodes a
 text, the rule `UTF8-char`, and the rule `UTF8-octets`. The rule
 `UTF8-char` matches the bytes that encode one character. The rule
@@ -40,16 +45,12 @@ design has one JSON text on each line of the text of that file.
 
 | word or phrase | meaning |
 |---|---|
-| [definition](sinter:#design=v1) | a term, a schema, or an atom that a design declares under a name |
-| term | a definition that a design declares under a name, such as `whole-number`, that says what a word means, gives a grammar rule that is a building block, or defines a computed value |
-| schema | a definition that a design declares under a name, such as `decode-vector`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
-| atom | a definition, declared by a design under a name, that defines a named verdict that a conforming program gives, with the condition under which it gives that name |
-| [requirement](sinter:#requirement=v1) | an obligation that a design declares under a name, such as `give-lines`, and states with the word must |
-| [design](sinter:#design=v1) | a document that declares, each under a name, obligations and definitions |
-| [specification](sinter:#specification=v1) | a part of a design that has a name of its own and declares some of the obligations and definitions of the design |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design, or every requirement that a specification of a design declares |
-| must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a conforming program takes, such as a byte sequence or a text |
+| [design](sinter:conformance#design=v1) | a document of Sinter that declares items under names, each with a kind and a revision |
+| [definition](sinter:conformance#design=v1) | a term, a schema, or an atom that a design declares under a name |
+| [schema](sinter:conformance#design=v1) | a definition that a design declares under a name that gives the form of a concrete thing that crosses the edge of a program, or the form of a file of test cases for a design: its layout and every constraint that is a property of the thing itself |
+| [requirement](sinter:conformance#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `end-runs-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
+| [input](sinter:conformance#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree |
 | decode | a conforming program decodes a byte sequence as UTF-8 when the conforming program gives a result for whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
 | [result](sinter:#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input. The double quotes are not part of the result. A conforming program gives a result when the conforming program gives something that stands for that result and for no other result. |
 | [whole number](sinter:#whole-number=v1) | a number with no fractional part, such as −7, 0, or 42 |
@@ -93,7 +94,7 @@ design has one JSON text on each line of the text of that file.
 | [element](sinter:#sequence=v1) | The k-th element of a sequence is the thing of the sequence at number k, from 1. One thing can be the element of a sequence at more than one number. The empty sequence has no element. |
 | [append](sinter:#sequence=v1) | appending a thing to a sequence gives the sequence of the elements of that sequence, in their order, and then that thing as the last element |
 | [remove](sinter:#sequence=v1) | removing the k-th elements of a sequence for some numbers k gives the sequence of the elements of that sequence at the other numbers, in their order |
-| [algorithm](sinter:#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names, such as the spaced text of a text in section 2.9; a program can get that value in any way |
+| [algorithm](sinter:#algorithm=v1) | a header sentence and numbered steps on lines of a definition, which define the value that the header names, such as the spaced text of a text in section 2.8; a program can get that value in any way |
 | [step](sinter:#algorithm=v1) | a numbered line of an algorithm, with the lines after that numbered line up to the next numbered line, in one of a fixed set of forms, such as `Give *s*.`; a step that ends with `:` has substeps |
 | [value name](sinter:#algorithm=v1) | in an algorithm, a word of the letters `a` to `z`, or words joined by `-`, written between two `*`, such as `*s*`; a value name stands for one value at a time |
 | [give](sinter:#algorithm=v1) | for each choice of a value for each header value name of an algorithm, the algorithm gives the value V of the step `Give V.` at which the steps of the algorithm end for these values |
@@ -347,31 +348,7 @@ has the start line 1, column 4, and the end line 1, column 4.
 | `a`, a line feed | 2 to 2 | line 2, column 1 | line 2, column 1 |
 | the empty text | 0 to 0 | line 1, column 1 | line 1, column 1 |
 
-### 2.5 Designs, specifications, requirements, and conforming programs
-
-A design is a document that declares, each under a name, obligations
-and definitions. A definition of a design is a term, a schema, or an
-atom that the design declares under a name, such as `whole-number`. A
-requirement is an obligation that a design declares under a name, such
-as `give-lines`, and states with the word must. A specification of a
-design is a part of the design that has a name of its own and that
-declares some of the obligations and definitions of the design.
-
-A conforming program of a design is a program, or a part of a program,
-that meets every requirement of the design. A conforming program of a
-specification meets every requirement that the specification declares,
-and the conforming program need not meet the other requirements of the
-design. So one program can hold conforming programs of several designs
-and of several specifications. In a specification of a design, a
-conforming program is a conforming program of that specification.
-Elsewhere in a design, a conforming program is a conforming program of
-that design. Each obligation that a requirement states with the word
-must is an obligation of each conforming program of the design that
-declares the requirement. When a specification of that design declares
-that requirement, that obligation is also an obligation of each
-conforming program of that specification.
-
-### 2.6 Code spans and blocks
+### 2.5 Code spans and blocks
 
 A backtick is the character U+0060, whose code point is 96. In a
 definition or a requirement, a line whose first characters, after any
@@ -381,7 +358,7 @@ closes that block, the line after that opens a new block, and so on.
 The lines of a block are the lines from the line that opens the block
 to the line that closes it, or to the last line of the definition or
 the requirement when no line closes it. The rule of a production is on
-the lines of a block, such as the rule of `hex-digit` in section 3.28.
+the lines of a block, such as the rule of `hex-digit` in section 3.26.
 No backtick on the lines of a block belongs to a pair.
 
 On every other line of a definition or a requirement, the backticks
@@ -392,7 +369,7 @@ block, is a character like any other. The characters between the two
 backticks of a pair, such as `%x61`, are a code span. A code span
 stands for those characters, and the backticks are not part of them.
 
-### 2.7 Productions
+### 2.6 Productions
 
 A production is a rule of ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405. A definition or a requirement holds
@@ -410,7 +387,7 @@ terminal value in a core rule that a production uses, directly or
 through other core rules, matches a character in the same way. A quoted
 string matches its letters in either case. The core rule `HEXDIG` uses
 quoted strings for its letters. So `HEXDIG` matches both `a` and `A`.
-The production `hex-digit` of section 3.28 uses `%x61-66` for its
+The production `hex-digit` of section 3.26 uses `%x61-66` for its
 letters, so `hex-digit` matches `a` and does not match `A`.
 
 When a definition or a requirement R holds a rule of ABNF, a rule name
@@ -435,26 +412,25 @@ The order of the alternatives has no effect, so a production
 `p = "a" / "ab"` matches the text `ab`, although the first alternative
 of the production matches the first character of `ab`. A text matches a
 production only as a whole. The text `42` matches the production
-`decimal-numeral` of section 3.25, and the text `42a` does not, although
+`decimal-numeral` of section 3.23, and the text `42a` does not, although
 the first two characters of `42a` are `42`. A character matches a
 production when the text of that one character matches the production,
 so the character `a` matches `hex-digit`.
 
-### 2.8 Inputs and results
+### 2.7 Decoding and results
 
-An input is a thing that a conforming program takes, such as a byte
-sequence or a text. A conforming program decodes a byte sequence as
-UTF-8 when the conforming program gives a result for whether the byte
-sequence is valid UTF-8 and, when the byte sequence is valid UTF-8,
-gives the text of the byte sequence. A result of a requirement is a text
-that the requirement shows between two double quotes, such as "valid",
-as one of the cases of what a conforming program gives for an input. The
-double quotes are not part of the result. A conforming program gives a
-result when it gives something that stands for that result and for no
-other result. So a program that gives the number 1 for "valid" and the
-number 0 for "invalid" gives these two results.
+A conforming program decodes a byte sequence as UTF-8 when the
+conforming program gives a result for whether the byte sequence is valid
+UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the
+byte sequence. A result of a requirement is a text that the requirement
+shows between two double quotes, such as "valid", as one of the cases of
+what a conforming program gives for an input. The double quotes are not
+part of the result. A conforming program gives a result when it gives
+something that stands for that result and for no other result. So a
+program that gives the number 1 for "valid" and the number 0 for
+"invalid" gives these two results.
 
-### 2.9 Sequences and algorithms
+### 2.8 Sequences and algorithms
 
 A sequence has a number of elements, 0 or more, each a thing at its own
 number from 1, such as the lines of a text in the order of their line
@@ -464,7 +440,7 @@ character, `c`.
 
 A definition can define a value by an algorithm. An algorithm is a
 header sentence, then numbered steps, and each step is in one of the
-forms that the term `algorithm` of section 3.39 lists. That term also
+forms that the term `algorithm` of section 3.34 lists. That term also
 says what the steps define. For example, a definition could define the
 spaced text of a text by this algorithm:
 
@@ -536,23 +512,7 @@ A line feed is the character whose code point is 10.
 
 A carriage return is the character whose code point is 13.
 
-### 3.8 Designs
-
-@term design=v1
-
-A design is a document that declares, each under a name, obligations
-and definitions. A definition of a design is a term, a schema, or an
-atom that the design declares under a name.
-
-### 3.9 Requirements
-
-@term requirement=v1
-@cites #{design=v1}
-
-A requirement is an obligation that a design declares under a name and
-states with the word must.
-
-### 3.10 Texts
+### 3.8 Texts
 
 @term text=v1
 @cites #{character=v1}
@@ -563,7 +523,7 @@ texts have the same number of characters and, in the order of the
 characters of each text, the same first character, the same second
 character, and so on to the last character.
 
-### 3.11 Places
+### 3.9 Places
 
 @term place=v1
 @cites #{text=v1, character=v1, whole-number=v1}
@@ -573,7 +533,7 @@ characters of the text. For each place k of a text, the character at
 place k is the k-th character of the text. The character at place 1 is
 the first character of the text.
 
-### 3.12 Code point order
+### 3.10 Code point order
 
 @term code-point-order=v1
 @cites #{character=v1, code-point=v1, text=v1, place=v1}
@@ -591,7 +551,7 @@ point order, when, and only when, A and B meet one of these conditions:
 - A has fewer characters than B. At each place of A, B has the same
   character as A.
 
-### 3.13 Boundaries
+### 3.11 Boundaries
 
 @term boundary=v1
 @cites #{text=v1, place=v1, character=v1, whole-number=v1}
@@ -600,7 +560,7 @@ A boundary of a text is a whole number from 0 to the number of
 characters of the text. Boundary 0 is before place 1. Each other
 boundary k is right after place k.
 
-### 3.14 Runs
+### 3.12 Runs
 
 @term run=v1
 @cites #{text=v1, place=v1, boundary=v1, character=v1}
@@ -618,7 +578,7 @@ characters of the run, in their order. A boundary of a run is a boundary
 of the text from the boundary where the run starts to the boundary where
 the run ends.
 
-### 3.15 Byte order marks
+### 3.13 Byte order marks
 
 @term byte-order-mark=v1
 @cites #{text=v1, place=v1, character=v1, code-point=v1}
@@ -627,7 +587,7 @@ A text has a byte order mark when, and only when, the character at place
 1 of the text is the character whose code point is 65,279. The byte
 order mark of such a text is that character, at place 1.
 
-### 3.16 Bodies
+### 3.14 Bodies
 
 @term body=v1
 @cites #{text=v1, run=v1, boundary=v1, byte-order-mark=v1}
@@ -637,7 +597,7 @@ that starts at boundary 1 and ends at the last boundary of the text.
 The body of every other text is the run of the text that starts at
 boundary 0 and ends at the last boundary of the text.
 
-### 3.17 Line endings
+### 3.15 Line endings
 
 @term line-ending=v1
 @cites #{
@@ -654,7 +614,7 @@ conditions, where p is the boundary where the run ends:
   1 is a carriage return, the run starts at boundary p − 2. Otherwise,
   the run starts at boundary p − 1.
 
-### 3.18 Lines
+### 3.16 Lines
 
 @term line=v1
 @cites #{text=v1, run=v1, boundary=v1, body=v1, line-ending=v1}
@@ -671,7 +631,7 @@ conditions:
 - When the run ends at the boundary where the body ends, the run is not
   empty.
 
-### 3.19 Line numbers
+### 3.17 Line numbers
 
 @term line-number=v1
 @cites #{
@@ -686,7 +646,7 @@ line number of that line is 1 more than the line number of the line that
 ends at the boundary where that line ending starts. The lines of a text
 are in the order of their line numbers.
 
-### 3.20 Positions
+### 3.18 Positions
 
 @term position=v1
 @cites #{
@@ -714,7 +674,7 @@ body of a text is this:
 The position of a place p of the body of a text is the position of the
 boundary p − 1. The character at place p has that position.
 
-### 3.21 Spans
+### 3.19 Spans
 
 @term span=v1
 @cites #{
@@ -729,12 +689,12 @@ of the span are places of a line, the end of the span is the position of
 boundary k, where k is the last place of the span that is a place of a
 line. Otherwise, the end of the span is the start of the span.
 
-### 3.22 Code spans
+### 3.20 Code spans
 
 @term code-span=v1
-@cites #{
-    character=v1, code-point=v1, design=v1, requirement=v1, text=v1,
-    line=v1, space=v1,
+@cites {
+    conformance#{design=v1, requirement=v1},
+    #{character=v1, code-point=v1, text=v1, line=v1, space=v1},
 }
 
 A backtick is the character whose code point is 96. In the text of a
@@ -751,10 +711,13 @@ backtick that belongs to no pair is a character like any other. A code
 span is the characters between the two backticks of a pair. A code span
 stands for those characters, and the backticks are not part of them.
 
-### 3.23 Rule names
+### 3.21 Rule names
 
 @term rule-name=v1
-@cites {rfc/5234, #{design=v1, requirement=v1, code-span=v1, line=v1}}
+@cites {
+    rfc/5234, conformance#{design=v1, requirement=v1},
+    #{code-span=v1, line=v1},
+}
 
 A definition or a requirement R of a design holds a rule of ABNF when,
 and only when, the rule is on the lines of one of the blocks of R. A
@@ -766,15 +729,12 @@ rule name, without regard to case, and that is one of these:
 - A rule of ABNF that a definition Q holds, when R refers to Q as a
   definition whose meaning R uses.
 
-### 3.24 Productions
+### 3.22 Productions
 
 @term production=v1
 @cites {
-    rfc/5234, rfc/7405,
-    #{
-        design=v1, requirement=v1, rule-name=v1, code-span=v1,
-        character=v1, code-point=v1, text=v1,
-    },
+    rfc/5234, rfc/7405, conformance#{design=v1, requirement=v1},
+    #{rule-name=v1, code-span=v1, character=v1, code-point=v1, text=v1},
 }
 
 ABNF is the notation of RFC 5234, with the case-sensitive strings of RFC
@@ -802,7 +762,7 @@ repetition. The order of the alternatives has no effect. A character
 matches a production when, and only when, the text of that one character
 matches the production.
 
-### 3.25 Decimal numerals
+### 3.23 Decimal numerals
 
 @term decimal-numeral=v1
 @cites #{
@@ -823,7 +783,7 @@ its characters write in base 10, with `0` for 0, `1` for 1, `2` for 2,
 `9` for 9. The decimal numeral of a whole number of 0 or more is the
 decimal numeral that writes that whole number.
 
-### 3.26 0x numerals
+### 3.24 0x numerals
 
 @term 0x-numeral=v1
 @cites #{
@@ -843,7 +803,7 @@ for 4, `5` for 5, `6` for 6, `7` for 7, `8` for 8, `9` for 9, `A` for
 10, `B` for 11, `C` for 12, `D` for 13, `E` for 14, and `F` for 15. For
 example, 0x0A writes 10.
 
-### 3.27 U+ numerals
+### 3.25 U+ numerals
 
 @term u-numeral=v1
 @cites #{
@@ -868,7 +828,7 @@ that code point and has four characters after `U+`. When a code point is
 65,536 or more, the U+ numeral of that code point is the U+ numeral that
 writes that code point and has no `0` as its first character after `U+`.
 
-### 3.28 Hex digits
+### 3.26 Hex digits
 
 @term hex-digit=v1
 @cites #{
@@ -888,14 +848,14 @@ for 9, `a` for 10, `b` for 11, `c` for 12, `d` for 13, `e` for 14, and
 `f` for 15. The hex digit of a whole number from 0 to 15 is the hex
 digit that writes that whole number.
 
-### 3.29 Bytes
+### 3.27 Bytes
 
 @term byte=v1
 @cites #{whole-number=v1, character=v1}
 
 A byte is a whole number from 0 to 255. A byte is not a character.
 
-### 3.30 Byte sequences
+### 3.28 Byte sequences
 
 @term byte-sequence=v1
 @cites #{byte=v1, text=v1, whole-number=v1}
@@ -909,7 +869,7 @@ sequence when, and only when, they have the same number of bytes and,
 in their order, the same first byte, the same second byte, and so on to
 the last byte. A byte sequence is not a text.
 
-### 3.31 Valid UTF-8
+### 3.29 Valid UTF-8
 
 @term valid-utf-8=v1
 @cites {rfc/3629, rfc/5234, #{byte-sequence=v1, byte=v1, code-span=v1}}
@@ -918,7 +878,7 @@ A byte sequence is valid UTF-8 when, and only when, the rule
 `UTF8-octets` of RFC 3629 matches the whole byte sequence, with each
 terminal value of that rule as one byte.
 
-### 3.32 The text of a byte sequence
+### 3.30 The text of a byte sequence
 
 @term text-of-a-byte-sequence=v1
 @cites {
@@ -937,7 +897,7 @@ that character is the character that the bytes of that `UTF8-char`
 encode, as RFC 3629 defines UTF-8. The text holds a U+FEFF that the
 first `UTF8-char` encodes, in the same way as each other character.
 
-### 3.33 UTF-8 encodings
+### 3.31 UTF-8 encodings
 
 @term utf-8-encoding=v1
 @cites {rfc/3629, #{text=v1, character=v1, byte-sequence=v1, byte=v1}}
@@ -946,47 +906,12 @@ The UTF-8 encoding of a text is the byte sequence that holds, for each
 character of the text in the order of the text, the bytes that encode
 that character, as RFC 3629 defines UTF-8, and no other bytes.
 
-### 3.34 Specifications
-
-@term specification=v1
-@cites #{design=v1}
-
-A specification of a design is a part of the design that has a name of
-its own and that declares some of the obligations and definitions of
-the design.
-
-### 3.35 Conforming programs
-
-@term conforming-program=v1
-@cites #{design=v1, requirement=v1, specification=v1}
-
-A conforming program of a design is a program, or a part of a program,
-that meets every requirement of the design. A conforming program of a
-specification of a design is a program, or a part of a program, that
-meets every requirement that the specification declares. In a
-specification of a design, a conforming program is a conforming program
-of that specification. Elsewhere in a design, a conforming program is a
-conforming program of that design. Each obligation that a requirement of
-a design states with the word must is an obligation of each conforming
-program of that design. When a specification of a design declares a
-requirement of that design, each obligation that the requirement states
-with the word must is also an obligation of each conforming program of
-that specification.
-
-### 3.36 Inputs
-
-@term input=v1
-@cites #{conforming-program=v1, byte-sequence=v1, text=v1}
-
-An input is a thing that a conforming program takes, such as a byte
-sequence or a text.
-
-### 3.37 Results
+### 3.32 Results
 
 @term result=v1
-@cites #{
-    conforming-program=v1, input=v1, text=v1, requirement=v1,
-    character=v1, code-point=v1,
+@cites {
+    conformance#{conforming-program=v1, input=v1, requirement=v1},
+    #{text=v1, character=v1, code-point=v1},
 }
 
 A result of a requirement is a text that the requirement shows between
@@ -996,7 +921,7 @@ quotes are not part of the result. A conforming program gives a result
 when it gives something that stands for that result and for no other
 result.
 
-### 3.38 Sequences
+### 3.33 Sequences
 
 @term sequence=v1
 @cites #{whole-number=v1}
@@ -1015,13 +940,16 @@ and then that thing as the last element. Removing the k-th elements of a
 sequence S for some numbers k gives the sequence of the elements of S at
 the other numbers, in their order.
 
-### 3.39 Algorithms
+### 3.34 Algorithms
 
 @term algorithm=v1
-@cites #{
-    design=v1, text=v1, character=v1, place=v1, code-point=v1, line=v1,
-    space=v1, code-span=v1, decimal-numeral=v1, whole-number=v1,
-    sequence=v1, byte-sequence=v1, byte=v1,
+@cites {
+    conformance#design=v1,
+    #{
+        text=v1, character=v1, place=v1, code-point=v1, line=v1,
+        space=v1, code-span=v1, decimal-numeral=v1, whole-number=v1,
+        sequence=v1, byte-sequence=v1, byte=v1,
+    },
 }
 
 An algorithm is a header and steps, on lines of the text of a definition
@@ -1187,8 +1115,9 @@ How the steps are taken:
 ### 4.1 The validation of UTF-8
 
 @req validate-utf-8=v1
-@cites #{
-    conforming-program=v1, result=v1, byte-sequence=v1, valid-utf-8=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{result=v1, byte-sequence=v1, valid-utf-8=v1},
 }
 
 When a conforming program gives a result for whether a byte sequence is
@@ -1202,9 +1131,9 @@ valid UTF-8, the conforming program must give "invalid" as that result.
 ### 4.2 The texts of byte sequences
 
 @req give-texts-of-byte-sequences=v1
-@cites #{
-    conforming-program=v1, byte-sequence=v1, text=v1,
-    text-of-a-byte-sequence=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{byte-sequence=v1, text=v1, text-of-a-byte-sequence=v1},
 }
 
 When a conforming program gives a text as the text of a byte sequence,
@@ -1214,9 +1143,12 @@ text of that byte sequence.
 ### 4.3 No text for a byte sequence that is not valid UTF-8
 
 @req omit-texts-of-invalid-byte-sequences=v1
-@cites #{
-    conforming-program=v1, byte-sequence=v1, text=v1, valid-utf-8=v1,
-    text-of-a-byte-sequence=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{
+        byte-sequence=v1, text=v1, valid-utf-8=v1,
+        text-of-a-byte-sequence=v1,
+    },
 }
 
 A conforming program must give no text as the text of a byte sequence
@@ -1225,8 +1157,9 @@ that is not valid UTF-8.
 ### 4.4 The UTF-8 encodings that a program gives
 
 @req give-utf-8-encodings=v1
-@cites #{
-    conforming-program=v1, byte-sequence=v1, text=v1, utf-8-encoding=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{byte-sequence=v1, text=v1, utf-8-encoding=v1},
 }
 
 When a conforming program gives a byte sequence as the UTF-8 encoding of
@@ -1236,8 +1169,9 @@ sequence, as the UTF-8 encoding of that text.
 ### 4.5 The lines that a program gives
 
 @req give-lines=v1
-@cites #{
-    conforming-program=v1, text=v1, run=v1, line=v1, line-number=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{text=v1, run=v1, line=v1, line-number=v1},
 }
 
 When a conforming program gives the lines of a text, it must give as
@@ -1248,8 +1182,9 @@ these runs or texts, where k is the line number of that line.
 ### 4.6 Lines with line numbers
 
 @req give-numbered-lines=v1
-@cites #{
-    conforming-program=v1, text=v1, run=v1, line=v1, line-number=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{text=v1, run=v1, line=v1, line-number=v1},
 }
 
 When a conforming program gives a run or a text, together with a line
@@ -1259,7 +1194,7 @@ line of the text that has that line number, or the text of that line.
 ### 4.7 No other run or text as a line
 
 @req give-only-lines=v1
-@cites #{conforming-program=v1, text=v1, run=v1, line=v1}
+@cites {conformance#conforming-program=v1, #{text=v1, run=v1, line=v1}}
 
 A conforming program must give, as a line of a text, only a line of
 that text or the text of a line of that text.
@@ -1267,9 +1202,9 @@ that text or the text of a line of that text.
 ### 4.8 The line numbers and columns of characters
 
 @req give-character-positions=v1
-@cites #{
-    conforming-program=v1, text=v1, character=v1, place=v1, run=v1,
-    body=v1, position=v1,
+@cites {
+    conformance#conforming-program=v1,
+    #{text=v1, character=v1, place=v1, run=v1, body=v1, position=v1},
 }
 
 When a conforming program gives a line number for the character at a
@@ -1283,7 +1218,10 @@ column, for the character at that place.
 ### 4.9 The starts of spans
 
 @req give-span-starts=v1
-@cites #{conforming-program=v1, text=v1, span=v1, position=v1}
+@cites {
+    conformance#conforming-program=v1,
+    #{text=v1, span=v1, position=v1},
+}
 
 When a conforming program gives a line number for the start of a span of
 a text, it must give the line number of the start of that span, and no
@@ -1295,7 +1233,10 @@ that span.
 ### 4.10 The ends of spans
 
 @req give-span-ends=v1
-@cites #{conforming-program=v1, text=v1, span=v1, position=v1}
+@cites {
+    conformance#conforming-program=v1,
+    #{text=v1, span=v1, position=v1},
+}
 
 When a conforming program gives a line number for the end of a span of a
 text, it must give the line number of the end of that span, and no other
@@ -1306,8 +1247,8 @@ end of that span, and no other column, for the end of that span.
 ## 5. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 4.
+[conforming program](sinter:conformance#conforming-program=v1) of this
+design.
 
 The vectors of this design are in the file
 [`text.test-vectors.jsonl`](text.test-vectors.jsonl), in the same
@@ -1361,13 +1302,13 @@ when, the JSON text is a canonical vector line.
 
 @schema vector-line=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, design=v1, input=v1},
     #{
-        canonical-vector-line=v1, conforming-program=v1, design=v1,
-        input=v1, result=v1, byte-sequence=v1, valid-utf-8=v1,
-        text-of-a-byte-sequence=v1, text=v1, character=v1,
-        byte-order-mark=v1, line=v1, line-feed=v1, carriage-return=v1,
-        whole-number=v1, decimal-numeral=v1, u-numeral=v1, code-span=v1,
+        canonical-vector-line=v1, result=v1, byte-sequence=v1,
+        valid-utf-8=v1, text-of-a-byte-sequence=v1, text=v1,
+        character=v1, byte-order-mark=v1, line=v1, line-feed=v1,
+        carriage-return=v1, whole-number=v1, decimal-numeral=v1,
+        u-numeral=v1, code-span=v1,
     },
 }
 
@@ -1384,9 +1325,8 @@ do not end a line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line. A vector line
 meets the schema `canonical-vector-line`, and its JSON object has the
-members `form`, `group`, `input`, `note`, `result`, and `values`, in
-that order, and no other member, with `note` and `result` only where
-these rules state:
+members `form`, `group`, `input`, `note`, `result`, and `values`, and no
+other member, with `note` and `result` only where these rules state:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label. That label is `v`, then
@@ -1422,12 +1362,12 @@ line of the vector file is a vector line that meets the schema
 
 @schema decode-vector=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, input=v1},
     #{
         vector-line=v1, validate-utf-8=v1,
         give-texts-of-byte-sequences=v1,
-        omit-texts-of-invalid-byte-sequences=v1, conforming-program=v1,
-        input=v1, result=v1, byte-sequence=v1, byte=v1, valid-utf-8=v1,
+        omit-texts-of-invalid-byte-sequences=v1, result=v1,
+        byte-sequence=v1, byte=v1, valid-utf-8=v1,
         text-of-a-byte-sequence=v1, text=v1, character=v1, hex-digit=v1,
         whole-number=v1, 0x-numeral=v1, line-feed=v1, code-span=v1,
     },
@@ -1479,11 +1419,10 @@ conforming program gives no text as the text of the byte sequence.
 
 @schema encode-vector=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, input=v1},
     #{
         vector-line=v1, decode-vector=v1, give-utf-8-encodings=v1,
-        conforming-program=v1, input=v1, text=v1, byte-sequence=v1,
-        utf-8-encoding=v1, code-span=v1,
+        text=v1, byte-sequence=v1, utf-8-encoding=v1, code-span=v1,
     },
 }
 
@@ -1512,11 +1451,10 @@ holds, and no other byte sequence, as the UTF-8 encoding of the text.
 
 @schema line-vector=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, input=v1},
     #{
         vector-line=v1, decode-vector=v1, give-lines=v1,
-        give-numbered-lines=v1, give-only-lines=v1,
-        conforming-program=v1, input=v1, text=v1, line=v1,
+        give-numbered-lines=v1, give-only-lines=v1, text=v1, line=v1,
         line-number=v1, run=v1, boundary=v1, place=v1, position=v1,
         whole-number=v1, decimal-numeral=v1, sequence=v1, code-span=v1,
     },
@@ -1528,12 +1466,12 @@ and the lines of the text. Each vector line of the group meets the
 schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number, a
-run, and a sequence have these forms:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more, a run, and a sequence have these forms:
 
-- A whole number, such as a place, a boundary, a line number, or a
-  column, is a JSON number, such as `12`, written as the decimal numeral
-  of that whole number.
+- A whole number of 0 or more, such as a place, a boundary, a line
+  number, or a column, is a JSON number, such as `12`, written as the
+  decimal numeral of that whole number.
 - A run is a JSON object with two members: `from`, the boundary where
   the run starts, and `to`, the boundary where the run ends. So the run
   that starts at boundary 1 and ends at boundary 4 is
@@ -1574,12 +1512,11 @@ conforming program gives, as a line of the text, only an element of
 
 @schema character-position-vector=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, input=v1},
     #{
         vector-line=v1, decode-vector=v1, line-vector=v1,
-        give-character-positions=v1, conforming-program=v1, input=v1,
-        text=v1, character=v1, place=v1, body=v1, line=v1, position=v1,
-        whole-number=v1, code-span=v1,
+        give-character-positions=v1, text=v1, character=v1, place=v1,
+        body=v1, line=v1, position=v1, whole-number=v1, code-span=v1,
     },
 }
 
@@ -1589,9 +1526,9 @@ body of the text, and the position of the character at that place. Each
 vector line of the group meets the schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number has
-the JSON form that `line-vector` states. Inside `input` and `values`, a
-position has this form:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more has the JSON form that `line-vector` states. Inside `input` and
+`values`, a position has this form:
 
 - A position is a JSON object with two members: `line`, the line number
   of the position, and `column`, the column of the position. So the
@@ -1619,12 +1556,12 @@ gives the column of `position`, and no other column, for that character.
 
 @schema span-vector=v1
 @cites {
-    rfc/8259,
+    rfc/8259, conformance#{conforming-program=v1, input=v1},
     #{
         vector-line=v1, decode-vector=v1, line-vector=v1,
         character-position-vector=v1, give-span-starts=v1,
-        give-span-ends=v1, conforming-program=v1, input=v1, text=v1,
-        span=v1, run=v1, position=v1, whole-number=v1, code-span=v1,
+        give-span-ends=v1, text=v1, span=v1, run=v1, position=v1,
+        whole-number=v1, code-span=v1,
     },
 }
 
@@ -1633,9 +1570,9 @@ The group `spans` holds the vectors of the requirements
 span of the text, and the start and the end of the span. Each vector
 line of the group meets the schema `vector-line`. Inside `input` and
 `values`, a text has the JSON form that `decode-vector` states. Inside
-`input` and `values`, a whole number and a run have the JSON forms that
-`line-vector` states. Inside `input` and `values`, a position has the
-JSON form that `character-position-vector` states.
+`input` and `values`, a whole number of 0 or more and a run have the
+JSON forms that `line-vector` states. Inside `input` and `values`, a
+position has the JSON form that `character-position-vector` states.
 
 The members `input` and `values` of the JSON object of a vector line
 hold these things:

@@ -3,6 +3,7 @@
 
 # The ledger
 @design ledger=v1
+@cites conformance=v1
 @cites text=v1
 @cites data-forms=v1
 @cites ontology=v1
@@ -53,8 +54,9 @@ group, the meaning of a vector, and test-vector sets. The file that
 holds the conformance vectors of the design is a test-vector set. From
 Text and notation (`text`), the design takes texts, characters, hex
 digits, whole numbers, bytes, byte sequences, UTF-8 encodings, code
-spans, productions, and what a conforming program, an input, and a
-result are.
+spans, productions, and what a result is. From Conformance
+(`conformance`), the design takes conforming programs, inputs, and the
+general requirements that bind every conforming program.
 
 From Identifiers (`identifiers`), the design takes external ids. From
 the page git-config of git's documentation, the design takes which
@@ -185,15 +187,23 @@ program appends nothing to a newer ledger (requirement
 A program reads the ledger of a git repository from its ledger objects
 (term `ledger-object`). A git repository can lack some of them, as a
 partial clone can lack blobs. A program may fetch the ledger objects and
-the history objects that the git repository lacks, as a partial clone
-can. Nothing requires or forbids fetching those objects. A program that
-does not fetch the ledger objects that the git repository lacks gives no
-result for whether the ledger is valid, no ledger entry of the ledger,
-and no state at a point of the ledger (requirements
-`give-stored-ledgers`, `validate-ledgers`, and
-`give-states-only-from-valid-ledgers`). A program that does not fetch
-the history objects that the git repository lacks gives no result for
-whether the history is intact (requirement `validate-histories`).
+the history objects that the git repository does not hold, as a partial
+clone can. Nothing requires or forbids fetching those objects. A program
+that does not fetch the ledger objects that the git repository does not
+hold reports that the git repository does not hold its ledger objects
+(requirement `report-missing-ledger-objects`), gives no result for
+whether the ledger is valid, gives no ledger entry of the ledger, gives
+no state at a point of the ledger, appends nothing, makes no repair,
+makes no push from or to that git repository, and makes no pull into
+that git repository or from that git repository as the shared clone
+(requirements `give-stored-ledgers`, `validate-ledgers`,
+`give-states-only-from-valid-ledgers`, `append-only-to-valid-ledgers`,
+`push-only-extensions`, `refuse-unsafe-pulls`, and
+`repair-no-newer-ledgers`). A program that does not fetch the history
+objects that the git repository does not hold reports that the git
+repository does not hold its history objects (requirement
+`report-missing-ledger-objects`) and gives no result for whether the
+history is intact (requirement `validate-histories`).
 
 The ledger of a git repository that holds its ledger objects is newer,
 valid, or broken (atom `ledger-validity`). For example, a ledger ref
@@ -219,11 +229,11 @@ When another process changes the ledger ref or a git object of the
 ledger while a program reads or changes the ledger, what the program
 gives is not specified. When another process changes the ledger ref or a
 git object of the ledger while a program reads or changes the ledger,
-each guarantee of section 5 still holds. A conforming program may refuse
-a ledger or a history that goes beyond limits of its own. When the
-program refuses that ledger or history, the program gives no result for
-that ledger or history, gives no state from that ledger or history, and
-changes no ledger ref.
+each guarantee of section 5 still holds. When a program stops at a limit
+of its own in a computation on which an append of a ledger entry or a
+change of a ledger ref depends, the program appends no such ledger entry
+and changes no such ledger ref (requirement
+`change-no-ledger-after-stop`).
 
 ### 2.4 Extensions and intact histories
 
@@ -325,7 +335,8 @@ void where each of them was. A person makes a repair, for example to
 remove a ledger entry that holds a secret, or to make a broken ledger
 valid. A repair of a broken ledger can remove no line, when the repair
 only puts the lines in the form of a valid ledger tree. No program
-repairs a newer ledger (requirement `repair-no-newer-ledgers`). The
+repairs a newer ledger or the ledger of a git repository that does not
+hold its ledger objects (requirement `repair-no-newer-ledgers`). The
 requirement `repair-ledgers-with-voids` gives the commit that a repair
 makes. Each line that the repair keeps keeps its bytes. For each text
 that is the `id` of a removed line, the new commit holds one void whose
@@ -753,7 +764,8 @@ stays and d is s, or at least one line stays and each of these is true:
 @term agent-marker=v1
 @cites {
     ontology#{parameter=v1, agent=v1},
-    text#{text=v1, input=v1, code-span=v1},
+    conformance#{input=v1},
+    text#{text=v1, code-span=v1},
     #{agent-markers=v1},
 }
 
@@ -769,7 +781,8 @@ holds an agent marker.
 @term job-marker=v1
 @cites {
     ontology#{parameter=v1, job=v1},
-    text#{text=v1, input=v1, code-span=v1},
+    conformance#{input=v1},
+    text#{text=v1, code-span=v1},
     #{job-markers=v1},
 }
 
@@ -787,7 +800,7 @@ job marker.
 @req give-stored-ledgers=v1
 @cites {
     ontology#{ledger-entry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{stored-ledger=v1, ledger-validity=v1, ledger-object=v1},
 }
 
@@ -806,7 +819,8 @@ or when its ledger is not valid.
 
 @req validate-ledgers=v1
 @cites {
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{ledger-validity=v1, ledger-object=v1},
 }
 
@@ -823,7 +837,8 @@ ledger objects.
 
 @req validate-histories=v1
 @cites {
-    text#{conforming-program=v1, result=v1},
+    conformance#{conforming-program=v1},
+    text#{result=v1},
     #{intact-history=v1, ledger-validity=v1, ledger-object=v1},
 }
 
@@ -842,7 +857,7 @@ objects.
 @req give-states-only-from-valid-ledgers=v1
 @cites {
     ontology#{state=v1, ledger=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
 }
 
@@ -856,7 +871,8 @@ or when that git repository does not hold its ledger objects.
 @req ignore-unknown-members=v1
 @cites {
     ontology#{state=v1, state-input=v1, ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1, input=v1, code-span=v1},
+    conformance#{conforming-program=v1, input=v1},
+    text#{code-span=v1},
     #{entry-field=v1, stored-ledger=v1},
 }
 
@@ -874,7 +890,7 @@ either input while the program runs.
 @req append-only-to-valid-ledgers=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger-validity=v1, ledger-object=v1},
 }
 
@@ -887,7 +903,8 @@ git repository that holds its ledger objects and whose ledger is valid.
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     changes#{commit=v1, ancestry=v1},
-    text#{conforming-program=v1, whole-number=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{whole-number=v1, code-span=v1},
     #{
         ledger-ref=v1, chunk=v1, valid-ledger-tree=v1,
         ledger-extension=v1,
@@ -917,7 +934,7 @@ is true:
 @req append-only-accepted-entries=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{accepted-entry=v1},
 }
 
@@ -929,7 +946,8 @@ point of that ledger at which that ledger entry is accepted.
 @req write-entry-fields=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{entry-field=v1},
 }
 
@@ -945,7 +963,8 @@ object has holds a value of the form of that common field.
 @req record-agent-writers=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1, input=v1, code-span=v1},
+    conformance#{conforming-program=v1, input=v1},
+    text#{code-span=v1},
     #{entry-field=v1, agent-marker=v1},
 }
 
@@ -958,7 +977,7 @@ the member `agent`.
 @req limit-ledger-ref-changes=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1, repair=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger-ref=v1, shared-clone=v1},
 }
 
@@ -973,17 +992,18 @@ entries of another git repository whose shared clone is R.
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     changes#{commit=v1, ancestry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{
-        ledger-ref=v1, chunk=v1, shared-clone=v1, valid-ledger-tree=v1,
-        stored-ledger=v1, ledger-extension=v1, intact-history=v1,
-        accepted-entry=v1,
+        ledger-ref=v1, ledger-object=v1, chunk=v1, shared-clone=v1,
+        valid-ledger-tree=v1, stored-ledger=v1, ledger-extension=v1,
+        intact-history=v1, accepted-entry=v1,
     },
 }
 
 A conforming program must push the ledger entries of a git repository A
-to the shared clone S of A only when the ledger ref of S does not exist
-or has a commit. When a conforming program pushes the ledger entries of
+to the shared clone S of A only when A holds its ledger objects, S holds
+its ledger objects, and the ledger ref of S does not exist or has a
+commit. When a conforming program pushes the ledger entries of
 A to S, the program must change the ledger ref of S, from the commit c
 of that ledger ref or from not existing, only to a commit d such that
 each of these is true:
@@ -1004,7 +1024,7 @@ each of these is true:
 @req pull-shared-entries=v1
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger-ref=v1, shared-clone=v1, pull-commit=v1},
 }
 
@@ -1020,16 +1040,17 @@ the ledger ref of A.
 @req refuse-unsafe-pulls=v1
 @cites {
     ontology#{ledger=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{
-        ledger-ref=v1, chunk=v1, shared-clone=v1, valid-ledger-tree=v1,
-        ledger-validity=v1, accounted-line=v1,
+        ledger-ref=v1, ledger-object=v1, chunk=v1, shared-clone=v1,
+        valid-ledger-tree=v1, ledger-validity=v1, accounted-line=v1,
     },
 }
 
 A conforming program must pull into a git repository A the ledger
-entries of the shared clone of A from a commit s only when one of these
-is true:
+entries of the shared clone S of A from a commit s only when A holds its
+ledger objects, S holds its ledger objects, and one of these is true:
 
 1. A has no ledger commit.
 2. The git tree object of s accounts for each line of the git tree
@@ -1046,7 +1067,8 @@ is true:
 @req report-leaving-entries=v1
 @cites {
     ontology#{ledger=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{ledger-ref=v1, shared-clone=v1, chunk=v1, pull-commit=v1},
 }
 
@@ -1063,7 +1085,7 @@ that leaves.
 @cites {
     ontology#{ledger=v1, ledger-entry=v1},
     changes#{run-no-configured-programs=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
     #{ledger-ref=v1, shared-clone=v1},
 }
 
@@ -1078,16 +1100,18 @@ and commands that the requirement `changes#run-no-configured-programs`
 forbids in a fetch from that shared clone or in a push to that shared
 clone.
 
-### 5.17 No repair of a newer ledger
+### 5.17 No repair of a newer ledger or of a ledger whose objects are missing
 
 @req repair-no-newer-ledgers=v1
 @cites {
     ontology#{repair=v1},
-    text#{conforming-program=v1},
-    #{ledger-validity=v1},
+    conformance#{conforming-program=v1},
+    #{ledger-validity=v1, ledger-object=v1},
 }
 
-A conforming program must make no repair of a ledger that is newer.
+A conforming program must make no repair of the ledger of a git
+repository that does not hold its ledger objects, or whose ledger is
+newer.
 
 ### 5.18 Voids in place of removed lines
 
@@ -1095,7 +1119,8 @@ A conforming program must make no repair of a ledger that is newer.
 @cites {
     ontology#{repair=v1},
     data-forms#{json-value-of-a-byte-sequence=v1},
-    text#{conforming-program=v1, code-span=v1},
+    conformance#{conforming-program=v1},
+    text#{code-span=v1},
     #{
         ledger-ref=v1, chunk=v1, entry-field=v1, valid-ledger-tree=v1,
         intact-history=v1,
@@ -1135,7 +1160,7 @@ others.
 @req limit-agents-to-definitions=v1
 @cites {
     ontology#{definition-entry=v1, ledger=v1},
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     #{agent-marker=v1},
 }
 
@@ -1148,7 +1173,7 @@ definition entry.
 @req refuse-repairs-for-agents=v1
 @cites {
     ontology#{repair=v1},
-    text#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1},
     #{agent-marker=v1},
 }
 
@@ -1160,7 +1185,8 @@ conforming program must make no repair.
 @req leave-delivered-entries-to-job=v1
 @cites {
     ontology#{job=v1, job-record=v1, ledger=v1},
-    text#{conforming-program=v1, input=v1, code-span=v1},
+    conformance#{conforming-program=v1, input=v1},
+    text#{code-span=v1},
     #{job-marker=v1},
 }
 
@@ -1174,18 +1200,76 @@ the job.
 @cites {
     ontology#{external-item=v1, ledger=v1, ledger-entry=v1},
     identifiers#{external-id=v1},
-    text#{conforming-program=v1},
+    conformance#{conforming-program=v1},
 }
 
 A conforming program must append to a ledger no ledger entry that holds
 data, other than an external id, that the program took from a service
 that holds external items, such as the title or the state of an issue.
 
+### 5.23 Missing objects of ledgers and histories
+
+@req report-missing-ledger-objects=v1
+@cites {
+    ontology#{ledger=v1, ledger-entry=v1, state=v1, repair=v1},
+    changes#{remote-transfer=v1},
+    conformance#{conforming-program=v1},
+    #{
+        ledger-object=v1, stored-ledger=v1, ledger-validity=v1,
+        intact-history=v1, shared-clone=v1,
+    },
+}
+
+When a conforming program runs an operation on a git repository that
+needs the ledger objects of that git repository, no other process
+changes that git repository while the conforming program reads that git
+repository, and that git repository does not hold its ledger objects
+after each fetch of git objects that the conforming program makes for
+that operation, the conforming program must report that the git
+repository does not hold its ledger objects. Those operations are
+reading the stored ledger of that git repository, checking whether the
+ledger of that git repository is valid, reading a state at a point of
+that ledger, appending ledger entries to that ledger, making a repair of
+that ledger, pushing ledger entries from or to that git repository,
+pulling into that git repository the ledger entries of its shared clone,
+and pulling from that git repository as the shared clone. When a
+conforming program runs an operation to check whether the history of the
+ledger of a git repository is intact, no other process changes that git
+repository while the conforming program reads that git repository, and
+that git repository does not hold its history objects after each fetch
+of git objects that the conforming program makes for that operation, the
+conforming program must report that the git repository does not hold its
+history objects. When a conforming program runs an operation on a git
+repository that no other process changes while the conforming program
+reads that git repository, the conforming program must report that the
+git repository does not hold its ledger objects only when the git
+repository does not hold its ledger objects after each fetch of git
+objects that the conforming program makes for that operation. When a
+conforming program runs an operation on a git repository that no other
+process changes while the conforming program reads that git repository,
+the conforming program must report that the git repository does not hold
+its history objects only when the git repository does not hold its
+history objects after each fetch of git objects that the conforming
+program makes for that operation.
+
+### 5.24 No ledger write after a stop
+
+@req change-no-ledger-after-stop=v1
+@cites {
+    ontology#{ledger=v1, ledger-entry=v1},
+    conformance#{conforming-program=v1},
+    #{ledger-ref=v1},
+}
+
+When a conforming program stops at a limit of its own in a computation
+on which an append of a ledger entry or a change of a ledger ref
+depends, the conforming program must append no such ledger entry and
+must change no such ledger ref.
+
 ## 6. Conformance
 
-A program, or a part of a program, conforms to this design when it is a
-conforming program of this design: when it meets every requirement of
-section 5.
+A program conforms to this design when it is a
+[conforming program](sinter:conformance#conforming-program=v1) of this design.
 
 The vectors of this design are in the file
 [`ledger.test-vectors.jsonl`](ledger.test-vectors.jsonl), in the same
@@ -1202,7 +1286,8 @@ values. No vector follows from the requirements
 `push-only-extensions`, `limit-programs-in-pulls-and-pushes`,
 `repair-no-newer-ledgers`, `repair-ledgers-with-voids`,
 `limit-agents-to-definitions`, `refuse-repairs-for-agents`,
-`leave-delivered-entries-to-job`, and `keep-tracker-data-out`.
+`leave-delivered-entries-to-job`, `keep-tracker-data-out`,
+`report-missing-ledger-objects`, and `change-no-ledger-after-stop`.
 
 Each requirement from which vectors follow applies only when a program
 gives the thing that the requirement names, such as a result for whether
@@ -1226,10 +1311,10 @@ the file states one vector of this design.
         json-value=v1, canonical-line=v1, line-object=v1, hex-text=v1,
         vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, result=v1, text=v1,
-        character=v1, byte-sequence=v1, utf-8-encoding=v1, sequence=v1,
-        code-span=v1,
+        result=v1, text=v1, character=v1, byte-sequence=v1,
+        utf-8-encoding=v1, sequence=v1, code-span=v1,
     },
     #{
         give-stored-ledgers=v1, validate-ledgers=v1, ledger-ref=v1,
@@ -1313,9 +1398,9 @@ sequence has this form:
         json-value=v1, vector-line=v1, group-form-list=v1,
         vector-meaning=v1,
     },
+    conformance#{conforming-program=v1, input=v1},
     text#{
-        conforming-program=v1, input=v1, result=v1, text=v1,
-        byte-sequence=v1, sequence=v1, code-span=v1,
+        result=v1, text=v1, byte-sequence=v1, sequence=v1, code-span=v1,
     },
     #{
         ledger-vector=v1, validate-histories=v1, ledger-ref=v1,
@@ -1364,10 +1449,8 @@ result. It gives neither result when `values` is `{}`.
         json-value=v1, canonical-line=v1, line-object=v1,
         vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
-    text#{
-        conforming-program=v1, input=v1, text=v1, sequence=v1,
-        code-span=v1,
-    },
+    conformance#{conforming-program=v1, input=v1},
+    text#{text=v1, sequence=v1, code-span=v1},
     #{
         ledger-vector=v1, pull-shared-entries=v1,
         refuse-unsafe-pulls=v1, report-leaving-entries=v1,
