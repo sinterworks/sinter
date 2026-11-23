@@ -140,6 +140,8 @@
 {"form":"#glob-vector=v1","group":"globs","input":"a/","result":"valid"}
 {"form":"#glob-vector=v1","group":"globs","input":"aaa","result":"valid"}
 {"form":"#fit-vector=v1","group":"fits","input":{"glob":"aaa","path":"a"},"result":"does not fit"}
+{"form":"#glob-vector=v1","group":"globs","input":"a\u0000.md","result":"valid"}
+{"form":"#fit-vector=v1","group":"fits","input":{"glob":"a\u0000.md","path":"a.md"},"result":"does not fit"}
 {"form":"#glob-vector=v1","group":"globs","input":"","note":"a valid glob holds at least one glob segment","result":"invalid"}
 {"form":"#glob-vector=v1","group":"globs","input":"/docs","note":"it starts with `/`","result":"invalid"}
 {"form":"#glob-vector=v1","group":"globs","input":"docs//a.md","note":"two `/` together","result":"invalid"}
@@ -183,6 +185,7 @@
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"c.md","path-set":["*.md","!a.md","!b.md"]},"result":"in the set"}
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"a.md","path-set":["*.md","!a.md","!b.md"]},"result":"not in the set"}
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"b.md","path-set":["*.md","!a.md","!b.md"]},"result":"not in the set"}
+{"form":"#path-set-vector=v1","group":"path-sets","input":["a\u0000.md"],"result":"valid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["!docs/"],"note":"no plain member","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","docs/"],"note":"two path set members are the same text","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["a/","a/"],"note":"two path set members are the same text","result":"invalid"}

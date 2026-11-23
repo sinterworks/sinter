@@ -763,8 +763,9 @@ when it is not.
         read-permission=v1,
     },
     text#{
-        whole-number=v1, decimal-numeral=v1, hex-digit=v1, byte=v1,
-        byte-sequence=v1, code-span=v1,
+        text=v1, whole-number=v1, decimal-numeral=v1, hex-digit=v1,
+        byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1,
+        code-span=v1,
     },
 }
 
@@ -786,13 +787,16 @@ none:
   they are the first bytes of the other. An entry object is a JSON
   object with two members: `name`, the entry name of the folder entry,
   as a hex byte sequence, and `file`, the file object of the file of the
-  folder entry. A folder that holds no folder entry has `"entries":[]`.
+  folder entry. The entry name of an entry object is not empty, holds no
+  byte 0x00 and no byte 0x2F, and is not the UTF-8 encoding of the text
+  `.` or of the text `..`. A folder that holds no folder entry has
+  `"entries":[]`.
 - `"regular file"`: `content`, the content of the regular file, as
   pieces of a byte sequence.
 - `"symbolic link"`: `reference`, the reference of the symbolic link, as
-  a hex byte sequence. The reference leads to a file as in a pathname
-  resolution of POSIX.1-2024, from the folder that holds the symbolic
-  link.
+  a hex byte sequence. The reference is not empty and holds no byte
+  0x00. The reference leads to a file as in a pathname resolution of
+  POSIX.1-2024, from the folder that holds the symbolic link.
 - `"FIFO special file"`: no such member.
 
 A file object can also have the members `read`, `search`, `write`, and
@@ -1211,9 +1215,8 @@ vector lines.
 The text of each line of the vector file is a vector line: a JSON text,
 as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
 Text and notation. Its JSON object holds the required members `form`,
-`group`, `input`, and `result`, the member `values` only for the group
-`file-reads`, and the optional members `needs` and `note`, and no other
-member:
+`group`, `input`, and `result`, and the optional members `needs`,
+`note`, and `values`, and no other member:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label (for example,
@@ -1232,8 +1235,8 @@ member:
   unable to make hold and that a need name names. Each schema of a
   vector group lists the need names that its group uses, each with the
   need that it stands for; a need name stands for the same need in every
-  schema of this design. A vector has this member only when it has a
-  need.
+  schema of this design. A vector has this member when, and only when,
+  it has one or more needs.
 - `note`: an explanation of the vector, as a JSON string, which is no
   part of the input, the result, or the values. A vector has this member
   only when it has an explanation.
@@ -1249,12 +1252,13 @@ member:
   other result.
 - `values`: a JSON object that holds what a conforming program gives, or
   does not give, for the inputs of the vector, other than the result.
-  Only the vectors of the group `file-reads` have this member. The
-  schema of that group gives the members of this JSON object. An empty
-  JSON object, `{}`, says that a conforming program gives none of the
-  things that the schema of the group names for `values`. A vector
-  without the member `values` says nothing about what a conforming
-  program gives for the inputs of the vector, other than the result.
+  The schema of each group states whether the vectors of that group have
+  this member and, when they do, gives the members of this JSON object.
+  An empty JSON object, `{}`, says that a conforming program gives none
+  of the things that the schema of the group names for `values`. A
+  vector without the member `values` says nothing about what a
+  conforming program gives for the inputs of the vector, other than the
+  result.
 
 A vector writes each input and each value in a fixed form. Each text and
 sequence has this fixed form, except a folder tree and the text of the
@@ -1332,8 +1336,7 @@ no other result.
     conformance#{conforming-program=v1, input=v1, own-limit=v1},
     text#{
         text=v1, run=v1, line=v1, byte=v1, byte-sequence=v1,
-        valid-utf-8=v1, code-point-order=v1, 0x-numeral=v1, result=v1,
-        code-span=v1,
+        valid-utf-8=v1, 0x-numeral=v1, result=v1, code-span=v1,
     },
 }
 
@@ -1455,20 +1458,15 @@ names decides that the program does not give what the vector states.
   vector has this need when a file object of its folder tree has the
   member `owned-by-other` with the value `true`.
 
-A vector of the group `file-reads` has the member `needs` when, and only
-when, the vector has one or more of these needs. When a vector of the
-group `file-reads` has the member `needs`, that member is a JSON array
-that holds each need name of the vector once, in code point order, and
-no other name. For each vector that a run of the vectors does not skip,
-the run uses a file system that stores the folder tree of that vector
-and a process of the program for which the conditions of the input of
-that vector hold. A skip of a vector decides nothing about that vector
-when the runner cannot make a need of the vector hold, the member
-`needs` of the vector names that need, and the runner reports that need.
-Each other skip of a vector decides that the program does not give what
-the vector states. What a run of the vectors decides about a vector, a
-skip included, belongs to that run, and not to a reader of what that run
-reports.
+For each vector that a run of the vectors does not skip, the run uses a
+file system that stores the folder tree of that vector and a process of
+the program for which the conditions of the input of that vector hold. A
+skip of a vector decides nothing about that vector when the runner
+cannot make a need of the vector hold, the member `needs` of the vector
+names that need, and the runner reports that need. Each other skip of a
+vector decides that the program does not give what the vector states.
+What a run of the vectors decides about a vector, a skip included,
+belongs to that run, and not to a reader of what that run reports.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
