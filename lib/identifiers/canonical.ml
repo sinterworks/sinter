@@ -13,23 +13,25 @@ let selection = function
   | Target.Vector_selection (Target.Group group) -> "[" ^ group ^ "]"
   | Target.Vector_selection Target.Every_vector -> "[*]"
 
-(* @satisfies identifiers#give-canonical-entries=v1
-   The slug goes before an entry name that starts with `#`, the kind word
-   that the caller gives replaces the kind word of the target, the revision
-   is left out, and the vector selection or `#*` of an every-part target
-   ends the form. *)
-let entry ?slug ?kind_word target =
-  let name, suffix =
-    match target with
-    | Target.Internal { slug; part_name; suffix; _ } ->
-        (Option.value slug ~default:"" ^ part part_name, selection suffix)
-    | Target.Every_part { slug; _ } -> (slug, "#*")
-    | Target.External { namespace_name; id; part_name; _ } ->
-        (namespace_name ^ "/" ^ id ^ part part_name, "")
-  in
+let named ?slug ?kind_word name suffix =
   let name =
     match slug with
     | Some slug when String.starts_with ~prefix:"#" name -> slug ^ name
     | _ -> name
   in
   canonical_id kind_word name ^ suffix
+
+(* @satisfies identifiers#give-canonical-entries=v1
+   The canonical form of a content id is that content id. For every other
+   target, the slug goes before an entry name that starts with `#`, the kind
+   word that the caller gives replaces the kind word of the target, the
+   revision is left out, and the vector selection ends the form. *)
+let entry ?slug ?kind_word target =
+  match target with
+  | Target.Internal { slug = own; part_name; suffix; _ } ->
+      named ?slug ?kind_word
+        (Option.value own ~default:"" ^ part part_name)
+        (selection suffix)
+  | Target.External { namespace_name; id; part_name; _ } ->
+      named ?slug ?kind_word (namespace_name ^ "/" ^ id ^ part part_name) ""
+  | Target.Content_id content_id -> content_id

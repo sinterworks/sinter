@@ -11,13 +11,13 @@ type t =
       part_name : string option;
       suffix : suffix;
     }
-  | Every_part of { slug : string; revision : string }
   | External of {
       kind_word : Kind_word.t option;
       namespace_name : string;
       id : string;
       part_name : string option;
     }
+  | Content_id of string
 
 let custom_namespace slug =
   match String.rindex_opt slug '/' with

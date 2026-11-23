@@ -43,13 +43,11 @@ let target_values = function
       kind_values kind_word @ optional_slug slug
       @ optional "part-name" part_name
       @ suffix_values suffix
-  | Target.Every_part { slug; revision } ->
-      slug_values slug
-      @ [ ("every-part", `Bool true); ("revision", str revision) ]
   | Target.External { kind_word; namespace_name; id; part_name } ->
       kind_values kind_word
       @ [ ("namespace-name", str namespace_name); ("id", str id) ]
       @ optional "part-name" part_name
+  | Target.Content_id id -> [ ("content-id", str id) ]
 
 let tag_values tag =
   let word = ("tag-word", str (Tag_word.to_string (Tag_line.tag_word tag))) in
@@ -1013,9 +1011,9 @@ let tag_texts = function
                  | Target.Revision revision -> [ revision ]
                  | Target.Vector_selection (Target.Group text) -> [ text ]
                  | Target.Vector_selection Target.Every_vector -> [])
-             | Target.Every_part { slug; revision } -> [ slug; revision ]
              | Target.External { namespace_name; id; part_name; _ } ->
-                 namespace_name :: id :: Option.to_list part_name)
+                 namespace_name :: id :: Option.to_list part_name
+             | Target.Content_id id -> [ id ])
            entries
   | Tag_line.Status_tag { inline_description; _ } -> [ inline_description ]
   | Tag_line.Extern { part_name; inline_description; _ } ->

@@ -9,7 +9,7 @@ val read : Binding.t -> string -> Target.t option
     of an inline citation after [sinter:], when [target] matches the production
     [inline-destination] after [sinter:] under [binding]: an optional kind word
     and [:], then a name, [=], and a revision, or an external id with an
-    optional [#] and part name. The values hold no vector selection and no
-    every-part target. An external target matches only as an external id whose
-    namespace name is in [binding] and whose id fits its id pattern. It is
-    [None] otherwise. *)
+    optional [#] and part name; or a content id. The values hold no vector
+    selection. A target that matches [content-id] is never external. An external
+    target matches only as an external id whose namespace name is in [binding]
+    and whose id fits its id pattern. It is [None] otherwise. *)

@@ -579,7 +579,6 @@ let link_invariants string =
                && List.mem source.[length - 1] [ ')'; ']'; '>' ])
          &&
          match link.result with
-         | Inline_citation.Valid { target = Target.Every_part _; _ } -> false
          | Inline_citation.Valid
              {
                target =

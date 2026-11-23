@@ -104,34 +104,13 @@ let declaration binding word s k =
              })
 
 (* @satisfies identifiers#give-line-results=v1
-   Only `@cites` and `@verifies` allow a vector selection, only `@cites`
-   allows the revision `*`, and only `@supersedes` allows an every-part
-   target. *)
+   Only `@cites` and `@verifies` allow a vector selection, and only `@cites`
+   allows the revision `*`; `@refines`, `@satisfies`, and `@supersedes`
+   take the same targets. *)
 let rules_of = function
-  | Tag_word.Cites ->
-      {
-        Grammar.vector_selection = true;
-        any_revision = true;
-        every_part = false;
-      }
-  | Verifies ->
-      {
-        Grammar.vector_selection = true;
-        any_revision = false;
-        every_part = false;
-      }
-  | Supersedes ->
-      {
-        Grammar.vector_selection = false;
-        any_revision = false;
-        every_part = true;
-      }
-  | _ ->
-      {
-        Grammar.vector_selection = false;
-        any_revision = false;
-        every_part = false;
-      }
+  | Tag_word.Cites -> { Grammar.vector_selection = true; any_revision = true }
+  | Verifies -> { Grammar.vector_selection = true; any_revision = false }
+  | _ -> { Grammar.vector_selection = false; any_revision = false }
 
 let is_list_space c = Lexical.is_wsp c || c = '\n'
 
@@ -169,7 +148,7 @@ let list s i element =
   in
   items i []
 
-(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+(* @satisfies identifiers#{citation-line=v1, give-line-results=v1, give-values=v1}
    A citation is valid only when its text matches `citation-line` for its
    tag word; its values are one list for each citation entry, in their
    order, and the inline description. *)
@@ -235,7 +214,7 @@ let extern s k =
   let* inline_description = rest s q in
   Some (Extern { kind_word; part_name = sub s (i + j) q; inline_description })
 
-(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+(* @satisfies identifiers#{ack-line=v1, give-line-results=v1, give-values=v1}
    An `@ack` line is valid when its text matches `ack-line`; its values are
    the slug, the subject, and the hash prefix. *)
 let ack s k =

@@ -67,8 +67,7 @@ let is_id_char = function
   | '0' .. '<'
   | '>' .. '?'
   | 'A' .. 'Z'
-  | '\\'
-  | '^' .. 'z'
+  | '_' .. 'z'
   | '|' | '~' ->
       true
   | _ -> false
@@ -82,6 +81,48 @@ let lower_name s i =
 
 let group_name = lower_name
 
+let object_kind_words =
+  [
+    "abandoned";
+    "approval";
+    "atom";
+    "decision";
+    "decline";
+    "delivered";
+    "design";
+    "done";
+    "ext";
+    "name";
+    "pin";
+    "plan";
+    "plan-def";
+    "progress";
+    "req";
+    "schema";
+    "scope";
+    "spec";
+    "task";
+    "task-def";
+    "term";
+    "vector-group";
+    "vector-group-def";
+    "vector-set";
+    "void";
+  ]
+
+let is_hex_digit = function '0' .. '9' | 'a' .. 'f' -> true | _ -> false
+
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1}
+   A content id is one of the twenty-five object kind words, in lower case,
+   then `:`, then exactly 32 lower-case hex digits. *)
+let is_content_id s =
+  match String.index_opt s ':' with
+  | Some colon ->
+      String.length s = colon + 33
+      && List.mem (String.sub s 0 colon) object_kind_words
+      && String.for_all is_hex_digit (String.sub s (colon + 1) 32)
+  | None -> false
+
 (* @satisfies identifiers#give-tag-words=v1
    The tag word of a tag line is its `@` and the longest run of ASCII
    letters, ASCII digits, and `-` right after that `@`. *)
@@ -94,5 +135,4 @@ let is_namespace_name s = lower_name s 0 = Some (String.length s)
 
 let is_hash_prefix s =
   let n = String.length s in
-  n >= 8 && n <= 64
-  && String.for_all (function '0' .. '9' | 'a' .. 'f' -> true | _ -> false) s
+  n >= 8 && n <= 64 && String.for_all is_hex_digit s

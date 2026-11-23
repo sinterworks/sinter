@@ -1,7 +1,7 @@
 (* SPDX-License-Identifier: Apache-2.0 *)
 (* Copyright 2026 The Sinter Authors *)
 
-type rules = { vector_selection : bool; any_revision : bool; every_part : bool }
+type rules = { vector_selection : bool; any_revision : bool }
 type key = string option * string option * string option
 type scope = { kind_word : Kind_word.t option; slug : string option }
 
@@ -32,12 +32,16 @@ let namespace_of s =
   let head = prefix_until (snd (after_kind_word s)) [ '#'; '='; '[' ] in
   prefix_until head [ '/' ]
 
-(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1}
-   A target or a citation entry is an external target when the text of its
-   head before its first `/`, or its whole head when the head holds no `/`,
-   is the namespace name of an external namespace of the binding. *)
-let is_external binding s =
+let head_is_external binding s =
   Option.is_some (Binding.id_pattern binding (namespace_of s))
+
+(* @satisfies identifiers#{give-line-results=v1, give-link-results=v1}
+   A target or a citation entry is an external target when it does not
+   match `content-id` and the text of its head before its first `/`, or its
+   whole head when the head holds no `/`, is the namespace name of an
+   external namespace of the binding. *)
+let is_external binding s =
+  head_is_external binding s && not (Lexical.is_content_id s)
 
 let ends s i = i = String.length s
 let peek s i = if i < String.length s then Some s.[i] else None
@@ -102,10 +106,9 @@ let vector_selection r i =
 
 (* @satisfies identifiers#{give-line-results=v1, give-link-results=v1, give-values=v1}
    After the name comes `=` and a revision that the rules allow, or, where
-   the rules allow one, a vector selection in place of `=` and a revision,
-   or, for an every-part target, `=`, a label, and `#*`. The key is the entry
-   name and the text of the vector selection, which `citation-line` compares
-   between entries. *)
+   the rules allow one, a vector selection in place of `=` and a revision.
+   The key is the entry name and the text of the vector selection, which
+   `citation-line` compares between entries. *)
 let finish rules kind_word slug part_name r i =
   match if rules.vector_selection then vector_selection r i else None with
   | Some (selection, j) ->
@@ -126,8 +129,8 @@ let finish rules kind_word slug part_name r i =
         else if rules.any_revision && peek r (i + 1) = Some '*' then Some (i + 2)
         else Lexical.label r (i + 1)
       in
-      match (revision, slug, part_name) with
-      | Some k, _, _ when ends r k ->
+      match revision with
+      | Some k when ends r k ->
           Some
             ( Target.Internal
                 {
@@ -137,12 +140,6 @@ let finish rules kind_word slug part_name r i =
                   suffix = Target.Revision (sub r (i + 1) k);
                 },
               (slug, part_name, None) )
-      | Some k, Some slug, None
-        when rules.every_part && kind_word = None
-             && sub r k (String.length r) = "#*" ->
-          Some
-            ( Target.Every_part { slug; revision = sub r (i + 1) k },
-              (Some slug, None, None) )
       | _ -> None)
 
 let internal rules kind_word r =
@@ -156,7 +153,7 @@ let internal rules kind_word r =
    so a part never matches when that single target is external. *)
 let scope binding prefix =
   let kind_word, r = after_kind_word prefix in
-  if is_external binding prefix then None
+  if head_is_external binding prefix then None
   else if r = "" then Some { kind_word; slug = None }
   else if Lexical.slug r 0 = Some (String.length r) then
     Some { kind_word; slug = Some r }
@@ -173,7 +170,13 @@ let part rules scope text =
         text i
   | None -> None
 
+(* @satisfies identifiers#{citation-line=v1, inline-destination=v1, give-line-results=v1, give-link-results=v1, give-values=v1}
+   A single target is an external id when it is external, a content id when
+   the whole target matches `content-id`, and a name otherwise; the one value
+   and the entry name of a content id are the whole content id. *)
 let single binding rules s =
   let kind_word, r = after_kind_word s in
   if is_external binding s then external_ref binding kind_word r
+  else if Lexical.is_content_id s then
+    Some (Target.Content_id s, (Some s, None, None))
   else internal rules kind_word r

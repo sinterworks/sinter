@@ -300,7 +300,6 @@ let long_targets n =
         part_name = Some (long 'p');
         suffix = Target.Revision (long 'r');
       };
-    Target.Every_part { slug = long 's'; revision = long 'r' };
     Target.External
       {
         kind_word = None;

@@ -37,6 +37,10 @@ val is_namespace_name : string -> bool
 (** [is_namespace_name s] is [true] when the whole of [s] matches the production
     [namespace-name]. *)
 
+val is_content_id : string -> bool
+(** [is_content_id s] is [true] when the whole of [s] matches the production
+    [content-id]. *)
+
 val is_hash_prefix : string -> bool
 (** [is_hash_prefix s] is [true] when the whole of [s] matches the production
     [hash-prefix]. *)

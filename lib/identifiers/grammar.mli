@@ -8,16 +8,15 @@ type rules = {
   vector_selection : bool;
       (** a vector selection can stand in place of [=] and a revision *)
   any_revision : bool;  (** the revision can be [*] as well as a label *)
-  every_part : bool;  (** the target can be an every-part target *)
 }
 (** What a single target of one kind of input allows. *)
 
 type key = string option * string option * string option
 (** The entry name of a citation entry, and the text of its vector selection
-    when it has one. The entry name is in two parts: its slug, or its external
-    id; and the part name after its [#]. Two keys are equal when, and only when,
-    the entry names are the same text and the vector selections are the same
-    text or both absent. *)
+    when it has one. The entry name is in two parts: its slug, its external id,
+    or its content id; and the part name after its [#]. Two keys are equal when,
+    and only when, the entry names are the same text and the vector selections
+    are the same text or both absent. *)
 
 type scope = { kind_word : Kind_word.t option; slug : string option }
 (** The kind word and the slug before the [#{] of a scoped list. *)
@@ -28,15 +27,17 @@ val kind_word : string -> (Kind_word.t * int) option
     word. *)
 
 val is_external : Binding.t -> string -> bool
-(** [is_external binding s] is [true] when the head of the target [s] starts
-    with the namespace name of an external namespace of [binding], followed by
-    [/] or by the end of the head. *)
+(** [is_external binding s] is [true] when [s] does not match the production
+    [content-id], and the head of [s] starts with the namespace name of an
+    external namespace of [binding], followed by [/] or by the end of the head.
+*)
 
 val single : Binding.t -> rules -> string -> (Target.t * key) option
 (** [single binding rules s] is the values and the key of the single target [s]
-    under [binding] when the whole of [s] matches the form that [rules] allow;
-    an external target matches only as an external id whose namespace name is in
-    [binding] and whose id fits its id pattern. It is [None] otherwise. *)
+    under [binding] when the whole of [s] matches the production [content-id],
+    or the whole of [s] matches the form that [rules] allow; an external target
+    matches only as an external id whose namespace name is in [binding] and
+    whose id fits its id pattern. It is [None] otherwise. *)
 
 val scope : Binding.t -> string -> scope option
 (** [scope binding prefix] is the kind word and the slug of [prefix], the text

@@ -32,9 +32,6 @@ type t =
       (** A name with a revision or a vector selection. [slug] and [part_name]
           are the slug and the part name of the name: a slug alone, a full name,
           or [#] and a part name, so at least one of them is present. *)
-  | Every_part of { slug : string; revision : string }
-      (** An every-part target, such as [docs=v3#*]: every part of the slug, at
-          the revision, which is a label. *)
   | External of {
       kind_word : Kind_word.t option;
       namespace_name : string;
@@ -43,6 +40,10 @@ type t =
     }
       (** An external id, such as [rfc/8259#section-6]: its namespace name, its
           id, and the part name after its [#] when there is one. *)
+  | Content_id of string
+      (** A content id, such as [req:0123456789abcdef0123456789abcdef]: an
+          object kind word, [:], and 32 hex digits. The text is the whole
+          content id, which is also its entry name. *)
 
 val custom_namespace : string -> string option
 (** [custom_namespace slug] is the text of [slug] before its last [/], such as
