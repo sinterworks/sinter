@@ -141,9 +141,11 @@ let declaration_vectors =
   Vectors.group set ~name:"declarations" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[citations]
-   The test reads the text of each vector under its binding and fails when
-   the line result of a citation, or the values of its citation entries and
-   its inline description, differ from the vector. *)
+   @verifies identifiers#tag-line-vector=v1
+   The test reads the text of each vector under its binding, including
+   three-pair bindings, and fails when the line result of a citation, or the
+   values of its citation entries (including `content-id`) and its inline
+   description, differ from the vector. *)
 let citation_vectors =
   Vectors.group set ~name:"citations" ~form:"#tag-line-vector=v1" give_line
 
@@ -237,7 +239,7 @@ let ns text = ("custom-namespace", str text)
 let kind text = ("kind-word", str text)
 let ext name id = [ ("namespace-name", str name); ("id", str id) ]
 let every_vector = ("every-vector", `Bool true)
-let every_part = ("every-part", `Bool true)
+let cid text = ("content-id", str text)
 
 let ack slug_text subject hash =
   line_valid "directive" "@ack"
@@ -362,6 +364,11 @@ let line_cases =
     ( "@cites spec:a/b#{c=v1}",
       [ cites [ [ kind "spec"; slug "a/b"; ns "a"; part "c"; rev "v1" ] ] ] );
     ("@cites {a=v1},{b=v1}", [ line_invalid "@cites" ]);
+    ("@supersedes docs=v3#*", [ line_invalid "@supersedes" ]);
+    ("@supersedes {docs=v3#*}", [ line_invalid "@supersedes" ]);
+    ("@cites docs=v3#*", [ line_invalid "@cites" ]);
+    ("@verifies docs=v3#*", [ line_invalid "@verifies" ]);
+    ("@refines docs=v3#*", [ line_invalid "@refines" ]);
     ("@supersedes #a=v1#*", [ line_invalid "@supersedes" ]);
     ("@supersedes a#b=v1#*", [ line_invalid "@supersedes" ]);
     ("@supersedes docs=v3#", [ line_invalid "@supersedes" ]);
@@ -450,6 +457,21 @@ let continuation_cases =
     ("@cites {\n\t\n#a=v1}", [ line_invalid "@cites"; not_tag; not_tag ]);
     ("@cites {\n#a=v1,\n#a=v2}", [ line_invalid "@cites" ]);
     ("@cites {\n{#a=v1}}", [ line_invalid "@cites" ]);
+    ( "@req a=v1 desc\nmore",
+      [ decl "@req" [ slug "a"; rev "v1"; desc "desc" ]; not_tag ] );
+    ( "@cites {a=v1} desc\nmore",
+      [ cites ~text:"desc" [ [ slug "a"; rev "v1" ] ]; not_tag ] );
+    ( "@cites {a=v1} {\n#b=v1}",
+      [ cites ~text:"{" [ [ slug "a"; rev "v1" ] ]; not_tag ] );
+    ("@ack slug subj\n3f2a9c1d", [ line_invalid "@ack"; not_tag ]);
+    ("@ack slug\n3f2a9c1d", [ line_invalid "@ack"; not_tag ]);
+    ("@deprecated desc\nmore", [ status "@deprecated" "desc"; not_tag ]);
+    ( "@extern spec:part desc\nmore",
+      [
+        line_valid "directive" "@extern"
+          [ kind "spec"; part "part"; desc "desc" ];
+        not_tag;
+      ] );
   ]
 
 let line_ranges_of_continued_citations () =
@@ -483,6 +505,10 @@ let line_examples =
     (fun string -> `List (line_inputs standard_binding string))
     line_cases
 
+(* @verifies identifiers#{citation-line=v1, ack-line=v1, give-line-results=v1}
+   Each multi-line example gives the inputs that its lines make, stopping
+   continuation lines outside list braces so a line feed never enters `rest` or
+   the `subject` of an `@ack` line. *)
 let continuation_examples =
   check_cases "the text"
     (fun string -> `List (line_inputs standard_binding string))
@@ -524,15 +550,364 @@ let one_binding_reads_each_text () =
       check "an id of every printable character that an id allows" wide
         "@cites x/!\"$%&'()*+-.09:;<>?AZ_`az|~"
         [ cites [ ext "x" "!\"$%&'()*+-.09:;<>?AZ_`az|~" ] ];
-      check "an id with a backslash fits no id pattern" wide "@cites x/a\\b"
+      check "an external id with a backslash is invalid" wide "@cites x/a\\b"
         [ line_invalid "@cites" ];
-      check "an id with a caret fits no id pattern" wide "@cites x/a^b"
+      check "an external id with a backslash and a part name is invalid" wide
+        "@cites x/a\\b#p"
+        [ line_invalid "@cites" ];
+      check "an external id with a caret is invalid" wide "@cites x/a^b"
+        [ line_invalid "@cites" ];
+      check "an external id with a caret and a part name is invalid" wide
+        "@cites x/a^b#p"
         [ line_invalid "@cites" ]);
   check "jira/proj-1 does not fit" jira "@cites jira/proj-1"
     [ line_invalid "@cites" ];
   check "@design gh=v1 is valid under the empty binding" Binding.empty
     "@design gh=v1"
     [ decl "@design" [ slug "gh"; rev "v1"; desc "" ] ]
+
+let object_kind_words =
+  [
+    "abandoned";
+    "approval";
+    "atom";
+    "decision";
+    "decline";
+    "delivered";
+    "design";
+    "done";
+    "ext";
+    "name";
+    "pin";
+    "plan";
+    "plan-def";
+    "progress";
+    "req";
+    "schema";
+    "scope";
+    "spec";
+    "task";
+    "task-def";
+    "term";
+    "vector-group";
+    "vector-group-def";
+    "vector-set";
+    "void";
+  ]
+
+let overlapping_kind_words =
+  [ "atom"; "decision"; "design"; "req"; "schema"; "spec"; "term" ]
+
+let non_kind_object_words =
+  List.filter
+    (fun word -> not (List.mem word overlapping_kind_words))
+    object_kind_words
+
+let is_hex_digit c = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
+
+let is_content_id text =
+  match String.index_opt text ':' with
+  | None -> false
+  | Some colon ->
+      let word = String.sub text 0 colon in
+      let rest_len = String.length text - colon - 1 in
+      rest_len = 32
+      && List.mem word object_kind_words
+      &&
+      let rec all_hex index =
+        index >= String.length text
+        || (is_hex_digit text.[index] && all_hex (index + 1))
+      in
+      all_hex (colon + 1)
+
+(* @verifies identifiers#{citation-line=v1, declaration-line=v1, extern-line=v1, give-line-results=v1, give-values=v1, give-no-other-values=v1}
+   Every content id of one of the twenty-five object kind words, `:`, and 32
+   lower-case hex digits is valid in all five citation words and yields only
+   the value `content-id`. Declarations, `@extern` lines, and scoped lists
+   reject content ids. A content id is never an external target under any
+   binding, while the seven kind words remain valid with 32-hex-digit slugs and
+   part names. *)
+let content_ids () =
+  let hex = "0123456789abcdef0123456789abcdef" in
+  let hex2 = "fedcba9876543210fedcba9876543210" in
+  let ns_hex = "abcdef0123456789abcdef0123456789" in
+  let check name binding text want =
+    check_json name (`List want) (`List (line_inputs binding text))
+  in
+  let citation_words =
+    [ "@cites"; "@verifies"; "@refines"; "@satisfies"; "@supersedes" ]
+  in
+  List.iter
+    (fun word ->
+      let id = word ^ ":" ^ hex in
+      List.iter
+        (fun tag ->
+          check
+            (Printf.sprintf "%s %s" tag id)
+            standard_binding
+            (Printf.sprintf "%s %s note" tag id)
+            [ cites ~tag ~text:"note" [ [ cid id ] ] ])
+        citation_words)
+    object_kind_words;
+  List.iter
+    (fun digit ->
+      let id = "req:" ^ String.make 32 digit in
+      check
+        (Printf.sprintf "boundary hex digit %C" digit)
+        standard_binding ("@cites " ^ id)
+        [ cites [ [ cid id ] ] ])
+    [ '0'; '9'; 'a'; 'f' ];
+  List.iter
+    (fun bad_char ->
+      List.iter
+        (fun pos ->
+          let bytes = Bytes.of_string hex in
+          Bytes.set bytes pos bad_char;
+          let text = "@cites task:" ^ Bytes.to_string bytes in
+          check
+            (Printf.sprintf "bad hex char %C at %d" bad_char pos)
+            standard_binding text
+            [ line_invalid "@cites" ])
+        [ 0; 15; 31 ])
+    [ '/'; ':'; '@'; 'A'; 'F'; '`'; 'g' ];
+  List.iter
+    (fun bad_len ->
+      let tail = String.make bad_len 'a' in
+      check
+        (Printf.sprintf "hex length %d" bad_len)
+        standard_binding ("@cites task:" ^ tail)
+        [ line_invalid "@cites" ];
+      check
+        (Printf.sprintf "overlapping kind word hex length %d" bad_len)
+        standard_binding ("@cites req:" ^ tail)
+        [ line_invalid "@cites" ])
+    [ 0; 1; 31; 33; 64 ];
+  List.iter
+    (fun bad_word ->
+      check
+        (Printf.sprintf "unknown object kind word %S" bad_word)
+        standard_binding
+        ("@cites " ^ bad_word ^ ":" ^ hex)
+        [ line_invalid "@cites" ])
+    [
+      "";
+      "object";
+      "unknown";
+      "Req";
+      "TASK";
+      "task_def";
+      "plan-";
+      "-plan";
+      "plan-d";
+      "plan-de";
+      "plan-defs";
+      "task-";
+      "vector";
+      "vector-group-";
+      "vector-sets";
+      "voids";
+      "reqs";
+    ];
+  List.iter
+    (fun kw ->
+      check
+        (Printf.sprintf "overlapping %s with revision" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s=v1" kw hex)
+        [ cites [ [ kind kw; slug hex; rev "v1" ] ] ];
+      check
+        (Printf.sprintf "overlapping %s with star" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s=*" kw hex)
+        [ cites [ [ kind kw; slug hex; rev "*" ] ] ];
+      check
+        (Printf.sprintf "overlapping %s with part" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s#p=v1" kw hex)
+        [ cites [ [ kind kw; slug hex; part "p"; rev "v1" ] ] ];
+      check
+        (Printf.sprintf "overlapping %s with vector group" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s[g]" kw hex)
+        [ cites [ [ kind kw; slug hex; ("group-name", str "g") ] ] ];
+      check
+        (Printf.sprintf "overlapping %s with every vector" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s[*]" kw hex)
+        [ cites [ [ kind kw; slug hex; every_vector ] ] ];
+      check
+        (Printf.sprintf "overlapping %s with scoped list" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s#{p=v1}" kw hex)
+        [ cites [ [ kind kw; slug hex; part "p"; rev "v1" ] ] ];
+      check
+        (Printf.sprintf "overlapping %s in @extern" kw)
+        standard_binding
+        (Printf.sprintf "@extern %s:%s" kw hex)
+        [ line_valid "directive" "@extern" [ kind kw; part hex; desc "" ] ];
+      check
+        (Printf.sprintf "overlapping %s with part and no revision is invalid" kw)
+        standard_binding
+        (Printf.sprintf "@cites %s:%s#p" kw hex)
+        [ line_invalid "@cites" ])
+    overlapping_kind_words;
+  List.iter
+    (fun okw ->
+      List.iter
+        (fun target ->
+          check
+            (Printf.sprintf "non-kind %s rejects %s" okw target)
+            standard_binding ("@cites " ^ target)
+            [ line_invalid "@cites" ])
+        [
+          okw ^ ":" ^ hex ^ "=v1";
+          okw ^ ":" ^ hex ^ "#p=v1";
+          okw ^ ":" ^ hex ^ "#p";
+          okw ^ ":" ^ hex ^ "[g]";
+          okw ^ ":" ^ hex ^ "[*]";
+          okw ^ ":foo=v1";
+          okw ^ ":gh/42";
+          okw ^ ":foo#{p=v1}";
+        ];
+      check
+        (Printf.sprintf "@extern rejects non-kind %s with part" okw)
+        standard_binding
+        (Printf.sprintf "@extern %s:x" okw)
+        [ line_invalid "@extern" ];
+      check
+        (Printf.sprintf "@extern rejects non-kind %s with 32 hex" okw)
+        standard_binding
+        (Printf.sprintf "@extern %s:%s" okw hex)
+        [ line_invalid "@extern" ])
+    non_kind_object_words;
+  List.iter
+    (fun decl_word ->
+      check
+        (Printf.sprintf "%s rejects req content id" decl_word)
+        standard_binding
+        (Printf.sprintf "%s req:%s" decl_word hex)
+        [ line_invalid decl_word ];
+      check
+        (Printf.sprintf "%s rejects task content id" decl_word)
+        standard_binding
+        (Printf.sprintf "%s task:%s" decl_word hex)
+        [ line_invalid decl_word ])
+    [ "@atom"; "@decision"; "@design"; "@req"; "@schema"; "@spec"; "@term" ];
+  check "extra kind word before content id is invalid" standard_binding
+    ("@cites req:req:" ^ hex)
+    [ line_invalid "@cites" ];
+  check "extra kind word before non-kind content id is invalid" standard_binding
+    ("@cites req:task:" ^ hex)
+    [ line_invalid "@cites" ];
+  check "scoped list rejects content id without slug" standard_binding
+    ("@cites #{req:" ^ hex ^ "}")
+    [ line_invalid "@cites" ];
+  check "scoped list rejects content id with slug" standard_binding
+    ("@cites a#{task:" ^ hex ^ "}")
+    [ line_invalid "@cites" ];
+  List.iter
+    (fun tag ->
+      check
+        (Printf.sprintf "duplicate content id in %s is invalid" tag)
+        standard_binding
+        (Printf.sprintf "%s {req:%s, req:%s}" tag hex hex)
+        [ line_invalid tag ])
+    citation_words;
+  check "different object kind words with same hex are distinct"
+    standard_binding
+    (Printf.sprintf "@cites {req:%s, spec:%s, task:%s, task-def:%s}" hex hex hex
+       hex)
+    [
+      cites
+        [
+          [ cid ("req:" ^ hex) ];
+          [ cid ("spec:" ^ hex) ];
+          [ cid ("task:" ^ hex) ];
+          [ cid ("task-def:" ^ hex) ];
+        ];
+    ];
+  check "same object kind word with different hex are distinct" standard_binding
+    (Printf.sprintf "@cites {req:%s, req:%s}" hex hex2)
+    [ cites [ [ cid ("req:" ^ hex) ]; [ cid ("req:" ^ hex2) ] ] ];
+  check "content id and bare 32-hex slug have distinct entry names"
+    standard_binding
+    (Printf.sprintf "@cites {req:%s, %s=v1}" hex hex)
+    [ cites [ [ cid ("req:" ^ hex) ]; [ slug hex; rev "v1" ] ] ];
+  check "content id and 32-hex slug with a kind word have distinct entry names"
+    standard_binding
+    (Printf.sprintf "@cites {req:%s, req:%s=v1}" hex hex)
+    [ cites [ [ cid ("req:" ^ hex) ]; [ kind "req"; slug hex; rev "v1" ] ] ];
+  check
+    "content id and 32-hex full name with a kind word have distinct entry names"
+    standard_binding
+    (Printf.sprintf "@cites {req:%s, req:%s#p=v1}" hex hex)
+    [
+      cites
+        [ [ cid ("req:" ^ hex) ]; [ kind "req"; slug hex; part "p"; rev "v1" ] ];
+    ];
+  check
+    "content id and 32-hex vector selection with a kind word have distinct \
+     entry names"
+    standard_binding
+    (Printf.sprintf "@cites {req:%s, req:%s[g]}" hex hex)
+    [
+      cites
+        [
+          [ cid ("req:" ^ hex) ];
+          [ kind "req"; slug hex; ("group-name", str "g") ];
+        ];
+    ];
+  let hex_binding =
+    match
+      Binding.make
+        [
+          ("gh", "[1-9][0-9]*"); ("rfc", "[1-9][0-9]*"); (ns_hex, "[1-9][0-9]*");
+        ]
+    with
+    | Ok binding -> binding
+    | Error _ -> Alcotest.fail "the three-pair binding is valid"
+  in
+  check "overlapping content id is never external under 32-hex binding"
+    hex_binding ("@cites req:" ^ ns_hex)
+    [ cites [ [ cid ("req:" ^ ns_hex) ] ] ];
+  check "non-kind content id is never external under 32-hex binding" hex_binding
+    ("@cites task:" ^ ns_hex)
+    [ cites [ [ cid ("task:" ^ ns_hex) ] ] ];
+  check
+    "32-hex slug with a kind word and revision is external under 32-hex binding"
+    hex_binding
+    ("@cites req:" ^ ns_hex ^ "=v1")
+    [ line_invalid "@cites" ];
+  check "32-hex full name with a kind word is external under 32-hex binding"
+    hex_binding
+    ("@cites req:" ^ ns_hex ^ "#x=v1")
+    [ line_invalid "@cites" ];
+  check "32-hex scoped list with a kind word is external under 32-hex binding"
+    hex_binding
+    ("@cites req:" ^ ns_hex ^ "#{x=v1}")
+    [ line_invalid "@cites" ];
+  check "bare 32-hex with revision is external under 32-hex binding" hex_binding
+    ("@cites " ^ ns_hex ^ "=v1")
+    [ line_invalid "@cites" ];
+  check "32-hex external id with a kind word is valid under 32-hex binding"
+    hex_binding
+    ("@cites req:" ^ ns_hex ^ "/42")
+    [ cites [ kind "req" :: ext ns_hex "42" ] ];
+  check "bare 32-hex external id is valid under 32-hex binding" hex_binding
+    ("@cites " ^ ns_hex ^ "/42")
+    [ cites [ ext ns_hex "42" ] ];
+  check "@extern is never external under 32-hex binding" hex_binding
+    ("@extern req:" ^ ns_hex)
+    [ line_valid "directive" "@extern" [ kind "req"; part ns_hex; desc "" ] ];
+  check "@req rejects external 32-hex target under 32-hex binding" hex_binding
+    ("@req " ^ ns_hex ^ "=v1")
+    [ line_invalid "@req" ];
+  check "@term rejects external 32-hex target under 32-hex binding" hex_binding
+    ("@term " ^ ns_hex)
+    [ line_invalid "@term" ];
+  check "@term accepts bare 32-hex slug under empty binding" Binding.empty
+    ("@term " ^ ns_hex)
+    [ decl "@term" [ slug ns_hex; desc "" ] ]
 
 let words () =
   Alcotest.(check (list string))
@@ -748,24 +1123,38 @@ let suffix_gen allowed star index =
 
 let list_space_gen = one_of [ ""; ""; " "; "\t"; "\n"; "\n  "; " \n\t" ]
 
-type rules = { selections : bool; star : bool; every_part : bool }
+type rules = { selections : bool; star : bool }
 
 let rules_of = function
-  | "@cites" -> { selections = true; star = true; every_part = false }
-  | "@verifies" -> { selections = true; star = false; every_part = false }
-  | "@supersedes" -> { selections = false; star = false; every_part = true }
-  | _ -> { selections = false; star = false; every_part = false }
+  | "@cites" -> { selections = true; star = true }
+  | "@verifies" -> { selections = true; star = false }
+  | _ -> { selections = false; star = false }
+
+let hex32_gen index =
+  Gen.map
+    (fun prefix -> prefix ^ Printf.sprintf "%08x" index)
+    (word_gen "0123456789abcdef" (Gen.return 24))
+
+let hex32_ns_gen =
+  Gen.map2 ( ^ )
+    (one_of (chars "abcdef"))
+    (word_gen "0123456789abcdef" (Gen.return 31))
+
+let content_id_gen index =
+  Gen.map2
+    (fun word digits -> word ^ ":" ^ digits)
+    (one_of object_kind_words) (hex32_gen index)
 
 let single_gen rules index =
   let open Gen in
   let* kind = kind_gen
   and* slug = slug_gen index
-  and* part = unique_segment index in
+  and* part = unique_segment index
+  and* content_id = content_id_gen index in
   let* suffix_text, suffix_values =
     suffix_gen rules.selections rules.star index
   in
-  let* label = label_gen in
-  let* form = int_range 0 (if rules.every_part then 4 else 3) in
+  let* form = int_range 0 4 in
   let* external_part = bool in
   let with_kind name values =
     ( kind_prefix kind ^ name ^ suffix_text,
@@ -789,10 +1178,7 @@ let single_gen rules index =
           kind_text_values kind
           @ [ ("namespace-name", str "gh"); ("id", str id) ]
           @ part_values )
-    | _ ->
-        ( slug ^ "=" ^ label ^ "#*",
-          slug_values slug
-          @ [ ("every-part", `Bool true); ("revision", str label) ] ))
+    | _ -> (content_id, [ cid content_id ]))
 
 let scoped_gen rules index =
   let open Gen in
@@ -936,6 +1322,12 @@ let line_token_gen =
       "req:";
       "atom:";
       "schema:";
+      "task-def:";
+      "object:";
+      "req:0123456789abcdef0123456789abcdef";
+      "task:0123456789abcdef0123456789abcdef";
+      "\\";
+      "^";
       "#*";
       "\xc2\xa0";
       "\xef\xbb\xbf";
@@ -1122,6 +1514,119 @@ let damaged_tag_lines_keep_the_invariants =
     (Gen.oneof [ corrupted declaration_gen; corrupted citation_gen ])
     line_invariants
 
+let candidate_content_id_gen =
+  let open Gen in
+  let* tag =
+    one_of [ "@cites"; "@verifies"; "@refines"; "@satisfies"; "@supersedes" ]
+  and* kind =
+    oneof
+      [
+        one_of object_kind_words;
+        one_of
+          [
+            "object";
+            "Req";
+            "TASK";
+            "task_def";
+            "unknown";
+            "vector";
+            "plan-";
+            "";
+          ];
+      ]
+  and* sep = one_of [ ":"; ":"; ":"; "::"; "/"; "" ]
+  and* len = one_of [ 32; 32; 32; 31; 33; 0; 16 ]
+  and* alphabet =
+    one_of
+      [
+        "0123456789abcdef";
+        "0123456789abcdef";
+        "0123456789abcdefABCDEF";
+        "0123456789abcdefg/:`";
+      ]
+  and* tail = one_of [ ""; ""; ""; "=v1"; "#p"; "[g]" ] in
+  let* digits = word_gen alphabet (return len) in
+  return (tag, kind ^ sep ^ digits ^ tail, tail)
+
+(* @verifies identifiers#{citation-line=v1, give-line-results=v1, give-values=v1, give-no-other-values=v1}
+   A citation yields `Target.Content_id` when and only when the candidate
+   target matches `content-id`, and yields another valid target only when the
+   target carries a revision or an allowed vector selection. *)
+let content_id_decoder_follows_the_production =
+  property ~count:1000
+    ~name:
+      "a citation reads a candidate content id as Content_id when and only \
+       when it matches content-id"
+    ~print:(fun (tag, target, _) -> Printf.sprintf "%s %S" tag target)
+    candidate_content_id_gen
+    (fun (tag, target, tail) ->
+      let line = tag ^ " " ^ target in
+      match Tag_line.read standard_binding (text_of line) with
+      | [
+       {
+         result = Tag_line.Valid (Tag_line.Citation { entries = [ entry ]; _ });
+         _;
+       };
+      ] -> (
+          match entry with
+          | Target.Content_id id ->
+              is_content_id target && String.equal id target
+          | _ ->
+              (not (is_content_id target))
+              && (String.equal tail "=v1"
+                 || String.equal tail "[g]"
+                    && (String.equal tag "@cites"
+                       || String.equal tag "@verifies")))
+      | [ { result = Tag_line.Invalid _; _ } ] -> not (is_content_id target)
+      | _ -> false)
+
+(* @verifies identifiers#{citation-line=v1, give-line-results=v1, give-values=v1}
+   No content id is ever an external target under any binding, even when the
+   binding binds its 32-hex-digit tail and its object kind word as external
+   namespaces. Non-content-id targets with an overlapping kind word and that
+   bound 32-hex-digit head remain external. *)
+let content_ids_are_never_external =
+  let open Gen in
+  let gen =
+    let* tag =
+      one_of [ "@cites"; "@verifies"; "@refines"; "@satisfies"; "@supersedes" ]
+    and* word = one_of object_kind_words
+    and* hex = hex32_ns_gen in
+    return (tag, word, hex)
+  in
+  property ~count:500
+    ~name:"no content id is an external target under any binding"
+    ~print:(fun (tag, word, hex) -> Printf.sprintf "%s %s:%s" tag word hex)
+    gen
+    (fun (tag, word, hex) ->
+      let pairs = [ (hex, "[1-9][0-9]*"); (word, "[1-9][0-9]*") ] in
+      match Binding.make pairs with
+      | Error _ -> false
+      | Ok binding ->
+          let id = word ^ ":" ^ hex in
+          let content_ok =
+            Vectors.equal_json
+              (`List [ cites ~tag [ [ cid id ] ] ])
+              (`List (line_inputs binding (tag ^ " " ^ id)))
+          in
+          let non_content_ok =
+            if not (List.mem word overlapping_kind_words) then true
+            else
+              Vectors.equal_json
+                (`List [ line_invalid "@cites" ])
+                (`List (line_inputs binding ("@cites " ^ id ^ "=v1")))
+              && Vectors.equal_json
+                   (`List [ line_invalid "@cites" ])
+                   (`List (line_inputs binding ("@cites " ^ id ^ "#p=v1")))
+              && Vectors.equal_json
+                   (`List [ line_invalid "@cites" ])
+                   (`List (line_inputs binding ("@cites " ^ id ^ "#{p=v1}")))
+              && Vectors.equal_json
+                   (`List [ cites [ kind word :: ext hex "42" ] ])
+                   (`List (line_inputs binding ("@cites " ^ id ^ "/42")))
+          in
+          content_ok && non_content_ok)
+
 let vector_groups =
   [
     other_line_vectors;
@@ -1143,6 +1648,8 @@ let tests =
         `Quick line_ranges_of_continued_citations;
       Alcotest.test_case "the binding decides which targets are external" `Quick
         one_binding_reads_each_text;
+      Alcotest.test_case "content ids follow their grammar and binding rules"
+        `Quick content_ids;
       Alcotest.test_case "the kind words and the Sinter tag words" `Quick words;
       Alcotest.test_case "the custom namespace of a slug" `Quick
         custom_namespaces;
@@ -1151,4 +1658,6 @@ let tests =
       citations_give_their_values;
       lines_make_one_input_each;
       damaged_tag_lines_keep_the_invariants;
+      content_id_decoder_follows_the_production;
+      content_ids_are_never_external;
     ]

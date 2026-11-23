@@ -192,6 +192,41 @@ let markdown_cases =
       [ markdown_valid "x" ~target:(ext "rfc" "8259" @ [ part "s" ]) ] );
     ("[x](sinter:gh/0)", [ invalid_link ]);
     ("[x](sinter:req:)", [ invalid_link ]);
+    ( "[the req](sinter:req:0123456789abcdef0123456789abcdef)",
+      [
+        markdown_valid "the req"
+          ~target:[ cid "req:0123456789abcdef0123456789abcdef" ];
+      ] );
+    ( "[the def](sinter:task-def:0123456789abcdef0123456789abcdef)",
+      [
+        markdown_valid "the def"
+          ~target:[ cid "task-def:0123456789abcdef0123456789abcdef" ];
+      ] );
+    ( "[the void][r]\n\n[r]: sinter:void:fedcba9876543210fedcba9876543210",
+      [
+        markdown_valid "the void"
+          ~target:[ cid "void:fedcba9876543210fedcba9876543210" ];
+      ] );
+    ( "<sinter:approval:0123456789abcdef0123456789abcdef>",
+      [
+        markdown_valid "sinter:approval:0123456789abcdef0123456789abcdef"
+          ~target:[ cid "approval:0123456789abcdef0123456789abcdef" ];
+      ] );
+    ("[ ](sinter:req:0123456789abcdef0123456789abcdef)", [ invalid_link ]);
+    ("[x](sinter:object:0123456789abcdef0123456789abcdef)", [ invalid_link ]);
+    ("[x](sinter:req:0123456789abcdef0123456789abcde)", [ invalid_link ]);
+    ("[x](sinter:req:0123456789abcdef0123456789abcdef0)", [ invalid_link ]);
+    ("[x](sinter:req:0123456789ABCDEF0123456789ABCDEF)", [ invalid_link ]);
+    ("[x](sinter:req:req:0123456789abcdef0123456789abcdef)", [ invalid_link ]);
+    ("[x](sinter:task:0123456789abcdef0123456789abcdef=v1)", [ invalid_link ]);
+    ("[x](sinter:task:0123456789abcdef0123456789abcdef#p)", [ invalid_link ]);
+    ("[x](sinter:task:0123456789abcdef0123456789abcdef[g])", [ invalid_link ]);
+    ( "[x](sinter:req:0123456789abcdef0123456789abcdef=v1)",
+      [
+        markdown_valid "x"
+          ~target:
+            [ kind "req"; slug "0123456789abcdef0123456789abcdef"; rev "v1" ];
+      ] );
   ]
 
 (* @verifies identifiers#{give-link-results=v1, give-values=v1, give-no-other-values=v1}
@@ -350,15 +385,38 @@ let link_runs_cover_the_link_in_the_text () =
     [ (2, 26) ]
     (runs "> [a\r\n> b](sinter:docs=v1)")
 
-(* @verifies identifiers#use-one-binding=v1
+(* @verifies identifiers#{inline-destination=v1, use-one-binding=v1, give-values=v1, give-no-other-values=v1}
    Inline_target.read interprets each destination under the single binding
-   that the caller passes. *)
+   that the caller passes, accepting content ids and never treating a content
+   id as an external target. *)
 let inline_targets_read_their_values () =
+  let hex = "0123456789abcdef0123456789abcdef" in
+  let ns_hex = "abcdef0123456789abcdef0123456789" in
+  let hex_binding =
+    match
+      Binding.make
+        [
+          ("gh", "[1-9][0-9]*"); ("rfc", "[1-9][0-9]*"); (ns_hex, "[1-9][0-9]*");
+        ]
+    with
+    | Ok binding -> binding
+    | Error _ -> Alcotest.fail "the three-pair binding is valid"
+  in
+  let wide =
+    match Binding.make [ ("x", "[!\"$%&'()*+.0-9:;<>?A-Z_`a-z|~-]+") ] with
+    | Ok binding -> binding
+    | Error _ -> Alcotest.fail "the wide binding is valid"
+  in
   let read binding target =
     match Inline_target.read binding target with
     | Some target -> `Assoc (target_values target)
     | None -> `Null
   in
+  List.iter
+    (fun word ->
+      let id = word ^ ":" ^ hex in
+      check_json id (`Assoc [ cid id ]) (read standard_binding id))
+    object_kind_words;
   List.iter
     (fun (binding, target, want) ->
       check_json target want (read binding target))
@@ -390,20 +448,88 @@ let inline_targets_read_their_values () =
       (standard_binding, "docs", `Null);
       (standard_binding, "", `Null);
       (standard_binding, "sinter:docs=v1", `Null);
+      ( standard_binding,
+        "req:" ^ hex ^ "=v1",
+        `Assoc [ kind "req"; slug hex; rev "v1" ] );
+      ( standard_binding,
+        "spec:" ^ hex ^ "=*",
+        `Assoc [ kind "spec"; slug hex; rev "*" ] );
+      ( standard_binding,
+        "term:" ^ hex ^ "#p=v1",
+        `Assoc [ kind "term"; slug hex; part "p"; rev "v1" ] );
+      (standard_binding, "object:" ^ hex, `Null);
+      (standard_binding, "Req:" ^ hex, `Null);
+      (standard_binding, "req:" ^ String.sub hex 0 31, `Null);
+      (standard_binding, "req:" ^ hex ^ "0", `Null);
+      (standard_binding, "req:" ^ String.uppercase_ascii hex, `Null);
+      (standard_binding, "req:" ^ String.sub hex 0 31 ^ "g", `Null);
+      (standard_binding, "req:req:" ^ hex, `Null);
+      (standard_binding, "task:" ^ hex ^ "=v1", `Null);
+      (standard_binding, "task:" ^ hex ^ "#p", `Null);
+      (standard_binding, "task:" ^ hex ^ "#p=v1", `Null);
+      (standard_binding, "task:" ^ hex ^ "[g]", `Null);
+      (standard_binding, "task-def:foo=v1", `Null);
+      (hex_binding, "req:" ^ ns_hex, `Assoc [ cid ("req:" ^ ns_hex) ]);
+      (hex_binding, "task:" ^ ns_hex, `Assoc [ cid ("task:" ^ ns_hex) ]);
+      (hex_binding, "req:" ^ ns_hex ^ "=v1", `Null);
+      (hex_binding, "req:" ^ ns_hex ^ "#x=v1", `Null);
+      ( hex_binding,
+        "req:" ^ ns_hex ^ "/42",
+        `Assoc (kind "req" :: ext ns_hex "42") );
+      (wide, "x/a\\b", `Null);
+      (wide, "x/a^b", `Null);
     ]
 
 let one_binding_reads_each_link () =
+  let ns_hex = "abcdef0123456789abcdef0123456789" in
   let jira =
     match Binding.make [ ("jira", "[A-Z]+-[1-9][0-9]*") ] with
     | Ok binding -> binding
     | Error _ -> Alcotest.fail "the binding is valid"
+  in
+  let hex_binding =
+    match
+      Binding.make
+        [
+          ("gh", "[1-9][0-9]*"); ("rfc", "[1-9][0-9]*"); (ns_hex, "[1-9][0-9]*");
+        ]
+    with
+    | Ok binding -> binding
+    | Error _ -> Alcotest.fail "the three-pair binding is valid"
+  in
+  let wide =
+    match Binding.make [ ("x", "[!\"$%&'()*+.0-9:;<>?A-Z_`a-z|~-]+") ] with
+    | Ok binding -> binding
+    | Error _ -> Alcotest.fail "the wide binding is valid"
   in
   check_json "an inline citation under the empty binding"
     (`List [ markdown_valid "x" ~target:[ slug "gh/42"; ns "gh"; rev "v2" ] ])
     (`List (link_results Binding.empty "[x](sinter:gh/42=v2)"));
   check_json "an inline citation under the jira binding"
     (`List [ markdown_valid "x" ~target:(ext "jira" "A-1") ])
-    (`List (link_results jira "[x](sinter:jira/A-1)"))
+    (`List (link_results jira "[x](sinter:jira/A-1)"));
+  check_json "a content id is never external in an inline citation"
+    (`List [ markdown_valid "x" ~target:[ cid ("req:" ^ ns_hex) ] ])
+    (`List (link_results hex_binding ("[x](sinter:req:" ^ ns_hex ^ ")")));
+  check_json "a non-content-id with bound 32-hex head is external and invalid"
+    (`List [ invalid_link ])
+    (`List (link_results hex_binding ("[x](sinter:req:" ^ ns_hex ^ "=v1)")));
+  check_json
+    "a non-content-id with bound 32-hex head and part is external and invalid"
+    (`List [ invalid_link ])
+    (`List (link_results hex_binding ("[x](sinter:req:" ^ ns_hex ^ "#x=v1)")));
+  check_json "an inline link rejects a backslash in an external id"
+    (`List [ invalid_link ])
+    (`List (link_results wide "[x](sinter:x/a\\\\b)"));
+  check_json "an autolink rejects a backslash in an external id"
+    (`List [ invalid_link ])
+    (`List (link_results wide "<sinter:x/a\\b>"));
+  check_json "an inline link rejects a caret in an external id"
+    (`List [ invalid_link ])
+    (`List (link_results wide "[x](sinter:x/a^b)"));
+  check_json "an autolink rejects a caret in an external id"
+    (`List [ invalid_link ])
+    (`List (link_results wide "<sinter:x/a^b>"))
 
 let large_documents_are_read () =
   let nested depth =
@@ -457,9 +583,7 @@ let line_texts_hold_no_link () =
 
 let inline_gen =
   let open Gen in
-  let* target, values =
-    single_gen { selections = false; star = true; every_part = false } 0
-  in
+  let* target, values = single_gen { selections = false; star = true } 0 in
   let* label = one_of [ "x"; "the limit"; "*a*"; "`b`"; "a\nb"; "\xc3\xa9" ] in
   let* form = int_range 0 2 in
   let* escape = bool in
@@ -529,6 +653,9 @@ let markdown_token_gen =
       "sinter:";
       "docs=v1";
       "gh/42";
+      "req:0123456789abcdef0123456789abcdef";
+      "task:0123456789abcdef0123456789abcdef";
+      "task-def:";
       "#";
       "=";
       "&amp;";
@@ -591,7 +718,7 @@ let link_invariants string =
 
 (* @verifies identifiers#{give-link-results=v1, give-no-results-for-non-inputs=v1}
    Every returned link covers an actual link or image run in the document body,
-   in start order, and never carries a vector selection or every-part target. *)
+   in start order, and never carries a vector selection. *)
 let links_cover_runs_in_order =
   property ~count:2000
     ~name:
@@ -603,6 +730,66 @@ let damaged_links_keep_the_invariants =
   property ~count:1000
     ~name:"a damaged inline citation still gives links that cover runs in order"
     ~print:(Printf.sprintf "%S") (corrupted inline_gen) link_invariants
+
+(* @verifies identifiers#{inline-destination=v1, give-link-results=v1, give-values=v1, give-no-other-values=v1}
+   No content id in an inline citation is ever an external target under any
+   binding, and each returns only the value `content-id` alongside its link
+   text. *)
+let inline_content_ids_are_never_external =
+  let open Gen in
+  let gen =
+    let* word = one_of object_kind_words
+    and* hex = hex32_ns_gen
+    and* form = int_range 0 2 in
+    return (word, hex, form)
+  in
+  property ~count:500
+    ~name:
+      "no content id in an inline citation is an external target under any \
+       binding"
+    ~print:(fun (word, hex, form) -> Printf.sprintf "%s:%s (%d)" word hex form)
+    gen
+    (fun (word, hex, form) ->
+      let pairs = [ (hex, "[1-9][0-9]*"); (word, "[1-9][0-9]*") ] in
+      match Binding.make pairs with
+      | Error _ -> false
+      | Ok binding ->
+          let id = word ^ ":" ^ hex in
+          let markdown, link_text =
+            match form with
+            | 0 -> (Printf.sprintf "[the item](sinter:%s)" id, "the item")
+            | 1 ->
+                (Printf.sprintf "[the item][r]\n\n[r]: sinter:%s" id, "the item")
+            | _ -> (Printf.sprintf "<sinter:%s>" id, "sinter:" ^ id)
+          in
+          let target_ok =
+            Inline_target.read binding id = Some (Target.Content_id id)
+          in
+          let link_ok =
+            Vectors.equal_json
+              (`List [ markdown_valid link_text ~target:[ cid id ] ])
+              (`List (link_results binding markdown))
+          in
+          let non_content_ok =
+            if not (List.mem word overlapping_kind_words) then true
+            else
+              Inline_target.read binding (id ^ "=v1") = None
+              && Inline_target.read binding (id ^ "#p=v1") = None
+              && Inline_target.read binding (id ^ "/42")
+                 = Some
+                     (Target.External
+                        {
+                          kind_word = Kind_word.of_string word;
+                          namespace_name = hex;
+                          id = "42";
+                          part_name = None;
+                        })
+              && Vectors.equal_json (`List [ invalid_link ])
+                   (`List
+                      (link_results binding
+                         (Printf.sprintf "[x](sinter:%s=v1)" id)))
+          in
+          target_ok && link_ok && non_content_ok)
 
 let vector_groups = [ inline_citation_vectors; rejected_binding_vectors ]
 
@@ -634,4 +821,5 @@ let tests =
       inline_citations_give_their_values;
       links_cover_runs_in_order;
       damaged_links_keep_the_invariants;
+      inline_content_ids_are_never_external;
     ]

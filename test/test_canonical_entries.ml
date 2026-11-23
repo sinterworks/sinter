@@ -72,20 +72,24 @@ let canonical_entry_vectors =
   Vectors.group set ~name:"canonical-entries" ~form:"#canonical-entry-vector=v1"
     give_forms
 
-type expected = { name : string; suffix : string }
+type expected =
+  | Named of { name : string; suffix : string }
+  | Content_id of string
 
-let expected_form ?slug kind_word { name; suffix } =
-  let name =
-    match slug with
-    | Some slug when slug <> "" && name.[0] = '#' -> slug ^ name
-    | _ -> name
-  in
-  let kind =
-    match kind_word with
-    | Some word -> Kind_word.to_string word ^ ":"
-    | None -> ""
-  in
-  kind ^ name ^ suffix
+let expected_form ?slug kind_word = function
+  | Content_id id -> id
+  | Named { name; suffix } ->
+      let name =
+        match slug with
+        | Some slug when slug <> "" && name.[0] = '#' -> slug ^ name
+        | _ -> name
+      in
+      let kind =
+        match kind_word with
+        | Some word -> Kind_word.to_string word ^ ":"
+        | None -> ""
+      in
+      kind ^ name ^ suffix
 
 let canonical_suffix_gen allowed star index =
   let open Gen in
@@ -103,15 +107,16 @@ let single_entry_gen rules index =
   let open Gen in
   let* kind = kind_gen
   and* slug = slug_gen index
-  and* part = unique_segment index in
+  and* part = unique_segment index
+  and* content_id = content_id_gen index in
   let* suffix_text, canonical_suffix =
     canonical_suffix_gen rules.selections rules.star index
   in
-  let* label = label_gen in
-  let* shape = int_range 0 (if rules.every_part then 4 else 3) in
+  let* shape = int_range 0 4 in
   let* external_part = bool in
   let internal name =
-    (kind_prefix kind ^ name ^ suffix_text, { name; suffix = canonical_suffix })
+    ( kind_prefix kind ^ name ^ suffix_text,
+      Named { name; suffix = canonical_suffix } )
   in
   return
     (match shape with
@@ -124,8 +129,8 @@ let single_entry_gen rules index =
           ^ string_of_int (index + 1)
           ^ if external_part then "#" ^ part else ""
         in
-        (kind_prefix kind ^ id, { name = id; suffix = "" })
-    | _ -> (slug ^ "=" ^ label ^ "#*", { name = slug; suffix = "#*" }))
+        (kind_prefix kind ^ id, Named { name = id; suffix = "" })
+    | _ -> (content_id, Content_id content_id))
 
 let scoped_entries_gen rules index =
   let open Gen in
@@ -141,7 +146,7 @@ let scoped_entries_gen rules index =
              canonical_suffix_gen rules.selections rules.star k
            in
            let name = (if with_slug then slug else "") ^ "#" ^ part in
-           return (part ^ suffix_text, { name; suffix = canonical_suffix })))
+           return (part ^ suffix_text, Named { name; suffix = canonical_suffix })))
   in
   return
     ( kind_prefix kind
@@ -203,11 +208,12 @@ let same_forms (text, slug, entries, kind_words) =
    false)
 
 (* @verifies identifiers#give-canonical-entries=v1
-   The citations come from the grammar, with every shape of citation entry, a
-   slug or none, and a kind word or none for each entry; the form that each
-   entry must give follows the steps of the term canonical-entry, so a slug put
+   The citations come from the grammar, with every shape of citation entry
+   including content ids, a slug or none, and a kind word or none for each
+   entry; the form that each entry must give follows the steps of the term
+   canonical-entry, so a content id altered by a slug or kind word, a slug put
    before a name that does not start with `#`, a revision or a kind word of the
-   entry left in the form, or a lost vector selection or `#*` fails. *)
+   entry left in the form, or a lost vector selection fails. *)
 let citations_give_their_canonical_forms =
   property ~count:1000
     ~name:"each citation entry gives the canonical form of the design"
@@ -228,19 +234,21 @@ let inline_target_gen =
   and* slug = slug_gen 0
   and* part = unique_segment 1
   and* label = inline_label_gen
-  and* shape = int_range 0 3
+  and* content_id = content_id_gen 0
+  and* shape = int_range 0 4
   and* external_part = bool in
   let internal name =
-    (kind_prefix kind ^ name ^ "=" ^ label, { name; suffix = "" })
+    (kind_prefix kind ^ name ^ "=" ^ label, Named { name; suffix = "" })
   in
   return
     (match shape with
     | 0 -> internal slug
     | 1 -> internal (slug ^ "#" ^ part)
     | 2 -> internal ("#" ^ part)
-    | _ ->
+    | 3 ->
         let id = "rfc/8259" ^ if external_part then "#" ^ part else "" in
-        (kind_prefix kind ^ id, { name = id; suffix = "" }))
+        (kind_prefix kind ^ id, Named { name = id; suffix = "" })
+    | _ -> (content_id, Content_id content_id))
 
 let inline_citation_gen =
   let open Gen in
@@ -257,9 +265,10 @@ let inline_citation_gen =
 (* @verifies identifiers#give-canonical-entries=v1
    The inline citations come from the grammar of their destination, with a slug
    or none and a kind word or none; the form that the target must give follows
-   the steps of the term canonical-entry from the name or the external id of the
-   destination, so a revision or a kind word of the destination left in the
-   form, or a slug put before a name that does not start with `#`, fails. *)
+   the steps of the term canonical-entry from the name, the external id, or the
+   content id of the destination, so a content id altered by a slug or kind
+   word, a revision or a kind word of the destination left in the form, or a
+   slug put before a name that does not start with `#`, fails. *)
 let inline_citations_give_their_canonical_forms =
   property ~count:500
     ~name:
@@ -275,6 +284,57 @@ let slug_is_taken_as_a_text () =
   Alcotest.(check string)
     "the empty slug is no slug" "#notation"
     (Canonical.entry ~slug:"" (entry "@cites #notation=v1"))
+
+(* @verifies identifiers#give-canonical-entries=v1
+   The canonical form of a content id is that content id itself regardless of
+   the slug and kind word, while an overlapping kind word with a 32-hex-digit
+   slug and a revision takes the caller's kind word as a named target. *)
+let content_id_canonical_forms () =
+  let hex = "0123456789abcdef0123456789abcdef" in
+  let req_id = "req:" ^ hex in
+  let task_id = "task-def:" ^ hex in
+  List.iter
+    (fun (label, target, want) ->
+      Alcotest.(check string)
+        (label ^ " with no slug or kind word")
+        want (Canonical.entry target);
+      Alcotest.(check string)
+        (label ^ " with slug only")
+        want
+        (Canonical.entry ~slug:"docs" target);
+      Alcotest.(check string)
+        (label ^ " with kind word only")
+        want
+        (Canonical.entry ~kind_word:Kind_word.Spec target);
+      Alcotest.(check string)
+        (label ^ " with slug and kind word")
+        want
+        (Canonical.entry ~slug:"docs" ~kind_word:Kind_word.Spec target);
+      Alcotest.(check string)
+        (label ^ " with empty slug and kind word")
+        want
+        (Canonical.entry ~slug:"" ~kind_word:Kind_word.Term target))
+    [
+      ("citation overlapping content id", entry ("@cites " ^ req_id), req_id);
+      ("citation non-kind content id", entry ("@cites " ^ task_id), task_id);
+      ( "inline overlapping content id",
+        entry ("[x](sinter:" ^ req_id ^ ")"),
+        req_id );
+      ( "inline non-kind content id",
+        entry ("[x](sinter:" ^ task_id ^ ")"),
+        task_id );
+    ];
+  Alcotest.(check string)
+    "32-hex slug with overlapping kind word and revision takes caller kind word"
+    ("spec:" ^ hex)
+    (Canonical.entry ~slug:"docs" ~kind_word:Kind_word.Spec
+       (entry ("@cites " ^ req_id ^ "=v1")));
+  Alcotest.(check string)
+    "inline 32-hex slug with overlapping kind word and revision takes caller \
+     kind word"
+    ("spec:" ^ hex)
+    (Canonical.entry ~slug:"docs" ~kind_word:Kind_word.Spec
+       (entry ("[x](sinter:" ^ req_id ^ "=v1)")))
 
 let long_targets n =
   let long letter = String.make n letter in
@@ -300,6 +360,7 @@ let long_targets n =
         part_name = Some (long 'p');
         suffix = Target.Revision (long 'r');
       };
+    Target.Content_id (long 'c');
     Target.External
       {
         kind_word = None;
@@ -323,6 +384,8 @@ let tests =
   @ [
       Alcotest.test_case "a slug is taken as a text" `Quick
         slug_is_taken_as_a_text;
+      Alcotest.test_case "content ids give themselves as canonical forms" `Quick
+        content_id_canonical_forms;
       Alcotest.test_case "the work grows with the length of the form" `Quick
         forms_grow_with_their_length;
       citations_give_their_canonical_forms;
