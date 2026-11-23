@@ -28,7 +28,7 @@ such as in force, approved, suspect, or done, depend only on canonical
 objects and the state inputs (term `state-input`), with no dependence on
 the order of records. For example, bindings of parameters that designs
 name give the kinds of subject of approval that need approval by a person,
-and optionally the persons whose judgments count.
+and optionally the persons whose judgments and voids count.
 
 From Identifiers, the Ontology takes tag lines and Sinter tag words;
 declarations, citations with their citation entries, canonical forms of
@@ -81,7 +81,7 @@ group, and the meaning of a vector.
 | [agent](sinter:#agent=v1) | a program that uses a language model to write texts, such as code, as one person runs the program; the agent acts for that person |
 | continuous integration | a service that runs checks on the commits of a repository |
 | [job](sinter:#job=v1), [run of the job](sinter:#job=v1), [head of a run](sinter:#job=v1), [landing commit](sinter:#job=v1) | an execution of a conforming program that runs after a merge into the default branch of a repository, started by continuous integration or run by a person's hand; a run covers commits of the default branch up to its head; the landing commit of a commit is the commit of the first-parent line of the default branch through which that commit joined that line |
-| [counting void](sinter:#object-withdrawal=v1), [withdrawn](sinter:#object-withdrawal=v1), [replaced](sinter:#object-withdrawal=v1) | a `void` object in a valid file of `.sinter/` that meets its acceptance rule, carries no `agent`, and meets the copy rule when its withdrawn object is present; an object named by a counting void's `withdraws` edge; a declared-item object in `.sinter/` named by a `revises` edge of an unwithdrawn declared-item object of the same name or of a counting void of a declared-item kind |
+| [counting void](sinter:#object-withdrawal=v1), [withdrawn](sinter:#object-withdrawal=v1), [replaced](sinter:#object-withdrawal=v1) | a `void` object in a valid file of `.sinter/` that meets its acceptance rule, carries no `agent`, has a writer in the bound list of persons when a list is bound (when no list is bound, every person's voids count), and meets the copy rule when its withdrawn object is present; an object named by a counting void's `withdraws` edge; a declared-item object in `.sinter/` named by a `revises` edge of an unwithdrawn declared-item object of the same name or of a counting void of a declared-item kind |
 | [tag line](sinter:identifiers#tag-line=v1), [tag word](sinter:identifiers#tag-word=v1) | a line whose first character, after the spaces and tabs at its start, is `@`; its tag word is that `@` with the longest run of ASCII letters, ASCII digits, and `-` right after that `@`, such as `@req` |
 | [declaration](sinter:identifiers#declaration=v1) | a tag line whose tag word is a declaration word, such as `@req limit-amount=v2` |
 | [declaration word](sinter:identifiers#sinter-tag-word=v1) | one of the tag words `@atom`, `@decision`, `@design`, `@req`, `@schema`, `@spec`, and `@term` |
@@ -162,7 +162,7 @@ group, and the meaning of a vector.
 | [plan of a work item in a definition](sinter:#work-item-definition=v1) | the plan, or none, that the definition names with `part-of` |
 | [wait](sinter:#wait=v1) | a relation from a work item, the waiting item, to another work item, the work item that the waiting item waits for |
 | [carry out](sinter:#carried-out-item=v1) | a plan carries out the items of the kind requirement, specification, and design that its definition names with `carries-out` |
-| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, a scope object named with `scoped-by` (giving its paths and promises), at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out |
+| [definition of a work item](sinter:#work-item-definition=v1) | for a task, a display name, a scope object named with `scoped-by` (giving its paths and promises when no counting void withdraws that scope object), at most one external item, at most one plan, and waits; for a plan, a display name, at most one plan, waits, and the items that the plan carries out |
 | [delivery line](sinter:#delivery-line=v1) | a line of the message of a commit that says that the commit completes the work of a task, naming the task by its work item id and its scope by the first six lowercase hexadecimal digits of the scope object's content hash |
 | [task line](sinter:#task-line=v1) | a line of the message of a commit that names a task by its work item id and says that the commit does part of the work |
 | [ledger](sinter:#ledger=v1) | the statements stored as fixed object files in `.sinter/` of a tree together with the observations and kept objects on the log branch |
@@ -173,7 +173,7 @@ group, and the meaning of a vector.
 | [kept object](sinter:#log-branch=v1) | a copy of a declared item merged into the default branch, or of a computed identity object named by a kept declared item (other than its own `name`), stored on the log branch without `seq` or `by` and deduplicated by content id |
 | [definition statement](sinter:#definition-entry=v1), [definition entry](sinter:#definition-entry=v1) | a statement of the kind `task-def` or `plan-def` that records one whole definition of one work item |
 | [thing](sinter:#thing=v1) | the object that the `about` edge of a definition, a judgment, a declared item, a `scope` object, a `vector-group-def`, or a `delivered` observation names; a `void`, a `progress` observation, a work item object, and a computed identity object have no thing |
-| [accepted](sinter:#thing=v1), [counting statement](sinter:#thing=v1) | a statement is accepted when it meets each cross-object rule of `object-kind` that binds its kind, a design gives an acceptance rule for its kind, and that rule holds; a statement counts when it is accepted, is withdrawn by no counting void, carries no `agent` when it is a judgment or void, and has a writer in the bound list of persons when it is a judgment; when no list is bound, every person's judgments count |
+| [accepted](sinter:#thing=v1), [counting statement](sinter:#thing=v1) | a statement is accepted when it meets each cross-object rule of `object-kind` that binds its kind, a design gives an acceptance rule for its kind, and that rule holds; a statement counts when it is accepted, is withdrawn by no counting void, carries no `agent` when it is a judgment or void, and has a writer in the bound list of persons when it is a judgment or a void; when no list is bound, every person's judgments and voids count |
 | [latest statement](sinter:#thing=v1) | a counting statement of a group of statements of a thing that no other counting statement of that group replaces through `revises` edges (directly or through a counting void's copied edges) |
 | [agree](sinter:#conflict=v1), [conflict](sinter:#conflict=v1) | latest statements of one group of statements of a thing agree when they give their thing the same state; latest statements of one group that neither agree nor judge different definitions of a work item, or a completing `delivered` observation that decides a state with a latest `abandoned` judgment of the same definition, are a conflict, which decides nothing |
 | [current definition](sinter:#work-item-state=v1) | the definition recorded by the latest counting definition statements of a work item when at least one exists and all agree |
@@ -285,7 +285,7 @@ Each declared item has a name, such as `billing#limit-amount` for the
 item of the kind requirement of the example of section 2.4 (term
 `item-name`). Two declared items in two trees are the same item when
 they have the same name, whatever their kinds (term `same-item`).
-Declared-item names (`name`), pins that name no exact object (`pin`),
+Declared-item names (`name`), pinned citations (`pin`),
 external items (`ext`), vector sets (`vector-set`), and groups of
 conformance vectors (`vector-group`) each have a computed identity
 object holding only `kind`, `v` (1), and its key, with no `edges`,
@@ -481,16 +481,21 @@ or whose first parent does not reach c).
 @term object-withdrawal=v1
 @cites {
     conformance#{design=v1, object=v1, encoding=v1, input=v1},
-    #{tree=v1, agent=v1},
+    #{tree=v1, person=v1, agent=v1, parameter=v1},
 }
 
 A `void` object that a valid file of `.sinter/` of a tree holds counts
 in that tree (is a counting void in that tree) when, and only when, each
-of these three conditions holds:
+of these four conditions holds:
 
 - a design gives an acceptance rule for `void` that holds for that
   `void` object in that tree;
 - the `void` object does not carry the member `agent`;
+- when a valid binding of a parameter that a design names gives the
+  persons whose judgments and voids count, the `void` object's `by`
+  value is equal to a text in that list (an empty list means that no
+  person's voids count; when no list is bound, every person's voids
+  count);
 - when the inputs hold the object that the `withdraws` edge of the
   `void` object names, each edge of the `void` object other than its
   `withdraws` edge is a copy permitted for that withdrawn object: for a
@@ -498,7 +503,12 @@ of these three conditions holds:
   for any other withdrawable object, a copy of each of its edges whose
   target is not of one of the five computed identity kinds.
 
-A void that does not count withdraws nothing.
+Under a binding of that parameter that is not valid, whether a `void`
+object that meets the other three conditions counts in that tree is
+withheld, and each result whose value depends on whether such a `void`
+object counts in that tree is withheld (while each result whose value
+does not depend on it is unaffected). A void that does not count
+withdraws nothing.
 
 An object that a valid file of `.sinter/` of a tree holds, or any other
 withdrawable object in the inputs (other than a declared item in the
@@ -1129,12 +1139,12 @@ sequence that gives the content hash; the member `kind` is a part of it.
 
 @term computed-identity=v1
 @cites {
-    conformance#{design=v1},
+    conformance#{design=v1, input=v1},
     identifiers#{kind-word=v1},
     #{
         object=v1, object-kind=v1, content-id=v1, declared-item=v1,
         item-name=v1, external-item=v1, vector-set=v1,
-        conformance-vector-group=v1,
+        conformance-vector-group=v1, tree=v1,
     },
 }
 
@@ -1154,8 +1164,15 @@ id:
   never implies that a current declared-item object of that name exists
   in a tree.
 - A `pin` object (`{"kind":"pin","label":<label>,"name":<name>,"v":1}`)
-  stands for a pinned citation that is written as a name and a label
-  when it names no exact object.
+  stands for a pinned citation in the text encoding — whether written as
+  a name and a label, or written by that `pin` object's content id when
+  an input holds that `pin` object — only in the cases in which an exact
+  pin written as that name and label names a `pin` object (when it names
+  no exact object and is not a missing part). A stored edge of an object
+  in `.sinter/` whose target is a `pin:` content id keeps that content
+  id as its canonical target, and when an input holds that `pin` object,
+  its target resolves in a tree as a pinned citation of that `pin`
+  object's `name` at its `label`.
 - An `ext` object (`{"external-ref":<ref>,"kind":"ext","v":1}`) stands
   for an external item; it carries no written kind word
   (`identifiers#kind-word`).
@@ -1277,7 +1294,7 @@ or inline citation stands in no item.
     },
     data-forms#{vector-line=v1, form-pin=v1},
     conformance#{
-        design=v1, conforming-program=v1,
+        design=v1, conforming-program=v1, input=v1,
         give-results-over-canonical-objects=v1,
     },
     text#{result=v1},
@@ -1364,13 +1381,43 @@ In canonical form, each target of a citation edge is a content id:
   declared items of the tree and whose arrows are their `items` edges
   and the exact pins between them whose label equals the current
   revision of the target declared item in that tree (each arrow from the
-  item in which the pin stands to the item of its name), a cycle passes
-  through the arrow of that pin. An ambiguous pin gives no exact target
-  (so each result that needs its target lacks that target). In every
-  other case, such as a pin to a revision that never merged into the
-  default branch or to a kept object that a counting void
-  (`object-withdrawal`) withdraws, the pin names no object, and its
+  item in which the pin stands to the item of its name, including a text
+  citation written by a `pin:` content id whose `pin` object an input
+  holds), a cycle passes through the arrow of that pin. An ambiguous pin
+  gives no exact target (so each result that needs its target lacks that
+  target). In every other case, such as a pin to a revision that never
+  merged into the default branch or to a kept object that a counting
+  void (`object-withdrawal`) withdraws, the pin names no object, and its
   citation is a missing part;
+- a citation in the text encoding written by the content id of a `pin`
+  object (`pin:…`), when an input holds a `pin` object with that content
+  id (having member `name` n and member `label` l), gives the same
+  canonical edge and the same results in that tree as an exact pin with
+  name n and label l under the first bullet (so it names the exact
+  object in the tree, otherwise the one replaced, unwithdrawn
+  declared-item object in a valid file of `.sinter/` of the tree,
+  otherwise the one unwithdrawn kept object on the log branch; it is a
+  missing part in the missing-part cases of the first bullet; and it
+  names that `pin` object only in the three cases of the first bullet in
+  which an exact pin written as n and l itself names a `pin` object).
+  When no input holds a `pin` object with that content id, that text
+  citation names that `pin:` content id directly as its canonical
+  target, is not a missing part, resolves to no object, and has no cited
+  item in that tree. An edge of an object stored in `.sinter/` whose
+  `to` is a `pin:` content id keeps that `pin:` content id as its
+  canonical target; when an input holds that `pin` object (having member
+  `name` n and member `label` l), its target resolves in a tree as an
+  exact pin with name n and label l under the first bullet (to the one
+  canonical object of n and l among the declared items of the tree,
+  otherwise to the one replaced, unwithdrawn declared-item object of n
+  and l in a valid file of `.sinter/` of the tree, otherwise to the one
+  unwithdrawn kept object of n and l on the log branch; to no exact
+  target when ambiguous in whichever of those sets applies; as a missing
+  part in the missing-part cases of the first bullet; and to no declared
+  item when no declared item of the tree has name n). When no input holds
+  that `pin` object for such a stored edge, that edge has no `name` and
+  no `label` in the inputs, and each result that needs them lacks them
+  (a missing part);
 - an unpinned citation (`=*`) names the target's `name` computed
   identity object (and a citation written by the content id `name:…`
   means what `=*` of that name means);
@@ -1463,7 +1510,8 @@ meanings:
   a work item object or a computed identity object.
 - `observes`: from a `delivered` observation to the `task-def` that was
   current at the landing commit (absent when the task had no current
-  definition at that commit).
+  definition at that commit or a counting void withdrew that
+  definition's `scope` object in the tree of that commit).
 - `records`: from a `done` judgment to each promised `req` object that
   the tree declares once.
 - `kept-satisfies` and `kept-verifies`: from a `delivered` observation
@@ -1505,10 +1553,11 @@ its target content id names a declared-item object (an exact object of
 kind `design`, `spec`, `schema`, `req`, `atom`, `term`, or `decision`)
 or a `pin` object. (In the text encoding, a citation entry or inline
 citation whose revision is a label, a citation by the content id of a
-declared-item object, and an edge that a vector line gives all yield
-pinned edges.) A citation edge targeting a `name` object (from `=*` or
-from citing `name:…`) is not pinned and is a relation to its cited item
-at each revision of that item. A pinned edge is a relation to the
+declared-item object, a citation by a `pin:` content id, and an edge
+that a vector line gives all yield pinned edges.) A citation edge
+targeting a `name` object (from `=*` or from citing `name:…`) is not
+pinned and is a relation to its cited item at each revision of that
+item. A pinned edge is a relation to the
 specific revised content (exact object) that it names, or, for a `pin`
 object, to the revised content named by that `pin` object's `name` and
 `label`.
@@ -1702,20 +1751,29 @@ distinct scope objects.
 @cites #{
     work-item=v1, task=v1, plan=v1, scope-object=v1, promise=v1,
     wait=v1, carried-out-item=v1, external-item=v1, declared-item=v1,
-    edge=v1,
+    edge=v1, object-withdrawal=v1, tree=v1,
 }
 
 A definition of a task is a display name, a scope object named with
 `scoped-by` (giving the paths and the promises of the task in that
 definition), at most one external item (`tracks`), at most one plan
-(`part-of`), and waits (`waits-for`). The paths of a task in a
-definition are the `paths` of the scope object that the definition names
-with `scoped-by`, and the promises of a task in a definition are the
-promises that the `promises-satisfies` and `promises-verifies` edges of
-that scope object give. A definition of a plan is a display name, at
-most one plan (`part-of`), waits (`waits-for`), and the items of the
-kind requirement, specification, and design that the plan carries out
-(`carries-out`). Each alteration of a definition gives a new definition.
+(`part-of`), and waits (`waits-for`). When no counting void in a tree
+(`object-withdrawal`) withdraws the scope object that a task definition
+names with `scoped-by`, the paths of the task in that definition in that
+tree are the `paths` of that scope object, and the promises of the task
+in that definition in that tree are the promises that the
+`promises-satisfies` and `promises-verifies` edges of that scope object
+give. When a counting void in a tree withdraws the scope object that a
+task definition names with `scoped-by`, that scope object decides
+nothing in that tree: the definition stays a definition of the task (its
+display name, plan, waits, and external item stay readable), the
+definition has no readable paths and no readable promises in that tree,
+and each result that reads the paths, the promises, or the scope object
+of that definition in that tree is withheld. A definition of a plan is a
+display name, at most one plan (`part-of`), waits (`waits-for`), and the
+items of the kind requirement, specification, and design that the plan
+carries out (`carries-out`). Each alteration of a definition gives a new
+definition.
 The plan of a work item in a definition is the plan, or none, that the
 definition names with `part-of`. The waits of a work item in a
 definition are the waits from the work item that the definition names
@@ -1795,7 +1853,8 @@ statement uses the text encoding, and no statement carries `seq`.
     #{
         statement=v1, object-kind=v1, object-withdrawal=v1, edge=v1,
         content-id=v1, computed-identity=v1, task=v1, plan=v1,
-        vector-set=v1, person=v1, agent=v1, tree=v1,
+        vector-set=v1, scope-object=v1, work-item-definition=v1,
+        person=v1, agent=v1, parameter=v1, tree=v1,
     },
 }
 
@@ -1808,28 +1867,38 @@ work item object (`task` or `plan`), a computed identity object (`name`,
 `pin`, `ext`, `vector-set`, or `vector-group`), or a `vector-group-def`.
 Whether a void counts in a tree (is a counting void in that tree)
 follows `object-withdrawal`: a design gives an acceptance rule for
-`void` that holds for that void in that tree, the void does not carry
-the member `agent`, and when the tree or the log branch holds the object
-that its `withdraws` edge names, each edge of the void other than its
-`withdraws` edge is a copy that the table rule on `void` of
-`object-kind` permits for that withdrawn object. A void that does not
-count withdraws nothing. A counting void withdraws no declared item in
-the text encoding, even one whose canonical object has the content id
+`void` that holds for that void in that tree; the void does not carry
+the member `agent`; when a valid binding of a parameter that a design
+names gives the persons whose judgments and voids count, the void's `by`
+value is equal to a text in that list (an empty list means that no
+person's voids count; when no list is bound, every person's voids
+count); and when the tree or the log branch holds the object that its
+`withdraws` edge names, each edge of the void other than its `withdraws`
+edge is a copy that the table rule on `void` of `object-kind` permits
+for that withdrawn object. Under a binding of that parameter that is not
+valid, whether a void that meets the other three conditions counts in
+that tree is withheld, as `object-withdrawal` states. A void that does
+not count withdraws nothing. A counting void withdraws no declared item
+in the text encoding, even one whose canonical object has the content id
 that its `withdraws` edge names.
 
 A counting void takes the place of the object that its `withdraws` edge
-names: the withdrawn object decides nothing (and a withdrawn kept
+names. The withdrawn object decides nothing: a withdrawn kept
 declared-item object counts as absent for pin and content-id resolution
-while remaining on the log branch), objects that the withdrawn object
-replaced stay replaced through the void's copied `revises` edges, and
-when no file of `.sinter/` of that tree holds an object whose content id
-a counting void in that tree names with `withdraws`, that counting void
-stands in `.sinter/` of that tree as the record of that content id's
-withdrawal and holds the copied edges of that object. For a withdrawn
-declared item, a void copies only its `revises` edges; for each other
-withdrawn object, a void copies no edge targeting a computed identity
-object. A void has no thing, although its copies can include an `about`
-edge.
+while remaining on the log branch; and when a counting void withdraws
+the `scope` object of a task definition, that task definition keeps its
+display name, plan, waits, and external item while its paths and
+promises are not readable and each result that reads its paths, its
+promises, or that `scope` object is withheld (`work-item-definition`).
+Objects that the withdrawn object replaced stay replaced through the
+void's copied `revises` edges. When no file of `.sinter/` of that tree
+holds an object whose content id a counting void in that tree names
+with `withdraws`, that counting void stands in `.sinter/` of that tree
+as the record of that content id's withdrawal and holds the copied edges
+of that object. For a withdrawn declared item, a void copies only its
+`revises` edges; for each other withdrawn object, a void copies no edge
+targeting a computed identity object. A void has no thing, although its
+copies can include an `about` edge.
 
 ### 3.53 Definition statements
 
@@ -1929,7 +1998,7 @@ is one of these four kinds of statement:
         ledger-entry=v1, job=v1, delivery-line=v1, promise=v1, task=v1,
         scope-object=v1, work-item-definition=v1, declared-item=v1,
         item-name=v1, tree=v1, edge=v1, content-hash=v1, content-id=v1,
-        void-statement=v1,
+        object-withdrawal=v1, void-statement=v1,
     },
 }
 
@@ -1942,20 +2011,26 @@ six-digit scope hash prefix of that delivery line in its member `hash`
 and the commit object names `commit` (the commit whose message holds the
 delivery line), `merge` (the landing commit of that commit), and `head`
 (the head of the run of the job that wrote the observation). When the
-task had a current definition D at the landing commit, the `delivered`
-observation holds an `observes` edge naming D, and for each promise of D
-that the job found kept in the tree of the head of the run (with a
-unique requirement object in that tree), the `delivered` observation
-holds a `kept-satisfies` or `kept-verifies` edge naming the content id
-of that requirement object; a promise that was not kept, or whose
-requirement was absent or duplicated in that tree, gets no edge. When
-the task had no current definition at the landing commit, the
-`delivered` observation holds no `observes` edge and no `kept-satisfies`
-or `kept-verifies` edge.
+task had a current definition D at the landing commit and no counting
+void in the tree of the landing commit withdrew the `scope` object that
+D names with `scoped-by`, the `delivered` observation holds an
+`observes` edge naming D, and for each promise of D that the job found
+kept in the tree of the head of the run (with a unique requirement
+object in that tree), the `delivered` observation holds a
+`kept-satisfies` or `kept-verifies` edge naming the content id of that
+requirement object; a promise that was not kept, or whose requirement
+was absent or duplicated in that tree, gets no edge. When the task had
+no current definition at the landing commit, or a counting void in the
+tree of the landing commit withdrew the `scope` object that its current
+definition at the landing commit names with `scoped-by`, the `delivered`
+observation holds no `observes` edge and no `kept-satisfies` or
+`kept-verifies` edge.
 
-A `delivered` observation completes a task definition D in a tree (is a
-completing `delivered` observation of D in that tree) when, and only
-when, all five of these conditions hold:
+When no counting void in a tree (`object-withdrawal`) withdraws the
+`scope` object that a task definition D names with `scoped-by`, a
+`delivered` observation completes D in that tree (is a completing
+`delivered` observation of D in that tree) when, and only when, all five
+of these conditions hold:
 
 - the `delivered` observation decides a state in that tree;
 - the `delivered` observation names with `about` the task that D names
@@ -1967,6 +2042,13 @@ when, all five of these conditions hold:
 - for each promise of D, the `delivered` observation holds a matching
   `kept-satisfies` or `kept-verifies` edge to a requirement object whose
   name is the name of that promise.
+
+When a counting void in that tree withdraws the `scope` object that D
+names with `scoped-by`, the `delivered` observation does not complete D
+in that tree if any of the first three conditions does not hold; if all
+three of the first three conditions hold, whether that `delivered`
+observation completes D in that tree is withheld (the observation
+neither completes D nor fails to complete D in that tree).
 
 A `progress` observation holds in its member `head` the commit object
 name of the head of the run of the job, and holds no edges.
@@ -1984,16 +2066,15 @@ that definition with its `withdraws` edge.
 @cites {
     conformance#{design=v1},
     identifiers#{external-namespaces=v1, part-name=v1},
-    #{schema=v1},
 }
 
 A parameter is a word, such as `external-namespaces`, whose value a
 design leaves open. A binding of a parameter is a value that
-configuration gives for the parameter. When a design declares a schema
-whose part name is the name of a parameter, a binding of that parameter
-is valid when, and only when, that binding meets that schema. A binding
-of the parameter `external-namespaces` is a binding as Identifiers
-defines it.
+configuration gives for the parameter. When a design
+(`conformance#design`) declares a schema whose part name is the name of
+a parameter, a binding of that parameter is valid when, and only when,
+that binding meets that schema. A binding of the parameter
+`external-namespaces` is a binding as Identifiers defines it.
 
 ### 3.58 Log branches
 
@@ -2105,24 +2186,29 @@ A statement is accepted in a tree when, and only when, it meets each
 cross-object rule of `object-kind` that binds its kind, a design gives
 an acceptance rule for its kind of statement, and that rule holds for
 that statement in that tree. A statement counts in a tree when, and only
-when, all four of these conditions hold:
+when, all four of these conditions hold (and, for a void, the copy
+condition of `object-withdrawal` also holds):
 
 1. the statement is accepted in that tree;
 2. no counting void in that tree withdraws the statement (names the
    statement's content id with its `withdraws` edge);
 3. when the statement is a judgment or a void, the statement does not
    carry the member `agent`;
-4. when the statement is a judgment, and a binding of a parameter that a
-   design names gives the persons whose judgments count, the statement's
-   `by` value is equal to a text in that list (an empty list means that
-   no person's judgments count; when no list is bound, every person's
-   judgments count).
+4. when the statement is a judgment or a void, and a valid binding of a
+   parameter that a design names gives the persons whose judgments and
+   voids count, the statement's `by` value is equal to a text in that
+   list (an empty list means that no person's judgments or voids count;
+   when no list is bound, every person's judgments and voids count).
 
-A statement that does not count takes no part in the graph of `revises`
-and `judges` edges of its thing: it replaces nothing, is never a latest
-statement, and an edge naming it replaces nothing. Whether a void counts
-follows `object-withdrawal`; a void that does not count withdraws
-nothing.
+Under a binding of that parameter that is not valid, whether a judgment
+or a void that meets the other conditions counts in that tree is
+withheld, and each result whose value depends on whether such a judgment
+or void counts in that tree is withheld (while each result whose value
+does not depend on it is unaffected). A statement that does not count
+takes no part in the graph of `revises` and `judges` edges of its thing:
+it replaces nothing, is never a latest statement, and an edge naming it
+replaces nothing. Whether a void counts follows `object-withdrawal`; a
+void that does not count withdraws nothing.
 
 Within one group of statements of a thing, a counting statement replaces
 each counting statement of that group that it names with a `revises`
@@ -2173,6 +2259,13 @@ A conflict exists in either of these two cases:
   decides a state in that tree and any latest counting `abandoned`
   judgment that judges D both exist (whether or not a `done` judgment
   also judges D).
+
+When a `delivered` observation of a task definition D has whether it
+completes D in that tree withheld (term `job-record`) and at least one
+latest counting `abandoned` judgment judges D, whether the second case
+of conflict holds for D in that tree is withheld (and when no conflict
+holds for those judgments under the first case, whether a conflict
+exists for them in that tree is withheld).
 
 A conflict decides nothing: no latest statement that takes part in a
 conflict decides a state. One new counting statement of the group whose
@@ -2229,14 +2322,26 @@ the state of each task and each plan:
    done has no state in that tree.
 2. A work item is a part of a plan when, and only when, the current
    definition of the work item names that plan with `part-of` and the
-   work item is not abandoned. A work item stays a part of its plan when
-   the plan is abandoned. A part of a plan is a task or a plan. A work
-   item is under a plan when, and only when, it is a part of the plan,
-   or there is a finite chain of one or more work items from it to the
-   plan in which each work item is a part of the next.
-3. Each task with a current definition D is in one of these four states
-   (judgments whose `judges` edge names a replaced definition other than
-   D do not decide the state of the task under D):
+   work item is not abandoned. When the current definition of a task
+   names a plan with `part-of` and whether that task is abandoned in
+   that tree is withheld under item 3, whether that task is a part of
+   that plan (and whether it is under that plan or any plan that that
+   plan is under) is withheld in that tree. A work item stays a part of
+   its plan when the plan is abandoned. A part of a plan is a task or a
+   plan. A work item is under a plan when, and only when, it is a part
+   of the plan, or there is a finite chain of one or more work items
+   from it to the plan in which each work item is a part of the next.
+3. For a task with a current definition D (judgments whose `judges` edge
+   names a replaced definition other than D do not decide the state of
+   the task under D): when a `delivered` observation has whether it
+   completes D in that tree withheld (`job-record`) and no latest
+   counting `done` judgment of the task judges D, the task has no state
+   in that tree (when no latest counting `abandoned` judgment judges D,
+   whether the task is done or delivered is withheld, and the task is
+   not abandoned; when at least one latest counting `abandoned` judgment
+   judges D, whether the task is abandoned or delivered is withheld, and
+   whether the task is abandoned is withheld). Otherwise, the task is in
+   one of these four states:
    - **abandoned**, when at least one latest counting judgment of the
      task judges D, every latest counting judgment of the task that
      judges D is an `abandoned` judgment, and no completing `delivered`
@@ -2256,19 +2361,32 @@ the state of each task and each plan:
      task that decides a state in that tree exists);
    - **open**, when it is none of abandoned, done, and delivered.
 4. A task is unfinished when, and only when, it is open or delivered.
+   When a task has no state in a tree, no result is given for whether it
+   is unfinished in that tree.
 5. Each plan with a current definition D, other than a plan that has no
    state under item 1, is in one of these three states (judgments whose
    `judges` edge names a replaced definition other than D do not decide
-   the state of the plan under D):
+   the state of the plan under D), except when this item gives it no
+   state in that tree:
    - **abandoned**, when at least one latest counting judgment of the
      plan judges D and every latest counting judgment of the plan that
      judges D is an `abandoned` judgment;
    - **done**, when it is not abandoned, it has at least one part, every
-     part of it is done, and neither the plan nor any plan under it lies
-     on a cycle of plans (a finite sequence of one or more plans in
-     which each is a part of the next and the last is a part of the
-     first);
-   - **open**, when it is neither abandoned nor done.
+     part of it is done, no task whose current definition names it with
+     `part-of` has whether it is a part of the plan withheld under
+     item 2, and neither the plan nor any plan under it lies on a cycle
+     of plans (a finite sequence of one or more plans in which each is a
+     part of the next and the last is a part of the first);
+   - **open**, when it is neither abandoned nor done and this item does
+     not give it no state in that tree.
+
+   This item gives a plan with a current definition no state in that
+   tree when the plan is not abandoned, has no part that is open or
+   delivered, neither the plan nor any plan under it lies on a cycle of
+   plans, and either (a) it has a part that has no state in that tree,
+   or (b) it has at least one part (every part of it being done) and at
+   least one task whose current definition names it with `part-of` has
+   whether it is a part of the plan withheld under item 2.
 
 ### 3.65 Deprecated
 
@@ -2456,9 +2574,10 @@ in that tree, no result is given for that task in that tree.
 @atom requirement-accounted-for=v1
 @cites #{
     declared-item=v1, containment=v1, task=v1, plan=v1, promise=v1,
-    carried-out-item=v1, work-item-definition=v1, work-item-state=v1,
-    ledger=v1, judgment=v1, job-record=v1, thing=v1, item-name=v1,
-    revised-content=v1, content-id=v1, edge=v1, tree=v1,
+    carried-out-item=v1, scope-object=v1, work-item-definition=v1,
+    work-item-state=v1, ledger=v1, judgment=v1, job-record=v1,
+    object-withdrawal=v1, thing=v1, item-name=v1, revised-content=v1,
+    content-id=v1, edge=v1, tree=v1,
 }
 
 An item of the kind requirement, with current declared-item object O and
@@ -2477,9 +2596,21 @@ of these is true:
   `delivered` observation of D that decides a state in that tree holds a
   `kept-satisfies` or `kept-verifies` edge naming the content id of O.
 
-When none of these is true and a task with no current definition exists
-in that tree, no result is given for that item of the kind requirement
-in that tree.
+When none of these is true, no result is given for that item of the kind
+requirement in that tree if any of these holds:
+
+- a task with no current definition exists in that tree;
+- a task that is unfinished or has no state in that tree has a current
+  definition whose `scope` object a counting void in that tree
+  withdraws;
+- a plan that has no state in that tree has a current definition that
+  names, as carried out, the name N, the name of the item of the kind
+  specification that holds that item in that tree, or the name of the
+  item of the kind design that holds that item in that tree;
+- for a task with current definition D that is done or has no state in
+  that tree, a `delivered` observation whose completion of D in that
+  tree is withheld (`job-record`) holds a `kept-satisfies` or
+  `kept-verifies` edge naming the content id of O.
 
 ### 3.75 State inputs
 
@@ -2559,10 +2690,10 @@ inputs that meet both of these conditions:
   - the `ts` values of records;
   - members of records that no row of `object-kind` names;
   - the `seq` values of observations;
-  - the `by` values of records that are not judgments, or the `by`
-    values of judgments where each changed `by` remains either inside
-    the bound list of persons whose judgments count or outside that list
-    (or any `by` when no list is bound);
+  - the `by` values of records that are neither judgments nor voids, or
+    the `by` values of judgments and voids where each changed `by`
+    remains either inside the bound list of persons whose judgments and
+    voids count or outside that list (or any `by` when no list is bound);
   - the `agent` member of definition statements, or changing one `agent`
     string to another `agent` string on a judgment or a void without
     adding or removing `agent`;
