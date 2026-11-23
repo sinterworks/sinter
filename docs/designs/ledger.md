@@ -5,381 +5,346 @@
 @design ledger=v1
 @cites conformance=v1
 @cites text=v1
+@cites identifiers=v1
+@cites files=v1
 @cites data-forms=v1
 @cites ontology=v1
+@cites findings=v1
 @cites changes=v1
-@cites identifiers=v1
+@cites object-store=v1
 @cites gitdoc/git-config
 @cites rfc/3339
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies how a git repository stores its ledger on the ref `refs/sinter/ledger`: chunks of canonical lines, entry ids, `seq`, the common fields of ledger entries, versions, and voids; when the ledger of a git repository is valid, broken, or newer, and when its history is intact; acceptance, appends, the shared clone, pulls, pushes, and repairs; agent markers, job markers, and the writers of ledger entries; and requirements for conforming programs that read, append to, pull, push, and repair the ledger.
+Specifies the split ledger of a repository: the log branch, its remote-tracking ref, its chunks of `{"id","object"}` envelope lines, its newer lines, its validity, its key-present closure, and its intact append-only history checked against git's reflog; common record fields, record writers, voids, and acceptance rules; the checks of git entries inside `.sinter/`, of added and withdrawn store files, of agent writers, of unaccepted voids, of latest targets, of uncommitted store files, and of conflicts; agent markers, job markers, and tracker boundaries; and requirements for conforming programs that read, check, and write statements and the log branch.
 
-The ledger is a sequence of ledger entries. Each ledger entry records
-one event, such as one approval that a person gave. A git repository
-stores its ledger in git objects, on the ref `refs/sinter/ledger`. The
-commit of that ref holds files of canonical lines. Each line of one of
-the eight kinds of ledger entry holds one ledger entry. Each clone
-stores a ledger of its own. The shared clone of a clone, such as the git
-repository on the host of the project, holds the shared ledger. A clone
-pushes its new ledger entries to its shared clone. A clone pulls the
-ledger entries of its shared clone.
+The ledger of a repository has two parts. Statements — definitions,
+judgments, and voids — live as fixed object files in `.sinter/` of a
+tree, forming a content-addressed graph through their `edges`.
+Observations (`delivered` and `progress`) and kept objects (merged
+declared items and the computed identity objects that they need) live on
+a dedicated git branch, the log branch, stored in chunks of canonical
+envelope lines. Only the job writes the log branch, by appending new
+lines and pushing as a fast-forward. Checks read statements from a tree
+and read the log branch from the remote-tracking ref of a configured
+remote without fetching refs or calling a host.
 
-Each kind of ledger entry that a program can append has an acceptance
-rule: the condition under which a ledger entry of that kind can stand at
-a point of a ledger. A program appends a ledger entry only at a point at
-which the ledger entry is accepted. When another clone pushed first, a
-clone pulls the ledger entries of its shared clone and puts them first.
-Each of the clone's own lines for which the shared clone does not
-account then gets the next `seq` after the ledger entries of the shared
-clone, or leaves the clone's ledger.
+From Conformance (`conformance`), the Ledger takes conforming programs,
+inputs, dependence, limits of a program's own, reports, safety
+obligations, objects, encodings, valid program's own stores, and the
+general requirements that bind every conforming program. From Text and
+notation (`text`), it takes texts, characters, spaces, hex digits, whole
+numbers, bytes, byte sequences, valid UTF-8, texts and UTF-8 encodings
+of byte sequences, 0x numerals, code spans, code point order,
+productions, rule names, sequences, and results. From Identifiers
+(`identifiers`), it takes external ids. From Files and paths (`files`),
+it takes valid paths. From Data forms (`data-forms`), it takes JSON
+values, objects and their members, line objects, canonical byte
+sequences, the JSON values of byte sequences, hex texts, id prefixes,
+hash ids, vector lines, the forms of a group, the meaning of a vector,
+and test-vector sets. The file that holds the conformance vectors of the
+Ledger is a test-vector set.
 
-From the Ontology (`ontology`), the design takes ledger entries, the
-ledger with its order and its points, the eight kinds of ledger entry,
-definition entries, judgments, records of the job, voids, repairs, and
-pulls and pushes of ledger entries; persons, agents, and the job;
-states, state inputs, states at a point of a ledger, and external items;
-and parameters with their bindings. From Changes (`changes`), the design
-takes git repositories, commits and their parents, refs and the commits
-of refs, git tree objects with their entries, the names, byte paths, and
-modes of these entries, tree entries, regular-file entries, blobs and
-their contents, reach and ancestry, branch names, the git configuration,
-remotes, their addresses, and fetches, and the requirement
-`run-no-configured-programs`. From Data forms (`data-forms`), the design
-takes JSON values, objects and their members, line objects, canonical
-byte sequences, canonical lines, the JSON values of byte sequences, hex
-texts, hash ids with their id prefixes, vector lines, the forms of a
-group, the meaning of a vector, and test-vector sets. The file that
-holds the conformance vectors of the design is a test-vector set. From
-Text and notation (`text`), the design takes texts, characters, hex
-digits, whole numbers, bytes, byte sequences, UTF-8 encodings, code
-spans, productions, and what a result is. From Conformance
-(`conformance`), the design takes conforming programs, inputs, and the
-general requirements that bind every conforming program.
+From the Ontology (`ontology`), the Ledger takes trees, objects, the
+schema table of object kinds (`object-kind`), content hashes, content
+ids, computed identity objects, declared items, edges, records,
+statements, definition statements, judgments, voids, object withdrawal
+and counting voids, records of the job (observations), the log branch,
+the ledger, things and latest statements, conflicts, states, persons,
+agents, the job, external items, parameters, and finding classes. From
+Findings (`findings`), it takes the parts of a finding, finding
+subjects, messages, spots, marks, related messages, fixes, and ackable
+findings. From Changes (`changes`), it takes git repositories, working
+trees, commits and their parents, refs and the commits of refs, ref
+names, branch names, head commits, git tree objects with their entries
+and byte paths, reach and ancestry, change bases, git configurations,
+remotes and their fetch and push addresses, reflog commits, mapped refs,
+repository reads, undisturbed repository reads, and the requirement
+`run-no-configured-programs`. From the Object store (`object-store`), it
+takes object paths, store paths, store files, valid object files, needed
+identity files, and the object store of a tree.
 
-From Identifiers (`identifiers`), the design takes external ids. From
-the page git-config of git's documentation, the design takes which
-addresses of a remote a fetch from that remote and a push to that remote
-use. From RFC 3339, the design takes the rule `date-time` of the ABNF of
-RFC 3339, for the time at which a ledger entry was written. The
-production `chunk-path` is written in ABNF, the notation of RFC 5234,
-with the case-sensitive strings `%s"…"` of RFC 7405. From RFC 8259, the
-design takes JSON texts, with their objects, members, arrays, strings,
-and numbers. Each line of the file that holds the conformance vectors of
-the design is a JSON text.
+From the page git-config of git's documentation, the Ledger takes how a
+remote's fetch and push addresses resolve. From RFC 3339, it takes the
+rule `date-time` for record timestamps. The production `chunk-path` uses
+ABNF from RFC 5234 with the case-sensitive quoted strings `%s"..."` of
+RFC 7405. From RFC 8259, it takes JSON texts for the conformance vector
+schemas.
 
 ## 1. Glossary
 
 | word or phrase | meaning |
 |---|---|
-| [ledger](sinter:ontology#ledger=v1) | the sequence of the ledger entries of a repository. Each ledger entry other than a void is appended at the end of the ledger of one clone. A pull of ledger entries is a write that a clone makes to its own ledger. A pull of ledger entries takes the ledger entries, voids included, of another clone and puts them first. A push of ledger entries puts ledger entries of a clone after the ledger entries of another clone. Neither a pull of ledger entries nor a push of ledger entries is appending. |
-| [point of a ledger](sinter:ontology#ledger=v1) | a point between two ledger entries of a ledger, before the first, or after the last; the point of a ledger entry is the point right before it |
-| [ledger entry](sinter:ontology#ledger-entry=v1) | a record of one event, such as one approval; each ledger entry has one of the eight kinds `task`, `plan`, `approval`, `decline`, `done`, `abandoned`, `delivered`, and `void` |
-| [definition entry](sinter:ontology#definition-entry=v1) | a ledger entry of the kind `task` or `plan` |
-| [judgment](sinter:ontology#judgment=v1) | a ledger entry of the kind `approval`, `decline`, `done`, or `abandoned`: a decision of a person |
-| [record of the job](sinter:ontology#job-record=v1) | a ledger entry of the kind `delivered` |
-| [repair](sinter:ontology#repair=v1), [void](sinter:ontology#repair=v1) | a write to a ledger, other than an append, a pull of ledger entries, or a push of ledger entries, that removes zero or more ledger entries and puts one void, a ledger entry of the kind `void`, where each of them was |
-| [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs that program; the execution of a conforming program that continuous integration starts at each push of commits to the default branch, as git means a push |
-| [state](sinter:ontology#state=v1) | a named condition of an item, an edge, a wait, or a subject of approval, such as approved or done; a state at a point of a ledger depends on the ledger entries before that point |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design together with the general requirements of Conformance |
+| [safety obligation](sinter:conformance#safety-obligation=v1) | an obligation of a requirement that states that a program reads, alters, writes, follows, or runs no thing other than what the requirement allows, gains no permission, never permits an unsafe action, or ends code that it runs |
+| [report](sinter:conformance#report=v1) | a thing that a conforming program gives to identify a stop at a limit of its own, an input that is not valid, or a missing part of a valid input |
+| [ledger](sinter:ontology#ledger=v1) | the statements stored as fixed object files in `.sinter/` of a tree together with the observations and kept objects on the log branch |
+| [log branch](sinter:ontology#log-branch=v1) | the dedicated git branch, named by `log-branch-name`, that holds only the observations (`delivered` and `progress`) and kept objects that the job writes |
+| [record](sinter:ontology#ledger-entry=v1) | an object of one of the nine record kinds in `ontology#object-kind`: the seven statement kinds and the two observation kinds |
+| [statement](sinter:ontology#statement=v1) | a record of one of the seven statement kinds (definition statements, judgments, and voids) stored as a fixed object file in `.sinter/` |
+| [definition statement](sinter:ontology#definition-entry=v1) | a statement of the kind `task-def` or `plan-def` |
+| [judgment](sinter:ontology#judgment=v1) | a statement recording a person's decision (one of the four judgment kinds in `ontology#judgment`) |
+| [void](sinter:ontology#void-statement=v1) | a statement of the kind `void` with which a person withdraws one withdrawable object in `.sinter/` or on the log branch |
+| [counting void](sinter:ontology#object-withdrawal=v1), [withdrawn](sinter:ontology#object-withdrawal=v1) | a `void` in a valid object file of `.sinter/` that meets its acceptance rule, carries no `agent`, satisfies any bound list of persons, and matches the permitted copied edges when the withdrawn object is held; an object named by a counting void's `withdraws` edge |
+| [observation](sinter:ontology#job-record=v1) | a record of the kind `delivered` or `progress` on the log branch, written only by the job |
+| [kept object](sinter:ontology#log-branch=v1) | a canonical copy of a merged declared item, or of a computed identity object that a kept declared item needs, stored on the log branch with no `seq` and no `by` |
+| [person](sinter:ontology#person=v1), [agent](sinter:ontology#agent=v1), [job](sinter:ontology#job=v1) | a human who works on a repository; a program that uses a language model to write texts as one person runs it; an execution of a conforming program that records observations and kept objects after merges to the default branch |
+| [object](sinter:ontology#object=v1), [content hash](sinter:ontology#content-hash=v1), [content id](sinter:ontology#content-id=v1) | an entity of one of the twenty-five kinds in `ontology#object-kind`; the SHA-256 hash of its canonical byte sequence (no `id`, no final line feed); its kind word, `:`, and the first 32 lowercase hex digits of its content hash |
+| [computed identity](sinter:ontology#computed-identity=v1) | an object of one of the five kinds `name`, `pin`, `ext`, `vector-set`, and `vector-group` |
+| [latest statement](sinter:ontology#thing=v1), [conflict](sinter:ontology#conflict=v1) | a counting statement of a group of a thing that no other counting statement of that group replaces; two or more disagreeing latest statements of a group, or a completing `delivered` observation with a latest `abandoned` judgment of the same task definition |
 | [parameter](sinter:ontology#parameter=v1) | a word whose value a design leaves open; configuration gives its binding |
-| [schema](sinter:ontology#schema=v1) | a declared item whose declaration word is `@schema`; it gives the form of a thing that crosses the boundary of a conforming program: its layout and every constraint that is a property of the thing itself |
-| [atom](sinter:ontology#atom=v1) | a declared item whose declaration word is `@atom`; it defines a named verdict that a conforming program gives, with the condition under which it gives that name |
-| clone | one of the git repositories that hold copies of one history, such as the git repository on the host of a project and the git repositories in which people work |
-| [remote, address of a remote](sinter:changes#remote-transfer=v1) | a remote of a git repository is a name, such as `origin`, for which the git configuration of that git repository gives a value of the setting `remote.<name>.url`; the addresses of a remote for a fetch and for a push are the addresses that the page git-config gives by `remote.<name>.url` and `remote.<name>.pushurl`, after their rewrite, as the term `changes#remote-transfer` gives those addresses |
-| [ref](sinter:changes#ref-commit=v1), [commit of a ref](sinter:changes#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref; the commit to which a ref resolves, when that ref resolves to a commit |
-| [git tree object](sinter:changes#commit-file=v1), [entry of a git tree object](sinter:changes#commit-file=v1), [byte path](sinter:changes#commit-file=v1) | a git object that lists entries; each entry has a name, a mode, and a git object; the byte path of an entry is the names on the way to it, with the byte of `/` between each two of them |
-| [tree entry](sinter:changes#commit-file=v1), [regular-file entry](sinter:changes#commit-file=v1) | an entry of a git tree object that names a git tree object; an entry that names the blob of a regular file, with a mode such as 100644 or 100755 |
-| [reach](sinter:changes#ancestry=v1) | a commit reaches itself, each of its parents, each parent of each of them, and so on |
-| [ledger ref](sinter:#ledger-ref=v1), [ledger commit](sinter:#ledger-ref=v1) | the ref `refs/sinter/ledger` of a git repository; the commit of that ref |
-| [chunk](sinter:#chunk=v1), [chunk path](sinter:#chunk-path=v1) | a regular-file entry of a git tree object at a byte path of the form `entries/<hh>/<id>.jsonl`, in which `<hh>` is the two hex digits right after the `e-` of `<id>`; a chunk holds lines of ledger entries |
-| [line of a chunk](sinter:#chunk=v1), [object of a line](sinter:#chunk=v1) | a part of the content of a chunk that ends with the byte 0x0A, or the part after the last 0x0A; the line object whose canonical line the line of a chunk is |
-| [canonical line](sinter:data-forms#canonical-line=v1), [line object](sinter:data-forms#line-object=v1) | the canonical byte sequence of a line object, then the byte 0x0A; an object in which the value of each member is a string, an integer, a boolean, an array of these, or an array of objects whose members hold these |
-| [member](sinter:data-forms#json-value=v1) | a key and a value of an object, such as the member `seq` with the value 7 |
-| [entry id](sinter:#entry-id=v1) | `e-` and the first 32 hex digits of the SHA-256 hash of the canonical byte sequence of an object without its member `id` |
-| [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1), [field of a kind](sinter:#entry-field=v1) | a member of the object of a ledger entry that a design names; the fields `id`, `kind`, `v`, `seq`, `by`, `agent`, `branch`, and `ts`, which are the same for each kind; the other fields that a design gives for one kind |
-| [writer that a ledger entry records](sinter:#entry-writer=v1) | the agent that the `agent` of the ledger entry names, or else, when the ledger entry has `by`, the person or the job that the `by` of the ledger entry names; with neither `agent` nor `by`, the ledger entry records no writer |
-| [newer line](sinter:#newer-line=v1) | a line of a chunk whose JSON value is an object whose `v` is an integer greater than 1 |
-| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git object to which the ledger ref of a git repository resolves and, when that git object is a commit, the git tree objects of that commit and the blobs of the chunks of that commit; and these git objects for each commit that the ledger commit reaches |
-| [valid ledger tree](sinter:#valid-ledger-tree=v1) | a git tree object that is not newer and that holds chunks of canonical lines, and nothing else, in the form that the schema gives |
-| [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three conditions of the ledger of a git repository: for valid, the ledger ref of the git repository does not exist, or the git tree object of the ledger commit of the git repository is a valid ledger tree; for broken, the ledger is neither newer nor valid; for newer, the git tree object of the ledger commit of the git repository holds a newer line |
-| [stored ledger](sinter:#stored-ledger=v1) | for a git repository whose ledger is valid, the ledger entries of the lines of its ledger commit, in the order of their `seq`, or none when its ledger ref does not exist: the ledger of that git repository |
-| [extend](sinter:#ledger-extension=v1) | a commit d extends a commit c when d is c, or when the chain of single parents of d leads to c and each commit of the chain before c holds each line of the parent of that commit |
-| [intact](sinter:#intact-history=v1) | the history of a ledger is intact when its ledger ref does not exist, or when its ledger commit extends a commit with no parent and the git tree object of each commit that its ledger commit reaches is a valid ledger tree |
-| [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a ledger entry of one kind can stand at a point of a ledger; a ledger entry is accepted at a point when the acceptance rule of its kind holds for that ledger entry at that point |
-| [shared clone](sinter:#shared-clone=v1), [shared ledger](sinter:#shared-clone=v1) | for the remote of a git repository that has the binding of the parameter `ledger-remote` as its name: the git repository at the address of that remote from which a fetch from that remote takes git objects; in a push of ledger entries, each git repository at an address of that remote for a push instead; the shared ledger is the stored ledger of the shared clone from which a fetch takes git objects |
-| [account for](sinter:#accounted-line=v1) | a git tree object accounts for a line of a chunk when that git tree object holds that line, or a void whose `dropped` is the `id` of that line |
-| provisional | a line of the ledger commit of a clone is provisional while the ledger commit of the clone's shared clone does not account for that line, such as a line that the clone appended and did not push |
-| [pull of ledger entries](sinter:ontology#ledger=v1), [push of ledger entries](sinter:ontology#ledger=v1) | a pull of ledger entries is a write that a clone makes to its own ledger. A pull of ledger entries takes the ledger entries, voids included, of another clone and puts them first. A push of ledger entries puts ledger entries of a clone after the ledger entries of another clone. Neither a pull of ledger entries nor a push of ledger entries is appending. |
-| [pull commit](sinter:#pull-commit=v1) | a pull commit of a commit s of the shared clone over the ledger commit a of a clone holds the lines of s and, after them, a line for each line of a for which s does not account and that stays, with the next `seq`. The pull commit is s when no line stays, as in a pull over no commit, when the clone has no ledger commit. |
-| [agent marker](sinter:#agent-marker=v1) | an environment variable whose name the parameter `agent-markers` gives. The input of an execution says that an agent runs the execution when a process of that execution has an agent marker. |
-| [job marker](sinter:#job-marker=v1) | an environment variable whose name the parameter `job-markers` gives. The input of an execution says that the execution is the job when a process of that execution has a job marker. |
-| environment | the environment variables of a process |
-| [external id](sinter:identifiers#external-id=v1) | a namespace name, `/`, and an id, such as `gh/42`, which names an external item |
-| tracker | a service that holds external items, such as the issues of the host of a project |
-| [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names of the group, as `group-form-list` states |
+| [finding](sinter:ontology#finding-class=v1), [finding class](sinter:ontology#finding-class=v1) | a report of one condition at one part of a repository; a kind of finding named by a slug |
+| [store file](sinter:object-store#store-file=v1), [valid object file](sinter:object-store#valid-object-file=v1), [object store of a tree](sinter:object-store#tree-object-store=v1) | a file of a tree in `.sinter/` outside `.sinter/local/`; a store file holding one valid canonical object at its object path; the set of all store files of a tree |
+| [remote-tracking ref of the log branch](sinter:#log-branch-ref=v1), [log-branch commit](sinter:#log-branch-ref=v1), [missing log branch](sinter:#log-branch-ref=v1) | the mapped ref of `refs/heads/<log-branch-name>` for `ledger-remote`; the commit of that ref; the condition when no such mapped ref exists or that ref does not exist |
+| [chunk path](sinter:#chunk-path=v1), [chunk](sinter:#chunk=v1), [line of a chunk](sinter:#chunk=v1) | a path of the form `entries/<2 hex>/<32 hex>.jsonl` with matching two-digit prefix; a regular-file entry at a chunk path in a git tree object; one byte sequence ending in `0x0A` (or trailing bytes after the last `0x0A`) in a chunk's blob |
+| [valid log-branch line](sinter:#log-branch-line=v1) | a canonical `{"id":"<content-id>","object":{...}}` line ending in `0x0A` whose `object` meets its row of `ontology#object-kind`, has a kind allowed on the log branch, and hashes to `id` |
+| [newer line](sinter:#newer-line=v1) | a line of a chunk ending in `0x0A` whose JSON value has string `id` and JSON object `object` with integer `v > 1` and a valid `kind` id prefix whose canonical byte sequence hashes to `id` |
+| [field](sinter:#entry-field=v1), [common field](sinter:#entry-field=v1) | a member of a record named by `ontology#object-kind` or a design; the common members `kind`, `v`, `by`, `ts`, `edges`, `agent` (statements), and `seq` (observations) |
+| [writer that a record records](sinter:#entry-writer=v1) | the agent named by `agent` when present, or else the person or the job named by `by` |
+| [ledger objects](sinter:#ledger-object=v1), [history objects](sinter:#ledger-object=v1) | the git objects needed to read the log-branch commit (ref target, commit, tree objects, and chunk blobs); and those git objects for every commit that the log-branch commit reaches |
+| [valid log-branch tree](sinter:#valid-ledger-tree=v1) | a git tree object that is not newer and holds only valid chunks of valid log-branch lines with unique `id`s and contiguous `seq` values across observations |
+| [needed log identity](sinter:#needed-log-identity=v1), [unclosed](sinter:#needed-log-identity=v1) | a computed identity content id named by an edge of a kept declared item that does not hold that key itself; a kept object whose needed computed identity object is absent from the log branch |
+| [valid](sinter:#ledger-validity=v1), [broken](sinter:#ledger-validity=v1), [newer](sinter:#ledger-validity=v1) | the three validity states of an existing log branch whose ledger objects are held |
+| [stored ledger](sinter:#stored-ledger=v1), [stored statements](sinter:#stored-ledger=v1), [stored observations](sinter:#stored-ledger=v1) | the stored statements of a tree's valid object store together with the stored observations and kept objects of a valid, intact log branch |
+| [extend](sinter:#ledger-extension=v1), [intact](sinter:#intact-history=v1) | a commit `d` extends `c` along a single-parent chain that drops or alters no chunk line; a log branch history is intact when its tip extends a root commit with every reached commit valid and reaches every reflog commit of its remote-tracking ref |
+| [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a statement or observation is accepted; the Ledger defines the acceptance rule of `void` |
+| [base comparison](sinter:#base-comparison=v1) | the base tree `B` and head tree `H` compared by change checks and default-branch checks (caller-named base or first parent on the default branch) |
+| [agent marker](sinter:#agent-marker=v1), [job marker](sinter:#job-marker=v1) | an environment variable named by `agent-markers` showing an agent runs the execution; an environment variable named by `job-markers` showing the execution is the job |
+| [`invalid-store-entry`](sinter:#invalid-store-entry-finding=v1) | non-ackable finding class reporting a symbolic link (`120000`), submodule (`160000`), or non-UTF-8 entry name inside `.sinter/` and outside `.sinter/local/` in a checked commit |
+| [`altered-store-file`](sinter:#altered-store-file-finding=v1) | non-ackable finding class of the check "Only added" reporting a base store file altered or deleted without an allowed exception |
+| [`withdrawn-store-file`](sinter:#withdrawn-store-file-finding=v1) | non-ackable finding class of the check "Withdrawn files" reporting a new or changed store file whose canonical object a counting void withdraws |
+| [`agent-writer`](sinter:#agent-writer-finding=v1) | non-ackable finding class of the check "Writers" reporting a judgment or void carrying the member `agent` |
+| [`unaccepted-statement`](sinter:#unaccepted-statement-finding=v1) | non-ackable finding class of the check "Kind rules" reporting a statement that fails a cross-object rule or the acceptance rule of its kind |
+| [`non-latest-target`](sinter:#non-latest-target-finding=v1) | non-ackable finding class of the check "Latest targets" reporting a new non-void statement naming a non-latest record with `revises` or `judges` |
+| [`statement-conflict`](sinter:#statement-conflict-finding=v1) | non-ackable finding class of the check "Conflicts" reporting a conflict in a tree |
 
-## 2. The ledger and its storage
+## 2. The ledger, the log branch, and the checks
 
-### 2.1 The ledger ref and its chunks
+### 2.1 Statements in `.sinter/` and observations on the log branch
 
-A git repository stores the ledger entries of its ledger in git objects,
-on its ledger ref, the ref `refs/sinter/ledger` (term `ledger-ref`). No
-branch and no working tree holds the ledger. When the ledger ref does
-not exist, the stored ledger is empty (term `stored-ledger`).
+The ledger of a repository splits across two stores (term
+`stored-ledger`). Statements (definitions, judgments, and voids) live in
+the object store of a tree under `.sinter/` outside `.sinter/local/`,
+one canonical object per file (`object-store#tree-object-store`), with
+no central order and no member `seq`. Observations (`delivered` and
+`progress`) and kept objects (merged declared items and the computed
+identity objects that they need) live on the log branch, named by the
+parameter `log-branch-name` (such as `sinter-log`).
 
-The git tree object of the ledger commit holds the ledger entries in
-chunks: regular files at chunk paths, such as
-`entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl` (terms
-`chunk-path` and `chunk`). The schema `valid-ledger-tree` gives the form
-of a valid ledger tree. For example, a valid ledger of 87 ledger entries
-can have two chunks:
+Every record conforms to its row of `ontology#object-kind`, carries a
+required member `by`, and holds its links in `edges`. Statements carry
+no `seq` and no `branch`; they may carry `agent` and `ts`. Observations
+carry `seq` (numbered 1 to `m` across observations on the log branch)
+and may carry `ts`. Kept objects carry neither `by` nor `seq`. When a
+conforming program writes `ts`, `ts` uses the RFC 3339 format of
+`entry-field`, such as `2026-10-31T14:05:09Z`.
 
-```
-entries/5b/e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c.jsonl    50 lines
-entries/a0/e-a03f77c1d9e26b1d09e4c87f2a53d61e.jsonl    37 lines
-```
+### 2.2 Log-branch lines, chunks, and closure
 
-The number of lines in a chunk is free. The lines of a chunk need not be
-in the order of the ledger. A commit can move a line from one chunk to
-another chunk, as long as the line keeps its bytes.
+The git tree object of a log-branch commit holds chunks: regular files
+with mode `100644` at chunk paths of the form
+`entries/<2 hex>/<32 hex>.jsonl` (terms `chunk-path` and `chunk`). Each
+line of a chunk is a canonical envelope line `{"id":"...","object":{...}}`
+followed by `0x0A` (schema `log-branch-line`). The member `object` is a
+canonical line object of one of the fourteen kinds that
+`ontology#object-kind` marks as allowed on the log branch, and `id` is
+its content id (`ontology#content-id`). A line of an unknown or
+disallowed kind makes the log branch broken.
 
-### 2.2 Ledger entries and their fields
-
-Each line of a valid ledger is the canonical line of a line object, the
-object of the line. A line whose `kind` is one of the eight kinds of
-ledger entry holds one ledger entry; a line of another kind holds none
-(term `stored-ledger`). The fields of a ledger entry are the common
-fields, which the schema `entry-field` lists, and the fields of its kind,
-which a design gives for that kind. The schema `entry-field` also gives
-the fields of the kind `void`.
-
-The entry id of an object is the hash id that the term `entry-id` gives.
-In a valid ledger, the `id` of the object of each line is the entry id
-of that object. For example, the object of this void, without its member
-`id`, has the canonical byte sequence
+For example, a `progress` observation has the content id
+`progress:f457e35a60af035247dce0814e5ebe1c` and the chunk path
+`entries/f4/f457e35a60af035247dce0814e5ebe1c.jsonl` when it is the first
+line of its chunk:
 
 ```
-{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
+{"id":"progress:f457e35a60af035247dce0814e5ebe1c","object":{"by":"ci-bot","head":"1111111111111111111111111111111111111111","kind":"progress","seq":1,"ts":"2026-10-31T14:05:09Z","v":1}}
 ```
 
-and the entry id `e-0dc878fd2dc3c179e4b8fa1829666011`. So its line is:
+A kept declared item and a kept computed identity object use the same
+plain envelope with no `seq` and no `by`, deduplicated by `id`:
 
 ```
-{"by":"Ada Lovelace <ada@example.com>","dropped":"e-5b1c0a9d2e114f0c8a6b3d9e7f21a05c","id":"e-0dc878fd2dc3c179e4b8fa1829666011","kind":"void","reason":"the entry holds a secret","seq":7,"v":1}
+{"id":"req:e24c49b7d08a4e9545fb0fccc8743761","object":{"edges":[{"kind":"about","to":"name:0f17c8dd86ac60f052972d0be8ace0c2"},{"kind":"cites","to":"name:5bf08b8c6eb65e796933fb330e48a007"}],"kind":"req","label":"v1","name":"billing#cap","text":"Limit amounts with fee.","v":1}}
+{"id":"name:5bf08b8c6eb65e796933fb330e48a007","object":{"kind":"name","name":"billing#fee","v":1}}
 ```
 
-The entry id depends on `seq`, so two ledger entries with the same other
-members, at two places of a ledger, have different ids. The order of
-`seq` is the order of the ledger. The time `ts` orders nothing. The
-members that the requirement `ignore-unknown-members` names, such as
-`ts` and a member that no design names, change no state.
+Closure on the log branch is key-present (term `needed-log-identity`).
+In the example above, `req:e24c49b7d08a4e9545fb0fccc8743761` holds its
+own `name` (`billing#cap`), so it does not need a line for
+`name:0f17c8dd86ac60f052972d0be8ace0c2`; it does need the line for
+`name:5bf08b8c6eb65e796933fb330e48a007`. When a valid log branch lacks a
+computed identity object that a kept declared item needs, the log branch
+stays valid. The check "Growth of the log branch" gives a
+`conformance#report` identifying that kept object and that missing
+identity content id (`validate-histories`). When no input of the run
+gives that computed identity object or its key, it is a missing part, so
+a program withholds only the results that need its key; when another
+input of the run (such as a text file) gives it, the program still gives
+that closure report and gives every result.
 
-The field `v` gives the version of the form of a ledger entry. The form
-of the schema `entry-field` is the version 1. A newer line (term
-`newer-line`) makes a ledger newer. A program gives no state from a
-newer ledger (requirement `give-states-only-from-valid-ledgers`). A
-program appends nothing to a newer ledger (requirement
-`append-only-to-valid-ledgers`).
+A chunk line whose `object` has an integer `v` greater than 1 and whose
+`id` matches the hash id of `object`'s canonical byte sequence is a
+newer line (term `newer-line`), which makes the log branch `"newer"`. A
+damaged `v: 2` line whose `id` does not match that hash is not a newer
+line and makes the log branch `"broken"`.
 
-### 2.3 Valid, broken, and newer ledgers
+### 2.3 Reading the log branch and checking its growth
 
-A program reads the ledger of a git repository from its ledger objects
-(term `ledger-object`). A git repository can lack some of them, as a
-partial clone can lack blobs. A program may fetch the ledger objects and
-the history objects that the git repository does not hold, as a partial
-clone can. Nothing requires or forbids fetching those objects. A program
-that does not fetch the ledger objects that the git repository does not
-hold reports that the git repository does not hold its ledger objects
-(requirement `report-missing-ledger-objects`), gives no result for
-whether the ledger is valid, gives no ledger entry of the ledger, gives
-no state at a point of the ledger, appends nothing, makes no repair,
-makes no push from or to that git repository, and makes no pull into
-that git repository or from that git repository as the shared clone
-(requirements `give-stored-ledgers`, `validate-ledgers`,
-`give-states-only-from-valid-ledgers`, `append-only-to-valid-ledgers`,
-`push-only-extensions`, `refuse-unsafe-pulls`, and
-`repair-no-newer-ledgers`). A program that does not fetch the history
-objects that the git repository does not hold reports that the git
-repository does not hold its history objects (requirement
-`report-missing-ledger-objects`) and gives no result for whether the
-history is intact (requirement `validate-histories`).
+Checks read the log branch from the remote-tracking ref of the log
+branch: the mapped ref (`changes#mapped-ref`) of
+`refs/heads/<log-branch-name>` for the remote named by `ledger-remote`
+(term `log-branch-ref`). Checks fetch no ref and call no host, while
+partial-clone fetches of missing git objects stay allowed during reads
+(`report-missing-ledger-objects`).
 
-The ledger of a git repository that holds its ledger objects is newer,
-valid, or broken (atom `ledger-validity`). For example, a ledger ref
-that points to a tag object, a line whose `id` is not its entry id, a
-chunk with the mode 100755, or the values 1 and 3 of `seq` with no 2
-make a ledger broken. For example, a line whose `v` is 2 makes a ledger
-newer, whatever else the git tree object of that ledger holds. A program
-that checks the ledger gives one of the three results "valid", "broken",
-and "newer" (requirement `validate-ledgers`). A program gives no state
-from a broken ledger (requirement
-`give-states-only-from-valid-ledgers`). A repair (section 2.7) can make
-a broken ledger valid again.
+When the repository has no mapped ref for the log branch, or when its
+remote-tracking ref does not exist, the log branch is missing: it is
+never read as an empty valid log branch. A program reports that the
+job's records are missing (`report-missing-log-branch`), gives no
+observation and no kept object, and withholds every result that depends
+on observations or kept objects (`give-states-only-from-valid-ledgers`),
+while still giving results that depend only on the tree.
 
-The stored ledger of a git repository whose ledger is valid is the
-ledger of that git repository as a state input (term `stored-ledger`).
-For example, a ledger commit holds three lines: the `seq` 3 in the first
-chunk, the `seq` 1 and the `seq` 2 in the second chunk. The line with
-the `seq` 2 has the kind `pin`, which is not one of the eight kinds. The
-stored ledger then holds two ledger entries: the ledger entry of the
-`seq` 1, and then the ledger entry of the `seq` 3.
+When the remote-tracking ref exists and the repository holds its ledger
+objects, the log branch is `"valid"`, `"broken"`, or `"newer"` (atom
+`ledger-validity`, requirement `validate-ledgers`). The check "Growth of
+the log branch" checks that the history of the log branch is intact
+(atom `intact-history`, requirement `validate-histories`): the tip
+extends a root commit along a single-parent chain of valid log-branch
+trees that never drops or changes a line, and the tip reaches every
+reflog commit (`changes#reflog-commit`) of the remote-tracking ref. When
+the log branch is broken, newer, or not intact, or when ledger or
+history objects are missing, a program gives no observation, no kept
+object, and no result that depends on observations or kept objects.
 
-When another process changes the ledger ref or a git object of the
-ledger while a program reads or changes the ledger, what the program
-gives is not specified. When another process changes the ledger ref or a
-git object of the ledger while a program reads or changes the ledger,
-each guarantee of section 5 still holds. When a program stops at a limit
-of its own in a computation on which an append of a ledger entry or a
-change of a ledger ref depends, the program appends no such ledger entry
-and changes no such ledger ref (requirement
-`change-no-ledger-after-stop`).
+### 2.4 Writing statements and updating the log branch
 
-### 2.4 Extensions and intact histories
+A conforming program writes statement files to `.sinter/` through the
+rules and safety obligations of the Object store (`object-store`), only
+when the statement is accepted (`append-only-accepted-entries`) and has
+valid fields (`write-entry-fields`).
 
-A commit d that extends another commit c (term `ledger-extension`) holds
-each line of c, so d holds each ledger entry of c, with the same `seq`
-and the same `id`. The history of a ledger is intact by the atom
-`intact-history`. A program that checks the history gives the result
-that the requirement `validate-histories` gives. For a history, "valid"
-means intact. The check reads the history objects (term
-`ledger-object`).
+Only the job creates or updates the log branch
+(`append-only-to-valid-ledgers`, `leave-delivered-entries-to-job`). The
+first run creates a root commit holding the initial observations and
+kept objects. Each later run appends to a valid, intact log branch in a
+commit that extends the tip, assigns the next `seq` values to new
+observations, deduplicates kept objects by `id`, includes each needed
+computed identity object for key-present closure, and pushes to the
+remote as a plain fast-forward (`append-entries-at-end`). When the
+remote refuses a fast-forward push because another run pushed first, the
+job fetches the log branch again, checks that the fetched tip is valid
+and intact, drops observations already recorded and kept objects whose
+`id` is already present, renumbers `seq` on the remaining observations,
+and pushes again — or stops after a number of refusals of its own
+choice, reports that it stopped, and writes nothing more.
 
-The stored ledger depends only on the lines of the ledger commit. So
-two clones whose ledgers are valid and whose ledger commits hold the
-same lines have the same stored ledger, whatever history each of them
-holds.
+In every fetch or push of the log branch, a program runs no configured
+program that `changes#run-no-configured-programs` forbids
+(`limit-programs-in-log-transfers`). In a run that stopped at a limit of
+the program's own, a program writes no statement, appends no observation
+or kept object, and makes no update of the log branch
+(`change-no-ledger-after-stop`). In a run in which the program could not
+read a file, folder, or git object under `conformance#input`, the
+program appends no observation or kept object and makes no update of the
+log branch (`write-no-log-after-read-error`).
 
-### 2.5 Appends and acceptance
+What a conforming program gives while another process changes an input
+repository or working tree is a matter of quality of implementation; the
+safety obligations still hold.
 
-An append adds new lines at the end of the ledger, in new commits that
-extend the ledger commit, or, for a ledger ref that does not exist, that
-extend a commit with no parent (requirement `append-entries-at-end`). A
-program appends only to a valid ledger (requirement
-`append-only-to-valid-ledgers`).
+### 2.5 Voids, acceptance rules, and conflicts
 
-A kind of ledger entry can have an acceptance rule: the condition, which
-a design gives for that kind, under which a ledger entry of that kind
-can stand at a point of a ledger (term `accepted-entry`). For example,
-an acceptance rule can refuse a ledger entry that the ledger entries
-before the point make out of date. A program appends a ledger entry only
-at a point at which that ledger entry is accepted (requirement
-`append-only-accepted-entries`). A void is accepted at no point, so a
-program never appends a void. Voids come only from repairs.
+A `void` statement in `.sinter/` withdraws one withdrawable object in
+`.sinter/` or on the log branch (including a kept declared-item object
+or an observation, never a `void`, a `task`, a `plan`, a computed
+identity object, or a `vector-group-def`). For example, to withdraw the
+approval `approval:eb7c19392daf9123c7fc2506385dc3e4` of
+`req:f6259f147d032738f64394a0796087a3`, a person writes the `void` file
+at `.sinter/36/36cfcb55423e10ddf3cf0c8352d9cf69.json`:
 
-The requirements `write-entry-fields` and `record-agent-writers` give
-the common fields that a program gives each ledger entry that it
-appends.
+```json
+{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:f6259f147d032738f64394a0796087a3"},{"kind":"judges","to":"req:f6259f147d032738f64394a0796087a3"},{"kind":"withdraws","to":"approval:eb7c19392daf9123c7fc2506385dc3e4"}],"kind":"void","reason":"recorded by mistake","ts":"2026-10-31T14:15:00Z","v":1,"withdrawn-kind":"approval"}
+```
 
-### 2.6 The shared clone, pulls, and pushes
+The `void` copies the withdrawn object's edges to non-identity objects
+in its own `edges` (for a withdrawn declared item, only its `revises`
+edges; for a withdrawn `scope` object or record, every edge whose target
+is not a computed identity object). When the inputs (the checked tree,
+any base tree, or the log branch) hold the withdrawn object, the
+acceptance rule of `void` (`accepted-entry`) checks that the `void`'s
+copied edges match those exact edges; when the withdrawn file was
+already deleted from `.sinter/`, the acceptance rule checks only that
+the copied edges fit `withdrawn-kind`. Whether a `void` counts as a
+counting void follows `ontology#object-withdrawal`, which excludes
+voids carrying `agent` and applies any bound list of persons (with
+withholding under an invalid binding).
 
-Each clone has a ledger ref of its own, when it has one, and a stored
-ledger when its ledger is valid. A clone can have a shared clone (term
-`shared-clone`), such as the git repository on the host of the project.
-The stored ledger of the shared clone is the shared ledger. A line of
-the ledger commit of a clone is provisional while the ledger commit of
-the clone's shared clone does not account for that line (term
-`accounted-line`). A line that a repair of the shared clone replaced
-with a void is accounted for, so that line is not provisional.
+A counting void withdraws its target across `.sinter/` and the log
+branch while leaving log-branch bytes intact and never withdrawing a
+declared item in the text encoding. Its copied `revises` edges keep
+replaced objects replaced. When a counting void withdraws the only
+latest statement of a group, that group has no latest statement, so a
+new statement of that group names no record with `revises`.
 
-A clone pushes its ledger entries to its shared clone: to each git
-repository that a push to that remote reaches. Each git repository that
-a push to that remote reaches is the git repository from which a fetch
-takes git objects unless the git configuration gives that remote another
-address for a push. The requirement `push-only-extensions` gives the
-commit that a push sends and what a program checks before that push. So
-when a git repository that a push reaches pulls from no shared clone of
-its own, each ledger entry of the stored ledger of that git repository
-keeps the `seq` of that ledger entry, and that ledger changes only at
-the end of that ledger, other than in a repair. A shared clone that
-pulls from a shared clone of its own can give entries of the ledger of
-the first shared clone new values of `seq`.
+The non-ackable finding classes `unaccepted-statement` (check "Kind
+rules", required here for `void`) and `statement-conflict` (check
+"Conflicts") report unaccepted statements and conflicts across record
+kinds.
 
-When another clone pushed first, the ledger commit of a clone does not
-extend the ledger commit of its shared clone. The clone then pulls the
-ledger entries of its shared clone, from a commit s that the requirement
-`pull-shared-entries` allows. The new ledger commit of the clone is a
-pull commit (term `pull-commit`). That pull commit holds the lines of s
-and, after the lines of s, those of the clone's own lines for which s
-does not account that stay, each as the same ledger entry with the next
-`seq`. Such a line stays only when its ledger entry is accepted at its
-new point. The program reports each such line that leaves (requirement
-`report-leaving-entries`). A line for which s accounts neither stays nor
-leaves, so the program does not report that line. The requirements
-`pull-shared-entries` and `refuse-unsafe-pulls` give when a program can
-pull and what the program changes. So a newer line, and a line of a kind
-that is none of the eight kinds, is never lost in a pull. When two
-copies of one clone both pull and push, one ledger entry can stand twice
-in the shared ledger.
+### 2.6 Checks of `.sinter/` in a commit, a change, and a working tree
 
-A pull is not an append. A program whose input says that an agent runs
-the execution can pull and push ledger entries. A program changes the
-ledger ref of a git repository only in the four ways of the requirement
-`limit-ledger-ref-changes`. In a pull, and in each change of the ledger
-ref of a shared clone, a program runs none of the programs that the
-requirement `limit-programs-in-pulls-and-pushes` forbids.
+Beside the Object store's check "Form", five checks of `.sinter/` and
+one notice for uncommitted store files apply:
 
-For example, the shared clone S holds five ledger entries. The clone A
-pulled them, and then appended a sixth ledger entry, x. Before A pushes,
-another clone C pushes its own sixth ledger entry, y. Now the ledger
-commit of A does not extend the ledger commit of S. A pulls the ledger
-entries of S. The new ledger of A holds the five ledger entries, then y
-with the `seq` 6, then x with the `seq` 7 and a new `id`, when x is
-accepted at the point after y. Then the ledger commit of A extends the
-ledger commit of S, and A can push.
+- **Git entries inside `.sinter/`** (`invalid-store-entry`, requirement
+  `give-store-entry-findings`): in a checked commit's git tree object,
+  reports every symbolic link (`120000`), submodule (`160000`), and
+  entry with a non-UTF-8 name inside `.sinter/` and outside
+  `.sinter/local/`, while accepting executable regular files (`100755`).
+- **Only added** (`altered-store-file`, requirement
+  `give-only-added-findings`): compares a head tree with a base tree
+  (term `base-comparison`: the change base on a branch, or a
+  caller-named base or first parent on the default branch) and reports
+  every base store file that changed or disappeared, except a deleted
+  valid object file withdrawn by a counting void in the head tree or a
+  deleted unneeded computed identity file when every head store file is
+  valid.
+- **Withdrawn files** (`withdrawn-store-file`, requirement
+  `give-withdrawn-file-findings`): reports every new or changed valid
+  object file in the head tree (not matching the base tree byte for
+  byte) whose canonical object a counting void in the head tree
+  withdraws.
+- **Writers (`agent`)** (`agent-writer`, requirement
+  `give-agent-writer-findings`): reports every judgment or void in a
+  tree's valid object store that carries `agent`.
+- **Latest targets** (`non-latest-target`, requirement
+  `give-latest-target-findings`): for a change, reports each record
+  content id that a new non-void statement names with `revises` (or
+  `judges` on `done` or `abandoned`) when that target is not a latest
+  statement in the head tree with that new statement and its new
+  replacements removed.
+- **Uncommitted store files** (`report-uncommitted-statements`): when
+  checking a working tree whose `.sinter/` holds any store file absent
+  from or differing from the head commit, gives a notice that it read
+  uncommitted store files.
 
-### 2.7 Repairs and voids
+### 2.7 Agents, the job, and trackers
 
-A repair removes zero or more ledger entries from a ledger, and puts a
-void where each of them was. A person makes a repair, for example to
-remove a ledger entry that holds a secret, or to make a broken ledger
-valid. A repair of a broken ledger can remove no line, when the repair
-only puts the lines in the form of a valid ledger tree. No program
-repairs a newer ledger or the ledger of a git repository that does not
-hold its ledger objects (requirement `repair-no-newer-ledgers`). The
-requirement `repair-ledgers-with-voids` gives the commit that a repair
-makes. Each line that the repair keeps keeps its bytes. For each text
-that is the `id` of a removed line, the new commit holds one void whose
-`dropped` is that text, and that void takes the `seq` of the removed
-line when the requirement `repair-ledgers-with-voids` gives that `seq`.
-So no ledger entry that the repair keeps changes its `seq` or its `id`.
-So, because the new history is intact, no commit of the new history
-holds a ledger entry that the repair removed.
+An agent marker shows that an agent runs an execution (term
+`agent-marker`); a job marker shows that an execution is the job (term
+`job-marker`). Under an agent marker, a program writes only statements
+carrying `agent` (`record-agent-writers`), writes no judgment, no void,
+and no observation, and writes nothing to the log branch
+(`limit-agents-to-definitions`). Only the job (without an agent marker)
+appends observations or kept objects to the log branch
+(`leave-delivered-entries-to-job`).
 
-When the shared clone pulls from no shared clone of its own and has a
-ledger commit, a program changes the ledger ref of the shared clone to a
-commit that does not extend that ledger commit, such as a commit that a
-repair made in another clone, only as a repair of the shared ledger, in
-the form that the requirement `repair-ledgers-with-voids` gives.
-
-A void records a removal. A void whose `dropped` names a ledger entry
-that is still in the ledger does not remove that ledger entry. After a
-repair of the shared ledger, each clone pulls the ledger entries of its
-shared clone, the voids of the shared clone included. A void accounts
-for the line that the void replaces, so that line is not provisional,
-and the clone does not put that line back. A pull of ledger entries that
-holds voids is not a repair.
-
-### 2.8 Agents, the job, and trackers
-
-An agent marker shows that an agent runs an execution of a program (term
-`agent-marker`). A job marker shows that an execution is the job (term
-`job-marker`). The parameter `agent-markers` gives the names of the
-agent markers. The parameter `job-markers` gives the names of the job
-markers. For example, a program that runs an agent can set an agent
-marker. For example, continuous integration can set a job marker. When
-the input of a program says that an agent runs the execution, the
-program appends no ledger entry other than a definition entry
-(requirement `limit-agents-to-definitions`). When the input of a program
-says that an agent runs the execution, the program makes no repair
-(requirement `refuse-repairs-for-agents`). A program appends a ledger
-entry of the kind `delivered` only when its input says that the
-execution is the job (requirement `leave-delivered-entries-to-job`).
-
-A ledger entry can name an external item by its external id, such as
-`gh/42`. A program appends no ledger entry that holds other data that
-the program took from a tracker, such as the title or the state of an
-issue (requirement `keep-tracker-data-out`).
+A record may name an external item by its external id, such as `gh/42`,
+through an `ext` computed identity object, and holds no other data taken
+from a tracker (`keep-tracker-data-out`). Git objects that a host
+adapter reads from a host are not data of a tracker.
 
 ## 3. Parameters
 
@@ -404,31 +369,78 @@ A binding of the parameter `job-markers` is a finite set of texts.
 
 A binding of the parameter `ledger-remote` is a text, such as `origin`.
 
+### 3.4 `log-branch-name`
+
+@schema log-branch-name=v1
+@cites {
+    ontology#{parameter=v1},
+    changes#{branch-name=v1},
+    text#{code-span=v1},
+}
+
+A binding of the parameter `log-branch-name` is a branch name
+(`changes#branch-name`), such as `sinter-log`.
+
 ## 4. Definitions
 
-### 4.1 The ledger ref
+### 4.1 The ref of the log branch
 
-@term ledger-ref=v1
-@cites {changes#{ref-commit=v1, commit=v1}, text#{code-span=v1}}
+@term log-branch-ref=v1
+@cites {
+    gitdoc/git-config,
+    conformance#{input=v1},
+    ontology#{log-branch=v1, parameter=v1},
+    changes#{
+        commit=v1, ref-name=v1, ref-commit=v1, branch-name=v1,
+        git-configuration=v1, remote-transfer=v1, mapped-ref=v1,
+    },
+    text#{text=v1, code-span=v1},
+    #{ledger-remote=v1, log-branch-name=v1},
+}
 
-The ledger ref of a git repository is its ref whose name is
-`refs/sinter/ledger`. The ledger commit of a git repository is the commit
-of its ledger ref, when its ledger ref has a commit.
+Under a valid binding `b` of `log-branch-name` and a valid binding `r`
+of `ledger-remote`:
+
+- The remote ref name of the log branch is the ref name `refs/heads/`
+  followed by `b`.
+- The remote-tracking ref of the log branch of a git repository is the
+  mapped ref (`changes#mapped-ref`) of `refs/heads/` followed by `b` for
+  the remote `r` in that git repository, when `refs/heads/` followed by
+  `b` has a mapped ref for `r`. Otherwise, the git repository has no
+  remote-tracking ref of the log branch.
+- The log-branch commit of a git repository is the commit of its
+  remote-tracking ref of the log branch (`changes#ref-commit`), when
+  that git repository has a remote-tracking ref of the log branch and
+  that ref has a commit.
+- The log branch of a git repository is missing when the git repository
+  has no remote-tracking ref of the log branch, or when that
+  remote-tracking ref does not exist. A missing log branch is a part
+  that a valid input can lack under `conformance#input`, and is never a
+  valid empty log branch.
+- The remote log-branch repository of a git repository for a fetch is
+  the git repository at the address of the remote `r` for a fetch, as
+  the page git-config and `changes#remote-transfer` give that address;
+  for a push, it is each git repository at an address of the remote `r`
+  for a push.
 
 ### 4.2 Chunk paths
 
 @term chunk-path=v1
-@cites text#{
-    production=v1, rule-name=v1, hex-digit=v1, text=v1, character=v1,
-    code-span=v1,
+@cites {
+    rfc/5234,
+    rfc/7405,
+    text#{
+        production=v1, rule-name=v1, hex-digit=v1, text=v1,
+        character=v1, code-span=v1,
+    },
 }
 
-A chunk path is a text that matches the production `chunk-path`, and in
-which the two hex digits right after `entries/` are the same as the two
-hex digits right after `e-`:
+A chunk path is a text that matches the production `chunk-path` and in
+which the two hex digits right after `entries/` equal the first two hex
+digits right after the second `/`:
 
 ```abnf
-chunk-path  = %s"entries/" 2hex-digit "/" %s"e-" 32hex-digit %s".jsonl"
+chunk-path  = %s"entries/" 2hex-digit "/" 32hex-digit %s".jsonl"
 ```
 
 ### 4.3 Chunks and their lines
@@ -436,7 +448,6 @@ chunk-path  = %s"entries/" 2hex-digit "/" %s"e-" 32hex-digit %s".jsonl"
 @term chunk=v1
 @cites {
     changes#{commit-file=v1},
-    data-forms#{line-object=v1, canonical-line=v1},
     text#{byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1},
     #{chunk-path=v1},
 }
@@ -448,68 +459,113 @@ path. The content of a chunk is the content of the blob that the chunk
 names. The lines of a chunk are the byte sequences that remain when its
 content is cut right after each byte 0x0A, without an empty byte
 sequence at the end. So each line of a chunk, other than the last, ends
-with the byte 0x0A, and holds no other byte 0x0A. The lines of a git
-tree object are the lines of its chunks. A line counts once each time
-that it stands in a chunk, so the same bytes in two chunks, or twice in
-one chunk, are two lines. When a line of a chunk is the canonical line
-of a line object, the object of that line is that line object.
+with the byte 0x0A and holds no other byte 0x0A. The lines of a git tree
+object are the lines of its chunks. A line counts once each time that it
+stands in a chunk, so the same bytes in two chunks, or twice in one
+chunk, are two lines.
 
-### 4.4 Entry ids
+### 4.4 Log-branch lines
 
-@term entry-id=v1
+@schema log-branch-line=v1
 @cites {
     data-forms#{
-        json-value=v1, canonical-byte-sequence=v1, id-prefix=v1,
-        hash-id=v1,
+        json-value=v1, line-object=v1, canonical-byte-sequence=v1,
     },
-    text#{code-span=v1},
+    ontology#{
+        object=v1, object-kind=v1, content-id=v1, log-branch=v1,
+    },
+    text#{byte=v1, byte-sequence=v1, 0x-numeral=v1, code-span=v1},
 }
 
-For an object x, let y be the object that has each member of x other
-than the member `id`, and no other member. The entry id of x is the hash
-id, with the id prefix `e-` and 32 hex digits, of the canonical byte
-sequence of y.
+A byte sequence meets `log-branch-line` (is a valid log-branch line)
+when, and only when, all four of these conditions hold:
 
-### 4.5 Fields
+1. It ends with the byte 0x0A, and the byte sequence before that final
+   byte 0x0A is the canonical byte sequence of a JSON object that has
+   exactly two members: `id`, whose value is a string, and `object`,
+   whose value is a line object (`data-forms#line-object`).
+2. That line object meets its row of `ontology#object-kind`.
+3. The value of the member `kind` of that line object is one of the
+   fourteen object kinds that `ontology#object-kind` marks as allowed on
+   the log branch.
+4. The value of `id` equals the content id (`ontology#content-id`) of
+   that canonical object.
+
+For a valid log-branch line, its envelope id is the value of its member
+`id`, and its canonical object is the line object held by its member
+`object`.
+
+### 4.5 Newer lines
+
+@term newer-line=v1
+@cites {
+    data-forms#{
+        json-value=v1, json-value-of-a-byte-sequence=v1,
+        canonical-byte-sequence=v1, id-prefix=v1, hash-id=v1,
+    },
+    text#{
+        byte=v1, byte-sequence=v1, 0x-numeral=v1, code-span=v1,
+        whole-number=v1,
+    },
+    #{chunk=v1},
+}
+
+A line of a chunk is a newer line when, and only when, all three of
+these conditions hold:
+
+1. It ends with the byte 0x0A, and the JSON value of the byte sequence
+   before that final byte 0x0A (`data-forms#json-value-of-a-byte-sequence`)
+   is a JSON object that has the member `id` with a string and the
+   member `object` with a JSON object `o`.
+2. `o` has the member `v` with an integer greater than 1 and the member
+   `kind` with a string `k` such that `k` followed by `:` is an id
+   prefix (`data-forms#id-prefix`).
+3. The value of `id` equals the hash id (`data-forms#hash-id`) of the
+   canonical byte sequence of `o` with the id prefix `k:` and length 32.
+
+### 4.6 Fields of records
 
 @schema entry-field=v1
 @cites {
     rfc/3339,
-    ontology#{ledger-entry=v1, person=v1, agent=v1, job=v1, repair=v1},
-    changes#{branch-name=v1},
+    ontology#{
+        ledger-entry=v1, statement=v1, job-record=v1, void-statement=v1,
+        object-kind=v1, person=v1, agent=v1, job=v1, edge=v1,
+    },
     data-forms#{json-value=v1},
     text#{text=v1, code-span=v1},
-    #{entry-id=v1, chunk=v1, ledger-ref=v1},
 }
 
-A field of a ledger entry is a member of the object of its line that a
-design names for ledger entries. The common fields of ledger entries are
-these eight fields, with these values:
+A field of a record is a member of its canonical object that
+`ontology#object-kind` or another design names for records of its kind.
+The common fields of records follow `ontology#object-kind`:
 
-- `id`, a string: the entry id of the object;
-- `kind`, a string: the kind of the ledger entry;
-- `v`, an integer of 1 or more: the version of the form of the ledger
-  entry, which is 1 for the form of these eight fields;
-- `seq`, an integer of 1 or more: the place of the line among the lines
-  of the ledger commit, which gives the order of the ledger;
-- `by`, a string: the person who wrote the ledger entry, the person for
-  whom the agent that wrote it acts, or the job;
-- `agent`, a string: the agent that wrote the ledger entry;
-- `branch`, a string that is a branch name: the branch from which the
-  ledger entry was written;
-- `ts`, a string: the time at which the ledger entry was written, a text
-  that matches the rule `date-time` of RFC 3339, with the letters `T`
-  and `Z` in upper case, with `Z` as its time offset, and with no
-  fraction of a second, such as `2026-10-31T14:05:09Z`.
+- `kind`, a required string naming the record kind;
+- `v`, a required integer equal to 1;
+- `by`, a required string naming the person who wrote the statement, the
+  person for whom the agent acts, or the job;
+- `agent`, an optional string on statements naming the agent that wrote
+  the statement (absent on observations);
+- `seq`, a required integer of 1 or more on observations giving the
+  observation's sequence number on the log branch (absent on
+  statements);
+- `ts`, an optional string giving the time at which the record was
+  written: when written by a conforming program, a text that matches the
+  rule `date-time` of RFC 3339, with the letters `T` and `Z` in upper
+  case, with `Z` as its time offset, and with no fraction of a second,
+  such as `2026-10-31T14:05:09Z`;
+- `edges`, an optional set of flat edge objects (absent when empty and
+  absent on `progress`), as `ontology#object-kind` and `ontology#edge`
+  define it.
 
-The fields of a kind of ledger entry are the fields that a design gives
-for the ledger entries of that kind, other than the common fields. The
-fields of the kind `void` are `dropped` and `reason`. The field
-`dropped` is a string: the `id` of the line that a repair removed. The
-field `reason` is a string: the reason for which the repair removed that
-line.
+The fields of the kind `void` beyond the common fields are
+`withdrawn-kind` (a required string matching the object kind word of the
+target of its `withdraws` edge) and `reason` (a required string giving
+the reason for the withdrawal). The fields of any other kind of record
+are the members listed by its row of `ontology#object-kind` and defined
+by the design that owns that kind.
 
-### 4.6 Writers of ledger entries
+### 4.7 Writers of records
 
 @term entry-writer=v1
 @cites {
@@ -519,247 +575,281 @@ line.
     #{entry-field=v1},
 }
 
-When a ledger entry has the member `agent`, the writer that the ledger
-entry records is the agent that the `agent` of that ledger entry names.
-When a ledger entry has no member `agent` and has the member `by`, the
-writer that the ledger entry records is the person or the job that the
-`by` of that ledger entry names. A ledger entry whose object has neither
-member records no writer.
-
-### 4.7 Newer lines
-
-@term newer-line=v1
-@cites {
-    data-forms#{json-value=v1, json-value-of-a-byte-sequence=v1},
-    text#{code-span=v1, whole-number=v1},
-    #{chunk=v1},
-}
-
-A newer line is a line of a chunk such that the JSON value of that line
-is an object that has the member `v` with a value that is an integer
-greater than 1.
+When a record has the member `agent`, the writer that the record records
+is the agent that the member `agent` of that record names. When a record
+has no member `agent`, the writer that the record records is the person
+or the job that the member `by` of that record names.
 
 ### 4.8 Ledger objects
 
 @term ledger-object=v1
 @cites {
     changes#{commit=v1, ref-commit=v1, commit-file=v1, ancestry=v1},
-    text#{code-span=v1},
-    #{ledger-ref=v1, chunk=v1},
+    #{log-branch-ref=v1, chunk=v1},
 }
 
-For a commit c whose git tree object is t, the ledger objects of c are
-c, t, each git tree object that a tree entry among the entries of t
-names, and each blob that a chunk of t names. The ledger objects of a
-git repository are, when its ledger ref exists, the git object to which
-its ledger ref resolves, as the term `changes#ref-commit` gives it, and,
-when that git object is a commit, the ledger objects of that commit. The
-history objects of a git repository are its ledger objects and, for each
-commit that the ledger commit reaches, the ledger objects of that
-commit. A git repository does not hold the ledger objects of a commit
-when the git object of a tree entry among the entries of the git tree
-object of that commit is not a git tree object. A git repository does
-not hold the ledger objects of a commit when the git object of a chunk
-of the git tree object of that commit is not a blob.
+For a commit `c` whose git tree object is `t`, the ledger objects of `c`
+are `c`, `t`, each git tree object that a tree entry among the entries
+of `t` names, and each blob that a chunk of `t` names. For a git
+repository whose remote-tracking ref of the log branch exists, the
+ledger objects of that git repository are the git object to which its
+remote-tracking ref of the log branch resolves (`changes#ref-commit`)
+and, when that git object is a commit, the ledger objects of that
+commit. The history objects of that git repository are its ledger
+objects and, for each commit that its log-branch commit reaches, the
+ledger objects of that commit. A git repository does not hold the ledger
+objects of a commit when a tree entry among the entries of its git tree
+object names a git object that is not a git tree object, when a chunk of
+its git tree object names a git object that is not a blob, or when any
+of those git objects is absent.
 
-### 4.9 Valid ledger trees
+### 4.9 Valid log-branch trees
 
 @schema valid-ledger-tree=v1
 @cites {
     changes#{commit-file=v1},
-    data-forms#{canonical-line=v1, line-object=v1, json-value=v1},
+    data-forms#{json-value=v1},
+    ontology#{content-hash=v1, job-record=v1},
     text#{whole-number=v1, character=v1, utf-8-encoding=v1, code-span=v1},
-    #{chunk-path=v1, chunk=v1, entry-id=v1, newer-line=v1},
+    #{chunk-path=v1, chunk=v1, log-branch-line=v1, newer-line=v1},
 }
 
-A git tree object is newer when one of its lines is a newer line. A git
-tree object that is not newer is a valid ledger tree when, and only
-when, each of these is true:
+A git tree object is newer when at least one of its lines is a newer
+line. A git tree object that is not newer is a valid log-branch tree
+when, and only when, each of these five conditions holds:
 
 1. Its entries, at any depth, are exactly these: its chunks, each with
    the mode 100644; for each of its chunks, the tree entry whose byte
    path is the UTF-8 encoding of the first 10 characters of the chunk
    path of that chunk; and, when the git tree object has at least one
    chunk, the tree entry whose byte path is the UTF-8 encoding of
-   `entries`.
-2. The content of each of its chunks has at least one line. Each line of
-   each of its chunks is the canonical line of a line object.
-3. The object of each of its lines has the member `id` with a string,
-   the member `kind` with a string, the member `v` with the integer 1,
-   and the member `seq` with an integer of 1 or more.
-4. The value of `id` of the object of each of its lines is the entry id
-   of that object.
-5. For each chunk of the git tree object, after the first 11 characters
-   of the chunk path of that chunk, that chunk path is the value of `id`
-   of the object of the first line of that chunk, then `.jsonl`.
-6. No two of its lines have objects with the same value of `id`.
-7. For the number n of its lines, the values of `seq` of the objects of
-   its lines are the whole numbers from 1 to n, each once.
+   `entries`. No two entries of the git tree object have the same byte
+   path.
+2. The content of each of its chunks has at least one line, and each
+   line of each of its chunks meets `log-branch-line`.
+3. For each chunk of the git tree object, the 32 characters of its chunk
+   path after the first 11 characters (before `.jsonl`) equal the first
+   32 hex digits of the content hash of the canonical object of the
+   first line of that chunk.
+4. No two of its lines have the same envelope id.
+5. For the number `m` of its lines whose canonical object has `kind`
+   equal to `delivered` or `progress`, the values of `seq` of those `m`
+   canonical objects are the whole numbers from 1 to `m`, each once.
 
-### 4.10 Valid, broken, and newer ledgers
+### 4.10 Needed computed identity objects on the log branch
+
+@term needed-log-identity=v1
+@cites {
+    conformance#{input=v1, own-store=v1},
+    ontology#{
+        object=v1, object-kind=v1, computed-identity=v1,
+        declared-item=v1, content-id=v1, edge=v1, log-branch=v1,
+    },
+    data-forms#{json-value=v1},
+    text#{code-span=v1},
+    #{log-branch-line=v1, valid-ledger-tree=v1},
+}
+
+Let `O` be a canonical object of a valid log-branch line, and let `c` be
+a content id whose object kind word is one of the five computed identity
+kinds (`name`, `pin`, `ext`, `vector-set`, and `vector-group`).
+
+`O` holds the key of `c` itself when, and only when, `O` is a
+declared-item object and `c` is the content id of the `name` computed
+identity object whose member `name` equals the member `name` of `O`.
+
+`O` needs the computed identity object `c` when, and only when, `O`
+holds at least one edge in its member `edges` whose member `to` equals
+`c`, and `O` does not hold the key of `c` itself.
+
+On a valid log-branch tree `t`, a canonical object `O` of a line of `t`
+is unclosed for `c` when, and only when, `O` needs `c` and no line of
+`t` has envelope id `c`. An unclosed kept object does not make `t` not a
+valid log-branch tree. Such an absent computed identity object is a part
+that a valid log branch can lack under `conformance#input`: when no
+input of a run (neither the log branch, nor a declared-item object
+holding its own `name` key, nor any valid encoding input, nor a valid
+program's own store) gives that computed identity object or its key,
+that computed identity object is a missing part of the run, and a thing
+that a requirement obliges needs that missing part when, and only when,
+that thing needs its key. When another input of the run gives that
+computed identity object or its key, the run does not lack that part.
+
+### 4.11 Valid, broken, and newer log branches
 
 @atom ledger-validity=v1
 @cites {
     changes#{commit=v1, ref-commit=v1},
-    #{ledger-ref=v1, ledger-object=v1, valid-ledger-tree=v1},
+    #{log-branch-ref=v1, ledger-object=v1, valid-ledger-tree=v1},
 }
 
-The ledger of a git repository that holds its ledger objects is newer,
-valid, or broken:
+For a git repository whose log branch is not missing (its
+remote-tracking ref of the log branch exists) and that holds its ledger
+objects, the log branch is newer, valid, or broken:
 
-- The ledger is newer when, and only when, the ledger ref of the git
-  repository has a commit whose git tree object is newer.
-- The ledger is valid when, and only when, the ledger ref of the git
-  repository does not exist, or the ledger ref of the git repository has
-  a commit whose git tree object is a valid ledger tree.
-- The ledger is broken when, and only when, the ledger is neither newer
-  nor valid: the ledger ref of the git repository exists and has no
-  commit, or the git tree object of the ledger commit of the git
-  repository is neither newer nor a valid ledger tree.
+- The log branch is newer when, and only when, its remote-tracking ref
+  has a commit whose git tree object is newer.
+- The log branch is valid when, and only when, its remote-tracking ref
+  has a commit whose git tree object is a valid log-branch tree.
+- The log branch is broken when, and only when, the log branch is
+  neither newer nor valid: its remote-tracking ref exists and has no
+  commit, or the git tree object of its log-branch commit is neither
+  newer nor a valid log-branch tree.
 
-### 4.11 Stored ledgers
+### 4.12 Stored ledgers
 
 @term stored-ledger=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1, state-input=v1},
+    conformance#{own-store=v1},
+    ontology#{
+        ledger=v1, statement=v1, job-record=v1, log-branch=v1,
+        declared-item=v1, computed-identity=v1, object=v1, tree=v1,
+        state-input=v1,
+    },
+    object-store#{tree-object-store=v1},
     text#{code-span=v1},
     #{
-        ledger-ref=v1, chunk=v1, valid-ledger-tree=v1,
-        ledger-validity=v1,
+        log-branch-ref=v1, chunk=v1, log-branch-line=v1,
+        valid-ledger-tree=v1, ledger-validity=v1,
     },
 }
 
-When the object of a line of a valid ledger tree has, as the `kind` of
-that object, one of the eight texts `task`, `plan`, `approval`,
-`decline`, `done`, `abandoned`, `delivered`, and `void`, the ledger
-entry of that line is the ledger entry of that kind whose object is the
-object of that line. Each other line of a valid ledger tree has no
-ledger entry. For a git repository whose ledger is valid and whose
-ledger ref exists, the stored ledger of that git repository is the
-sequence of the ledger entries of the lines of the git tree object of
-the ledger commit of that git repository, in increasing order of the
-`seq` of the objects of those ledger entries. For a git repository whose
-ledger is valid and whose ledger ref does not exist, the stored ledger
-of that git repository is the empty sequence. The ledger of a git
-repository, as a state input, is its stored ledger.
+For a tree `T` whose object store (`object-store#tree-object-store`) is
+valid, the stored statements of `T` are the set of all canonical objects
+of the seven statement kinds (`ontology#statement`) that the object
+store of `T` holds.
 
-### 4.12 Extensions
+For a valid log-branch tree `t`:
+
+- The stored observations of `t` are the canonical objects of the lines
+  of `t` whose `kind` is `delivered` or `progress`, in increasing order
+  of their `seq` (no state depends on `seq`).
+- The kept objects of `t` are the set of canonical objects of the lines
+  of `t` whose `kind` is one of the seven declared-item kinds or one of
+  the five computed identity kinds.
+
+For a git repository whose log branch is not missing, holds its ledger
+objects, and is valid, its stored observations and kept objects are
+those of the git tree object of its log-branch commit. Together with the
+stored statements of a tree (or the same canonical objects from a valid
+program's own store), they form the stored ledger for that tree and git
+repository.
+
+### 4.13 Extensions
 
 @term ledger-extension=v1
 @cites {changes#{commit=v1}, #{chunk=v1}}
 
 Extension is the smallest relation between commits in which each commit
-d extends d, and a commit d extends a commit c when d has exactly one
-parent, that parent extends c, and each line of the git tree object of
-that parent is a line of the git tree object of d.
+`d` extends `d`, and a commit `d` extends a commit `c` when `d` has
+exactly one parent, that parent extends `c`, and each line of the git
+tree object of that parent is a line of the git tree object of `d`.
 
-### 4.13 Intact histories
+### 4.14 Intact histories
 
 @atom intact-history=v1
 @cites {
-    changes#{commit=v1, ancestry=v1},
-    #{ledger-ref=v1, valid-ledger-tree=v1, ledger-extension=v1},
-}
-
-The history of the ledger of a git repository is intact when, and only
-when, the ledger ref of that git repository does not exist, or the
-ledger ref of that git repository has a commit c such that c extends a
-commit that has no parent and the git tree object of each commit that c
-reaches is a valid ledger tree.
-
-### 4.14 Accepted ledger entries
-
-@term accepted-entry=v1
-@cites ontology#{ledger=v1, ledger-entry=v1, repair=v1}
-
-The acceptance rule of a kind of ledger entry is the condition, which a
-design gives for that kind, under which a ledger entry of that kind can
-stand at a point of a ledger. A ledger entry is accepted at a point of a
-ledger when, and only when, the acceptance rule of its kind holds for
-that ledger entry at that point. A ledger entry of the kind `void`, and
-a ledger entry of a kind for which no design gives an acceptance rule,
-are accepted at no point.
-
-### 4.15 Shared clones
-
-@term shared-clone=v1
-@cites {
-    gitdoc/git-config,
-    ontology#{parameter=v1},
-    changes#{git-configuration=v1, remote-transfer=v1},
-    text#{text=v1, code-span=v1},
-    #{ledger-remote=v1, stored-ledger=v1},
-}
-
-For the text r of the binding of the parameter `ledger-remote`, the
-shared clone of a git repository A is the git repository at the address
-of the remote r of A from which a fetch from that remote takes git
-objects, as the page git-config gives that address. In a push of ledger
-entries, the shared clone is instead each git repository at an address
-of the remote r for a push, as the term `changes#remote-transfer` gives
-these addresses. A git repository whose git configuration gives no such
-address has no shared clone. The shared ledger of a git repository A is
-the stored ledger of the git repository at the address of the remote r
-of A from which a fetch from that remote takes git objects.
-
-### 4.16 Accounted lines
-
-@term accounted-line=v1
-@cites {
-    data-forms#{json-value-of-a-byte-sequence=v1},
-    text#{code-span=v1},
-    #{chunk=v1},
-}
-
-A git tree object t accounts for a line l of a chunk when, and only
-when, one of the lines of t is l, or the object of one of the lines of t
-has the member `kind` with the value `void` and the member `dropped`
-with the value of the member `id` of the JSON value of l.
-
-### 4.17 Pull commits
-
-@term pull-commit=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
-    data-forms#{canonical-line=v1},
-    text#{whole-number=v1, code-span=v1},
+    changes#{commit=v1, ancestry=v1, reach=v1, reflog-commit=v1},
+    text#{result=v1},
     #{
-        chunk=v1, entry-id=v1, valid-ledger-tree=v1,
-        ledger-extension=v1, accepted-entry=v1, accounted-line=v1,
+        log-branch-ref=v1, ledger-object=v1, valid-ledger-tree=v1,
+        ledger-extension=v1,
     },
 }
 
-For a commit a, or no commit, and a commit s, let n be the number of the
-lines of the git tree object of s. Let l1, l2, and so on to lm be the
-lines of the git tree object of a for which the git tree object of s
-does not account, in increasing order of the `seq` of the objects of
-those lines, or no lines when there is no commit a. The line that comes
-from a line l with the `seq` p is the canonical line of the object o
-that has each member of the object of l other than `seq` and `id`, the
-member `seq` with the value p, and the member `id` with the entry id of
-o, and no other member. That line records the ledger entry of l, with
-the `seq` p. The lines that stay are these: for each i from 1 to m, in
-turn, with k the number of lines that stay before li, li stays when the
-object of the line that comes from li with the `seq` n + k + 1 has, as
-its `kind`, one of the texts `task`, `plan`, `approval`, `decline`,
-`done`, `abandoned`, and `delivered`, and when the ledger entry of that
-kind whose object is the object of that line is accepted at the end of
-the ledger of the ledger entries of the lines of s and of the lines that
-come from the lines that stay before li, each with its `seq`. The lines
-that leave are the lines li that do not stay.
+For a git repository whose log branch is not missing, whose log-branch
+commit's git tree object is not newer (when its remote-tracking ref has
+a commit), and that holds its history objects, the history of the log
+branch is intact when, and only when, all three of these conditions
+hold:
 
-A commit d is a pull commit of s over a when, and only when, no line
-stays and d is s, or at least one line stays and each of these is true:
+1. Its remote-tracking ref `R` of the log branch has a commit `c`, and
+   `c` extends a commit that has no parent.
+2. The git tree object of each commit that `c` reaches is a valid
+   log-branch tree.
+3. `c` reaches (`changes#reach`) every reflog commit
+   (`changes#reflog-commit`) of `R`.
 
-1. d extends s. The git tree object of each commit that d reaches and
-   that s does not reach is a valid ledger tree.
-2. The lines of the git tree object of d are the lines of the git tree
-   object of s, and, for each line li that stays, the line that comes
-   from li with the `seq` n + k + 1, with k the number of lines that
-   stay before li.
+When `R` exists and has no commit, the history of the log branch is not
+intact. For a git repository whose log branch is not missing, not newer,
+and holds its history objects, the result for whether its history is
+intact is "valid" when intact, and "invalid" when not intact.
 
-### 4.18 Agent markers
+### 4.15 Accepted records and the acceptance rule of `void`
+
+@term accepted-entry=v1
+@cites {
+    conformance#{design=v1, input=v1},
+    ontology#{
+        ledger-entry=v1, statement=v1, job-record=v1, void-statement=v1,
+        object-withdrawal=v1, object-kind=v1, declared-item=v1,
+        computed-identity=v1, content-id=v1, edge=v1, thing=v1, tree=v1,
+    },
+    data-forms#{json-value=v1},
+    text#{code-span=v1},
+}
+
+The acceptance rule of a kind of statement or observation is the
+condition, which a design gives for that kind, under which a record of
+that kind is accepted in a tree (for a statement) or on the log branch
+(for an observation). A record of a kind for which no design gives an
+acceptance rule is not accepted.
+
+This design gives the acceptance rule of the kind `void`. Let `V` be a
+`void` object in a tree `T`, and let `U` be the set of canonical objects
+held by the inputs of the operation (the valid object store of `T`, the
+valid object store of any base tree `B` when a change is checked, and
+the valid, intact log branch when present). `V` is accepted in `T` when,
+and only when, all three of these conditions hold:
+
+1. `V` meets its row of `ontology#object-kind` (so its one `withdraws`
+   edge names a content id `w` of a withdrawable kind — never `void`,
+   `task`, `plan`, a computed identity kind, or `vector-group-def` — its
+   `withdrawn-kind` equals the object kind word of `w`, and no edge of
+   `V` targets a computed identity kind).
+2. Every edge of `V` other than its `withdraws` edge is permitted for
+   `withdrawn-kind`: when `withdrawn-kind` is one of the seven
+   declared-item kinds, every such edge has `kind` equal to `revises`
+   and targets a declared-item kind; when `withdrawn-kind` is another
+   withdrawable kind, every such edge has an edge kind and a
+   non-identity target kind permitted by the row of `withdrawn-kind` in
+   `ontology#object-kind`.
+3. When `U` holds an object `X` whose content id equals `w`, the set of
+   edges of `V` other than its `withdraws` edge equals: for a
+   declared-item kind, the set of `revises` edges of `X`; for any other
+   withdrawable kind, the set of edges of `X` whose target is not of one
+   of the five computed identity kinds.
+
+Whether a `void` counts in `T` (is a counting void in `T`), and its
+effect on objects in `.sinter/`, kept objects on the log branch,
+observations, replaced objects, and latest statements (including
+withholding under an invalid binding of a list of persons), are given by
+`ontology#object-withdrawal`, `ontology#void-statement`, and
+`ontology#thing`. After a counting void withdraws the only latest
+statement of a group of a thing, that group has no latest statement, so
+a new statement of that group names no record with `revises`.
+
+### 4.16 Base comparison for checks
+
+@term base-comparison=v1
+@cites {
+    ontology#{tree=v1, default-branch=v1},
+    changes#{commit=v1, commit-file=v1, change-base=v1},
+}
+
+For a check that compares a head tree `H` with a base tree `B`:
+
+- For a change on a branch, `H` is the checked tree of the change (such
+  as the tree of the merge result commit or the working tree), and `B`
+  is the tree of the base commit named by the caller or, when the caller
+  names none, the tree of the base of the change (`changes#change-base`).
+- On the default branch, for a head commit `h`, `H` is the tree of `h`,
+  and `B` is the tree of the base commit named by the caller or, when
+  the caller names none, the tree of the first parent of `h` (or the
+  empty tree with zero files when `h` has no parent). The choice of `B`
+  never reads the log branch.
+
+### 4.17 Agent markers
 
 @term agent-marker=v1
 @cites {
@@ -770,13 +860,12 @@ stays and d is s, or at least one line stays and each of these is true:
 }
 
 An agent marker of a process is an environment variable of that process
-such that the name of that variable is a text of the binding of the
-parameter `agent-markers`, whatever the value of that variable. The
-input of an execution of a program says that an agent runs the execution
-when, and only when, the environment of a process of that execution
-holds an agent marker.
+whose name is a text of the binding of the parameter `agent-markers`,
+whatever the value of that variable. The input of an execution of a
+program says that an agent runs the execution when, and only when, the
+environment of a process of that execution holds an agent marker.
 
-### 4.19 Job markers
+### 4.18 Job markers
 
 @term job-marker=v1
 @cites {
@@ -787,731 +876,1052 @@ holds an agent marker.
 }
 
 A job marker of a process is an environment variable of that process
-such that the name of that variable is a text of the binding of the
-parameter `job-markers`, whatever the value of that variable. The input
-of an execution of a program says that the execution is the job when,
-and only when, the environment of a process of that execution holds a
-job marker.
+whose name is a text of the binding of the parameter `job-markers`,
+whatever the value of that variable. The input of an execution of a
+program says that the execution is the job when, and only when, the
+environment of a process of that execution holds a job marker.
+
+### 4.19 Findings of the class `invalid-store-entry`
+
+@atom invalid-store-entry-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    changes#{commit=v1, commit-file=v1},
+    data-forms#{hex-text=v1},
+    ontology#{finding-class=v1, tree=v1},
+    text#{
+        byte-sequence=v1, valid-utf-8=v1, utf-8-encoding=v1,
+        text-of-a-byte-sequence=v1, code-span=v1,
+    },
+}
+
+For a commit `c` whose git tree object is `T`, an entry `E` among the
+entries of `T` (`changes#commit-file`), with byte path `bp`, lies inside
+`.sinter/` and outside `.sinter/local/` when, and only when, all three
+of these hold:
+
+1. `bp` starts with the UTF-8 encoding of `.sinter/`.
+2. `bp` does not start with the UTF-8 encoding of `.sinter/local/`.
+3. It is not the case that `E` is a tree entry whose byte path `bp`
+   equals the UTF-8 encoding of `.sinter/local`.
+
+`c` has one finding of the class `invalid-store-entry` for each entry
+`E` of `T` inside `.sinter/` and outside `.sinter/local/` that meets at
+least one of these three conditions, and no other finding of that class:
+
+- `E` is a symbolic-link entry (mode 120000);
+- `E` is a submodule entry (mode 160000);
+- the name of `E` is not valid UTF-8.
+
+The finding has these parts:
+
+- its tree is the tree of `c`;
+- its finding class is `invalid-store-entry`;
+- its subject is the text of `bp` when `bp` is valid UTF-8 and that text
+  fits `findings#finding-subject`, and otherwise `bytes:` followed by
+  the lowercase `data-forms#hex-text` of `bp`;
+- it has no spot, no mark, and no fix, and it is not ackable;
+- its message says what is wrong;
+- its related messages are those that the program gives.
+
+### 4.20 Findings of the class `altered-store-file`
+
+@atom altered-store-file-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    files#{path=v1},
+    ontology#{
+        finding-class=v1, tree=v1, object-withdrawal=v1,
+        computed-identity=v1,
+    },
+    object-store#{
+        store-file=v1, valid-object-file=v1, tree-object-store=v1,
+        needed-identity-file=v1,
+    },
+    #{base-comparison=v1},
+}
+
+For a base tree `B` and a head tree `H`, `H` has one tree finding of the
+class `altered-store-file` for each store file `F` of `B` (with valid
+path `p` and content `b`) such that `H` does not hold a store file at
+`p` with content `b`, except when `H` holds no file at `p` and at least
+one of these two exceptions holds, and no other finding of that class:
+
+1. `F` is a valid object file whose canonical object is withdrawn by a
+   counting void (`ontology#object-withdrawal`) in `H`.
+2. Every store file of `H` is a valid object file, `F` is a valid object
+   file whose canonical object is a computed identity object, and no
+   canonical object of the object store of `H` needs the identity file
+   of that computed identity object (`object-store#needed-identity-file`).
+
+When `H` holds no file at `p`, `F` is a valid object file, exception 2
+does not hold, and whether a `void` in `H` naming `F`'s canonical object
+counts is withheld under `ontology#object-withdrawal`, whether `H` has
+an `altered-store-file` finding for `F` is withheld.
+
+The finding has these parts:
+
+- its tree is `H`;
+- its finding class is `altered-store-file`;
+- its subject is `p`;
+- its spot is `p` alone (with no span) in `H` when `H` holds a file at
+  `p`, and none when `H` holds no file at `p`;
+- it has no mark and no fix, and it is not ackable;
+- its message says what is wrong;
+- its related messages are those that the program gives.
+
+### 4.21 Findings of the class `withdrawn-store-file`
+
+@atom withdrawn-store-file-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    files#{path=v1},
+    ontology#{finding-class=v1, tree=v1, object-withdrawal=v1},
+    object-store#{store-file=v1, valid-object-file=v1},
+    #{base-comparison=v1},
+}
+
+For a base tree `B` and a head tree `H`, `H` has one tree finding of the
+class `withdrawn-store-file` for each valid object file `F` of `H` (with
+valid path `p` and content `b`) such that `B` does not hold a store file
+at `p` with content `b` and the canonical object of `F` is withdrawn by
+a counting void (`ontology#object-withdrawal`) in `H`, and no other
+finding of that class. When whether a `void` in `H` naming `F`'s
+canonical object counts is withheld under `ontology#object-withdrawal`,
+whether `H` has a `withdrawn-store-file` finding for `F` is withheld.
+
+The finding has these parts:
+
+- its tree is `H`;
+- its finding class is `withdrawn-store-file`;
+- its subject is `p`;
+- its spot is `p` alone (with no span) in `H` when taken from `.sinter/`,
+  and none when taken from a program's own store;
+- it has no mark and no fix, and it is not ackable;
+- its message says what is wrong;
+- its related messages are those that the program gives.
+
+### 4.22 Findings of the class `agent-writer`
+
+@atom agent-writer-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    ontology#{
+        finding-class=v1, tree=v1, judgment=v1, void-statement=v1,
+        agent=v1, content-id=v1,
+    },
+    object-store#{object-path=v1, tree-object-store=v1},
+    data-forms#{json-value=v1},
+    text#{code-span=v1},
+    #{stored-ledger=v1, entry-writer=v1},
+}
+
+A tree `T` whose object store is valid has one tree finding of the class
+`agent-writer` for each stored statement `S` of `T` that is a judgment
+(`ontology#judgment`) or a void (`ontology#void-statement`) and whose
+recorded writer (`entry-writer`) is an agent (that is, `S` carries the
+member `agent`), and no other finding of that class.
+
+The finding has these parts:
+
+- its tree is `T`;
+- its finding class is `agent-writer`;
+- its subject is the content id of `S`;
+- its spot is the object path of `S` alone (with no span) in `T` when
+  taken from `.sinter/`, and none when taken from a program's own store;
+- it has no mark and no fix, and it is not ackable;
+- its message says what is wrong;
+- its related messages are those that the program gives.
+
+### 4.23 Findings of the class `unaccepted-statement`
+
+@atom unaccepted-statement-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    ontology#{
+        finding-class=v1, tree=v1, statement=v1, thing=v1,
+        object-kind=v1, content-id=v1,
+    },
+    object-store#{object-path=v1, tree-object-store=v1},
+    #{stored-ledger=v1, accepted-entry=v1},
+}
+
+A tree `T` whose object store is valid has one tree finding of the class
+`unaccepted-statement` for each stored statement `S` of `T` that is not
+accepted in `T` (fails a cross-object rule of `ontology#object-kind` or
+fails the acceptance rule of its kind, `accepted-entry`), and no other
+finding of that class. For statements of the kind `void`,
+`accepted-entry` gives the acceptance rule; a design that gives an
+acceptance rule for another kind of statement refines this class for
+that kind.
+
+The finding has these parts:
+
+- its tree is `T`;
+- its finding class is `unaccepted-statement`;
+- its subject is the content id of `S`;
+- its spot is the object path of `S` alone (with no span) in `T` when
+  taken from `.sinter/`, and none when taken from a program's own store;
+- it has no mark and no fix, and it is not ackable;
+- its message says what is wrong;
+- its related messages are those that the program gives.
+
+### 4.24 Findings of the class `non-latest-target`
+
+@atom non-latest-target-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    ontology#{
+        finding-class=v1, tree=v1, statement=v1, void-statement=v1,
+        judgment=v1, thing=v1, object-withdrawal=v1, edge=v1,
+        content-id=v1,
+    },
+    object-store#{
+        object-path=v1, valid-object-file=v1, tree-object-store=v1,
+    },
+    text#{space=v1, code-span=v1},
+    #{stored-ledger=v1, base-comparison=v1},
+}
+
+For a base tree `B` and a head tree `H` whose object store is valid, a
+stored statement `S` of `H` is new relative to `B` when `B` does not
+hold a valid object file whose canonical object has the content id of
+`S`.
+
+For a new stored statement `S` of `H` whose `kind` is not `void`, let
+the reduced tree `H_S` be the set of stored statements of `H` with `S`
+removed and with every new stored statement of `H` (relative to `B`)
+that replaces `S` (directly or through a chain of `revises` edges,
+including copied `revises` edges of counting voids in `H` that are new
+relative to `B`) removed.
+
+For each new stored statement `S` of `H` whose `kind` is not `void`, and
+each content id `t` that `S` names with a `revises` edge or (when `S`
+has `kind` equal to `done` or `abandoned`) with a `judges` edge, `H` has
+one tree finding of the class `non-latest-target` for the pair `(S, t)`
+when `t` is not the content id of a latest statement of its group
+(`ontology#thing`) in `H_S`, and no other finding of that class. When
+whether `t` is a latest statement in `H_S` is withheld under an invalid
+binding of a list of persons (`ontology#thing`,
+`ontology#object-withdrawal`), whether `H` has that finding is withheld.
+
+The finding has these parts:
+
+- its tree is `H`;
+- its finding class is `non-latest-target`;
+- its subject is the content id of `S`, then a space, then `t`;
+- its spot is the object path of `S` alone (with no span) in `H` when
+  taken from `.sinter/`, and none when taken from a program's own store;
+- it has no mark and no fix, and it is not ackable;
+- its message says that the writer did not see a newer statement;
+- its related messages are those that the program gives.
+
+### 4.25 Findings of the class `statement-conflict`
+
+@atom statement-conflict-finding=v1
+@cites {
+    findings#{
+        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
+        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+    },
+    ontology#{
+        finding-class=v1, tree=v1, conflict=v1, thing=v1,
+        content-id=v1, declared-item=v1, work-item=v1,
+        work-item-definition=v1,
+    },
+    object-store#{tree-object-store=v1},
+    #{stored-ledger=v1},
+}
+
+A tree `T` whose object store is valid has one tree finding of the class
+`statement-conflict` for each conflict (`ontology#conflict`) that exists
+in `T`, and no other finding of that class. When whether a conflict
+exists is withheld under `ontology#conflict` or `ontology#thing`,
+whether `T` has that finding is withheld. A design that owns a kind of
+statement or observation taking part in conflicts refines this class for
+that kind.
+
+The finding has these parts:
+
+- its tree is `T`;
+- its finding class is `statement-conflict`;
+- its subject is the content id of the conflicted unit: for a conflict
+  of judgments of a declared-item object `O`, the content id of `O`; for
+  a conflict of definition statements of a work item `W`, the content id
+  of `W`; and for a conflict of `done` and `abandoned` judgments of a
+  task definition `D`, or of a completing `delivered` observation of `D`
+  and one or more latest `abandoned` judgments of `D`, the content id of
+  `D`;
+- it has no spot, no mark, and no fix, and it is not ackable;
+- its message says what is in conflict;
+- its related messages are those that the program gives.
 
 ## 5. Requirements
 
-### 5.1 The ledger entries of a stored ledger
+### 5.1 Reading the stored ledger
 
 @req give-stored-ledgers=v1
 @cites {
-    ontology#{ledger-entry=v1},
-    conformance#{conforming-program=v1},
-    #{stored-ledger=v1, ledger-validity=v1, ledger-object=v1},
+    conformance#{
+        conforming-program=v1, give-results-over-canonical-objects=v1,
+    },
+    ontology#{statement=v1, job-record=v1, log-branch=v1, tree=v1},
+    changes#{repository-read=v1, undisturbed-read=v1},
+    object-store#{tree-object-store=v1},
+    #{
+        log-branch-ref=v1, ledger-object=v1, ledger-validity=v1,
+        intact-history=v1, stored-ledger=v1,
+    },
 }
 
-When a conforming program gives the ledger entries of the stored ledger
-of a git repository that no other process changes while the conforming
-program reads that git repository, the conforming program must give
-exactly the ledger entries of that stored ledger, in their order, when
-that git repository holds its ledger objects and its ledger is valid.
-When a conforming program gives the ledger entries of the stored ledger
-of a git repository that no other process changes while the conforming
-program reads that git repository, the conforming program must give no
-ledger entry when that git repository does not hold its ledger objects
-or when its ledger is not valid.
+When a conforming program gives the stored statements of a tree `T`, it
+must give once each stored statement of `T` when the object store of `T`
+is valid, and no other statement; it must give no stored statement of
+`T` when the object store of `T` is not valid.
 
-### 5.2 The validation of ledgers
+When a conforming program gives the stored observations or kept objects
+of the log branch of a git repository in an undisturbed repository read,
+it must give once each stored observation (in increasing order of `seq`
+when ordered) and once each kept object, and no other observation or
+kept object, when the log branch is not missing, the git repository
+holds its ledger objects (and its history objects when checking history),
+its log branch is valid, and (when history is checked) its history is
+intact. It must give no observation and no kept object when the log
+branch is missing, broken, newer, or not intact, or when the git
+repository does not hold its ledger objects.
+
+### 5.2 The validation of the log branch
 
 @req validate-ledgers=v1
 @cites {
     conformance#{conforming-program=v1},
+    changes#{repository-read=v1, undisturbed-read=v1},
     text#{result=v1},
-    #{ledger-validity=v1, ledger-object=v1},
+    #{log-branch-ref=v1, ledger-object=v1, ledger-validity=v1},
 }
 
-When a conforming program gives a result for whether the ledger of a git
-repository is valid, and no other process changes that git repository
-while the conforming program reads that git repository, the conforming
-program must give exactly one result when that git repository holds its
-ledger objects: "valid" when that ledger is valid, "broken" when that
-ledger is broken, and "newer" when that ledger is newer. The conforming
-program must give no result when the git repository does not hold its
-ledger objects.
+When a conforming program gives a result for whether the log branch of a
+git repository is valid in an undisturbed repository read, and the log
+branch is not missing and the git repository holds its ledger objects,
+the conforming program must give exactly one result: "valid" when the
+log branch is valid, "broken" when the log branch is broken, and "newer"
+when the log branch is newer. The conforming program must give no result
+when the log branch is missing or when the git repository does not hold
+its ledger objects.
 
-### 5.3 The validation of histories
+### 5.3 Growth of the log branch
 
 @req validate-histories=v1
 @cites {
-    conformance#{conforming-program=v1},
+    conformance#{
+        conforming-program=v1, report=v1, report-missing-parts=v1,
+    },
+    changes#{repository-read=v1, undisturbed-read=v1},
     text#{result=v1},
-    #{intact-history=v1, ledger-validity=v1, ledger-object=v1},
+    #{
+        log-branch-ref=v1, ledger-object=v1, ledger-validity=v1,
+        intact-history=v1, needed-log-identity=v1,
+    },
 }
 
 When a conforming program gives a result for whether the history of the
-ledger of a git repository is intact, and no other process changes that
-git repository while the conforming program reads that git repository,
-the conforming program must give exactly one result when that git
-repository holds its history objects and its ledger is not newer:
-"valid" when that history is intact, and "invalid" when that history is
-not intact. The conforming program must give neither result when that
-ledger is newer, or when the git repository does not hold its history
-objects.
+log branch of a git repository is intact in an undisturbed repository
+read, and the log branch is not missing, the git repository holds its
+history objects, and the log branch is not newer, the conforming program
+must give exactly one result: "valid" when that history is intact, and
+"invalid" when that history is not intact. The conforming program must
+give neither result when the log branch is missing, when the log branch
+is newer, or when the git repository does not hold its history objects.
+
+When the log branch is valid and its history is intact, and a conforming
+program checks the growth of the log branch, for each pair of a kept
+object `O` of the log-branch commit and a computed identity content id
+`c` such that `O` is unclosed for `c` (`needed-log-identity`), the
+conforming program must give one `conformance#report` identifying `O`
+and `c`, and must give no such report when `O` is not unclosed for `c`.
+When no input of the run gives that computed identity object or its key,
+that report is the report of this design for that missing part under
+`conformance#report-missing-parts`.
 
 ### 5.4 States only from valid ledgers
 
 @req give-states-only-from-valid-ledgers=v1
 @cites {
-    ontology#{state=v1, ledger=v1},
     conformance#{conforming-program=v1},
-    #{ledger-validity=v1, ledger-object=v1, stored-ledger=v1},
-}
-
-A conforming program must give no state at a point of the ledger of a
-git repository that no other process changes while the conforming
-program reads that git repository, when that ledger is broken or newer,
-or when that git repository does not hold its ledger objects.
-
-### 5.5 Members that change no state
-
-@req ignore-unknown-members=v1
-@cites {
-    ontology#{state=v1, state-input=v1, ledger=v1, ledger-entry=v1},
-    conformance#{conforming-program=v1, input=v1},
-    text#{code-span=v1},
-    #{entry-field=v1, stored-ledger=v1},
-}
-
-A conforming program must give the same states at the same points of the
-ledger for two inputs when all three of these conditions hold. First,
-the two inputs agree in each state input other than the ledger. Second,
-the ledgers of the two inputs differ only in members of the objects of
-the ledger entries of those ledgers other than `id`, `kind`, `v`, `seq`,
-and the fields of the kinds of those ledger entries, and in the values
-of `id` that those other members change. Third, no other process changes
-either input while the program runs.
-
-### 5.6 Appends only to valid ledgers
-
-@req append-only-to-valid-ledgers=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-validity=v1, ledger-object=v1},
-}
-
-A conforming program must append ledger entries only to the ledger of a
-git repository that holds its ledger objects and whose ledger is valid.
-
-### 5.7 Appends at the end of the ledger
-
-@req append-entries-at-end=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
-    conformance#{conforming-program=v1},
-    text#{whole-number=v1, code-span=v1},
+    ontology#{state=v1, ledger=v1, job-record=v1, log-branch=v1, tree=v1},
+    changes#{repository-read=v1, undisturbed-read=v1},
+    object-store#{tree-object-store=v1},
     #{
-        ledger-ref=v1, chunk=v1, valid-ledger-tree=v1,
-        ledger-extension=v1,
+        log-branch-ref=v1, ledger-object=v1, ledger-validity=v1,
+        intact-history=v1, stored-ledger=v1,
     },
 }
 
-When a conforming program appends ledger entries to the ledger of a git
-repository, it must change the ledger ref of the git repository, from
-its commit c or from not existing, to a commit d such that each of these
-is true:
+A conforming program must give no state or result that depends on
+observations or kept objects of the log branch of a git repository in an
+undisturbed repository read when the log branch is missing, broken,
+newer, or not intact, or when the git repository does not hold its
+ledger objects or history objects.
 
-1. d extends c, or, when the ledger ref did not exist, d extends a
-   commit that has no parent.
-2. The git tree object of each commit that d reaches, and that c does
-   not reach when the ledger ref existed, is a valid ledger tree.
-3. The lines of the git tree object of d are the lines of the git tree
-   object of c, when the ledger ref existed, and one line for each
-   ledger entry that the program appends.
-4. For the number n of the lines of the git tree object of c, or 0 when
-   the ledger ref did not exist, the objects of the lines of the
-   appended ledger entries have the values n + 1, n + 2, and so on of
-   `seq`, in the order in which the program appends these ledger
-   entries.
+A conforming program must give no state or result that depends on the
+stored statements of a tree when the object store of that tree is not
+valid.
 
-### 5.8 Only accepted ledger entries
+### 5.5 Missing log branch
+
+@req report-missing-log-branch=v1
+@cites {
+    conformance#{
+        conforming-program=v1, report=v1, report-missing-parts=v1,
+    },
+    changes#{repository-read=v1, undisturbed-read=v1},
+    #{log-branch-ref=v1},
+}
+
+When a conforming program runs an operation on a git repository in an
+undisturbed repository read that needs the log branch of that git
+repository, and the log branch is missing (`log-branch-ref`), the
+conforming program must give one `conformance#report` stating that the
+job's records are missing, as the report for that missing part under
+`conformance#report-missing-parts`, and must give no such report when
+the log branch is not missing.
+
+### 5.6 Missing ledger objects and check fetches
+
+@req report-missing-ledger-objects=v1
+@cites {
+    conformance#{
+        conforming-program=v1, report=v1, report-missing-parts=v1,
+        safety-obligation=v1,
+    },
+    changes#{
+        repository-read=v1, undisturbed-read=v1, remote-transfer=v1,
+    },
+    #{log-branch-ref=v1, ledger-object=v1},
+}
+
+In a read operation (any check that does not run as the job updating the
+log branch), a conforming program must fetch no ref and must call no
+host; the conforming program may let a repository read fetch git objects
+that a partial clone leaves out (`changes#repository-read`).
+
+When a conforming program runs an operation on a git repository in an
+undisturbed repository read that needs the ledger objects of the log
+branch, the log branch is not missing, and that git repository does not
+hold its ledger objects after each permitted fetch of missing git
+objects, the conforming program must give one `conformance#report`
+stating that the git repository does not hold its ledger objects, and
+must give no such report when it holds them.
+
+When a conforming program runs an operation on a git repository in an
+undisturbed repository read that needs the history objects of the log
+branch, the log branch is not missing, and that git repository does not
+hold its history objects after each permitted fetch of missing git
+objects, the conforming program must give one `conformance#report`
+stating that the git repository does not hold its history objects, and
+must give no such report when it holds them.
+
+### 5.7 Git entries inside `.sinter/` of a commit
+
+@req give-store-entry-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    changes#{commit=v1, commit-file=v1},
+    findings#{finding-part=v1},
+    #{invalid-store-entry-finding=v1},
+}
+
+When a conforming program checks the git entries inside `.sinter/` of a
+commit `c`, the conforming program must give once each finding of the
+class `invalid-store-entry` that `c` has, and no other finding of that
+class.
+
+### 5.8 Only added
+
+@req give-only-added-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    ontology#{tree=v1},
+    findings#{finding-part=v1},
+    #{base-comparison=v1, altered-store-file-finding=v1},
+}
+
+When a conforming program runs the check "Only added" comparing a base
+tree `B` and a head tree `H` (`base-comparison`), the conforming program
+must give once each tree finding of the class `altered-store-file` that
+`H` has relative to `B`, and no other finding of that class.
+
+### 5.9 Withdrawn files
+
+@req give-withdrawn-file-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    ontology#{tree=v1},
+    findings#{finding-part=v1},
+    #{base-comparison=v1, withdrawn-store-file-finding=v1},
+}
+
+When a conforming program runs the check "Withdrawn files" comparing a
+base tree `B` and a head tree `H` (`base-comparison`), the conforming
+program must give once each tree finding of the class
+`withdrawn-store-file` that `H` has relative to `B`, and no other
+finding of that class.
+
+### 5.10 Agent writers on judgments and voids
+
+@req give-agent-writer-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    ontology#{tree=v1},
+    findings#{finding-part=v1},
+    #{agent-writer-finding=v1},
+}
+
+When a conforming program runs the check "Writers" for `agent` on a tree
+`T` whose object store is valid, the conforming program must give once
+each tree finding of the class `agent-writer` that `T` has, and no other
+finding of that class.
+
+### 5.11 Kind rules for `void`
+
+@req give-void-acceptance-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    ontology#{tree=v1, void-statement=v1},
+    findings#{finding-part=v1},
+    #{unaccepted-statement-finding=v1, accepted-entry=v1},
+}
+
+When a conforming program runs the check "Kind rules" on a tree `T`
+whose object store is valid, for statements of the kind `void`, the
+conforming program must give once each tree finding of the class
+`unaccepted-statement` that `T` has for a `void` statement, and no other
+finding of that class for a `void` statement.
+
+### 5.12 Latest targets
+
+@req give-latest-target-findings=v1
+@cites {
+    conformance#{conforming-program=v1},
+    ontology#{tree=v1},
+    findings#{finding-part=v1},
+    #{base-comparison=v1, non-latest-target-finding=v1},
+}
+
+When a conforming program runs the check "Latest targets" for a change
+comparing a base tree `B` and a head tree `H` (`base-comparison`) whose
+object store is valid, the conforming program must give once each tree
+finding of the class `non-latest-target` that `H` has relative to `B`,
+and no other finding of that class.
+
+### 5.13 Uncommitted store files
+
+@req report-uncommitted-statements=v1
+@cites {
+    conformance#{conforming-program=v1},
+    changes#{
+        working-tree=v1, head-commit=v1, commit-file=v1,
+        working-tree-file=v1, repository-read=v1, undisturbed-read=v1,
+    },
+    object-store#{store-file=v1},
+}
+
+When a conforming program checks a working tree of a git repository in
+an undisturbed repository read, and the working tree holds at least one
+store file that is absent from or has content different from the tree of
+the head commit of that working tree (or the working tree has no head
+commit and holds at least one store file), the conforming program must
+give one notice (in any form that identifies the fact) stating that it
+read uncommitted store files. When every store file of the working tree
+matches the tree of its head commit byte for byte, the conforming
+program must give no such notice.
+
+### 5.14 Log-branch updates only by the job and on valid ledgers
+
+@req append-only-to-valid-ledgers=v1
+@cites {
+    conformance#{conforming-program=v1, input=v1, safety-obligation=v1},
+    ontology#{log-branch=v1, job=v1, agent=v1},
+    #{
+        log-branch-ref=v1, ledger-object=v1, ledger-validity=v1,
+        intact-history=v1, job-marker=v1, agent-marker=v1,
+    },
+}
+
+A conforming program must create or update the log branch only in an
+execution whose input says that the execution is the job (`job-marker`)
+and does not say that an agent runs the execution (`agent-marker`). When
+the log branch already exists on the remote, a conforming program must
+append to the log branch only when the repository holds its ledger
+objects and history objects, its log branch is valid, and its history is
+intact.
+
+### 5.15 Appending to and pushing the log branch
+
+@req append-entries-at-end=v1
+@cites {
+    conformance#{conforming-program=v1, report=v1},
+    ontology#{
+        log-branch=v1, job=v1, job-record=v1, declared-item=v1,
+        computed-identity=v1, content-id=v1,
+    },
+    changes#{commit=v1, ancestry=v1, remote-transfer=v1},
+    text#{whole-number=v1, code-span=v1},
+    #{
+        log-branch-ref=v1, chunk=v1, log-branch-line=v1,
+        valid-ledger-tree=v1, needed-log-identity=v1,
+        ledger-extension=v1, intact-history=v1,
+    },
+}
+
+When a conforming program creates or updates the log branch in a run of
+the job, it must satisfy all four of these conditions:
+
+1. When creating the log branch (no commit exists on the remote), the
+   new commit `d` extends a commit with no parent. When updating an
+   existing tip commit `c`, `d` extends `c`. Every commit that `d`
+   reaches and that `c` does not reach (or every commit that `d` reaches
+   when creating) has a valid log-branch tree.
+2. The lines of the git tree object of `d` are every line of `c` (when
+   `c` exists), plus one valid log-branch line for each new observation
+   (`delivered` or `progress`) with `seq` values `m + 1`, `m + 2`, and
+   so on (where `m` is the number of observations in `c`, or 0 when
+   creating), plus one valid log-branch line for each kept declared-item
+   object and each computed identity object that it needs
+   (`needed-log-identity`) whose content id is not already an envelope
+   id of a line of `c`, deduplicated by envelope id (with no `seq` and
+   no `by`).
+3. When pushing `d` to the remote ref name of the log branch at each
+   remote log-branch repository for a push (`log-branch-ref`), the
+   conforming program must push only as a plain fast-forward (never
+   changing the remote ref from an existing commit `r` to a commit that
+   does not extend `r`).
+4. When a remote refuses a fast-forward push because the remote ref
+   moved to a newer commit, the conforming program must either:
+   - fetch the log branch from the remote again, check that the fetched
+     tip is valid and intact, drop each observation already recorded and
+     each kept object whose content id the fetched tip already holds,
+     assign the remaining observations the next values of `seq` (and
+     matching content ids), build a new commit extending the fetched
+     tip, and push again; or
+   - stop after a number of refusals of its own choice, give one
+     `conformance#report` stating that it stopped, and write nothing
+     more.
+
+### 5.16 Only accepted records written
 
 @req append-only-accepted-entries=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    conformance#{conforming-program=v1},
+    conformance#{conforming-program=v1, input=v1},
+    ontology#{
+        statement=v1, job-record=v1, void-statement=v1, log-branch=v1,
+    },
     #{accepted-entry=v1},
 }
 
-A conforming program must append a ledger entry to a ledger only at a
-point of that ledger at which that ledger entry is accepted.
+A conforming program must write a statement to `.sinter/` only when that
+statement is accepted in the tree (`accepted-entry`), and for a `void`
+statement only when the inputs hold the withdrawable object that its
+`withdraws` edge names. A conforming program must append an observation
+to the log branch only when that observation is accepted by the
+acceptance rule of its kind.
 
-### 5.9 The common fields of new ledger entries
+### 5.17 Valid fields on written records
 
 @req write-entry-fields=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1, repair=v1},
+    rfc/3339,
     conformance#{conforming-program=v1},
+    ontology#{ledger-entry=v1, object-kind=v1},
     text#{code-span=v1},
     #{entry-field=v1},
 }
 
-A conforming program must append, and put in a repair, only ledger
-entries whose objects have the member `by` with a string. When the
-object of a ledger entry has any of the members `agent`, `branch`, and
-`ts`, a conforming program must append that ledger entry, or put that
-ledger entry in a repair, only when each of those members that the
-object has holds a value of the form of that common field.
+A conforming program must write (as a statement in `.sinter/` or as an
+observation on the log branch) only records whose canonical objects meet
+their row of `ontology#object-kind`, including the required string
+member `by`, and in which any member `ts` that the object carries has
+the RFC 3339 form of `entry-field`.
 
-### 5.10 The agents that write ledger entries
+### 5.18 Recording agent writers
 
 @req record-agent-writers=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1},
     conformance#{conforming-program=v1, input=v1},
+    ontology#{statement=v1, agent=v1},
     text#{code-span=v1},
-    #{entry-field=v1, agent-marker=v1},
+    #{entry-field=v1, entry-writer=v1, agent-marker=v1},
 }
 
-In an execution whose input says that an agent runs the execution, a
-conforming program must append only ledger entries whose objects have
-the member `agent`.
+In an execution whose input says that an agent runs the execution
+(`agent-marker`), a conforming program must write only statements whose
+objects carry the member `agent` (so that `entry-writer` records that
+agent).
 
-### 5.11 The ways in which a ledger ref changes
-
-@req limit-ledger-ref-changes=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1, repair=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1},
-}
-
-A conforming program must change the ledger ref of a git repository R
-only to append ledger entries, to make a repair, to pull into R the
-ledger entries of the shared clone of R, or to push to R the ledger
-entries of another git repository whose shared clone is R.
-
-### 5.12 Pushes to the shared clone
-
-@req push-only-extensions=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{commit=v1, ancestry=v1},
-    conformance#{conforming-program=v1},
-    #{
-        ledger-ref=v1, ledger-object=v1, chunk=v1, shared-clone=v1,
-        valid-ledger-tree=v1, stored-ledger=v1, ledger-extension=v1,
-        intact-history=v1, accepted-entry=v1,
-    },
-}
-
-A conforming program must push the ledger entries of a git repository A
-to the shared clone S of A only when A holds its ledger objects, S holds
-its ledger objects, and the ledger ref of S does not exist or has a
-commit. When a conforming program pushes the ledger entries of
-A to S, the program must change the ledger ref of S, from the commit c
-of that ledger ref or from not existing, only to a commit d such that
-each of these is true:
-
-1. The ledger commit of A extends d.
-2. When the ledger ref of S existed, d extends c. When the ledger ref of
-   S existed, the git tree object of each commit that d reaches and that
-   c does not reach is a valid ledger tree. When the ledger ref of S
-   existed, each line of the git tree object of d that is not a line of
-   the git tree object of c has a ledger entry. When the ledger ref of S
-   existed, each such ledger entry is accepted at the point of that
-   ledger entry.
-3. When the ledger ref of S did not exist, the history of the ledger of
-   S is intact after the change.
-
-### 5.13 Pulls from the shared clone
-
-@req pull-shared-entries=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1, pull-commit=v1},
-}
-
-When a conforming program pulls into a git repository A the ledger
-entries of its shared clone S, it must change the ledger ref of A, from
-its commit a, or, when that ledger ref does not exist or has no commit,
-with no commit as a, to a pull commit of s over a, for a commit s to
-which the ledger ref of S points, or pointed after the last change of
-the ledger ref of A.
-
-### 5.14 The pulls that a program refuses
-
-@req refuse-unsafe-pulls=v1
-@cites {
-    ontology#{ledger=v1},
-    conformance#{conforming-program=v1},
-    text#{code-span=v1},
-    #{
-        ledger-ref=v1, ledger-object=v1, chunk=v1, shared-clone=v1,
-        valid-ledger-tree=v1, ledger-validity=v1, accounted-line=v1,
-    },
-}
-
-A conforming program must pull into a git repository A the ledger
-entries of the shared clone S of A from a commit s only when A holds its
-ledger objects, S holds its ledger objects, and one of these is true:
-
-1. A has no ledger commit.
-2. The git tree object of s accounts for each line of the git tree
-   object of the ledger commit of A.
-3. All three of the following are true. The ledger of A is valid. The
-   git tree object of s is a valid ledger tree. For each line of the git
-   tree object of the ledger commit of A for which the git tree object
-   of s does not account, the object of that line has, as its `kind`,
-   one of the texts `task`, `plan`, `approval`, `decline`, `done`,
-   `abandoned`, `delivered`, and `void`.
-
-### 5.15 The provisional ledger entries that leave in a pull
-
-@req report-leaving-entries=v1
-@cites {
-    ontology#{ledger=v1},
-    conformance#{conforming-program=v1},
-    text#{code-span=v1},
-    #{ledger-ref=v1, shared-clone=v1, chunk=v1, pull-commit=v1},
-}
-
-When a conforming program pulls into a git repository A the ledger
-entries of its shared clone, from a commit s, over the commit a of the
-ledger ref of A, or over no commit when that ledger ref does not exist
-or has no commit, it must give the value of `id` of the object of each
-line that leaves, each once, and no other text as the `id` of a line
-that leaves.
-
-### 5.16 Transport in pulls and in changes of a shared clone
-
-@req limit-programs-in-pulls-and-pushes=v1
-@cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    changes#{run-no-configured-programs=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-ref=v1, shared-clone=v1},
-}
-
-When a conforming program pulls into a git repository the ledger entries
-of the shared clone of that git repository, the program must run none of
-the programs and commands that the requirement
-`changes#run-no-configured-programs` forbids in a fetch from that shared
-clone or in a push to that shared clone. When a conforming program
-changes the ledger ref of the shared clone of a git repository, whether
-by a push or in another way, the program must run none of the programs
-and commands that the requirement `changes#run-no-configured-programs`
-forbids in a fetch from that shared clone or in a push to that shared
-clone.
-
-### 5.17 No repair of a newer ledger or of a ledger whose objects are missing
-
-@req repair-no-newer-ledgers=v1
-@cites {
-    ontology#{repair=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-validity=v1, ledger-object=v1},
-}
-
-A conforming program must make no repair of the ledger of a git
-repository that does not hold its ledger objects, or whose ledger is
-newer.
-
-### 5.18 Voids in place of removed lines
-
-@req repair-ledgers-with-voids=v1
-@cites {
-    ontology#{repair=v1},
-    data-forms#{json-value-of-a-byte-sequence=v1},
-    conformance#{conforming-program=v1},
-    text#{code-span=v1},
-    #{
-        ledger-ref=v1, chunk=v1, entry-field=v1, valid-ledger-tree=v1,
-        intact-history=v1,
-    },
-}
-
-When a conforming program makes a repair of the ledger of a git
-repository, it must change the ledger ref of that git repository, from
-its commit c, or from a ledger ref that has no commit, for which c then
-stands for a commit with no lines, to a commit d such that each of these
-is true, where the lines that the repair keeps and removes are these:
-of the lines of the git tree object of c that have the same bytes, the
-repair keeps as many as the git tree object of d has, and it removes the
-others.
-
-1. The git tree object of d is a valid ledger tree, and the history of
-   the ledger of the git repository is intact after the change.
-2. For each text that is the value of the member `id` of the JSON value
-   of a line that the repair removes, the git tree object of d has
-   exactly one line that is not a line of c and whose object has the
-   member `kind` with the value `void` and the member `dropped` with
-   that text: the void of that text.
-3. When exactly one removed line has that text as its `id`, and the JSON
-   value of that line has the member `seq` with an integer p from 1 to
-   the number of the lines of c, and the JSON value of no other line of
-   c has p as its `seq`, the object of the void of that text has the
-   `seq` p.
-4. The object of each other line of the git tree object of d that is not
-   a line of c has the member `kind` with the value `void` and no member
-   `dropped`.
-5. The object of each line of the git tree object of d that is not a
-   line of c has the member `reason` with a string, and no member other
-   than the common fields, `dropped`, and `reason`.
-
-### 5.19 The ledger entries that agents write
+### 5.19 Statements that agents may write
 
 @req limit-agents-to-definitions=v1
 @cites {
-    ontology#{definition-entry=v1, ledger=v1},
-    conformance#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1, safety-obligation=v1},
+    ontology#{
+        agent=v1, judgment=v1, void-statement=v1, job-record=v1,
+        log-branch=v1,
+    },
     #{agent-marker=v1},
 }
 
-In an execution whose input says that an agent runs the execution, a
-conforming program must append to a ledger no ledger entry other than a
-definition entry.
+In an execution whose input says that an agent runs the execution
+(`agent-marker`), a conforming program must write no judgment, no void,
+and no observation, and must write nothing to the log branch.
 
-### 5.20 No repair by agents
-
-@req refuse-repairs-for-agents=v1
-@cites {
-    ontology#{repair=v1},
-    conformance#{conforming-program=v1, input=v1},
-    #{agent-marker=v1},
-}
-
-In an execution whose input says that an agent runs the execution, a
-conforming program must make no repair.
-
-### 5.21 The writer of `delivered` ledger entries
+### 5.20 Observations and kept objects only by the job
 
 @req leave-delivered-entries-to-job=v1
 @cites {
-    ontology#{job=v1, job-record=v1, ledger=v1},
-    conformance#{conforming-program=v1, input=v1},
-    text#{code-span=v1},
-    #{job-marker=v1},
+    conformance#{conforming-program=v1, input=v1, safety-obligation=v1},
+    ontology#{job=v1, job-record=v1, log-branch=v1, agent=v1},
+    #{job-marker=v1, agent-marker=v1},
 }
 
-A conforming program must append a ledger entry of the kind `delivered`
-to a ledger only in an execution whose input says that the execution is
-the job.
+A conforming program must append an observation (`delivered` or
+`progress`) or a kept object to the log branch only in an execution
+whose input says that the execution is the job (`job-marker`) and does
+not say that an agent runs the execution (`agent-marker`).
 
-### 5.22 No data from trackers
+### 5.21 No data from trackers
 
 @req keep-tracker-data-out=v1
 @cites {
-    ontology#{external-item=v1, ledger=v1, ledger-entry=v1},
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    ontology#{external-item=v1, statement=v1, job-record=v1},
     identifiers#{external-id=v1},
-    conformance#{conforming-program=v1},
 }
 
-A conforming program must append to a ledger no ledger entry that holds
-data, other than an external id, that the program took from a service
-that holds external items, such as the title or the state of an issue.
+A conforming program must write no statement in `.sinter/` and append no
+observation to the log branch that holds data, other than an external
+id, that the program took from a service that holds external items, such
+as the title or the state of an issue. Git objects that a host adapter
+reads from a host are not data of a tracker.
 
-### 5.23 Missing objects of ledgers and histories
+### 5.22 Transport safety in log-branch transfers
 
-@req report-missing-ledger-objects=v1
+@req limit-programs-in-log-transfers=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1, state=v1, repair=v1},
-    changes#{remote-transfer=v1},
-    conformance#{conforming-program=v1},
-    #{
-        ledger-object=v1, stored-ledger=v1, ledger-validity=v1,
-        intact-history=v1, shared-clone=v1,
-    },
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    ontology#{log-branch=v1},
+    changes#{run-no-configured-programs=v1, remote-transfer=v1},
+    #{log-branch-ref=v1},
 }
 
-When a conforming program runs an operation on a git repository that
-needs the ledger objects of that git repository, no other process
-changes that git repository while the conforming program reads that git
-repository, and that git repository does not hold its ledger objects
-after each fetch of git objects that the conforming program makes for
-that operation, the conforming program must report that the git
-repository does not hold its ledger objects. Those operations are
-reading the stored ledger of that git repository, checking whether the
-ledger of that git repository is valid, reading a state at a point of
-that ledger, appending ledger entries to that ledger, making a repair of
-that ledger, pushing ledger entries from or to that git repository,
-pulling into that git repository the ledger entries of its shared clone,
-and pulling from that git repository as the shared clone. When a
-conforming program runs an operation to check whether the history of the
-ledger of a git repository is intact, no other process changes that git
-repository while the conforming program reads that git repository, and
-that git repository does not hold its history objects after each fetch
-of git objects that the conforming program makes for that operation, the
-conforming program must report that the git repository does not hold its
-history objects. When a conforming program runs an operation on a git
-repository that no other process changes while the conforming program
-reads that git repository, the conforming program must report that the
-git repository does not hold its ledger objects only when the git
-repository does not hold its ledger objects after each fetch of git
-objects that the conforming program makes for that operation. When a
-conforming program runs an operation on a git repository that no other
-process changes while the conforming program reads that git repository,
-the conforming program must report that the git repository does not hold
-its history objects only when the git repository does not hold its
-history objects after each fetch of git objects that the conforming
-program makes for that operation.
+In each fetch of the log branch from a remote log-branch repository and
+each push of the log branch to a remote log-branch repository, a
+conforming program must run none of the programs and commands that
+`changes#run-no-configured-programs` forbids in a fetch from or push to
+that remote.
 
-### 5.24 No ledger write after a stop
+### 5.23 No ledger write in a run that stopped at a limit
 
 @req change-no-ledger-after-stop=v1
 @cites {
-    ontology#{ledger=v1, ledger-entry=v1},
-    conformance#{conforming-program=v1},
-    #{ledger-ref=v1},
+    conformance#{
+        conforming-program=v1, safety-obligation=v1, own-limit=v1,
+    },
+    ontology#{statement=v1, job-record=v1, log-branch=v1},
 }
 
-When a conforming program stops at a limit of its own in a computation
-on which an append of a ledger entry or a change of a ledger ref
-depends, the conforming program must append no such ledger entry and
-must change no such ledger ref.
+In a run that stopped at a limit of a conforming program's own, that
+conforming program must write no statement in `.sinter/`, must append no
+observation or kept object, and must make no update of the log branch.
+
+### 5.24 No log-branch write after a read error
+
+@req write-no-log-after-read-error=v1
+@cites {
+    conformance#{
+        conforming-program=v1, safety-obligation=v1, input=v1,
+    },
+    ontology#{job-record=v1, log-branch=v1},
+}
+
+In a run in which content of a file, a folder, or a git object is a part
+that an input lacks under `conformance#input` because a conforming
+program could not take that content, that conforming program must append
+no observation or kept object and must make no update of the log branch.
 
 ## 6. Conformance
 
-A program conforms to this design when it is a
-[conforming program](sinter:conformance#conforming-program=v1) of this design.
+A program, or a part of a program, conforms to this design when it is a
+[conforming program](sinter:conformance#conforming-program=v1) of this
+design.
 
-The vectors of this design are in the file
+The conformance vectors of this design are in the file
 [`ledger.test-vectors.jsonl`](ledger.test-vectors.jsonl), in the same
-folder as this design. The vectors are in three groups, `histories`,
-`ledgers`, and `pulls`, and each group has a schema below. Each schema
-gives the forms of its group, as the term `data-forms#group-form-list`
-gives them: it names the requirements that the vectors of the group
-follow from, and it gives the forms of their inputs, results, and
-values. No vector follows from the requirements
-`give-states-only-from-valid-ledgers`, `ignore-unknown-members`,
-`append-only-to-valid-ledgers`, `append-entries-at-end`,
-`append-only-accepted-entries`, `write-entry-fields`,
-`record-agent-writers`, `limit-ledger-ref-changes`,
-`push-only-extensions`, `limit-programs-in-pulls-and-pushes`,
-`repair-no-newer-ledgers`, `repair-ledgers-with-voids`,
-`limit-agents-to-definitions`, `refuse-repairs-for-agents`,
-`leave-delivered-entries-to-job`, `keep-tracker-data-out`,
-`report-missing-ledger-objects`, and `change-no-ledger-after-stop`.
+folder as this design. The vectors are in four groups — `ledgers`,
+`histories`, `store-entries`, and `store-checks` — and each group has a
+schema below that gives the forms of the group
+(`data-forms#group-form-list`). No group of this design uses a need, so
+the forms of each group give no need names. These requirements have no
+vectors: `give-states-only-from-valid-ledgers`,
+`report-missing-log-branch`, `report-missing-ledger-objects`,
+`report-uncommitted-statements`, `append-only-to-valid-ledgers`,
+`append-entries-at-end`, `append-only-accepted-entries`,
+`write-entry-fields`, `record-agent-writers`,
+`limit-agents-to-definitions`, `leave-delivered-entries-to-job`,
+`keep-tracker-data-out`, `limit-programs-in-log-transfers`,
+`change-no-ledger-after-stop`, and `write-no-log-after-read-error`.
 
 Each requirement from which vectors follow applies only when a program
-gives the thing that the requirement names, such as a result for whether
-a ledger is valid, or makes the change that the requirement names, such
-as a pull. So a vector holds a program only to what the program gives or
-makes for the input.
+gives the thing that the requirement names. The vector file is a
+test-vector set in the form of
+[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1), and by
+`data-forms#vector-meaning` each vector line states one vector of this
+design.
 
-The file is a test-vector set, in the form that the specification
-[`data-forms#test-vectors`](sinter:data-forms#test-vectors=v1) gives. By
-the term `data-forms#vector-meaning`, the object of each vector line of
-the file states one vector of this design.
-
-### 6.1 Ledgers
+### 6.1 Log branches
 
 @schema ledger-vector=v1
 @cites {
     rfc/8259,
-    ontology#{ledger-entry=v1},
+    conformance#{conforming-program=v1, input=v1},
     changes#{commit=v1, ref-commit=v1, commit-file=v1},
     data-forms#{
-        json-value=v1, canonical-line=v1, line-object=v1, hex-text=v1,
+        json-value=v1, canonical-byte-sequence=v1, hex-text=v1,
         vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
-    conformance#{conforming-program=v1, input=v1},
+    ontology#{object=v1, content-id=v1, job-record=v1, log-branch=v1},
     text#{
         result=v1, text=v1, character=v1, byte-sequence=v1,
-        utf-8-encoding=v1, sequence=v1, code-span=v1,
+        utf-8-encoding=v1, sequence=v1, code-point-order=v1,
+        code-span=v1,
     },
     #{
-        give-stored-ledgers=v1, validate-ledgers=v1, ledger-ref=v1,
+        give-stored-ledgers=v1, validate-ledgers=v1, log-branch-ref=v1,
         ledger-object=v1, ledger-validity=v1, stored-ledger=v1,
-        entry-id=v1, chunk=v1,
+        chunk=v1, log-branch-line=v1, needed-log-identity=v1,
     },
 }
 
 The group `ledgers` holds the vectors of the requirements
 `give-stored-ledgers` and `validate-ledgers`. Each vector gives the
-ledger ref of a git repository, whether its ledger is valid, broken, or
-newer, and the ledger entries of its stored ledger. The input of each
-vector of the group `ledgers` stands for a git repository that holds its
-ledger objects and that no other process changes while the program reads
-it.
+remote-tracking ref of the log branch of a git repository, whether the
+log branch is valid, broken, newer, or missing, and (when valid) the
+stored observations, kept objects, and unclosed kept-object pairs. The
+input of each vector stands for a git repository that holds its ledger
+objects and is read in an undisturbed repository read (and whose log
+branch, when valid, is assumed intact for `give-stored-ledgers`).
 
-- `input`: a JSON object. When the ledger ref exists, the member `ref`
-  of the input is a JSON object with one member. When the ledger ref has
-  a commit, the member of `ref` is `entries`, the git tree object of the
-  ledger commit. When the ledger ref exists and the git object to which
-  the ledger ref resolves is not a commit, the member of `ref` is
-  `other`, the name of that git object, a text. When the ledger ref does
-  not exist, the input has no member `ref`.
-- `result`: "valid" when the ledger is valid, "broken" when it is
-  broken, and "newer" when it is newer.
-- `values`: when the ledger is valid, a JSON object with one member,
-  `ledger`: the ledger entries of the stored ledger, as a sequence, in
-  which each ledger entry is its entry id. When the ledger is broken or
-  newer, the empty JSON object, `{}`.
+- `input`: a JSON object. When the remote-tracking ref of the log branch
+  exists, the member `ref` is a JSON object with one member: `entries`
+  (the git tree object of the log-branch commit) when the ref has a
+  commit, or `other` (the name of the non-commit git object, a text)
+  when it resolves to a non-commit. When the log branch is missing (no
+  mapped ref or ref does not exist), `input` has no member `ref`.
+- `result`: when the log branch is not missing, `"valid"`, `"broken"`,
+  or `"newer"`. When the log branch is missing, the vector has no member
+  `result`.
+- `values`: when the log branch is valid, a JSON object with three
+  members: `observations` (the envelope ids of the stored observations,
+  as a sequence in increasing order of `seq`), `kept` (the envelope ids
+  of the kept objects, sorted in code point order), and `unclosed` (a
+  JSON array of `{"missing":<identity-id>,"object":<kept-id>}` objects
+  for each unclosed `(kept-object, identity-id)` pair under
+  `needed-log-identity`, sorted in code point order of `object` and then
+  `missing`). When the log branch is missing, broken, or newer, `{}`.
 
-When a conforming program gives a result for whether the ledger is
-valid, it gives the result that `result` holds, once, and no other
-result. When it gives the ledger entries of the stored ledger, it gives
-the ledger entries that `ledger` names, in their order, and no other
-ledger entry, and it gives no ledger entry when `values` is `{}`.
+When `result` is present and a conforming program gives a result for
+whether the log branch is valid, it gives the result that `result`
+holds, once, and no other result; when `result` is absent, it gives no
+result. When it gives the observations and kept objects of the log
+branch, it gives those named by `observations` (in order) and `kept`,
+once each and no others, and gives none when `values` is `{}`.
 
-Inside the members `input`, `result`, and `values`, each JSON value that
-this schema names as a text, a byte sequence, a git tree object, or a
-sequence has this form:
-
-- A text, such as a result, the name of a commit, or an entry id, is a
-  JSON string whose characters are the characters of the text, in order.
-- A byte sequence, such as the name of an entry of a git tree object or
-  the content of a blob, is a JSON string when it is the UTF-8 encoding
-  of a text: the JSON string of that text. When a byte sequence is not
-  the UTF-8 encoding of a text, that byte sequence is a JSON object with
-  one member, `bytes`, whose value is the
-  [hex text](sinter:data-forms#hex-text=v1) of the byte sequence, as a
-  JSON string.
-- A git tree object is a JSON array with one JSON object for each entry
-  that the git tree object lists, in the order in which it lists them.
-  The JSON object of an entry has the member `name`, the name of the
-  entry, a byte sequence, and the member `mode`, the mode of the entry,
-  a text of octal digits, such as `100644`, or `40000` for a tree entry.
-  The JSON object of a tree entry also has the member `entries`: the git
-  tree object that the tree entry names, in the same form. The JSON
-  object of a regular-file entry can also have one of two members for
-  the content of the blob of that entry: `content` or `lines`. The
-  member `content` is the content of the blob, a byte sequence. The
-  member `lines` is a JSON array of JSON objects, each of which stands
-  for a line object. The member `lines` stands for the content that is
-  the canonical lines of those line objects, one after another, in the
-  order of that JSON array. An entry that is not a chunk can have
-  neither member, and the content of its blob has no effect on the
-  vector.
-- A sequence, such as the ledger entries of a stored ledger, is a JSON
-  array of its elements, in order.
+Inside `input`, `result`, and `values`, a text is a JSON string; a byte
+sequence is a JSON string when it is valid UTF-8, or
+`{"bytes":"<hex-text>"}` otherwise; a git tree object is a JSON array of
+entry objects holding `name` (byte sequence), `mode` (octal text such as
+`"100644"` or `"40000"`), `entries` (for tree entries), and optionally
+`content` (byte sequence) or `lines` (JSON array of envelope JSON
+objects serialized as canonical byte sequences each followed by `0x0A`)
+for regular-file entries; and a sequence is a JSON array in order.
 
 ```
-{"form":"#ledger-vector=v1","group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"note":"one chunk with one line","result":"valid","values":{"ledger":["e-0001d7a41cb7db6191dc42c69bda336b"]}}
-{"form":"#ledger-vector=v1","group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"content":"{\"by\":\"Ada Lovelace <ada@example.com>\",\"id\":\"e-0001d7a41cb7db6191dc42c69bda336b\",\"kind\":\"task\",\"seq\":1,\"v\":1}\r\n","mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}]}},"note":"a carriage return before the line feed","result":"broken","values":{}}
+{"form":"#ledger-vector=v1","group":"ledgers","input":{"ref":{"entries":[{"entries":[{"entries":[{"lines":[{"id":"progress:f457e35a60af035247dce0814e5ebe1c","object":{"by":"ci-bot","head":"1111111111111111111111111111111111111111","kind":"progress","seq":1,"ts":"2026-10-31T14:05:09Z","v":1}}],"mode":"100644","name":"f457e35a60af035247dce0814e5ebe1c.jsonl"}],"mode":"40000","name":"f4"}],"mode":"40000","name":"entries"}]}},"note":"one chunk with one progress observation","result":"valid","values":{"kept":[],"observations":["progress:f457e35a60af035247dce0814e5ebe1c"],"unclosed":[]}}
 ```
 
-### 6.2 Histories
+### 6.2 Histories of the log branch
 
 @schema history-vector=v1
 @cites {
     rfc/8259,
-    changes#{commit=v1, commit-file=v1, ancestry=v1},
+    conformance#{conforming-program=v1, input=v1},
+    changes#{commit=v1, commit-file=v1, ancestry=v1, reflog-commit=v1},
     data-forms#{
         json-value=v1, vector-line=v1, group-form-list=v1,
         vector-meaning=v1,
     },
-    conformance#{conforming-program=v1, input=v1},
     text#{
-        result=v1, text=v1, byte-sequence=v1, sequence=v1, code-span=v1,
+        result=v1, text=v1, byte-sequence=v1, sequence=v1,
+        code-point-order=v1, code-span=v1,
     },
     #{
-        ledger-vector=v1, validate-histories=v1, ledger-ref=v1,
+        ledger-vector=v1, validate-histories=v1, log-branch-ref=v1,
         ledger-object=v1, ledger-validity=v1, intact-history=v1,
+        needed-log-identity=v1,
     },
 }
 
 The group `histories` holds the vectors of the requirement
-`validate-histories`. Each vector gives the commits of the history of a
-ledger, each with its parents and its git tree object, and whether the
-history is intact. The input of each vector of the group `histories`
-stands for a git repository that holds its history objects and that no
-other process changes while the program reads it.
+`validate-histories`. Each vector gives the log-branch commit, its
+reachable commits, optional reflog commits of the remote-tracking ref,
+whether the history is intact, and (when intact) any unclosed kept
+objects on the tip. Each vector stands for a git repository whose log
+branch is not missing, that holds its history objects, and that is read
+in an undisturbed repository read.
 
-Inside the members `input`, `result`, and `values`, each JSON value that
-this schema names as a text, a byte sequence, a git tree object, or a
-sequence has the form that the schema `ledger-vector` gives.
+Inside `input`, `result`, and `values`, texts, byte sequences, git tree
+objects, and sequences use the forms of `ledger-vector`.
 
-- `input`: a JSON object with two members. `commit` is the ledger
-  commit, a text. `commits` is a JSON object with one member for each
-  commit that the ledger commit reaches: its key is the name of the
-  commit, and its value is a JSON object with two members: `parents`,
-  the parents of the commit, as a sequence of the names of the commits;
-  and `entries`, the git tree object of the commit.
-- `result`: "valid" when the history is intact, and "invalid" when it is
-  not. A vector whose ledger is newer has no member `result`.
-- `values`: only a vector whose ledger is newer has this member. The
-  value of `values` is the empty JSON object, `{}`.
+- `input`: a JSON object with `commit` (the log-branch commit name, a
+  text), `commits` (a JSON object mapping each commit name to
+  `{"entries":<git tree object>,"parents":<sequence of commit names>}`),
+  and optional `reflog` (a sequence of reflog commit names of the
+  remote-tracking ref, defaulting to `[]` when absent).
+- `result`: `"valid"` when the history is intact, `"invalid"` when it is
+  not intact, and absent when the tip commit's tree is newer.
+- `values`: when `result` is `"valid"`, `{"unclosed":[...]}` in the form
+  of `ledger-vector` (each pair that receives a `conformance#report`
+  from "Growth of the log branch"); when the tip commit's tree is newer,
+  `{}`; when `result` is `"invalid"`, absent.
 
-When a conforming program gives a result for whether the history is
-intact, it gives the result that `result` holds, once, and no other
-result. It gives neither result when `values` is `{}`.
+When `result` is present and a conforming program gives a result for
+whether the history is intact, it gives `result`, once, and no other
+result; when `result` is absent, it gives neither result. When `result`
+is `"valid"` and it checks growth of the log branch, it gives one
+`conformance#report` for each entry of `unclosed` and no other closure
+report.
 
 ```
-{"form":"#history-vector=v1","group":"histories","input":{"commit":"b","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":[]},"b":{"entries":[{"entries":[{"entries":[{"lines":[{"by":"Ada Lovelace <ada@example.com>","id":"e-0001d7a41cb7db6191dc42c69bda336b","kind":"task","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a428b9073a24ea938e73df882b1f7c3c","kind":"task","seq":2,"v":2}],"mode":"100644","name":"e-0001d7a41cb7db6191dc42c69bda336b.jsonl"}],"mode":"40000","name":"00"}],"mode":"40000","name":"entries"}],"parents":["a"]}}},"note":"the ledger is newer, so a program gives no result for its history","values":{}}
+{"form":"#history-vector=v1","group":"histories","input":{"commit":"a","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"id":"progress:f457e35a60af035247dce0814e5ebe1c","object":{"by":"ci-bot","head":"1111111111111111111111111111111111111111","kind":"progress","seq":1,"ts":"2026-10-31T14:05:09Z","v":1}}],"mode":"100644","name":"f457e35a60af035247dce0814e5ebe1c.jsonl"}],"mode":"40000","name":"f4"}],"mode":"40000","name":"entries"}],"parents":[]}},"reflog":["a"]},"note":"one root commit with matching reflog commit","result":"valid","values":{"unclosed":[]}}
 ```
 
-### 6.3 Pulls
+### 6.3 Git entries inside `.sinter/`
 
-@schema pull-vector=v1
+@schema store-entry-vector=v1
 @cites {
     rfc/8259,
-    ontology#{ledger=v1, ledger-entry=v1, repair=v1},
+    conformance#{conforming-program=v1, input=v1},
     changes#{commit=v1, commit-file=v1},
     data-forms#{
-        json-value=v1, canonical-line=v1, line-object=v1,
-        vector-line=v1, group-form-list=v1, vector-meaning=v1,
+        json-value=v1, hex-text=v1, vector-line=v1,
+        group-form-list=v1, vector-meaning=v1,
     },
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, sequence=v1, code-span=v1},
+    findings#{finding-part=v1},
+    text#{text=v1, byte-sequence=v1, code-point-order=v1, code-span=v1},
     #{
-        ledger-vector=v1, pull-shared-entries=v1,
-        refuse-unsafe-pulls=v1, report-leaving-entries=v1,
-        ledger-ref=v1, ledger-object=v1, shared-clone=v1, chunk=v1,
-        newer-line=v1, valid-ledger-tree=v1, ledger-validity=v1,
-        accepted-entry=v1, pull-commit=v1,
+        ledger-vector=v1, invalid-store-entry-finding=v1,
+        give-store-entry-findings=v1,
     },
 }
 
-The group `pulls` holds the vectors of the requirements
-`pull-shared-entries`, `refuse-unsafe-pulls`, and
-`report-leaving-entries`. Each vector gives the lines of the ledger
-commit a of a git repository A, the lines of a commit s of the shared
-clone of A, and the ledger entries that the acceptance rules of their
-kinds do not accept. Each vector gives the lines of a pull commit of s
-over a and the lines that leave, or states that a conforming program
-does not pull into A the ledger entries of the shared clone of A from s.
-Each vector stands for git repositories that hold their ledger objects
-and that no other process changes while the program reads those git
-repositories. Each vector also stands for a commit s to which the ledger
-ref of the shared clone points, or pointed after the last change of the
-ledger ref of A.
+The group `store-entries` holds the vectors of the requirement
+`give-store-entry-findings`. Each vector gives the git tree object of a
+commit and the `invalid-store-entry` findings that the commit has.
+Inside `input` and `values`, texts, byte sequences, and git tree objects
+use the forms of `ledger-vector`.
 
-Inside the members `input` and `values`, each JSON value that this
-schema names as a text or a sequence has the form that the schema
-`ledger-vector` gives. A list of lines is a JSON array of JSON objects
-in which each JSON object stands for a line object. That list of lines
-stands for the lines of the git tree object of a ledger commit that lays
-out its chunks in the form of a valid ledger tree. Those lines are the
-canonical lines of the line objects that the JSON objects in the array
-stand for. Its ledger is valid when these lines meet conditions 3, 4, 6,
-and 7 of a valid ledger tree, and no line is a newer line, and it is
-newer when a line is a newer line.
+- `input`: a JSON object with one member, `entries`, the git tree object
+  of the checked commit.
+- `result`: no question; no vector of the group has the member `result`.
+- `values`: a JSON object with one member, `findings`, a JSON array of
+  `{"class":"invalid-store-entry","subject":<text>}` objects sorted in
+  code point order of `subject`.
 
-- `input`: a JSON object with three members. `clone` is the lines of the
-  git tree object of a, a list of lines. `shared` is the lines of the
-  git tree object of s, a list of lines. `refused` is a JSON array of
-  texts: the values of `id` of the objects of the lines of a for which
-  the acceptance rule of the kind of the ledger entry of the line that
-  comes from that line does not accept that ledger entry at its point;
-  the acceptance rules accept each other ledger entry of a line that
-  comes from a line of a, other than a void, at its point.
-- `result`: no vector of the group has the member `result`.
-- `values`: when a conforming program can pull into A from s, a JSON
-  object with two members. `lines` is the lines of the git tree object
-  of a pull commit of s over a, as a sequence in the order of the `seq`
-  of their objects, in which each line is the value of `id` of its
-  object. `left` is the lines that leave, as a sequence in the order of
-  the `seq` of their objects, in which each line is the value of `id` of
-  its object. When a conforming program does not pull into A from s, the
-  empty JSON object, `{}`.
-
-When a conforming program pulls into A the ledger entries of the shared
-clone of A from s, the lines of the git tree object of the new ledger
-commit of A are the lines that `lines` names, in the order of their
-`seq`, and no other lines. When a conforming program pulls into A the
-ledger entries of the shared clone of A from s, the program gives, as
-the values of `id` of the lines that leave, the texts of `left`, each
-once, and no other text. A conforming program does not pull into A from
-s when `values` is `{}`.
+When a conforming program gives the `invalid-store-entry` findings of
+that commit, it gives once each finding in `findings` (each with no
+spot, no mark, no fix, and not ackable), and no other finding of that
+class.
 
 ```
-{"form":"#pull-vector=v1","group":"pulls","input":{"clone":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d4048ae09fc0d93db3bb4","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1f7ff15e5c79b08511528","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614f41b15b8d38b86cc8b5b","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18ecdabe7a5b86789d09ce","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc11b0be9d1a9d1504fdc6c","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-0b942576814876b5a2ff866731d65266","kind":"approval","seq":6,"subject":"billing#limit","v":1}],"refused":[],"shared":[{"by":"Ada Lovelace <ada@example.com>","id":"e-375ba17af01d4048ae09fc0d93db3bb4","kind":"task","name":"t1","seq":1,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-a0a6c96226e1f7ff15e5c79b08511528","kind":"task","name":"t2","seq":2,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-1ffc8aea3614f41b15b8d38b86cc8b5b","kind":"task","name":"t3","seq":3,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-504f23998c18ecdabe7a5b86789d09ce","kind":"task","name":"t4","seq":4,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-3ab978f3adc11b0be9d1a9d1504fdc6c","kind":"task","name":"t5","seq":5,"v":1},{"by":"Ada Lovelace <ada@example.com>","id":"e-4891f1b18c5e8bfd213cf0cced3eb824","kind":"decline","seq":6,"subject":"billing#fee","v":1}]},"note":"the provisional ledger entry stays, after the ledger entry that another clone pushed first","values":{"left":[],"lines":["e-375ba17af01d4048ae09fc0d93db3bb4","e-a0a6c96226e1f7ff15e5c79b08511528","e-1ffc8aea3614f41b15b8d38b86cc8b5b","e-504f23998c18ecdabe7a5b86789d09ce","e-3ab978f3adc11b0be9d1a9d1504fdc6c","e-4891f1b18c5e8bfd213cf0cced3eb824","e-bdd7d3d6e47cdfad406f73031fbed41c"]}}
+{"form":"#store-entry-vector=v1","group":"store-entries","input":{"entries":[{"entries":[{"mode":"120000","name":"bad-link"}],"mode":"40000","name":".sinter"}]},"note":"symbolic link inside .sinter/ is reported","values":{"findings":[{"class":"invalid-store-entry","subject":".sinter/bad-link"}]}}
+```
+
+### 6.4 Checks of `.sinter/` stores and statements
+
+@schema store-check-vector=v1
+@cites {
+    rfc/8259,
+    conformance#{conforming-program=v1, input=v1},
+    files#{path=v1},
+    data-forms#{
+        json-value=v1, hex-text=v1, vector-line=v1,
+        group-form-list=v1, vector-meaning=v1,
+    },
+    ontology#{tree=v1, object=v1, content-id=v1, finding-class=v1},
+    findings#{finding-part=v1, spot=v1},
+    text#{text=v1, byte-sequence=v1, code-point-order=v1, code-span=v1},
+    #{
+        ledger-vector=v1,
+        altered-store-file-finding=v1,
+        withdrawn-store-file-finding=v1,
+        agent-writer-finding=v1,
+        unaccepted-statement-finding=v1,
+        non-latest-target-finding=v1,
+        give-only-added-findings=v1,
+        give-withdrawn-file-findings=v1,
+        give-agent-writer-findings=v1,
+        give-void-acceptance-findings=v1,
+        give-latest-target-findings=v1,
+    },
+}
+
+The group `store-checks` holds the vectors of the requirements
+`give-only-added-findings`, `give-withdrawn-file-findings`,
+`give-agent-writer-findings`, `give-void-acceptance-findings`, and
+`give-latest-target-findings`. Each vector gives a base tree `B`, a head
+tree `H`, and optionally the canonical objects held on a valid, intact
+log branch (with no list of persons bound, and every non-void statement
+assumed accepted by its own design's acceptance rule when its cross-object
+rules hold), and gives the findings of the five classes
+`altered-store-file`, `withdrawn-store-file`, `agent-writer`,
+`unaccepted-statement` (for `void` statements), and `non-latest-target`.
+
+Inside `input`, a tree is a JSON object mapping each valid path to its
+content byte sequence in the byte-sequence form of `ledger-vector`.
+
+- `input`: a JSON object with `base` (the base tree `B`), `head` (the
+  head tree `H`), and optional `log` (a JSON object mapping each content
+  id on the log branch to its canonical JSON object, defaulting to `{}`
+  when absent).
+- `result`: no question; no vector of the group has the member `result`.
+- `values`: a JSON object with one member, `findings`, a JSON array of
+  finding objects sorted in code point order of `class` and then
+  `subject`. Each element has `class` (one of the five slugs),
+  `subject` (string), and optional `spot` (`{"path":<valid path>}` when
+  the finding has a spot, absent when it has no spot).
+
+When a conforming program runs any of those five checks on `(B, H)` (with
+those log-branch objects), it gives once each finding of that class in
+`findings` (each with no mark, no fix, and not ackable), and no other
+finding of that class.
+
+```
+{"form":"#store-check-vector=v1","group":"store-checks","input":{"base":{".sinter/0f/0f17c8dd86ac60f052972d0be8ace0c2.json":"{\"kind\":\"name\",\"name\":\"billing#cap\",\"v\":1}"},"head":{}},"note":"deleting an unneeded computed identity file in a valid store is allowed","values":{"findings":[]}}
 ```
