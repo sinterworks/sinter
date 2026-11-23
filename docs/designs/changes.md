@@ -54,36 +54,37 @@ working tree that git takes from those environment variables or from the
 folder in which a program starts. From the page gitrepository-layout,
 the design takes the versions of the repository format, the object
 database and its alternates, the file `shallow`, replacement refs, and
-refs and reflogs in the files format. From the page git-worktree, the design takes
-the main working tree and the linked working trees of a repository, with
-the refs that a working tree does not share and the refs in the root of
-the hierarchy of refs. From the page gitdatamodel, the design takes the
-parts of a commit object, its tree, its parents, and its message, and
-the file types of the entries of a git tree object. From the pages
-gitformat-loose and gitformat-pack, the design takes loose objects and
-packs. From the page gitformat-commit-graph, the design takes
-commit-graph files. From the page git-commit-tree, the design takes the
-header `encoding` of a commit object. From the page git-pack-refs, the
-design takes loose refs and the file `packed-refs`. From the page
-git-reflog, the design takes reflogs and their entries. From the page
-git-update-ref, the design takes the format of reflog entries in the
-`files` format. From the page
-reftable, the design takes refs and reflogs in the reftable format. From the page
-gitglossary, it takes git objects: commit objects, git tree objects,
-blobs, and tag objects; object names; shallow repositories; and refs, symbolic refs,
-pseudorefs, reflogs, refspecs, branches, remote-tracking branches, upstream branches, and
-HEAD, with the names of refs that do not start with `refs/`, the root
-names, and the irregular refs among them. From the page gitformat-index,
-the design takes git's index and its sparse directory entries. From the
-page git-config, the design takes git's configuration, with its files,
-their order, their includes, and the values of settings, and the
-settings `extensions.refStorage`, `branch.<name>.remote`,
-`branch.<name>.merge`, `core.excludesFile`, `core.ignoreCase`,
-`core.precomposeUnicode`, `core.fsmonitor`, `core.sshCommand`,
-`remote.<name>.url`, `remote.<name>.pushurl`, `url.<base>.insteadOf`,
-and `url.<base>.pushInsteadOf`. From the page gitignore, it takes the
-sources of ignore patterns and their rules. From the page
-git-check-ref-format, the design takes the rules for the names of refs.
+refs and reflogs in the files format. From the page git-worktree, the
+design takes the main working tree and the linked working trees of a
+repository, with the refs that a working tree does not share and the
+refs in the root of the hierarchy of refs. From the page gitdatamodel,
+the design takes the parts of a commit object, its tree, its parents,
+and its message, and the file types of the entries of a git tree object.
+From the pages gitformat-loose and gitformat-pack, the design takes
+loose objects and packs. From the page gitformat-commit-graph, the
+design takes commit-graph files. From the page git-commit-tree, the
+design takes the header `encoding` of a commit object. From the page
+git-pack-refs, the design takes loose refs and the file `packed-refs`.
+From the page git-reflog, the design takes reflogs and their entries.
+From the page git-update-ref, the design takes the format of reflog
+entries in the `files` format. From the page reftable, the design takes
+refs and reflogs in the reftable format. From the page gitglossary, it
+takes git objects: commit objects, git tree objects, blobs, and tag
+objects; object names; shallow repositories; and refs, symbolic refs,
+pseudorefs, reflogs, refspecs, branches, remote-tracking branches,
+upstream branches, and HEAD, with the names of refs that do not start
+with `refs/`, the root names, and the irregular refs among them. From
+the page gitformat-index, the design takes git's index and its sparse
+directory entries. From the page git-config, the design takes git's
+configuration, with its files, their order, their includes, and the
+values of settings, and the settings `extensions.refStorage`,
+`branch.<name>.remote`, `branch.<name>.merge`, `core.excludesFile`,
+`core.ignoreCase`, `core.precomposeUnicode`, `core.fsmonitor`,
+`core.sshCommand`, `remote.<name>.url`, `remote.<name>.pushurl`,
+`url.<base>.insteadOf`, and `url.<base>.pushInsteadOf`. From the page
+gitignore, it takes the sources of ignore patterns and their rules. From
+the page git-check-ref-format, the design takes the rules for the names
+of refs.
 From the page git-fetch, the design takes fetch refspecs, with the
 setting `remote.<name>.fetch` and the use of fetch refspecs as a
 mapping, fetches, and the forms of addresses, with the remote helpers
@@ -156,7 +157,7 @@ Conformance section of the design name.
 | [ref](sinter:#ref-commit=v1) | a thing with a ref name, such as `refs/heads/main`, that points to a git object, or that is a symbolic ref, as the page gitglossary defines refs and symbolic refs |
 | [commit of a ref](sinter:#ref-commit=v1) | the commit to which a ref resolves, through the refs that it names in turn, when it resolves to a commit |
 | [reflog](sinter:#reflog-commit=v1) | git's local log of updates to a ref, in the `files` format or in the `reftable` format, as the pages gitglossary, git-reflog, gitrepository-layout, git-update-ref, and reftable define reflogs |
-| [reflog commit](sinter:#reflog-commit=v1) | a commit whose object name is the new object name of at least one entry of the reflog of a ref |
+| [reflog commit](sinter:#reflog-commit=v1) | a commit whose object name is the old object name or the new object name of at least one entry of the reflog of a ref |
 | [mapped ref](sinter:#mapped-ref=v1) | for a remote name and a ref name, the local ref name to which the fetch refspecs of that remote in the git configuration of a git repository map that ref name, as the pages git-config and git-fetch define fetch refspecs |
 | branch | a ref whose name starts with `refs/heads/` |
 | remote-tracking branch | a ref whose name starts with `refs/remotes/`, such as `refs/remotes/origin/main`, which records where a branch of the git repository at an address of a remote pointed |
@@ -211,7 +212,7 @@ Conformance section of the design name.
 | [regular file](sinter:files#regular-file=v1) | a file that holds a content, which is a byte sequence |
 | [symbolic link](sinter:files#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file |
 | [file of another kind](sinter:files#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe |
-| [repository read](sinter:#repository-read=v1) | A repository read is an operation in which a program takes, from a git repository or from a working tree of that git repository, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give those things or to use those things. A fetch, a push, and a change of a ref that the program makes are not repository reads. Each fetch into the git repository that transfers only git objects that the git repository lacks, and transfers no ref, and that the program makes, itself or through any program that the program uses, during a repository read is part of that repository read. No fetch of a ref, no push, and no other change of a ref is part of a repository read. A repository read lasts from the first time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read until the last time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read. A program gives a thing in a repository read when the program gives what that repository read took. |
+| [repository read](sinter:#repository-read=v1) | A repository read is an operation in which a program takes, from a git repository or from a working tree of that git repository, things that the terms here define, such as a commit, the files of a tree, or the hunks of a valid path, to give those things or to use those things. A fetch, a push, and a change of a ref that the program makes are not repository reads. Each fetch into the git repository that transfers no ref, and that the program makes, itself or through any program that the program uses, during a repository read is part of that repository read. No fetch of a ref, no push, and no other change of a ref is part of a repository read. A repository read lasts from the first time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read until the last time that the program takes bytes, or uses a pathname to reach or look for a repository file, for that repository read. A program gives a thing in a repository read when the program gives what that repository read took. |
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | An undisturbed repository read is a repository read during which no process, the program that makes that repository read included, does either of two actions, other than in an own change of that repository read when the file of that own change is not a file of a working tree. The first action is to create, delete, or change a repository file from which that repository read takes bytes. The second action is to change which file a pathname names, or to change whether that pathname names a file, when that repository read uses that pathname to reach or look for a repository file. |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | An own change of a repository read is the creation, the deletion, or the change of one file by the program that makes the repository read, itself or through any program that the program uses, when that file is of one of four kinds. The first kind is a file of a loose object or a pack that the program creates in the repository read, with the files that are for that pack alone, or a folder of the folder tree of an object database. The second kind is a commit-graph file in a fetch that is part of the repository read. The third kind is git's index, a file that the format of git's index names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before the change. The fourth kind is a lock file or a temporary file that the program creates in one of the folders of the first three kinds and deletes, or renames to one of the files of the first three kinds. A change of one of the folders of the first three kinds counts as an own change only when each folder entry that the change creates, deletes, or changes names a file of one of the four kinds that is not a folder, or names a folder that the program created in the repository read. A file that holds a ref or a reflog, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give no own change, not even as a temporary file of the fourth kind. An own change keeps a repository read undisturbed only when the file of that own change is not a file of a working tree. |
 | [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
@@ -238,13 +239,13 @@ disk, git's index, and the ignore rules. The term `commit` defines which
 git objects a git repository holds and the parents of its commits, also
 in a shallow clone, which leaves out the parents of some commits. A
 partial clone leaves out some git objects, which git can take from the
-git repository at an address of a remote. A program can take those
-lacking git objects by a fetch of git objects during a repository read,
-transferring no ref. The term `repository-read` makes such a fetch part
-of that repository read. When a repository read needs a git object that
-the git repository does not hold, and no fetch that is part of the
-repository read brings that git object, that git object is a part that
-the valid git repository lacks under `conformance#report-missing-parts`.
+git repository at an address of a remote. A program can take those git
+objects during a repository read by a fetch that transfers no ref. The
+term `repository-read` makes such a fetch part of that repository read.
+When a repository read needs a git object that the git repository does
+not hold, and no fetch that is part of the repository read brings that
+git object, that git object is a part that the valid git repository
+lacks under `conformance#report-missing-parts`.
 
 Jujutsu, also named jj, is a version control program that can keep its
 data in a git repository. A colocated jj repository is a git repository
@@ -298,12 +299,12 @@ working tree has no head commit. In a colocated jj repository, the HEAD
 of the working tree is often detached.
 
 Git can also record updates to a ref in a reflog, in the `files` format
-or in the `reftable` format. Each entry of a reflog records the new
-object name to which the update set the ref. The term `reflog-commit`
-defines the reflog commits of a ref. For example, when a remote-tracking
-branch moves from `a` to `b` and then moves back to `a`, its reflog
-commits are `a` and `b`. When a ref has no reflog, or when all entries
-of its reflog have expired, the ref has no reflog commits.
+or in the `reftable` format. Each entry of a reflog records the old
+object name and the new object name of one update of the ref. The term
+`reflog-commit` defines the reflog commits of a ref. For example, when a
+remote-tracking branch moves from `a` to `b` and then moves back to `a`,
+its reflog commits are `a` and `b`. When a ref has no reflog, or when
+all entries of its reflog have expired, the ref has no reflog commits.
 
 The fetch refspecs of a remote, given by the setting
 `remote.<name>.fetch`, map remote ref names to local ref names. The term
@@ -470,10 +471,12 @@ program must not change during each repository read. The requirements
 `follow-no-working-tree-links` state what a conforming program must not
 do in each repository read. The requirement `run-no-configured-programs`
 states what a conforming program must not run. During a repository read,
-a conforming program may fetch lacking git objects from a remote, and
-fetches no ref and contacts no other host (`repository-read`,
-`leave-repositories-unchanged`, `read-only-repository-files`). When a repository read is
-not undisturbed, as the term `undisturbed-read` defines an undisturbed
+a conforming program may fetch git objects from a remote of the git
+repository. In that read, the program changes no ref, and the program
+takes bytes from a remote only in a fetch that transfers no ref
+(`repository-read`, `leave-repositories-unchanged`,
+`read-only-repository-files`). When a repository read is not
+undisturbed, as the term `undisturbed-read` defines an undisturbed
 repository read, what a program gives in that repository read is not
 specified. In a repository read that is not undisturbed, these
 requirements still bind a program.
@@ -596,37 +599,40 @@ whether or not the condition of that include holds.
     #{git-folder=v1},
 }
 
-As an input (term `conformance#input`), a git repository has its git
-objects as parts, and a valid git repository, such as a partial clone,
-can lack a git object. The object databases of a git repository are the
-folder `objects` of its git folder and each folder that the alternates
-of one of its object databases name, in turn, as the page
-gitrepository-layout defines object databases and alternates. For the git repository that git takes in the
-environment in which the program started, by the environment variable
-`GIT_DIR` or else from the folder in which the program started, as the
-page git gives that git repository: when the environment variable
-`GIT_OBJECT_DIRECTORY` is set in that environment, the folder that
-`GIT_OBJECT_DIRECTORY` names in that environment takes the place of the
-folder `objects`. For that git repository, each folder that the
-environment variable `GIT_ALTERNATE_OBJECT_DIRECTORIES` names in that
-environment is also an object database. A git repository holds a git
-object when one of its object databases holds that git object, as a
-loose object or in a pack, in the versions 2 and 3 of the pack format
-with a pack index in the versions 1 and 2, as the pages gitformat-loose
-and gitformat-pack define loose objects, packs, and pack indexes. A
-commit of a git repository is a commit object, as the page gitglossary
-defines it, that the git repository holds. A commit names one git tree
-object, which is the git tree object of that commit. A commit names its
-parents, in the order in which that commit names them. A commit holds a
-message, which is a byte sequence. Each of these parts of a commit is as
-the page gitdatamodel gives that part. The first of the parents of a
-commit is the first parent of that commit. A commit that the file
-`shallow` of the git folder names has no parents, as the pages
-gitglossary and gitrepository-layout define shallow repositories and
-that file. When a commit is not named by the file `shallow`, and its
-commit object names, as a parent, a git object that the git repository
-holds and that is not a commit object, the parents of that commit are
-not specified. The content of a blob, the entries of a git tree object, and the git tree
+As an input (term `conformance#input`), a git repository has as parts
+the git objects that the object names in it name, such as the git
+objects to which its refs point and the parents and the git tree
+objects that its commits name. A valid git repository, such as a
+partial clone, can lack such a git object. The object databases of a git
+repository are the folder `objects` of its git folder and each folder
+that the alternates of one of its object databases name, in turn, as the
+page gitrepository-layout defines object databases and alternates. For
+the git repository that git takes in the environment in which the
+program started, by the environment variable `GIT_DIR` or else from the
+folder in which the program started, as the page git gives that git
+repository: when the environment variable `GIT_OBJECT_DIRECTORY` is set
+in that environment, the folder that `GIT_OBJECT_DIRECTORY` names in
+that environment takes the place of the folder `objects`. For that git
+repository, each folder that the environment variable
+`GIT_ALTERNATE_OBJECT_DIRECTORIES` names in that environment is also an
+object database. A git repository holds a git object when one of its
+object databases holds that git object, as a loose object or in a pack,
+in the versions 2 and 3 of the pack format with a pack index in the
+versions 1 and 2, as the pages gitformat-loose and gitformat-pack define
+loose objects, packs, and pack indexes. A commit of a git repository is
+a commit object, as the page gitglossary defines it, that the git
+repository holds. A commit names one git tree object, which is the git
+tree object of that commit. A commit names its parents, in the order in
+which that commit names them. A commit holds a message, which is a byte
+sequence. Each of these parts of a commit is as the page gitdatamodel
+gives that part. The first of the parents of a commit is the first
+parent of that commit. A commit that the file `shallow` of the git
+folder names has no parents, as the pages gitglossary and
+gitrepository-layout define shallow repositories and that file. When a
+commit is not named by the file `shallow`, and its commit object names,
+as a parent, a git object that the git repository holds and that is not
+a commit object, the parents of that commit are not specified. The
+content of a blob, the entries of a git tree object, and the git tree
 object and the message of a commit are those that the git object itself
 holds. Apart from the rule of the file `shallow`, the parents of a
 commit are also those that the commit object itself holds. A replacement
@@ -723,9 +729,9 @@ repository or working tree that the ref names in turn, when that git
 object is a commit object. A symbolic ref that names no ref that exists,
 or whose chain of symbolic refs repeats a ref, resolves to no git
 object. A ref that does not exist, that resolves to no git object, or
-that resolves to a git object that is not a commit object has no commit. The
-commit of a pseudoref, as the page gitglossary defines pseudorefs, is
-not specified.
+that resolves to a git object that is not a commit object has no commit.
+The commit of a pseudoref, as the page gitglossary defines pseudorefs,
+is not specified.
 
 ### 4.10 Head commits
 
@@ -1153,8 +1159,8 @@ change of h has no diff.
     ontology#{tree=v1},
     files#{path=v1, taken-byte=v1},
     #{
-        working-tree=v1, commit=v1, ref-commit=v1, reflog-commit=v1,
-        mapped-ref=v1, hunk=v1, remote-transfer=v1, repository-file=v1,
+        working-tree=v1, commit=v1, ref-commit=v1, hunk=v1,
+        remote-transfer=v1, repository-file=v1,
     },
 }
 
@@ -1164,11 +1170,10 @@ things that a term of this design defines, such as a commit, the files
 of a tree, or the hunks of a valid path, to give those things or to use
 those things. A fetch, a push, and a change of a ref that the program
 makes, with the git objects that it writes for that change, are not
-repository reads. Each fetch into the git repository that transfers only
-git objects that the git repository lacks, and transfers no ref, and
-that the program makes, itself or through any program that it uses,
-during a repository read is part of that repository read, such as a
-fetch of git objects that a partial clone leaves out and that the
+repository reads. Each fetch into the git repository that transfers no
+ref, and that the program makes, itself or through any program that it
+uses, during a repository read is part of that repository read, such as
+a fetch of git objects that a partial clone leaves out and that the
 repository read uses. No fetch of a ref, no push, and no other change of
 a ref is part of a repository read. When a thing that a requirement
 obliges in a repository read needs a git object that the git repository
@@ -1258,8 +1263,8 @@ A change of a folder of item 1, 2, or 3 is an own change only when this
 condition holds for each folder entry that the change creates, deletes,
 or changes: before or after the change, that folder entry names a file
 of item 1, 2, 3, or 4 that is not a folder, or a folder that the program
-created in the repository read. A file that holds a ref or a reflog, the file
-`FETCH_HEAD` or the file `shallow` of the git folder, and the file
+created in the repository read. A file that holds a ref or a reflog, the
+file `FETCH_HEAD` or the file `shallow` of the git folder, and the file
 `info/alternates` of an object database give no own change, not even as
 a file of item 4 that the program creates and then deletes in the
 repository read. No other file gives an own change.
@@ -1401,14 +1406,14 @@ of a ref with a ref name r is the reflog recorded under r itself,
 without following symbolic refs. When the folder holds no reflog for r,
 the reflog of r has no entries.
 
-Each entry of the reflog of r records the new object name to which the
-update set r, as the pages git-update-ref and reftable define reflog
-entries. A reflog commit of r is a commit whose object name is the new
-object name of at least one entry of the reflog of r. An entry whose new
-object name is the all-zero object name, or names a git object that is
-not a commit object, gives no reflog commit. The reflog commits of r are
-the set of all reflog commits of r. When the reflog of r has no entries,
-r has no reflog commits.
+Each entry of the reflog of r records the old object name and the new
+object name of one update of r, as the pages git-update-ref and reftable
+define reflog entries. A reflog commit of r is a commit whose object name
+is the old object name or the new object name of at least one entry of
+the reflog of r. An object name of an entry that is the all-zero object
+name, or that names a git object that is not a commit object, gives no
+reflog commit. The reflog commits of r are the set of all reflog commits
+of r. When the reflog of r has no entries, r has no reflog commits.
 
 ### 4.36 Mapped refs of remotes
 
@@ -1434,17 +1439,14 @@ matching:
 
 1. When a negative fetch refspec among the fetch refspecs of r matches
    m, m has no mapped ref for r.
-2. Otherwise, when a positive fetch refspec among the fetch refspecs of
-   r matches m and maps m to a non-empty destination that is a ref name,
-   and every positive fetch refspec among them that matches m maps m to
-   that same destination, that ref name is the mapped ref of m for r.
-3. Otherwise, when no positive fetch refspec among the fetch refspecs of
-   r matches m, or when every positive fetch refspec among them that
-   matches m has an empty destination or maps m to a text that is not a
-   ref name, m has no mapped ref for r.
-4. Otherwise, when two positive fetch refspecs among the fetch refspecs
-   of r both match m and do not give the same result, the mapped ref of
-   m for r is not specified.
+2. Otherwise, when no positive fetch refspec among the fetch refspecs
+   of r both matches m and has a non-empty destination, m has no mapped
+   ref for r.
+3. Otherwise, when every positive fetch refspec among them that matches
+   m and has a non-empty destination maps m to one same text: when that
+   text is a ref name, that ref name is the mapped ref of m for r;
+   otherwise, m has no mapped ref for r.
+4. Otherwise, the mapped ref of m for r is not specified.
 
 ## 5. Requirements
 
@@ -2277,7 +2279,7 @@ commit.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1},
     files#{path=v1},
-    conformance#{conforming-program=v1},
+    conformance#{conforming-program=v1, input=v1, dependence=v1},
     text#{
         text=v1, byte-sequence=v1, byte=v1, utf-8-encoding=v1,
         hex-digit=v1, whole-number=v1, line-feed=v1, 0x-numeral=v1,
@@ -2306,7 +2308,8 @@ sequence 0xFF is `{"bytes":"ff"}`. A set of texts, such as the valid
 paths of the files of a tree, is a JSON array of its elements, each
 once, in code point order. The git repository of a vector holds the
 commit that its input stands for, and no other commit. Each vector
-stands for an undisturbed repository read.
+stands for an undisturbed repository read. No git object that a vector
+needs is a part that the git repository of that vector lacks.
 
 - `input`: a JSON object with one member, `entries`: a JSON array with
   one JSON object for each entry that the git tree object of the commit
@@ -2527,7 +2530,7 @@ elements of `parents`, in their order, and no other commit.
 @cites {
     rfc/8259,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
-    conformance#{conforming-program=v1},
+    conformance#{conforming-program=v1, input=v1, dependence=v1},
     text#{text=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
@@ -2543,7 +2546,8 @@ as RFC 8259 defines them. A text is as `branch-name-vector` gives. A
 commit, a git object that is not a commit, short commit names, and the
 commits that the git repository holds are as
 `default-branch-commit-vector` gives. Each vector stands for an
-undisturbed repository read.
+undisturbed repository read. No git object that a vector needs is a part
+that the git repository of that vector lacks.
 
 - `input`: a JSON object with two members. `ref` is the name of the ref,
   a text. `refs` is a JSON object with one member for each ref that
@@ -2832,8 +2836,7 @@ written as its decimal numeral, such as `12`.
   lines that it adds. `map` is a JSON array of the pairs of that line
   map, in increasing order of their first numbers. Each pair (i, j) is a
   JSON array of two whole numbers of 0 or more, i and then j. When `f`
-  has more than one
-  line map, `values` has no other member.
+  has more than one line map, `values` has no other member.
 
 When a conforming program gives the hunks of `f` between the two trees,
 the lines that they remove together are as many as `removed` holds, and
@@ -2865,7 +2868,7 @@ number.
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{tree=v1, default-branch=v1, parameter=v1},
     files#{path=v1},
-    conformance#{conforming-program=v1},
+    conformance#{conforming-program=v1, input=v1, dependence=v1},
     text#{byte-sequence=v1, code-point-order=v1, code-span=v1},
     #{
         branch-name-vector=v1, default-branch-commit-vector=v1,
@@ -2887,10 +2890,12 @@ are as RFC 8259 defines them. A text is as `branch-name-vector` gives. A
 commit, short commit names, and the commits that the git repository
 holds are as `default-branch-commit-vector` gives. A byte sequence is as
 `commit-file-vector` gives. A commit graph is as `reach-vector` gives. A
-whole number of 0 or more is as `hunk-vector` gives. A tree is a JSON object with one
-member for each file of the tree. The key of the member is the valid
-path of the file. The value of the member is the content of the file, as
-a byte sequence. Each vector stands for an undisturbed repository read.
+whole number of 0 or more is as `hunk-vector` gives. A tree is a JSON
+object with one member for each file of the tree. The key of the member
+is the valid path of the file. The value of the member is the content of
+the file, as a byte sequence. Each vector stands for an undisturbed
+repository read. No git object that a vector needs is a part that the
+git repository of that vector lacks.
 
 - `input`: a JSON object. Its member `commits` is the commit graph. The
   member `trees` of `input` is a JSON object with one member for each
@@ -3139,10 +3144,10 @@ stands for an undisturbed repository read.
 - `input`: a JSON object with three members. `remote` is the remote name
   r, a text. `ref` is the ref name m, a text. `settings` is the settings
   of the git configuration of the git repository, in the form of the
-  member `settings` that `upstream-vector` gives. In `settings`, at most
-  one positive fetch refspec in `remote.<name>.fetch`, with r for
-  `<name>`, matches m, or every positive fetch refspec among them that
-  matches m gives the same result.
+  member `settings` that `upstream-vector` gives. In `settings`, every
+  positive fetch refspec in `remote.<name>.fetch`, with r for `<name>`,
+  that matches m and has a non-empty destination maps m to one same
+  text.
 - `result`: no vector of the group has this member.
 - `values`: when m has a mapped ref for r, a JSON object with one
   member, `ref`: that ref name, a text. When m has no mapped ref for r,
