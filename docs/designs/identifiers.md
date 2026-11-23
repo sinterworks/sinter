@@ -267,7 +267,8 @@ The parameter `external-namespaces` (section 3) gives the external
 namespaces. Each external namespace has a namespace name, such as `gh`,
 and an id pattern. An external id is a namespace name, `/`, and an id,
 such as `gh/42`. The id of an external id is a text of printable ASCII
-characters other than `#`, `/`, `=`, `@`, `,`, `{`, `}`, `[`, and `]`.
+characters other than `#`, `/`, `=`, `@`, `,`, `{`, `}`, `[`, `]`, `\`,
+and `^`.
 The id of an external id fits the id pattern of the external namespace.
 An external id allows `#` and a part name after it, as in
 `rfc/8259#section-6`. An external id carries no revision.
@@ -479,7 +480,8 @@ runs:
   `9` and `a` to `f`.
 - The text between the first run and the last run, without the spaces
   and tabs at its two ends, is the **subject**. The subject can be
-  empty. The subject can hold any character, spaces and `@` included.
+  empty. The subject can hold any character other than a line feed,
+  spaces and `@` included.
 
 Spaces and tabs can follow the hash prefix. Nothing else can follow the
 hash prefix. Example: in `@ack retired docs#size=v2 3f2a9c1d`, the slug
@@ -555,8 +557,6 @@ their markup, in their order and joined together:
 - A code span of CommonMark 0.31.2 gives its content.
 - Emphasis and strong emphasis give the plain string content of what
   they hold, so `*the* limit` gives `the limit`.
-- An inline link and a reference link give the plain string content of
-  their link text.
 - An image gives the plain string content of its description.
 - An autolink gives its text between `<` and `>`, with no backslash
   escape, entity reference, or numeric character reference replaced.
@@ -1058,9 +1058,10 @@ A blank character is one of these characters:
     text#{text=v1, character=v1, line-feed=v1, code-span=v1},
 }
 
-The plain string content of a sequence of inline elements, as CommonMark
-0.31.2 parses them, is a text. The plain string content joins, in the
-order of the elements, the texts that these rules give for the elements:
+The plain string content of a sequence of inline elements inside the
+link text of a link, as CommonMark 0.31.2 parses them, is a text. The
+plain string content joins, in the order of the elements, the texts that
+these rules give for the elements:
 
 - Textual content gives its characters, with each backslash escape,
   entity reference, and numeric character reference replaced by the
@@ -1069,9 +1070,6 @@ order of the elements, the texts that these rules give for the elements:
 - A code span of CommonMark 0.31.2 gives its content.
 - Emphasis and strong emphasis give the plain string content of their
   inline elements.
-- An inline link and a reference link give the plain string content of
-  the inline elements that CommonMark 0.31.2 parses between the `[` that
-  starts the link and the `]` that closes that `[`.
 - An autolink gives its text between `<` and `>`, with no backslash
   escape, entity reference, or numeric character reference replaced.
 - An image gives the plain string content of the inline elements of its
@@ -1295,7 +1293,7 @@ These productions give the form of an external id:
 external-ref  = external-id [ "#" part-name ]
 external-id   = namespace-name "/" id-text
 id-text       = 1*( %x21-22 / %x24-2B / %x2D-2E / %x30-3C / %x3E-3F
-                    / %x41-5A / %x5C / %x5E-7A / %x7C / %x7E )
+                    / %x41-5A / %x5F-7A / %x7C / %x7E )
 ```
 
 ### 4.34 Content ids
@@ -1366,10 +1364,10 @@ These productions give the spaces and tabs of a tag line and the end of
 a tag line:
 
 ```
-any-char  = %x0-D7FF / %xE000-10FFFF
+line-char = %x0-9 / %xB-D7FF / %xE000-10FFFF
 indent    = *WSP
 gap       = 1*WSP
-rest      = [ gap *any-char ]
+rest      = [ gap *line-char ]
 ```
 
 ### 4.37 The form of declarations
@@ -1574,8 +1572,8 @@ These productions give the form of an `@ack` line:
 ```
 ack-line     = indent %s"@ack" gap slug [ gap subject ] gap hash-prefix
                *WSP
-subject      = non-wsp [ *any-char non-wsp ]
-non-wsp      = %x0-8 / %xA-1F / %x21-D7FF / %xE000-10FFFF
+subject      = non-wsp [ *line-char non-wsp ]
+non-wsp      = %x0-8 / %xB-1F / %x21-D7FF / %xE000-10FFFF
 hash-prefix  = 8*64hex-digit
 ```
 
@@ -2239,15 +2237,15 @@ for that line. Each vector line of these groups meets the schema
 `vector-line`.
 
 - `input`: a JSON object with two members, `binding` and `text`.
-  `binding` is a binding of `external-namespaces` as a JSON array of
+  `binding` is a binding of `external-namespaces` that meets the schema
+  `external-namespaces`, as a JSON array of
   `{"id-pattern":...,"namespace-name":...}` objects. `text` is a JSON
   string whose text has one line and whose markdown document holds no
   link and no image. The program takes the binding, and it reads the
-  text under that binding. In the file, `binding` holds two pairs: `gh`
-  with `[1-9][0-9]*`, and `rfc` with `[1-9][0-9]*`. This binding meets
-  the schema `external-namespaces`, so a conforming program gives the
-  result "valid" for this binding. These vectors do not state that
-  result.
+  text under that binding. A conforming program gives the result "valid"
+  for `binding`. These vectors do not state that result. In the file,
+  `binding` holds two pairs: `gh` with `[1-9][0-9]*`, and `rfc` with
+  `[1-9][0-9]*`.
 - `result`: the line result of the line: `"not a tag line"` or
   `"other tag word"` in the group `other-lines`, and `"valid"` or
   `"invalid"` in the other four groups.
