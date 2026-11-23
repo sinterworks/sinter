@@ -176,7 +176,7 @@ their matching.
 | [report content](sinter:#adapter-call=v1) | the byte sequence that a program gives an adapter, unchanged, in a call, such as the content of a report file |
 | [report name](sinter:#adapter-request=v1) | a text, such as the path of a report file as a person gave it, which the request of a call gives the adapter |
 | [test result](sinter:ontology#test-evidence=v1) | what a test runner gives for one test that the test runner runs; by the adapter, each element of the value of `results` of the response of a call of bind is a test result that the report content holds, with the name and the status of the test result, and, when the test result has them, the file, the line, and the duration of the test result |
-| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, the test entry ids of the call: the call fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter; otherwise the call runs in a new instance of an adapter and gives a response or fails |
+| [call](sinter:#adapter-call=v1) | a call of the function recognise or the function bind of a byte sequence as an adapter, with a request, a report content, and, for bind, the test entry ids of the call: the call fails when, in the decision of the program that the call uses, the byte sequence is not a valid adapter, or when the request or the report content has 4,294,967,296 bytes or more; otherwise the call runs in a new instance of an adapter and gives a response or fails |
 | [response](sinter:#adapter-call=v1) | the bytes that a call of an adapter gives back |
 | [adapter response](sinter:#adapter-response=v1) | a byte sequence that is a recognise response, a bind response, or an error response; a call whose response is no adapter response has the result "failed" |
 | [JSON value of a response](sinter:#adapter-response=v1) | the JSON value of the response as a byte sequence, as Data forms defines the JSON value of a byte sequence |
@@ -557,7 +557,8 @@ content is a byte sequence, such as the content of a report file. The
 call uses one decision of the program whether the adapter is a valid
 adapter, made in another instance, such as a decision that the program
 made before the call. When that decision is that the adapter is not
-valid, the call fails. The call then runs in a new instance of the
+valid, or when the request or the report content has 4,294,967,296 bytes
+or more, the call fails. Otherwise, the call runs in a new instance of the
 module of the adapter, so nothing that one call leaves in its instance
 gets to the next call. In that instance, the program does only this, and
 it changes no byte of the memory other than by the writes of steps 2 and
@@ -2161,7 +2162,8 @@ are a finite set of texts. The export of the function recognise is
 adapter of the call is a valid adapter. An earlier decision of the
 program can serve. When that decision makes an instance, the instance of
 that decision is not the instance of the steps of the call. When the
-adapter of the call is not a valid adapter in that decision, the call
+adapter of the call is not a valid adapter in that decision, or when the
+request or the report content has 4,294,967,296 bytes or more, the call
 fails. Otherwise, the call runs these steps in a new instance of an
 adapter of the module of the adapter of the call, for that program. When
 one of these steps fails, the call fails. In that instance, the program
