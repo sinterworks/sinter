@@ -11,37 +11,38 @@
 @cites findings=v1
 @cites rfc/5234
 @cites rfc/7405
-Specifies the `.sinter/` object store encoding: object paths, store paths, store files, and the skip of `.sinter/local/`; store object files, newer object files, valid object files, broken store files, and needed identity files; the object store of a tree; the finding classes `invalid-object-file` and `missing-identity-file`; and requirements for conforming programs on object-path and store-file validation, the canonical objects and store findings of a tree, writing object files, and the safety of writes and deletions in `.sinter/`.
+Specifies the `.sinter/` object store encoding: object paths, store paths, store files, and the skip of `.sinter/local/`; store object files, newer object files, valid object files, broken store files, and needed identity files; the object store of a tree; the finding classes `invalid-object-file` and `missing-identity-file`; and requirements for conforming programs on object-path and store-file validation, the canonical objects and findings of the object store of a tree, writing object files, and the safety of writes and deletions in `.sinter/`.
 
 The object store of a tree holds Sinter objects as fixed files in the
 folder `.sinter/`, one object in each file. Each file holds the
 canonical byte sequence of its object, with no member `id` and no final
 line feed, at a path computed from the SHA-256 hash of those bytes.
-Files inside `.sinter/local/` hold machine-local files and stay outside
-the object store. Rules in ABNF follow RFC 5234 with the case-sensitive
-quoted strings of RFC 7405.
+Files inside `.sinter/local/` are local files of one machine and stay
+outside the object store. Rules in ABNF follow RFC 5234 with the
+case-sensitive quoted strings of RFC 7405.
 
-From Conformance (`conformance`), the Object store takes conforming
-programs, inputs, dependence, limits of a program's own, reports, safety
-obligations, objects, encodings, valid program's own stores, and the
-general requirements that bind every conforming program. From Text and
-notation (`text`), it takes texts, spaces, whole numbers, hex digits,
-bytes, byte sequences, valid UTF-8, texts and UTF-8 encodings of byte
-sequences, code spans, productions, rule names, and results. From Files
-and paths (`files`), it takes folders, regular files, symbolic links,
-files of another kind, folder trees, valid paths with their numbered
-file names, and the files of a path in a folder tree. From Data forms
-(`data-forms`), it takes hex texts, JSON values, canonical byte
-sequences, hashes, line objects, and the JSON values of byte sequences;
-and from its specification `test-vectors`, test-vector sets, vector
-lines, the forms of a group, and the meaning of a vector. From the
-Ontology (`ontology`), it takes trees (including working trees and their
-folder trees), files of `.sinter/` of a tree, objects, the schema table
-of object kinds (`object-kind`), content hashes, content ids, computed
-identity objects, declared items, edges, object withdrawal and counting
-voids, and finding classes. From Findings
-(`findings`), it takes the parts of a finding, finding subjects,
-messages, spots, marks, related messages, fixes, and ackable findings.
+From Conformance (`conformance`), the Object store takes requirements,
+conforming programs, inputs, dependence, limits of a program's own,
+reports, safety obligations, objects, encodings, valid program's own
+stores, and the general requirements that bind every conforming program.
+From Text and notation (`text`), it takes texts, spaces, whole numbers,
+hex digits, code point order, byte sequences, valid UTF-8, the texts of
+byte sequences, UTF-8 encodings of texts, code spans, productions, rule
+names, and results. From Files and paths (`files`), it takes the system,
+folders, regular files, symbolic links, files of another kind, folder
+trees, valid paths with their numbered file names, and the files of a
+path in a folder tree. From Data forms (`data-forms`), it takes hex
+texts, JSON values, canonical byte sequences, hashes, line objects, and
+the JSON values of byte sequences; and from its specification
+`test-vectors`, test-vector sets, vector lines, the forms of a group,
+and the meaning of a vector. From the Ontology (`ontology`), it takes
+trees (including working trees and their folder trees), files of
+`.sinter/` of a tree, encodings, objects, the schema table of object
+kinds (`object-kind`), content hashes, content ids, computed identity
+objects, declared items, edges, object withdrawal and counting voids,
+and finding classes. From Findings (`findings`), it takes the parts of a
+finding, finding subjects, messages, spots, marks, related messages,
+fixes, and ackable findings.
 
 ## 1. Glossary
 
@@ -50,7 +51,7 @@ messages, spots, marks, related messages, fixes, and ackable findings.
 | [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design together with the general requirements of Conformance |
 | [safety obligation](sinter:conformance#safety-obligation=v1) | an obligation of a requirement that states that a program reads, alters, writes, follows, or runs no thing other than the things that the requirement allows, or gains no permission; that a program never gives an answer that permits an action to proceed; or that a program ends code or an operation that the program runs |
 | [input](sinter:conformance#input=v1) | a thing that a conforming program takes; content that the program could not take under the rules of `input` (for example because of a refused permission or an input or output error) is a part that a valid input lacks |
-| [limit of a program's own](sinter:conformance#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks, code that never ends, and a refused permission or an input or output error that makes a part missing under [input](sinter:conformance#input=v1) are not limits of a program's own |
+| [limit of a program's own](sinter:conformance#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks, code that never ends, and any condition that makes content a part that an input lacks under [input](sinter:conformance#input=v1) are not limits of a program's own |
 | [report](sinter:conformance#report=v1) | a thing that a conforming program gives to identify a stop at a limit of its own, an input that is not valid, or a missing part of a valid input |
 | [encoding](sinter:conformance#encoding=v1) | a form in which objects are stored in an input; the design that defines it says what constitutes one input, when it is valid, and which canonical objects it holds |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, numbered from 1, with `/` between each two of them, such as `.sinter/0f/0f17c8dd86ac60f052972d0be8ace0c2.json` |
@@ -74,18 +75,19 @@ messages, spots, marks, related messages, fixes, and ackable findings.
 | [object store of a tree](sinter:#tree-object-store=v1) | the set of all store files of a tree, forming one input in the `.sinter/` encoding |
 | [`invalid-object-file`](sinter:#invalid-object-file-finding=v1) | the non-ackable tree finding class that reports a store file that is not a valid object file |
 | [`missing-identity-file`](sinter:#missing-identity-file-finding=v1) | the non-ackable tree finding class that reports a valid object file whose needed identity file is absent from the store |
+| notice | a thing that a conforming program gives to identify that it could not write an object, in any form that identifies that fact, such as a text, a structured output, an exit status, or an error value |
 
 ## 2. The `.sinter/` object store
 
 ### 2.1 Object paths and store files
 
 Each object stored in `.sinter/` lives in its own file at the object
-path of its content hash (term `object-path`). No folder in `.sinter/`
-names an object kind, and no file name carries a kind word or a prefix.
-The file holds the canonical byte sequence of its canonical object, with
-no member `id` and no final line feed. Therefore, hashing the raw bytes
-of the file with SHA-256 gives the content hash and the object path
-directly.
+path of its content hash (term `object-path`). For example,
+`.sinter/0f/req:0f17c8dd86ac60f052972d0be8ace0c2.json` is not an object
+path. The file holds the canonical byte sequence of its canonical
+object, with no member `id` and no final line feed. Therefore, hashing
+the raw bytes of the file with SHA-256 gives the content hash and the
+object path directly.
 
 For example, the `name` computed identity object
 `{"kind":"name","name":"billing#cap","v":1}` has the content id
@@ -105,9 +107,9 @@ store file. In particular, a regular file at
 the two-segment path `.sinter/local` is not inside the folder
 `.sinter/local/`; it is a store file and fails validation.
 
-Because the object store reads a tree (`ontology#tree`), only files in
-that tree enter the store, and executable file permissions (such as mode
-100755) change neither a file's path nor its content.
+Because the object store consists of files of a tree (`ontology#tree`),
+only files in that tree enter the store, and executable file permissions
+(such as mode 100755) change neither a file's path nor its content.
 
 ### 2.2 Valid, newer, and broken store files
 
@@ -149,8 +151,9 @@ When any store file of a tree is not a valid object file (whether broken
 or newer), the object store of that tree is not valid. Under
 `conformance#reject-invalid-inputs`, a conforming program gives no
 canonical object of that store and no result over the objects of that
-tree that depends on that store, while still giving each store finding
-of the tree once and no other store finding (requirement
+tree that depends on that store, while still giving each finding of the
+classes `invalid-object-file` and `missing-identity-file` that the tree
+has, once, and no other finding of those classes (requirement
 `give-store-findings`).
 
 Each store file that is not a valid object file gets one non-ackable
@@ -173,18 +176,18 @@ key `billing#cap` itself, so it needs the identity file
 `.sinter/0f/0f17c8dd86ac60f052972d0be8ace0c2.json`.
 
 When a valid object file needs an identity file that the store lacks,
-the store stays valid. The tree gets one non-ackable tree finding of the
-class `missing-identity-file` for that naming file and content id (atom
-`missing-identity-file-finding`). When no input of the run gives that
-computed identity object or its key, that computed identity object is a
-missing part under `conformance#input`, so under
-`conformance#report-missing-parts` a conforming program withholds only
-the results that need its key and gives every result that does not need
-its key. When another input of the run gives that computed identity
-object or its key (for example, a text file that declares
-`billing#cap`), the program still gives that `missing-identity-file`
-finding for `.sinter/` once and gives every result over canonical
-objects.
+that need does not make the store not valid. The tree gets one
+non-ackable tree finding of the class `missing-identity-file` for that
+naming file and content id (atom `missing-identity-file-finding`). When
+no valid input of the run gives that computed identity object or its
+key, a result needs that missing part only when that result needs its
+key, so under `conformance#report-missing-parts` a conforming program
+withholds only the results that need its key and gives every result that
+does not need its key. When a valid input of the run gives that computed
+identity object or its key (for example, a text file that declares
+`billing#cap`, or a declared-item object in the store itself), the
+program still gives that `missing-identity-file` finding for `.sinter/`
+once and withholds no result because of that computed identity object.
 
 ### 2.4 Writes, deletions, and safety obligations
 
@@ -192,16 +195,22 @@ When a conforming program writes a canonical object to `.sinter/` of a
 working tree, the program writes the canonical byte sequence of that
 object at its object path, creating `.sinter` and its two-hex-digit
 subfolder when absent (requirement `write-object-files`). When a regular
-file already stands at that object path with equal bytes, the write
-succeeds and leaves that file unchanged. When other bytes or a symbolic
-link, a folder, or a file of another kind stand in the way, the program
-changes nothing at that path, writes no file for that object, and gives
-one notice that it could not write the object, and no other notice for
-that failed write. When a conforming program writes one or more objects
-to `.sinter/` in one run, whether the write succeeds or fails part of
-the way, the program leaves no newly written store file in `.sinter/`
-whose canonical object needs an identity file that is absent from
-`.sinter/`.
+file already stands at that object path with equal bytes, the program
+leaves that file unchanged and gives no notice of a failed write. When
+other bytes or a symbolic link, a folder, or a file of another kind
+stand in the way, the program changes nothing at that path, writes no
+file for that object, and gives one notice that it could not write the
+object, and no other notice for that failed write. When the system
+refuses the write or does not complete it, the program gives one notice
+that it could not write the object, and no other notice for that failed
+write. When a conforming program writes one or more objects to
+`.sinter/` in one run, whether the write succeeds or fails part of the
+way, the program leaves no newly written store file in `.sinter/` whose
+canonical object needs an identity file that is absent from `.sinter/`
+at the end of that run. When that rule or another requirement of the
+Object store forbids a write that would otherwise occur, the program
+writes no file for that object and gives one notice that it could not
+write the object, and no other notice for that failed write.
 
 Five safety obligations bind every conforming program, including under
 invalid inputs and missing parts; in a run that stopped at a limit of
@@ -217,7 +226,7 @@ as the third and fifth obligations state:
   stand outside this rule (requirement `keep-store-files-unchanged`).
 - In a run that stopped at a limit of the program's own, a conforming
   program writes no file in `.sinter/`, `.sinter/local/` included
-  (requirement `write-no-object-after-stop`).
+  (requirement `write-no-file-after-stop`).
 - In a run in which the program could not read a file or a folder under
   `conformance#input`, the program writes no file in `.sinter/`,
   `.sinter/local/` included (requirement
@@ -342,7 +351,8 @@ and only when, all three of these conditions hold:
 @term valid-object-file=v1
 @cites {
     ontology#{
-        object-kind=v1, object=v1, content-hash=v1, content-id=v1,
+        encoding=v1, object-kind=v1, object=v1, content-hash=v1,
+        content-id=v1,
     },
     data-forms#{line-object=v1, hash=v1},
     #{store-file=v1, store-object-file=v1, newer-object-file=v1},
@@ -354,7 +364,11 @@ A store file is a valid object file when, and only when, it meets
 its line object, which is a canonical object of the kind that its member
 `kind` names. The content hash of that canonical object is the hash of
 the content of that valid object file, and its content id is its object
-kind word, `:`, and the first 32 characters of that content hash.
+kind word, `:`, and the first 32 characters of that content hash. A
+valid object file is a valid file of `.sinter/` in the sense of
+`ontology#encoding`, and the canonical object that it holds is its
+canonical object. A store file that is not a valid object file is not a
+valid file of `.sinter/`.
 
 A store file is a broken store file when, and only when, it is neither a
 valid object file nor a newer object file.
@@ -400,11 +414,15 @@ identity file for c.
 
 @term tree-object-store=v1
 @cites {
-    conformance#{encoding=v1, input=v1, dependence=v1, object=v1, own-store=v1},
+    conformance#{
+        requirement=v1, encoding=v1, input=v1, dependence=v1,
+        object=v1, own-store=v1,
+    },
     ontology#{
         tree=v1, encoding=v1, object=v1, object-kind=v1,
         computed-identity=v1, content-id=v1, declared-item=v1,
     },
+    text#{code-span=v1},
     #{store-file=v1, valid-object-file=v1, needed-identity-file=v1},
 }
 
@@ -429,14 +447,17 @@ needs the identity file for c and no valid object file of that tree has
 a canonical object whose content id is c. Such an absent computed
 identity object does not make the object store of that tree not valid;
 it is a part that a valid object store of a tree can lack under
-`conformance#input`. When no input of a run (neither the object store of
-that tree, nor a declared-item object holding its own `name` key, nor
-any other valid encoding input, nor a valid program's own store) gives
-that computed identity object or its key, that computed identity object
-is a missing part of the run, and a thing that a requirement obliges
-needs that missing part when, and only when, that thing needs the key of
-that computed identity object. When another input of the run gives that
-computed identity object or its key, the run does not lack that part.
+`conformance#input`. An input gives a computed identity object I when it
+holds I. An input gives the key of I when it holds, in the text
+encoding, a key from which I derives (`ontology#encoding`), or when I is
+a `name` object and the input holds a declared-item object whose member
+`name` equals the member `name` of I; no other member, such as the
+member `name` of a `plan-def` or of a `pin` object, gives a key. A thing
+that a requirement obliges needs such an absent computed identity object
+I, as a part of the object store of that tree, when, and only when, that
+thing needs the key of I and no valid input of the run (neither the
+object store of that tree, nor any other valid encoding input, nor a
+valid program's own store) gives I or its key.
 
 ### 3.8 Findings of the class `invalid-object-file`
 
@@ -552,13 +573,13 @@ and no other text.
 When the object store of a tree is not valid, a conforming program must
 give no canonical object of the object store of that tree.
 
-### 4.4 The store findings of a tree
+### 4.4 The findings of a tree's object store
 
 @req give-store-findings=v1
 @cites {
     conformance#{
-        conforming-program=v1, input=v1, report=v1,
-        reject-invalid-inputs=v1, report-missing-parts=v1,
+        requirement=v1, conforming-program=v1, input=v1, dependence=v1,
+        report=v1, reject-invalid-inputs=v1, report-missing-parts=v1,
     },
     ontology#{finding-class=v1, tree=v1},
     findings#{finding-part=v1, message=v1},
@@ -585,26 +606,26 @@ Whether or not the object store of a tree is valid, when a conforming
 program gives the findings of that tree of the class
 `missing-identity-file`, the conforming program must give once each tree
 finding of the class `missing-identity-file` that the tree has, and no
-other finding of that class. When a computed identity object missing
-from a valid object store of a tree is a missing part of a run, these
-findings are the report of this design for that missing part under
-`conformance#report-missing-parts`.
+other finding of that class. When a thing that a requirement obliges
+needs a computed identity object that a valid object store of a tree
+lacks, these findings are the report of this design for that missing
+part under `conformance#report-missing-parts`.
 
 ### 4.5 Writing object files
 
 @req write-object-files=v1
 @cites {
-    conformance#{conforming-program=v1, input=v1},
+    conformance#{requirement=v1, conforming-program=v1, input=v1},
     files#{
-        folder=v1, folder-tree=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, path-file=v1,
+        system=v1, folder=v1, folder-tree=v1, regular-file=v1,
+        symbolic-link=v1, file-of-another-kind=v1, path=v1, path-file=v1,
     },
     data-forms#{canonical-byte-sequence=v1},
     ontology#{
         tree=v1, object=v1, object-kind=v1, computed-identity=v1,
         content-id=v1,
     },
-    text#{byte-sequence=v1, code-span=v1},
+    text#{byte-sequence=v1, code-span=v1, whole-number=v1},
     #{
         object-path=v1, store-file=v1, valid-object-file=v1,
         tree-object-store=v1, needed-identity-file=v1,
@@ -615,19 +636,29 @@ Whether or not the object store of a working tree is valid, when a
 conforming program writes a canonical object O of an object kind that
 `ontology#object-kind` marks as allowed in `.sinter/` to the object
 store of that working tree, the conforming program must satisfy these
-conditions in the folder tree of that working tree:
+conditions in the folder tree of that working tree, where the
+two-hex-digit subfolder of the object path of O is the file that file
+name 2 of the object path of O names (`files#path-file`):
 
 1. When neither `.sinter` nor the two-hex-digit subfolder of the object
    path of O is a regular file, a symbolic link, or a file of another
-   kind, and no folder entry stands at the object path of O, the
-   conforming program must write the canonical byte sequence of O (with
-   no member `id` and no final line feed) as a regular file at the
-   object path of O, creating `.sinter` and that two-hex-digit subfolder
-   when absent.
+   kind, no folder entry stands at the object path of O, and neither
+   condition 4 nor another requirement of this design forbids writing a
+   file for O, the conforming program must write the canonical byte
+   sequence of O (with no member `id` and no final line feed) as a
+   regular file at the object path of O, creating `.sinter` and that
+   two-hex-digit subfolder when absent. When the system refuses that
+   write or does not complete it (for example for a missing write
+   permission, a read-only file system, a full disk, or an input or
+   output error), the conforming program must instead give one notice
+   identifying that it could not write O (in any form that identifies
+   that fact, such as a text, a structured output, an exit status, or an
+   error value), and no other notice for that failed write.
 2. When `.sinter` and the two-hex-digit subfolder of the object path of
    O are folders, and a regular file already stands at the object path
-   of O whose content equals the canonical byte sequence of O, the write
-   must succeed and must leave that regular file unchanged.
+   of O whose content equals the canonical byte sequence of O, the
+   conforming program must leave that regular file unchanged and must
+   give no notice that it could not write O.
 3. When `.sinter` or the two-hex-digit subfolder of the object path of O
    is a regular file, a symbolic link, or a file of another kind, or
    when `.sinter` and that subfolder are folders and either a regular
@@ -635,16 +666,18 @@ conditions in the folder tree of that working tree:
    sequence of O or a symbolic link, a folder, or a file of another kind
    stands at the object path of O, the conforming program must change
    nothing at that blocking path, must write no file for O, and must
-   give one notice identifying that it could not write O (in any form
-   that identifies that fact, such as a text, a structured output, an
-   exit status, or an error value), and no other notice for that failed
-   write.
+   give one notice identifying that it could not write O, and no other
+   notice for that failed write.
 4. When a conforming program writes one or more objects to the object
    store of a working tree in one run, whether the write succeeds or
    fails part of the way, the conforming program must leave no newly
    written store file in `.sinter/` of that working tree whose canonical
    object needs an identity file for which no valid object file exists
-   in the folder tree of that working tree.
+   in the folder tree of that working tree at the end of that run. When
+   condition 4 or another requirement of this design forbids a write of
+   O that condition 1 would otherwise require, the conforming program
+   must write no file for O and must give one notice identifying that it
+   could not write O, and no other notice for that failed write.
 
 ### 4.6 Write boundary in `.sinter/`
 
@@ -654,6 +687,7 @@ conditions in the folder tree of that working tree:
     files#{folder=v1, folder-tree=v1, symbolic-link=v1},
     ontology#{tree=v1},
     text#{utf-8-encoding=v1, code-span=v1},
+    #{store-file=v1},
 }
 
 When a conforming program writes a file in the folder `.sinter/` of the
@@ -680,7 +714,7 @@ formed by its store path and its content is a valid object file.
 
 ### 4.8 No write in `.sinter/` after a stop
 
-@req write-no-object-after-stop=v1
+@req write-no-file-after-stop=v1
 @cites {
     conformance#{
         conforming-program=v1, safety-obligation=v1, own-limit=v1,
@@ -694,7 +728,7 @@ In a run that stopped at a limit of a conforming program's own, that
 conforming program must write no file in the folder `.sinter/` of any
 working tree, the folder `.sinter/local/` included.
 
-### 4.9 No write in `.sinter/` after a read error
+### 4.9 No write in `.sinter/` in a run with a read error
 
 @req write-no-file-after-read-error=v1
 @cites {
@@ -763,7 +797,7 @@ requirements of the group, the inputs, the results, and the values. No
 group of this design uses a need, so the forms of each group give no
 need names. These operational and safety requirements have no vectors:
 `write-object-files`, `limit-store-writes`,
-`keep-store-files-unchanged`, `write-no-object-after-stop`,
+`keep-store-files-unchanged`, `write-no-file-after-stop`,
 `write-no-file-after-read-error`, and `limit-store-deletions`.
 
 ### 5.1 Object paths
@@ -866,7 +900,10 @@ meets `store-object-file`, the conforming program gives the result that
         group-form-list=v1, vector-meaning=v1,
     },
     ontology#{tree=v1, object=v1, content-id=v1, finding-class=v1},
-    findings#{finding-part=v1, spot=v1},
+    findings#{
+        finding-part=v1, finding-subject=v1, spot=v1, message=v1,
+        mark=v1, fix=v1, ackable-finding=v1,
+    },
     #{
         store-object-file-vector=v1, tree-object-store=v1,
         newer-object-file=v1, invalid-object-file-finding=v1,
@@ -877,8 +914,9 @@ meets `store-object-file`, the conforming program gives the result that
 
 The group `tree-stores` holds the vectors of the requirements
 `give-store-objects` and `give-store-findings`. Each vector gives a tree
-and what a conforming program gives for the canonical objects and store
-findings of that tree.
+and what a conforming program gives for the canonical objects and
+findings of the classes `invalid-object-file` and
+`missing-identity-file` of that tree.
 
 Inside `input`, a tree is a JSON object with one member for each file of
 the tree: the key is the valid path of the file, and the value is the
