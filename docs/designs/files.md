@@ -25,19 +25,20 @@ notation defines them, in ABNF, the notation of RFC 5234, with the
 case-sensitive strings of RFC 7405.
 
 From Conformance (`conformance`), the design takes designs,
-requirements, conforming programs, inputs, and the general requirements
-that bind every conforming program. From Text and notation, the design
-takes characters, texts, places, boundaries, runs, code spans, bytes,
-byte sequences, valid UTF-8, the text of a byte sequence, UTF-8
-encodings, the notation of productions, results, and canonical vector
-lines for its vector file. From POSIX.1-2024, the
-design takes files, processes, and what a file system is; the file
-types, such as a directory, a regular file, and a symbolic link; the
-directory entries of a directory, and the names `.` and `..` in a
-directory; pathnames and pathname resolution; the search permission, the
-read permission, and the write permission of a process for a file, the
-owner of a file, and the time of last access of a file; and the user IDs
-and the appropriate privileges of a process.
+requirements, conforming programs, inputs, dependence, a program's own
+limits, reports, and the general requirements that bind every conforming
+program, including `report-missing-parts` and `report-stops-at-limits`.
+From Text and notation, the design takes characters, texts, places,
+boundaries, runs, code spans, bytes, byte sequences, valid UTF-8, the
+text of a byte sequence, UTF-8 encodings, the notation of productions,
+results, and canonical vector lines for its vector file. From
+POSIX.1-2024, the design takes files, processes, and what a file system
+is; the file types, such as a directory, a regular file, and a symbolic
+link; the directory entries of a directory, and the names `.` and `..`
+in a directory; pathnames and pathname resolution; the search
+permission, the read permission, and the write permission of a process
+for a file, the owner of a file, and the time of last access of a file;
+and the user IDs and the appropriate privileges of a process.
 
 From RFC 8259, the design takes JSON texts, with their objects, members,
 arrays, strings, numbers, and the literal names `true` and `false`. Each
@@ -74,7 +75,7 @@ JSON text.
 | folder entry for a file name | in a folder, the folder entry whose entry name is the UTF-8 encoding of the file name, byte for byte |
 | [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text as a path in a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
 | [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
-| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read", "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
+| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read" (for a part that the folder tree lacks because the program has no search permission or no read permission), "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
 | [file of the path](sinter:#path-file=v1) | in a folder tree, a file that a valid path names: the root, or, for file name k, the file of the folder entry for file name k in folder k; folder 1 is the root, and, when file name k is not the last file name of the valid path, folder k + 1 is the folder that file name k names |
 | [folder of the path](sinter:#path-file=v1) | in a folder tree, a folder k of a valid path: the root, or a folder that a file name other than the last file name of the valid path names |
 | [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | find a file by the reference of the symbolic link |
@@ -209,8 +210,9 @@ file name of the valid path names. The folders of the path are the
 folders k.
 
 When the text is a valid path, and no other process changes the folder
-tree during the file read, the file read gives the file-read result of
-the valid path. The atom `file-read-result` of section 3.16 defines the
+tree during the file read, the requirement `give-file-read-results`
+states the result of the file read from the file-read result of the
+valid path. The atom `file-read-result` of section 3.16 defines the
 file-read result.
 
 Example: the root holds the folder `docs`. The folder `docs` holds the
@@ -246,13 +248,17 @@ the result. When `docs` is a folder, the valid path `docs` gives "not a
 regular file", also when the program has neither the search permission
 nor the read permission for `docs`.
 
-When the system fails during the file read, for a cause other than the
-folder tree and the permissions of the program for the files of the
-folder tree, the program can give "cannot read" instead of the file-read
-result. The program can also give "cannot read" when the program cannot
-reach the root, or when the file read goes beyond limits of the system
-or of the program, such as on the length of a pathname or on the size of
-a file.
+For example, when the system reports a device error while the program
+reads the content of `docs/a.md`, the folder tree lacks that content,
+and the valid path `docs/a.md` gives "cannot read". The result "cannot
+read" is then the report of that missing content (`report-missing-parts`
+of Conformance). When the program stops reading `docs/a.md` because the
+content is too large for the memory of the program, the program reaches
+a limit of its own, and the file read gives no result. When the program
+has the search permission and the read permission for the root, and the
+UTF-8 encoding of file name 1 is longer than the file system that the
+root is on allows for one entry name, the root holds no folder entry for
+file name 1, and the result is "no file".
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -599,6 +605,7 @@ tree.
         file-of-another-kind=v1, folder-tree=v1, file-kind=v1,
         search-permission=v1, read-permission=v1, path=v1, path-file=v1,
     },
+    conformance#{input=v1},
     text#{
         text=v1, result=v1, utf-8-encoding=v1, valid-utf-8=v1,
         text-of-a-byte-sequence=v1,
@@ -630,6 +637,13 @@ name 1, the cases apply in order from case 1 to case 6:
    read permission for that file, and the content of that file is valid
    UTF-8, the result is "found", with the text of the content of that
    file.
+
+In case 1, the folder entries of folder k are a part that the folder
+tree lacks for the program. In case 6, when the program has no read
+permission for the regular file, the content of that regular file is a
+part that the folder tree lacks for the program. A valid folder tree can
+lack such a part. In those cases, "cannot read" is the result for that
+missing part.
 
 ### 3.17 Valid globs
 
@@ -749,8 +763,9 @@ when it is not.
         read-permission=v1,
     },
     text#{
-        whole-number=v1, decimal-numeral=v1, hex-digit=v1, byte=v1,
-        byte-sequence=v1, code-span=v1,
+        text=v1, whole-number=v1, decimal-numeral=v1, hex-digit=v1,
+        byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1,
+        code-span=v1,
     },
 }
 
@@ -772,13 +787,16 @@ none:
   they are the first bytes of the other. An entry object is a JSON
   object with two members: `name`, the entry name of the folder entry,
   as a hex byte sequence, and `file`, the file object of the file of the
-  folder entry. A folder that holds no folder entry has `"entries":[]`.
+  folder entry. The entry name of an entry object is not empty, holds no
+  byte 0x00 and no byte 0x2F, and is not the UTF-8 encoding of the text
+  `.` or of the text `..`. A folder that holds no folder entry has
+  `"entries":[]`.
 - `"regular file"`: `content`, the content of the regular file, as
   pieces of a byte sequence.
 - `"symbolic link"`: `reference`, the reference of the symbolic link, as
-  a hex byte sequence. The reference leads to a file as in a pathname
-  resolution of POSIX.1-2024, from the folder that holds the symbolic
-  link.
+  a hex byte sequence. The reference is not empty and holds no byte
+  0x00. The reference leads to a file as in a pathname resolution of
+  POSIX.1-2024, from the folder that holds the symbolic link.
 - `"FIFO special file"`: no such member.
 
 A file object can also have the members `read`, `search`, `write`, and
@@ -917,27 +935,52 @@ is a valid path, a conforming program must not give the result
 @cites {
     posix/2024,
     #{
-        system=v1, folder-tree=v1, path=v1, file-read=v1,
-        file-read-result=v1,
+        system=v1, file-system=v1, folder=v1, folder-tree=v1,
+        regular-file=v1, path=v1, file-read=v1, file-read-result=v1,
     },
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1},
+    conformance#{
+        conforming-program=v1, requirement=v1, input=v1, dependence=v1,
+        own-limit=v1, report=v1, report-missing-parts=v1,
+    },
+    text#{result=v1, text=v1, code-span=v1},
 }
 
 In each file read of a valid path in a folder tree that no other process
-changes during the file read, a conforming program must give exactly one
-result, and only "found", "no file", "symbolic link", "not a regular
-file", "not UTF-8", or "cannot read". In that file read, that result
-must be the file-read result of that valid path in that folder tree for
-the conforming program, or "cannot read" when at least one of these
-conditions holds:
-- the system fails during the file read for a cause other than the
-  folder tree and the permissions of the conforming program for the
-  files of the folder tree;
-- the conforming program cannot reach the root;
-- the file read goes beyond limits of the system or of the conforming
-  program, such as on the length of a pathname of POSIX.1-2024 or on the
-  size of a file.
+changes during the file read, when no reading or computation on which
+the result of that file read depends stopped at a limit of the
+conforming program's own (term `own-limit` of Conformance), the
+conforming program must give exactly one result, and only "found", "no
+file", "symbolic link", "not a regular file", "not UTF-8", or "cannot
+read". In that file read, when at least one of these conditions holds,
+the conforming program must give "cannot read", and no other result:
+
+- The file-read result of that valid path in that folder tree for the
+  conforming program is "cannot read".
+- The conforming program could not take content of that folder tree
+  because of a denied permission or an input or output error, that
+  content is a part that the folder tree lacks under the term `input`
+  of Conformance, and the result of that file read needs that part.
+
+In that file read, when neither condition holds, the conforming program
+must give the file-read result of that valid path in that folder tree
+for the conforming program, and no other result. In that file read, when
+at least one of those conditions holds, the result "cannot read", given
+once for that file read, is the report, for this requirement under
+`report-missing-parts` of Conformance, of each part that the folder tree
+lacks and that the result of that file read needs.
+
+A bound on the length of a whole pathname of POSIX.1-2024 and a bound
+on the size of a file are examples of limits of the conforming
+program's own in a file read. A bound of the system or of a file system
+on the length of one entry name is not a limit of the conforming
+program's own. In each file read of a valid path in a folder tree that
+no other process changes during the file read, when a reading or
+computation on which the result of that file read depends stopped at a
+limit of the conforming program's own, such as a reading of the root of
+that folder tree, the conforming program must give none of the results
+"found", "no file", "symbolic link", "not a regular file", "not UTF-8",
+and "cannot read", and must give no text as the text of the content of a
+regular file.
 
 ### 4.4 The text of the content
 
@@ -1172,9 +1215,8 @@ vector lines.
 The text of each line of the vector file is a vector line: a JSON text,
 as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
 Text and notation. Its JSON object holds the required members `form`,
-`group`, `input`, and `result`, the member `values` only for the group
-`file-reads`, and the optional members `needs` and `note`, and no other
-member:
+`group`, `input`, and `result`, and the optional members `needs`,
+`note`, and `values`, and no other member:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label (for example,
@@ -1193,8 +1235,8 @@ member:
   unable to make hold and that a need name names. Each schema of a
   vector group lists the need names that its group uses, each with the
   need that it stands for; a need name stands for the same need in every
-  schema of this design. A vector has this member only when it has a
-  need.
+  schema of this design. A vector has this member when, and only when,
+  it has one or more needs.
 - `note`: an explanation of the vector, as a JSON string, which is no
   part of the input, the result, or the values. A vector has this member
   only when it has an explanation.
@@ -1210,12 +1252,13 @@ member:
   other result.
 - `values`: a JSON object that holds what a conforming program gives, or
   does not give, for the inputs of the vector, other than the result.
-  Only the vectors of the group `file-reads` have this member. The
-  schema of that group gives the members of this JSON object. An empty
-  JSON object, `{}`, says that a conforming program gives none of the
-  things that the schema of the group names for `values`. A vector
-  without the member `values` says nothing about what a conforming
-  program gives for the inputs of the vector, other than the result.
+  The schema of each group states whether the vectors of that group have
+  this member and, when they do, gives the members of this JSON object.
+  An empty JSON object, `{}`, says that a conforming program gives none
+  of the things that the schema of the group names for `values`. A
+  vector without the member `values` says nothing about what a
+  conforming program gives for the inputs of the vector, other than the
+  result.
 
 A vector writes each input and each value in a fixed form. Each text and
 sequence has this fixed form, except a folder tree and the text of the
@@ -1290,11 +1333,10 @@ no other result.
         file-of-another-kind=v1, folder-tree=v1, path=v1, file-read=v1,
         file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
     },
-    conformance#{conforming-program=v1, input=v1},
+    conformance#{conforming-program=v1, input=v1, own-limit=v1},
     text#{
         text=v1, run=v1, line=v1, byte=v1, byte-sequence=v1,
-        valid-utf-8=v1, code-point-order=v1, 0x-numeral=v1, result=v1,
-        code-span=v1,
+        valid-utf-8=v1, 0x-numeral=v1, result=v1, code-span=v1,
     },
 }
 
@@ -1315,9 +1357,10 @@ text as a path in the folder tree.
      runner finishes making the folder tree to the end of the file read.
      So the program has the permissions that `tree` gives.
   2. No other process changes the folder tree during the file read.
-  3. The system does not fail during the file read. The program can
-     reach the root. The file read stays within the limits of the system
-     and of the program.
+  3. During the file read, including while reaching the root, the system
+     denies no permission other than the permissions that `tree` takes
+     away, and reports no input or output error. The file read does not
+     stop at a limit of the program's own.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
@@ -1332,7 +1375,7 @@ text as a path in the folder tree.
   `values` is a JSON object with one member, `text`. The member `text`
   is the text of the content, as pieces of a text. This schema defines
   pieces of a text. With each other result, `values` is the empty JSON
-  object, `{}`.
+  object, `{}`. Each vector of the group has this member.
 
 In each file read of the text in the folder tree that a conforming
 program makes under these conditions, the conforming program gives the
@@ -1340,11 +1383,11 @@ result that `result` holds, and no other result. With the result
 "found", the conforming program gives the text that `text` holds as the
 text of the content, and no other text as the text of the content. When
 `values` is `{}`, the conforming program gives no text as the text of a
-content. A conforming program gives exactly one result in each file
-read, also when no process opens a pipe of the folder tree. So when a
-file read gives no result within a time that the runner chooses, the run
-of the vectors fails on that vector, as when the program does not give
-the result that `result` holds.
+content. Under these conditions, a conforming program gives exactly one
+result in each file read, also when no process opens a pipe of the
+folder tree. So when a file read gives no result within a time that the
+runner chooses, the run of the vectors fails on that vector, as when the
+program does not give the result that `result` holds.
 
 For example, in `tree`, the reference `b.md` of a symbolic link, which
 is the hex byte sequence `"622e6d64"`, leads to the file of the folder
@@ -1415,20 +1458,15 @@ names decides that the program does not give what the vector states.
   vector has this need when a file object of its folder tree has the
   member `owned-by-other` with the value `true`.
 
-A vector of the group `file-reads` has the member `needs` when, and only
-when, the vector has one or more of these needs. When a vector of the
-group `file-reads` has the member `needs`, that member is a JSON array
-that holds each need name of the vector once, in code point order, and
-no other name. For each vector that a run of the vectors does not skip,
-the run uses a file system that stores the folder tree of that vector
-and a process of the program for which the conditions of the input of
-that vector hold. A skip of a vector decides nothing about that vector
-when the runner cannot make a need of the vector hold, the member
-`needs` of the vector names that need, and the runner reports that need.
-Each other skip of a vector decides that the program does not give what
-the vector states. What a run of the vectors decides about a vector, a
-skip included, belongs to that run, and not to a reader of what that run
-reports.
+For each vector that a run of the vectors does not skip, the run uses a
+file system that stores the folder tree of that vector and a process of
+the program for which the conditions of the input of that vector hold. A
+skip of a vector decides nothing about that vector when the runner
+cannot make a need of the vector hold, the member `needs` of the vector
+names that need, and the runner reports that need. Each other skip of a
+vector decides that the program does not give what the vector states.
+What a run of the vectors decides about a vector, a skip included,
+belongs to that run, and not to a reader of what that run reports.
 
 ```
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
