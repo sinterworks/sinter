@@ -30,7 +30,7 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [canonical object](sinter:#object=v1) | an object in its canonical form |
 | [encoding](sinter:#encoding=v1) | a form, defined by a design, in which objects are stored in an input; that design says what constitutes one input in that encoding, when such an input is valid, and which canonical objects a valid input in that encoding holds |
 | [program's own store](sinter:#own-store=v1) | a store that a program chooses and uses, whose storage form no design defines, such as a database, an index, or a service, from which the program takes objects; it is valid when, and only when, each thing it holds as an object is a canonical object and, when the program takes objects of some kinds from it in place of inputs in encodings, each such input is valid and the store holds the same canonical objects of those kinds as those inputs hold together, with no canonical object of those kinds added, altered, or omitted; a part that the store or such an input lacks under [input](sinter:#input=v1) does not make the store not valid |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `omit-results-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `end-runs-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
 
 ## 2. Designs, conforming programs, inputs, and canonical objects
 
@@ -61,35 +61,14 @@ Elsewhere in a design, a conforming program is a conforming program of
 that design.
 
 For example, suppose a program reads a file of 10 GB and stops reading
-that file at a limit of its own on memory. The program then reports
-where it reached that limit (`report-stops-at-limits`). The program also
-gives nothing that the program computes from what that stopped reading
-took, and no verdict about that file, such as "valid" or "invalid"
-(`omit-results-at-limits`). An obligation that depends on reading that
-file binds only as the term `conforming-program` says: safety
-obligations and obligations that state what a program gives or does when
-the program reaches a limit of its own still bind, while ordinary
-obligations that depend on the stopped reading do not bind, and
-obligations on another file whose reading did not stop still bind.
-
-As a second example, suppose a program takes an input that is not valid
-and stops at a limit of its own during a reading or computation on which
-reporting that input depends. By the term `conforming-program`, the
-program still gives nothing and does nothing that depends on the input
-that is not valid, and `reject-invalid-inputs` does not oblige the
-program to report that input because reporting that input depended on
-the stopped reading or computation. The program also gives no report of
-that input that the program computes from what the stopped reading or
-computation took or computed (`omit-results-at-limits`). In the same
-way, suppose a program takes a valid input that lacks a part and stops
-at a limit of its own during a reading or computation on which reporting
-that missing part depends. The program still gives nothing and does
-nothing that needs that missing part, and `report-missing-parts` does
-not oblige the program to report that missing part because reporting
-that missing part depended on the stopped reading or computation. The
-program also gives no report of that missing part that the program
-computes from what the stopped reading or computation took or computed
-(`omit-results-at-limits`).
+that file at a limit of its own on memory. The program ends that run
+(for a part of a program, that call), reports where it reached that
+limit as far as it can (`report-stops-at-limits`, `end-runs-at-limits`),
+gives no other result of that run, and writes nothing durable
+(`end-runs-at-limits`). In that run, safety obligations,
+`report-stops-at-limits`, and `end-runs-at-limits` still bind; every
+other obligation binds only in a run in which the program reached no
+limit of its own (term `conforming-program`).
 
 ### 2.2 Inputs and missing parts
 
@@ -130,9 +109,10 @@ every case, the program gives and does every thing that does not need
 that file's content (`report-missing-parts`). By contrast, when the
 program stops reading that file because the file is too large for the
 program's memory, the program reaches a limit of its own (term
-`own-limit`), reports where it reached that limit
-(`report-stops-at-limits`), and gives nothing that the program computes
-from what that stopped reading took (`omit-results-at-limits`).
+`own-limit`), ends that run (for a part of a program, that call),
+reports where it reached that limit as far as it can
+(`report-stops-at-limits`, `end-runs-at-limits`), gives no other result
+of that run, and writes nothing durable (`end-runs-at-limits`).
 
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
@@ -157,15 +137,15 @@ set of the canonical objects that all valid encoding inputs and valid
 program's own stores taken for that requirement hold together
 (`give-results-over-canonical-objects`). Suppose a person moves an
 object from one encoding into a second encoding without changing the
-object's canonical form. Suppose also that, before and after the move,
-all inputs are valid and hold every part that any obliged thing needs,
-and no reading or computation stops at a limit of the program's own.
-Both sets of inputs hold the same set of canonical objects. So, for each
-requirement that defines what a program gives or does over objects, a
-conforming program gives and does the same things before and after the
-move for every part that the requirement defines from those canonical
-objects and not from any other property of those inputs. Things that a
-requirement defines from another property of an input can still change.
+object's canonical form. Suppose also that, before and after the move, all inputs are valid and
+hold every part that any obliged thing needs, and the program reaches no
+limit of its own. Both sets of inputs hold the same set of canonical
+objects. So, for each requirement that defines what a program gives or
+does over objects, a conforming program gives and does the same things
+before and after the move for every part that the requirement defines
+from those canonical objects and not from any other property of those
+inputs. Things that a requirement defines from another property of an
+input can still change.
 Examples are a result that depends on the path of a file, and a place in
 an input that a requirement obliges a program to give for an object
 (such as a line of a file).
@@ -284,15 +264,18 @@ When that content is a part that the input lacks, the input does not
 hold that part, and neither lacking that part nor that content makes the
 input not valid.
 
-Here, the system is anything outside the program through which the
-program reads an input, such as the operating system, a storage service,
-or, for a part of a program, the larger program. The program, the
-libraries and the runtime that the program uses, and any other program
-that the program runs are not part of the system. An input or output
-error is a fault of the system or of its storage in giving the content
-of an input, such as a device error or a lost connection. A report that
-content does not exist, or that content does not decode in a form that a
-design defines, is not an input or output error. The system offers no
+Here, the content of an input includes what the system gives about that
+input or its parts, such as folder entries, file types, and bytes. Here,
+the system is anything outside the whole program through which the
+program reads an input, such as the operating system or a storage
+service. For a part of a program, the system is the same system as for
+the larger program. A program, the libraries and the runtime that the
+program uses, and any other program that the program runs are not part
+of the system. An input or output error is a fault of the system or of
+its storage in giving the content of an input, such as a device error or
+a lost connection. A report that content does not exist, or that content
+does not decode in a form that a design defines, is not an input or
+output error. The system offers no
 operation that lets a program take content while the program keeps every
 safety obligation that binds the program when the system provides no
 such operation, or when the system or a part of the system (such as a
@@ -471,7 +454,7 @@ the store adds, alters, or omits, and does not make the store not valid.
 @cites #{
     design=v1, specification=v1, requirement=v1, input=v1,
     dependence=v1, own-limit=v1, safety-obligation=v1,
-    report-stops-at-limits=v1, omit-results-at-limits=v1,
+    report-stops-at-limits=v1, end-runs-at-limits=v1,
     reject-invalid-inputs=v1, report-missing-parts=v1,
     give-results-over-canonical-objects=v1, read-defined-encodings=v1,
 }
@@ -480,27 +463,28 @@ A part of a program is a component of a larger program, such as a
 library or a subsystem, whose edge is the interface through which the
 larger program passes inputs to that component and receives what that
 component gives, together with any external state that that component
-reads, alters, writes, follows, or runs.
+reads, alters, writes, follows, or runs. For a part of a program, a run
+is one call of that part.
 
 A conforming program of a design is a program, or a part of a program,
 that meets every requirement of the design, `report-stops-at-limits`,
-`omit-results-at-limits`, `reject-invalid-inputs`,
-`report-missing-parts`, `give-results-over-canonical-objects`, and
-`read-defined-encodings`. A conforming program of a specification of a
-design is a program, or a part of a program, that meets every
-requirement that the specification declares, `report-stops-at-limits`,
-`omit-results-at-limits`, `reject-invalid-inputs`,
-`report-missing-parts`, `give-results-over-canonical-objects`, and
-`read-defined-encodings`. In a specification of a design, a conforming
-program is a conforming program of that specification. Elsewhere in a
-design, a conforming program is a conforming program of that design.
+`end-runs-at-limits`, `reject-invalid-inputs`, `report-missing-parts`,
+`give-results-over-canonical-objects`, and `read-defined-encodings`. A
+conforming program of a specification of a design is a program, or a
+part of a program, that meets every requirement that the specification
+declares, `report-stops-at-limits`, `end-runs-at-limits`,
+`reject-invalid-inputs`, `report-missing-parts`,
+`give-results-over-canonical-objects`, and `read-defined-encodings`. In a
+specification of a design, a conforming program is a conforming program
+of that specification. Elsewhere in a design, a conforming program is a
+conforming program of that design.
 
 Each obligation that a requirement of a design states with the word must
 is an obligation of each conforming program of that design. When a
 specification of a design declares a requirement of that design, each
 obligation that the requirement states with the word must is also an
 obligation of each conforming program of that specification. Each
-obligation that `report-stops-at-limits`, `omit-results-at-limits`,
+obligation that `report-stops-at-limits`, `end-runs-at-limits`,
 `reject-invalid-inputs`, `report-missing-parts`,
 `give-results-over-canonical-objects`, or `read-defined-encodings`
 states with the word must is an obligation of each conforming program of
@@ -509,47 +493,29 @@ every design and of every specification of a design.
 For anything that an obligation of a requirement obliges a conforming
 program to give or do—including an obligation to give nothing, to do
 nothing, or to give no thing of a kind—that obligation binds the
-conforming program only when each input on which that thing depends is
-valid and holds every part that that thing needs, and only when either
-no reading or computation on which that thing depends stopped at a limit
-of the conforming program's own or the conforming program computes that
-thing only from readings and computations that did not stop at a limit
-of the conforming program's own and that together read every part on
-which that thing depends. Four kinds of obligation bind a conforming
-program beyond that scope:
+conforming program only in a run in which the conforming program
+reached no limit of its own, and only when each input on which that
+thing depends is valid and holds every part that that thing needs. Four
+kinds of obligation bind a conforming program beyond that scope:
 
 - A safety obligation binds a conforming program always: under an input
-  that is not valid, under a valid input that lacks a part, and when a
-  reading or computation stopped at a limit of the conforming program's
-  own.
-- An obligation of a requirement that itself states what a program gives
-  or does when the program reaches a limit of its own binds a conforming
-  program when the conforming program reaches a limit of its own,
-  whether or not the inputs are valid or hold every part.
-- An obligation of a requirement of the owner design of an input that
-  itself states what a program gives or does when that input is not
-  valid binds a conforming program when that input is not valid,
-  provided that no reading or computation on which that thing depends
-  stopped at a limit of the conforming program's own. The obligations of
-  `reject-invalid-inputs` to give nothing that depends on an input that
-  is not valid and to do nothing that depends on that input bind a
-  conforming program even when a reading or computation stopped at a
-  limit of the conforming program's own. The obligation of
-  `reject-invalid-inputs` to report which input is not valid, and where,
-  binds only when no reading or computation on which that report depends
-  stopped at a limit of the conforming program's own.
-- An obligation of a requirement that itself states what a program gives
-  or does when a valid input lacks a part binds a conforming program
-  when a valid input lacks a part, provided that no reading or
-  computation on which that thing depends stopped at a limit of the
-  conforming program's own. The obligations of `report-missing-parts` to
-  give nothing that needs a missing part and to do nothing that needs
-  that part bind a conforming program even when a reading or computation
-  stopped at a limit of the conforming program's own. The obligation of
-  `report-missing-parts` to report which part is missing, and its
-  obligations for each thing that does not need that missing part, bind
-  only when no reading or computation on which that report or thing
-  depends stopped at a limit of the conforming program's own.
+  that is not valid, under a valid input that lacks a part, and in a run
+  in which the conforming program reached a limit of its own.
+- Each obligation of `report-stops-at-limits` and `end-runs-at-limits`
+  binds a conforming program always: under an input that is not valid,
+  under a valid input that lacks a part, and in a run in which the
+  conforming program reached a limit of its own.
+- In a run in which the conforming program reached no limit of its own,
+  each obligation of `reject-invalid-inputs` binds the conforming
+  program when an input is not valid, and each obligation of a
+  requirement of the owner design of an input that itself states what a
+  program gives or does when that input is not valid binds the
+  conforming program when that input is not valid.
+- In a run in which the conforming program reached no limit of its own,
+  each obligation of `report-missing-parts`, and each obligation of a
+  requirement that itself states what a program gives or does when a
+  valid input lacks a part, binds the conforming program when a valid
+  input lacks a part.
 
 No other obligation binds a conforming program beyond that scope.
 
@@ -565,30 +531,15 @@ program before the program can report, the program must report where the
 program reached that limit, once for each stop at a limit of its own. A
 program must report no stop at a limit of its own that did not occur.
 
-### 4.2 Results of stopped readings and computations
+### 4.2 Runs that reach a limit
 
-@req omit-results-at-limits=v1
-@cites #{
-    requirement=v1, input=v1, dependence=v1, own-limit=v1, report=v1,
-}
+@req end-runs-at-limits=v1
+@cites #{own-limit=v1, report=v1}
 
-When a program reaches a limit of its own by stopping a reading or
-computation, the program must give nothing that the program computes
-from what that reading took, or from what that computation computed,
-before the stop, other than a report of where the program reached that
-limit and a result word that a requirement states that a program gives
-to say that the program stopped at a limit of its own. In that case, for
-each input or part of an input that the stopped reading or computation
-read or computed on, the program must also give no verdict about that
-input or part, unless the program computes that verdict only from
-readings and computations that did not stop at a limit of the program's
-own and that together read every part on which that verdict depends.
-Here, a verdict about an input or part is a result or report that says
-whether that input or part is valid, is missing, or lacks a part, or
-that says that the program could not parse or decode that input or part,
-such as "valid", "invalid", or a report that the input or part is not
-valid, is missing, or lacks a part. This requirement forbids nothing
-else that the program gives.
+When a program reaches a limit of its own, the program must end that run
+(for a part of a program, that call), report where the program reached
+that limit as far as the program can, give no other result of that run,
+and write nothing durable.
 
 ### 4.3 Inputs that are not valid
 
