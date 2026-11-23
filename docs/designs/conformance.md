@@ -18,7 +18,7 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [specification](sinter:#specification=v1) | a declared item of the kind specification that has a name of its own and declares some of the requirements and definitions of a design |
 | [requirement](sinter:#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take while the program reads the input—when the system refuses a permission, reports an input or output error, or offers no operation that lets the program take that content while the program keeps every safety obligation of the owner design (other than from a resource bound, a refusal or restriction that the program itself causes, or content that the program takes on a later attempt in the same run)—is a part that a valid input can lack |
+| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take while the program reads the input—when the system refuses a permission, reports an input or output error, or offers no operation that lets the program take that content while the program keeps every safety obligation that binds the program (other than from a resource bound, a refusal or restriction that the program itself causes, or content that the program takes on a later attempt in the same run)—is a part that a valid input can lack |
 | [owner design](sinter:#input=v1) | for a requirement, the design that defines the thing as which that requirement names an input |
 | [depends on](sinter:#dependence=v1) | a thing that a program gives or does depends on an input, a part of an input, or a reading or computation when a change to that input or part can change what a requirement obliges for that thing, or when the program computes or chooses that thing from it |
 | [needs](sinter:#dependence=v1) | which parts of a valid input a thing that a requirement obliges requires, as the owner design or the declaring design says, or by default every part on which that thing depends |
@@ -63,14 +63,14 @@ that design.
 For example, suppose a program reads a file of 10 GB and stops reading
 that file at a limit of its own on memory. The program then reports
 where it reached that limit (`report-stops-at-limits`). The program also
-gives no result of that stopped reading and no verdict about that file,
-such as "valid" or "invalid" (`omit-results-at-limits`). An obligation
-that depends on reading that file binds only as the term
-`conforming-program` says: safety obligations and obligations that state
-what a program gives or does when the program reaches a limit of its own
-still bind, while ordinary obligations that depend on the stopped
-reading do not bind, and obligations on another file whose reading did
-not stop still bind.
+gives nothing that the program computes from what that stopped reading
+took, and no verdict about that file, such as "valid" or "invalid"
+(`omit-results-at-limits`). An obligation that depends on reading that
+file binds only as the term `conforming-program` says: safety
+obligations and obligations that state what a program gives or does when
+the program reaches a limit of its own still bind, while ordinary
+obligations that depend on the stopped reading do not bind, and
+obligations on another file whose reading did not stop still bind.
 
 As a second example, suppose a program takes an input that is not valid
 and stops at a limit of its own during a reading or computation on which
@@ -78,13 +78,18 @@ reporting that input depends. By the term `conforming-program`, the
 program still gives nothing and does nothing that depends on the input
 that is not valid, and `reject-invalid-inputs` does not oblige the
 program to report that input because reporting that input depended on
-the stopped reading or computation. In the same way, suppose a program
-takes a valid input that lacks a part and stops at a limit of its own
-during a reading or computation on which reporting that missing part
-depends. The program still gives nothing and does nothing that needs
-that missing part, and `report-missing-parts` does not oblige the
-program to report that missing part because reporting that missing part
-depended on the stopped reading or computation.
+the stopped reading or computation. The program also gives no report of
+that input that the program computes from what the stopped reading or
+computation took or computed (`omit-results-at-limits`). In the same
+way, suppose a program takes a valid input that lacks a part and stops
+at a limit of its own during a reading or computation on which reporting
+that missing part depends. The program still gives nothing and does
+nothing that needs that missing part, and `report-missing-parts` does
+not oblige the program to report that missing part because reporting
+that missing part depended on the stopped reading or computation. The
+program also gives no report of that missing part that the program
+computes from what the stopped reading or computation took or computed
+(`omit-results-at-limits`).
 
 ### 2.2 Inputs and missing parts
 
@@ -111,25 +116,23 @@ part is missing, gives nothing and does nothing that needs the missing
 commits, and gives and does every thing that does not need those missing
 commits (`report-missing-parts`).
 
-The term `input` also states when content that a program could not
-take—because the system refuses a permission, reports an input or output
-error, or offers no operation that lets the program take that content
-while the program keeps every safety obligation of the owner design—is a
-part that a valid input lacks. For example, suppose a program reads a
-folder tree of files, and for one file the system refuses the program
+The term `input` also states when content that a program could not take
+is a part that a valid input lacks. For example, suppose a program reads
+a folder tree of files, and for one file the system refuses the program
 permission to read that file, reports a device error, or rejects as not
 supported every operation that lets the program read that file while the
-program keeps every safety obligation of the owner design. The folder
-tree stays valid and lacks that file's content (term `input`). When a thing that a
-requirement obliges needs that file's content, the program reports which
-file it could not read, gives nothing that needs that file's content,
-and does nothing that needs that file's content. In every case, the
-program gives and does every thing that does not need that file's
-content (`report-missing-parts`). By contrast, when the program stops
-reading that file because the file is too large for the program's
-memory, the program reaches a limit of its own (term `own-limit`),
-reports where it reached that limit (`report-stops-at-limits`), and
-gives no result of that stopped reading (`omit-results-at-limits`).
+program keeps every safety obligation that binds the program. The folder
+tree stays valid and lacks that file's content (term `input`). When a
+thing that a requirement obliges needs that file's content, the program
+reports which file it could not read, gives nothing that needs that
+file's content, and does nothing that needs that file's content. In
+every case, the program gives and does every thing that does not need
+that file's content (`report-missing-parts`). By contrast, when the
+program stops reading that file because the file is too large for the
+program's memory, the program reaches a limit of its own (term
+`own-limit`), reports where it reached that limit
+(`report-stops-at-limits`), and gives nothing that the program computes
+from what that stopped reading took (`omit-results-at-limits`).
 
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
@@ -255,22 +258,21 @@ An input can have parts, such as the commits of a history or the files
 of a folder tree. The owner design of an input defines which parts such
 an input has and which parts a valid input can lack.
 
-For every owner design, when one of these conditions holds while a
-program reads an input or a part of an input, the content that the
-program could not take is a part that the input lacks, and a valid input
-can lack that part, unless one of the three exceptions of this term
-applies:
+For every owner design, unless one of the exceptions of this term holds,
+the content that a program could not take while the program reads an
+input or a part of an input is a part that the input lacks, and a valid
+input can lack that part, when one of these conditions holds:
 
 - the system refuses the program a permission;
 - the system reports an input or output error; or
 - the system offers no operation that lets the program take that content
   while the program keeps every safety obligation (term
-  `safety-obligation`) of that owner design.
+  `safety-obligation`) that binds the program.
 
-In each of these three exception cases, that content is not a part that
-the input lacks:
+That content is not a part that the input lacks when one of these
+exceptions holds:
 
-- the refusal, the error, or the failure of an operation comes from a
+- the refusal, the error, or the rejection of an operation comes from a
   bound of the program, of its run, or of its machine on a resource,
   such as a bound on open files, file size, memory, or time;
 - the program itself gives up the permission, causes the refusal, or
@@ -284,21 +286,25 @@ input not valid.
 
 Here, the system is anything outside the program through which the
 program reads an input, such as the operating system, a storage service,
-or, for a part of a program, the larger program. An input or output
+or, for a part of a program, the larger program. The program, the
+libraries and the runtime that the program uses, and any other program
+that the program runs are not part of the system. An input or output
 error is a fault of the system or of its storage in giving the content
 of an input, such as a device error or a lost connection. A report that
 content does not exist, or that content does not decode in a form that a
 design defines, is not an input or output error. The system offers no
 operation that lets a program take content while the program keeps every
-safety obligation of an owner design when the system provides no such
-operation, or when the system or a part of the system (such as a file
-system) rejects as not supported every operation, or every option of an
-operation, that would let the program take that content while the
-program keeps every such safety obligation. A feature that a program
-lacks is not a lack of an operation that the system offers. An operation
-that fails because of a bound of the program, of its run, or of its
-machine on a resource is not an operation that the system rejects as not
-supported.
+safety obligation that binds the program when the system provides no
+such operation, or when the system or a part of the system (such as a
+file system) rejects each such operation as not supported. Here, an
+operation with one choice of options, such as one call with one set of
+flags, is a different operation from the same operation with another
+choice of options. A feature that a program lacks is not a lack of an
+operation that the system offers. A feature that a library or a runtime
+that the program uses lacks, or that another program that the program
+runs lacks, is a feature that the program lacks. An operation that fails
+because of a bound of the program, of its run, or of its machine on a
+resource is not an operation that the system rejects as not supported.
 
 ### 3.5 Dependence
 
@@ -394,7 +400,8 @@ these things:
 - that a program reads, alters, writes, follows, or runs no thing other
   than the things that the requirement allows, or gains no permission,
   where such a thing is, for example, a file, a symbolic link, a stored
-  record, or code supplied to the program;
+  record, or code that the program takes from a file or from another
+  program;
 - that a program never gives an answer that permits an action to
   proceed; or
 - that a program ends code or an operation that the program runs.
@@ -503,9 +510,12 @@ For anything that an obligation of a requirement obliges a conforming
 program to give or do—including an obligation to give nothing, to do
 nothing, or to give no thing of a kind—that obligation binds the
 conforming program only when each input on which that thing depends is
-valid and holds every part that that thing needs, and only when no
-reading or computation on which that thing depends stopped at a limit of
-the conforming program's own. Four kinds of obligation bind a conforming
+valid and holds every part that that thing needs, and only when either
+no reading or computation on which that thing depends stopped at a limit
+of the conforming program's own or the conforming program computes that
+thing only from readings and computations that did not stop at a limit
+of the conforming program's own and that together read every part on
+which that thing depends. Four kinds of obligation bind a conforming
 program beyond that scope:
 
 - A safety obligation binds a conforming program always: under an input
@@ -563,19 +573,22 @@ program must report no stop at a limit of its own that did not occur.
 }
 
 When a program reaches a limit of its own by stopping a reading or
-computation, the program must give no result of the stopped reading or
-computation. In that case, for an input or part of an input that the
-stopped reading or computation read or computed on, the program must
-give no verdict about that input or part that depends on the stopped
-reading or computation, such as "valid", "invalid", or a report that
-the input or part is not valid, is missing, or lacks a part. This
-requirement does not forbid a report of where the program reached a
-limit of its own, or a result word that a requirement states that a
-program gives to say that the program stopped at a limit of its own.
-This requirement also does not forbid any result that does not depend
-on the stopped reading or computation, or any other result beyond the
-stopped reading or computation that is not a verdict that this
-requirement forbids.
+computation, the program must give nothing that the program computes
+from what that reading took, or from what that computation computed,
+before the stop, other than a report of where the program reached that
+limit and a result word that a requirement states that a program gives
+to say that the program stopped at a limit of its own. In that case, for
+each input or part of an input that the stopped reading or computation
+read or computed on, the program must also give no verdict about that
+input or part, unless the program computes that verdict only from
+readings and computations that did not stop at a limit of the program's
+own and that together read every part on which that verdict depends.
+Here, a verdict about an input or part is a result or report that says
+whether that input or part is valid, is missing, or lacks a part, or
+that says that the program could not parse or decode that input or part,
+such as "valid", "invalid", or a report that the input or part is not
+valid, is missing, or lacks a part. This requirement forbids nothing
+else that the program gives.
 
 ### 4.3 Inputs that are not valid
 
