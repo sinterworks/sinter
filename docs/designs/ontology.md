@@ -356,15 +356,18 @@ or a new judgment settling other judgments — uses a `revises` edge.
 The revised content of a declared item is its canonical object,
 identified by its content hash, and an exact pin such as
 `@cites billing#limit-amount=v2` resolves to the exact object of that
-revision in the tree (including a replaced revision that `.sinter/`
-still holds and that no counting void withdraws) or among the
-unwithdrawn kept objects on the log branch (terms `revised-content`,
-`item-revision`, and `pinned-edge`). When no single exact object exists
-— on a cycle of pins in the tree's own objects, on a dangling pinned
-citation of an undeclared name, or on a pin matching two or more kept
-copies of one label — the canonical edge names a `pin` computed identity
-object. A pin to a revision that never merged, or to a withdrawn kept
-object, is a missing part.
+revision in the tree (including one replaced, unwithdrawn revision that
+`.sinter/` still holds) or among the unwithdrawn kept objects on the log
+branch, when the pin lies on no cycle of the tree's own objects (terms
+`revised-content`, `item-revision`, and `pinned-edge`). Otherwise — on a
+cycle of pins in the tree's own objects, on a dangling pinned citation
+of an undeclared name, or on an ambiguous pin matching two or more
+replaced, unwithdrawn objects in `.sinter/` or two or more unwithdrawn
+kept objects on the log branch of one label — the canonical edge names a
+`pin` computed identity object. An ambiguous pin gives no exact target,
+and withdrawing matching copies with counting voids until one remains
+settles the ambiguity. A pin to a revision that never merged, or to a
+withdrawn kept object, is a missing part.
 
 ### 2.11 Tasks, plans, and scopes
 
@@ -966,12 +969,12 @@ These table rules bind every row:
   `vector-set`, `vector-group`), and no `vector-group-def`; the member
   `withdrawn-kind` of the `void` equals the kind word of the content id
   in its `withdraws` edge.
-- A `void` holds no `about` edge and no edge to a computed identity
-  object. Each edge of a `void` other than its one `withdraws` edge is a
-  copy of an edge of the withdrawn object: for a withdrawn declared
-  item, a copy of each of its `revises` edges; for each other withdrawn
-  object, a copy of each of its edges whose target is not a computed
-  identity object.
+- A `void` has no thing and holds no edge to a computed identity object.
+  Each edge of a `void` other than its one `withdraws` edge is a copy of
+  an edge of the withdrawn object: for a withdrawn declared item, a copy
+  of each of its `revises` edges; for each other withdrawn object, a
+  copy of each of its edges whose target is not a computed identity
+  object (including any `about` edge).
 
 These four cross-object rules bind definitions and judgments:
 
@@ -1001,8 +1004,9 @@ these hold:
   of its elements' canonical forms with no duplicates;
 - `edges` is absent when empty, and otherwise holds only `{"kind","to"}`
   flat objects permitted by the row's allowed edges and target kinds;
-- every single-object agreement and cardinality rule of the row and the
-  five table rules of this term hold.
+- every agreement and cardinality rule of the row that reads only that
+  object holds, and the parts of the five table rules of this term that
+  read only that object hold.
 
 ### 3.29 Objects
 
@@ -1088,7 +1092,8 @@ kind word never enters the content hash.
     #{
         object=v1, object-kind=v1, content-id=v1, declared-item=v1,
         item-name=v1, external-item=v1, vector-set=v1,
-        conformance-vector-group=v1, agent=v1, tree=v1,
+        conformance-vector-group=v1, finding-class=v1, agent=v1,
+        tree=v1,
     },
 }
 
@@ -1110,18 +1115,25 @@ id:
   edge to it. The presence of a `name` object never implies that a
   current description of that name exists in a tree.
 - A `pin` object (`{"kind":"pin","label":<label>,"name":<name>,"v":1}`)
-  stands for a pinned citation of a name and label when no single exact
-  object exists: on a cycle of pins among the tree's own objects
-  (`items` edges keep their exact targets), on a dangling pinned
-  citation of an undeclared name, or on a pin matching two or more
-  unwithdrawn kept objects of one name and label. Wherever one exact
-  object exists (including a replaced declared-item object that
-  `.sinter/` still holds and that is not withdrawn), an exact pin names
-  that exact object's content id. A pin to a revision that never merged,
-  or to a kept object that a valid `void` object in `.sinter/` of that
-  tree (carrying no `agent` and meeting an acceptance rule that a design
+  stands for a pinned citation of a name and label in these three cases
+  only: on a cycle of pins among the tree's own objects (`items` edges
+  keep their exact targets); on a dangling pinned citation of an
+  undeclared name; or on an ambiguous pin matching two or more replaced,
+  unwithdrawn declared-item objects of that name and label in `.sinter/`
+  of the tree, or (when the tree holds no current and no replaced,
+  unwithdrawn declared-item object of that name and label) two or more
+  unwithdrawn kept objects of that name and label on the log branch.
+  Wherever one exact object exists (including one replaced, unwithdrawn
+  declared-item object that `.sinter/` still holds) and the pin lies on
+  no cycle of the tree's own objects, an exact pin names that exact
+  object's content id. A pin to a revision that never merged, or to a
+  kept object that a valid `void` object in `.sinter/` of that tree
+  (carrying no `agent` and meeting an acceptance rule that a design
   gives for `void`) withdraws, names no `pin` object; its citation is a
-  missing part.
+  missing part. An ambiguous pin gives no exact target (so each result
+  that needs its target lacks that target, and the ambiguity is a
+  condition for a finding), and withdrawing matching copies with such
+  `void` objects until one remains settles the ambiguity.
 - An `ext` object (`{"external-ref":<ref>,"kind":"ext","v":1}`) stands
   for an external item; it carries no written kind word.
 - A `vector-set` object (`{"kind":"vector-set","owner":<owner>,"v":1}`)
@@ -1247,7 +1259,7 @@ or inline citation stands in no item.
         item=v1, tree=v1, edge-source=v1, item-name=v1,
         external-item=v1, vector-set=v1, conformance-vector-group=v1,
         declared-item=v1, schema=v1, atom=v1, term=v1, containment=v1,
-        task=v1, plan=v1, test=v1, site=v1, agent=v1,
+        finding-class=v1, task=v1, plan=v1, test=v1, site=v1, agent=v1,
     },
 }
 
@@ -1283,22 +1295,31 @@ line) beside the edge, never inside the edge.
 In canonical form, each target of a citation edge is a content id:
 
 - an exact pin to a declared item names the exact object of that name
-  and label when one exists: the current declared-item object of that
-  name and label in the tree; otherwise a declared-item object of that
-  name and label that `.sinter/` of the tree still holds (replaced by a
-  newer revision and not withdrawn) when exactly one exists; otherwise,
-  when the tree holds no such object of that name and label, the one
-  unwithdrawn kept object of that name and label on the log branch. When
-  no single exact object exists, the pin names a `pin` computed identity
-  object in these three cases only: the pin lies on a cycle of the
-  tree's own objects (`items` edges keep their exact targets); the pin
-  is a dangling pinned citation of an undeclared name; or the pin
-  matches two or more unwithdrawn kept objects of one name and label. In
-  every other case, such as a pin to a revision that never merged or to
-  a kept object that a valid `void` object in `.sinter/` of that tree
-  (carrying no `agent` and meeting an acceptance rule that a design
-  gives for `void`) withdraws, the pin names no object, and its citation
-  is a missing part;
+  and label when one exists and the pin lies on no cycle of the tree's
+  own objects: the current declared-item object of that name and label
+  in the tree; otherwise a declared-item object of that name and label
+  that `.sinter/` of the tree still holds (replaced in the sense of
+  `declared-item`, and not withdrawn) when exactly one exists;
+  otherwise, when the tree holds no current and no replaced, unwithdrawn
+  declared-item object of that name and label, the one unwithdrawn kept
+  object of that name and label on the log branch. Otherwise, the pin
+  names a `pin` computed identity object in these three cases only: the
+  pin lies on a cycle of the tree's own objects (`items` edges keep
+  their exact targets); the pin is a dangling pinned citation of an
+  undeclared name; or the pin is ambiguous because it matches two or
+  more replaced, unwithdrawn declared-item objects of that name and
+  label in `.sinter/` of the tree, or (when the tree holds no current
+  and no replaced, unwithdrawn declared-item object of that name and
+  label) two or more unwithdrawn kept objects of that name and label on
+  the log branch. An ambiguous pin gives no exact target (so each result
+  that needs its target lacks that target, and the ambiguity is a
+  condition for a finding), and withdrawing matching copies with valid
+  `void` objects in `.sinter/` of that tree (each carrying no `agent`
+  and meeting an acceptance rule that a design gives for `void`) until
+  one remains settles the ambiguity. In every other case, such as a pin
+  to a revision that never merged or to a kept object that such a `void`
+  object withdraws, the pin names no object, and its citation is a
+  missing part;
 - an unpinned citation (`=*`) names the target's `name` computed
   identity object (and a citation written by the content id `name:…`
   means what `=*` of that name means);
@@ -1714,8 +1735,8 @@ stay replaced through the void's copied `revises` edges, and an edge to
 a withdrawn object whose file is deleted leads to a counting void whose
 `withdraws` edge names that content id. For a withdrawn declared item, a
 void copies only its `revises` edges; for each other withdrawn object, a
-void copies no edge targeting a computed identity object. A void holds
-no `about` edge.
+void copies no edge targeting a computed identity object. A void has no
+thing, although its copies can include an `about` edge.
 
 ### 3.52 Definition statements
 
@@ -1961,19 +1982,21 @@ valid program's own store (`conformance#own-store`).
     },
 }
 
-The thing of an object that holds an `about` edge is the object that its
-`about` edge names: a work item for a definition statement, a `done`
-judgment, an `abandoned` judgment, a `scope` object, and a `delivered`
-observation; the judged declared-item object for an approval judgment
-and a decline judgment; a `name` object for a declared item; and a
-`vector-group` object for a `vector-group-def`. A `void`, a `progress`
-observation, a work item object, and a computed identity object hold no
-`about` edge and have no thing. The statements of a thing fall into
-separate groups: for a work item, one group holds its definition
-statements (`task-def` or `plan-def`), and a separate group holds its
-work-item judgments (`done` and `abandoned`); for a declared-item
-object, one group holds its approval and decline judgments. A
-`delivered` observation is not a statement of its thing.
+The thing of a declared item, a `vector-group-def`, a `scope` object, a
+definition statement, a judgment, or a `delivered` observation is the
+object that its own `about` edge names: a work item for a definition
+statement, a `done` judgment, an `abandoned` judgment, a `scope` object,
+and a `delivered` observation; the judged declared-item object for an
+approval judgment and a decline judgment; a `name` object for a declared
+item; and a `vector-group` object for a `vector-group-def`. A `void`, a
+`progress` observation, a work item object, and a computed identity
+object have no thing; a `void` has none even when it holds a copy of an
+`about` edge of the object that it withdraws. The statements of a thing
+fall into separate groups: for a work item, one group holds its
+definition statements (`task-def` or `plan-def`), and a separate group
+holds its work-item judgments (`done` and `abandoned`); for a
+declared-item object, one group holds its approval and decline
+judgments. A `delivered` observation is not a statement of its thing.
 
 A statement is accepted in a tree when, and only when, a design gives an
 acceptance rule for its kind of statement and that rule holds for that
