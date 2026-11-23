@@ -50,7 +50,7 @@ JSON text.
 
 | word or phrase | meaning |
 |---|---|
-| [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries and the runtime that the program uses |
+| [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries, the runtime, and any other program that the program uses |
 | [file system](sinter:#file-system=v1) | the part of the system that stores files, as POSIX.1-2024 defines a file system, and that acts on those files when a program asks it to; a file is on the file system that stores it |
 | [folder tree](sinter:#folder-tree=v1) | a folder, its root, with the file of each folder entry of the root and the file of each folder entry of each folder of the folder tree |
 | [root](sinter:#folder-tree=v1) | the folder at the top of a folder tree |
@@ -76,7 +76,7 @@ JSON text.
 | folder entry for a file name | in a folder, the folder entry whose entry name is the UTF-8 encoding of the file name, byte for byte |
 | [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text as a path in a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
 | [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
-| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read" (for a part that the folder tree lacks because the program has no search permission or no read permission; in a file read, "cannot read" also reports any other part that the folder tree lacks under the term `input` of Conformance, including when no offered operation lets the program take content while the program keeps every safety obligation of a file read), "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
+| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read" (for a part that the folder tree lacks because the program has no search permission or no read permission, and, in a file read, for any other part that the folder tree lacks under the term `input` of Conformance), "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
 | [file of the path](sinter:#path-file=v1) | in a folder tree, a file that a valid path names: the root, or, for file name k, the file of the folder entry for file name k in folder k; folder 1 is the root, and, when file name k is not the last file name of the valid path, folder k + 1 is the folder that file name k names |
 | [folder of the path](sinter:#path-file=v1) | in a folder tree, a folder k of a valid path: the root, or a folder that a file name other than the last file name of the valid path names |
 | [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | find a file by the reference of the symbolic link |
@@ -103,10 +103,11 @@ JSON text.
 
 The system of a program is the computer that executes the program,
 together with the operating system of that computer. The program, and
-the libraries and the runtime that the program uses, are not part of the
-system. A file system is the part of the system that stores files, as
-POSIX.1-2024 defines a file system, and that acts on those files when a
-program asks it to. A file is on the file system that stores it.
+the libraries, the runtime, and any other program that the program uses,
+are not part of the system. A file system is the part of the system that
+stores files, as POSIX.1-2024 defines a file system, and that acts on
+those files when a program asks it to. A file is on the file system that
+stores it.
 
 A folder tree is a folder, its root, together with the file of each
 folder entry of the root and the file of each folder entry of each
@@ -251,24 +252,28 @@ nor the read permission for `docs`.
 
 For example, when the system reports a device error while the program
 reads the content of `docs/a.md`, or when the system or the file system
-rejects as not supported every operation that lets the program read
-`docs/a.md` while the program keeps every safety obligation of a file
-read (in particular, `follow-no-symbolic-links` and
+rejects as not supported every operation of the system that lets the
+program read `docs/a.md` while the program keeps every safety obligation
+that binds the program (in particular, `follow-no-symbolic-links` and
 `read-only-named-files`), the folder tree lacks that content, and the
+valid path `docs/a.md` gives "cannot read". In the same way, when the
+system rejects as not supported every operation of the system that tells
+the program, without following a symbolic link, the file type of the
+file that `docs` names, the folder tree lacks that file type, and the
 valid path `docs/a.md` gives "cannot read". The result "cannot read" is
-then the report of that missing content (`report-missing-parts` of
-Conformance). By contrast, when the system rejects one operation to
-determine a permission (such as the search permission for a folder), and
-another offered operation determines that permission while the program
-keeps every safety obligation of a file read (for example, asking the
-system for an attribute of `.` in that folder), that content is not
-missing on that account. When the program stops reading `docs/a.md`
-because the content is too large for the memory of the program, the
-program reaches a limit of its own, and the file read gives no result. When the program
-has the search permission and the read permission for the root, and the
-UTF-8 encoding of file name 1 is longer than the file system that the
-root is on allows for one entry name, the root holds no folder entry for
-file name 1, and the result is "no file".
+then the report of that missing part (`report-missing-parts` of
+Conformance). By contrast, when the system rejects as not supported one
+operation of the system that tells whether the program has the search
+permission for `docs`, and another operation of the system tells whether
+the program has that permission while the program keeps every safety
+obligation that binds the program, the folder tree lacks no part on that
+account. When the program stops reading `docs/a.md` because the content
+is too large for the memory of the program, the program reaches a limit
+of its own, and the file read gives no result. When the program has the
+search permission and the read permission for the root, and the UTF-8
+encoding of file name 1 is longer than the file system that the root is
+on allows for one entry name, the root holds no folder entry for file
+name 1, and the result is "no file".
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -401,9 +406,9 @@ path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
 
 The system of a program is the computer that executes the program,
 together with the operating system of that computer. The program, and
-the libraries and the runtime that the program uses, are not part of the
-system. In a statement about a program, the system is the system of that
-program.
+the libraries, the runtime, and any other program that the program uses,
+are not part of the system. In a statement about a program, the system
+is the system of that program.
 
 ### 3.2 File systems
 
@@ -614,12 +619,11 @@ tree.
         folder=v1, regular-file=v1, symbolic-link=v1,
         file-of-another-kind=v1, folder-tree=v1, file-kind=v1,
         search-permission=v1, read-permission=v1, path=v1, path-file=v1,
-        follow-no-symbolic-links=v1, read-only-named-files=v1,
     },
-    conformance#{input=v1, safety-obligation=v1},
+    conformance#{input=v1},
     text#{
         text=v1, result=v1, utf-8-encoding=v1, valid-utf-8=v1,
-        text-of-a-byte-sequence=v1, code-span=v1,
+        text-of-a-byte-sequence=v1,
     },
 }
 
@@ -653,14 +657,8 @@ In case 1, the folder entries of folder k are a part that the folder
 tree lacks for the program. In case 6, when the program has no read
 permission for the regular file, the content of that regular file is a
 part that the folder tree lacks for the program. A valid folder tree can
-lack such a part, as well as any content of that folder tree that a
-program could not take and that is a part that the folder tree lacks
-under the term `input` of Conformance (for example, because of a denied
-permission, an input or output error, or a lack of an offered operation
-that lets the program take that content while the program keeps every
-safety obligation of this design, such as `follow-no-symbolic-links` and
-`read-only-named-files`). In cases 1 and 6, "cannot read" is the
-file-read result for that missing part.
+lack such a part. In those cases, "cannot read" is the result for that
+missing part.
 
 ### 3.17 Valid globs
 
@@ -953,7 +951,7 @@ is a valid path, a conforming program must not give the result
     posix/2024,
     #{
         system=v1, file-system=v1, folder=v1, folder-tree=v1,
-        regular-file=v1, search-permission=v1, path=v1, file-read=v1,
+        regular-file=v1, file-kind=v1, path=v1, file-read=v1,
         file-read-result=v1, follow-no-symbolic-links=v1,
         read-only-named-files=v1,
     },
@@ -976,15 +974,16 @@ the conforming program must give "cannot read", and no other result:
 
 - The file-read result of that valid path in that folder tree for the
   conforming program is "cannot read".
-- The conforming program could not take content of that folder tree
-  because of a denied permission, because of an input or output error,
-  or because no offered operation lets the conforming program take that
-  content while the conforming program keeps every safety obligation
-  (term `safety-obligation` of Conformance) of this design (in
-  particular, `follow-no-symbolic-links` and `read-only-named-files`),
-  that content is a part that the folder tree lacks under the term
-  `input` of Conformance, and the result of that file read needs that
-  part.
+- The conforming program could not take a thing of that folder tree,
+  such as the folder entries of a folder, the file type of a file, or
+  the content of a regular file, because of a denied permission, because
+  of an input or output error, or because no operation of the system
+  lets the conforming program take that thing while the conforming
+  program keeps every safety obligation (term `safety-obligation` of
+  Conformance) that binds the conforming program (in particular,
+  `follow-no-symbolic-links` and `read-only-named-files`); that thing is
+  a part that the folder tree lacks under the term `input` of
+  Conformance; and the result of that file read needs that part.
 
 In that file read, when neither condition holds, the conforming program
 must give the file-read result of that valid path in that folder tree
@@ -992,12 +991,7 @@ for the conforming program, and no other result. In that file read, when
 at least one of those conditions holds, the result "cannot read", given
 once for that file read, is the report, for this requirement under
 `report-missing-parts` of Conformance, of each part that the folder tree
-lacks and that the result of that file read needs. When one operation to
-determine a permission (such as the search permission for a folder) is
-not supported, and another offered operation determines that permission
-while the conforming program keeps every safety obligation of this
-design, that lack of support does not make content a part that the
-folder tree lacks.
+lacks and that the result of that file read needs.
 
 A bound on the length of a whole pathname of POSIX.1-2024 and a bound
 on the size of a file are examples of limits of the conforming
@@ -1364,7 +1358,7 @@ no other result.
         file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
     },
     conformance#{
-        conforming-program=v1, input=v1, own-limit=v1,
+        conforming-program=v1, input=v1, dependence=v1, own-limit=v1,
         safety-obligation=v1,
     },
     text#{
@@ -1392,11 +1386,12 @@ text as a path in the folder tree.
   2. No other process changes the folder tree during the file read.
   3. During the file read, including while reaching the root, the system
      denies no permission other than the permissions that `tree` takes
-     away, reports no input or output error, and offers operations that
-     let the program take the content of the folder tree while the
-     program keeps every safety obligation (term `safety-obligation` of
-     Conformance) of this design. The file read does not stop at a limit
-     of the program's own.
+     away, reports no input or output error, and, for each thing of the
+     folder tree that the result of the file read needs, offers an
+     operation of the system that lets the program take that thing while
+     the program keeps every safety obligation (term `safety-obligation`
+     of Conformance) that binds the program. The file read does not stop
+     at a limit of the program's own.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
