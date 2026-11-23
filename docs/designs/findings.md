@@ -9,7 +9,7 @@
 @cites files=v1
 @cites data-forms=v1
 @cites ontology=v1
-Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, and that validate sequences of edit descriptions.
+Specifies the parts of a finding: its tree, finding class, subject, message, spot, mark, related messages, fix, and whether it is ackable; spots, their start positions, and the positions after them; edits, edit descriptions, edit sets, edited texts, and edited trees; fixes, corrections, and acknowledgments; finding ids and the identity of findings; and requirements for conforming programs that give the parts of findings, finding ids, the positions of spots, and edited texts, that validate sequences of edit descriptions, and that make fixes.
 
 A finding reports one condition at one part of a repository, such as an
 item of the kind requirement that no test cites. Each finding has a
@@ -33,12 +33,12 @@ productions; places, runs, boundaries, byte order marks, bodies, line
 endings, lines, line numbers, columns, positions, and spans, with the
 start and the end of a span; valid UTF-8, UTF-8 encodings, and the text
 of a byte sequence; and results. From Identifiers, it takes slugs and
-the form of `@ack` lines. From Files and paths, it takes valid paths.
-From the Ontology, it takes findings and finding classes, items,
-schemas, trees, people, and the ledger, with its log branch. From Data
-forms, the design takes JSON values (strings, integers, arrays, and
-objects, with the members of objects and their keys), and hex texts. From
-the specification `test-vectors` of Data forms, the design takes
+the form of `@ack` lines. From Files and paths, it takes valid paths and
+folders. From the Ontology, it takes findings and finding classes,
+items, schemas, trees, people, and the ledger, with its log branch. From
+Data forms, the design takes JSON values (strings, integers, arrays, and
+objects, with the members of objects and their keys), and hex texts.
+From the specification `test-vectors` of Data forms, the design takes
 test-vector sets. The file that holds the conformance vectors of the
 design is a test-vector set. From that specification, it also takes
 vector lines, the forms of a group, needs and need names, and what a
@@ -54,9 +54,10 @@ vector line states.
 | [schema](sinter:ontology#schema=v1) | a declared item of the kind schema (the text encoding declares a schema with `@schema`); the schema gives the form of a thing that crosses the edge of a conforming program: the layout of the thing and every constraint that is a property of the thing itself |
 | [slug](sinter:identifiers#slug=v1) | one segment, such as `late-fee`, or several segments joined by `/`, such as `billing/late-fee`; a segment is ASCII letters and ASCII digits, with one `-`, `_`, or `.` at most between two of them; so a slug holds no `:` |
 | [tree](sinter:ontology#tree=v1) | a set of files, such as the files at a commit or the files in a working tree; each file has a valid path and a content, which is a byte sequence, and no two files in the set have the same valid path |
-| [ledger](sinter:ontology#ledger=v1) | the records of a repository: statements, such as approvals, stored as fixed files in `.sinter/` in a tree with no central order; and observations and kept objects of declared items stored on the log branch outside every tree |
+| [ledger](sinter:ontology#ledger=v1) | the records of a repository: statements, such as approvals, stored as fixed files in `.sinter/` in a tree with no central order; and observations, kept objects of declared items, and the computed identity objects that those kept objects name (other than keys that a kept object holds itself), stored on the log branch outside every tree |
 | [person](sinter:ontology#person=v1) | a human who works on a repository |
 | [valid path](sinter:files#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
+| [folder](sinter:files#folder=v1) | a file that holds folder entries |
 | [text](sinter:text#text=v1) | a finite sequence of characters |
 | [line feed](sinter:text#line-feed=v1), [carriage return](sinter:text#carriage-return=v1) | the characters U+000A and U+000D |
 | [place](sinter:text#place=v1) | a whole number, from 1 to the number of the characters of a text, at which a character is in the text |
@@ -274,7 +275,10 @@ of a fix have numbers from 1, in their order. No two edit sets of a fix
 are the same set. The message of the fix says what the fix does. To make
 a fix is to make the edits of exactly one of its edit sets. So when a
 fix has two or more edit sets, someone chooses one of them. The fix of a
-finding is a fix in the tree of the finding.
+finding is a fix in the tree of the finding. In an execution in which a
+conforming program could not take content of a file or a folder under
+the term `input` of Conformance, that conforming program makes no fix
+(requirement `make-no-fixes-on-unreadable-files`).
 
 An edit set in a tree corrects a finding of that tree when, in the
 edited tree of the edit set, the condition that the finding reports no
@@ -848,6 +852,22 @@ is not the same finding as F. For a finding F, a conforming program must
 give, as an edit set of the fix of F, only an edit set that corrects F
 or, when F is ackable, adds an acknowledgment of F.
 
+### 4.12 No fix when a file cannot be read
+
+@req make-no-fixes-on-unreadable-files=v1
+@cites {
+    conformance#{conforming-program=v1, input=v1},
+    files#{folder=v1},
+    text#{code-span=v1},
+    ontology#{tree=v1},
+    #{fix=v1},
+}
+
+In an execution in which content of a file or a folder is a part that an
+input lacks under the term `input` of Conformance because a conforming
+program could not take that content, that conforming program must make
+no fix in any tree.
+
 ## 5. Conformance
 
 A program, or a part of a program, conforms to this design when it is a
@@ -866,8 +886,8 @@ gives the forms of the group: the requirements that the vectors of the
 group follow from, and the inputs, results, and values of those vectors.
 No group of this design uses a need, so the forms of each group give no
 need names. These requirements have no vectors: `give-finding-parts`,
-`omit-absent-finding-parts`, `give-consistent-findings`, and
-`limit-fix-edit-sets`.
+`omit-absent-finding-parts`, `give-consistent-findings`,
+`limit-fix-edit-sets`, and `make-no-fixes-on-unreadable-files`.
 
 ### 5.1 The edits of edit sets
 
