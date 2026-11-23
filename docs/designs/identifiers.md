@@ -86,7 +86,7 @@ JSON text.
 | [part name](sinter:#part-name=v1) | a segment, such as `descriptor` in `catalog#descriptor` |
 | [full name](sinter:#full-name=v1) | a slug, `#`, and a part name, such as `catalog#descriptor` |
 | [name](sinter:#name=v1) | a slug, a full name, or `#` and a part name |
-| [kind word](sinter:#kind-word=v1) | one of seven words, such as `req`, that can stand with a `:` at the start of a target, as in `req:catalog#size-limit=v2` |
+| [kind word](sinter:#kind-word=v1) | one of seven words, such as `req`, that can stand with a `:` at the start of a target that holds a name, a part name, or an external id, as in `req:catalog#size-limit=v2` |
 | [object kind word](sinter:#content-id=v1) | one of twenty-five words, such as `req`, `task`, or `task-def`, that stands before `:` in a content id |
 | [content id](sinter:#content-id=v1) | an object kind word, `:`, and 32 hex digits, such as `req:0123456789abcdef0123456789abcdef` |
 | [label](sinter:#label=v1) | a text of printable ASCII characters other than `/`, `#`, `@`, `*`, `=`, `,`, `{`, `}`, `[`, and `]`, such as `v2` |
@@ -206,16 +206,17 @@ A conforming program gives each name with its case unchanged, so
 
 The seven kind words are `atom`, `decision`, `design`, `req`, `schema`,
 `spec`, and `term`. A kind word stands at the start of a target that
-holds a name or an external id, with a `:` after that kind word:
-`req:catalog#size-limit=v2`, `spec:rfc/8259`.
+holds a name, a part name, or an external id, with a `:` after that
+kind word: `req:catalog#size-limit=v2`, `spec:rfc/8259`.
 
-A single target of a citation that is not a content id, a scoped list,
-and the target of an inline citation that is not a content id can start
-with a kind word. The target of `@extern` always starts with a kind
-word. The target of a declaration holds no kind word. A name holds no
-`:`. So the target `plan:upkeep=*` is invalid: `plan` is not a kind
-word, and `plan:upkeep` is not a slug. A content id (section 2.7) uses
-its own set of twenty-five object kind words instead of a kind word.
+A single target of a citation, a scoped list, and the target of an
+inline citation can start with a kind word. The target of `@extern`
+always starts with a kind word. The target of a declaration holds no
+kind word. A name holds no `:`. So the target `plan:upkeep=*` is
+invalid: `plan` is not a kind word, `plan:upkeep` is not a slug, and
+`upkeep=*` is not 32 hex digits. A content id (section 2.7) starts with
+one of twenty-five object kind words. Seven of those words are the same
+texts as the seven kind words.
 
 ### 2.4 Revisions
 
@@ -285,8 +286,7 @@ optional `#` and part name after that external id. A conforming program
 interprets no other single target and no other citation entry as an
 external id. The target of `@extern` is never an external target, so
 `@extern spec:gh` is valid under a binding with the external namespace
-`gh`. A target or a citation entry that matches `content-id` is never an
-external target.
+`gh`.
 
 So the binding of `external-namespaces` decides the meaning of a target.
 When `gh` is a namespace name of the binding, `@cites gh/42` cites the
@@ -346,8 +346,19 @@ target of an inline citation, such as
 can also stand as an element of a target list, such as
 `@cites {req:0123456789abcdef0123456789abcdef, #notation=v1}`. A content
 id carries no extra kind word before it, no `#` and part name, no
-revision, and no vector selection. A content id cannot stand in a
-declaration, an `@extern` line, or a scoped list.
+revision, and no vector selection. A declaration, an `@extern` line,
+and a scoped list hold no content id.
+
+Seven object kind words, `atom`, `decision`, `design`, `req`, `schema`,
+`spec`, and `term`, are the same texts as the seven kind words, and 32
+hex digits are a segment. So a kind word, `:`, and 32 hex digits can
+also start a target that is not a content id. For example,
+`@cites req:0123456789abcdef0123456789abcdef=v1` is valid: its target is
+the kind word `req` and the slug `0123456789abcdef0123456789abcdef`,
+with the revision `v1`. In the same way,
+`@extern req:0123456789abcdef0123456789abcdef` is valid: its target is
+the kind word `req` and the part name
+`0123456789abcdef0123456789abcdef`.
 
 ### 2.8 Target lists and scoped lists
 
@@ -480,7 +491,7 @@ runs:
   `9` and `a` to `f`.
 - The text between the first run and the last run, without the spaces
   and tabs at its two ends, is the **subject**. The subject can be
-  empty. The subject can hold any character other than a line feed,
+  empty. Apart from a line feed, the subject can hold any character,
   spaces and `@` included.
 
 Spaces and tabs can follow the hash prefix. Nothing else can follow the
@@ -506,9 +517,10 @@ characters and not `#`. As a result,
 `[x](sinter:catalog%23size-limit=v2)` is invalid.
 
 The target of an inline citation is its destination after `sinter:`. The
-target is either an optional kind word and `:` followed by a name, `=`,
-and a revision or by an external id with an optional `#` and part name,
-or a content id. As in the target of `@cites`, the revision is a label
+target has one of three forms: an optional kind word and `:`, then a
+name, `=`, and a revision; an optional kind word and `:`, then an
+external id with an optional `#` and part name; or a content id. As in
+the target of `@cites`, the revision is a label
 or `*`. As in the target of `@cites`, an external id and a content id
 each carry no revision. An inline citation allows no vector selection,
 so `[x](sinter:catalog#descriptor[offsets])` is invalid. So
@@ -1819,12 +1831,12 @@ of four results:
 - "not a tag line", when the line is not a tag line;
 - "other tag word", when the line is a tag line whose tag word is not a Sinter tag word;
 - "valid", when all three of these conditions hold:
-- the line is a declaration, a citation, a status tag, or a directive;
-- the text of the tag line meets the schema for its kind of tag line;
-- that input has a match of the input under that binding;
+  - the line is a declaration, a citation, a status tag, or a directive;
+  - the text of the tag line meets the schema for its kind of tag line;
+  - that input has a match of the input under that binding;
 - "invalid", when the line is a declaration, a citation, a status tag, or a directive, and one or more of these conditions hold:
-- the text of the tag line does not meet the schema for its kind of tag line;
-- that input has no match of the input under that binding.
+  - the text of the tag line does not meet the schema for its kind of tag line;
+  - that input has no match of the input under that binding.
 
 ### 4.51 Link results
 
@@ -1845,13 +1857,13 @@ input is one of three results:
 
 - "not an inline citation", when the link or the image is not an inline citation;
 - "valid", when the link or the image is an inline citation and all three of these conditions hold:
-- the destination of the inline citation meets the schema `inline-destination`;
-- the inline citation has a match of the input under that binding;
-- the link text of the inline citation has a plain string content that holds at least one character other than blank characters;
+  - the destination of the inline citation meets the schema `inline-destination`;
+  - the inline citation has a match of the input under that binding;
+  - the link text of the inline citation has a plain string content that holds at least one character other than blank characters;
 - "invalid", when the link or the image is an inline citation and one or more of these conditions hold:
-- the destination of the inline citation does not meet the schema `inline-destination`;
-- the inline citation has no match of the input under that binding;
-- the link text of the inline citation has a plain string content that holds no character other than blank characters.
+  - the destination of the inline citation does not meet the schema `inline-destination`;
+  - the inline citation has no match of the input under that binding;
+  - the link text of the inline citation has a plain string content that holds no character other than blank characters.
 
 ## 5. Requirements
 
@@ -2244,8 +2256,9 @@ for that line. Each vector line of these groups meets the schema
   link and no image. The program takes the binding, and it reads the
   text under that binding. A conforming program gives the result "valid"
   for `binding`. These vectors do not state that result. In the file,
-  `binding` holds two pairs: `gh` with `[1-9][0-9]*`, and `rfc` with
-  `[1-9][0-9]*`.
+  `binding` holds two pairs, `gh` with `[1-9][0-9]*` and `rfc` with
+  `[1-9][0-9]*`, or three pairs: those two pairs and
+  `abcdef0123456789abcdef0123456789` with `[1-9][0-9]*`.
 - `result`: the line result of the line: `"not a tag line"` or
   `"other tag word"` in the group `other-lines`, and `"valid"` or
   `"invalid"` in the other four groups.
