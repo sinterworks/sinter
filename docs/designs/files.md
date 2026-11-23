@@ -256,9 +256,9 @@ of Conformance). When the program stops reading `docs/a.md` because the
 content is too large for the memory of the program, the program reaches
 a limit of its own, and the file read gives no result. When the program
 has the search permission and the read permission for the root, and the
-UTF-8 encoding of file name 1 is longer than the file system of the root
-allows for one entry name, the root holds no folder entry for file name
-1, and the result is "no file".
+UTF-8 encoding of file name 1 is longer than the file system that the
+root is on allows for one entry name, the root holds no folder entry for
+file name 1, and the result is "no file".
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -1375,7 +1375,7 @@ text as a path in the folder tree.
   `values` is a JSON object with one member, `text`. The member `text`
   is the text of the content, as pieces of a text. This schema defines
   pieces of a text. With each other result, `values` is the empty JSON
-  object, `{}`.
+  object, `{}`. Each vector of the group has this member.
 
 In each file read of the text in the folder tree that a conforming
 program makes under these conditions, the conforming program gives the
