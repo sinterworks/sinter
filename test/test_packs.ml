@@ -28,19 +28,19 @@ type use = {
 
 let use_pack ?(paths = []) root =
   match Pack.read ~root with
-  | Error Pack.Unreadable -> None
+  | Error _ -> None
   | Ok pack -> (
       let contents =
         List.map (fun path -> (path, Pack.content pack (path_of path))) paths
       in
-      match Pack.well_named pack with
+      match Option.join (Result.to_option (Pack.well_named pack)) with
       | None ->
           Some
             { named = false; files = []; listing = None; hash = None; contents }
       | Some named -> (
           let files = List.map string_of_path (Pack.files named) in
           match Pack.listing named with
-          | Error Pack.Unreadable ->
+          | Error _ ->
               Some
                 { named = true; files; listing = None; hash = None; contents }
           | Ok listing ->
@@ -262,9 +262,9 @@ let well_named_pack_gives_its_pack () =
          [ ("pack.toml", regular "a"); ("d", folder [ ("x", regular "b") ]) ])
       (fun root ->
         match Pack.read ~root with
-        | Error Pack.Unreadable -> Alcotest.fail "the pack could not be read"
+        | Error _ -> Alcotest.fail "the pack could not be read"
         | Ok pack -> (
-            match Pack.well_named pack with
+            match Option.join (Result.to_option (Pack.well_named pack)) with
             | None -> Alcotest.fail "the pack is not well named"
             | Some named ->
                 ( Pack.content (Pack.pack named) (path_of "d/x"),
@@ -293,7 +293,7 @@ let content_of_files_that_are_not_valid_utf_8 () =
   let contents =
     in_tree tree (fun root ->
         match Pack.read ~root with
-        | Error Pack.Unreadable -> Alcotest.fail "the pack could not be read"
+        | Error _ -> Alcotest.fail "the pack could not be read"
         | Ok pack ->
             List.map
               (fun path -> Pack.content pack (path_of path))
@@ -529,7 +529,10 @@ let file_with_no_permission_gives_no_listing () =
       Alcotest.(check bool)
         "the contents" true
         (use.contents
-        = [ ("secret", Error Pack.Unreadable_file); ("pack.toml", Ok "a") ]));
+        = [
+            ("secret", Error (Pack.Unreadable_file [ "secret" ]));
+            ("pack.toml", Ok "a");
+          ]));
   Alcotest.(check bool)
     "the user IDs and the group IDs of the process" true same
 
@@ -572,9 +575,9 @@ let with_flat_pack ~files ~bytes action =
 
 let named_pack root =
   match Pack.read ~root with
-  | Error Pack.Unreadable -> Alcotest.fail "the pack could not be read"
+  | Error _ -> Alcotest.fail "the pack could not be read"
   | Ok pack -> (
-      match Pack.well_named pack with
+      match Option.join (Result.to_option (Pack.well_named pack)) with
       | Some named -> named
       | None -> Alcotest.fail "the pack is not well named")
 
@@ -584,7 +587,7 @@ let listing_bytes ~files ~bytes =
       let before = Gc.allocated_bytes () in
       (match Pack.listing named with
       | Ok listing -> ignore (Sys.opaque_identity (Pack.listing_text listing))
-      | Error Pack.Unreadable -> Alcotest.fail "the pack gave no listing");
+      | Error _ -> Alcotest.fail "the pack gave no listing");
       Gc.allocated_bytes () -. before)
 
 let check_growth what ~times small large limit =
@@ -610,7 +613,8 @@ let tree_regular name = { Tree.name; file = Tree.Regular_file () }
 let tree_folder name entries = { Tree.name; file = Tree.Folder entries }
 
 let paths_of entries =
-  Option.map (List.map string_of_path) (Pack.well_named_files entries)
+  Option.map (List.map string_of_path)
+    (Option.join (Result.to_option (Pack.well_named_files entries)))
 
 let well_named_files_keep_to_255_characters () =
   List.iter
@@ -724,7 +728,7 @@ let changed_tree_gives_no_listing () =
               Out_channel.with_open_bin added (fun channel ->
                   Out_channel.output_string channel "x");
               match Pack.listing named with
-              | Error Pack.Unreadable -> ()
+              | Error _ -> ()
               | Ok _ -> Alcotest.failf "a listing after %s" what)))
     [
       ("a file was added", fun () -> "g");

@@ -8,41 +8,65 @@ module Path = Sinter_paths.Path
 module Strings = Map.Make (String)
 
 type t = { root : string; entries : unit Tree.entry list }
-type failure = Unreadable
-type content_failure = No_file | Unreadable_file
 
+type failure =
+  | Unread of string list list
+  | Not_read of Sinter_file_read.failure
+  | Changed
+
+type content_failure =
+  | No_file
+  | Unreadable_file of string list
+  | Content_not_read of Sinter_file_read.failure
+
+(* @satisfies conformance#report-missing-parts=v1
+   Every use of a pack needs the folder entries of the root, so a root whose
+   entries the walk could not take gives no pack and names the root as the
+   missing part. *)
 let read ~root =
   match Sinter_file_read.walk ~root with
-  | Ok entries -> Ok { root; entries }
-  | Error (Sinter_file_read.Cannot_walk _) -> Error Unreadable
+  | Ok (Tree.Folder entries) -> Ok { root; entries }
+  | Ok _ -> Error (Unread [ [] ])
+  | Error failure -> Error (Not_read failure)
+
+type place = File | Off | Unread_at of string list
 
 let entry_file entries name =
   Option.map
     (fun (entry : unit Tree.entry) -> entry.file)
     (List.find_opt (fun (entry : unit Tree.entry) -> entry.name = name) entries)
 
-let holds entries names =
-  let found =
-    List.fold_left
-      (fun file name ->
-        match file with
-        | Some (Tree.Folder entries) -> entry_file entries name
-        | _ -> None)
-      (Some (Tree.Folder entries)) names
-  in
-  match found with Some (Tree.Regular_file ()) -> true | _ -> false
+let rec place entries prefix = function
+  | [] -> Off
+  | name :: rest -> (
+      match (entry_file entries name, rest) with
+      | Some (Tree.Folder entries), _ :: _ ->
+          place entries (name :: prefix) rest
+      | Some Tree.Unread_folder, _ :: _ -> Unread_at (List.rev (name :: prefix))
+      | Some (Tree.Regular_file _), [] -> File
+      | _ -> Off)
 
 (* @satisfies packs#give-pack-file-contents=v1
    The content of the file with a valid path is the whole content of the
    regular file that the UTF-8 encodings of its file names name, only when the
    folder tree has a regular file there. *)
+(* @satisfies conformance#report-missing-parts=v1
+   The content of a file needs only the folders of its path and the file, so
+   an unread folder off the path changes nothing, and an unread folder on the
+   path, or a folder or file that the content read could not take, is the
+   missing part that the failure names. *)
 let content pack path =
   let names = List.map Text.encode (Path.file_names path) in
-  if not (holds pack.entries names) then Error No_file
-  else
-    match Sinter_file_read.content ~root:pack.root names with
-    | Ok bytes -> Ok bytes
-    | Error _ -> Error Unreadable_file
+  match place pack.entries [] names with
+  | Off -> Error No_file
+  | Unread_at part -> Error (Unreadable_file part)
+  | File -> (
+      match Sinter_file_read.content ~root:pack.root names with
+      | Ok (Ok bytes) -> Ok bytes
+      | Ok (Error (Sinter_file_read.Cannot_take part)) ->
+          Error (Unreadable_file part)
+      | Ok (Error _) -> Error No_file
+      | Error failure -> Error (Content_not_read failure))
 
 type well_named = { pack : t; paths : string list }
 
@@ -61,26 +85,58 @@ let extend prefix name =
         Some candidate
       else None
 
+type 'a found = {
+  all : string list;
+  values : (string * 'a) list;
+  unread : (string list * bool) list;
+}
+
 (* @satisfies packs#{give-pack-files=v1, decide-well-named-packs=v1}
    Each regular file of the folder tree gives the valid path of one file, and no
    other file gives one; a regular file whose path is not a pack path makes the
    pack not well named. *)
+(* @satisfies conformance#report-missing-parts=v1
+   Each unread folder and each unread file is one missing part, kept once with
+   its entry names from the root, in the order of the walk; an unread file
+   still gives the path of a file. *)
 let file_paths entries =
-  let rec walk files = function
-    | [] -> files
-    | (_, []) :: stack -> walk files stack
-    | (prefix, (entry : _ Tree.entry) :: rest) :: stack -> (
-        let stack = (prefix, rest) :: stack in
+  let rec walk found = function
+    | [] -> { found with unread = List.rev found.unread }
+    | (_, _, []) :: stack -> walk found stack
+    | (prefix, names, (entry : _ Tree.entry) :: rest) :: stack -> (
+        let stack = (prefix, names, rest) :: stack in
         let path = extend prefix entry.name in
+        let names' = entry.name :: names in
+        let file path =
+          match path with None -> raise Not_well_named | Some path -> path
+        in
         match entry.file with
-        | Tree.Regular_file value -> (
-            match path with
-            | None -> raise Not_well_named
-            | Some path -> walk ((path, value) :: files) stack)
-        | Tree.Folder entries -> walk files ((path, entries) :: stack)
-        | Tree.Symbolic_link | Tree.Other_kind -> walk files stack)
+        | Tree.Regular_file value ->
+            let path = file path in
+            walk
+              {
+                found with
+                all = path :: found.all;
+                values = (path, value) :: found.values;
+              }
+              stack
+        | Tree.Unread_file ->
+            let path = file path in
+            walk
+              {
+                found with
+                all = path :: found.all;
+                unread = (List.rev names', false) :: found.unread;
+              }
+              stack
+        | Tree.Folder entries -> walk found ((path, names', entries) :: stack)
+        | Tree.Unread_folder ->
+            walk
+              { found with unread = (List.rev names', true) :: found.unread }
+              stack
+        | Tree.Symbolic_link | Tree.Other_kind -> walk found stack)
   in
-  walk [] [ (Some "", entries) ]
+  walk { all = []; values = []; unread = [] } [ (Some "", [], entries) ]
 
 (* @satisfies packs#decide-well-named-packs=v1
    Each path of the pack and each part of it before a [/] goes into one map
@@ -100,13 +156,26 @@ let check_foldings paths =
   in
   ignore (List.fold_left add Strings.empty paths)
 
+(* @satisfies conformance#report-missing-parts=v1
+   More files in a folder only add entry names, paths, and pairs of paths for
+   the rules of a well-named pack, so a pack that is not well named with each
+   unread folder taken as empty is not well named whatever those folders
+   hold; otherwise the result needs each unread folder, and the error names
+   each one. *)
 let decide entries =
-  match List.map fst (file_paths entries) with
-  | exception Not_well_named -> None
-  | paths -> (
-      match check_foldings paths with
-      | exception Not_well_named -> None
-      | () -> Some (List.sort String.compare paths))
+  match file_paths entries with
+  | exception Not_well_named -> Ok None
+  | found -> (
+      match check_foldings found.all with
+      | exception Not_well_named -> Ok None
+      | () -> (
+          match
+            List.filter_map
+              (fun (names, folder) -> if folder then Some names else None)
+              found.unread
+          with
+          | [] -> Ok (Some (List.sort String.compare found.all))
+          | parts -> Error parts))
 
 let text_of_ascii bytes =
   Text.of_uchars
@@ -117,10 +186,11 @@ let valid_paths paths =
     (fun path -> Result.to_option (Path.of_text (text_of_ascii path)))
     paths
 
-let well_named_files entries = Option.map valid_paths (decide entries)
+let well_named_files entries =
+  Result.map (Option.map valid_paths) (decide entries)
 
 let well_named pack =
-  Option.map (fun paths -> { pack; paths }) (decide pack.entries)
+  Result.map (Option.map (fun paths -> { pack; paths })) (decide pack.entries)
 
 let pack named = named.pack
 let files named = valid_paths named.paths
@@ -138,19 +208,21 @@ let line (path, hash) =
    pack has, gives no listing. *)
 let listing named =
   match Sinter_file_read.walk_contents ~root:named.pack.root Hash.compute with
-  | Error (Sinter_file_read.Cannot_walk _) -> Error Unreadable
-  | Ok entries -> (
+  | Error failure -> Error (Not_read failure)
+  | Ok (Tree.Folder entries) -> (
       match file_paths entries with
-      | exception Not_well_named -> Error Unreadable
-      | files ->
+      | exception Not_well_named -> Error Changed
+      | { unread = _ :: _ as unread; _ } -> Error (Unread (List.map fst unread))
+      | { values; _ } ->
           let files =
-            List.sort (fun (a, _) (b, _) -> String.compare a b) files
+            List.sort (fun (a, _) (b, _) -> String.compare a b) values
           in
           if not (List.equal String.equal (List.map fst files) named.paths) then
-            Error Unreadable
+            Error Changed
           else
             let text = String.concat "" (List.map line files) in
             Ok { text; hash = Hash.compute text })
+  | Ok _ -> Error (Unread [ [] ])
 
 let listing_text listing = listing.text
 let hash listing = listing.hash

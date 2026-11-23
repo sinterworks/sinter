@@ -69,13 +69,32 @@ CAMLprim value sinter_file_read_kind_at(value folder, value name) {
   }
 }
 
+static int unsupported(int error) {
+#ifdef ENOTSUP
+  if (error == ENOTSUP) {
+    return 1;
+  }
+#endif
+  return error == ENOSYS || error == EOPNOTSUPP || error == EINVAL;
+}
+
+/* @satisfies files#give-file-read-results=v1
+   When the system does not support the check of the search permission with
+   the effective IDs, the lookup of "." in the folder needs the same search
+   permission, so a missing search permission still gives its error. */
 CAMLprim value sinter_file_read_check_search(value folder) {
   CAMLparam1(folder);
+  const char *call = "faccessat";
   caml_enter_blocking_section();
   int outcome = faccessat(Int_val(folder), ".", X_OK, AT_EACCESS);
+  if (outcome == -1 && unsupported(errno)) {
+    struct stat status;
+    call = "fstatat";
+    outcome = fstatat(Int_val(folder), ".", &status, AT_SYMLINK_NOFOLLOW);
+  }
   caml_leave_blocking_section();
   if (outcome == -1) {
-    caml_uerror("faccessat", Nothing);
+    caml_uerror(call, Nothing);
   }
   CAMLreturn(Val_unit);
 }
@@ -149,4 +168,9 @@ CAMLprim value sinter_file_read_list(value folder) {
 CAMLprim value sinter_file_read_eilseq(value unit) {
   (void)unit;
   return Val_int(EILSEQ);
+}
+
+CAMLprim value sinter_file_read_estale(value unit) {
+  (void)unit;
+  return Val_int(ESTALE);
 }

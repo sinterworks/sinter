@@ -17,7 +17,11 @@ let answer_of = function
   | Sinter_file_read.Not_utf_8 -> { result = "not UTF-8"; text = None }
   | Sinter_file_read.Cannot_read -> { result = "cannot read"; text = None }
 
-let read_text ~root text = answer_of (Sinter_file_read.read ~root text)
+let answer_of_result = function
+  | Ok outcome -> answer_of outcome
+  | Error _ -> { result = "no result"; text = None }
+
+let read_text ~root text = answer_of_result (Sinter_file_read.read ~root text)
 
 let uchars_of_string string =
   let rec go index acc =
@@ -692,6 +696,7 @@ module Fake (F : FAULTS) = struct
     enter Close path
 
   let eilseq = fake_eilseq
+  let estale = fake_eilseq + 2
 end
 
 type fake_read = {
@@ -709,7 +714,7 @@ let fake_read ?(fault = fun _ _ -> None) tree text =
   let module W = Sinter_file_read.Walk (S) in
   let answer =
     match W.read ~root:"root" (text_of text) with
-    | outcome -> Ok (answer_of outcome)
+    | outcome -> Ok (answer_of_result outcome)
     | exception error -> Error error
   in
   {
@@ -906,6 +911,19 @@ let walk_follows_the_file_read_result =
 
 module Tree = Sinter_file_read.Tree
 
+let entries_of = function
+  | Ok (Tree.Folder entries) -> Ok entries
+  | Ok _ -> Error []
+  | Error
+      ( Sinter_file_read.Stopped { names; _ }
+      | Sinter_file_read.Failed { names; _ }
+      | Sinter_file_read.Changed names ) ->
+      Error names
+
+let content_of = function
+  | Ok result -> result
+  | Error _ -> Error (Sinter_file_read.Cannot_take [])
+
 let by_name entries =
   List.sort (fun (a, _) (b, _) -> String.compare a b) entries
 
@@ -959,7 +977,7 @@ let rec file_at (file : Files_tree.file) = function
 
 let walk_answer_holds tree = function
   | Ok entries -> entries = walk_reference tree
-  | Error (Sinter_file_read.Cannot_walk _) -> not (folders_open tree)
+  | Error _ -> not (folders_open tree)
 
 let walk_follows_the_folder_tree =
   QCheck_alcotest.to_alcotest ~speed_level:`Quick
@@ -971,7 +989,8 @@ let walk_follows_the_folder_tree =
        (Gen.oneof [ tree_gen; Pack_trees.tree_gen ])
        (fun tree ->
          match
-           Files_tree.run tree (fun root -> Sinter_file_read.walk ~root)
+           Files_tree.run tree (fun root ->
+               entries_of (Sinter_file_read.walk ~root))
          with
          | Files_tree.Not_stored reason ->
              QCheck2.Test.fail_reportf "not stored: %s" reason
@@ -983,7 +1002,7 @@ let deep_walk_closes_each_descriptor () =
   let value, before, after =
     read_in tree (fun root ->
         let before = open_descriptors () in
-        let value = Sinter_file_read.walk ~root in
+        let value = entries_of (Sinter_file_read.walk ~root) in
         (value, before, open_descriptors ()))
   in
   Alcotest.(check int) "the open file descriptors" before after;
@@ -992,7 +1011,7 @@ let deep_walk_closes_each_descriptor () =
       Alcotest.(check bool)
         "the folder entries" true
         (entries = walk_reference tree)
-  | Error (Sinter_file_read.Cannot_walk _) -> ()
+  | Error _ -> ()
 
 let root_that_is_no_folder_cannot_be_walked () =
   let file_root = Filename.temp_file "sinter-root-" "" in
@@ -1001,9 +1020,9 @@ let root_that_is_no_folder_cannot_be_walked () =
     (fun () ->
       List.iter
         (fun root ->
-          match Sinter_file_read.walk ~root with
-          | Error (Sinter_file_read.Cannot_walk []) -> ()
-          | Error (Sinter_file_read.Cannot_walk names) ->
+          match entries_of (Sinter_file_read.walk ~root) with
+          | Error [] -> ()
+          | Error names ->
               Alcotest.failf "the walk failed at %s" (String.concat "/" names)
           | Ok _ -> Alcotest.failf "the walk of %s gave a tree" root)
         [
@@ -1026,7 +1045,9 @@ let fake_walk ?(fault = fun _ _ -> None) tree =
   end) in
   let module W = Sinter_file_read.Walk (S) in
   let value =
-    match W.walk ~root:"root" with v -> Ok v | exception e -> Error e
+    match entries_of (W.walk ~root:"root") with
+    | v -> Ok v
+    | exception e -> Error e
   in
   {
     value;
@@ -1042,7 +1063,9 @@ let fake_content ?(fault = fun _ _ -> None) tree names =
   end) in
   let module W = Sinter_file_read.Walk (S) in
   let value =
-    match W.content ~root:"root" names with v -> Ok v | exception e -> Error e
+    match content_of (W.content ~root:"root" names) with
+    | v -> Ok v
+    | exception e -> Error e
   in
   {
     value;
@@ -1140,8 +1163,7 @@ let walk_failure_names_its_file =
                        | Ok expected -> value = expected
                        | Error _ -> false)
                    | Close, _, _ -> false
-                   | _, _, Ok (Error (Sinter_file_read.Cannot_walk names)) ->
-                       names = path
+                   | _, _, Ok (Error names) -> names = path
                    | _ -> false
                  in
                  holds
@@ -1149,7 +1171,7 @@ let walk_failure_names_its_file =
                       (call_name call) (String.concat "/" path)
                       (match run.value with
                       | Ok (Ok _) -> "a tree"
-                      | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                      | Ok (Error names) ->
                           "no tree at " ^ String.concat "/" names
                       | Error error -> Printexc.to_string error))
                (if call = Close then
@@ -1205,7 +1227,7 @@ let content_reference names (tree : Files_tree.file) :
         match folder.kind with
         | Folder entries -> (
             if not (folder.permissions.search && folder.permissions.read) then
-              Error Cannot_take
+              Error (Cannot_take [])
             else
               match List.assoc_opt name entries with
               | None -> Error No_content_file
@@ -1216,7 +1238,7 @@ let content_reference names (tree : Files_tree.file) :
                   | (Regular _ | Pipe), _ :: _ -> Error No_content_file
                   | (Folder _ | Pipe), [] -> Error Not_regular
                   | Regular _, [] when not file.permissions.read ->
-                      Error Cannot_take
+                      Error (Cannot_take [])
                   | Regular pieces, [] -> Ok (bytes_of_pieces pieces)))
         | Regular _ | Link _ | Pipe -> Error No_content_file)
   in
@@ -1267,7 +1289,7 @@ let content_follows_the_folder_tree =
        (fun (tree, names) ->
          match
            Files_tree.run tree (fun root ->
-               Sinter_file_read.content ~root names)
+               content_of (Sinter_file_read.content ~root names))
          with
          | Files_tree.Not_stored reason ->
              QCheck2.Test.fail_reportf "not stored: %s" reason
@@ -1315,7 +1337,7 @@ let content_makes_the_calls_of_read =
          | Ok { result = "no file"; _ }, Ok (Error No_content_file)
          | Ok { result = "symbolic link"; _ }, Ok (Error Content_symbolic_link)
          | Ok { result = "not a regular file"; _ }, Ok (Error Not_regular)
-         | Ok { result = "cannot read"; _ }, Ok (Error Cannot_take) ->
+         | Ok { result = "cannot read"; _ }, Ok (Error (Cannot_take _)) ->
              true
          | _ -> false))
 
@@ -1338,7 +1360,7 @@ let walk_contents_follows_the_folder_tree =
        (fun tree ->
          match
            Files_tree.run tree (fun root ->
-               Sinter_file_read.walk_contents ~root Fun.id)
+               entries_of (Sinter_file_read.walk_contents ~root Fun.id))
          with
          | Files_tree.Not_stored reason ->
              QCheck2.Test.fail_reportf "not stored: %s" reason
@@ -1347,8 +1369,7 @@ let walk_contents_follows_the_folder_tree =
              &&
              match value with
              | Ok entries -> entries = contents_reference tree
-             | Error (Sinter_file_read.Cannot_walk _) ->
-                 not (folders_open tree && files_readable tree))))
+             | Error _ -> not (folders_open tree && files_readable tree))))
 
 let fake_walk_contents ?(fault = fun _ _ -> None) tree value =
   let module S = Fake (struct
@@ -1357,7 +1378,7 @@ let fake_walk_contents ?(fault = fun _ _ -> None) tree value =
   end) in
   let module W = Sinter_file_read.Walk (S) in
   let result =
-    match W.walk_contents ~root:"root" value with
+    match entries_of (W.walk_contents ~root:"root" value) with
     | v -> Ok v
     | exception e -> Error e
   in
@@ -1374,7 +1395,9 @@ let rec values_in_order entries =
       match entry.file with
       | Tree.Regular_file value -> [ value ]
       | Tree.Folder entries -> values_in_order entries
-      | Tree.Symbolic_link | Tree.Other_kind -> [])
+      | Tree.Symbolic_link | Tree.Other_kind | Tree.Unread_folder
+      | Tree.Unread_file ->
+          [])
     entries
 
 let regular_at tree path =
@@ -1434,14 +1457,15 @@ let walk_contents_on_a_fake_system =
                           Tree.Regular_file (!numbered, bytes)
                       | Tree.Symbolic_link -> Tree.Symbolic_link
                       | Tree.Other_kind -> Tree.Other_kind
+                      | Tree.Unread_folder -> Tree.Unread_folder
+                      | Tree.Unread_file -> Tree.Unread_file
                     and number_entry (entry : string Tree.entry) =
                       { entry with file = number entry.file }
                     in
                     List.map number_entry
                       (tree_entries Files_tree.bytes_of_pieces children)
                 | _ -> [])
-         | Ok (Error (Sinter_file_read.Cannot_walk _)) ->
-             not (folders_open tree && files_readable tree)
+         | Ok (Error _) -> not (folders_open tree && files_readable tree)
          | Error _ -> false))
 
 let walk_contents_failure_names_its_file =
@@ -1468,15 +1492,14 @@ let walk_contents_failure_names_its_file =
                     (run.left_open = 0
                     &&
                     match run.value with
-                    | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
-                        names = path
+                    | Ok (Error names) -> names = path
                     | _ -> false)
                     || QCheck2.Test.fail_reportf
                          "a fault of %s at %s gives %s with %d open"
                          (call_name call) (String.concat "/" path)
                          (match run.value with
                          | Ok (Ok _) -> "a tree"
-                         | Ok (Error (Sinter_file_read.Cannot_walk names)) ->
+                         | Ok (Error names) ->
                              "no tree at " ^ String.concat "/" names
                          | Error error -> Printexc.to_string error)
                          run.left_open)
