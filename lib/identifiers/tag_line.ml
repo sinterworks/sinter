@@ -59,7 +59,7 @@ let target_end s i =
   in
   go i
 
-(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+(* @satisfies identifiers#{declaration-line=v1, give-line-results=v1, give-values=v1}
    A declaration is valid only when its text matches `declaration-line` and
    its target is not external: `@decision` and `@design` take a slug,
    `@spec` a segment or a full name, `@atom`, `@req`, and `@schema` a slug or
@@ -194,7 +194,7 @@ let citation binding word s k =
     Some (Citation { word; entries = List.map fst entries; inline_description })
   else None
 
-(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+(* @satisfies identifiers#{status-line=v1, give-line-results=v1, give-values=v1}
    A status tag is valid when its text matches `status-line`; its value is
    the inline description. *)
 let status word s k =
@@ -202,7 +202,7 @@ let status word s k =
     (fun inline_description -> Status_tag { word; inline_description })
     (rest s k)
 
-(* @satisfies identifiers#{give-line-results=v1, give-values=v1}
+(* @satisfies identifiers#{extern-line=v1, give-line-results=v1, give-values=v1}
    An `@extern` line is valid when its text matches `extern-line`; its
    values are the kind word, the part name, and the inline description. *)
 let extern s k =
