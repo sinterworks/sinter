@@ -1404,7 +1404,9 @@ The group `give-root-table` holds the vector lines whose vectors each
 give a TOML document and its root table. The requirements of the group
 are `read-toml` and `give-only-root-tables`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with one member, `root-table`: the form of the
@@ -1422,7 +1424,9 @@ The group `reject-byte-sequence` holds the vector lines whose vectors
 each give a byte sequence that is not a TOML document. The requirements
 of the group are `read-toml` and `give-only-root-tables`.
 
-- `input`: the byte sequence.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a byte sequence that is not a TOML document.
 - `result`: "invalid", which is the result when a conforming program
   gives a result for whether the byte sequence is a TOML document.
 - `values`: the empty object, `{}`.
@@ -1470,7 +1474,9 @@ TOML document and one of its span pairs: a span, together with what the
 span is the span of. The requirements of the group are `read-toml` and
 `give-only-toml-spans`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with these members:
@@ -1510,7 +1516,9 @@ TOML document and the location of a TOML value of the TOML document that
 has no span. The requirements of the group are `read-toml` and
 `give-only-toml-spans`.
 
-- `input`: the byte sequence of the TOML document.
+- `input`: the byte sequence, as its hex text. Any string that is the
+  hex text of a byte sequence has this fixed form. Each vector of this
+  group gives a TOML document.
 - `result`: "valid", which is the result when a conforming program gives
   a result for whether the byte sequence is a TOML document.
 - `values`: an object with one member, `no-span-at`: a location.
