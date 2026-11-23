@@ -64,8 +64,8 @@ For example, suppose a program reads a file of 10 GB and stops reading
 that file at a limit of its own on memory. The program ends that run
 (for a part of a program, that call), reports where it reached that
 limit as far as it can (`report-stops-at-limits`, `end-runs-at-limits`),
-gives no other result of that run, and writes nothing durable
-(`end-runs-at-limits`). In that run, safety obligations,
+gives no other result of that run, and writes nothing durable after it
+reaches that limit (`end-runs-at-limits`). In that run, safety obligations,
 `report-stops-at-limits`, and `end-runs-at-limits` still bind; every
 other obligation binds only in a run in which the program reached no
 limit of its own (term `conforming-program`).
@@ -112,7 +112,8 @@ program's memory, the program reaches a limit of its own (term
 `own-limit`), ends that run (for a part of a program, that call),
 reports where it reached that limit as far as it can
 (`report-stops-at-limits`, `end-runs-at-limits`), gives no other result
-of that run, and writes nothing durable (`end-runs-at-limits`).
+of that run, and writes nothing durable after it reaches that limit
+(`end-runs-at-limits`).
 
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
@@ -542,7 +543,7 @@ program must report no stop at a limit of its own that did not occur.
 When a program reaches a limit of its own, the program must end that run
 (for a part of a program, that call), report where the program reached
 that limit as far as the program can, give no other result of that run,
-and write nothing durable.
+and write nothing durable after it reaches that limit.
 
 ### 4.3 Inputs that are not valid
 
