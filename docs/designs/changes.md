@@ -1410,10 +1410,11 @@ Each entry of the reflog of r records the old object name and the new
 object name of one update of r, as the pages git-update-ref and reftable
 define reflog entries. A reflog commit of r is a commit whose object name
 is the old object name or the new object name of at least one entry of
-the reflog of r. An object name of an entry that is the all-zero object
-name, or that names a git object that is not a commit object, gives no
-reflog commit. The reflog commits of r are the set of all reflog commits
-of r. When the reflog of r has no entries, r has no reflog commits.
+the reflog of r. An old object name or a new object name gives no
+reflog commit when it is the all-zero object name or when it names a git
+object that is not a commit object. The reflog commits of r are the set
+of all reflog commits of r. When the reflog of r has no entries, r has
+no reflog commits.
 
 ### 4.36 Mapped refs of remotes
 
