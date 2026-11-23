@@ -18,11 +18,11 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [specification](sinter:#specification=v1) | a declared item of the kind specification that has a name of its own and declares some of the requirements and definitions of a design |
 | [requirement](sinter:#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take when the system refuses a permission or reports an input or output error while the program reads the input (other than from a resource bound, a refusal that the program itself causes, or content that the program takes on a later attempt in the same run) is a part that a valid input can lack |
+| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take while the program reads the input—when the system refuses a permission, reports an input or output error, or offers no operation that lets the program take that content while the program keeps every safety obligation of the owner design (other than from a resource bound, a refusal or restriction that the program itself causes, or content that the program takes on a later attempt in the same run)—is a part that a valid input can lack |
 | [owner design](sinter:#input=v1) | for a requirement, the design that defines the thing as which that requirement names an input |
 | [depends on](sinter:#dependence=v1) | a thing that a program gives or does depends on an input, a part of an input, or a reading or computation when a change to that input or part can change what a requirement obliges for that thing, or when the program computes or chooses that thing from it |
 | [needs](sinter:#dependence=v1) | which parts of a valid input a thing that a requirement obliges requires, as the owner design or the declaring design says, or by default every part on which that thing depends |
-| [limit of a program's own](sinter:#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks, code that never ends, and a refused permission or an input or output error that makes a part missing under [input](sinter:#input=v1) are not limits of a program's own |
+| [limit of a program's own](sinter:#own-limit=v1) | a bound of a program, of its run, or of its machine on a resource that the program uses, such as size, memory, time, or depth; a feature that a program lacks, code that never ends, and any condition that makes content a part that an input lacks under [input](sinter:#input=v1) are not limits of a program's own |
 | [report](sinter:#report=v1) | a thing that a program gives to identify a stop at a limit of its own, an input that is not valid, or a missing part of a valid input |
 | [safety obligation](sinter:#safety-obligation=v1) | an obligation of a requirement that states that a program reads, alters, writes, follows, or runs no thing other than the things that the requirement allows, or gains no permission; that a program never gives an answer that permits an action to proceed; or that a program ends code or an operation that the program runs |
 | [object](sinter:#object=v1) | a thing of a kind that a design defines as a kind of object by citing `object` and stating that things of that kind are objects; each object has one canonical form |
@@ -105,12 +105,16 @@ part is missing, gives nothing and does nothing that needs the missing
 commits, and gives and does every thing that does not need those missing
 commits (`report-missing-parts`).
 
-The term `input` also states when content that a program could not take
-because of a refused permission or an input or output error is a part
-that a valid input lacks. For example, suppose a program reads a folder
-tree of files, and the system refuses the program permission to read one
-file or reports a device error for that file. The folder tree stays
-valid and lacks that file's content (term `input`). When a thing that a
+The term `input` also states when content that a program could not
+take—because the system refuses a permission, reports an input or output
+error, or offers no operation that lets the program take that content
+while the program keeps every safety obligation of the owner design—is a
+part that a valid input lacks. For example, suppose a program reads a
+folder tree of files, and for one file the system refuses the program
+permission to read that file, reports a device error, or rejects as not
+supported every operation that lets the program read that file while the
+program keeps every safety obligation of the owner design. The folder
+tree stays valid and lacks that file's content (term `input`). When a thing that a
 requirement obliges needs that file's content, the program reports which
 file it could not read, gives nothing that needs that file's content,
 and does nothing that needs that file's content. In every case, the
@@ -220,7 +224,7 @@ program with the word must.
 ### 3.4 Inputs
 
 @term input=v1
-@cites #{design=v1, requirement=v1}
+@cites #{design=v1, requirement=v1, safety-obligation=v1}
 
 An input is a thing that a program takes, such as a file or an argument
 of a command. A program takes a thing as an input for a requirement R
@@ -244,22 +248,31 @@ An input can have parts, such as the commits of a history or the files
 of a folder tree. The owner design of an input defines which parts such
 an input has and which parts a valid input can lack.
 
-For every owner design, when the system refuses a program a permission,
-or reports an input or output error, while the program reads an input or
-a part of an input, the content that the program could not take is a
-part that the input lacks, and a valid input can lack that part, except
-in these cases:
+For every owner design, when one of these conditions holds while a
+program reads an input or a part of an input, the content that the
+program could not take is a part that the input lacks, and a valid input
+can lack that part, unless one of the three exceptions of this term
+applies:
 
-- the refusal or the error comes from a bound of the program, of its
-  run, or of its machine on a resource, such as a bound on open files,
-  file size, memory, or time;
-- the program itself gives up the permission or causes the refusal, such
-  as by a sandbox that the program sets up; or
+- the system refuses the program a permission;
+- the system reports an input or output error; or
+- the system offers no operation that lets the program take that content
+  while the program keeps every safety obligation (term
+  `safety-obligation`) of that owner design.
+
+In each of these three exception cases, that content is not a part that
+the input lacks:
+
+- the refusal, the error, or the failure of an operation comes from a
+  bound of the program, of its run, or of its machine on a resource,
+  such as a bound on open files, file size, memory, or time;
+- the program itself gives up the permission, causes the refusal, or
+  blocks or gives up the operations that the system would otherwise
+  offer, such as by a sandbox that the program sets up; or
 - the program takes that content on a later attempt in the same run.
 
-In those cases, that content is not a part that the input lacks. When
-that content is a part that the input lacks, the input does not hold
-that part, and neither lacking that part nor that content makes the
+When that content is a part that the input lacks, the input does not
+hold that part, and neither lacking that part nor that content makes the
 input not valid.
 
 Here, the system is anything outside the program through which the
@@ -268,7 +281,17 @@ or, for a part of a program, the larger program. An input or output
 error is a fault of the system or of its storage in giving the content
 of an input, such as a device error or a lost connection. A report that
 content does not exist, or that content does not decode in a form that a
-design defines, is not an input or output error.
+design defines, is not an input or output error. The system offers no
+operation that lets a program take content while the program keeps every
+safety obligation of an owner design when the system provides no such
+operation, or when the system or a part of the system (such as a file
+system) rejects as not supported every operation, or every option of an
+operation, that would let the program take that content while the
+program keeps every such safety obligation. A feature that a program
+lacks is not a lack of an operation that the system offers. An operation
+that fails because of a bound of the program, of its run, or of its
+machine on a resource is not an operation that the system rejects as not
+supported.
 
 ### 3.5 Dependence
 
@@ -325,14 +348,13 @@ stops a reading or computation because of such a bound, or its machine
 ends the program because of such a bound. Code that never ends makes the
 input that supplies it not valid and is not a limit of a program's own,
 so a program that ends code that never ends reaches no limit of its own
-by ending that code. A refused permission or an input or output error
-that makes content a part that an input lacks under the term `input` is
-not a limit of a program's own, so a program reaches no limit of its own
-when it stops reading because of that refusal or that error. For
-example, when the system reports an error for too many open files and
-the program stops reading because of that error, or when a program stops
-reading a file because the file is too large for the program's memory,
-the program reaches a limit of its own.
+by ending that code. A condition that makes content a part that an input
+lacks under the term `input` is not a limit of a program's own, so a
+program reaches no limit of its own when it stops reading because such a
+condition holds. For example, when the system reports an error for too
+many open files and the program stops reading because of that error, or
+when a program stops reading a file because the file is too large for
+the program's memory, the program reaches a limit of its own.
 
 ### 3.7 Reports
 
@@ -357,7 +379,7 @@ for that input.
 ### 3.8 Safety obligations
 
 @term safety-obligation=v1
-@cites #{requirement=v1, input=v1}
+@cites #{requirement=v1}
 
 A safety obligation is an obligation of a requirement that states one of
 these things:
@@ -365,7 +387,7 @@ these things:
 - that a program reads, alters, writes, follows, or runs no thing other
   than the things that the requirement allows, or gains no permission,
   where such a thing is, for example, a file, a symbolic link, a stored
-  record, or code that an input supplies;
+  record, or code supplied to the program;
 - that a program never gives an answer that permits an action to
   proceed; or
 - that a program ends code or an operation that the program runs.
