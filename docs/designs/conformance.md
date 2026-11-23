@@ -30,7 +30,7 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [canonical object](sinter:#object=v1) | an object in its canonical form |
 | [encoding](sinter:#encoding=v1) | a form, defined by a design, in which objects are stored in an input; that design says what constitutes one input in that encoding, when such an input is valid, and which canonical objects a valid input in that encoding holds |
 | [program's own store](sinter:#own-store=v1) | a store that a program chooses and uses, whose storage form no design defines, such as a database, an index, or a service, from which the program takes objects; it is valid when, and only when, each thing it holds as an object is a canonical object and, when the program takes objects of some kinds from it in place of inputs in encodings, each such input is valid and the store holds the same canonical objects of those kinds as those inputs hold together, with no canonical object of those kinds added, altered, or omitted; a part that the store or such an input lacks under [input](sinter:#input=v1) does not make the store not valid |
-| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
+| [conforming program](sinter:#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `omit-results-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
 
 ## 2. Designs, conforming programs, inputs, and canonical objects
 
@@ -62,23 +62,29 @@ that design.
 
 For example, suppose a program reads a file of 10 GB and stops reading
 that file at a limit of its own on memory. The program then reports
-where it reached that limit (`report-stops-at-limits`). An obligation
+where it reached that limit (`report-stops-at-limits`). The program also
+gives no result of that stopped reading and no verdict about that file,
+such as "valid" or "invalid" (`omit-results-at-limits`). An obligation
 that depends on reading that file binds only as the term
-`conforming-program` says: safety obligations still bind, while ordinary
-obligations that depend on the stopped reading do not bind, and
-obligations on another file whose reading did not stop still bind.
+`conforming-program` says: safety obligations and obligations that state
+what a program gives or does when the program reaches a limit of its own
+still bind, while ordinary obligations that depend on the stopped
+reading do not bind, and obligations on another file whose reading did
+not stop still bind.
 
 As a second example, suppose a program takes an input that is not valid
 and stops at a limit of its own during a reading or computation on which
 reporting that input depends. By the term `conforming-program`, the
 program still gives nothing and does nothing that depends on the input
-that is not valid, and it need not report that input because reporting
-it depended on the stopped work. In the same way, suppose a program
+that is not valid, and `reject-invalid-inputs` does not oblige the
+program to report that input because reporting that input depended on
+the stopped reading or computation. In the same way, suppose a program
 takes a valid input that lacks a part and stops at a limit of its own
 during a reading or computation on which reporting that missing part
 depends. The program still gives nothing and does nothing that needs
-that missing part, and it need not report that missing part because
-reporting it depended on the stopped work.
+that missing part, and `report-missing-parts` does not oblige the
+program to report that missing part because reporting that missing part
+depended on the stopped reading or computation.
 
 ### 2.2 Inputs and missing parts
 
@@ -121,8 +127,9 @@ and does nothing that needs that file's content. In every case, the
 program gives and does every thing that does not need that file's
 content (`report-missing-parts`). By contrast, when the program stops
 reading that file because the file is too large for the program's
-memory, the program reaches a limit of its own (term `own-limit`) and
-reports where it reached that limit (`report-stops-at-limits`).
+memory, the program reaches a limit of its own (term `own-limit`),
+reports where it reached that limit (`report-stops-at-limits`), and
+gives no result of that stopped reading (`omit-results-at-limits`).
 
 ### 2.3 Canonical objects, encodings, and a program's own stores
 
@@ -457,9 +464,9 @@ the store adds, alters, or omits, and does not make the store not valid.
 @cites #{
     design=v1, specification=v1, requirement=v1, input=v1,
     dependence=v1, own-limit=v1, safety-obligation=v1,
-    report-stops-at-limits=v1, reject-invalid-inputs=v1,
-    report-missing-parts=v1, give-results-over-canonical-objects=v1,
-    read-defined-encodings=v1,
+    report-stops-at-limits=v1, omit-results-at-limits=v1,
+    reject-invalid-inputs=v1, report-missing-parts=v1,
+    give-results-over-canonical-objects=v1, read-defined-encodings=v1,
 }
 
 A part of a program is a component of a larger program, such as a
@@ -470,11 +477,12 @@ reads, alters, writes, follows, or runs.
 
 A conforming program of a design is a program, or a part of a program,
 that meets every requirement of the design, `report-stops-at-limits`,
-`reject-invalid-inputs`, `report-missing-parts`,
-`give-results-over-canonical-objects`, and `read-defined-encodings`. A
-conforming program of a specification of a design is a program, or a
-part of a program, that meets every requirement that the specification
-declares, `report-stops-at-limits`, `reject-invalid-inputs`,
+`omit-results-at-limits`, `reject-invalid-inputs`,
+`report-missing-parts`, `give-results-over-canonical-objects`, and
+`read-defined-encodings`. A conforming program of a specification of a
+design is a program, or a part of a program, that meets every
+requirement that the specification declares, `report-stops-at-limits`,
+`omit-results-at-limits`, `reject-invalid-inputs`,
 `report-missing-parts`, `give-results-over-canonical-objects`, and
 `read-defined-encodings`. In a specification of a design, a conforming
 program is a conforming program of that specification. Elsewhere in a
@@ -485,11 +493,11 @@ is an obligation of each conforming program of that design. When a
 specification of a design declares a requirement of that design, each
 obligation that the requirement states with the word must is also an
 obligation of each conforming program of that specification. Each
-obligation that `report-stops-at-limits`, `reject-invalid-inputs`,
-`report-missing-parts`, `give-results-over-canonical-objects`, or
-`read-defined-encodings` states with the word must is an obligation of
-each conforming program of every design and of every specification of a
-design.
+obligation that `report-stops-at-limits`, `omit-results-at-limits`,
+`reject-invalid-inputs`, `report-missing-parts`,
+`give-results-over-canonical-objects`, or `read-defined-encodings`
+states with the word must is an obligation of each conforming program of
+every design and of every specification of a design.
 
 For anything that an obligation of a requirement obliges a conforming
 program to give or do—including an obligation to give nothing, to do
@@ -547,7 +555,29 @@ program before the program can report, the program must report where the
 program reached that limit, once for each stop at a limit of its own. A
 program must report no stop at a limit of its own that did not occur.
 
-### 4.2 Inputs that are not valid
+### 4.2 Results of stopped readings and computations
+
+@req omit-results-at-limits=v1
+@cites #{
+    requirement=v1, input=v1, dependence=v1, own-limit=v1, report=v1,
+}
+
+When a program reaches a limit of its own by stopping a reading or
+computation, the program must give no result of the stopped reading or
+computation. In that case, for an input or part of an input that the
+stopped reading or computation read or computed on, the program must
+give no verdict about that input or part that depends on the stopped
+reading or computation, such as "valid", "invalid", or a report that
+the input or part is not valid, is missing, or lacks a part. This
+requirement does not forbid a report of where the program reached a
+limit of its own, or a result word that a requirement states that a
+program gives to say that the program stopped at a limit of its own.
+This requirement also does not forbid any result that does not depend
+on the stopped reading or computation, or any other result beyond the
+stopped reading or computation that is not a verdict that this
+requirement forbids.
+
+### 4.3 Inputs that are not valid
 
 @req reject-invalid-inputs=v1
 @cites #{
@@ -567,7 +597,7 @@ not forbid what a requirement of the owner design of I for R states that
 a program gives or does for I in that case, and a report that such a
 requirement states is the report of I for R.
 
-### 4.3 Valid inputs that lack a part
+### 4.4 Valid inputs that lack a part
 
 @req report-missing-parts=v1
 @cites #{design=v1, requirement=v1, input=v1, dependence=v1, report=v1}
@@ -591,7 +621,7 @@ of different designs both need the same missing part and those designs
 state different reports, the program must give each design's report for
 its requirement.
 
-### 4.4 Results over canonical objects
+### 4.5 Results over canonical objects
 
 @req give-results-over-canonical-objects=v1
 @cites #{
@@ -626,7 +656,7 @@ once in that set. Whether two valid inputs that hold different canonical
 objects conflict is governed by the designs that define those kinds of
 object and those encodings, not by this requirement.
 
-### 4.5 Defined encodings
+### 4.6 Defined encodings
 
 @req read-defined-encodings=v1
 @cites #{
