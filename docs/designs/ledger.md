@@ -17,7 +17,7 @@
 @cites rfc/5234
 @cites rfc/7405
 @cites rfc/8259
-Specifies the split ledger of a repository: the log branch, its remote-tracking ref, its chunks of `{"id","object"}` envelope lines, its newer lines, its validity, its key-present closure, and its intact append-only history checked against git's reflog; common record fields, record writers, voids, and acceptance rules; the checks of git entries inside `.sinter/`, of added and withdrawn store files, of agent writers, of unaccepted voids, of latest targets, of uncommitted store files, and of conflicts; agent markers, job markers, and tracker boundaries; and requirements for conforming programs that read, check, and write statements and the log branch.
+Specifies the split ledger of a repository: the log branch, its remote-tracking ref, its chunks of `{"id","object"}` envelope lines, its newer lines, its validity, its key-present closure, and its intact append-only history checked against git's reflog; common record fields, record writers, voids, and acceptance rules; the checks of git entries at or inside `.sinter/`, of added and withdrawn store files, of agent writers, of unaccepted voids, of latest targets, of uncommitted store files, and of conflicts; agent markers, job markers, and tracker boundaries; and requirements for conforming programs that read, check, and write statements and the log branch.
 
 The ledger of a repository has two parts. Statements — definitions,
 judgments, and voids — live as fixed object files in `.sinter/` of a
@@ -54,13 +54,14 @@ and counting voids, records of the job (observations), the log branch,
 the ledger, things and latest statements, conflicts, states, persons,
 agents, the job, external items, parameters, and finding classes. From
 Findings (`findings`), it takes the parts of a finding, finding
-subjects, messages, spots, marks, related messages, fixes, and ackable
-findings. From Changes (`changes`), it takes git repositories, working
-trees, commits and their parents, refs and the commits of refs, ref
-names, branch names, head commits, git tree objects with their entries
-and byte paths, reach and ancestry, change bases, git configurations,
-remotes and their fetch and push addresses, reflog commits, mapped refs,
-repository reads, undisturbed repository reads, and the requirement
+subjects, path-finding subjects, messages, spots, marks, related
+messages, fixes, and ackable findings. From Changes (`changes`), it
+takes git repositories, working trees, commits and their parents,
+shallow commits, refs and the commits of refs, ref names, branch names,
+head commits, git tree objects with their entries and byte paths, reach
+and ancestry, change bases, git configurations, remotes and their fetch
+and push addresses, reflog commits, mapped refs, repository reads,
+undisturbed repository reads, and the requirement
 `run-no-configured-programs`. From the Object store (`object-store`), it
 takes object paths, store paths, store files, valid object files, needed
 identity files, and the object store of a tree.
@@ -109,14 +110,14 @@ schemas.
 | [stored ledger](sinter:#stored-ledger=v1), [stored statements](sinter:#stored-ledger=v1), [stored observations](sinter:#stored-ledger=v1) | the stored statements of a tree's valid object store together with the stored observations and kept objects of a valid, intact log branch |
 | [extend](sinter:#ledger-extension=v1), [intact](sinter:#intact-history=v1) | a commit `d` extends `c` along a single-parent chain that drops or alters no chunk line; a log branch history is intact when its tip extends a root commit with every reached commit valid and reaches every reflog commit of its remote-tracking ref |
 | [acceptance rule](sinter:#accepted-entry=v1), [accepted](sinter:#accepted-entry=v1) | the condition under which a statement or observation is accepted; the Ledger defines the acceptance rule of `void` |
-| [base comparison](sinter:#base-comparison=v1) | the base tree `B` and head tree `H` compared by change checks and default-branch checks (caller-named base or first parent on the default branch) |
+| [base comparison](sinter:#base-comparison=v1) | the base tree `B` and head tree `H` compared by change checks and default-branch checks (caller-named base, change base, or first parent; missing when a change has no base or a default-branch head is a shallow commit) |
 | [agent marker](sinter:#agent-marker=v1), [job marker](sinter:#job-marker=v1) | an environment variable named by `agent-markers` showing an agent runs the execution; an environment variable named by `job-markers` showing the execution is the job |
-| [`invalid-store-entry`](sinter:#invalid-store-entry-finding=v1) | non-ackable finding class reporting a symbolic link (`120000`), submodule (`160000`), or non-UTF-8 entry name inside `.sinter/` and outside `.sinter/local/` in a checked commit |
+| [`invalid-store-entry`](sinter:#invalid-store-entry-finding=v1) | non-ackable finding class reporting a symbolic link (`120000`), submodule (`160000`), or non-UTF-8 entry name at `.sinter` or inside `.sinter/` and outside `.sinter/local/` in a checked commit |
 | [`altered-store-file`](sinter:#altered-store-file-finding=v1) | non-ackable finding class of the check "Only added" reporting a base store file altered or deleted without an allowed exception |
 | [`withdrawn-store-file`](sinter:#withdrawn-store-file-finding=v1) | non-ackable finding class of the check "Withdrawn files" reporting a new or changed store file whose canonical object a counting void withdraws |
 | [`agent-writer`](sinter:#agent-writer-finding=v1) | non-ackable finding class of the check "Writers" reporting a judgment or void carrying the member `agent` |
 | [`unaccepted-statement`](sinter:#unaccepted-statement-finding=v1) | non-ackable finding class of the check "Kind rules" reporting a statement that fails a cross-object rule or the acceptance rule of its kind |
-| [`non-latest-target`](sinter:#non-latest-target-finding=v1) | non-ackable finding class of the check "Latest targets" reporting a new non-void statement naming a non-latest record with `revises` or `judges` |
+| [`non-latest-target`](sinter:#non-latest-target-finding=v1) | non-ackable finding class of the check "Latest targets" reporting a new unwithdrawn non-void statement naming a non-latest record with `revises` or `judges` |
 | [`statement-conflict`](sinter:#statement-conflict-finding=v1) | non-ackable finding class of the check "Conflicts" reporting a conflict in a tree |
 
 ## 2. The ledger, the log branch, and the checks
@@ -133,12 +134,13 @@ identity objects that they need) live on the log branch, named by the
 parameter `log-branch-name` (such as `sinter-log`).
 
 Every record conforms to its row of `ontology#object-kind`, carries a
-required member `by`, and holds its links in `edges`. Statements carry
-no `seq` and no `branch`; they may carry `agent` and `ts`. Observations
-carry `seq` (numbered 1 to `m` across observations on the log branch)
-and may carry `ts`. Kept objects carry neither `by` nor `seq`. When a
-conforming program writes `ts`, `ts` uses the RFC 3339 format of
-`entry-field`, such as `2026-10-31T14:05:09Z`.
+required member `by`, and holds its links in `edges`. Conforming
+programs write no `seq` and no `branch` on statements and no `agent` on
+observations; statements may carry `agent` and `ts`. Observations carry
+`seq` (numbered 1 to `m` across observations on the log branch) and may
+carry `ts`. Kept objects carry neither `by` nor `seq`. When a conforming
+program writes `ts`, `ts` uses the RFC 3339 format of `entry-field`,
+such as `2026-10-31T14:05:09Z`.
 
 ### 2.2 Log-branch lines, chunks, and closure
 
@@ -150,7 +152,7 @@ followed by `0x0A` (schema `log-branch-line`). The member `object` is a
 canonical line object of one of the fourteen kinds that
 `ontology#object-kind` marks as allowed on the log branch, and `id` is
 its content id (`ontology#content-id`). A line of an unknown or
-disallowed kind makes the log branch broken.
+disallowed kind that is not a newer line makes the log branch broken.
 
 For example, a `progress` observation has the content id
 `progress:f457e35a60af035247dce0814e5ebe1c` and the chunk path
@@ -242,13 +244,14 @@ choice, reports that it stopped, and writes nothing more.
 
 In every fetch or push of the log branch, a program runs no configured
 program that `changes#run-no-configured-programs` forbids
-(`limit-programs-in-log-transfers`). In a run that stopped at a limit of
-the program's own, a program writes no statement, appends no observation
-or kept object, and makes no update of the log branch
-(`change-no-ledger-after-stop`). In a run in which the program could not
-read a file, folder, or git object under `conformance#input`, the
-program appends no observation or kept object and makes no update of the
-log branch (`write-no-log-after-read-error`).
+(`limit-programs-in-log-transfers`). After a program reaches a limit of
+its own in a run, the program writes no further statement, appends no
+further observation or kept object, and makes no further update of the
+log branch in that run (`change-no-ledger-after-stop`). In a run in
+which the program could not read a file, a folder, or a git object under
+`conformance#input`, the program writes no statement, appends no
+observation or kept object, and makes no update of the log branch
+(`write-no-log-after-read-error`).
 
 What a conforming program gives while another process changes an input
 repository or working tree is a matter of quality of implementation; the
@@ -271,12 +274,13 @@ at `.sinter/36/36cfcb55423e10ddf3cf0c8352d9cf69.json`:
 The `void` copies the withdrawn object's edges to non-identity objects
 in its own `edges` (for a withdrawn declared item, only its `revises`
 edges; for a withdrawn `scope` object or record, every edge whose target
-is not a computed identity object). When the inputs (the checked tree,
-any base tree, or the log branch) hold the withdrawn object, the
+is not a computed identity object). When the valid inputs (the valid
+object store of the checked tree, the valid object store of any base
+tree, or the valid, intact log branch) hold the withdrawn object, the
 acceptance rule of `void` (`accepted-entry`) checks that the `void`'s
-copied edges match those exact edges; when the withdrawn file was
-already deleted from `.sinter/`, the acceptance rule checks only that
-the copied edges fit `withdrawn-kind`. Whether a `void` counts as a
+copied edges match those exact edges; when no valid input holds the
+withdrawn object, the acceptance rule checks only that the copied edges
+fit `withdrawn-kind`. Whether a `void` counts as a
 counting void follows `ontology#object-withdrawal`, which excludes
 voids carrying `agent` and applies any bound list of persons (with
 withholding under an invalid binding).
@@ -298,33 +302,34 @@ kinds.
 Beside the Object store's check "Form", five checks of `.sinter/` and
 one notice for uncommitted store files apply:
 
-- **Git entries inside `.sinter/`** (`invalid-store-entry`, requirement
-  `give-store-entry-findings`): in a checked commit's git tree object,
-  reports every symbolic link (`120000`), submodule (`160000`), and
-  entry with a non-UTF-8 name inside `.sinter/` and outside
-  `.sinter/local/`, while accepting executable regular files (`100755`).
+- **Git entries at or inside `.sinter/`** (`invalid-store-entry`,
+  requirement `give-store-entry-findings`): in a checked commit's git
+  tree object, reports every symbolic link (`120000`), submodule
+  (`160000`), and entry with a non-UTF-8 name at `.sinter` or inside
+  `.sinter/` and outside `.sinter/local/`, while accepting executable
+  regular files (`100755`).
 - **Only added** (`altered-store-file`, requirement
   `give-only-added-findings`): compares a head tree with a base tree
-  (term `base-comparison`: the change base on a branch, or a
-  caller-named base or first parent on the default branch) and reports
-  every base store file that changed or disappeared, except a deleted
-  valid object file withdrawn by a counting void in the head tree or a
-  deleted unneeded computed identity file when every head store file is
-  valid.
+  (term `base-comparison`: a caller-named base, the change base on a
+  branch, or the first parent on the default branch) and reports every
+  base store file that changed or disappeared, except a deleted valid
+  object file withdrawn by a counting void in a valid head object store
+  or a deleted unneeded computed identity file when every head store
+  file is valid.
 - **Withdrawn files** (`withdrawn-store-file`, requirement
   `give-withdrawn-file-findings`): reports every new or changed valid
-  object file in the head tree (not matching the base tree byte for
-  byte) whose canonical object a counting void in the head tree
+  object file in a valid head object store (not matching the base tree
+  byte for byte) whose canonical object a counting void in the head tree
   withdraws.
 - **Writers (`agent`)** (`agent-writer`, requirement
   `give-agent-writer-findings`): reports every judgment or void in a
   tree's valid object store that carries `agent`.
 - **Latest targets** (`non-latest-target`, requirement
   `give-latest-target-findings`): for a change, reports each record
-  content id that a new non-void statement names with `revises` (or
-  `judges` on `done` or `abandoned`) when that target is not a latest
-  statement in the head tree with that new statement and its new
-  replacements removed.
+  content id that a new, unwithdrawn non-void statement names with
+  `revises` (or `judges` on `done` or `abandoned`) when that target is
+  not a latest statement in the head tree with that new statement and
+  its new replacements removed.
 - **Uncommitted store files** (`report-uncommitted-statements`): when
   checking a working tree whose `.sinter/` holds any store file absent
   from or differing from the head commit, gives a notice that it read
@@ -334,11 +339,11 @@ one notice for uncommitted store files apply:
 
 An agent marker shows that an agent runs an execution (term
 `agent-marker`); a job marker shows that an execution is the job (term
-`job-marker`). Under an agent marker, a program writes only statements
-carrying `agent` (`record-agent-writers`), writes no judgment, no void,
-and no observation, and writes nothing to the log branch
-(`limit-agents-to-definitions`). Only the job (without an agent marker)
-appends observations or kept objects to the log branch
+`job-marker`). Under an agent marker, each statement that a program
+writes carries `agent` (`record-agent-writers`), and the program writes
+no judgment, no void, and no observation, and writes nothing to the log
+branch (`limit-agents-to-definitions`). Only the job (without an agent
+marker) appends observations or kept objects to the log branch
 (`leave-delivered-entries-to-job`).
 
 A record may name an external item by its external id, such as `gh/42`,
@@ -528,6 +533,7 @@ these conditions hold:
 @schema entry-field=v1
 @cites {
     rfc/3339,
+    conformance#{conforming-program=v1},
     ontology#{
         ledger-entry=v1, statement=v1, job-record=v1, void-statement=v1,
         object-kind=v1, person=v1, agent=v1, job=v1, edge=v1,
@@ -545,10 +551,10 @@ The common fields of records follow `ontology#object-kind`:
 - `by`, a required string naming the person who wrote the statement, the
   person for whom the agent acts, or the job;
 - `agent`, an optional string on statements naming the agent that wrote
-  the statement (absent on observations);
+  the statement (not written by a conforming program on observations);
 - `seq`, a required integer of 1 or more on observations giving the
-  observation's sequence number on the log branch (absent on
-  statements);
+  observation's sequence number on the log branch (not written by a
+  conforming program on statements);
 - `ts`, an optional string giving the time at which the record was
   written: when written by a conforming program, a text that matches the
   rule `date-time` of RFC 3339, with the letters `T` and `Z` in upper
@@ -645,6 +651,7 @@ when, and only when, each of these five conditions holds:
         object=v1, object-kind=v1, computed-identity=v1,
         declared-item=v1, content-id=v1, edge=v1, log-branch=v1,
     },
+    object-store#{tree-object-store=v1},
     data-forms#{json-value=v1},
     text#{code-span=v1},
     #{log-branch-line=v1, valid-ledger-tree=v1},
@@ -669,11 +676,12 @@ valid log-branch tree. Such an absent computed identity object is a part
 that a valid log branch can lack under `conformance#input`: when no
 input of a run (neither the log branch, nor a declared-item object
 holding its own `name` key, nor any valid encoding input, nor a valid
-program's own store) gives that computed identity object or its key,
-that computed identity object is a missing part of the run, and a thing
-that a requirement obliges needs that missing part when, and only when,
-that thing needs its key. When another input of the run gives that
-computed identity object or its key, the run does not lack that part.
+program's own store) gives that computed identity object or its key (as
+`object-store#tree-object-store` defines these words), that computed
+identity object is a missing part of the run, and a thing that a
+requirement obliges needs that missing part when, and only when, that
+thing needs its key. When another input of the run gives that computed
+identity object or its key, the run does not lack that part.
 
 ### 4.11 Valid, broken, and newer log branches
 
@@ -785,8 +793,13 @@ intact is "valid" when intact, and "invalid" when not intact.
         object-withdrawal=v1, object-kind=v1, declared-item=v1,
         computed-identity=v1, content-id=v1, edge=v1, thing=v1, tree=v1,
     },
+    object-store#{tree-object-store=v1},
     data-forms#{json-value=v1},
     text#{code-span=v1},
+    #{
+        log-branch-ref=v1, ledger-object=v1, ledger-validity=v1,
+        intact-history=v1,
+    },
 }
 
 The acceptance rule of a kind of statement or observation is the
@@ -795,12 +808,19 @@ that kind is accepted in a tree (for a statement) or on the log branch
 (for an observation). A record of a kind for which no design gives an
 acceptance rule is not accepted.
 
-This design gives the acceptance rule of the kind `void`. Let `V` be a
-`void` object in a tree `T`, and let `U` be the set of canonical objects
-held by the inputs of the operation (the valid object store of `T`, the
-valid object store of any base tree `B` when a change is checked, and
-the valid, intact log branch when present). `V` is accepted in `T` when,
-and only when, all three of these conditions hold:
+This design gives the acceptance rule of the kind `void`. For a tree `T`
+whose object store (`object-store#tree-object-store`) is valid, let `V`
+be a `void` object in `T`, and let `U` be the set of canonical objects
+held by the valid inputs of the operation: the object store of `T`, the
+object store of any base tree `B` when a change is checked and the
+object store of `B` is valid, and the log branch when it is not missing,
+holds its ledger objects and history objects, is valid, and is intact.
+When the object store of `T` is not valid, no `void` is accepted in `T`
+(an object store that holds a store file that is not valid gives no
+result over its objects and no finding under this rule); when the object
+store of `B` is not valid, `B` contributes no canonical object to `U`.
+`V` is accepted in `T` when, and only when, all three of these
+conditions hold:
 
 1. `V` meets its row of `ontology#object-kind` (so its one `withdraws`
    edge names a content id `w` of a withdrawable kind — never `void`,
@@ -833,21 +853,34 @@ a new statement of that group names no record with `revises`.
 
 @term base-comparison=v1
 @cites {
+    conformance#{input=v1},
     ontology#{tree=v1, default-branch=v1},
-    changes#{commit=v1, commit-file=v1, change-base=v1},
+    changes#{
+        commit=v1, commit-file=v1, change-base=v1, shallow-commit=v1,
+        working-tree=v1, head-commit=v1,
+    },
 }
 
 For a check that compares a head tree `H` with a base tree `B`:
 
 - For a change on a branch, `H` is the checked tree of the change (such
-  as the tree of the merge result commit or the working tree), and `B`
-  is the tree of the base commit named by the caller or, when the caller
-  names none, the tree of the base of the change (`changes#change-base`).
+  as the tree of the merge result commit, or a working tree), and `h` is
+  the commit of that tree (for a working tree, its head commit). `B` is
+  the tree of the base commit named by the caller or, when the caller
+  names none, the tree of the base of the change of `h`
+  (`changes#change-base`).
 - On the default branch, for a head commit `h`, `H` is the tree of `h`,
   and `B` is the tree of the base commit named by the caller or, when
-  the caller names none, the tree of the first parent of `h` (or the
-  empty tree with zero files when `h` has no parent). The choice of `B`
-  never reads the log branch.
+  the caller names none, the tree of the first parent of `h`, or the
+  empty tree with zero files when `h` has no parent and is not a shallow
+  commit (`changes#shallow-commit`).
+
+When the caller names no base commit, and either (for a change) the
+working tree has no head commit or the change of `h` has no base, or (on
+the default branch) `h` is a shallow commit, `B` is a part that the git
+repository lacks under `conformance#input`, and each finding of a check
+that compares `H` with `B` needs that part. The choice of `B` never
+reads the log branch.
 
 ### 4.17 Agent markers
 
@@ -886,9 +919,11 @@ environment of a process of that execution holds a job marker.
 @atom invalid-store-entry-finding=v1
 @cites {
     findings#{
-        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
-        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+        finding-part=v1, finding-subject=v1, path-finding-subject=v1,
+        message=v1, spot=v1, mark=v1, related-message=v1, fix=v1,
+        ackable-finding=v1,
     },
+    files#{path=v1},
     changes#{commit=v1, commit-file=v1},
     data-forms#{hex-text=v1},
     ontology#{finding-class=v1, tree=v1},
@@ -899,18 +934,18 @@ environment of a process of that execution holds a job marker.
 }
 
 For a commit `c` whose git tree object is `T`, an entry `E` among the
-entries of `T` (`changes#commit-file`), with byte path `bp`, lies inside
-`.sinter/` and outside `.sinter/local/` when, and only when, all three
-of these hold:
+entries of `T` (`changes#commit-file`), with byte path `bp`, lies at
+`.sinter` or inside `.sinter/` and outside `.sinter/local/` when, and
+only when, both of these hold:
 
-1. `bp` starts with the UTF-8 encoding of `.sinter/`.
+1. `bp` equals the UTF-8 encoding of `.sinter`, or `bp` starts with the
+   UTF-8 encoding of `.sinter/`.
 2. `bp` does not start with the UTF-8 encoding of `.sinter/local/`.
-3. It is not the case that `E` is a tree entry whose byte path `bp`
-   equals the UTF-8 encoding of `.sinter/local`.
 
 `c` has one finding of the class `invalid-store-entry` for each entry
-`E` of `T` inside `.sinter/` and outside `.sinter/local/` that meets at
-least one of these three conditions, and no other finding of that class:
+`E` of `T` at `.sinter` or inside `.sinter/` and outside
+`.sinter/local/` that meets at least one of these three conditions, and
+no other finding of that class:
 
 - `E` is a symbolic-link entry (mode 120000);
 - `E` is a submodule entry (mode 160000);
@@ -920,9 +955,10 @@ The finding has these parts:
 
 - its tree is the tree of `c`;
 - its finding class is `invalid-store-entry`;
-- its subject is the text of `bp` when `bp` is valid UTF-8 and that text
-  fits `findings#finding-subject`, and otherwise `bytes:` followed by
-  the lowercase `data-forms#hex-text` of `bp`;
+- its subject is the path-finding subject
+  (`findings#path-finding-subject`) of the text of `bp` when `bp` is the
+  UTF-8 encoding of a valid path (`files#path`), and otherwise `bytes:`
+  followed by the lowercase `data-forms#hex-text` of `bp`;
 - it has no spot, no mark, and no fix, and it is not ackable;
 - its message says what is wrong;
 - its related messages are those that the program gives.
@@ -932,8 +968,9 @@ The finding has these parts:
 @atom altered-store-file-finding=v1
 @cites {
     findings#{
-        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
-        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+        finding-part=v1, finding-subject=v1, path-finding-subject=v1,
+        message=v1, spot=v1, mark=v1, related-message=v1, fix=v1,
+        ackable-finding=v1,
     },
     files#{path=v1},
     ontology#{
@@ -953,23 +990,26 @@ path `p` and content `b`) such that `H` does not hold a store file at
 `p` with content `b`, except when `H` holds no file at `p` and at least
 one of these two exceptions holds, and no other finding of that class:
 
-1. `F` is a valid object file whose canonical object is withdrawn by a
-   counting void (`ontology#object-withdrawal`) in `H`.
+1. Every store file of `H` is a valid object file, and `F` is a valid
+   object file whose canonical object is withdrawn by a counting void
+   (`ontology#object-withdrawal`) in `H`.
 2. Every store file of `H` is a valid object file, `F` is a valid object
    file whose canonical object is a computed identity object, and no
    canonical object of the object store of `H` needs the identity file
    of that computed identity object (`object-store#needed-identity-file`).
 
-When `H` holds no file at `p`, `F` is a valid object file, exception 2
-does not hold, and whether a `void` in `H` naming `F`'s canonical object
-counts is withheld under `ontology#object-withdrawal`, whether `H` has
-an `altered-store-file` finding for `F` is withheld.
+When `H` holds no file at `p`, every store file of `H` is a valid object
+file, `F` is a valid object file, exception 2 does not hold, and whether
+a `void` in `H` naming `F`'s canonical object counts is withheld under
+`ontology#object-withdrawal`, whether `H` has an `altered-store-file`
+finding for `F` is withheld.
 
 The finding has these parts:
 
 - its tree is `H`;
 - its finding class is `altered-store-file`;
-- its subject is `p`;
+- its subject is the path-finding subject
+  (`findings#path-finding-subject`) of `p`;
 - its spot is `p` alone (with no span) in `H` when `H` holds a file at
   `p`, and none when `H` holds no file at `p`;
 - it has no mark and no fix, and it is not ackable;
@@ -981,31 +1021,36 @@ The finding has these parts:
 @atom withdrawn-store-file-finding=v1
 @cites {
     findings#{
-        finding-part=v1, finding-subject=v1, message=v1, spot=v1,
-        mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+        finding-part=v1, finding-subject=v1, path-finding-subject=v1,
+        message=v1, spot=v1, mark=v1, related-message=v1, fix=v1,
+        ackable-finding=v1,
     },
     files#{path=v1},
     ontology#{finding-class=v1, tree=v1, object-withdrawal=v1},
-    object-store#{store-file=v1, valid-object-file=v1},
+    object-store#{
+        store-file=v1, valid-object-file=v1, tree-object-store=v1,
+    },
     #{base-comparison=v1},
 }
 
-For a base tree `B` and a head tree `H`, `H` has one tree finding of the
-class `withdrawn-store-file` for each valid object file `F` of `H` (with
-valid path `p` and content `b`) such that `B` does not hold a store file
-at `p` with content `b` and the canonical object of `F` is withdrawn by
-a counting void (`ontology#object-withdrawal`) in `H`, and no other
-finding of that class. When whether a `void` in `H` naming `F`'s
-canonical object counts is withheld under `ontology#object-withdrawal`,
-whether `H` has a `withdrawn-store-file` finding for `F` is withheld.
+For a base tree `B` and a head tree `H` whose object store
+(`object-store#tree-object-store`) is valid, `H` has one tree finding of
+the class `withdrawn-store-file` for each valid object file `F` of `H`
+(with valid path `p` and content `b`) such that `B` does not hold a
+store file at `p` with content `b` and the canonical object of `F` is
+withdrawn by a counting void (`ontology#object-withdrawal`) in `H`, and
+no other finding of that class. When whether a `void` in `H` naming
+`F`'s canonical object counts is withheld under
+`ontology#object-withdrawal`, whether `H` has a `withdrawn-store-file`
+finding for `F` is withheld.
 
 The finding has these parts:
 
 - its tree is `H`;
 - its finding class is `withdrawn-store-file`;
-- its subject is `p`;
-- its spot is `p` alone (with no span) in `H` when taken from `.sinter/`,
-  and none when taken from a program's own store;
+- its subject is the path-finding subject
+  (`findings#path-finding-subject`) of `p`;
+- its spot is `p` alone (with no span) in `H`;
 - it has no mark and no fix, and it is not ackable;
 - its message says what is wrong;
 - its related messages are those that the program gives.
@@ -1091,11 +1136,12 @@ The finding has these parts:
     },
     ontology#{
         finding-class=v1, tree=v1, statement=v1, void-statement=v1,
-        judgment=v1, thing=v1, object-withdrawal=v1, edge=v1,
-        content-id=v1,
+        judgment=v1, thing=v1, object-kind=v1, object-withdrawal=v1,
+        edge=v1, content-id=v1, log-branch=v1,
     },
     object-store#{
-        object-path=v1, valid-object-file=v1, tree-object-store=v1,
+        object-path=v1, store-file=v1, valid-object-file=v1,
+        tree-object-store=v1,
     },
     text#{space=v1, code-span=v1},
     #{stored-ledger=v1, base-comparison=v1},
@@ -1106,22 +1152,28 @@ stored statement `S` of `H` is new relative to `B` when `B` does not
 hold a valid object file whose canonical object has the content id of
 `S`.
 
-For a new stored statement `S` of `H` whose `kind` is not `void`, let
-the reduced tree `H_S` be the set of stored statements of `H` with `S`
-removed and with every new stored statement of `H` (relative to `B`)
-that replaces `S` (directly or through a chain of `revises` edges,
-including copied `revises` edges of counting voids in `H` that are new
-relative to `B`) removed.
+For a new stored statement `S` of `H` whose `kind` is not `void` and
+that no counting void (`ontology#object-withdrawal`) in `H` withdraws,
+let the reduced tree `H_S` be the tree `H` without the store files whose
+canonical objects are `S` and every new stored statement of `H`
+(relative to `B`) that replaces `S` (directly or through a chain of
+`revises` edges, including copied `revises` edges of counting voids in
+`H` that are new relative to `B`).
 
-For each new stored statement `S` of `H` whose `kind` is not `void`, and
-each content id `t` that `S` names with a `revises` edge or (when `S`
-has `kind` equal to `done` or `abandoned`) with a `judges` edge, `H` has
-one tree finding of the class `non-latest-target` for the pair `(S, t)`
-when `t` is not the content id of a latest statement of its group
-(`ontology#thing`) in `H_S`, and no other finding of that class. When
-whether `t` is a latest statement in `H_S` is withheld under an invalid
-binding of a list of persons (`ontology#thing`,
-`ontology#object-withdrawal`), whether `H` has that finding is withheld.
+For each new stored statement `S` of `H` whose `kind` is not `void` and
+that no counting void in `H` withdraws, and each content id `t` that `S`
+names with a `revises` edge or (when `S` has `kind` equal to `done` or
+`abandoned`) with a `judges` edge, `H` has one tree finding of the class
+`non-latest-target` for the pair `(S, t)` when `t` is not the content id
+of a latest statement of its group (`ontology#thing`) in `H_S`, and no
+other finding of that class. In `H_S`, each cross-object rule of
+`ontology#object-kind` reads only the objects of `H_S` (using the copied
+edges of a counting void in `H_S` when `H_S` does not hold the target
+object, as `ontology#thing` states), and reads neither `B` nor the log
+branch. When whether a `void` in `H` naming `S` counts, or whether `t`
+is a latest statement in `H_S`, is withheld under an invalid binding of
+a list of persons (`ontology#thing`, `ontology#object-withdrawal`),
+whether `H` has that finding is withheld.
 
 The finding has these parts:
 
@@ -1202,11 +1254,11 @@ of the log branch of a git repository in an undisturbed repository read,
 it must give once each stored observation (in increasing order of `seq`
 when ordered) and once each kept object, and no other observation or
 kept object, when the log branch is not missing, the git repository
-holds its ledger objects (and its history objects when checking history),
-its log branch is valid, and (when history is checked) its history is
-intact. It must give no observation and no kept object when the log
-branch is missing, broken, newer, or not intact, or when the git
-repository does not hold its ledger objects.
+holds its ledger objects and its history objects, its log branch is
+valid, and its history is intact. It must give no observation and no
+kept object when the log branch is missing, broken, newer, or not
+intact, or when the git repository does not hold its ledger objects or
+its history objects.
 
 ### 5.2 The validation of the log branch
 
@@ -1339,7 +1391,7 @@ objects, the conforming program must give one `conformance#report`
 stating that the git repository does not hold its history objects, and
 must give no such report when it holds them.
 
-### 5.7 Git entries inside `.sinter/` of a commit
+### 5.7 Git entries at or inside `.sinter/` of a commit
 
 @req give-store-entry-findings=v1
 @cites {
@@ -1349,10 +1401,10 @@ must give no such report when it holds them.
     #{invalid-store-entry-finding=v1},
 }
 
-When a conforming program checks the git entries inside `.sinter/` of a
-commit `c`, the conforming program must give once each finding of the
-class `invalid-store-entry` that `c` has, and no other finding of that
-class.
+When a conforming program checks the git entries at or inside `.sinter/`
+of a commit `c`, the conforming program must give once each finding of
+the class `invalid-store-entry` that `c` has, and no other finding of
+that class.
 
 ### 5.8 Only added
 
@@ -1375,14 +1427,15 @@ must give once each tree finding of the class `altered-store-file` that
 @cites {
     conformance#{conforming-program=v1},
     ontology#{tree=v1},
+    object-store#{tree-object-store=v1},
     findings#{finding-part=v1},
     #{base-comparison=v1, withdrawn-store-file-finding=v1},
 }
 
 When a conforming program runs the check "Withdrawn files" comparing a
-base tree `B` and a head tree `H` (`base-comparison`), the conforming
-program must give once each tree finding of the class
-`withdrawn-store-file` that `H` has relative to `B`, and no other
+base tree `B` and a head tree `H` (`base-comparison`) whose object store
+is valid, the conforming program must give once each tree finding of the
+class `withdrawn-store-file` that `H` has relative to `B`, and no other
 finding of that class.
 
 ### 5.10 Agent writers on judgments and voids
@@ -1572,9 +1625,9 @@ the RFC 3339 form of `entry-field`.
 }
 
 In an execution whose input says that an agent runs the execution
-(`agent-marker`), a conforming program must write only statements whose
-objects carry the member `agent` (so that `entry-writer` records that
-agent).
+(`agent-marker`), a conforming program must write a statement only when
+its object carries the member `agent` (so that `entry-writer` records
+that agent).
 
 ### 5.19 Statements that agents may write
 
@@ -1637,7 +1690,7 @@ conforming program must run none of the programs and commands that
 `changes#run-no-configured-programs` forbids in a fetch from or push to
 that remote.
 
-### 5.23 No ledger write in a run that stopped at a limit
+### 5.23 No ledger write after a stop at a limit
 
 @req change-no-ledger-after-stop=v1
 @cites {
@@ -1647,24 +1700,26 @@ that remote.
     ontology#{statement=v1, job-record=v1, log-branch=v1},
 }
 
-In a run that stopped at a limit of a conforming program's own, that
-conforming program must write no statement in `.sinter/`, must append no
-observation or kept object, and must make no update of the log branch.
+When a conforming program reaches a limit of its own in a run, that
+conforming program must write no further statement in `.sinter/`, must
+append no further observation or kept object, and must make no further
+update of the log branch in that run.
 
-### 5.24 No log-branch write after a read error
+### 5.24 No ledger write after a read error
 
 @req write-no-log-after-read-error=v1
 @cites {
     conformance#{
         conforming-program=v1, safety-obligation=v1, input=v1,
     },
-    ontology#{job-record=v1, log-branch=v1},
+    ontology#{statement=v1, job-record=v1, log-branch=v1},
 }
 
 In a run in which content of a file, a folder, or a git object is a part
 that an input lacks under `conformance#input` because a conforming
-program could not take that content, that conforming program must append
-no observation or kept object and must make no update of the log branch.
+program could not take that content, that conforming program must write
+no statement in `.sinter/`, must append no observation or kept object,
+and must make no update of the log branch.
 
 ## 6. Conformance
 
@@ -1725,8 +1780,9 @@ remote-tracking ref of the log branch of a git repository, whether the
 log branch is valid, broken, newer, or missing, and (when valid) the
 stored observations, kept objects, and unclosed kept-object pairs. The
 input of each vector stands for a git repository that holds its ledger
-objects and is read in an undisturbed repository read (and whose log
-branch, when valid, is assumed intact for `give-stored-ledgers`).
+objects and its history objects and is read in an undisturbed repository
+read (and whose log branch, when valid, is assumed intact for
+`give-stored-ledgers`).
 
 - `input`: a JSON object. When the remote-tracking ref of the log branch
   exists, the member `ref` is a JSON object with one member: `entries`
@@ -1751,7 +1807,10 @@ whether the log branch is valid, it gives the result that `result`
 holds, once, and no other result; when `result` is absent, it gives no
 result. When it gives the observations and kept objects of the log
 branch, it gives those named by `observations` (in order) and `kept`,
-once each and no others, and gives none when `values` is `{}`.
+once each and no others, and gives none when `values` is `{}`. The
+member `unclosed` states no obligation in this group; the group
+`histories` holds the vectors of the closure reports of the check
+"Growth of the log branch".
 
 Inside `input`, `result`, and `values`, a text is a JSON string; a byte
 sequence is a JSON string when it is valid UTF-8, or
@@ -1822,7 +1881,7 @@ report.
 {"form":"#history-vector=v1","group":"histories","input":{"commit":"a","commits":{"a":{"entries":[{"entries":[{"entries":[{"lines":[{"id":"progress:f457e35a60af035247dce0814e5ebe1c","object":{"by":"ci-bot","head":"1111111111111111111111111111111111111111","kind":"progress","seq":1,"ts":"2026-10-31T14:05:09Z","v":1}}],"mode":"100644","name":"f457e35a60af035247dce0814e5ebe1c.jsonl"}],"mode":"40000","name":"f4"}],"mode":"40000","name":"entries"}],"parents":[]}},"reflog":["a"]},"note":"one root commit with matching reflog commit","result":"valid","values":{"unclosed":[]}}
 ```
 
-### 6.3 Git entries inside `.sinter/`
+### 6.3 Git entries at or inside `.sinter/`
 
 @schema store-entry-vector=v1
 @cites {
