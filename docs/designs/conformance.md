@@ -18,7 +18,7 @@ Specifies, as used in Sinter, designs, definitions, specifications, requirements
 | [specification](sinter:#specification=v1) | a declared item of the kind specification that has a name of its own and declares some of the requirements and definitions of a design |
 | [requirement](sinter:#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
 | must | the word with which a [requirement](sinter:#requirement=v1) states an obligation of a [conforming program](sinter:#conforming-program=v1) |
-| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take while the program reads the input—when the system refuses a permission, reports an input or output error, or offers no operation that lets the program take that content while the program keeps every safety obligation that binds the program (other than from a resource bound, a refusal or restriction that the program itself causes, or content that the program takes on a later attempt in the same run)—is a part that a valid input can lack |
+| [input](sinter:#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends (including, for a program, code that the program ends because that code reached a bound of the program on time, on steps, or on call depth); an input can also have parts, such as the commits of a history or the files of a folder tree, and content that a program could not take while the program reads the input—when the system refuses a permission, reports an input or output error, or offers no operation that lets the program take that content while the program keeps every safety obligation that binds the program (other than from a resource bound, a refusal or restriction that the program itself causes, or content that the program takes on a later attempt in the same run)—is a part that a valid input can lack |
 | [owner design](sinter:#input=v1) | for a requirement, the design that defines the thing as which that requirement names an input |
 | [depends on](sinter:#dependence=v1) | a thing that a program gives or does depends on an input, a part of an input, or a reading or computation when a change to that input or part can change what a requirement obliges for that thing, or when the program computes or chooses that thing from it |
 | [needs](sinter:#dependence=v1) | which parts of a valid input a thing that a requirement obliges requires, as the owner design or the declaring design says, or by default every part on which that thing depends |
@@ -229,10 +229,13 @@ except when another definition of this design specifies the owner design
 of that input. An input is not valid for R when its owner design for R
 says that such a thing is not valid, or when that input supplies code
 that never ends. Otherwise, that input is valid for R. An input that
-supplies code that never ends is not valid for every owner design. A
-property that a design defines for a thing, such as whether a file is
-empty, makes an input not valid for R only when the owner design of that
-input for R says so.
+supplies code that never ends is not valid for every owner design. When
+a program ends code that an input supplies because that code reached a
+bound of the program on time, on steps, or on call depth, that code
+counts, for that program, as code that never ends. A property that a
+design defines for a thing, such as whether a file is empty, makes an
+input not valid for R only when the owner design of that input for R
+says so.
 
 An input can have parts, such as the commits of a history or the files
 of a folder tree. The owner design of an input defines which parts such
