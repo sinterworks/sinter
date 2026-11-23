@@ -197,7 +197,7 @@ group, and the meaning of a vector.
 | [deprecated](sinter:#deprecated-item=v1) | the state of a declared item whose canonical object holds `deprecated` in its member `status` (in the text encoding, from a valid `@deprecated` status tag) |
 | [approved, declined](sinter:#approval-state=v1) | the states of a subject of approval whose current object a person approved or declined, or, for a kind of subject of approval that needs no approval by a person, whose current object merged into the default branch |
 | [draft](sinter:#draft-design=v1) | an item of the kind design is a draft while it is not approved |
-| [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when the declared item that it names exists in the tree and either the edge names an exact object other than the item's current object in the tree (or the item has no current declared-item object in the tree), or the edge names a `pin` object whose label differs from the item's current revision in the tree (or the item has no current revision in the tree) |
+| [suspect](sinter:#suspect-edge=v1) | a pinned edge is suspect when a declared item with the member `name` of the edge's target object exists in the tree and either the edge names an exact object other than the current declared-item object of that name in the tree (or that name has no current declared-item object in the tree), or the edge names a `pin` object whose label differs from the label of the current declared-item object of that name in the tree (or that name has no current declared-item object in the tree, or that current declared-item object has no label) |
 | [open, delivered, done, abandoned](sinter:#work-item-state=v1) | the four states of a task |
 | [open, done, abandoned](sinter:#work-item-state=v1) | the three states of a plan |
 | [unfinished](sinter:#work-item-state=v1) | a task is unfinished while it is open or delivered |
@@ -469,9 +469,8 @@ into the default branch of a repository — started by continuous
 integration on a push to the default branch or on a merged pull request,
 with the configuration of continuous integration that the commit of the
 default branch holds, or run by a person's hand. A run of the job covers
-commits of the default branch up to a commit that is the head of the
-run, covering each commit of the default branch up to that head that no
-earlier run covered. The landing commit of a commit c is the commit of
+commits of the default branch up to one commit of the default branch,
+the head of the run. The landing commit of a commit c is the commit of
 the line of first parents of the default branch through which c joined
 that line (the commit of that line that reaches c and that has no parent
 or whose first parent does not reach c).
@@ -1659,20 +1658,21 @@ replacement within one thing uses `revises` and never `supersedes`.
 @atom suspect-edge=v1
 @cites #{
     pinned-edge=v1, edge=v1, computed-identity=v1, declared-item=v1,
-    item-revision=v1, revised-content=v1, tree=v1,
+    item-name=v1, item-revision=v1, revised-content=v1, tree=v1,
 }
 
 An edge is suspect in a tree when, and only when, each of these three
 conditions holds:
 
 - the edge is pinned;
-- the declared item that the edge names exists in that tree;
+- a declared item with name n exists in that tree, where n is the
+  member `name` of the edge's target object;
 - either the edge names an exact declared-item object other than the
-  current object of that declared item in that tree (or that declared
-  item has no current declared-item object in that tree), or the edge
-  names a `pin` object whose label differs from the current revision of
-  that declared item in that tree (or that declared item has no current
-  revision in that tree).
+  current declared-item object of n in that tree (or n has no current
+  declared-item object in that tree), or the edge names a `pin` object
+  whose label differs from the label of the current declared-item
+  object of n in that tree (or n has no current declared-item object in
+  that tree, or that current declared-item object has no label).
 
 ### 3.45 Promises
 
@@ -2155,7 +2155,7 @@ valid program's own store (`conformance#own-store`).
 
 @term thing=v1
 @cites {
-    conformance#{design=v1},
+    conformance#{design=v1, input=v1},
     #{
         object-kind=v1, object-withdrawal=v1, content-id=v1,
         computed-identity=v1, scope-object=v1, statement=v1,
@@ -2185,7 +2185,10 @@ judgments. A `delivered` observation is not a statement of its thing.
 A statement is accepted in a tree when, and only when, it meets each
 cross-object rule of `object-kind` that binds its kind, a design gives
 an acceptance rule for its kind of statement, and that rule holds for
-that statement in that tree. A statement counts in a tree when, and only
+that statement in that tree. When a cross-object rule reads an object
+that no input holds and that a counting void in that tree withdraws, the
+copied edges of that counting void stand in place of the edges of that
+object. A statement counts in a tree when, and only
 when, all four of these conditions hold (and, for a void, the copy
 condition of `object-withdrawal` also holds):
 
