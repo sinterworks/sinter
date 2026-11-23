@@ -27,6 +27,7 @@
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"Docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"name":"646f6373"}],"type":"directory"}},"note":"the root holds no folder entry for file name 1, `Docs`, also on a file system that ignores case","result":"no file","values":{}}
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"docs/.. /docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"},"name":"646f6373"}],"type":"directory"}},"note":"the folder `docs` holds no folder entry for file name 2, `..` followed by a space, also on a file system that ignores a space at the end of a name, on which a lookup of that name gives the directory entry `..`","result":"no file","values":{}}
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"café.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"636166c3a92e6d64"}],"type":"directory"}},"needs":["names-kept"],"note":"the UTF-8 encoding of the text is not the entry name","result":"no file","values":{}}
+{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"note":"a bound on the length of one entry name is not a limit of the program's own","result":"no file","values":{}}
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"docs","tree":{"entries":[{"file":{"entries":[],"type":"directory"},"name":"646f6373"}],"type":"directory"}},"result":"not a regular file","values":{}}
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"p","tree":{"entries":[{"file":{"type":"FIFO special file"},"name":"70"}],"type":"directory"}},"note":"no process opens the pipe, and a conforming program still gives exactly one result","result":"not a regular file","values":{}}
 {"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"p/x","tree":{"entries":[{"file":{"type":"FIFO special file"},"name":"70"}],"type":"directory"}},"note":"file name 1, `p`, is not the last file name, and its file is not a folder","result":"no file","values":{}}
@@ -139,6 +140,8 @@
 {"form":"#glob-vector=v1","group":"globs","input":"a/","result":"valid"}
 {"form":"#glob-vector=v1","group":"globs","input":"aaa","result":"valid"}
 {"form":"#fit-vector=v1","group":"fits","input":{"glob":"aaa","path":"a"},"result":"does not fit"}
+{"form":"#glob-vector=v1","group":"globs","input":"a\u0000.md","result":"valid"}
+{"form":"#fit-vector=v1","group":"fits","input":{"glob":"a\u0000.md","path":"a.md"},"result":"does not fit"}
 {"form":"#glob-vector=v1","group":"globs","input":"","note":"a valid glob holds at least one glob segment","result":"invalid"}
 {"form":"#glob-vector=v1","group":"globs","input":"/docs","note":"it starts with `/`","result":"invalid"}
 {"form":"#glob-vector=v1","group":"globs","input":"docs//a.md","note":"two `/` together","result":"invalid"}
@@ -182,6 +185,7 @@
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"c.md","path-set":["*.md","!a.md","!b.md"]},"result":"in the set"}
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"a.md","path-set":["*.md","!a.md","!b.md"]},"result":"not in the set"}
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"b.md","path-set":["*.md","!a.md","!b.md"]},"result":"not in the set"}
+{"form":"#path-set-vector=v1","group":"path-sets","input":["a\u0000.md"],"result":"valid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["!docs/"],"note":"no plain member","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","docs/"],"note":"two path set members are the same text","result":"invalid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["a/","a/"],"note":"two path set members are the same text","result":"invalid"}
