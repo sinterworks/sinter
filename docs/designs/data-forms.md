@@ -136,13 +136,14 @@ case-sensitive strings of RFC 7405.
 | [TOML string](sinter:#toml-value=v1), [TOML integer](sinter:#toml-value=v1), [TOML float](sinter:#toml-value=v1), [TOML boolean](sinter:#toml-value=v1), [TOML array](sinter:#toml-value=v1) | a TOML value of the type string, integer, float, boolean, or array of TOML 1.1.0 |
 | [local date](sinter:#toml-value=v1), [local time](sinter:#toml-value=v1), [local date-time](sinter:#toml-value=v1), [offset date-time](sinter:#toml-value=v1) | the TOML values of TOML 1.1.0 that have these names |
 | [table](sinter:#toml-value=v1) | a TOML value that holds a set of pairs, each the text of a TOML key and a TOML value, with no order |
-| [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
+| [equal](sinter:#toml-value-equality=v1) | the relation of two TOML values of the same kind whose parts match: texts that are the same text, numbers that are the same number, offsets that are the same offset, and TOML values that are equal; two TOML floats are equal when their binary64 values have the same bits or both are NaN |
 | [reading rules of TOML](sinter:#toml-reading-rule-list=v1) | the rules on the byte order mark and on the second 60; the choices at the points where TOML 1.1.0 lets an implementation choose; and the rules on offsets and on newlines in strings |
 | [root table](sinter:#root-table=v1) | the top-level table of a TOML document |
 | [location](sinter:#toml-location=v1) | the sequence of steps from the root table of a TOML document to a TOML value: texts of TOML keys and indexes in TOML arrays; two tables with the same location are the same table |
 | [span of a key](sinter:#toml-span=v1), [span of a value](sinter:#toml-span=v1) | the run that the rule `key`, `simple-key`, or `val` of TOML 1.1.0 matches for a key, a TOML key, or a value of TOML 1.1.0 |
 | [span pair](sinter:#toml-span-pair=v1) | a span of the text of a TOML document together with what the span is the span of: a TOML value at a location, the key of TOML 1.1.0 that leads to a location, or a TOML key of such a key |
 | [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
+| [unknown local offset](sinter:#toml-offset=v1) | the offset of an offset date-time that a document gives as `-00:00`, with the meaning that RFC 3339, section 4.3, gives; it is not a number of minutes and not the offset 0 |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
 | [id prefix](sinter:#id-prefix=v1) | a text of the letters `a` to `z` and `-` that starts and ends with a letter and has no two `-` one after the other, then `:`, such as `req:` or `task-def:` |
@@ -150,7 +151,7 @@ case-sensitive strings of RFC 7405.
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:conformance#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | schema | a definition that a design declares under a name, such as `test-vector-set`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
-| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design holds outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
+| [vector](sinter:#vector-meaning=v1) | an input and what the requirements of a specification, or the requirements that a design declares outside the specifications of the design, oblige a conforming program to give for that input, as `vector-meaning` states |
 | [test-vector file name](sinter:#test-vector-file-name=v1) | for the name x of a design and the name y of a specification of that design, the text x, `.`, y, and `.test-vectors.jsonl`, such as `a.b.test-vectors.jsonl`; for the name x of a design alone, x and `.test-vectors.jsonl`, such as `a.test-vectors.jsonl` |
 | [form pin](sinter:#form-pin=v1) | `#`, a schema part name, `=`, and a schema label, such as `#offsets-vector=v1`; a form pin names the schema that gives the forms of a group and a label of that schema |
 | [group name](sinter:#group-name=v1) | a text of the letters `a` to `z`, the digits `0` to `9`, and `-` that starts with a letter, with no `-` at the start or the end, and no two `-` one after the other, such as `offsets` or `g-2` |
@@ -758,8 +759,7 @@ minus UTC, and section 4.3 gives the meaning of the offset `-00:00`, the
 unknown local offset. Apart from `-00:00`, the offset of an offset
 date-time is a signed number of minutes: 0 for `Z` and `z`, and the
 number of minutes that the document gives for each other offset, such as
-0 for `+00:00` and −420 for `-07:00`. The unknown local offset is not a
-number of minutes, so it is not the offset 0. So the offset date-times
+0 for `+00:00` and −420 for `-07:00`. So the offset date-times
 `1979-05-27T07:32:00Z` and `1979-05-27T07:32:00+00:00` are equal, and
 `1979-05-27T07:32:00-00:00` is equal to neither of them. No offset
 date-time changes to UTC, so `1979-05-27T07:32:00-07:00` and
@@ -922,7 +922,7 @@ table of TOML 1.1.0.
 @cites {
     ieee/754-2019,
     text#{text=v1, whole-number=v1},
-    #{toml-value=v1, index=v1},
+    #{toml-value=v1, toml-offset=v1, index=v1},
 }
 
 A program gives a TOML value when the program gives something that
@@ -1680,10 +1680,10 @@ The term `id-prefix` gives the id prefixes, such as `req:`, `task-def:`,
 or `vector-group-def:`. The term `hash-id` gives the hash ids. The term
 `hash-id-form` gives the hash-id form. For example, with the id prefix
 `req:` and 32 hex digits, the hash id of the three bytes of `abc` is
-`req:ba7816bf8f01cfea414140de5dae2223`. The id prefix does not enter the
-hash of the byte sequence. With the id prefix `req:` and 12 hex digits,
-the text `req:5b1c0a9d2e11` fits the hash-id form. With the id prefix
-`req:` and 12 hex digits, the texts `req:5b1c0a9d2e1`,
+`req:ba7816bf8f01cfea414140de5dae2223`. The hash of the byte sequence
+does not depend on the id prefix. With the id prefix `req:` and 12 hex
+digits, the text `req:5b1c0a9d2e11` fits the hash-id form. With the id
+prefix `req:` and 12 hex digits, the texts `req:5b1c0a9d2e1`,
 `req:5B1C0A9D2E11`, and `task-def:5b1c0a9d2e11` do not fit the hash-id
 form.
 
@@ -1875,12 +1875,14 @@ The forms of a group are as the term `group-form-list` gives them. A
 schema that a specification declares under a name, or that a design
 declares under a name outside the specifications of that design, gives
 the forms of the group. Each vector line names that schema in the member
-`form` of the vector line. When a specification declares that schema,
-the requirements of the group are the requirements that that
-specification declares and that that schema cites. When a design
-declares that schema outside its specifications, the requirements of the
-group are the requirements that that design declares outside its
-specifications and that that schema cites.
+`form` of the vector line. For example, the schema `toml-span-vector` of
+the specification `toml` cites the requirements `read-toml` and
+`give-only-toml-spans` of that specification, so the term
+`group-form-list` gives these two requirements as the requirements of
+the groups `give-span` and `omit-span`. The schema `toml-span-vector`
+also cites the schema `toml-document-vector`, which cites
+`give-only-root-tables`, but `give-only-root-tables` is not a
+requirement of these groups.
 
 A vector object can also have the member `needs`, as in
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","needs":["no-privilege"],"result":"valid"}`,
@@ -2011,9 +2013,10 @@ name, and a group name g, Q gives the forms of the group g of S when Q
 gives these five things for g, and these five things are then the forms
 of the group g of S that Q gives:
 
-1. the requirements of the group g: the declared items of the kind
-   requirement that S declares and that Q cites. Q gives the
-   requirements of the group g by citing them;
+1. the requirements of the group g: the requirements that S declares and
+   that Q itself cites. A requirement that Q cites only through another
+   item that Q cites, such as a schema, is not one of these
+   requirements. Q gives the requirements of the group g by citing them;
 2. what the value of `input` of a vector object in which the value of
    `group` is g stands for: one input of a conforming program of S, or
    several inputs of that conforming program, such as a text and a place
@@ -2069,13 +2072,12 @@ for, and not on the value of another member, such as `input` or
 For a design D, a schema Q that D declares under a name outside its
 specifications, and a group name g, Q gives the forms of the group g of
 D when Q gives the same five things for g, and these five things are
-then the forms of the group g of D that Q gives: with the declared items
-of the kind requirement that D declares outside its specifications in
-place of the declared items of the kind requirement that S declares,
-with the schemas that D declares under a name outside its specifications
-in place of the schemas that S declares, with a group of D in place of a
-group of S, and with a conforming program of D in place of a conforming
-program of S.
+then the forms of the group g of D that Q gives: with the requirements
+that D declares outside its specifications in place of the requirements
+that S declares, with the schemas that D declares under a name outside
+its specifications in place of the schemas that S declares, with a group
+of D in place of a group of S, and with a conforming program of D in
+place of a conforming program of S.
 
 #### 8.1.8 The meaning of a vector
 
@@ -2095,7 +2097,7 @@ program of S.
 For a specification S of a design, a vector of S is an input and what
 requirements that S declares oblige a conforming program of S to give
 for that input. For a design D, a vector of D is an input and what
-requirements that D holds outside its specifications oblige a
+requirements that D declares outside its specifications oblige a
 conforming program of D to give for that input.
 
 For a specification S, or a design D, and a vector line whose group is g
