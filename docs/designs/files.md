@@ -210,10 +210,9 @@ file name of the valid path names. The folders of the path are the
 folders k.
 
 When the text is a valid path, and no other process changes the folder
-tree during the file read, the file read gives the file-read result of
-the valid path, unless a denied permission or an input or output error
-makes a needed part missing or the file read stops at a limit of the
-program's own. The atom `file-read-result` of section 3.16 defines the
+tree during the file read, the requirement `give-file-read-results`
+states the result of the file read from the file-read result of the
+valid path. The atom `file-read-result` of section 3.16 defines the
 file-read result.
 
 Example: the root holds the folder `docs`. The folder `docs` holds the
@@ -249,26 +248,17 @@ the result. When `docs` is a folder, the valid path `docs` gives "not a
 regular file", also when the program has neither the search permission
 nor the read permission for `docs`.
 
-The result "cannot read" is the report of a missing part for
-`give-file-read-results` under `report-missing-parts` of Conformance. A
-file read gives "cannot read" when the program has no search permission
-or no read permission for folder k, or has no read permission for the
-regular file (`file-read-result`). A file read also gives "cannot read"
-when, during the file read (including while reaching the root), the
-system denies a permission or reports an input or output error, making
-what the program could not take a part that the folder tree lacks under
-the term `input` of Conformance, and the result of the file read needs
-that part.
-
-By contrast, when a file read stops because the program reaches a limit
-of its own (a bound of the program, of its run, or of its machine on a
-resource, such as on the length of a pathname or on the size of a file),
-including while reaching the root, that stop is a stop at a limit of the
-program's own under `report-stops-at-limits` of Conformance, and is not
-the result "cannot read". In that stopped file read, the program gives
-none of the results "found", "no file", "symbolic link", "not a regular
-file", "not UTF-8", and "cannot read", and gives no text as the text of
-a content.
+For example, when the system reports a device error while the program
+reads the content of `docs/a.md`, the folder tree lacks that content,
+and the valid path `docs/a.md` gives "cannot read". The result "cannot
+read" is then the report of that missing content (`report-missing-parts`
+of Conformance). When the program stops reading `docs/a.md` because the
+content is too large for the memory of the program, the program reaches
+a limit of its own, and the file read gives no result. When the program
+has the search permission and the read permission for the root, and the
+UTF-8 encoding of file name 1 is longer than the file system of the root
+allows for one entry name, the root holds no folder entry for file name
+1, and the result is "no file".
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -648,12 +638,12 @@ name 1, the cases apply in order from case 1 to case 6:
    UTF-8, the result is "found", with the text of the content of that
    file.
 
-In case 1, and in case 6 when the program has no read permission for the
-regular file, the part of the folder tree for which the program has no
-search permission or no read permission is a part that the folder tree
-lacks for the program, and the folder tree does not hold that part for
-the program. A valid folder tree can lack such a part. In those cases,
-"cannot read" is the result for that missing part.
+In case 1, the folder entries of folder k are a part that the folder
+tree lacks for the program. In case 6, when the program has no read
+permission for the regular file, the content of that regular file is a
+part that the folder tree lacks for the program. A valid folder tree can
+lack such a part. In those cases, "cannot read" is the result for that
+missing part.
 
 ### 3.17 Valid globs
 
@@ -941,50 +931,52 @@ is a valid path, a conforming program must not give the result
 @cites {
     posix/2024,
     #{
-        system=v1, folder-tree=v1, regular-file=v1, path=v1,
-        file-read=v1, file-read-result=v1,
+        system=v1, file-system=v1, folder=v1, folder-tree=v1,
+        regular-file=v1, path=v1, file-read=v1, file-read-result=v1,
     },
     conformance#{
         conforming-program=v1, requirement=v1, input=v1, dependence=v1,
         own-limit=v1, report=v1, report-missing-parts=v1,
-        report-stops-at-limits=v1,
     },
     text#{result=v1, text=v1, code-span=v1},
 }
 
 In each file read of a valid path in a folder tree that no other process
-changes during the file read, when the file read does not stop at a
-limit of the conforming program's own, the conforming program must give
-exactly one result, and only "found", "no file", "symbolic link", "not a
-regular file", "not UTF-8", or "cannot read". In that file read, when at
-least one of these conditions holds, the conforming program must give
-"cannot read", and no other result:
+changes during the file read, when no reading or computation on which
+the result of that file read depends stopped at a limit of the
+conforming program's own (term `own-limit` of Conformance), the
+conforming program must give exactly one result, and only "found", "no
+file", "symbolic link", "not a regular file", "not UTF-8", or "cannot
+read". In that file read, when at least one of these conditions holds,
+the conforming program must give "cannot read", and no other result:
 
 - The file-read result of that valid path in that folder tree for the
   conforming program is "cannot read".
-- During that file read, including while reaching the root, the system
-  denies a permission or reports an input or output error, that denial
-  or error makes what the conforming program could not take a part that
-  the folder tree lacks under the term `input` of Conformance, and the
-  result of that file read needs that part.
+- The conforming program could not take content of that folder tree
+  because of a denied permission or an input or output error, that
+  content is a part that the folder tree lacks under the term `input`
+  of Conformance, and the result of that file read needs that part.
 
-When at least one of those conditions holds, the result "cannot read",
-given once for that file read, is the report of the missing part for
-this requirement under `report-missing-parts` of Conformance. When
-neither condition holds, in that file read, the conforming program must
-give the file-read result of that valid path in that folder tree for the
-conforming program, and no other result.
+In that file read, when neither condition holds, the conforming program
+must give the file-read result of that valid path in that folder tree
+for the conforming program, and no other result. In that file read, when
+at least one of those conditions holds, the result "cannot read", given
+once for that file read, is the report, for this requirement under
+`report-missing-parts` of Conformance, of each part that the folder tree
+lacks and that the result of that file read needs.
 
-When such a file read stops because the conforming program reaches a
-limit of its own under the term `own-limit` of Conformance (such as on
-the length of a pathname of POSIX.1-2024 or on the size of a file),
-including while reaching the root, that stop is a stop at a limit of
-the conforming program's own under `report-stops-at-limits` of
-Conformance, and is not the result "cannot read". In that stopped file
-read, the conforming program must give none of the results "found", "no
-file", "symbolic link", "not a regular file", "not UTF-8", and "cannot
-read", and must give no text as the text of the content of a regular
-file.
+A bound on the length of a whole pathname of POSIX.1-2024 and a bound
+on the size of a file are examples of limits of the conforming
+program's own in a file read. A bound of the system or of a file system
+on the length of one entry name is not a limit of the conforming
+program's own. In each file read of a valid path in a folder tree that
+no other process changes during the file read, when a reading or
+computation on which the result of that file read depends stopped at a
+limit of the conforming program's own, such as a reading of the root of
+that folder tree, the conforming program must give none of the results
+"found", "no file", "symbolic link", "not a regular file", "not UTF-8",
+and "cannot read", and must give no text as the text of the content of a
+regular file.
 
 ### 4.4 The text of the content
 
@@ -1388,11 +1380,11 @@ result that `result` holds, and no other result. With the result
 "found", the conforming program gives the text that `text` holds as the
 text of the content, and no other text as the text of the content. When
 `values` is `{}`, the conforming program gives no text as the text of a
-content. A conforming program gives exactly one result in each file
-read, also when no process opens a pipe of the folder tree. So when a
-file read gives no result within a time that the runner chooses, the run
-of the vectors fails on that vector, as when the program does not give
-the result that `result` holds.
+content. Under these conditions, a conforming program gives exactly one
+result in each file read, also when no process opens a pipe of the
+folder tree. So when a file read gives no result within a time that the
+runner chooses, the run of the vectors fails on that vector, as when the
+program does not give the result that `result` holds.
 
 For example, in `tree`, the reference `b.md` of a symbolic link, which
 is the hex byte sequence `"622e6d64"`, leads to the file of the folder
