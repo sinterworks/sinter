@@ -4,6 +4,7 @@
 open Sinter_text
 open Sinter_packs
 module Gen = QCheck2.Gen
+module Tree = Sinter_file_read.Tree
 
 let text_of string =
   match Text.decode string with
@@ -33,11 +34,12 @@ let use_pack ?(paths = []) root =
       let contents =
         List.map (fun path -> (path, Pack.content pack (path_of path))) paths
       in
-      match Option.join (Result.to_option (Pack.well_named pack)) with
-      | None ->
+      match Pack.well_named pack with
+      | Error _ -> None
+      | Ok None ->
           Some
             { named = false; files = []; listing = None; hash = None; contents }
-      | Some named -> (
+      | Ok (Some named) -> (
           let files = List.map string_of_path (Pack.files named) in
           match Pack.listing named with
           | Error _ ->
@@ -264,9 +266,10 @@ let well_named_pack_gives_its_pack () =
         match Pack.read ~root with
         | Error _ -> Alcotest.fail "the pack could not be read"
         | Ok pack -> (
-            match Option.join (Result.to_option (Pack.well_named pack)) with
-            | None -> Alcotest.fail "the pack is not well named"
-            | Some named ->
+            match Pack.well_named pack with
+            | Error _ -> Alcotest.fail "the pack has missing parts"
+            | Ok None -> Alcotest.fail "the pack is not well named"
+            | Ok (Some named) ->
                 ( Pack.content (Pack.pack named) (path_of "d/x"),
                   List.map string_of_path (Pack.files named) )))
   in
@@ -461,13 +464,45 @@ let identity () =
     List.sort compare (Array.to_list (Unix.getgroups ())) )
 
 (* @verifies packs#{gain-no-pack-privileges=v1, keep-packs-unchanged=v1}
-   The process has no permission to list `d`, so a program that gives a
-   decision, files, or a listing for this pack took them by a permission that
-   it did not have, or gave them wrong; a program that changed the mode of `d`
-   or the user IDs or the group IDs of its process fails the check of the
-   folder tree or of the IDs after the use. The test cannot see a program that
-   used a privilege that its process already had. *)
-let folder_with_no_permissions_gives_no_result () =
+   @verifies conformance#report-missing-parts=v1
+   When the root of a pack lacks read or search permission, Pack.read reports
+   the missing root once with Unread [ [] ], gives no pack, and changes no
+   mode, owner, or process ID. *)
+let unreadable_root_reports_missing_root () =
+  let make_root permissions : Files_tree.file =
+    {
+      kind = Folder [ ("pack.toml", regular "a") ];
+      permissions;
+      owned_by_other = false;
+    }
+  in
+  List.iter
+    (fun permissions ->
+      let read, same =
+        in_tree (make_root permissions) (fun root ->
+            let before = identity () in
+            let read = Pack.read ~root in
+            (read, before = identity ()))
+      in
+      Alcotest.(check bool)
+        "Pack.read reports the missing root" true
+        (match read with Error (Pack.Unread [ [] ]) -> true | _ -> false);
+      Alcotest.(check bool)
+        "the user IDs and the group IDs of the process" true same)
+    [
+      { read = false; search = false; write = true };
+      { read = false; search = true; write = false };
+      { read = true; search = false; write = true };
+    ]
+
+(* @verifies packs#{gain-no-pack-privileges=v1, keep-packs-unchanged=v1}
+   @verifies conformance#report-missing-parts=v1
+   When a subfolder lacks read or search permission, Pack.read returns a pack
+   and Pack.content reads files off that subfolder. Pack.content returns
+   No_file for the unread folder itself and Unreadable_file for a path inside
+   it. Pack.well_named reports the missing folders when the readable part is
+   well named, and it gives Ok None when the readable part is not well named. *)
+let folder_with_no_permissions_reports_missing_part () =
   let closed : Files_tree.file =
     {
       kind = Folder [ ("secret", regular "s") ];
@@ -482,27 +517,74 @@ let folder_with_no_permissions_gives_no_result () =
       owned_by_other = false;
     }
   in
+  let unsearchable : Files_tree.file =
+    {
+      kind = Folder [ ("secret", regular "s") ];
+      permissions = { read = true; search = false; write = true };
+      owned_by_other = false;
+    }
+  in
   List.iter
-    (fun closed ->
-      let read, same =
+    (fun bad ->
+      let results, same =
         in_tree
-          (folder [ ("pack.toml", regular "a"); ("d", closed) ])
+          (folder
+             [
+               ("pack.toml", regular "a");
+               ("d", bad);
+               ("a", folder [ ("c", bad) ]);
+             ])
           (fun root ->
             let before = identity () in
-            let read = Pack.read ~root in
-            (Result.is_ok read, before = identity ()))
+            let out =
+              match Pack.read ~root with
+              | Error _ -> Alcotest.fail "Pack.read failed for unread subfolder"
+              | Ok pack ->
+                  ( Pack.well_named pack,
+                    Pack.content pack (path_of "pack.toml"),
+                    Pack.content pack (path_of "d"),
+                    Pack.content pack (path_of "d/secret"),
+                    Pack.content pack (path_of "d/sub/secret"),
+                    Pack.content pack (path_of "missing") )
+            in
+            (out, before = identity ()))
       in
-      Alcotest.(check bool) "the pack was read" false read;
+      let well_named, toml, dir_path, inside, deep, missing = results in
+      Alcotest.(check bool)
+        "well_named reports each unread folder in walk order" true
+        (well_named = Error [ [ "a"; "c" ]; [ "d" ] ]);
+      Alcotest.(check bool) "readable file content" true (toml = Ok "a");
+      Alcotest.(check bool)
+        "unread folder itself is No_file" true
+        (dir_path = Error Pack.No_file);
+      Alcotest.(check bool)
+        "file under unread folder reports that folder" true
+        (inside = Error (Pack.Unreadable_file [ "d" ]));
+      Alcotest.(check bool)
+        "deep file under unread folder reports that folder" true
+        (deep = Error (Pack.Unreadable_file [ "d" ]));
+      Alcotest.(check bool) "missing sibling" true (missing = Error Pack.No_file);
       Alcotest.(check bool)
         "the user IDs and the group IDs of the process" true same)
-    [ closed; unlisted ]
+    [ closed; unlisted; unsearchable ];
+  let not_well_named_result =
+    in_tree
+      (folder [ ("a\\b", regular "bad"); ("d", closed) ])
+      (fun root ->
+        match Pack.read ~root with
+        | Error _ -> Alcotest.fail "Pack.read failed"
+        | Ok pack -> Pack.well_named pack)
+  in
+  Alcotest.(check bool)
+    "already not well named gives Ok None despite unread folder" true
+    (match not_well_named_result with Ok None -> true | _ -> false)
 
 (* @verifies packs#{gain-no-pack-privileges=v1, keep-packs-unchanged=v1}
-   The process has no permission to read `secret`, so a program that gives a
-   pack listing for this pack took its content by a permission that it did not
-   have; a program that changed the mode of `secret` fails the check of the
-   folder tree after the use. The test cannot see a program that used a
-   privilege that its process already had. *)
+   @verifies conformance#report-missing-parts=v1
+   When regular files lack read permission, Pack.read, Pack.well_named,
+   Pack.files, and Pack.content on readable files succeed. Pack.content on an
+   unreadable file reports Unreadable_file with its entry names. Pack.listing
+   reports Unread with each unreadable file in walk order. *)
 let file_with_no_permission_gives_no_listing () =
   let secret : Files_tree.file =
     {
@@ -511,47 +593,228 @@ let file_with_no_permission_gives_no_listing () =
       owned_by_other = false;
     }
   in
-  let use, same =
+  let results, same =
     in_tree
-      (folder [ ("pack.toml", regular "a"); ("secret", secret) ])
+      (folder
+         [
+           ("pack.toml", regular "a");
+           ("secret", secret);
+           ("d", folder [ ("hidden", secret) ]);
+         ])
       (fun root ->
         let before = identity () in
-        let use = use_pack ~paths:[ "secret"; "pack.toml" ] root in
-        (use, before = identity ()))
+        let out =
+          match Pack.read ~root with
+          | Error _ -> Alcotest.fail "the pack could not be read"
+          | Ok pack -> (
+              match Pack.well_named pack with
+              | Ok (Some named) ->
+                  ( List.map string_of_path (Pack.files named),
+                    Pack.listing named,
+                    Pack.content pack (path_of "secret"),
+                    Pack.content pack (path_of "d/hidden"),
+                    Pack.content pack (path_of "pack.toml") )
+              | _ -> Alcotest.fail "expected well named pack")
+        in
+        (out, before = identity ()))
   in
-  (match use with
-  | None -> Alcotest.fail "the pack could not be read"
-  | Some use ->
-      Alcotest.(check bool) "well named" true use.named;
-      Alcotest.(check (list string))
-        "the files" [ "pack.toml"; "secret" ] use.files;
-      Alcotest.(check (option string)) "the pack listing" None use.listing;
-      Alcotest.(check bool)
-        "the contents" true
-        (use.contents
-        = [
-            ("secret", Error (Pack.Unreadable_file [ "secret" ]));
-            ("pack.toml", Ok "a");
-          ]));
+  let files, listing, secret_content, hidden_content, toml_content = results in
+  Alcotest.(check (list string))
+    "the files"
+    [ "d/hidden"; "pack.toml"; "secret" ]
+    files;
+  Alcotest.(check bool)
+    "the pack listing reports both unreadable files in walk order" true
+    (match listing with
+    | Error (Pack.Unread [ [ "d"; "hidden" ]; [ "secret" ] ]) -> true
+    | _ -> false);
+  Alcotest.(check bool)
+    "secret content" true
+    (secret_content = Error (Pack.Unreadable_file [ "secret" ]));
+  Alcotest.(check bool)
+    "d/hidden content" true
+    (hidden_content = Error (Pack.Unreadable_file [ "d"; "hidden" ]));
+  Alcotest.(check bool) "pack.toml content" true (toml_content = Ok "a");
   Alcotest.(check bool)
     "the user IDs and the group IDs of the process" true same
 
+(* @verifies conformance#report-missing-parts=v1
+   When a file or folder changes after Pack.read, Pack.content gives No_file
+   for a missing file, a symbolic link, or a folder. When a folder or the root
+   folder loses its permissions, Pack.content gives Unreadable_file with its
+   entry names, and Pack.listing gives Unread with those entry names. *)
+let content_after_tree_change () =
+  let root = Filename.temp_dir "sinter-pack-change-" "" in
+  let dir = Filename.concat root "d" in
+  let target = Filename.concat dir "x" in
+  let gone = Filename.concat root "gone" in
+  let to_link = Filename.concat root "link" in
+  let to_dir = Filename.concat root "dir" in
+  Fun.protect
+    ~finally:(fun () ->
+      (try Unix.chmod root 0o700 with Unix.Unix_error _ -> ());
+      (try Unix.chmod dir 0o700 with Unix.Unix_error _ -> ());
+      List.iter
+        (fun p -> try Sys.remove p with Sys_error _ -> ())
+        [ target; gone; to_link; to_dir ];
+      (try Unix.rmdir to_dir with Unix.Unix_error _ -> ());
+      (try Unix.rmdir dir with Unix.Unix_error _ -> ());
+      try Unix.rmdir root with Unix.Unix_error _ -> ())
+    (fun () ->
+      Unix.mkdir dir 0o700;
+      List.iter
+        (fun p ->
+          Out_channel.with_open_bin p (fun ch ->
+              Out_channel.output_string ch "v"))
+        [ target; gone; to_link; to_dir ];
+      let pack =
+        match Pack.read ~root with
+        | Ok p -> p
+        | Error _ -> Alcotest.fail "Pack.read failed"
+      in
+      let named =
+        match Pack.well_named pack with
+        | Ok (Some n) -> n
+        | _ -> Alcotest.fail "Pack.well_named failed"
+      in
+      Sys.remove gone;
+      Sys.remove to_link;
+      Unix.symlink "d" to_link;
+      Sys.remove to_dir;
+      Unix.mkdir to_dir 0o700;
+      Alcotest.(check bool)
+        "deleted file gives No_file" true
+        (Pack.content pack (path_of "gone") = Error Pack.No_file);
+      Alcotest.(check bool)
+        "file replaced by symlink gives No_file" true
+        (Pack.content pack (path_of "link") = Error Pack.No_file);
+      Alcotest.(check bool)
+        "file replaced by folder gives No_file" true
+        (Pack.content pack (path_of "dir") = Error Pack.No_file);
+      if not (Files_tree.effective_root ()) then (
+        Unix.chmod dir 0o000;
+        Alcotest.(check bool)
+          "unreadable parent folder reports that folder" true
+          (Pack.content pack (path_of "d/x")
+          = Error (Pack.Unreadable_file [ "d" ]));
+        Alcotest.(check bool)
+          "listing after folder loses permission reports Unread" true
+          (match Pack.listing named with
+          | Error (Pack.Unread [ [ "d" ] ]) -> true
+          | _ -> false);
+        Unix.chmod root 0o000;
+        Alcotest.(check bool)
+          "unreadable root reports empty part on content" true
+          (Pack.content pack (path_of "d/x") = Error (Pack.Unreadable_file []));
+        Alcotest.(check bool)
+          "listing after root loses permission reports Unread [ [] ]" true
+          (match Pack.listing named with
+          | Error (Pack.Unread [ [] ]) -> true
+          | _ -> false)))
+
+(* @verifies conformance#report-stops-at-limits=v1
+   A root pathname longer than the system allows stops Pack.read at
+   Pathname_length. A missing or removed root reports Not_read or
+   Content_not_read with Failed. *)
+let pack_stops_and_failures () =
+  let long_root = String.concat "/" (List.init 2500 (fun _ -> "a")) in
+  Alcotest.(check bool)
+    "too long root stops at Pathname_length" true
+    (match Pack.read ~root:long_root with
+    | Error
+        (Pack.Not_read
+           (Sinter_file_read.Stopped { limit = Pathname_length; names = [] }))
+      ->
+        true
+    | _ -> false);
+  let missing_root = Filename.temp_dir "sinter-pack-gone-" "" in
+  let file_in_root = Filename.concat missing_root "pack.toml" in
+  let pack, named =
+    Fun.protect
+      ~finally:(fun () ->
+        (try Sys.remove file_in_root with Sys_error _ -> ());
+        try Unix.rmdir missing_root with Unix.Unix_error _ -> ())
+      (fun () ->
+        Out_channel.with_open_bin file_in_root (fun ch ->
+            Out_channel.output_string ch "a");
+        match Pack.read ~root:missing_root with
+        | Ok p -> (
+            match Pack.well_named p with
+            | Ok (Some n) -> (p, n)
+            | _ -> Alcotest.fail "expected well named pack")
+        | Error _ -> Alcotest.fail "Pack.read failed")
+  in
+  Alcotest.(check bool)
+    "Pack.read of missing root gives Not_read Failed" true
+    (match Pack.read ~root:missing_root with
+    | Error (Pack.Not_read (Sinter_file_read.Failed { names = []; _ })) -> true
+    | _ -> false);
+  Alcotest.(check bool)
+    "Pack.listing of removed root gives Not_read Failed" true
+    (match Pack.listing named with
+    | Error (Pack.Not_read (Sinter_file_read.Failed { names = []; _ })) -> true
+    | _ -> false);
+  Alcotest.(check bool)
+    "Pack.content of removed root gives Content_not_read Failed" true
+    (match Pack.content pack (path_of "pack.toml") with
+    | Error (Pack.Content_not_read (Sinter_file_read.Failed { names = []; _ }))
+      ->
+        true
+    | _ -> false)
+
 let open_descriptors () = Array.length (Sys.readdir "/dev/fd")
 
-let deep_pack_gives_a_result_or_none () =
+(* @verifies conformance#report-stops-at-limits=v1
+   A deep pack either gives the pack results of the terms or stops at the
+   descriptor limit, and closes each descriptor. *)
+let deep_pack_gives_a_result_or_stops_at_limit () =
   List.iter
     (fun depth ->
       let tree = Pack_trees.deep_tree depth in
-      let use, before, after =
+      let outcome, before, after =
         in_tree tree (fun root ->
             let before = open_descriptors () in
-            let use = use_pack ~paths:[ "a/f" ] root in
-            (use, before, open_descriptors ()))
+            let res =
+              match Pack.read ~root with
+              | Error failure -> Error failure
+              | Ok pack -> (
+                  let contents =
+                    [ ("a/f", Pack.content pack (path_of "a/f")) ]
+                  in
+                  match Pack.well_named pack with
+                  | Error parts -> Error (Pack.Unread parts)
+                  | Ok None ->
+                      Ok
+                        {
+                          named = false;
+                          files = [];
+                          listing = None;
+                          hash = None;
+                          contents;
+                        }
+                  | Ok (Some named) -> (
+                      match Pack.listing named with
+                      | Error failure -> Error failure
+                      | Ok listing ->
+                          Ok
+                            {
+                              named = true;
+                              files = List.map string_of_path (Pack.files named);
+                              listing = Some (Pack.listing_text listing);
+                              hash = Some (Pack.hash listing :> string);
+                              contents;
+                            }))
+            in
+            (res, before, open_descriptors ()))
       in
       Alcotest.(check int) "the open file descriptors" before after;
-      match use with
-      | None -> ()
-      | Some use ->
+      match outcome with
+      | Error
+          (Pack.Not_read (Sinter_file_read.Stopped { limit = Descriptors; _ }))
+        ->
+          ()
+      | Error _ -> Alcotest.fail "deep pack gave an unexpected failure"
+      | Ok use ->
           Alcotest.(check bool)
             (Printf.sprintf "the use of the pack of depth %d" depth)
             true
@@ -577,9 +840,10 @@ let named_pack root =
   match Pack.read ~root with
   | Error _ -> Alcotest.fail "the pack could not be read"
   | Ok pack -> (
-      match Option.join (Result.to_option (Pack.well_named pack)) with
-      | Some named -> named
-      | None -> Alcotest.fail "the pack is not well named")
+      match Pack.well_named pack with
+      | Ok (Some named) -> named
+      | Ok None -> Alcotest.fail "the pack is not well named"
+      | Error _ -> Alcotest.fail "the pack has missing parts")
 
 let listing_bytes ~files ~bytes =
   with_flat_pack ~files ~bytes (fun root ->
@@ -607,39 +871,74 @@ let listing_memory_grows_with_the_pack () =
     (listing_bytes ~files:4 ~bytes:8_000_000)
     9.
 
-module Tree = Sinter_file_read.Tree
-
 let tree_regular name = { Tree.name; file = Tree.Regular_file () }
 let tree_folder name entries = { Tree.name; file = Tree.Folder entries }
+let tree_unread_folder name = { Tree.name; file = Tree.Unread_folder }
+let tree_unread_file name = { Tree.name; file = Tree.Unread_file }
 
 let paths_of entries =
-  Option.map (List.map string_of_path)
-    (Option.join (Result.to_option (Pack.well_named_files entries)))
+  Result.map
+    (Option.map (List.map string_of_path))
+    (Pack.well_named_files entries)
 
 let well_named_files_keep_to_255_characters () =
   List.iter
     (fun (what, entries, expected) ->
-      Alcotest.(check (option (list string))) what expected (paths_of entries))
+      Alcotest.(check bool) what true (paths_of entries = expected))
     [
       ( "a root name of 255 bytes",
         [ tree_regular (String.make 255 'x') ],
-        Some [ String.make 255 'x' ] );
-      ("a root name of 256 bytes", [ tree_regular (String.make 256 'x') ], None);
+        Ok (Some [ String.make 255 'x' ]) );
+      ( "a root name of 256 bytes",
+        [ tree_regular (String.make 256 'x') ],
+        Ok None );
       ( "a folder of 256 bytes",
         [ tree_folder (String.make 256 'x') [ tree_regular "a" ] ],
-        None );
+        Ok None );
       ( "d/ and 253 bytes",
         [ tree_folder "d" [ tree_regular (String.make 253 'x') ] ],
-        Some [ "d/" ^ String.make 253 'x' ] );
+        Ok (Some [ "d/" ^ String.make 253 'x' ]) );
       ( "d/ and 254 bytes",
         [ tree_folder "d" [ tree_regular (String.make 254 'x') ] ],
-        None );
+        Ok None );
       ( "a folder of 256 bytes with no regular file",
         [
           tree_folder (String.make 256 'x') [ tree_folder "e" [] ];
           tree_regular "a";
         ],
-        Some [ "a" ] );
+        Ok (Some [ "a" ]) );
+    ]
+
+(* @verifies conformance#report-missing-parts=v1
+   well_named_files counts Unread_file as a regular file. It reports an
+   Unread_folder even when that folder's own name is not a pack path, because
+   an empty folder is no path of the pack. It gives Ok None when the readable
+   part is not well named. *)
+let well_named_files_unread_edges () =
+  List.iter
+    (fun (what, entries, expected) ->
+      Alcotest.(check bool) what true (paths_of entries = expected))
+    [
+      ( "Unread_file counts as a regular file",
+        [ tree_unread_file "pack.toml"; tree_regular "a" ],
+        Ok (Some [ "a"; "pack.toml" ]) );
+      ( "Unread_file with invalid name makes pack not well named",
+        [ tree_unread_file "a\\b"; tree_unread_folder "d" ],
+        Ok None );
+      ( "Unread_folder with non-pack-path name could be empty so result \
+         depends on it",
+        [ tree_regular "a"; tree_unread_folder "a\\b" ],
+        Error [ [ "a\\b" ] ] );
+      ( "Unread_folder with non-UTF-8 name could be empty so result depends on \
+         it",
+        [ tree_regular "a"; tree_unread_folder "\xff" ],
+        Error [ [ "\xff" ] ] );
+      ( "multiple Unread_folders reported once each in walk order",
+        [
+          tree_folder "a" [ tree_unread_folder "b"; tree_unread_folder "z" ];
+          tree_unread_folder "m";
+        ],
+        Error [ [ "a"; "b" ]; [ "a"; "z" ]; [ "m" ] ] );
     ]
 
 let print_unstored tree = Pack_trees.print tree
@@ -666,8 +965,133 @@ let well_named_files_follow_the_terms =
          paths_of entries
          =
          if Pack_reference.well_named tree then
-           Some (List.map fst (Pack_reference.files tree))
-         else None))
+           Ok (Some (List.map fst (Pack_reference.files tree)))
+         else Ok None))
+
+let rec to_files_tree_with_empty_unread (entries : unit Tree.entry list) :
+    Files_tree.file =
+  let file_of_kind kind =
+    { Files_tree.kind; permissions = every; owned_by_other = false }
+  in
+  let convert (file : unit Tree.file) : Files_tree.file =
+    match file with
+    | Tree.Folder children -> to_files_tree_with_empty_unread children
+    | Tree.Regular_file () | Tree.Unread_file -> regular ""
+    | Tree.Symbolic_link -> file_of_kind (Link "a")
+    | Tree.Other_kind -> file_of_kind Pipe
+    | Tree.Unread_folder -> folder []
+  in
+  folder
+    (List.map (fun (e : unit Tree.entry) -> (e.name, convert e.file)) entries)
+
+let rec unread_folders_in_order prefix (entries : unit Tree.entry list) =
+  let sorted =
+    List.sort
+      (fun (a : unit Tree.entry) (b : unit Tree.entry) ->
+        String.compare a.name b.name)
+      entries
+  in
+  List.concat_map
+    (fun (e : unit Tree.entry) ->
+      let path = prefix @ [ e.name ] in
+      match e.file with
+      | Tree.Unread_folder -> [ path ]
+      | Tree.Folder children -> unread_folders_in_order path children
+      | Tree.Regular_file ()
+      | Tree.Unread_file | Tree.Symbolic_link | Tree.Other_kind ->
+          [])
+    sorted
+
+let unread_entries_gen =
+  let name_gen =
+    Gen.oneof_list
+      [
+        "a";
+        "A";
+        "b";
+        "d";
+        "pack.toml";
+        "a\\b";
+        "\xff";
+        String.make 256 'x';
+        "...";
+      ]
+  in
+  let unique entries =
+    let rec keep seen = function
+      | [] -> []
+      | (name, file) :: rest ->
+          if List.mem name seen then keep seen rest
+          else { Tree.name; file } :: keep (name :: seen) rest
+    in
+    List.sort
+      (fun (a : unit Tree.entry) (b : unit Tree.entry) ->
+        String.compare a.name b.name)
+      (keep [] entries)
+  in
+  let file_gen =
+    Gen.fix (fun self depth ->
+        let leaf =
+          [
+            (3, Gen.return (Tree.Regular_file ()));
+            (2, Gen.return Tree.Unread_file);
+            (2, Gen.return Tree.Unread_folder);
+            (1, Gen.return Tree.Symbolic_link);
+            (1, Gen.return Tree.Other_kind);
+          ]
+        in
+        if depth = 0 then Gen.oneof_weighted leaf
+        else
+          Gen.oneof_weighted
+            (( 3,
+               Gen.map
+                 (fun pairs -> Tree.Folder (unique pairs))
+                 (Gen.list_size (Gen.int_bound 4)
+                    (Gen.pair name_gen (self (depth - 1)))) )
+            :: leaf))
+  in
+  Gen.map unique
+    (Gen.list_size (Gen.int_bound 5) (Gen.pair name_gen (file_gen 2)))
+
+let rec print_tree_file = function
+  | Tree.Folder entries -> print_tree_entries entries
+  | Tree.Regular_file () -> "file"
+  | Tree.Unread_file -> "unread-file"
+  | Tree.Unread_folder -> "unread-folder"
+  | Tree.Symbolic_link -> "link"
+  | Tree.Other_kind -> "other"
+
+and print_tree_entries entries =
+  Printf.sprintf "{%s}"
+    (String.concat "; "
+       (List.map
+          (fun (e : unit Tree.entry) ->
+            Printf.sprintf "%s: %s" (String.escaped e.name)
+              (print_tree_file e.file))
+          entries))
+
+(* @verifies packs#{decide-well-named-packs=v1, give-pack-files=v1}
+   @verifies conformance#report-missing-parts=v1
+   For generated trees with Unread_folder and Unread_file, well_named_files
+   gives Ok None when the readable part is not well named. When the readable
+   part is well named and any folder is unread, it gives Error with every
+   Unread_folder in walk order. Otherwise it gives Ok (Some files). *)
+let well_named_files_with_unread_follow_dependence =
+  QCheck_alcotest.to_alcotest ~speed_level:`Quick
+    (QCheck2.Test.make ~count:5000
+       ~name:
+         "well_named_files on trees with Unread_folder and Unread_file gives \
+          Ok None, Error of unread folders in walk order, or Ok Some files"
+       ~print:print_tree_entries unread_entries_gen (fun entries ->
+         let readable = to_files_tree_with_empty_unread entries in
+         let expected =
+           if not (Pack_reference.well_named readable) then Ok None
+           else
+             match unread_folders_in_order [] entries with
+             | [] -> Ok (Some (List.map fst (Pack_reference.files readable)))
+             | parts -> Error parts
+         in
+         paths_of entries = expected))
 
 let least_times small large =
   let time times action =
@@ -728,7 +1152,8 @@ let changed_tree_gives_no_listing () =
               Out_channel.with_open_bin added (fun channel ->
                   Out_channel.output_string channel "x");
               match Pack.listing named with
-              | Error _ -> ()
+              | Error Pack.Changed -> ()
+              | Error _ -> Alcotest.failf "another failure after %s" what
               | Ok _ -> Alcotest.failf "a listing after %s" what)))
     [
       ("a file was added", fun () -> "g");
@@ -749,19 +1174,35 @@ let tests =
         links_lead_to_no_file;
       Alcotest.test_case "a pipe of a pack keeps its data and causes no wait"
         `Quick pipes_keep_their_data_and_cause_no_wait;
-      Alcotest.test_case "a folder with no permissions gives no pack" `Quick
-        folder_with_no_permissions_gives_no_result;
+      Alcotest.test_case "an unreadable root reports Unread [ [] ]" `Quick
+        unreadable_root_reports_missing_root;
+      Alcotest.test_case
+        "an unread subfolder reports its missing part and leaves other files \
+         readable"
+        `Quick folder_with_no_permissions_reports_missing_part;
       Alcotest.test_case "a file with no read permission gives no pack listing"
         `Quick file_with_no_permission_gives_no_listing;
-      Alcotest.test_case "a deep pack gives the result of the terms or none"
-        `Quick deep_pack_gives_a_result_or_none;
-      Alcotest.test_case "a folder tree that changed gives no listing" `Quick
-        changed_tree_gives_no_listing;
+      Alcotest.test_case
+        "content after a folder tree change reports No_file or the unread \
+         parent"
+        `Quick content_after_tree_change;
+      Alcotest.test_case
+        "pack functions report stops at Pathname_length and missing roots"
+        `Quick pack_stops_and_failures;
+      Alcotest.test_case
+        "a deep pack gives the result of the terms or stops at Descriptors"
+        `Quick deep_pack_gives_a_result_or_stops_at_limit;
+      Alcotest.test_case "a folder tree that changed gives Changed on listing"
+        `Quick changed_tree_gives_no_listing;
       Alcotest.test_case "the memory of a listing grows with the pack" `Quick
         listing_memory_grows_with_the_pack;
       Alcotest.test_case "the files of a well-named pack keep to 255 characters"
         `Quick well_named_files_keep_to_255_characters;
+      Alcotest.test_case
+        "well_named_files handles Unread_folder and Unread_file" `Quick
+        well_named_files_unread_edges;
       well_named_files_follow_the_terms;
+      well_named_files_with_unread_follow_dependence;
       Alcotest.test_case "the time of a decision grows with n log n" `Quick
         decision_time_grows_with_n_log_n;
     ]

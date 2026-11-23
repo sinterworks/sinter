@@ -26,7 +26,8 @@ and file = { kind : kind; permissions : permissions; owned_by_other : bool }
 
 val of_json : Yojson.Basic.t -> file
 (** [of_json json] is the file object [json]. It raises [Failure] when [json] is
-    not a file object of the form of section 5.2 of the design. *)
+    not a file object of the form of [file-object] in section 3.22 of the
+    design. *)
 
 val regular : string -> file
 (** [regular content] is a regular file with [content] and every permission. *)

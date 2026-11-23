@@ -77,6 +77,18 @@ let bytes_of_pieces pieces =
 
 let text_of_pieces json = bytes_of_pieces (pieces "text" json)
 
+let check_entry_name name =
+  if
+    name = "" || name = "." || name = ".."
+    || String.exists (fun c -> c = '\x00' || c = '/') name
+  then fail "not an entry name: %s" (String.escaped name);
+  name
+
+let check_reference reference =
+  if reference = "" || String.exists (fun c -> c = '\x00') reference then
+    fail "not a symbolic link reference: %s" (String.escaped reference);
+  reference
+
 let rec of_json json =
   let own_fields = fields json in
   let flag name default =
@@ -101,7 +113,8 @@ let rec of_json json =
                   let entry_fields = fields entry in
                   if List.length entry_fields <> 2 then
                     fail "an entry object with other members";
-                  ( of_hex (string_of (List.assoc "name" entry_fields)),
+                  ( check_entry_name
+                      (of_hex (string_of (List.assoc "name" entry_fields))),
                     of_json (List.assoc "file" entry_fields) ))
                 entries
           | other -> fail "entries: %s" (Yojson.Basic.to_string other)
@@ -114,7 +127,8 @@ let rec of_json json =
                (pieces "bytes" (member "content"))),
           [ "content" ] )
     | `String "symbolic link" ->
-        (Link (of_hex (string_of (member "reference"))), [ "reference" ])
+        ( Link (check_reference (of_hex (string_of (member "reference")))),
+          [ "reference" ] )
     | `String "FIFO special file" -> (Pipe, [])
     | other -> fail "type %s" (Yojson.Basic.to_string other)
   in
