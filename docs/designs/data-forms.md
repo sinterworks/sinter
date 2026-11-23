@@ -40,7 +40,7 @@ document, with the locations of those keys and values.
 
 SHA-256 is a hash function: it gives a digest of 32 bytes for a byte
 sequence. The hash of a byte sequence is the digest of that byte
-sequence as 64 hex digits. A hash id is an id prefix, such as `e-`, and
+sequence as 64 hex digits. A hash id is an id prefix, such as `req:`, and
 then the first hex digits of a hash. A test-vector set is a byte
 sequence that holds vector lines. The object of a vector line can state
 a vector.
@@ -145,8 +145,8 @@ case-sensitive strings of RFC 7405.
 | [value error](sinter:#toml-value-error=v1) | a local date, a local time, a local date-time, or an offset date-time of TOML 1.1.0 that RFC 3339 does not allow, with the second 60 on every date, such as the local date `1979-02-30` |
 | fit | a text fits a form when it has the form that a production or a rule gives |
 | [hash form](sinter:#hash-form=v1) | the form of a text of exactly 64 hex digits |
-| [id prefix](sinter:#id-prefix=v1) | one or more of the letters `a` to `z`, then `-`, such as `e-` |
-| [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `e-ba7816bf8f01` |
+| [id prefix](sinter:#id-prefix=v1) | a text of the letters `a` to `z` and `-` that starts and ends with a letter and has no two `-` one after the other, then `:`, such as `req:` or `task-def:` |
+| [hash id](sinter:#hash-id=v1) | an id prefix, then the first hex digits of a hash, such as `req:ba7816bf8f01cfea414140de5dae2223` |
 | [hash-id form](sinter:#hash-id-form=v1) | the form of a text that is an id prefix, then a given number of hex digits |
 | [specification](sinter:conformance#specification=v1) | a part of a design that has a name of its own and that declares some of the obligations and definitions of the design |
 | schema | a definition that a design declares under a name, such as `test-vector-set`, that gives the form of a thing that crosses the edge of a conforming program, or the form of a file of vectors and of its lines: its layout and every constraint that is a property of the thing itself |
@@ -171,12 +171,6 @@ When a conforming program gives a result for an input that it reads or
 validates, it gives one of two results: "valid" or "invalid". A
 conforming program can also give more, such as the line object of a
 canonical line or the root table of a TOML document.
-
-A conforming program may refuse an input beyond the program's own
-limits, such as a byte sequence too long for the program to hash, a
-number that the program cannot hold, or arrays, objects, or inline
-tables nested deeper than the program reads. When a conforming program
-refuses an input, the conforming program gives no result for that input.
 
 The term `index` gives the index of an element of a finite sequence,
 counted from 1. So the first element of an array has the index 1, and
@@ -760,14 +754,16 @@ local date-time, and an offset date-time, on every date and at every
 hour and minute.
 
 RFC 3339, section 4.2, gives the meaning of a numeric offset, local time
-minus UTC, and section 4.3 gives the meaning of the offset `-00:00`.
-Apart from `-00:00`, the offset of an offset date-time is a signed
-number of minutes: 0 for `Z` and `z`, and the number of minutes that the
-document gives for each other offset, such as 0 for `+00:00` and −420
-for `-07:00`. So the offset date-times `1979-05-27T07:32:00Z` and
-`1979-05-27T07:32:00+00:00` are equal. No offset date-time changes to
-UTC, so `1979-05-27T07:32:00-07:00` and `1979-05-27T14:32:00Z` are not
-equal.
+minus UTC, and section 4.3 gives the meaning of the offset `-00:00`, the
+unknown local offset. Apart from `-00:00`, the offset of an offset
+date-time is a signed number of minutes: 0 for `Z` and `z`, and the
+number of minutes that the document gives for each other offset, such as
+0 for `+00:00` and −420 for `-07:00`. The unknown local offset is not a
+number of minutes, so it is not the offset 0. So the offset date-times
+`1979-05-27T07:32:00Z` and `1979-05-27T07:32:00+00:00` are equal, and
+`1979-05-27T07:32:00-00:00` is equal to neither of them. No offset
+date-time changes to UTC, so `1979-05-27T07:32:00-07:00` and
+`1979-05-27T14:32:00Z` are not equal.
 
 The term `toml-value-equality` says when two TOML values are equal. So
 `-0.0` and `0.0` give two TOML floats that are not equal.
@@ -1015,11 +1011,14 @@ date-time, on every date and at every hour and minute.
     #{toml-value=v1},
 }
 
-The offset of an offset date-time is a signed number of minutes: 0 when
-the document gives the offset as `Z` or `z`, and the number of minutes
-that the document gives for each other offset, such as 0 for `+00:00`
-and −420 for `-07:00`, except for `-00:00`, whose meaning
-RFC 3339, section 4.3, gives.
+When the document gives the offset of an offset date-time as `-00:00`,
+the offset is the unknown local offset, whose meaning
+RFC 3339, section 4.3, gives. Otherwise, the offset of an offset
+date-time is a signed number of minutes: 0 when the document gives the
+offset as `Z` or `z`, and the number of minutes that the document gives
+for each other offset, such as 0 for `+00:00` and −420 for `-07:00`.
+The unknown local offset is not a number of minutes, so it is not the
+offset 0.
 
 #### 5.1.10 Newlines in TOML strings
 
@@ -1385,13 +1384,16 @@ local time of `12:30:00.50` is `"12:30:00.5"`. The string of a local
 date-time is the string of its local date, `T`, and the string of its
 local time. The string of an offset date-time is the string of its local
 date-time, then the string of its offset. For the offset 0, the string
-of the offset is `+00:00`. For each other offset, the string of the
+of the offset is `+00:00`. For the unknown local offset, the string of
+the offset is `-00:00`. For each other offset, the string of the
 offset is `+` when the offset is greater than 0, and `-` when the offset
 is less than 0; then the whole-number quotient of the absolute value of
 the offset divided by 60 as two digits, `:`, and the remainder as two
 digits. So the offset date-time of `1979-05-27T07:32:00Z` is
-`"1979-05-27T07:32:00+00:00"`, and the offset date-time of
-`1979-05-27T00:32:00-07:00` is `"1979-05-27T00:32:00-07:00"`.
+`"1979-05-27T07:32:00+00:00"`, the offset date-time of
+`1979-05-27T07:32:00-00:00` is `"1979-05-27T07:32:00-00:00"`, and the
+offset date-time of `1979-05-27T00:32:00-07:00` is
+`"1979-05-27T00:32:00-07:00"`.
 
 So the form of the root table in which `a` holds a table in which `b`
 holds the TOML integer 1 is `{"a":{"table":{"b":{"integer":"1"}}}}`. Two
@@ -1666,14 +1668,16 @@ id prefix and a number of hex digits, the program gives "valid" when the
 text fits the hash-id form, and the program gives "invalid" when the
 text does not fit the hash-id form.
 
-The term `id-prefix` gives the id prefixes, such as `e-` or `t-`. The
-term `hash-id` gives the hash ids. The term `hash-id-form` gives the
-hash-id form. For example, with the id prefix `e-` and 12 hex digits,
-the hash id of the three bytes of `abc` is `e-ba7816bf8f01`. With the id
-prefix `e-` and 12 hex digits, the text `e-5b1c0a9d2e11` fits the
-hash-id form. With the id prefix `e-` and 12 hex digits, the texts
-`e-5b1c0a9d2e1`, `e-5B1C0A9D2E11`, and `t-5b1c0a9d2e11` do not fit the
-hash-id form.
+The term `id-prefix` gives the id prefixes, such as `req:`, `task-def:`,
+or `vector-group-def:`. The term `hash-id` gives the hash ids. The term
+`hash-id-form` gives the hash-id form. For example, with the id prefix
+`req:` and 32 hex digits, the hash id of the three bytes of `abc` is
+`req:ba7816bf8f01cfea414140de5dae2223`. The id prefix does not enter the
+hash of the byte sequence. With the id prefix `req:` and 12 hex digits,
+the text `req:5b1c0a9d2e11` fits the hash-id form. With the id prefix
+`req:` and 12 hex digits, the texts `req:5b1c0a9d2e1`,
+`req:5B1C0A9D2E11`, and `task-def:5b1c0a9d2e11` do not fit the hash-id
+form.
 
 ### 7.1 Definitions
 
@@ -1685,7 +1689,7 @@ hash-id form.
 An id prefix is a text that matches the production `id-prefix`:
 
 ```abnf
-id-prefix  = 1*%x61-7A "-"
+id-prefix  = 1*%x61-7A *( "-" 1*%x61-7A ) ":"
 ```
 
 #### 7.1.2 Hash ids
@@ -1795,7 +1799,7 @@ sequence with the id prefix and the number of hex digits, it gives the
 text of `hash-id`, and no other text.
 
 ```
-{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"e-","number-of-hex-digits":12},"values":{"hash-id":"e-ba7816bf8f01"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"req:","number-of-hex-digits":32},"values":{"hash-id":"req:ba7816bf8f01cfea414140de5dae2223"}}
 ```
 
 #### 7.4.2 The hash-id form
@@ -1835,7 +1839,7 @@ integer, as `compute-hash-id-vector` gives.
 - `values`: the forms of the group give no fixed form for `values`.
 
 ```
-{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"e-","number-of-hex-digits":12,"text":"e-5b1c0a9d2e1"},"note":"11 hex digits","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e1"},"note":"11 hex digits","result":"invalid"}
 ```
 
 ## 8. Test vectors
@@ -1863,7 +1867,12 @@ The forms of a group are as the term `group-form-list` gives them. A
 schema that a specification declares under a name, or that a design
 declares under a name outside the specifications of that design, gives
 the forms of the group. Each vector line names that schema in the member
-`form` of the vector line.
+`form` of the vector line. When a specification declares that schema,
+the requirements of the group are the requirements that that
+specification declares and that that schema cites. When a design
+declares that schema outside its specifications, the requirements of the
+group are the requirements that that design declares outside its
+specifications and that that schema cites.
 
 A vector object can also have the member `needs`, as in
 `{"form":"#offsets-vector=v1","group":"offsets","input":"x","needs":["no-privilege"],"result":"valid"}`,
@@ -1994,8 +2003,9 @@ name, and a group name g, Q gives the forms of the group g of S when Q
 gives these five things for g, and these five things are then the forms
 of the group g of S that Q gives:
 
-1. the requirements of the group g, which are requirements that S
-   declares;
+1. the requirements of the group g: the declared items of the kind
+   requirement that S declares and that Q cites. Q gives the
+   requirements of the group g by citing them;
 2. what the value of `input` of a vector object in which the value of
    `group` is g stands for: one input of a conforming program of S, or
    several inputs of that conforming program, such as a text and a place
@@ -2051,12 +2061,13 @@ for, and not on the value of another member, such as `input` or
 For a design D, a schema Q that D declares under a name outside its
 specifications, and a group name g, Q gives the forms of the group g of
 D when Q gives the same five things for g, and these five things are
-then the forms of the group g of D that Q gives: with the requirements
-that D holds outside its specifications in place of the requirements
-that S declares, with the schemas that D declares under a name outside
-its specifications in place of the schemas that S declares, with a group
-of D in place of a group of S, and with a conforming program of D in
-place of a conforming program of S.
+then the forms of the group g of D that Q gives: with the declared items
+of the kind requirement that D declares outside its specifications in
+place of the declared items of the kind requirement that S declares,
+with the schemas that D declares under a name outside its specifications
+in place of the schemas that S declares, with a group of D in place of a
+group of S, and with a conforming program of D in place of a conforming
+program of S.
 
 #### 8.1.8 The meaning of a vector
 
