@@ -213,31 +213,37 @@ writes no file for that object and gives one notice that it could not
 write the object, and no other notice for that failed write.
 
 Five safety obligations bind every conforming program, including under
-invalid inputs and missing parts; in a run that stopped at a limit of
-the program's own, the program writes and deletes nothing in `.sinter/`,
-as the third and fifth obligations state:
+invalid inputs and missing parts; after the program reaches a limit of
+its own in a run, the program writes no further file in `.sinter/`
+(`.sinter/local/` included) and deletes no further store file in that
+run, as the third and fifth obligations state:
 
 - When a conforming program writes a file in the folder `.sinter/` of a
-  working tree, the program writes and alters nothing outside that
-  folder by that write and follows no symbolic link in that write
-  (requirement `limit-store-writes`).
+  working tree (a store file or a local file inside `.sinter/local/`),
+  the program writes and alters nothing outside that folder by that
+  write, other than creating the folder `.sinter` in the root when it is
+  absent, and follows no symbolic link in that write (requirement
+  `limit-store-writes`).
 - A conforming program never changes the content of an existing store
   file, whether or not the file is valid; files inside `.sinter/local/`
   stand outside this rule (requirement `keep-store-files-unchanged`).
-- In a run that stopped at a limit of the program's own, a conforming
-  program writes no file in `.sinter/`, `.sinter/local/` included
-  (requirement `write-no-file-after-stop`).
+- When a conforming program reaches a limit of its own in a run, the
+  program writes no further file in `.sinter/` in that run,
+  `.sinter/local/` included (requirement `write-no-file-after-stop`).
 - In a run in which the program could not read a file or a folder under
   `conformance#input`, the program writes no file in `.sinter/`,
   `.sinter/local/` included (requirement
   `write-no-file-after-read-error`).
-- No requirement obliges a conforming program to delete any store file;
-  when a conforming program deletes a store file, it deletes nothing
-  outside `.sinter/` by that deletion, follows no symbolic link in that
-  deletion, deletes only a valid object file holding a withdrawn object
-  or an unneeded identity file of a valid object store, and deletes
-  nothing in a run that stopped at a limit of the program's own or in a
-  run with a read error (requirement `limit-store-deletions`).
+- When a conforming program deletes a file in the folder `.sinter/` of a
+  working tree (a store file or a local file inside `.sinter/local/`),
+  the program deletes nothing outside that folder by that deletion and
+  follows no symbolic link in that deletion. No requirement obliges a
+  conforming program to delete any store file; the program deletes a
+  store file only when the file is a valid object file holding a
+  withdrawn object or an unneeded identity file of a valid object store,
+  deletes no store file in a run with a read error, and deletes no
+  further store file in a run after the program reaches a limit of its
+  own (requirement `limit-store-deletions`).
 
 What a conforming program gives while another process changes an input
 tree or folder tree is a matter of the quality of an implementation.
@@ -693,10 +699,10 @@ name 2 of the object path of O names (`files#path-file`):
 When a conforming program writes a file in the folder `.sinter/` of the
 folder tree of a working tree (a store file or a local file inside
 `.sinter/local/`), the conforming program must write and alter nothing
-outside that folder by that write and must follow no symbolic link in
-that write. Creating the folder `.sinter` in the root of that folder
-tree when that root holds no folder entry whose entry name is the UTF-8
-encoding of `.sinter` is part of writing in that folder.
+outside that folder by that write, other than creating the folder
+`.sinter` in the root of that folder tree when that root holds no folder
+entry whose entry name is the UTF-8 encoding of `.sinter`, and must
+follow no symbolic link in that write.
 
 ### 4.7 Existing store files stay unchanged
 
@@ -724,9 +730,9 @@ formed by its store path and its content is a valid object file.
     text#{code-span=v1},
 }
 
-In a run that stopped at a limit of a conforming program's own, that
-conforming program must write no file in the folder `.sinter/` of any
-working tree, the folder `.sinter/local/` included.
+When a conforming program reaches a limit of its own in a run, that
+conforming program must write no further file in the folder `.sinter/`
+of any working tree in that run, the folder `.sinter/local/` included.
 
 ### 4.9 No write in `.sinter/` in a run with a read error
 
@@ -744,7 +750,7 @@ could not take that content, that conforming program must write no file
 in the folder `.sinter/` of any working tree, the folder
 `.sinter/local/` included.
 
-### 4.10 Deleting store files
+### 4.10 Deleting files in `.sinter/`
 
 @req limit-store-deletions=v1
 @cites {
@@ -761,11 +767,12 @@ in the folder `.sinter/` of any working tree, the folder
     },
 }
 
-When a conforming program deletes a store file in the folder tree of a
-working tree, the conforming program must delete nothing outside the
-folder `.sinter/` of that folder tree by that deletion and must follow
-no symbolic link in that deletion. A conforming program must delete a
-store file only when one of these two conditions holds:
+When a conforming program deletes a file in the folder `.sinter/` of the
+folder tree of a working tree (a store file or a local file inside
+`.sinter/local/`), the conforming program must delete nothing outside
+that folder by that deletion and must follow no symbolic link in that
+deletion. A conforming program must delete a store file only when one of
+these two conditions holds:
 
 1. the store file is a valid object file that holds an object that a
    counting void in that tree withdraws (`ontology#object-withdrawal`);
@@ -776,8 +783,9 @@ store file only when one of these two conditions holds:
 A conforming program must delete no store file in a run in which content
 of a file or a folder is a part that an input lacks under the term
 `input` of Conformance because the conforming program could not take
-that content, or in a run that stopped at a limit of the conforming
-program's own.
+that content. When a conforming program reaches a limit of its own in a
+run, that conforming program must delete no further store file in that
+run.
 
 ## 5. Conformance
 
