@@ -472,6 +472,7 @@ valid program's own store) gives I or its key.
     findings#{
         finding-part=v1, finding-subject=v1, spot=v1, message=v1,
         mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+        path-finding-subject=v1,
     },
     files#{path=v1},
     ontology#{finding-class=v1, tree=v1},
@@ -484,7 +485,8 @@ finding of that class. The finding has these parts:
 
 - its tree is that tree;
 - its finding class is `invalid-object-file`;
-- its subject is the valid path of that store file;
+- its subject is the path-finding subject (term `path-finding-subject`
+  of Findings) of the valid path of that store file;
 - its spot is the valid path of that store file alone, with no span;
 - it has no mark and no fix, and it is not ackable;
 - its message says what is wrong (stating that the file has a newer form
@@ -499,6 +501,7 @@ finding of that class. The finding has these parts:
     findings#{
         finding-part=v1, finding-subject=v1, spot=v1, message=v1,
         mark=v1, related-message=v1, fix=v1, ackable-finding=v1,
+        path-finding-subject=v1,
     },
     files#{path=v1},
     text#{space=v1, code-span=v1},
@@ -517,7 +520,8 @@ class. The finding has these parts:
 
 - its tree is that tree;
 - its finding class is `missing-identity-file`;
-- its subject is the valid path of F, then a space, then c;
+- its subject is the path-finding subject (term `path-finding-subject`
+  of Findings) of the valid path of F, then a space, then c;
 - its spot is the valid path of F alone, with no span;
 - it has no mark and no fix, and it is not ackable;
 - its message says what is wrong;
