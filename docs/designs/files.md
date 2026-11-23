@@ -27,8 +27,8 @@ case-sensitive strings of RFC 7405.
 From Conformance (`conformance`), the design takes designs,
 requirements, conforming programs, inputs, dependence, a program's own
 limits, reports, safety obligations, and the general requirements that
-bind every conforming program, including `report-missing-parts` and
-`report-stops-at-limits`.
+bind every conforming program, including `report-missing-parts`,
+`report-stops-at-limits`, and `end-runs-at-limits`.
 From Text and notation, the design takes characters, texts, places,
 boundaries, runs, code spans, bytes, byte sequences, valid UTF-8, the
 text of a byte sequence, UTF-8 encodings, the notation of productions,
@@ -50,7 +50,7 @@ JSON text.
 
 | word or phrase | meaning |
 |---|---|
-| [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries, the runtime, and any other program that the program uses |
+| [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries, the runtime, and any other program that the program runs |
 | [file system](sinter:#file-system=v1) | the part of the system that stores files, as POSIX.1-2024 defines a file system, and that acts on those files when a program asks it to; a file is on the file system that stores it |
 | [folder tree](sinter:#folder-tree=v1) | a folder, its root, with the file of each folder entry of the root and the file of each folder entry of each folder of the folder tree |
 | [root](sinter:#folder-tree=v1) | the folder at the top of a folder tree |
@@ -103,7 +103,7 @@ JSON text.
 
 The system of a program is the computer that executes the program,
 together with the operating system of that computer. The program, and
-the libraries, the runtime, and any other program that the program uses,
+the libraries, the runtime, and any other program that the program runs,
 are not part of the system. A file system is the part of the system that
 stores files, as POSIX.1-2024 defines a file system, and that acts on
 those files when a program asks it to. A file is on the file system that
@@ -269,11 +269,13 @@ the program has that permission while the program keeps every safety
 obligation that binds the program, the folder tree lacks no part on that
 account. When the program stops reading `docs/a.md` because the content
 is too large for the memory of the program, the program reaches a limit
-of its own, and the file read gives no result. When the program has the
-search permission and the read permission for the root, and the UTF-8
-encoding of file name 1 is longer than the file system that the root is
-on allows for one entry name, the root holds no folder entry for file
-name 1, and the result is "no file".
+of its own, not a missing part. The program ends that run (for a part of
+a program, that call), reports where it reached that limit as far as it
+can, gives no other result of that run (not "cannot read"), and writes
+nothing durable. When the program has the search permission and the read
+permission for the root, and the UTF-8 encoding of file name 1 is longer
+than the file system that the root is on allows for one entry name, the
+root holds no folder entry for file name 1, and the result is "no file".
 
 With the result "found", the file read also gives the text of the
 content of the regular file, and no other text as the text of the
@@ -406,7 +408,7 @@ path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
 
 The system of a program is the computer that executes the program,
 together with the operating system of that computer. The program, and
-the libraries, the runtime, and any other program that the program uses,
+the libraries, the runtime, and any other program that the program runs,
 are not part of the system. In a statement about a program, the system
 is the system of that program.
 
@@ -960,17 +962,15 @@ is a valid path, a conforming program must not give the result
         own-limit=v1, report=v1, safety-obligation=v1,
         report-missing-parts=v1,
     },
-    text#{result=v1, text=v1, code-span=v1},
+    text#{result=v1, code-span=v1},
 }
 
 In each file read of a valid path in a folder tree that no other process
-changes during the file read, when no reading or computation on which
-the result of that file read depends stopped at a limit of the
-conforming program's own (term `own-limit` of Conformance), the
-conforming program must give exactly one result, and only "found", "no
-file", "symbolic link", "not a regular file", "not UTF-8", or "cannot
-read". In that file read, when at least one of these conditions holds,
-the conforming program must give "cannot read", and no other result:
+changes during the file read, the conforming program must give exactly
+one result, and only "found", "no file", "symbolic link", "not a regular
+file", "not UTF-8", or "cannot read". In that file read, when at least
+one of these conditions holds, the conforming program must give "cannot
+read", and no other result:
 
 - The file-read result of that valid path in that folder tree for the
   conforming program is "cannot read".
@@ -995,16 +995,9 @@ lacks and that the result of that file read needs.
 
 A bound on the length of a whole pathname of POSIX.1-2024 and a bound
 on the size of a file are examples of limits of the conforming
-program's own in a file read. A bound of the system or of a file system
-on the length of one entry name is not a limit of the conforming
-program's own. In each file read of a valid path in a folder tree that
-no other process changes during the file read, when a reading or
-computation on which the result of that file read depends stopped at a
-limit of the conforming program's own, such as a reading of the root of
-that folder tree, the conforming program must give none of the results
-"found", "no file", "symbolic link", "not a regular file", "not UTF-8",
-and "cannot read", and must give no text as the text of the content of a
-regular file.
+program's own (term `own-limit` of Conformance) in a file read. A bound
+of the system or of a file system on the length of one entry name is not
+a limit of the conforming program's own.
 
 ### 4.4 The text of the content
 
@@ -1390,8 +1383,8 @@ text as a path in the folder tree.
      folder tree that the result of the file read needs, offers an
      operation of the system that lets the program take that thing while
      the program keeps every safety obligation (term `safety-obligation`
-     of Conformance) that binds the program. The file read does not stop
-     at a limit of the program's own.
+     of Conformance) that binds the program. The program reaches no
+     limit of its own during the file read.
   4. No other process opens a pipe of the folder tree during the file
      read.
 
