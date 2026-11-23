@@ -134,6 +134,7 @@ let other_line_vectors =
   Vectors.group set ~name:"other-lines" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[declarations]
+   @verifies identifiers#declaration-line=v1
    The test reads the text of each vector under its binding and fails when
    the line result of a declaration, or its slug, part name, revision, and
    inline description, differ from the vector. *)
@@ -150,6 +151,7 @@ let citation_vectors =
   Vectors.group set ~name:"citations" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[status-tags]
+   @verifies identifiers#status-line=v1
    The test reads the text of each vector under its binding and fails when
    the line result of a status tag, or its inline description, differs from
    the vector. *)
@@ -157,6 +159,7 @@ let status_tag_vectors =
   Vectors.group set ~name:"status-tags" ~form:"#tag-line-vector=v1" give_line
 
 (* @verifies identifiers[directives]
+   @verifies identifiers#{extern-line=v1, ack-line=v1}
    The test reads the text of each vector under its binding and fails when
    the line result of an `@extern` or an `@ack` line, or its values, differ
    from the vector. *)
@@ -497,7 +500,7 @@ let line_ranges_of_continued_citations () =
     [ (1, 2); (3, 3) ]
     (ranges "\xef\xbb\xbf@cites {\n#a=v1}\n@req b=v1")
 
-(* @verifies identifiers#give-line-results=v1
+(* @verifies identifiers#{declaration-line=v1, citation-line=v1, status-line=v1, extern-line=v1, ack-line=v1, give-line-results=v1}
    Each example line gives the line result and values that the five line
    schemas and input-match define for it. *)
 let line_examples =
@@ -1268,7 +1271,7 @@ let same read (text, want) =
 
 let read_lines text = `List (line_inputs standard_binding text)
 
-(* @verifies identifiers#{give-line-results=v1, give-values=v1, give-no-other-values=v1}
+(* @verifies identifiers#{declaration-line=v1, give-line-results=v1, give-values=v1, give-no-other-values=v1}
    Each generated declaration gives the result valid and the exact values of
    its match with no extra values. *)
 let declarations_give_their_values =
