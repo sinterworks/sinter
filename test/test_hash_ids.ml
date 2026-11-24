@@ -73,19 +73,25 @@ let validate_vectors =
 
 let is_id_prefix text =
   let length = String.length text in
-  length >= 2
-  && text.[length - 1] = '-'
-  && String.for_all
-       (fun char -> char >= 'a' && char <= 'z')
-       (String.sub text 0 (length - 1))
+  if length < 2 || text.[length - 1] <> ':' then false
+  else
+    let body = String.sub text 0 (length - 1) in
+    let parts = String.split_on_char '-' body in
+    List.for_all
+      (fun part ->
+        String.length part >= 1
+        && String.for_all (fun char -> char >= 'a' && char <= 'z') part)
+      parts
+
+let word_gen = Gen.string_size ~gen:(Gen.char_range 'a' 'z') (Gen.int_range 1 6)
 
 let prefix_gen =
   Gen.map
-    (fun letters -> letters ^ "-")
-    (Gen.string_size ~gen:(Gen.char_range 'a' 'z') (Gen.int_range 1 5))
+    (fun words -> String.concat "-" words ^ ":")
+    (Gen.list_size (Gen.int_range 1 4) word_gen)
 
 let number_gen =
-  Gen.oneof [ Gen.oneof_list [ 1; 2; 12; 63; 64 ]; Gen.int_range 1 64 ]
+  Gen.oneof [ Gen.oneof_list [ 1; 2; 12; 32; 63; 64 ]; Gen.int_range 1 64 ]
 
 let print_form (prefix, number) = Printf.sprintf "%S, %d" prefix number
 
@@ -106,6 +112,25 @@ let compute_gives_the_prefix_and_the_first_hex_digits =
         (Hash_id.compute (form_of prefix number) bytes :> string)
         (prefix ^ String.sub (Sinter_core.Sha256.hex bytes) 0 number))
 
+(* @verifies data-forms#compute-hash-id=v1
+   The test fails when compute gives different hash digits for the same byte
+   sequence under two different id prefixes. *)
+let compute_hash_does_not_depend_on_id_prefix =
+  property ~count:300
+    ~name:"the hash of the byte sequence does not depend on the id prefix"
+    ~print:(fun ((p1, p2), (number, bytes)) ->
+      Printf.sprintf "%S, %S, %d, %s" p1 p2 number (V.hex bytes))
+    Gen.(
+      pair
+        (pair prefix_gen prefix_gen)
+        (pair number_gen (string_size ~gen:char (int_range 0 100))))
+    (fun ((p1, p2), (number, bytes)) ->
+      let id1 = (Hash_id.compute (form_of p1 number) bytes :> string)
+      and id2 = (Hash_id.compute (form_of p2 number) bytes :> string) in
+      let h1 = String.sub id1 (String.length p1) number
+      and h2 = String.sub id2 (String.length p2) number in
+      String.equal h1 h2)
+
 let fits prefix number text =
   let length = String.length prefix in
   String.length text = length + number
@@ -122,6 +147,8 @@ let digit_gen =
       Gen.oneof_list (List.of_seq (String.to_seq "ABFgz-/:`@\x00\xc3\xa9\xff"));
     ]
 
+let hyphen_ending prefix = String.sub prefix 0 (String.length prefix - 1) ^ "-"
+
 let candidate_gen =
   let open Gen in
   let* prefix = prefix_gen in
@@ -131,6 +158,7 @@ let candidate_gen =
       [
         return prefix;
         prefix_gen;
+        return (hyphen_ending prefix);
         return "";
         return (String.uppercase_ascii prefix);
       ]
@@ -173,17 +201,56 @@ let computed_hash_ids_fit_their_form =
       let hash_id = (Hash_id.compute form bytes :> string) in
       fits prefix number hash_id && Hash_id.validate form hash_id <> None)
 
+let invalid_prefix_cases =
+  [
+    "";
+    ":";
+    "-";
+    "e-";
+    "req-";
+    "task-def-";
+    "req";
+    "task-def";
+    "-a:";
+    "-:";
+    "a-:";
+    "req-:";
+    "a--b:";
+    "task--def:";
+    "a:b:";
+    "req::";
+    ":req:";
+    "A:";
+    "Req:";
+    "task-Def:";
+    "a1:";
+    "1a:";
+    "a-1:";
+    "`:";
+    "{:";
+    "a_b:";
+    "a b:";
+    "a.b:";
+    "a\x00b:";
+    "\xc3\xa9:";
+  ]
+
+let valid_prefix_cases =
+  [ "a:"; "z:"; "req:"; "task-def:"; "vector-group-def:"; "a-b-c-d:" ]
+
 let any_prefix_gen =
   Gen.oneof
     [
       prefix_gen;
+      Gen.oneof_list invalid_prefix_cases;
       Gen.string_size
-        ~gen:(Gen.oneof_list (List.of_seq (String.to_seq "az-AZ09_.\xc3\xa9 ")))
-        (Gen.int_range 0 6);
+        ~gen:
+          (Gen.oneof_list (List.of_seq (String.to_seq "az-:AZ09_`{.\xc3\xa9 ")))
+        (Gen.int_range 0 10);
     ]
 
 let form_refuses_what_is_not_a_form =
-  property ~count:1000
+  property ~count:2000
     ~name:
       "form refuses a text that is not an id prefix, then a number outside 1 \
        to 64"
@@ -199,6 +266,47 @@ let form_refuses_what_is_not_a_form =
       | Error (Hash_id.Number_of_hex_digits_out_of_range given) ->
           given = number && is_id_prefix prefix && (number < 1 || number > 64))
 
+let form_accepts_valid_id_prefixes () =
+  List.iter
+    (fun id_prefix ->
+      List.iter
+        (fun number_of_hex_digits ->
+          match Hash_id.form ~id_prefix ~number_of_hex_digits with
+          | Ok _ -> ()
+          | Error _ ->
+              Alcotest.failf "expected valid form for %S and %d" id_prefix
+                number_of_hex_digits)
+        [ 1; 12; 32; 64 ])
+    valid_prefix_cases
+
+let form_refuses_invalid_id_prefixes () =
+  List.iter
+    (fun id_prefix ->
+      List.iter
+        (fun number_of_hex_digits ->
+          match Hash_id.form ~id_prefix ~number_of_hex_digits with
+          | Error (Hash_id.Not_an_id_prefix got) ->
+              Alcotest.(check string) "reported prefix" id_prefix got
+          | Error (Hash_id.Number_of_hex_digits_out_of_range _) ->
+              Alcotest.failf "expected Not_an_id_prefix first for %S and %d"
+                id_prefix number_of_hex_digits
+          | Ok _ ->
+              Alcotest.failf "expected Not_an_id_prefix for %S and %d" id_prefix
+                number_of_hex_digits)
+        [ 12; 0; 65 ])
+    invalid_prefix_cases
+
+let form_refuses_counts_out_of_range () =
+  List.iter
+    (fun number_of_hex_digits ->
+      match Hash_id.form ~id_prefix:"req:" ~number_of_hex_digits with
+      | Error (Hash_id.Number_of_hex_digits_out_of_range got) ->
+          Alcotest.(check int) "reported count" number_of_hex_digits got
+      | _ ->
+          Alcotest.failf "expected Number_of_hex_digits_out_of_range for %d"
+            number_of_hex_digits)
+    [ min_int; -1; 0; 65; max_int ]
+
 let vector_groups = [ compute_vectors; validate_vectors ]
 
 let tests =
@@ -206,7 +314,19 @@ let tests =
   @ [
       Vectors.covers "data-forms.hash-ids" hash_ids_set vector_groups;
       compute_gives_the_prefix_and_the_first_hex_digits;
+      compute_hash_does_not_depend_on_id_prefix;
       validate_takes_exactly_the_hash_id_form;
       computed_hash_ids_fit_their_form;
       form_refuses_what_is_not_a_form;
+      Alcotest.test_case
+        "form gives a form for each valid id prefix and a count from 1 to 64"
+        `Quick form_accepts_valid_id_prefixes;
+      Alcotest.test_case
+        "form gives Not_an_id_prefix for a text that is not an id prefix, also \
+         with a count out of range"
+        `Quick form_refuses_invalid_id_prefixes;
+      Alcotest.test_case
+        "form gives Number_of_hex_digits_out_of_range for a count outside 1 to \
+         64"
+        `Quick form_refuses_counts_out_of_range;
     ]
