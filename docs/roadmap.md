@@ -523,6 +523,10 @@
     elements and scaffolding that each kit builds again.
   - The texts of each kit are edited for plain, tight language before a
     person reviews them.
+  - The review shows a few fully worked scenarios, and then only the
+    scenarios where the models disagree, where behavior emerges from
+    several rules and can confuse, or where a contentious behavior has a
+    real alternative. The other scenarios stay as reference.
 - **Reference models of states, and mutation testing mapped to
   requirements** — how executable models and mutation testing check
   Sinter's code. Not designed.
