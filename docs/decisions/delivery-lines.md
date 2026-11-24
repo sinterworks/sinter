@@ -1,79 +1,93 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright 2026 The Sinter Authors -->
 
-# Name each delivered step in a commit message, and record it at the merge
-@decision delivery-lines
+# Name each delivered task in a commit message, and let the job read the original commits of each merge
+@decision delivery-lines v2
 @supersedes delivery-marks v1
 @cites plans-span-branches
 @cites agent-statements
 @cites commit-messages
-A commit that delivers a step carries the line `Delivers: <plan>/<step> <hash>`, and the job on the default branch writes a `delivered` entry in the ledger for each such line that a merge brings.
+A commit that delivers a task carries the line `Delivers: task:<32 hex> <6 hex>`, which names the task's work item and the first six digits of the content hash of its scope, and the job on the default branch reads the original commits of each merge through a host adapter and records a `delivered` observation on the log branch.
 
 ## Context
 
-Record `delivery-marks` put a mark `@delivered <hash>` in the plan
-file for each delivered step. The plan file then held its agreement
-and also the state of its delivery, so it became a second ledger. A
-delivery is an event of a change, and the commits of the change and
-the job that runs at each merge see that event. Two problems of the
-marks remained: a mark added in a later branch, with no change in the
-step's scope, blocked with no way to clear it; and Sinter printed the
-line to add only for a step with promises.
+A delivery is an event of a change, and the commits of the change and
+the job that runs at each merge see that event. Record `delivery-marks`
+put a mark in the plan file for each delivered step, so the plan file
+became a second ledger. The first form of the delivery line named a
+plan's step and the first six digits of a step hash, and the job read
+the lines from the commits that a push brought. Two problems remained:
+
+- A squash merge on a host can drop the messages of the branch's
+  commits, and then the job loses the lines. A local `git merge
+  --squash` indents each line of the squashed messages by four spaces.
+- Work items are now objects in `.sinter/` with content ids, and a
+  task's agreement is its `scope` object, so neither a plan's step nor
+  a step hash names the thing that a commit delivers.
 
 ## Decision
 
-- A commit that delivers a step carries a **delivery line**, one line
-  of its message: `Delivers: <plan>/<step> <hash>`. `<plan>` is the
-  full form of the plan, `<step>` the slug of the step, and `<hash>`
-  the first 6 hexadecimal digits of the step hash. Sinter gives the
-  line for each step.
-- The **step hash** covers the agreement of the step: its effective
-  scope, its promises, and its prose, the lines of its section that
-  are not its heading or a tag line.
+- A commit that delivers a task carries a **delivery line**:
+  `Delivers: task:<32 hex> <6 hex>`. The first part is the content id of
+  the task's work item object. The six digits are the first six
+  hexadecimal digits of the content hash of the task's current `scope`
+  object, with no kind word. A rename of the task keeps a delivery, and a
+  change of its scope makes the line stale.
+- Zero or more spaces may stand before `Delivers:` and before `Task:`. A
+  tab before `Delivers:` gives a malformed delivery line, and a line with
+  a tab before `Task:` is not a task line.
+- At each push to the default branch, the job reads the original commits
+  of the pull request of each landing commit through a host adapter, so
+  that a squash merge on the host loses no line. When the host no longer
+  holds those commits, the job reads the landing commit's own message and
+  reports it. v0.1 ships the GitHub adapter and a local adapter, which
+  takes a local branch or a series of patches.
+- For each delivery line that passes its checks, the job writes a
+  `delivered` observation on the log branch. The observation names the
+  definition that it observed with one edge, and holds an edge for each
+  promise that the work kept. The job makes no judgment of its own.
 - On a branch, Sinter reads the delivery lines in the messages of the
-  commits of the change, from the base to the head. It never reads the
-  history of the default branch.
-- At each push to the default branch, the job that runs there, in CI
-  or by a person's hand, reads the commits that the push brings. For
-  each delivery line that passes the checks, it writes a `delivered`
-  entry in the ledger with the step, its step hash, and the merge. The
-  job makes no judgment of its own.
-- Under `proof.step = "delivered"`, a step without promises is done
-  when the ledger holds a `delivered` entry that matches its current
-  step hash.
-- Sinter checks each delivery line of a branch. A line whose hash does
-  not match, a line on a step whose promises are not met, and a step
-  whose promises the branch meets with no delivery line are findings
-  that block. A line on a step whose scope the branch did not change
-  is a warning: the work can be in an earlier branch, and the person
-  who merges reads the line.
-- The plan file holds the agreement only. The tag `@delivered` goes
-  away.
+  commits of the change. It never reads the history of the default
+  branch.
+- The plan file and `.sinter/` hold the agreement only. The tag
+  `@delivered` stays gone.
 
 ## Alternatives considered
 
-- **A mark `@delivered <hash>` in the plan file** (record
-  `delivery-marks`). Not chosen: the plan file becomes a second
-  ledger.
+- **Users copy the delivery lines from the commits into the message of
+  the landing commit.** Not chosen: reading the original commits through
+  the host is the reliable way, and copying asks every user to do work
+  that the job can do.
+- **The GitHub adapter only.** Not chosen: the local source was ruled in,
+  and the roadmap already holds the other hosts.
+- **Work item ids of 12 random hexadecimal digits, the content id of the
+  first definition, or a random 32-digit id.** Put forward; the choice
+  was a small work item object whose content id names the task, with a
+  nonce of 32 hexadecimal digits. No further reason was recorded against
+  the other two.
+- **The kind words `task:` and `plan:` shared by work items and their
+  definitions, or longer kind words for work items.** Not chosen: one
+  kind word would name two kinds, with collisions under short prefixes,
+  and the words that people type every day would get the longer name.
+- **Keep the step hash, or let tasks share one scope object.** Not
+  chosen: a step hash is a second hashing rule beside the content hash,
+  and no edge or citation can name it; a shared scope object lets a void
+  of one task's scope remove the scope of another.
+- **No spaces before the line, as before.** Not chosen: git's squash
+  message then needs an edit, while the rule for tabs keeps the earlier
+  results.
 - **Sinter reads the delivery lines from the history of the default
-  branch.** Not chosen: the history becomes an input of every check, a
-  check slows as the history grows, and a rewritten history changes
-  the answer. The job reads each merge once, and the ledger keeps the
-  result.
-- **A delivery line on a step whose scope the branch did not change
-  blocks, and an `@ack` can accept it.** Not chosen: the ack would
-  need a new kind of line in a plan file or a commit, for a line that
-  a person reads anyway.
-- **Such a line is exempt when the base already shows the step as
-  delivered.** Not chosen: it helps only steps with promises.
+  branch.** Not chosen: the history becomes an input of every check, and
+  a rewritten history changes the answer.
 
 ## Consequences
 
-The plan file stays the agreement, and the ledger alone records what
-happened. Until the job and the ledger reader exist, no step without
-promises counts as done on the default branch; the checks of a branch
-work now. A squash merge keeps the messages of the branch's commits in
-the body of the new commit, so the job reads the delivery lines there;
-a host that drops those messages from a squash loses the lines. The
-inputs of a check on a branch gain the messages of the commits of the
-change.
+Delivery lines keep their length and their form. The job's inputs grow
+by the host's record of each pull request, so the job needs an adapter
+for the host of the repository. When a counting void withdraws a task's
+scope, the job still records the task's delivery lines, with no observed
+definition and no promise. A `delivered` observation for a
+work item with no current definition completes nothing. In a run that
+could not read a file, the job appends nothing for its range and ends
+with an error, and the next run covers that range again; after a limit
+of its own, it appends nothing further.
