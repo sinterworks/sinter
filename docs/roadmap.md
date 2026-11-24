@@ -16,7 +16,8 @@
   the graph of objects, and a command that runs one from the command
   line. v0.1 has neither; a script reads the JSON lines of Interchange
   instead. The work starts from a study of prior art, and it comes
-  before SinterScript. Not designed.
+  before SinterScript. `spec/algebra.md` describes an earlier algebra;
+  no layered design holds one yet.
 - **SinterScript** — a small language of its own in which a repository
   writes its own checks, such as "every requirement cites an issue of
   our tracker". Not designed.
@@ -87,8 +88,8 @@
 - **Signed judgments** — a judgment or a void in `.sinter/` (an
   approval, a decline, `done`, `abandoned`, or a void) carries a
   signature that only the person who gives it can make. The list of
-  persons of Approval says whose judgments count, but it does not stop a
-  forged `by`; a signature closes that gap. Today a program takes a judgment
+  persons of Approval says whose judgments and voids count, but it does
+  not stop a forged `by`; a signature closes that gap. Today a program takes a judgment
   only on a confirmation that its standard input, its arguments, and
   its environment cannot give, such as an answer at the controlling
   terminal. An agent that runs the program on a pseudo-terminal can
@@ -124,8 +125,8 @@
   - v0.1 holds a Security design narrowed to the surfaces of v0.1, and
     it is written after the other designs of v0.1. The guarantees for
     the surfaces that come after v0.1 wait for those surfaces.
-- **Reconsider the finding class `config-changed`** — v0.1 has no such
-  class.
+- **Reconsider the finding class `config-changed`** — the layered
+  designs of v0.1 drop the class.
 - **The host's own review as approval** — after the merge, the job reads
   through the host adapter which listed persons approved the pull
   request, and records it as an observation.
@@ -156,8 +157,8 @@
   the log branch again. Content ids are its primary keys, and edges are
   rows that name two content ids. The index stays a cache: every result
   equals the result of a fresh read of the snapshot and the log. It
-  brings back `sinter tracker fetch`, the tracker keys, and
-  `--no-cache`, which v0.1 defers.
+  adds `sinter tracker fetch`, the tracker keys, and `--no-cache`, which
+  v0.1 defers.
 - **Readable views of changes to `.sinter/`** — tools, views, and
   automated comments on pull requests that show each new object of
   `.sinter/` with the keys of its identity objects (names, external ids,
@@ -165,8 +166,7 @@
   gives the records of each object that a change adds to `.sinter/` and
   of the identity objects that they name; the views themselves wait.
 - **The Command line specification, Views, and Reports' forms for
-  persons** — designs that v0.1 defers, with the earlier rulings on
-  views.
+  persons** — designs that v0.1 defers.
 - **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
   which an AI coding assistant, a program such as Claude Code that
   writes code, writes a specification of each change before the
@@ -338,7 +338,8 @@
   `-o porcelain` with `spec/porcelain.md`, and `sinter parse`, because
   no design of v0.1 holds them. When the migration removes each one,
   this entry names the last commit on `main` that holds its code, so
-  that a later design can start from it.
+  that a later design can start from it. The entries for `sinter serve
+  --mcp`, `--detach`, and `--lsp` wait for that later design.
 - **The harness specification** — `sinter brief`, `sinter declare`, and
   `sinter hook`, which v0.1 defers.
 - **Plugins for coding-agent harnesses** — a package for each harness
@@ -387,9 +388,9 @@
 - **Pack distribution** — a fast-follow after v0.1: a packs repository
   that publishes each language pack with its hash, `sinter pack add`,
   the lock file `sinter.lock`, a user cache, and the check of each
-  archive. In v0.1, only the markdown pack is built in, and every other
-  pack comes from a local folder that the project's settings name
-  (record `local-pack-folders`).
+  archive. In v0.1, only the markdown pack is built in, and the pack of
+  every other language comes from a local folder for that language,
+  which the project's settings name (record `local-pack-folders`).
 - **`sinter-packs` repository** — the language packs, in the
   repository `sinterworks/sinter-packs`, with the licenses that
   `docs/licensing-setup.md` describes.

@@ -5,7 +5,7 @@
 @decision pack-fetching v2
 @cites local-pack-folders
 @cites rust-bridge
-Sinter downloads the archive of a pack with a curl subprocess, reads the archive inside the tool, computes the pack hash from the entries in memory, and writes the files only when the hash matches.
+Sinter downloads the archive of a pack with a curl subprocess, reads the archive inside the tool, computes the pack hash from the entries in memory, and writes the files only when the hash matches. Pack distribution, which follows v0.1, applies this decision (record `local-pack-folders`).
 
 ## Context
 

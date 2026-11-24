@@ -5,7 +5,7 @@
 @decision local-pack-folders
 @supersedes pack-delivery v2
 @cites rust-bridge
-The markdown pack stays built into Sinter, and in v0.1 every other language pack comes from a local folder that the project's settings name; v0.1 fetches no pack, and pack distribution follows soon after v0.1.
+The markdown pack stays built into Sinter, and in v0.1 the pack of every other language comes from a local folder for that language, which the project's settings name; v0.1 fetches no pack, and pack distribution follows soon after v0.1.
 
 ## Context
 
@@ -28,9 +28,9 @@ setup, which the Security design must weigh.
 - The markdown pack stays built into the program and changes with it.
   Plans, decision records, and rule files are markdown, so every
   project can read them with no setup.
-- In v0.1, the project's settings name a local folder that holds the
-  pack of each other language. Sinter reads each pack from that folder
-  and checks it as Language packs specifies.
+- In v0.1, the project's settings name a local folder for each other
+  language, which holds that language's pack. Sinter reads each pack from
+  its folder and checks it as the design Language packs specifies.
 - v0.1 fetches no pack. `sinter pack add`, the lock file, the user
   cache, and the packs repository move to pack distribution, which the
   roadmap holds as a fast-follow after v0.1.
@@ -51,8 +51,8 @@ A project that checks code in a language other than markdown places
 that language's pack in a folder and names the folder in its settings.
 The Manifest keeps a setting for the pack folder of each language and no
 keys for fetched packs. The Security design treats a pack folder as part
-of the owner's own setup. Pack distribution later adds fetching, the lock
-file, and the cache without changing how a pack is read. The records
-that cite `pack-delivery` (`pack-fetching`, `pack-verify`,
-`pack-release-comparison`, and `runner-adapters`) move their citations
-to this record in the pull request that supersedes it.
+of the owner's own setup. In v0.1, nothing checks that two machines
+read the same pack; each project's own setup, for example in CI,
+provides the folders, and the lock file of pack distribution later adds
+that check. Pack distribution also adds fetching and the cache without
+changing how a pack is read.

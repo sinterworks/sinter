@@ -4,7 +4,7 @@
 # Check a pack with `sinter pack verify`
 @decision pack-verify v2
 @cites local-pack-folders
-The command `sinter pack verify` checks a pack folder by the rules that Sinter applies when it loads a pack, so that the packs repository checks its packs with Sinter itself.
+The command `sinter pack verify` checks a pack folder by the rules that Sinter applies when it loads a pack, so that the packs repository checks its packs with Sinter itself. Pack distribution, which follows v0.1, applies this decision (record `local-pack-folders`).
 
 ## Context
 

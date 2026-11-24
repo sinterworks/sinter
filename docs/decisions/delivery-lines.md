@@ -33,24 +33,39 @@ the lines from the commits that a push brought. Two problems remained:
   hexadecimal digits of the content hash of the task's current `scope`
   object, with no kind word. A rename of the task keeps a delivery, and a
   change of its scope makes the line stale.
-- Zero or more spaces may stand before `Delivers:` and before `Task:`. A
-  tab before `Delivers:` gives a malformed delivery line, and a line with
-  a tab before `Task:` is not a task line.
+- A task line, `Task: task:<32 hex>`, names a task that a commit works
+  on without finishing it. Zero or more spaces may stand before
+  `Delivers:` and before `Task:`, because a local `git merge --squash`
+  indents the squashed messages. A tab before `Delivers:` gives a
+  malformed delivery line, and a line with a tab before `Task:` is not a
+  task line.
 - At each push to the default branch, the job reads the original commits
-  of the pull request of each landing commit through a host adapter, so
+  of the pull request of each landing commit, the commit through which
+  the pull request lands on the default branch, through a host adapter, so
   that a squash merge on the host loses no line. When the host no longer
   holds those commits, the job reads the landing commit's own message and
   reports it. v0.1 ships the GitHub adapter and a local adapter, which
   takes a local branch or a series of patches.
 - For each delivery line that passes its checks, the job writes a
-  `delivered` observation on the log branch. The observation names the
-  definition that it observed with one edge, and holds an edge for each
-  promise that the work kept. The job makes no judgment of its own.
+  `delivered` observation on the log branch. When the task has a current
+  definition whose scope is not withdrawn, the observation names that
+  definition with one edge and holds an edge for each promise that the
+  work kept. The job makes no judgment of its own.
+- When a promise of an observed definition has no outcome, the job
+  appends nothing for its range, reports each such promise, and ends with
+  an error, so the next run covers the range again. When the `.sinter/`
+  store of a landing commit is not valid, the job records no delivery of
+  that commit, records the rest of the range, reports the commit, and
+  ends with an error; a person records each lost delivery with a `done`
+  judgment.
 - On a branch, Sinter reads the delivery lines in the messages of the
   commits of the change. It never reads the history of the default
   branch.
-- The plan file and `.sinter/` hold the agreement only. The tag
-  `@delivered` stays gone.
+- The definitions and scopes in `.sinter/` hold the agreement only. No
+  text file records a delivery, and Sinter has no tag `@delivered`.
+- This form applies when the code follows the designs (record
+  `layered-designs`). Until then, a commit in this repository carries
+  the form that record `commit-messages` gives.
 
 ## Alternatives considered
 
@@ -58,8 +73,9 @@ the lines from the commits that a push brought. Two problems remained:
   the landing commit.** Not chosen: reading the original commits through
   the host is the reliable way, and copying asks every user to do work
   that the job can do.
-- **The GitHub adapter only.** Not chosen: the local source was ruled in,
-  and the roadmap already holds the other hosts.
+- **The GitHub adapter only.** Not chosen: the job also takes a local
+  branch or a series of patches, and the roadmap already holds the other
+  hosts.
 - **Work item ids of 12 random hexadecimal digits, the content id of the
   first definition, or a random 32-digit id.** Put forward; the choice
   was a small work item object whose content id names the task, with a
@@ -82,11 +98,12 @@ the lines from the commits that a push brought. Two problems remained:
 
 ## Consequences
 
-Delivery lines keep their length and their form. The job's inputs grow
+The job's inputs grow
 by the host's record of each pull request, so the job needs an adapter
 for the host of the repository. When a counting void withdraws a task's
-scope, the job still records the task's delivery lines, with no observed
-definition and no promise. A `delivered` observation for a
+scope, the job still records the task's delivery lines, with no edge to
+the definition and no promise, because the scope that such edges rest on
+is withdrawn. A `delivered` observation for a
 work item with no current definition completes nothing. In a run that
 could not read a file, the job appends nothing for its range and ends
 with an error, and the next run covers that range again; after a limit

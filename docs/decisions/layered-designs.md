@@ -45,10 +45,11 @@ that it implements.
 - The design "Ontology" defines the things of Sinter and how they
   relate, with nothing about how Sinter builds or computes them. The
   design "Object store" in Layer 2 defines how the store `.sinter/`
-  holds objects; Documents and the Ledger in Layer 3 cite it, and it
-  cites Findings but not Changes. Documents takes the kept objects of
-  the log branch as an input from its caller, so that it needs no
-  reading of the log branch. Work cites Approval for the list of
+  holds objects; Documents and the Ledger in Layer 3 cite it, and the
+  Object store cites Findings but not Changes. Documents cites the Ledger for the
+  rule that accepts a void, and takes the kept objects of the log branch
+  as an input from its caller, so that it never reads the log
+  branch. Work cites Approval for the list of
   persons.
 - Higher layers define how Sinter reads documents, stores and computes
   state, and checks the work. At the top, the design "Sinter" defines
@@ -58,10 +59,17 @@ that it implements.
   of one layer are written at the same time. When a design
   shows a gap in a lower layer, the work goes back down and fills the
   gap first. The map of the layers is a sketch, and it changes as the
-  work shows more.
+  work shows more. Today it is: Conformance below Layer 0; Text and
+  notation in Layer 0; Identifiers, Data forms, and Files in Layer 1;
+  the Ontology, the Object store, Language packs, Findings, and Changes
+  in Layer 2; Documents and the Ledger in Layer 3; Revisions, Test
+  evidence, and Approval in Layer 4; Work and Standing in Layer 5; the
+  Query algebra in Layer 6, deferred; Checks in Layer 7; the Manifest,
+  Interchange, and Reports in Layer 8; and Security in Layer 9.
 - Each design goes through a critique by readers who did not write it:
   a critique of its requirements and a cold read, or, where a model of
-  the design runs its vectors, a model beside the critique. A finding
+  the design (a small program written from its text) runs its vectors,
+  a model beside the critique. A finding
   counts when a real input gives a wrong result or the text cannot be
   implemented; everything else is a note for a later revision. One
   critique round, one fix round, and a re-check of the serious fixes
@@ -76,8 +84,8 @@ that it implements.
   local pack folders (record `local-pack-folders`). A design narrowed for
   v0.1 names nothing that v0.1 defers.
 - The migration removes the serve loop, the porcelain form with its
-  specification, and `sinter parse`, and each roadmap entry names the
-  last commit that holds its code.
+  specification, and `sinter parse`, and their roadmap entry names the
+  last commit that holds the code of each.
 - The checked work on the designs collects on one feature branch,
   which starts from `main`. That branch has one draft pull request,
   which runs the checks of continuous integration (CI). The work on
@@ -150,7 +158,7 @@ that it implements.
 - **Keep the Query algebra in v0.1.** Not chosen: no check of v0.1 needs
   it.
 - **Write the Security design after v0.1.** Not chosen: v0.1 would ship
-  with its open cases.
+  with the open cases of its security rules.
 - **Remove only the serve loop and the porcelain specification, or keep
   all three old features.** Not chosen: the migration would have to
   carry the other features through the new model, and an undesigned
@@ -162,8 +170,8 @@ No feature or fix of Sinter reaches `main`, and no release happens,
 until the designs are complete. The pull requests that were open when
 the design work started wait. Those pull requests can need rework when
 other work starts again. Until the migration, `spec/` stays the text
-that the code on `main` follows, and the designs describe Sinter as it
-will be. The two feature branches stay open until the designs are
+that the code on `main` follows, and the designs, with the decision
+records written for them, describe Sinter as it will be. The two feature branches stay open until the designs are
 complete. Each pull request to `main` then takes its commits from
 those feature branches. A gap in a lower layer can send the work back
 down. Code written early follows the designs, and a later change that

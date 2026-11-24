@@ -4,7 +4,7 @@
 # Make Sinter a pure function of a snapshot and one log that only the job writes
 @decision ledger-event-log v2
 @cites delivery-lines
-Sinter is a pure function of a snapshot of the repository and one log: statements live in `.sinter/` on ordinary branches, only the job on the default branch writes the log branch, every check before a merge only reads, and states follow from the edges between records, not from their order.
+Every state and every result of a check is a pure function of a snapshot of the repository and one log: statements live in `.sinter/` on ordinary branches, only the job on the default branch writes the log branch, every check before a merge only reads, and states follow from the edges between records, not from their order.
 
 ## Context
 
@@ -24,35 +24,48 @@ specified. Three causes stood out:
 - A pull can drop a person's approval, because the approval no longer
   fits after the entries of another clone.
 
+The terms of this record come from the designs in `docs/designs/`,
+chiefly the Ontology (`ontology.md`) and the Ledger (`ledger.md`).
+
 ## Decision
 
-- Sinter is a pure function of a snapshot and one log. The snapshot is
-  the tree of a commit with its `.sinter/` folder, the commit messages of
-  the change, the test evidence, and the session. The log is the log
-  branch.
-- Persons and agents write statements, such as definitions of work,
-  approvals, judgments, and voids, as objects in `.sinter/` on ordinary
-  branches. A statement reaches the default branch in the pull request
-  that holds it, so its review is the review of that pull request.
+- Every state and every result of a check is a pure function of a
+  snapshot and one log. The snapshot is the tree of a commit with its
+  `.sinter/` folder, the commit messages of the change, the test
+  evidence, and the session. The log is the log branch.
+- The job is a run of Sinter on the default branch after each push. It
+  is the one part of Sinter that reads beyond the snapshot: it reads the
+  host's record of each merged pull request (record `delivery-lines`),
+  and what it writes becomes part of the log.
+- Persons and agents write definitions of work, and only persons write
+  judgments (approvals, declines, `done`, and `abandoned`) and voids.
+  Each is a statement object in `.sinter/` on an ordinary branch. A
+  statement reaches the default branch in the pull request that brings
+  it, so its review is the review of that pull request.
 - Only the job, which runs reviewed code after a push to the default
   branch, writes outside the tree. It writes one dedicated branch, the
   log branch, and that branch only grows. The log branch holds
-  observations (`delivered` and `progress`), a copy of every merged
-  revision of every declared item, and a copy of each computed identity
-  object that such a copy needs. A copy is written once for each content
-  id, with no order number and no writer.
+  observations (`delivered` and `progress`) and kept objects: a copy of
+  every merged revision of every declared item, and of each computed
+  identity object that such a kept object needs. Each line of the log
+  branch wraps its object in the plain envelope `{"id","object"}`, and
+  each kept object is written once for each content id, with no order
+  number and no writer.
 - Every check before a merge only reads. Checks read the log branch from
   its remote-tracking ref and use git's reflog of that ref, so that a
   check can see that the log branch went back to an earlier tip.
 - States follow from edges. Each record names by content id the records
-  that it rests on, so the records form a Merkle graph, by design. Two
+  that it rests on, so the records form a Merkle graph. Two
   records conflict only when they disagree about the same thing. No
   state depends on the order of records or on a number in them.
-- A void in the tree withdraws a record, and the job's bookkeeping
-  reads it: a withdrawn progress record marks no range, and a withdrawn
-  `delivered` observation records no delivery. The next range of the job
-  starts after the progress record whose commit reaches the commits of
-  every other progress record, so the range never moves back.
+- Each run of the job covers a range of commits and ends it with a
+  `progress` observation. A counting void in the tree withdraws a
+  record, and the job's bookkeeping reads it: a withdrawn `progress`
+  observation marks no range, and a withdrawn `delivered` observation
+  records no delivery. Among the unwithdrawn `progress` observations,
+  the next range starts after the one whose commit reaches the commits
+  of all the others, so a run that retries late never moves the range
+  back to an earlier commit.
 - Nothing rewrites the log. A wrong record is withdrawn by a void.
 - When the log branch is missing, a check reports that the job's records
   are missing and gives every result that depends only on the tree. A
@@ -66,14 +79,15 @@ specified. Three causes stood out:
   plain clone does not fetch it.
 - **Approval as a standing judgment in a shared log that persons
   write.** Put forward and not chosen, in favor of approval that travels
-  in the pull request that it approves; no further reason was recorded.
+  in the pull request that brings it; no further reason was recorded.
 - **Checks of branches in the same repository write a ref for each
   branch.** Not chosen: forks need the read-only mechanism anyway, and
   the write gives code that nobody reviewed a token for refs that no host
   protects.
 - **Required signatures on the log.** Not chosen: they guard against
-  forgery, which is outside the threat model, and cannot show that a
-  branch went back to an earlier tip.
+  forgery, which v0.1 does not defend against, and cannot show that a
+  branch went back to an earlier tip. Signed judgments are on the
+  roadmap.
 - **The job records one merged order, and states fold over it.** Put
   forward and not chosen; no reason beyond the choice of edges was
   recorded.
