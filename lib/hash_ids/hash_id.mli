@@ -4,12 +4,14 @@
 (** Hash ids, as the specification [hash-ids] of the design [data-forms=v1]
     defines them.
 
-    An id prefix is one or more of the letters [a] to [z], then [-], such as
-    ["e-"]. For an id prefix p and a number n of hex digits from 1 to 64, the
-    hash id of a byte sequence is p, then the first n hex digits of the hash of
-    the byte sequence. A text fits the hash-id form with p and n when it is p,
-    then exactly n hex digits. A byte sequence is an OCaml [string], and a text
-    is its UTF-8 encoding. *)
+    An id prefix is a text that matches the production
+    [id-prefix = 1*%x61-7A *( "-" 1*%x61-7A ) ":"]: one or more of the letters
+    [a] to [z], with single [-] between the letters but not at the start or the
+    end, then [:], such as ["req:"] or ["task-def:"]. For an id prefix p and a
+    number n of hex digits from 1 to 64, the hash id of a byte sequence is p,
+    then the first n hex digits of the hash of the byte sequence. A text fits
+    the hash-id form with p and n when it is p, then exactly n hex digits. A
+    byte sequence is an OCaml [string], and a text is its UTF-8 encoding. *)
 
 type form
 (** An id prefix and a number of hex digits from 1 to 64. *)
@@ -17,8 +19,8 @@ type form
 (** Why an id prefix and a number of hex digits make no form. *)
 type form_error =
   | Not_an_id_prefix of string
-      (** The text is not an id prefix: one or more of the letters [a] to [z],
-          then [-]. *)
+      (** The text is not an id prefix: it does not match the production
+          [id-prefix]. *)
   | Number_of_hex_digits_out_of_range of int
       (** The number is less than 1 or greater than 64. *)
 

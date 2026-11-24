@@ -9,11 +9,25 @@ type form_error =
 
 let is_letter c = c >= 'a' && c <= 'z'
 
+(* @satisfies data-forms#{compute-hash-id=v1, validate-hash-id=v1}
+   A form takes only an id prefix: runs of the letters `a` to `z`, with one
+   `-` between two runs, then `:`, as the production id-prefix gives. *)
 let is_id_prefix text =
   let length = String.length text in
-  length >= 2
-  && text.[length - 1] = '-'
-  && String.for_all is_letter (String.sub text 0 (length - 1))
+  let rec words index =
+    let rec letters index =
+      if index < length && is_letter text.[index] then letters (index + 1)
+      else index
+    in
+    let after = letters index in
+    after > index && after < length
+    &&
+    match text.[after] with
+    | ':' -> after = length - 1
+    | '-' -> words (after + 1)
+    | _ -> false
+  in
+  words 0
 
 let form ~id_prefix ~number_of_hex_digits =
   if not (is_id_prefix id_prefix) then Error (Not_an_id_prefix id_prefix)
