@@ -29,7 +29,6 @@ type error =
   | Not_utf_8
   | Syntax
   | Integer_out_of_range
-  | Float_out_of_range
   | Date_time_out_of_range
   | Escape_not_a_character
   | Duplicate_key

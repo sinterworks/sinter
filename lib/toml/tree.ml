@@ -54,10 +54,12 @@ let add_table holder text state =
 
 (* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
    A key/value pair walks from its holding table: a missing part makes a table
-   that the pair defines, an undefined super-table becomes a table that the
-   pair defines, and the walk breaks closed-inline-table at the table of an
-   inline table, header-free-path at a table that a table header names, and
-   table-on-the-way at a value that is not a table. *)
+   that the pair defines, and an undefined super-table becomes a table that the
+   pair defines. The walk stops with an error at the table of an inline table,
+   at a table or an array that table headers define, and at a value that is not
+   a table, as TOML 1.1.0 states that no key or table adds to an inline table
+   outside its braces, that dotted keys define no table that a table header
+   defines, and that no key is defined twice. *)
 let step_pair holder text =
   match Texts.find_opt text holder.entries with
   | None -> Ok (add_table holder text Dotted)
@@ -74,7 +76,8 @@ let step_pair holder text =
 
 (* @satisfies data-forms#read-toml=v1
    The last part of the key of a key/value pair must lead to no value at the
-   boundary right before the pair, by the rule new-key. *)
+   boundary right before the pair, as TOML 1.1.0 states that no key is defined
+   twice. *)
 let walk_pair holding first rest =
   let rec walk table text rest =
     match rest with
@@ -97,9 +100,10 @@ let fill slot key node = add slot.target slot.text { node with key = Some key }
 
 (* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
    A table header walks from the root table: a missing part makes an undefined
-   super-table, an array that table headers make leads to its last table, and
-   the walk breaks closed-inline-table at the table of an inline table and
-   table-on-the-way at a value that is not a table. *)
+   super-table, and an array that table headers make leads to its last table.
+   The walk stops with an error at the table of an inline table and at a value
+   that is not a table, as TOML 1.1.0 states that no key or table adds to an
+   inline table outside its braces and that no key is defined twice. *)
 let step_header holder text =
   match Texts.find_opt text holder.entries with
   | None -> Ok (add_table holder text Undefined_super)
@@ -118,10 +122,12 @@ let named state key =
 (* @satisfies data-forms#{
        read-toml=v1, give-only-root-tables=v1, give-only-toml-spans=v1,
    }
-   A table header names an undefined super-table or a new table, and breaks
-   single-definition at a table that a part defines, header-target at a value
-   that is not a table, and closed-inline-table at the table of an inline
-   table; the named table carries the key of the header. *)
+   A table header names an undefined super-table or a new table, and the named
+   table carries the key of the header. The header stops with an error at a
+   table or an array of tables that the document already defines, at a value
+   that is not a table, and at the table of an inline table, as TOML 1.1.0
+   states that no table and no key is defined twice and that no key or table
+   adds to an inline table outside its braces. *)
 let name_table holder text key =
   match Texts.find_opt text holder.entries with
   | None ->
@@ -143,9 +149,10 @@ let name_table holder text key =
        read-toml=v1, give-only-root-tables=v1, give-only-toml-spans=v1,
    }
    A table header with double brackets adds a new table to the end of an array
-   that table headers make, or makes such an array, and breaks
-   array-header-target at every other value; the new table carries the key of
-   the header. *)
+   that table headers make, or makes such an array, and the new table carries
+   the key of the header. At every other value, the header stops with an
+   error, as TOML 1.1.0 states that an array of tables appends to no
+   statically defined array and that no table and no key is defined twice. *)
 let add_array_table holder text key =
   match Texts.find_opt text holder.entries with
   | None ->

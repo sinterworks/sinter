@@ -51,7 +51,6 @@ let failure_text = function
         | T.Not_utf_8 -> "Not_utf_8"
         | T.Syntax -> "Syntax"
         | T.Integer_out_of_range -> "Integer_out_of_range"
-        | T.Float_out_of_range -> "Float_out_of_range"
         | T.Date_time_out_of_range -> "Date_time_out_of_range"
         | T.Escape_not_a_character -> "Escape_not_a_character"
         | T.Duplicate_key -> "Duplicate_key"

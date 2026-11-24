@@ -36,7 +36,7 @@ let is_hex_digit c =
 
 (* @satisfies data-forms#read-toml=v1
    A bare key holds only the letters A to Z and a to z, the digits, `-`, and
-   `_`, by the rule unquoted-key. *)
+   `_`, by the rule unquoted-key of TOML 1.1.0. *)
 let is_bare_key_byte c =
   (c >= 'A' && c <= 'Z')
   || (c >= 'a' && c <= 'z')
@@ -46,8 +46,8 @@ let starts_simple_key c = is_bare_key_byte c || c = '"' || c = '\''
 
 (* @satisfies data-forms#read-toml=v1
    A comment and a string hold no control character other than the tab, and
-   no U+007F, by the rule non-eol; each byte from 0x80 is part of a character
-   of valid UTF-8, which these rules allow. *)
+   no U+007F, by the rule non-eol of TOML 1.1.0; each byte from 0x80 is part of
+   a character of valid UTF-8, which these rules allow. *)
 let is_non_eol c = c = '\t' || (c >= ' ' && c <> '\x7f')
 let is_literal_byte c = is_non_eol c && c <> '\''
 
@@ -100,9 +100,11 @@ let hex_value reader count =
   sum count 0
 
 (* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
-   An escape sequence resolves to its character, and an escape whose digits
-   write no code point of a character, a surrogate or a number above
-   0x10FFFF, is a value error in a string and a key error in a quoted key. *)
+   An escape sequence resolves to its character. In a string and in a quoted
+   key, an escape sequence whose digits write a surrogate or a number above
+   0x10FFFF makes the byte sequence invalid, as the third condition of the
+   schema toml-document requires that each escape sequence writes a Unicode
+   scalar value. *)
 let escape reader buffer =
   let start = reader.pos in
   advance reader 1;
@@ -340,8 +342,13 @@ let radix_integer reader start base is_radix_digit =
   | None -> fail Types.Integer_out_of_range start
 
 (* @satisfies data-forms#read-toml=v1
-   An integer of TOML 1.1.0 outside -2^63 to 2^63 - 1 and a float of
-   TOML 1.1.0 that rounds to an infinity are value errors. *)
+   An integer of TOML 1.1.0 outside -2^63 to 2^63 - 1 makes the byte sequence
+   invalid, because TOML 1.1.0 requires an error for an integer that the
+   reader cannot hold losslessly.
+   @satisfies data-forms#give-only-root-tables=v1
+   A float of TOML 1.1.0 gives the binary64 value that rounding to nearest,
+   with ties to even, gives, and an infinity when the rounding gives one, by
+   the rule toml-float-value. *)
 let number reader =
   let start = reader.pos in
   let negative = peek reader = '-' in
@@ -375,12 +382,9 @@ let number reader =
         else None
       in
       if fraction_length > 0 || Option.is_some exponent then
-        let value =
-          Number.float ~negative ~digits:(Buffer.contents digits)
-            ~fraction_length ~exponent
-        in
-        if Float.is_finite value then Types.Float value
-        else fail Types.Float_out_of_range start
+        Types.Float
+          (Number.float ~negative ~digits:(Buffer.contents digits)
+             ~fraction_length ~exponent)
       else
         match Number.decimal_integer ~negative (Buffer.contents digits) with
         | Some value -> Types.Integer value
@@ -388,7 +392,8 @@ let number reader =
 
 (* @satisfies data-forms#give-only-root-tables=v1
    The floats inf and +inf give positive infinity and -inf negative infinity;
-   nan, +nan, and -nan give a NaN, by the rule toml-special-float. *)
+   nan, +nan, and -nan give a NaN, as TOML 1.1.0 gives the special float
+   values. *)
 let special_float reader negative =
   match peek reader with
   | 'i' ->
@@ -413,8 +418,7 @@ let four_digits reader =
 
 (* @satisfies data-forms#give-only-root-tables=v1
    The fraction of a second keeps its first nine digits, by the rule
-   toml-second-fraction, and an omitted second or fraction is 0, by the rule
-   toml-omitted-second. *)
+   toml-second-fraction. *)
 let nanoseconds reader =
   let rec run count total =
     let c = peek reader in
@@ -432,6 +436,10 @@ let nanoseconds reader =
   in
   run 0 0
 
+(* @satisfies data-forms#give-only-root-tables=v1
+   A time that omits its seconds has the second 0 and the fraction 0, as
+   TOML 1.1.0 gives such a time. A time with no `.` after its second has the
+   fraction 0. *)
 let partial_time reader : Types.time =
   let hour = two_digits reader in
   expect reader ":";
@@ -479,8 +487,8 @@ let starts_time reader index =
 
 (* @satisfies data-forms#{read-toml=v1, give-only-root-tables=v1}
    A date-time matches the rules local-time, local-date, local-date-time, and
-   offset-date-time, with `T`, `t`, or a space before the time; a space with no
-   time after it ends a local date. *)
+   offset-date-time of TOML 1.1.0, with `T`, `t`, or a space before the time;
+   a space with no time after it ends a local date. *)
 let date_time reader =
   let start = reader.pos in
   let check valid = if not valid then fail Types.Date_time_out_of_range start in
@@ -569,7 +577,7 @@ let walk_failure (key : key) = function
 
 (* @satisfies data-forms#read-toml=v1
    Between a key and its value, only spaces and tabs stand around `=`, so a
-   newline there makes the text not match the rule keyval. *)
+   newline there makes the text not match the rule keyval of TOML 1.1.0. *)
 let key_value_separator reader =
   expect reader "=";
   skip_whitespace reader

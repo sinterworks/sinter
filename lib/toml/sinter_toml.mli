@@ -86,8 +86,10 @@ type value = Types.value =
           sign, the value is the binary64 value that rounding to nearest, with
           ties to even, gives for the number that the document writes, and its
           sign bit is 1 when, and only when, the document writes [-] first. So
-          [-0.0] and [-1e-400] give negative zero. A float that rounds to an
-          infinity, such as [1e400], makes the byte sequence invalid. [inf] and
+          [-0.0] and [-1e-400] give negative zero. TOML 1.1.0 leaves a float
+          beyond the range of binary64 to the implementation, and such a float
+          gives the infinity that the rounding gives: [1e400] gives
+          [Float.infinity], and [-1e400] gives [Float.neg_infinity]. [inf] and
           [+inf] give [Float.infinity], and [-inf] gives [Float.neg_infinity].
           [nan], [+nan], and [-nan] give a NaN whose sign bit is 1 when, and
           only when, the document writes [-] first. *)
@@ -144,9 +146,6 @@ type error = Types.error =
   | Integer_out_of_range
       (** An integer is less than [Int64.min_int] or greater than
           [Int64.max_int]. The offset is the start of the integer. *)
-  | Float_out_of_range
-      (** A float rounds to an infinity. The offset is the start of the float.
-      *)
   | Date_time_out_of_range
       (** A month, a day, an hour, a minute, a second, or an offset of a date or
           time is outside the range of RFC 3339, with the second 60 allowed at
