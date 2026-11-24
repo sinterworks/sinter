@@ -1,32 +1,43 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright 2026 The Sinter Authors -->
 
-# Make every item and record an object with one canonical form and one hash, whatever its encoding
+# Give every object of Sinter one canonical form and one hash, whatever its encoding
 @decision canonical-objects
 @cites ledger-event-log
-@cites ledger-layout
+@cites store-files
 @cites sha256
-Every item and every record of Sinter is an object with one canonical byte sequence and one SHA-256 content hash; text in files and the store `.sinter/` are two encodings of the same objects; every result is defined over the canonical objects; and a program that could not read a file, or that reached a limit of its own, gives no result that rests on what it missed.
+Declared items, records, work items, scopes, group descriptions, and computed identity objects each have one canonical byte sequence and one SHA-256 content hash; text in files and the store `.sinter/` are two encodings of the same objects; every result is defined over the canonical objects; a program that could not read a file gives no result that needs it and writes nothing durable; and a program that reaches a limit of its own ends that run.
 
 ## Context
 
 The designs hashed a declared item by the normalized text of its extent,
 kept the records of the work in one sequence under a ref of its own, and
 treated a JSON line as something derived from text, never a source. The
-split ledger (record `ledger-event-log`) puts statements as files in
-`.sinter/` (record `ledger-layout`), and an item can then live either in
+model of record `ledger-event-log` puts statements as files in
+`.sinter/` (record `store-files`), and an item can then live either in
 a text file or in `.sinter/`. When the hash depends on where an item
 lives, a move from one place to the other changes every result that
 names the item, and two programs can disagree about the same item.
 
+In this record, an item is a thing that a design or a text declares,
+such as a requirement, a test, or a site of code; a record is a
+statement or an observation about the work (not a decision record). The
+terms of this record come from the designs in `docs/designs/`, chiefly
+Conformance (`conformance.md`) and the Ontology (`ontology.md`).
+
 ## Decision
 
-- **Objects and encodings.** Every item and every record is an object
-  with one canonical form: one canonical byte sequence and one SHA-256
+- **Objects and encodings.** Every declared item (decision records
+  included), work item, record, computed identity object, group
+  description (`vector-group-def`), and `scope` object is an object with
+  one canonical form: one canonical byte sequence and one SHA-256
   content hash. Text in files and `.sinter/` are two encodings of
-  objects. Findings are not objects, because Sinter computes them. Tests,
-  sites, persons, agents, and commits get no object now. A claim from
-  code keeps its file and line beside the edge, not inside it. In v0.1,
+  objects. Where several objects share a file or a stream, such as the
+  log branch and Interchange, each line wraps its object in the envelope
+  `{"id","object"}`. In v0.1, findings are not objects: Sinter computes
+  them from the objects and stores none of them. Tests, sites, persons,
+  agents, and commits get no object in v0.1. A claim from code keeps its
+  file and line beside the edge, not inside it. In v0.1,
   no record uses the text encoding: definitions, judgments, and voids
   live in `.sinter/`, and observations live on the log branch.
 - **Results over canonical objects.** Every result is defined over the
@@ -35,18 +46,22 @@ names the item, and two programs can disagree about the same item.
   exactly the canonical objects. Places in inputs, such as spots and
   fixes, and the rules that read an encoding itself, follow the
   encoding. So a promise is kept only by a citation in a text file inside
-  the task's paths.
+  the task's paths, and `wrong-kind` on a written kind word before an
+  external target reads only the text.
 - **Ids.** A content id is the object's own `kind` word, a colon, and the
-  first 32 hexadecimal digits of its content hash. The kind word never
-  enters a hash, and no kind is called `object`. A citation by content
+  first 32 hexadecimal digits of its content hash. The prefix `<kind>:`
+  is not part of the hashed bytes, while the object's member `kind` is.
+  No kind is called `object`. A citation by content
   id resolves against the tree and the unwithdrawn kept objects, as a
   pin does.
 - **Items in `.sinter/`** follow the rules of items in text: two current
   revisions of one name give `duplicate`, and a void may withdraw an
   item.
-- **Vector files.** A parameter `vector-paths` locates vector files. It
-  never includes files of `.sinter/`, and a file whose name ends with
-  `.test-vectors.jsonl` that no design names gets a finding.
+- **Vector files.** A parameter `vector-paths` locates the vector files
+  of designs and specifications. It never includes files of `.sinter/`.
+  Two matching files for one design or specification give a finding, and
+  so does a file whose name ends with `.test-vectors.jsonl` that no
+  design or specification names.
 - **Read errors.** A refused permission, an input or output error, or a
   system that offers no operation that keeps the program's safety
   obligations makes the unread content a missing part. In a run that
@@ -55,22 +70,23 @@ names the item, and two programs can disagree about the same item.
 - **Limits.** When a program reaches a limit of its own, it ends that
   run, reports where it reached the limit as far as it can, gives no
   other result of that run, and writes nothing durable after it reaches
-  that limit. Code that a program ends at its own bound on time, steps,
-  or call depth counts as code that never ends, which is a fault of the
-  input. An adapter call fails when its request or its report has 4 GiB
-  or more.
+  that limit. Code from an input, such as the grammar of a language
+  pack, that a program ends at its own bound on time, steps, or call
+  depth counts as code that never ends, which is a fault of the input. A
+  call of a runner adapter of a language pack fails when its request or
+  its report has 4 GiB or more.
 - **Fetches.** A check fetches no ref and calls no host, but git may
   fetch the objects that a partial clone left out.
 - **Acknowledgments.** In v0.1, only the finding `retired` takes an
   acknowledgment, and only when the cited item has no successor.
-- **Removed features.** The edge member `outcome` and the feature
-  `every-part` go.
+- **Removed members.** Edges have no member `outcome` and no member
+  `every-part`.
 
 ## Alternatives considered
 
 - **A principle for v0.1 only, with other encodings on the roadmap.** Not
-  chosen: this is how Sinter works in every part, so the settled designs
-  take the cost of the change now.
+  chosen: this is how Sinter works in every part, so the designs that
+  were already finished take the cost of the change now.
 - **The hash of whatever bytes are stored.** Not chosen in favor of one
   hash of the canonical form, so that a move between encodings keeps the
   hash.
@@ -92,18 +108,23 @@ names the item, and two programs can disagree about the same item.
   fit the other forms.
 - **Items in `.sinter/` follow the rules of statements.** Not chosen: the
   same fault would give `duplicate` in text and a conflict in `.sinter/`.
-- **Vector files found by name alone, or a move of a design that needs a
-  second move of its vectors.** Not chosen: the first loses tests
-  silently, and the second is a smaller trap of the same kind. A
-  misnamed vector file gets a finding instead of a silent skip.
+- **A design in `.sinter/` has no vector file, the vector file lies at
+  the root of the tree, or each design names the folder of its vector
+  files.** Not chosen: the first loses tests silently, the second needs
+  a second move when a design moves, and the third depended on two
+  hashes.
+- **Only files whose names fit a design's name count as vector files.**
+  Not chosen: a misnamed vector file would be skipped silently instead
+  of getting a finding.
 - **A read error as a limit, as a class of its own, or split by cause.**
   Not chosen: two runs with the same permissions could give different
   findings, and the other two add rules for one observable result.
 - **For a missing safe system operation: widen the term of limits, bind
-  only where the operations exist, or a rule for safety obligations
-  alone.** Not chosen: under those rules a run could still write durable
-  state that does not rest on the skipped file, which the rule on read
-  errors declines to trust.
+  only where the operations exist, or add a rule for safety obligations
+  alone.** Not chosen: under the first and the third, a run could still
+  write durable state that does not rest on the skipped file, which the
+  rule on read errors declines to trust; under the second, a program
+  would not conform when one mounted file system rejects a call.
 - **A fix that needs no missing part is allowed after a read error.** Not
   chosen: each program would judge which fixes need the unread file, and
   a wrong judgment edits a file from a partial view.
@@ -126,7 +147,7 @@ names the item, and two programs can disagree about the same item.
 
 ## Consequences
 
-The change reaches the settled designs of the lowest layers now, and it
+The change reaches the finished designs of the lowest layers now, and it
 widens v0.1 beyond its core for this part. A new label, a pin update, or
 a new `supersedes` edge makes a new object that needs its own approval.
 An agent that writes its work as items in `.sinter/` cannot keep a

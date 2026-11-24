@@ -1,124 +1,125 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright 2026 The Sinter Authors -->
 
-# Keep statements as fixed content-addressed files in `.sinter/`, and number only the job's observations
-@decision ledger-layout v2
+# Keep the ledger in closed chunks, number its entries, and verify it entry by entry
+@decision ledger-layout
 @cites json-handling
 @cites ledger-event-log
-Each object of `.sinter/` is one file that holds its canonical bytes at a path from its content id and never changes; only the job's `delivered` and `progress` observations carry a number; an unknown kind is not valid; and any file that is not a valid object file holds back every result over the objects of its tree.
+The ledger holds its entries in closed chunks of 50 entries and numbers them 1 to n in the order of appending, Sinter verifies its history by entries and not by the bytes of one file, reads only the parts of an entry that it knows, and stops when the ledger is broken.
 
 ## Context
 
-The record `ledger-event-log` splits the records of the work: statements
-live in `.sinter/` on ordinary branches, and only the job writes the log
-branch. States follow from edges, so a number that orders statements has
-no reader. The earlier layout numbered every entry from 1 to n, ordered
-the ledger by that number, wrote a repair entry at each dropped entry,
-and ignored an entry of an unknown kind with a warning. In the split
-ledger, every branch writes its own statements, and two branches can
-never agree on one order. The objects of `.sinter/` are fixed once
-written: `.sinter/` is a store of objects named by their content.
+The specification kept the ledger as one file, `ledger.jsonl`, that
+each write extends, and it verified the history by checking that each
+commit's file starts with its parent's bytes. That check reads the
+file of every commit, so its cost grows with the square of the number
+of commits: 2.8 s for 1,000 commits of a 2.8 MB file, and about 1.4 TB
+to read for 100,000 one-entry commits. It also made any change of the
+layout look like a rewrite. The specification did not say what a
+reader does with an entry kind or a field that it does not know, or
+what a check reads when the ledger is broken. It ordered the entries
+by `ts`, a time that the writer chooses: an approval with a time in
+the year 2099 overrode a later decline, and `sinter ledger verify`
+passed a commit that swapped two entries between chunks, because a
+commit's tree keeps no order of its chunks. No ledger existed yet, so
+the layout could still change at no cost.
 
 ## Decision
 
-- **One file for each object.** A file of `.sinter/` holds only the
-  canonical bytes of one object, with no id and no final line feed. Its
-  path comes from the object's content id: a folder of the first two
-  hexadecimal digits, and a file named by the 32 digits. `.sinter/` holds
-  declared items, statements, work item objects, `scope` objects, and
-  the computed identity objects that they need. An object that holds the
-  key of an identity object needs no file for that identity object.
-- **Only observations carry a number.** The `delivered` and `progress`
-  observations of the log branch carry `seq`. Statements, kept copies,
-  and identity objects carry none, and no state depends on `seq`.
-- **No unknown kinds.** A file or a line of a kind that the program does
-  not know is not valid. A store file is in a newer form, and asks for a
-  newer program, only when its path is an object path, its SHA-256 hash
-  matches that path, and its bytes are a JSON object whose `v` is an
-  integer greater than 1. Every other file that is not a valid object
-  file is broken. A regular file at `.sinter/local` is a store file, so
-  it fails the check "Form".
-- **One bad file holds back the store.** When any store file is not a
-  valid object file, the program gives no result over the objects of
-  that tree, and the class `invalid-object-file` reports the file. A
-  missing identity file keeps the store valid: the class
-  `missing-identity-file` reports it, and only the results that need its
-  key wait.
-- **Writes.** A write of bytes that are already in place succeeds and
-  changes nothing. Other bytes, a link, a folder, or a special file in
-  the way change nothing and give a report. A failed write of several
-  objects leaves no new object whose identity file is missing.
-- **Git entries.** The check of a commit reports a symbolic link, a
-  submodule, or a name that is not UTF-8 at `.sinter` or inside
-  `.sinter/` outside `.sinter/local/`. An executable file mode is
-  accepted.
-- **Safety.** A program writes and deletes only inside `.sinter/`, never
-  through a link, and never changes the content of an existing store
-  file, valid or not. In a run that could not read a file, it writes no
-  file in `.sinter/`, `.sinter/local/` included. After it reaches a limit
-  of its own, it writes and deletes nothing further in that run. It
-  deletes only the file of an object that a counting void withdraws, or
-  an identity file that no object needs when every store file is valid.
-- **Voids instead of repairs.** A void copies the edges of the object
-  that it withdraws, apart from edges to computed identity objects, so
-  that the graph keeps its shape. No void withdraws a void, an identity
-  object, or a `vector-group-def`. The check "Only added" allows the two
-  deletions above and nothing else.
-- **The log branch** keeps its lines in chunk files under `entries/`,
-  and its default name is `sinter-log`.
+- The ledger holds its entries in **chunks**: files of JSON lines
+  under `entries/`, in folders named by the first two hexadecimal
+  digits of the id of their first entry, and named by that id. One
+  chunk is open; a write appends to it, or starts a new chunk when the
+  open one is full. A full chunk is closed and never changes. A chunk
+  is full at 50 entries. Measurement fixed that size: at 100,000
+  entries, chunks of 25, 50, and 100 entries read the tip in the same
+  time; chunks of 25 and 50 entries verify the history at the same
+  cost, and chunks of 100 entries need about a fifth more
+  instructions. Chunks of 50 entries make half as many files as
+  chunks of 25.
+- Sinter verifies the history entry by entry: each commit holds every
+  entry of its parent, byte for byte, and may add new entries,
+  wherever they live. An unchanged closed chunk has the same object
+  id in both commits, so the check skips it. So a commit that merges
+  chunks or changes the layout passes, as long as no entry changes or
+  disappears. The ref moves forward only. Dropping old history is not
+  such a commit; it stays a rare, explicit act outside these rules.
+- Every entry carries `seq`, a whole number, and its id covers it.
+  The entries of every commit of the ledger hold each `seq` from 1 to
+  n exactly once, where n counts the entries of every kind. The order
+  of the ledger is the order of `seq`, which is the order of
+  appending; `ts` orders nothing. The new entries of a commit hold the
+  numbers above those of its parent. The host's ref is the one
+  central order: an entry that is not yet pushed is provisional, and a
+  replay after a lost push can give it a new `seq` and so a new id.
+- A repair writes an entry of the kind `void`, with the fields
+  `dropped` and `reason`, at the `seq` of each entry that it drops. No
+  later entry changes its `seq` or its id.
+- Sinter checks every line, whatever its kind: the line is in the
+  canonical form, and its id is the hash of its bytes. It checks the
+  types of the fields only for the kinds that it knows. It ignores an
+  entry of an unknown kind and an unknown field of a known kind, and
+  it warns once with their count. An entry whose version `v` is
+  higher than the version that the tool reads stops the command with
+  exit code 3, and the help says to upgrade.
+- When the ledger is broken, every check stops with exit code 3. The
+  error names the first bad entry and its commit, and the help names
+  `sinter ledger repair`. The checks at the gates `turn` and `review`
+  check the tip; the check at the gate `merged` and
+  `sinter ledger verify` check the whole history.
 
 ## Alternatives considered
 
-- **Kept copies carry `seq` and `by` like observations.** Not chosen: no
-  state or check reads them on a copy, the envelope would differ from
-  the one that Interchange uses, and a retry would renumber the copies.
-- **A file name with the kind word, or with 30 digits.** Not chosen: a
-  file name of the full 32 digits fits the form of a content id, so a
-  search for a content id finds its file.
-- **A file that holds an envelope keyed by the id.** Put forward and not
-  chosen; no further reason was recorded.
-- **Typed subfolders of `.sinter/`.** Not chosen: they invite more
-  subfolders and limit which records can go there and how they relate.
-- **Newer form by path and JSON object only, or also a canonical line
-  object.** Not chosen: the first calls a damaged file newer, so a person
-  updates Sinter and the file stays wrong; the second calls a later form
-  that widens the object broken.
-- **Unknown kinds valid and reported, or ignored with no report.** Not
-  chosen: two conforming programs would give different states for the
-  same objects, and the second loses records with no word.
-- **A broken file holds back only the results that read statements, or
-  only that file is skipped.** Not chosen: the first misses a duplicate
-  or gives a wrong current revision; the second ignores a newer or
-  mistyped decline or `abandoned`.
-- **A missing identity file makes the store not valid.** Not chosen: one
-  absent file would hold back results that do not need it.
-- **Any existing file stops a write.** Not chosen: a program would have
-  to look for each identity file first, and two writers of the same
-  object would fail.
-- **No check of git entries, or the Object store checks them.** Not
-  chosen: a checkout without symbolic links gets a stray store file that
-  holds back every result, and the Object store would depend on Changes.
-- **Safety only for valid object files, or no rule for deletions.** Not
-  chosen: the rule would not bind where a program is most likely to
-  overwrite a file, and a committed link such as
-  `.sinter/local -> ../../..` would let a deletion remove files outside
-  the repository.
-- **No deletion by any program.** Not chosen: a person would have to find
-  which identity files no object needs.
-- **Voids of work item objects or of every identity object.** Not chosen:
-  records and waits would lose the thing that they name, and a void could
-  ban an identity key from `.sinter/` for good.
-- **The name `sinter-ledger`.** Not chosen: the branch holds only the
-  job's records, and `sinter-log` matches the term.
+- **One file, verified by the bytes of each commit's file, as the
+  specification said.** Not chosen: the cost of verification grows
+  with the square of the number of commits, and each write stores a
+  new copy of the whole file.
+- **One file for each write.** Not chosen: verification becomes
+  linear, but every check must read one small file for each entry,
+  1.7 s for 100,000 entries against 0.08 s for one file.
+- **Many entries in each commit.** Not chosen: it lowers the cost only
+  by a constant.
+- **Order by `ts`, as the specification said.** Not chosen: the writer
+  chooses `ts`, so a wrong clock or a chosen time moves an entry
+  before entries that came earlier.
+- **A `ts` that must rise.** Not chosen: a wrong clock makes every
+  later writer refuse; an entry with a time in 2099 would stop every
+  write until 2099.
+- **A `prev` link from each entry to the entry before it.** Not
+  chosen: a repair breaks the chain, so the id of every later entry
+  changes, and the link gives no position number.
+- **A tree of entries with no central order, where two clones can
+  append at the same time and a merge joins them.** Not chosen: the
+  order of two judgments would then be partial, and the projections
+  need one order. The host's ref already gives one.
+- **Order by the names of the chunks and the positions of the lines.**
+  Not chosen: it forbids moving entries between chunks, and two equal
+  judgments at two positions get one id.
+- **Read the history at every gate to find the order.** Not chosen: it
+  costs about 6.5 s against 0.9 s at 100,000 entries, and a clone that
+  fetched only the tip cannot order its entries.
+- **A repair numbers the later entries again.** Not chosen: the id of
+  every later entry changes, and every reference to one of them must
+  be written again.
+- **An entry of an unknown kind makes the ledger broken.** Not chosen:
+  a tool that predates a new kind of entry would stop at the first
+  entry of that kind, so every clone would have to upgrade at once.
+- **A check uses no entry of a broken ledger.** Not chosen: every
+  approval would vanish, and the approval findings would block every
+  branch while the checks still ran.
+- **A check uses the entries up to the first bad one, and warns.** Not
+  chosen: a broken ledger puts every approval in doubt, and work should
+  not go on from it.
 
 ## Consequences
 
-A new kind of object needs a new version of the designs, and every clone
-and run of CI must update before Sinter gives results over a store that
-holds it. One bad file in `.sinter/` holds back the results on text items
-too, but only in a tree whose failed check "Form" somebody merged. No
-program repairs a broken file in place; a person repairs it in a change.
-A program that keeps a cache in `.sinter/local/` cannot update it in a
-run that could not read a file. An implementation writes a store file in
-`.sinter/local/` and then renames it into place, so that a partial write
-never leaves a broken store file.
+For a ledger of 100,000 entries in 100,000 commits, on a machine
+with a load average of about 2, reading the tip and checking every
+line takes about 0.9 s, and verifying the whole history takes about
+6.5 s. A `seq` adds about 12 bytes to a line of about 294 bytes. The
+layout can change later in an ordinary forward commit. Two clones that
+push at the same time cannot both win: the second one replays its
+entries on top of the first, with new numbers and new ids. A broken
+ledger stops all work through Sinter until someone repairs it, so the
+repair command comes with the commands that write the ledger. A tool
+can read a ledger that a newer tool wrote, unless a version rises.
