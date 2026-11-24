@@ -113,7 +113,8 @@ Conformance (`conformance.md`) and the Ontology (`ontology.md`).
   files.** Not chosen: the first loses tests silently, the second needs
   a second move when a design moves, and the third depended on two
   hashes.
-- **Only files whose names fit a design's name count as vector files.**
+- **Only files whose names fit the name of a design or a specification
+  count as vector files.**
   Not chosen: a misnamed vector file would be skipped silently instead
   of getting a finding.
 - **A read error as a limit, as a class of its own, or split by cause.**

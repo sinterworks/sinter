@@ -65,10 +65,11 @@ Ledger (`ledger.md`).
   (`.sinter/local/` included) changes nothing outside `.sinter/`, apart
   from creating `.sinter` when it is absent, and follows no symbolic
   link. A program never changes the content of an existing store file,
-  valid or not. In a run that could not read a file, it writes no file
+  valid or not. In a run that could not read a file or a folder, it writes no file
   in `.sinter/` (`.sinter/local/` included) and deletes no store file.
   After it reaches a limit of its own, it writes no further file in
-  `.sinter/` and deletes no further store file in that run. It deletes a
+  `.sinter/` (`.sinter/local/` included) and deletes no further store
+  file in that run. It deletes a
   store file only when a counting void withdraws the file's object, or
   when every store file is valid and the file holds a computed identity
   object that no object of the store needs.

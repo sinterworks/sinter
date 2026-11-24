@@ -51,13 +51,17 @@ the lines from the commits that a push brought. Two problems remained:
   definition whose scope is not withdrawn, the observation names that
   definition with one edge and holds an edge for each promise that the
   work kept. The job makes no judgment of its own.
-- When a promise of an observed definition has no outcome, the job
-  appends nothing for its range, reports each such promise, and ends with
-  an error, so the next run covers the range again. When the `.sinter/`
-  store of a landing commit is not valid, the job records no delivery of
-  that commit, records the rest of the range, reports the commit, and
-  ends with an error; a person records each lost delivery with a `done`
-  judgment.
+- When a promise of an observed definition does not resolve or has no
+  outcome, the job appends nothing for its range, reports each such
+  promise, and ends with an error, so the next run covers the range
+  again. When the `.sinter/` store of the tip commit of the run is not
+  valid, the job stops, appends nothing, and reports the invalid store,
+  because a later commit can fix it. When the tip commit's store is
+  valid and the `.sinter/` store of an earlier landing commit in the
+  range is not valid, the job records no delivery of that commit,
+  appends the rest of the range and its `progress` observation, reports
+  the commit, and ends with an error; a person records each lost
+  delivery with a `done` judgment.
 - On a branch, Sinter reads the delivery lines in the messages of the
   commits of the change. It never reads the history of the default
   branch.
@@ -92,6 +96,15 @@ the lines from the commits that a push brought. Two problems remained:
 - **No spaces before the line, as before.** Not chosen: git's squash
   message then needs an edit, while the rule for tabs keeps the earlier
   results.
+- **For a promise with no outcome, append the observation without that
+  promise, or skip the task for good.** Not chosen: the first records
+  the promise as not kept for good, and the second loses the delivery.
+- **For an invalid store at an earlier landing commit, stop the run, or
+  read that commit's deliveries against the store at the tip.** Not
+  chosen: every later run would meet the same commit, so the job would
+  stop until the default branch is rewritten; and the second adds a
+  second rule for where definitions come from, while a definition
+  revised after the merge no longer matches the line's six digits.
 - **Sinter reads the delivery lines from the history of the default
   branch.** Not chosen: the history becomes an input of every check, and
   a rewritten history changes the answer.
