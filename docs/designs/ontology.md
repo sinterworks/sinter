@@ -1340,12 +1340,10 @@ edge.
 In the text encoding, the name of a citation entry, or of the target of
 an inline citation, in a tree is its entry name (in the sense of
 `identifiers#canonical-entry`) when that entry name does not start with
-`#`. When its entry name starts with `#` and the item in which it stands
-is an item of the kind design D or belongs to an item of the kind design
-D in that tree, its name is the name of D followed by that entry name;
-when it stands in a test, in a site, in no item, or in a declared item
-that neither is nor belongs to an item of the kind design in that tree,
-its name is that entry name. A written kind word
+`#`. When its entry name starts with `#` and the design that defines the
+text encoding gives it a home design D, its name is the name of D
+followed by that entry name; otherwise, its name is that entry name. A
+written kind word
 (`identifiers#kind-word`) changes neither the name nor the target. An
 exact pin is a citation entry or an inline citation whose revision is a
 label; its name and its label are its name and its revision. The member

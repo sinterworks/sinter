@@ -216,7 +216,7 @@ Conformance section of the design name.
 | [undisturbed repository read](sinter:#undisturbed-read=v1) | An undisturbed repository read is a repository read during which no process, the program that makes that repository read included, does either of two actions, other than in an own change of that repository read when the file of that own change is not a file of a working tree. The first action is to create, delete, or change a repository file from which that repository read takes bytes. The second action is to change which file a pathname names, or to change whether that pathname names a file, when that repository read uses that pathname to reach or look for a repository file. |
 | [own change of a repository read](sinter:#undisturbed-read=v1) | An own change of a repository read is the creation, the deletion, or the change of one file by the program that makes the repository read, itself or through any program that the program uses, when that file is of one of four kinds. The first kind is a file of a loose object or a pack that the program creates in the repository read, with the files that are for that pack alone, or a folder of the folder tree of an object database. The second kind is a commit-graph file in a fetch that is part of the repository read. The third kind is git's index, a file that the format of git's index names, or the folder that holds the index, when the index holds an entry for the same byte paths after the change as before the change. The fourth kind is a lock file or a temporary file that the program creates in one of the folders of the first three kinds and deletes, or renames to one of the files of the first three kinds. A change of one of the folders of the first three kinds counts as an own change only when each folder entry that the change creates, deletes, or changes names a file of one of the four kinds that is not a folder, or names a folder that the program created in the repository read. A file that holds a ref or a reflog, the file `FETCH_HEAD` or `shallow`, and the file `info/alternates` give no own change, not even as a temporary file of the fourth kind. An own change keeps a repository read undisturbed only when the file of that own change is not a file of a working tree. |
 | [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design |
-| [schema](sinter:ontology#schema=v1) | a declared item of the kind schema (the text encoding declares a schema with `@schema`); the schema gives the form of a thing that crosses the edge of a conforming program: the layout of the thing and every constraint that is a property of the thing itself |
+| [schema](sinter:ontology#schema=v1) | a declared item of the kind `schema` (in the text encoding, declared with `@schema`); it gives the form of an input or output that crosses the edge of a conforming program, or the form of a file of test cases for a design: its layout and every constraint that is a property of it alone |
 | [forms of a group](sinter:data-forms#group-form-list=v1) | five things that a schema that a specification declares under a name, or that a design declares under a name outside its specifications, gives for a group: the requirements of the group; what the value of `input` stands for, and its fixed form; the question that the value of `result` answers, the inputs that it is about, and the conditions under which the requirements oblige that result (the forms can name no question instead); what the value of `values` stands for, and its fixed form (the forms can give no fixed form for `values`); and the need names that the group uses, each with the need that it stands for |
 | [need](sinter:data-forms#group-form-list=v1) | a condition on the environment in which a conforming program operates that a check of the vectors can be unable to make hold, such as that the file system stores a given entry name; the forms of a group give each need with a need name |
 | [need name](sinter:data-forms#group-form-list=v1) | a text that matches the production `group-name`, such as `no-privilege`, that stands for a need; the member `needs` of a vector object holds texts of this form, and the forms of the group give the need that each of them stands for, if any |
@@ -1431,12 +1431,14 @@ For a remote name r, which is a text, and a ref name m in a git
 repository, the fetch refspecs of r are the values of the setting
 `remote.<name>.fetch`, with r for `<name>`, in the git configuration of
 the git repository, in order, as the pages gitglossary, git-config, and
-git-fetch define fetch refspecs and that setting.
+git-fetch define fetch refspecs and that setting. When a value of that
+setting, with r for `<name>`, is not a fetch refspec, the mapped ref of
+m for r is not specified.
 
-The mapped ref of m for r in the git repository is the local ref name to
-which the fetch refspecs of r map m when those fetch refspecs are used
-as a mapping, as the page git-fetch defines fetch refspecs and their
-matching:
+Otherwise, the mapped ref of m for r in the git repository is the local
+ref name to which the fetch refspecs of r map m when those fetch
+refspecs are used as a mapping, as the page git-fetch defines fetch
+refspecs and their matching:
 
 1. When a negative fetch refspec among the fetch refspecs of r matches
    m, m has no mapped ref for r.
@@ -2939,6 +2941,7 @@ change of h and that the change of h has no diff.
 @cites {
     rfc/8259,
     gitdoc/git-config,
+    gitdoc/git-fetch,
     data-forms#{group-form-list=v1, vector-line=v1, vector-meaning=v1},
     ontology#{default-branch=v1, parameter=v1},
     conformance#{conforming-program=v1},
@@ -2973,7 +2976,9 @@ order. Each vector stands for an undisturbed repository read.
   git-config defines them, hold no upper-case letter from `A` to `Z`,
   and no two keys of `settings` name the same setting. For each such
   setting, the value of its member in `settings` is the values of the
-  setting, as a list of texts. The setting `branch.<name>.merge`, with
+  setting, as a list of texts. Each value of a setting
+  `remote.<name>.fetch` is a fetch refspec, as the page git-fetch
+  defines fetch refspecs. The setting `branch.<name>.merge`, with
   b for `<name>`, has at most one value. The member `refs` of `input` is
   a JSON object with one member for each ref of the git repository. For
   each such ref, the key of its member in `refs` is the name of the ref,
