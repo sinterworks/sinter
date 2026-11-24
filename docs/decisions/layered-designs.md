@@ -2,9 +2,11 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Design Sinter as a stack of layered designs before other work
-@decision layered-designs v2
+@decision layered-designs v3
 @cites branch-workflow
-Sinter is described by a stack of designs in layers, from "Text and notation" at the bottom to the design "Sinter" at the top; other work waits until the designs are complete, apart from the early implementation of approved lower layers, and then the old texts move into the designs.
+@cites canonical-objects
+@cites local-pack-folders
+Sinter is described by a stack of designs in layers, from "Conformance" at the bottom to the design "Sinter" at the top; v0.1 designs only what the command line and continuous integration use; other work waits until the designs are complete, apart from the early implementation of approved lower layers, and then the old texts move into the designs.
 
 ## Context
 
@@ -28,16 +30,26 @@ that it implements.
 
 - Sinter is described by a stack of designs in layers. As far as is
   reasonable, a design cites only designs in lower layers.
-- The design "Text and notation" is at the bottom. It defines the
-  terms that the other designs share, such as texts, bytes, UTF-8,
-  lines, positions, and spans, and the notation of grammars and
-  algorithms. It cites no other design of Sinter.
+- The design "Conformance" is at the bottom, below Layer 0. It states
+  what a conforming program is, what inputs and results are, that every
+  result is defined over canonical objects, and what a program does at a
+  limit of its own. It cites no other design.
+- The design "Text and notation" is Layer 0. It defines the terms that
+  the other designs share, such as texts, bytes, UTF-8, lines,
+  positions, and spans, and the notation of grammars and algorithms.
 - The design "Identifiers" defines the forms of names, declarations,
   and citations, and what a parser must accept and reject. Among the
-  designs of Sinter, it cites only "Text and notation", so a project can
-  publish those two designs without the other designs.
+  designs of Sinter, it cites only "Conformance" and "Text and
+  notation", so a project can publish those three designs without the
+  other designs.
 - The design "Ontology" defines the things of Sinter and how they
-  relate, with nothing about how Sinter builds or computes them.
+  relate, with nothing about how Sinter builds or computes them. The
+  design "Object store" in Layer 2 defines how the store `.sinter/`
+  holds objects; Documents and the Ledger in Layer 3 cite it, and it
+  cites Findings but not Changes. Documents takes the kept objects of
+  the log branch as an input from its caller, so that it needs no
+  reading of the log branch. Work cites Approval for the list of
+  persons.
 - Higher layers define how Sinter reads documents, stores and computes
   state, and checks the work. At the top, the design "Sinter" defines
   the tool in terms of the layers below it. A tool that uses only some
@@ -47,11 +59,25 @@ that it implements.
   shows a gap in a lower layer, the work goes back down and fills the
   gap first. The map of the layers is a sketch, and it changes as the
   work shows more.
-- Each design goes through rounds of critique by readers who did not
-  write it: a critique of its requirements and a cold read. The rounds
-  stop after a round in which no reader finds a contradiction, or a
-  real input for which the design gives a wrong result. A later change
-  to a finished design gets a critique of the changed parts.
+- Each design goes through a critique by readers who did not write it:
+  a critique of its requirements and a cold read, or, where a model of
+  the design runs its vectors, a model beside the critique. A finding
+  counts when a real input gives a wrong result or the text cannot be
+  implemented; everything else is a note for a later revision. One
+  critique round, one fix round, and a re-check of the serious fixes
+  end the review; a further round is a decision of its own. A later
+  change to a finished design gets a critique of the changed parts.
+- v0.1 designs what the command line and continuous integration use.
+  The Command line specification, Views, Reports' forms for persons,
+  and the Query algebra go to the roadmap. Interchange with its SARIF
+  form, Checks with its eleven parts, and the Manifest with the keys of
+  the kept designs stay. A narrowed Security design for the surfaces of
+  v0.1 is written last. Language packs other than markdown come from
+  local pack folders (record `local-pack-folders`). A design narrowed for
+  v0.1 names nothing that v0.1 defers.
+- The migration removes the serve loop, the porcelain form with its
+  specification, and `sinter parse`, and each roadmap entry names the
+  last commit that holds its code.
 - The checked work on the designs collects on one feature branch,
   which starts from `main`. That branch has one draft pull request,
   which runs the checks of continuous integration (CI). The work on
@@ -106,6 +132,29 @@ that it implements.
   record chose that rule as well. Replaced: code for an approved lower
   layer finds the gaps of its designs while the layers above can still
   change. That code stays off `main` until every design reaches `main`.
+- **Critique rounds until a round finds no contradiction** — revision 2
+  of this record chose that rule. Replaced: the rounds went on for many
+  cycles, and the designs serve a working tool that the project revises
+  over time.
+- **Conformance with the rules for whole numbers and sequences too.**
+  Put forward and not chosen; no reason was recorded.
+- **The Ontology defines the reading of `.sinter/`, or Documents reads
+  it and the Ledger cites Documents.** Not chosen: the Ontology would
+  gain a file format, against its rule of nothing about how Sinter builds
+  things, and the Ledger would move above Documents and leave Layer 3.
+- **The Object store cites Changes and checks git entries itself.** Not
+  chosen: the Object store and Documents would then depend on Changes.
+- **Documents reads the kept objects from the Ledger.** Not chosen: the
+  kept objects stay an input from the caller, so that Documents never
+  reads the log branch.
+- **Keep the Query algebra in v0.1.** Not chosen: no check of v0.1 needs
+  it.
+- **Write the Security design after v0.1.** Not chosen: v0.1 would ship
+  with its open cases.
+- **Remove only the serve loop and the porcelain specification, or keep
+  all three old features.** Not chosen: the migration would have to
+  carry the other features through the new model, and an undesigned
+  protocol would ship.
 
 ## Consequences
 
@@ -119,4 +168,7 @@ complete. Each pull request to `main` then takes its commits from
 those feature branches. A gap in a lower layer can send the work back
 down. Code written early follows the designs, and a later change that
 fills a gap in a lower design can need a change in that code. The
-lower designs can serve tools other than Sinter.
+lower designs can serve tools other than Sinter. Because every design
+kept its layer number when Conformance went below Layer 0, the earlier
+rulings, records, and the approval of Layers 0 to 3 for early
+implementation keep their meaning.
