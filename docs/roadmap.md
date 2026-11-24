@@ -509,6 +509,20 @@
     implementations. A gap is fixed in the design.
   - Which features count as the core, and which language the new
     implementation uses, are not decided.
+- **An acceptance kit for designs** — a tool of its own beside Sinter:
+  a local page on which a person reads each scenario of a design, runs
+  independent models of the design on the scenario's input, changes the
+  input, and marks whether the behavior is wanted. The design work of
+  Sinter uses a first version of it. Not designed.
+  - Each scenario shows the requirements, schemas, and other items of
+    the design that it rests on, with their text in expandable detail.
+  - A person can highlight any shown text and attach a comment to it, as
+    feedback or as a question, and later also a screenshot or another
+    file.
+  - A common framework with hooks for each design replaces the page
+    elements and scaffolding that each kit builds again.
+  - The texts of each kit are edited for plain, tight language before a
+    person reviews them.
 - **Reference models of states, and mutation testing mapped to
   requirements** — how executable models and mutation testing check
   Sinter's code. Not designed.
