@@ -10,6 +10,7 @@
 @cites data-forms=v1
 @cites ontology=v1
 @cites object-store=v1
+@cites ledger=v1
 @cites packs=v1
 @cites findings=v1
 @cites commonmark/0.31.2
@@ -95,13 +96,16 @@ an inline citation stands; and findings and finding classes. From Object
 store (`object-store`), the design takes store files, valid object
 files, needed identity files, the object store of a tree, the finding
 classes `invalid-object-file` and `missing-identity-file`, and the
-requirements `give-store-objects` and `give-store-findings`. From
-Language packs, the design takes packs and valid packs; the reading of a
-text with a pack; comment nodes, definition nodes with their body nodes,
-decoration nodes, and test nodes with their name paths; the runs of
-nodes, enclosed nodes, and the order of the parse tree; and descriptors,
-with their comment sigils and foreign tag words. From Findings, the
-design takes the subjects, the spots, and the other parts of a finding.
+requirements `give-store-objects` and `give-store-findings`.
+From the ledger (`ledger`), the design takes the acceptance rule of
+`void` objects (`accepted-entry`). From Language packs, the design takes packs
+and valid packs; the reading of a text with a pack; comment nodes,
+definition nodes with their body nodes, decoration nodes, and test nodes
+with their name paths; the runs of nodes, enclosed nodes, and the order
+of the parse tree; and descriptors, with their comment sigils and
+foreign tag words. From Findings, the design takes the subjects
+(including path-finding subjects), the spots, and the other parts of a
+finding.
 
 From CommonMark 0.31.2, the design takes its lines, blocks, paragraphs,
 ATX headings, setext headings, thematic breaks, code blocks with their
@@ -141,7 +145,7 @@ literal names `true` and `false`.
 | [object store of a tree](sinter:object-store#tree-object-store=v1), [store file](sinter:object-store#store-file=v1), [valid object file](sinter:object-store#valid-object-file=v1) | the set of all store files of a tree (files inside `.sinter/` outside `.sinter/local/`); a valid object file holds the canonical byte sequence of one valid canonical object at its content-hash path |
 | [object](sinter:ontology#object=v1), [object kind](sinter:ontology#object-kind=v1), [content hash](sinter:ontology#content-hash=v1), [content id](sinter:ontology#content-id=v1) | an entity of one of the twenty-five object kinds in `ontology#object-kind` in canonical line-object form without `id`; its SHA-256 hash; its `<kind>:<first 32 hex digits>` identifier |
 | [computed identity](sinter:ontology#computed-identity=v1) | an object of one of the five kinds `name`, `pin`, `ext`, `vector-set`, and `vector-group`, holding only `kind`, `v` (1), and its key |
-| [counting void](sinter:ontology#object-withdrawal=v1), [withdrawn](sinter:ontology#object-withdrawal=v1), [replaced](sinter:ontology#object-withdrawal=v1) | a `void` object in `.sinter/` that counts under `ontology#object-withdrawal`; an object named by a counting void's `withdraws` edge; a declared-item object in `.sinter/` named by a `revises` edge of an unwithdrawn declared-item object of the same name or of a counting void of a declared-item kind |
+| [counting void](sinter:ontology#object-withdrawal=v1), [withdrawn](sinter:ontology#object-withdrawal=v1), [replaced](sinter:ontology#object-withdrawal=v1) | a `void` object in `.sinter/` that counts under `ontology#object-withdrawal` and `ledger#accepted-entry`; an object named by a counting void's `withdraws` edge; a declared-item object in `.sinter/` named by a `revises` edge of an unwithdrawn declared-item object of the same name or of a counting void of a declared-item kind |
 | [cannot be read](sinter:#unreadable-file=v1) | a read file cannot be read when its content is not valid UTF-8, or when it is a code file whose reading has the result "no grammar" or "parse failure" |
 | [markdown line](sinter:#markdown-line=v1) | a line of the body of a text as CommonMark 0.31.2 gives it |
 | [front matter](sinter:#front-matter=v1), [markdown text](sinter:#front-matter=v1) | the markdown lines from a first line that has only `+++` or `---`, with spaces and tabs after them, to the next such line with the same three characters; the text of a markdown file after its front matter |
@@ -179,9 +183,7 @@ literal names `true` and `false`.
 | [code text](sinter:#code-hash=v1), [code hash](sinter:#code-hash=v1) | the text of the code of an attachment target, or of the body nodes of a definition node, line by line, without the spaces and tabs at the end of each line and without the indentation that its lines share; the hash of the UTF-8 encoding of the code text of the attachment target to which a run of comments with a tagged comment node attaches |
 | [set of names](sinter:#name-set=v1) | a set of declared items (across text and `.sinter/`): the shared set, which has the items of the kind `design`, the `decision` records, and the `spec`, `req`, `schema`, `atom`, and `term` items that belong to no design and whose names are slugs; or the set of the `spec`, `req`, `schema`, `atom`, and `term` items that belong to one item of the kind `design` |
 | [kind word states](sinter:#stated-kind=v1) | the kinds of item that a written kind word, such as `req`, says that a text citation entry or inline citation names |
-| [name names](sinter:#named-item=v1) | the item, or nothing, that the entry name of a citation entry, or the name or external id of an inline citation, names in a tree, for a home design |
 | [vector file](sinter:#vector-file=v1), [vector set](sinter:#vector-file=v1) | under a valid binding of `vector-paths`, for an item of the kind `design`, or for an item of the kind `spec` that belongs to one (in either encoding), the one file in `vector-paths` outside `.sinter/` whose valid path equals or ends with `/` followed by its test-vector file name, when it matches no other item; the vector set is the content of that vector file when that content is a test-vector set |
-| [selected item](sinter:#selected-item=v1) | the group of conformance vectors or the vector set that a citation entry with a vector selection names |
 | [part of a declared item](sinter:#item-part=v1) | a line, a citation, or an inline citation whose file lines are all lines of the extent of a text declared item |
 | [sites of a read file](sinter:#tree-site=v1) | the file lines around citations, inline citations, and `@ack` lines that are outside every extent and every comment on a test, without the lines of extents: in markdown, the lines from a heading that opens a section, or from the start of the markdown text, up to the next such heading or to the end of the markdown text; in code, the lines of runs of comments that are no comments on tests; such parts that share a line of the text, directly or through other such parts, are one site |
 | [site](sinter:ontology#site=v1) | a part of a file of a tree that is outside every declared item and every comment on a test, and that has a citation, an inline citation, or an `@ack` line |
@@ -441,10 +443,10 @@ revision of an item replaces an older revision of the same name through
 a `revises` edge, and a counting void (`ontology#object-withdrawal`) can
 withdraw a stored declared-item object while keeping what it replaced
 replaced through the void's copied `revises` edges; moving an item
-between text and `.sinter/` adds no `revises` edge. A citation entry or
-an inline citation names an item as
-[what names name](sinter:#named-item=v1) says. The written kind word of
-a text citation entry or inline citation
+between text and `.sinter/` adds no `revises` edge. The canonical target
+of a citation entry or of an inline citation gives the item that it
+cites, as [the edges of a tree](sinter:#tree-edge=v1) say. The written
+kind word of a text citation entry or inline citation
 [states](sinter:#stated-kind=v1) kinds of item; the text-only condition
 of [`wrong-kind`](sinter:#wrong-kind-finding=v1) checks that written
 kind word.
@@ -485,8 +487,9 @@ finding for that item's name. When a file in `vector-paths` outside
 `.sinter/` ends with `.test-vectors.jsonl` and matches no design and no
 specification of the tree, the tree gets an
 [`unmatched-vector-file`](sinter:#unmatched-vector-file-finding=v1)
-finding for that file. A citation entry with a vector selection names a
-[selected item](sinter:#selected-item=v1). For example,
+finding for that file. A citation entry with a vector selection cites a
+group of conformance vectors or a vector set, as
+[the edges of a tree](sinter:#tree-edge=v1) say. For example,
 `billing#invoice[basic]` names the group of conformance vectors with the
 name `basic` of the vector set of that specification.
 
@@ -1285,6 +1288,7 @@ attachment target whose run is the run of the test node of that test.
         object-kind=v1,
     },
     object-store#{tree-object-store=v1, valid-object-file=v1},
+    ledger#{accepted-entry=v1},
     #{read-file=v1, tag-text=v1, accepted-input=v1},
 }
 
@@ -1297,7 +1301,8 @@ declaration.
 When the object store of the tree (`object-store#tree-object-store`) is
 valid, each declared-item object in a valid object file of `.sinter/` of
 the tree that is neither withdrawn nor replaced in that tree
-(`ontology#object-withdrawal`) is one stored declared item of the tree,
+(`ontology#object-withdrawal`, with the acceptance rule of `void` in
+`ledger#accepted-entry`) is one stored declared item of the tree,
 and the tree has no other stored declared item. The file of that stored
 declared item is that valid object file.
 
@@ -1690,7 +1695,9 @@ the log branch: kept declared-item objects (the seven declared-item
 kinds) and kept computed identity objects (the five computed identity
 kinds), each conforming to its row of `ontology#object-kind` without
 `seq` or `by`, and deduplicated by content id. When a caller supplies no
-kept objects, `kept-object-set` is the empty set.
+kept objects, `kept-object-set` is the empty set. A kept object set is
+valid when, and only when, each of its objects is a canonical object of
+one of these twelve kinds that meets its row of `ontology#object-kind`.
 
 ### 4.37 Parts of declared items
 
@@ -2276,6 +2283,7 @@ is the text that these steps give.
         tree-object-store=v1, valid-object-file=v1,
         needed-identity-file=v1,
     },
+    ledger#{accepted-entry=v1},
     text#{code-point-order=v1, code-span=v1, result=v1},
     #{
         file-readers=v1, vector-paths=v1, read-file=v1,
@@ -2306,9 +2314,10 @@ line object) when:
 - a declared item of the tree (text or `.sinter/`) or a kept declared
   item holds its own `name` key, supplying `{"kind":"name","name":n,"v":1}`;
 - a text citation entry, inline citation, or vector line in the tree
-  writes that key (an expanded name for `name`, an exact pin `(n, l)`
-  for `pin`, an external ref for `ext`, or a vector selection or vector
-  set owner/group for `vector-set` or `vector-group`).
+  writes that key (an expanded name for `name`, an exact pin `(n, l)` or
+  the form pin of a vector line for `pin`, an external ref for `ext`, or
+  a vector selection or a vector set of the tree with each of its groups
+  for `vector-set` or `vector-group`).
 
 **Pin-cycle graph.** In the directed graph over the declared items of
 the tree (`ontology#edge`), add an arrow:
@@ -2322,9 +2331,8 @@ the tree (`ontology#edge`), add an arrow:
   written as a `pin:` content id whose `pin` object `(n, l)` an input
   of the run supplies;
 - from each stored declared item *u* to each declared item *v* of the
-  tree when a citation edge of *u* names *v*'s content id directly or
-  names a `pin:` content id whose `pin` object `(v.name, v.label)` an
-  input of the run supplies.
+  tree when a citation edge of *u* names a `pin:` content id whose `pin`
+  object `(v.name, v.label)` an input of the run supplies.
 
 A pinned citation edge from declared item *u* targeting `(n, l)` lies on
 a cycle of the tree's own objects when at least one declared item *v* of
@@ -2350,7 +2358,8 @@ declared item, and none otherwise):
         this pin is also a missing part);
      2. when the first set is empty, the distinct canonical objects of
         the replaced, unwithdrawn declared-item objects in valid object
-        files of `.sinter/` of the tree (`ontology#object-withdrawal`)
+        files of `.sinter/` of the tree (`ontology#object-withdrawal`,
+        with the acceptance rule of `void` in `ledger#accepted-entry`)
         whose name is *n* and whose label is *l*;
      3. when the first two sets are empty, the distinct canonical
         objects of the unwithdrawn declared-item objects in
@@ -2473,82 +2482,7 @@ ways:
   item of the kind `design`) and S holds an `items` edge whose `to` is
   the content id of d, then d belongs to S.
 
-### 4.43 What names name
-
-@term named-item=v1
-@cites {
-    identifiers#{
-        citation-entry=v1, inline-citation=v1, inline-destination=v1,
-        destination=v1, name=v1, slug=v1, full-name=v1, part-name=v1,
-        external-id=v1, external-target=v1, match=v1, input-match=v1,
-    },
-    ontology#{external-item=v1, item-name=v1},
-    text#{text=v1},
-    #{accepted-input=v1, name-set=v1, home-design=v1, slug-design=v1},
-}
-
-In a tree, for a home design h, which is an item of the kind `design` of
-the tree, or the empty text for no home design, each of these texts
-names one item or nothing: the entry name of a citation entry of an
-accepted citation (when that citation entry does not match `content-id`),
-and the text that `name` or `external-ref` matches in the match of the
-destination of an inline citation, when that match is a match of an
-input, whether or not that inline citation is an accepted input. The
-home design h only gives the set in which rule 4 looks. The home design
-h is no fact about the item that the text names. For h, such a text
-names the item that the first of these rules that applies gives:
-
-1. When the match of the citation entry, or of the destination, uses
-   `external-ref`, the text is an external id, with its `#` and part
-   name when that external id has them. When that match uses
-   `external-ref`, the text names the external item that this external
-   id names.
-2. A slug names the item of the shared set whose name is that slug.
-3. When the slug of a full name has a design, that full name names the
-   item, in the set of that design, whose name is that full name. When
-   the slug of a full name has no design, that full name names nothing.
-4. `#` and a part name p name the item, in the set of h, whose name is
-   the name of h, `#`, and p. When h is the empty text, they name
-   nothing.
-
-The entry name of a citation entry of an accepted citation names what
-that entry name names for the home design of that citation, or for the
-empty text when that citation has no home design. For an accepted inline
-citation, the text that `name` or `external-ref` matches in the match of
-the destination of that inline citation names what that text names for
-the home design of that inline citation, or for the empty text when that
-inline citation has no home design. When two or more items of the set in
-which a rule looks for a name have that name, that name names none of
-those items. When no item of the set in which a rule looks for a name
-has that name, that name names nothing. Two names are the same name only
-when they are the same text.
-
-### 4.44 Selected items
-
-@term selected-item=v1
-@cites {
-    identifiers#{citation-entry=v1, vector-selection=v1, match=v1},
-    ontology#{conformance-vector-group=v1, vector-set=v1},
-    text#{code-span=v1},
-    #{accepted-input=v1, named-item=v1, vector-file=v1},
-}
-
-In a tree, when the match of a citation entry of an accepted citation
-uses `vector-selection`, that citation entry names one item, or nothing.
-When the entry name of that citation entry names an item of the kind
-`spec` or of the kind `design` that has a vector set, the citation entry
-names this item of that vector set, or nothing when the vector set has
-none:
-
-- when the match uses `group-name`: the group of conformance vectors
-  whose name is the text that `group-name` matches;
-- otherwise: the vector set.
-
-When the entry name of the citation entry does not name an item of the
-kind `spec` or of the kind `design` that has a vector set, the citation
-entry names nothing.
-
-### 4.45 The edges of a tree
+### 4.43 The edges of a tree
 
 @term tree-edge=v1
 @cites {
@@ -2568,15 +2502,15 @@ entry names nothing.
         external-item=v1,
     },
     object-store#{tree-object-store=v1, valid-object-file=v1},
+    ledger#{accepted-entry=v1},
     text#{
         text=v1, line=v1, run=v1, boundary=v1, position=v1,
         code-span=v1,
     },
     #{
-        accepted-input=v1, item-file=v1, named-item=v1,
-        selected-item=v1, vector-paths=v1, vector-file=v1, kept-object-set=v1,
-        canonical-object=v1, tree-containment=v1, item-part=v1,
-        tree-site=v1, file-test=v1,
+        accepted-input=v1, item-file=v1, vector-paths=v1,
+        vector-file=v1, kept-object-set=v1, canonical-object=v1,
+        tree-containment=v1, item-part=v1, tree-site=v1, file-test=v1,
     },
 }
 
@@ -2601,21 +2535,22 @@ The file of a text citation edge is the read file of its accepted input;
 the file of a vector-line edge is that vector file; the file of a stored
 edge is the valid object file of its stored declared item.
 
-For an edge whose canonical target *to* is neither a missing part nor an
-ambiguous pin (`canonical-object`), its cited item in the tree is given
-by these rules (or none when they give nothing):
+For an edge that is neither an ambiguous pin nor a missing part under
+`canonical-object` (for a stored `pin:` edge, as rule 1 resolves it),
+its cited item in the tree is given by these rules (or none when they
+give nothing):
 
 - **Vector-line edge:** for a vector line of the vector set of a `spec`
   S belonging to a `design` D, or of a `design` D, let *n* be the full
   name made of the name of D, `#`, and the schema part name of the form
-  of that vector line. When *n* names one declared item *x* in the tree
-  and either the vector set is of S and S holds *x* (`tree-containment`),
-  or the vector set is of D and D holds *x* directly, the cited item is
-  *x*; otherwise none.
+  of that vector line. When exactly one declared item *x* of the tree
+  has the name *n* and either the vector set is of S and S holds *x*
+  (`tree-containment`), or the vector set is of D and D holds *x*
+  directly, the cited item is *x*; otherwise none.
 - **Target `pin:`:** when the edge is an unknown `pin:` content id in
   text, none; when an input of the run supplies the `pin` object `(n, l)`,
-  the one declared item of the tree whose name is *n* (in its name set
-  as `named-item` looks up *n*), or none when zero or two or more exist.
+  the one declared item of the tree whose name is *n*, or none when zero
+  or two or more exist.
 - **Target `name:`:** when an input of the run supplies the `name`
   object with member `name` *n*, the one declared item of the tree whose
   name is *n*, or none when zero or two or more exist (the presence of a
@@ -2636,17 +2571,19 @@ by these rules (or none when they give nothing):
   text declared items, valid unwithdrawn `.sinter/` objects of any kind,
   and `vector-group-def` objects of the tree), and otherwise in
   unwithdrawn objects of `kept-object-set`. If *to* is not a text declared
-  item of the tree and a counting void in `.sinter/` withdraws *to*, the
-  resolution of that edge is a missing part and its cited item is
+  item of the tree and a counting void in `.sinter/`
+  (`ontology#object-withdrawal`, `ledger#accepted-entry`) withdraws *to*,
+  the resolution of that edge is a missing part and its cited item is
   withheld. Otherwise, when *to* resolves to a declared-item object *O*,
   the cited item is the one declared item of the tree whose name is the
   member `name` of *O*, or none; when *to* resolves to any other object
   *O* (`task`, `plan`, `scope`, `vector-group-def`, or a record), the
   cited item is *O*; when *to* resolves to no object, none.
 
-When a citation edge is an ambiguous pin or lacks its canonical target
-or needed computed identity key as a missing part, its cited item is
-withheld.
+When a citation edge is an ambiguous pin, lacks its canonical target or
+a needed computed identity key as a missing part, or is a stored `pin:`
+edge that rule 1 of `canonical-object` resolves as a missing part, its
+cited item is withheld.
 
 For an edge that a vector line of the vector set of an item gives, the
 form run of that edge is the run of the text of the vector file of that
@@ -2657,7 +2594,7 @@ before the closing `"` of that JSON string. The form position of that
 edge is the position of the boundary where the form run of that edge
 starts in the text of that vector file.
 
-### 4.46 Extern marks
+### 4.44 Extern marks
 
 @term extern-mark=v1
 @cites {
@@ -2681,7 +2618,7 @@ mark is the text that `kind-word` matches in the match of that line by
 no extern mark. A stored item of the kind `design` in `.sinter/` carries
 no extern mark.
 
-### 4.47 Valid extern marks
+### 4.45 Valid extern marks
 
 @term valid-extern-mark=v1
 @cites {
@@ -2715,7 +2652,7 @@ item x (never a stored declared item in `.sinter/`):
   of the kind `term` whose name is the name of the extern mark and whose
   file is not the file of D.
 
-### 4.48 Position subjects
+### 4.46 Position subjects
 
 @term position-subject=v1
 @cites {
@@ -2730,7 +2667,7 @@ column c, in a read file or in the vector file of a declared item is the
 text of the valid path of the file, then `@L`, then the decimal numeral
 of l, then `C`, then the decimal numeral of c.
 
-### 4.49 The order of positions
+### 4.47 The order of positions
 
 @term position-order=v1
 @cites text#{position=v1, line-number=v1, whole-number=v1}
@@ -2740,7 +2677,7 @@ line number is less than the line number of the other, or the two line
 numbers are the same and its column is less than the column of the
 other.
 
-### 4.50 The spots of runs
+### 4.48 The spots of runs
 
 @term run-spot=v1
 @cites {
@@ -2756,7 +2693,7 @@ file of a declared item, that starts and ends at boundaries of the body,
 the spot of r is the spot with the valid path of the file and the span
 r.
 
-### 4.51 Edge finding subjects
+### 4.49 Edge finding subjects
 
 @term edge-finding-subject=v1
 @cites {
@@ -2791,7 +2728,7 @@ The declared-item edge spot of that canonical edge in a tree is:
 - when the source declared item comes from a program's own store: no
   spot.
 
-### 4.52 Tree findings
+### 4.50 Tree findings
 
 @term tree-finding=v1
 @cites {
@@ -2812,7 +2749,7 @@ given, and that is not ackable. The message, the mark, the related
 messages, and the fix of that tree finding are those that the program
 that gives that tree finding gives.
 
-### 4.53 Edit distance
+### 4.51 Edit distance
 
 @term edit-distance=v1
 @cites text#{text=v1, character=v1, whole-number=v1}
@@ -2824,20 +2761,22 @@ distance of two texts a and b is the least whole number n such that a
 sequence of n edits changes a into b, where each edit of the sequence
 changes the text that the edits before it give.
 
-### 4.54 Findings of the class `parse-error`
+### 4.52 Findings of the class `parse-error`
 
 @atom parse-error-finding=v1
 @cites {
     files#{path=v1},
+    findings#{path-finding-subject=v1},
     #{read-file=v1, unreadable-file=v1, tree-finding=v1},
 }
 
 A tree has one tree finding of the class `parse-error` for each read
 file of the tree that cannot be read. The subject of the finding is the
+path-finding subject (term `path-finding-subject` of Findings) of the
 valid path of the file. The spot of the finding is the valid path of the
 file alone, with no span.
 
-### 4.55 Findings of the class `typo-tag`
+### 4.53 Findings of the class `typo-tag`
 
 @atom typo-tag-finding=v1
 @cites {
@@ -2862,7 +2801,7 @@ edit distance of the tag word from at least one Sinter tag word is 1 or
 position of the text of that tag line. The spot of the finding is the
 spot of the run of the text of that tag line in the text of the file.
 
-### 4.56 Findings of the class `ignored-tag`
+### 4.54 Findings of the class `ignored-tag`
 
 @atom ignored-tag-finding=v1
 @cites {
@@ -2933,7 +2872,7 @@ of the file, as the term `origin` gives runs in the text of the file.
 The subject of the finding is the position subject of the origin
 position of C. The spot of the finding is the spot of C.
 
-### 4.57 Findings of the class `invalid-target`
+### 4.55 Findings of the class `invalid-target`
 
 @atom invalid-target-finding=v1
 @cites {
@@ -2969,11 +2908,12 @@ subject of the finding is the position subject of the origin position of
 Y. The spot of the finding is the spot of the run of Y in the text of
 the file.
 
-### 4.58 Findings of the class `duplicate`
+### 4.56 Findings of the class `duplicate`
 
 @atom duplicate-finding=v1
 @cites {
     files#{path=v1},
+    findings#{path-finding-subject=v1},
     ontology#{declared-item=v1, item-name=v1},
     text#{character=v1, code-span=v1},
     #{
@@ -2997,10 +2937,11 @@ equal. A tree has these tree findings of the class `duplicate`:
   names. The finding has no spot.
 - For each candidate vector file of the tree (`vector-file`) that
   matches two or more declared items of the tree: the tree has one tree
-  finding. The subject of the finding is the valid path of that file.
+  finding. The subject of the finding is the path-finding subject (term
+  `path-finding-subject` of Findings) of the valid path of that file.
   The spot of the finding is that valid path alone, with no span.
 
-### 4.59 Findings of the class `dangling`
+### 4.57 Findings of the class `dangling`
 
 @atom dangling-finding=v1
 @cites {
@@ -3041,7 +2982,7 @@ whose destination matches `#` and a part name when it has no home design.
   subject of its form position in its vector file, and its spot is the
   spot of its form run in the text of its vector file.
 
-### 4.60 Findings of the class `wrong-source`
+### 4.58 Findings of the class `wrong-source`
 
 @atom wrong-source-finding=v1
 @cites {
@@ -3081,7 +3022,7 @@ a kind of item that its kind of edge is for as its source:
   entry or inline citation, and its spot is the spot of the run of that
   citation entry or inline citation in the text of the file.
 
-### 4.61 Findings of the class `wrong-kind`
+### 4.59 Findings of the class `wrong-kind`
 
 @atom wrong-kind-finding=v1
 @cites {
@@ -3140,7 +3081,7 @@ The tree has these tree findings of the class `wrong-kind`:
   finding with the position subject of its form position in its vector
   file and the spot of its form run in the text of its vector file.
 
-### 4.62 Findings of the class `misplaced-declaration`
+### 4.60 Findings of the class `misplaced-declaration`
 
 @atom misplaced-declaration-finding=v1
 @cites {
@@ -3194,7 +3135,7 @@ position of the text of the declaration or of the `@extern` line. The
 spot of the finding is the spot of the run of that text in the text of
 the file.
 
-### 4.63 Findings of the class `req-outside-design`
+### 4.61 Findings of the class `req-outside-design`
 
 @atom req-outside-design-finding=v1
 @cites {
@@ -3223,7 +3164,7 @@ a missing part. The subject of the finding is that content id
 - when two or more declared items of the tree share that content id, or
   when the item comes from a program's own store: no spot.
 
-### 4.64 Findings of the class `extern-mismatch`
+### 4.62 Findings of the class `extern-mismatch`
 
 @atom extern-mismatch-finding=v1
 @cites {
@@ -3261,7 +3202,7 @@ tree findings of the class `extern-mismatch`:
   of the finding is the spot of the run of that text in the text of the
   file of x.
 
-### 4.65 Findings of the class `pin-cycle`
+### 4.63 Findings of the class `pin-cycle`
 
 @atom pin-cycle-finding=v1
 @cites {
@@ -3286,7 +3227,7 @@ subject is the edge finding subject of that canonical edge, and its spot
 is the declared-item edge spot of that canonical edge
 (`edge-finding-subject`).
 
-### 4.66 Findings of the class `ambiguous-pin`
+### 4.64 Findings of the class `ambiguous-pin`
 
 @atom ambiguous-pin-finding=v1
 @cites {
@@ -3310,8 +3251,8 @@ edge is ambiguous under `canonical-object` (matching two or more
 distinct canonical objects in whichever of the three sets applies:
 current declared items of the tree, replaced unwithdrawn declared-item
 objects in `.sinter/`, or unwithdrawn objects in `kept-object-set`). An
-ambiguous pin withholds dependent results (`dangling`, `wrong-kind`, and
-`cited`) for that edge.
+ambiguous pin withholds dependent results (the cited item, and the
+findings of the classes `dangling` and `wrong-kind`) for that edge.
 
 - When the source of the edge is a declared item (in text, in `.sinter/`,
   or from a program's own store) whose canonical object is not withheld:
@@ -3328,11 +3269,12 @@ ambiguous pin withholds dependent results (`dangling`, `wrong-kind`, and
   subject of its form position in its vector file, and its spot is the
   spot of its form run in the text of its vector file.
 
-### 4.67 Findings of the class `unmatched-vector-file`
+### 4.65 Findings of the class `unmatched-vector-file`
 
 @atom unmatched-vector-file-finding=v1
 @cites {
     files#{path=v1},
+    findings#{path-finding-subject=v1},
     text#{code-span=v1},
     #{vector-paths=v1, vector-file=v1, tree-finding=v1},
 }
@@ -3342,10 +3284,11 @@ the class `unmatched-vector-file` for each candidate vector file of the
 tree (`vector-file`, outside `.sinter/`) whose valid path ends with
 `.test-vectors.jsonl` and that matches no item of the kind `design` and
 no item of the kind `spec` of the tree. The subject of the finding is
+the path-finding subject (term `path-finding-subject` of Findings) of
 the valid path of that file. The spot of the finding is that valid path
 alone, with no span.
 
-### 4.68 Findings of the class `ambiguous-vector-file`
+### 4.66 Findings of the class `ambiguous-vector-file`
 
 @atom ambiguous-vector-file-finding=v1
 @cites {
@@ -3450,7 +3393,7 @@ extent of that item, and nothing else as that extent.
 Under a valid binding of `file-readers`, a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid object store of the tree,
-and `kept-object-set`:
+and a valid `kept-object-set`:
 
 - When a conforming program gives the canonical object, content hash, or
   content id of a declared item of the tree whose canonical object is
@@ -3498,7 +3441,7 @@ comments, and no other run of comments with a code hash.
 Under a valid binding of `file-readers`, a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid object store of the tree,
-and `kept-object-set`, when a conforming program gives the item of the kind
+and a valid `kept-object-set`, when a conforming program gives the item of the kind
 `design`, or the item of the kind `spec`, to which a declared item of a
 tree belongs under these bindings, that conforming program must give the
 item of that kind to which the declared item belongs, or that the
@@ -3556,15 +3499,15 @@ site, and no other site.
     #{
         file-readers=v1, vector-paths=v1, kept-object-set=v1,
         accepted-input=v1, tree-edge=v1, canonical-object=v1,
-        named-item=v1, selected-item=v1, vector-file=v1, item-part=v1,
-        tree-site=v1, file-test=v1, origin-position=v1,
+        vector-file=v1, item-part=v1, tree-site=v1, file-test=v1,
+        origin-position=v1,
     },
 }
 
 Under a valid binding of `file-readers`, a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid binding of `vector-paths`,
-a valid object store of the tree, and `kept-object-set`, when a conforming
+a valid object store of the tree, and a valid `kept-object-set`, when a conforming
 program gives the edges of a tree under these bindings, that conforming
 program must give each edge of the tree (`tree-edge`) once, with the
 file of that edge, (for a text citation, inline citation, or vector-line
@@ -3572,9 +3515,8 @@ edge) the origin position of its citation entry or inline citation or
 the form position of its vector line, the kind of edge of that edge, its
 canonical target content id (unless withheld by a missing part), the
 source of that edge or that the edge has none, and the cited item of
-that edge or that the edge has none (unless withheld because the pin is
-ambiguous or a target or needed identity key is a missing part), and no
-other edge.
+that edge or that the edge has none (unless withheld under `tree-edge`
+because the pin is ambiguous or a part is missing), and no other edge.
 
 ### 5.10 The items in which status tags stand
 
@@ -3680,7 +3622,7 @@ none, and nothing else as that vector file.
 Under a valid binding of `file-readers`, a binding of
 `external-namespaces` for which a conforming program of the design
 Identifiers gives the result "valid", a valid object store of the tree,
-and `kept-object-set`:
+and a valid `kept-object-set`:
 
 - When a conforming program gives the findings of the tree of one of the
   classes `invalid-target`, `misplaced-declaration`,
@@ -3695,9 +3637,10 @@ and `kept-object-set`:
   has, and no other finding of that class.
 
 When a computed identity object missing from `.sinter/` or
-`kept-object-set` is supplied by another input of the run, every finding
-of those classes is given; when no input of the run supplies its key, only the
-findings that need its key are withheld (`conformance#report-missing-parts`).
+`kept-object-set` is supplied by another input of the run, no finding
+of those classes is withheld because of that object; when no input of
+the run supplies its key, only the findings that need its key are
+withheld (`conformance#report-missing-parts`).
 
 ### 5.14 The file findings of a tree
 
@@ -4251,6 +4194,7 @@ This line of the file is a vector of the group:
         give-store-findings=v1, invalid-object-file-finding=v1,
         missing-identity-file-finding=v1,
     },
+    ledger#{accepted-entry=v1},
     findings#{spot=v1},
     #{
         markdown-vector=v1, file-readers=v1, vector-paths=v1,
@@ -4276,10 +4220,10 @@ the requirements `reject-invalid-inputs`, `report-missing-parts`, and
 `give-results-over-canonical-objects` of Conformance. Each vector of the
 group has the member `values`, and no vector has the member `result`.
 
-In this group, no list of persons is bound, so every valid `void` object
-in `.sinter/` that has no `agent` member and copies the required edges
-of the withdrawn object meets the acceptance rule of `void`
-(`ontology#object-withdrawal`).
+The input of a vector of this group stands for each tree in which no
+list of persons is bound and in which the acceptance rule of `void`
+(`ledger#accepted-entry`) holds for each valid `void` object in
+`.sinter/` that has no `agent` member (`ontology#object-withdrawal`).
 
 Inside the members `input` and `values`, each JSON value that this
 schema names as a text, a whole number, a run, a position, a path set, a

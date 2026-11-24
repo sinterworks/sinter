@@ -9,6 +9,7 @@
 @cites files=v1
 @cites data-forms=v1
 @cites ontology=v1
+@cites object-store=v1
 @cites packs=v1
 @cites findings=v1
 @cites documents=v1
@@ -74,8 +75,10 @@ kinds test case and test suite, the runs of nodes, enclosed nodes, the
 order of the parse tree, and the names of test nodes; test entries, the
 requests of the function bind, calls, and the results of calls with
 their test results and binding objects. From Findings, it takes spots.
-From Documents, it takes the bindings of `file-readers` and of
-`vector-paths`, read files and code files, files that cannot be read,
+From the Object store, it takes local files, the object store of a tree,
+and when that object store is valid. From Documents, it takes the
+bindings of `file-readers` and of `vector-paths`, the caller input
+`kept-object-set`, read files and code files, files that cannot be read,
 the tests of a read file, vector files, the edges of a tree, origins and
 origin positions, position subjects, the spots of runs, and tree
 findings.
@@ -95,7 +98,7 @@ literal names `true` and `false`.
 |---|---|
 | [test runner](sinter:packs#test-runner=v1) | a program that runs tests, gives a test result for each test that it runs, and writes report files, such as vitest; in a descriptor of a language pack, a test runner has an adapter hash or a match table |
 | [report file](sinter:#report-file=v1) | a file that a test runner writes about the tests that the test runner ran; as an input, a report file is its report content, which is the bytes of the file, its report name, its pack, and its test runner |
-| [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree for which the import is given, a root, one or more report files, and a narrowing |
+| [import](sinter:#import=v1) | an input that stands for one execution of test runners: the tree of the import (excluding local files), a root, one or more report files, and a narrowing |
 | [execution of test runners](sinter:#import=v1) | the runs of test runners whose report files are given together in one import, such as one job of continuous integration, or three jobs that each run a third of the tests |
 | [evidence for a tree](sinter:#tree-evidence=v1) | the imports that are given for that tree, one for each time that an import is given for that tree; a tree has evidence when that tree has at least one import |
 | [JUnit XML report](sinter:#junit-report=v1) | a report content that is a well-formed XML document in UTF-8 or UTF-16, with no document type declaration, whose root element is `testsuites` or `testsuite` |
@@ -165,10 +168,12 @@ the next, in a form of its own. The requirement
 `take-evidence-for-own-tree` limits where the program counts those
 imports. When a person edits a comment or adds a file of `.sinter/`
 after an import, the tree changes, and the import is not in the
-evidence for the new tree. In a run in which a conforming program could
-not take content of a file or a folder under the term `input` of
-Conformance, that conforming program writes no import into
-`.sinter/local/` (requirement `write-no-import-after-read-error`).
+evidence for the new tree. Adding or changing a local file in
+`.sinter/local/` does not change the tree of an import. In a run in
+which a conforming program could not take content of a file or a folder
+under the term `input` of Conformance, that conforming program keeps no
+import of that run for a later run, in `.sinter/local/` or anywhere
+else (requirement `write-no-import-after-read-error`).
 
 A report file or a tree that changes while a program reads it is a
 matter of the quality of the implementation.
@@ -433,6 +438,7 @@ descriptor of that pack.
 @term import=v1
 @cites {
     ontology#{tree=v1, test=v1, test-evidence=v1},
+    object-store#{store-file=v1},
     conformance#{input=v1},
     text#{text=v1, whole-number=v1},
     #{report-file=v1},
@@ -441,19 +447,22 @@ descriptor of that pack.
 An import is an input that stands for one execution of test runners: the
 runs of test runners whose report files are given together in the
 import. That execution is on the code of one tree, the tree of the
-import, for which the import is given. The import has a root, a sequence
-of one or more report files, and a narrowing. The root is a text, such
-as the absolute path of the folder of the files of that tree. The report
-files in that sequence are the report files that the execution wrote.
-One report content can stand more than once in that sequence, such as
-with two test runners. The number of a report file of the import is 1
-more than the number of the report files before it in that sequence. The
-narrowing is a finite set of triples, each of the number of a report
-file of the import, a whole number of 1 or more, and a test of that
-tree. The narrowing is given to the program with the report files, such
-as by a person. When no narrowing is given, the narrowing is the empty
-set. The narrowing is only what is given with the import: a program
-derives no narrowing from the report files or from the tree.
+import, which excludes every local file (term `store-file` of the Object
+store). An import is given for a tree T when, and only when, the tree of
+the import is T without its local files. The import has a root, a
+sequence of one or more report files, and a narrowing. The root is a
+text, such as the absolute path of the folder of the files of the tree
+of the import. The report files in that sequence are the report files
+that the execution wrote. One report content can stand more than once in
+that sequence, such as with two test runners. The number of a report
+file of the import is 1 more than the number of the report files before
+it in that sequence. The narrowing is a finite set of triples, each of
+the number of a report file of the import, a whole number of 1 or more,
+and a test of the tree of the import. The narrowing is given to the
+program with the report files, such as by a person. When no narrowing is
+given, the narrowing is the empty set. The narrowing is only what is
+given with the import: a program derives no narrowing from the report
+files or from the tree.
 
 ### 3.3 The evidence for a tree
 
@@ -573,8 +582,8 @@ match table or the name of one of those runner settings.
 This term is for a test runner of a valid descriptor that has a match
 table, under a valid binding of `runner-settings` for that test runner,
 when the data of the runner is valid. For a key of the data of the
-runner, the value of that key is one of these. When the test runner has
-a runner setting whose name is that key, the value of that key is the
+runner, when the test runner has a runner setting whose name is that
+key, the value of that key is the
 value of that runner setting under the binding. When the match table has
 that key, the value of that key is the TOML value of that key in the
 match table. When neither has that key and that key has a default, the
@@ -1416,7 +1425,11 @@ other source.
 @req give-promise-sources=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, vector-paths=v1, tree-edge=v1},
+    documents#{
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        tree-edge=v1,
+    },
+    object-store#{tree-object-store=v1},
     ontology#{
         promise=v1, verifies-edge=v1, edge-source=v1, test=v1, tree=v1,
         parameter=v1,
@@ -1427,33 +1440,39 @@ other source.
 }
 
 Under a valid binding of `file-readers`, a valid binding of
-`vector-paths`, and a binding of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid",
-when a conforming program gives, under these bindings, whether a
-`verifies` promise is kept in a tree that has evidence, for each test
-that, under these bindings, is the source of an edge of that tree that
-is such an edge for that promise as the term `promise` of the Ontology
-states, the conforming program must give once for that test, with what
-the conforming program gives for whether that promise is kept in that
-tree, the outcome of that test in the evidence for that tree under these
+`vector-paths`, a binding of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid", a
+valid object store of the tree, and a valid `kept-object-set`, when a
+conforming program gives, under these bindings, whether a `verifies`
+promise is kept in a tree that has evidence, for each test that, under
+these bindings, is the source of an edge of that tree that is such an
+edge for that promise as the term `promise` of the Ontology states, the
+conforming program must give once for that test, with what the
+conforming program gives for whether that promise is kept in that tree,
+the outcome of that test in the evidence for that tree under these
 bindings, which is "passed", "failed", or "not run", and each source of
 that outcome under these bindings once. Under a valid binding of
-`file-readers`, a valid binding of `vector-paths`, and a binding of
+`file-readers`, a valid binding of `vector-paths`, a binding of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", when a conforming program gives,
-under these bindings, whether a `verifies` promise is kept in a tree
-that has evidence, the conforming program must give, with what the
-conforming program gives for whether that promise is kept in that tree,
-no outcome and no source for any test that, under these bindings, is not
-the source of an edge of that tree that is such an edge for that promise
-as the term `promise` of the Ontology states.
+Identifiers gives the result "valid", a valid object store of the tree,
+and a valid `kept-object-set`, when a conforming program gives, under
+these bindings, whether a `verifies` promise is kept in a tree that has
+evidence, the conforming program must give, with what the conforming
+program gives for whether that promise is kept in that tree, no outcome
+and no source for any test that, under these bindings, is not the source
+of an edge of that tree that is such an edge for that promise as the
+term `promise` of the Ontology states.
 
 ### 4.13 Findings of the classes `never-ran`, `failed`, and `ambiguous-result`
 
 @req give-evidence-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, vector-paths=v1, tree-finding=v1},
+    documents#{
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        tree-finding=v1,
+    },
+    object-store#{tree-object-store=v1},
     ontology#{finding-class=v1, tree=v1, parameter=v1},
     conformance#{conforming-program=v1},
     text#{result=v1},
@@ -1464,20 +1483,25 @@ as the term `promise` of the Ontology states.
 }
 
 Under a valid binding of `file-readers`, a valid binding of
-`vector-paths`, and a binding of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid",
-when a conforming program gives, under these bindings, the findings of a
-tree of one of the classes `never-ran`, `failed`, and
-`ambiguous-result`, which rest on the evidence for that tree, it must
-give each tree finding of that class that the tree has under these
-bindings once, and no other finding of that class.
+`vector-paths`, a binding of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid", a
+valid object store of the tree, and a valid `kept-object-set`, when a
+conforming program gives, under these bindings, the findings of a tree
+of one of the classes `never-ran`, `failed`, and `ambiguous-result`,
+which rest on the evidence for that tree, it must give each tree finding
+of that class that the tree has under these bindings once, and no other
+finding of that class.
 
 ### 4.14 Findings of the class `unverified-vector`
 
 @req give-unverified-vector-findings=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, vector-paths=v1, tree-finding=v1},
+    documents#{
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        tree-finding=v1,
+    },
+    object-store#{tree-object-store=v1},
     ontology#{declared-item=v1, finding-class=v1, tree=v1, parameter=v1},
     conformance#{conforming-program=v1, input=v1},
     text#{result=v1},
@@ -1485,15 +1509,16 @@ bindings once, and no other finding of that class.
 }
 
 Under a valid binding of `file-readers`, a valid binding of
-`vector-paths`, and a binding of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid",
-when a conforming program gives, under these bindings, the findings of a
-tree of the class `unverified-vector`, which rest on the evidence for
-that tree, it must take a set S of declared items of that tree as an
-input, and it must give each tree finding of that class that the tree
-has for S under these bindings once, and no other finding of that class.
+`vector-paths`, a binding of `external-namespaces` for which a
+conforming program of the design Identifiers gives the result "valid", a
+valid object store of the tree, and a valid `kept-object-set`, when a
+conforming program gives, under these bindings, the findings of a tree
+of the class `unverified-vector`, which rest on the evidence for that
+tree, it must take a set S of declared items of that tree as an input,
+and it must give each tree finding of that class that the tree has for S
+under these bindings once, and no other finding of that class.
 
-### 4.15 No import write in `.sinter/local/` after a read error
+### 4.15 No kept import in a run with a read error
 
 @req write-no-import-after-read-error=v1
 @cites {
@@ -1506,9 +1531,9 @@ has for S under these bindings once, and no other finding of that class.
 
 In a run in which content of a file or a folder is a part that an input
 lacks under the term `input` of Conformance because a conforming program
-could not take that content, that conforming program must write no
-import into the folder `.sinter/local/` of the folder tree of any
-working tree.
+could not take that content, that conforming program must keep no import
+of that run for a later run, neither in the folder `.sinter/local/` of
+the folder tree of a working tree nor anywhere else.
 
 ## 5. Conformance
 
@@ -1747,7 +1772,8 @@ result link of that reading.
         hash=v1, vector-line=v1, group-form-list=v1, vector-meaning=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1, vector-paths=v1},
+    documents#{file-readers=v1, vector-paths=v1, kept-object-set=v1},
+    object-store#{tree-object-store=v1},
     ontology#{
         test=v1, test-evidence=v1, tree=v1, finding-class=v1,
         parameter=v1,
@@ -1779,9 +1805,10 @@ given by the results, the test results, and the result links of those
 readings. The tests are given by their valid paths, their names, their
 kinds, and the tests that hold them. The tree of each vector has no
 other test that a test result names. The binding of `file-readers` is
-valid. The binding of `vector-paths` is valid. A conforming program of
-the design Identifiers gives the result "valid" for the binding of
-`external-namespaces`. The binding of
+valid. The binding of `vector-paths` is valid. The object store of the
+tree is valid, and the kept object set (`kept-object-set`) is valid. A
+conforming program of the design Identifiers gives the result "valid"
+for the binding of `external-namespaces`. The binding of
 `runner-settings` for each test runner is valid. Each vector holds when
 the program reaches no limit of its own. The group uses no need, so
 these forms give no need names.
@@ -1892,9 +1919,11 @@ source, and no finding of the class `ambiguous-result` for that import.
         external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
     },
     documents#{
-        file-readers=v1, vector-paths=v1, tree-edge=v1,
-        origin-position=v1, position-subject=v1, vector-file=v1,
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        tree-edge=v1, origin-position=v1, position-subject=v1,
+        vector-file=v1,
     },
+    object-store#{tree-object-store=v1},
     ontology#{
         tree=v1, test=v1, edge=v1, verifies-edge=v1, edge-source=v1,
         schema=v1, declared-item=v1, conformance-vector=v1,
@@ -1923,10 +1952,12 @@ is in S. For that input, the vector gives the findings of the classes
 the evidence for the tree, when that test has one, is given as an input.
 The tree of each vector has no other edge of the kind `verifies` and no
 other vector set. The binding of `file-readers` is valid. The binding of
-`vector-paths` is valid. A conforming program of the design Identifiers
-gives the result "valid" for the binding of `external-namespaces`. The
-binding of `runner-settings` for each test runner is valid. Each vector holds when
-the program reaches no limit of its own. Each vector of the group has
+`vector-paths` is valid. The object store of the tree is valid, and the
+kept object set (`kept-object-set`) is valid. A conforming program of
+the design Identifiers gives the result "valid" for the binding of
+`external-namespaces`. The binding of `runner-settings` for each test
+runner is valid. Each vector holds when the program reaches no limit of
+its own. Each vector of the group has
 the member `values`. No vector of the group has the member `result`.
 These forms name no question for `result`. The group uses no need, so
 these forms give no need names.
@@ -1943,10 +1974,10 @@ The members of a vector line have these forms:
   - `evidence` is true when the tree has evidence, and false when the
     tree has none.
   - `tests` is a JSON array of tests of the tree. Each test in `tests`
-    is a JSON object with the member `outcome` only when that test has
-    an outcome in the evidence for the tree. When present, the member
-    `outcome` is the outcome of that test in the evidence for the tree:
-    "passed", "failed", or "not run".
+    is a JSON object. That object has the member `outcome` when, and
+    only when, that test has an outcome in the evidence for the tree,
+    and that object has no other member. The member `outcome` is that
+    outcome: "passed", "failed", or "not run".
   - `edges` is a JSON array of the edges of the kind `verifies` of the
     tree. An edge is a JSON object with the members `source`, `subject`,
     and `cited`. The member `source` is the index in `tests`, from 0, of
