@@ -19,7 +19,7 @@
 Specifies the parameter `historical-paths` and historical files; the successors of retired declared items; the finding classes `retired`, `cycle`, `deleted-decision`, and `reused-label`; the conditions on an offered fix of a `retired` finding; and requirements for conforming programs that give successors and the findings of these classes.
 
 Declared items change over time: authors replace them with `supersedes`
-edges, withdraw them with `@deprecated` (or the member `status` in
+edges, mark them `@deprecated` (or set the member `status` in
 `.sinter/`), and give them new labels when their revised content
 changes. When a declared item is retired, other items that cite that
 declared item can still name it, and in-force items can replace it
@@ -82,16 +82,16 @@ finding parts, `findings#limit-fix-edit-sets`, and
 From Documents (`documents`), the design takes the parameters
 `file-readers` and `vector-paths` with their bindings, read files, files
 that cannot be read, tag texts, accepted inputs, files of declared
-items, sets of names, named items, origins, origin positions, canonical
-objects, containment in a tree, kept object sets, vector files, the
-edges of a tree with their form runs and form positions, position
-subjects, edge finding subjects and declared-item edge spots, the order
-of positions, the spots of runs, and tree findings. From Revisions
-(`revisions`), it takes base items. From Approval (`approval`), it takes
-the parameters `approval-kinds` and `persons` with their bindings,
-approval needs, listed persons, latest counting judgments, judgment
-conflicts, merged content, subject states, merge-read edges, in force
-under the bindings, and incomplete first-parent lines.
+items, sets of names, origins, origin positions, canonical objects,
+containment in a tree, kept object sets, vector files, the edges of a
+tree with their form runs and form positions, position subjects, edge
+finding subjects and declared-item edge spots, the order of positions,
+the spots of runs, and tree findings. From Revisions (`revisions`), it
+takes base items. From Approval (`approval`), it takes the parameters
+`approval-kinds` and `persons` with their bindings, approval needs,
+listed persons, latest counting judgments, judgment conflicts, merged
+content, subject states, merge-read edges, in force under the bindings,
+and incomplete first-parent lines.
 
 ## 1. Glossary
 
@@ -219,15 +219,14 @@ edges (`items`, `about`, `revises`), record and `scope` edges, and edges
 of replaced or withdrawn declared-item objects in `.sinter/` give no
 `retired` finding.
 
-Citations resolve by `ontology#edge` and `documents#tree-edge`: exact
-pins and content-id citations of non-identity objects resolve first in
-the tree and then against unwithdrawn kept objects in `kept-object-set`;
-`@cites name:…` means `=*` of that name; `@cites pin:…` in text resolves
-as `n=l` when an input holds that `pin` object `(n, l)` (and an unknown
-`pin:` content id in text resolves to no object); a stored `"to":"pin:…"`
-edge in `.sinter/` resolves as `n=l` when an input holds that `pin`
-object; an edge on a pin cycle still cites the declared item of name `n`;
-an ambiguous pin or a missing-part target withholds its cited item.
+Citations resolve, and give their cited items, as `ontology#edge` and
+`documents#tree-edge` give them, across both encodings and the kept
+object set. For example, `@cites name:…` means `=*` of that name; a text
+`@cites pin:…` and a stored `"to":"pin:…"` edge in `.sinter/` resolve as
+`n=l` when an input holds that `pin` object `(n, l)`; a text citation of
+an unknown `pin:` content id has no cited item; and an edge on a pin
+cycle still cites the declared item of name `n`. An edge whose target is
+an ambiguous pin or a missing part withholds its cited item.
 
 For example, design `billing-2` has `@supersedes billing=v1`,
 `billing-2#limit` has `@supersedes billing#limit=v1`, and `billing-2`
@@ -330,17 +329,12 @@ conforming program offers no fix for that finding:
    holds `@cites billing#rate=v1`. Because `billing-2#rate` has no
    current revision, no edit can write its current revision in place of
    the pin.
-3. **A successor with a duplicate name.** Two items in the same set of
-   names share the name `d2`, and one or both supersede `d1`. Because a
-   duplicated name names none of those items (`documents#named-item`),
-   no edit of the citation can cite that successor.
-4. **A citation that already names the successor with another pin.** A
-   citation is `@cites {d1=v1, d2=v1}`, where `d2` is the only successor
-   of `d1` and the current revision of `d2` is `v2`. Because two entries
-   with the same entry name make a citation invalid
-   (`identifiers#citation-line`), no single citation can cite both
-   `d2=v2` and `d2=v1`.
-5. **A stored edge in `.sinter/` or a finding with no spot.** A declared
+3. **A successor with a duplicate name.** Two declared items of the
+   tree have the name `d2`, and one or both supersede `d1`. An edge
+   whose target has the name of two or more declared items of the tree
+   has no cited item (`ontology#edge`), so no edit of the citation can
+   cite that successor.
+4. **A stored edge in `.sinter/` or a finding with no spot.** A declared
    item stored in `.sinter/` holds a `cites` edge to a retired item, or
    a text declared item writes two citations that give the same
    canonical edge (so the finding has no spot). Because fixes edit only
@@ -1282,8 +1276,8 @@ own store), a valid binding A of `approval-kinds`, `persons` unbound or
 bound, a binding D of `default-branch-name` (whether or not D is a valid
 binding of `default-branch-name`), a valid binding F of `file-readers`,
 a binding N of `external-namespaces` for which a conforming program of
-the design Identifiers gives the result "valid", and a set K of kept
-objects (`documents#kept-object-set`). Under these inputs, this
+the design Identifiers gives the result "valid", and a valid kept object
+set K (`documents#kept-object-set`). Under these inputs, this
 requirement applies when a conforming program gives the successors of a
 declared item x of T under these inputs, and each repository read from
 which that program takes the commit of the default branch under D (when
@@ -1363,7 +1357,7 @@ bound, a binding D of `default-branch-name` (whether or not D is a valid
 binding of `default-branch-name`), a valid binding F of `file-readers`,
 a valid binding V of `vector-paths`, a binding N of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", a set K of kept objects
+Identifiers gives the result "valid", a valid kept object set K
 (`documents#kept-object-set`), and a valid binding H of
 `historical-paths`. Under these inputs, this requirement applies when a
 conforming program gives the findings of the class `retired` of T under
@@ -1473,7 +1467,7 @@ bound, a binding D of `default-branch-name` (whether or not D is a valid
 binding of `default-branch-name`), a valid binding F of `file-readers`,
 a valid binding V of `vector-paths`, a binding N of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", a set K of kept objects
+Identifiers gives the result "valid", a valid kept object set K
 (`documents#kept-object-set`), and a valid binding H of
 `historical-paths`, when each repository read from which a conforming
 program takes the commit of the default branch under D (when D is
@@ -1485,14 +1479,16 @@ input lacks under `conformance#input` because a conforming program could
 not take that content, that conforming program must make no fix in any
 tree (`findings#make-no-fixes-on-unreadable-files`).
 
+No edit of a fix for a `retired` finding of T may have a spot whose
+valid path is a store path or a local path (`object-store#store-file`).
+
 For each `retired` finding f of T given for an edge E under
 `give-retired-findings`:
 
 - When E is an edge of a stored declared item in `.sinter/`, when the
   source of E comes from a valid program's own store with no file, or
   when f has no spot (or its spot has no span), that program must give
-  no fix for f. No edit of any fix for f may have a spot whose valid
-  path is a store path or a local path (`object-store#store-file`).
+  no fix for f.
 - Otherwise (when f has a spot with a span in a read file or a vector
   file of T), let c be the cited item of E. When `persons` is unbound or
   bound to a valid binding L, let C be the set of approval completions
@@ -1597,7 +1593,7 @@ This requirement applies for a tree T whose object store is valid
 (`object-store#tree-object-store`, or a valid program's own store),
 under a valid binding F of `file-readers`, a binding N of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", a set K of kept objects
+Identifiers gives the result "valid", a valid kept object set K
 (`documents#kept-object-set`), `persons` unbound or bound, and a valid
 binding H of `historical-paths`.
 
@@ -1691,7 +1687,7 @@ sequence L of trees (each with a valid object store under
 `object-store#tree-object-store`, or from valid program's own stores),
 under a valid binding F of `file-readers`, a binding N of
 `external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", a set K of kept objects
+Identifiers gives the result "valid", a valid kept object set K
 (`documents#kept-object-set`), `persons` unbound or bound, and a valid
 binding H of `historical-paths`. This requirement does not apply when a
 conforming program gives the findings of the class `reused-label` of the
@@ -1818,7 +1814,7 @@ valid binding D of `default-branch-name` under which the change of h has
 a base (so the default branch of R has a commit d under D), a valid
 binding F of `file-readers`, a binding N of `external-namespaces` for
 which a conforming program of the design Identifiers gives the result
-"valid", a set K of kept objects (`documents#kept-object-set`),
+"valid", a valid kept object set K (`documents#kept-object-set`),
 `persons` unbound or bound, a valid binding H of `historical-paths`, and
 valid object stores (`object-store#tree-object-store`) of the tree of h,
 of the tree of the base of the change of h, and of the tree of each
@@ -2262,10 +2258,7 @@ and gives no other finding of that class.
         repository-read=v1,
     },
     findings#{fix=v1, edit=v1, edit-set=v1, spot=v1},
-    documents#{
-        file-readers=v1, vector-paths=v1, tree-edge=v1, origin=v1,
-        named-item=v1,
-    },
+    documents#{file-readers=v1, vector-paths=v1, tree-edge=v1, origin=v1},
     approval#{
         approval-kinds=v1, persons=v1, incomplete-first-parent-line=v1,
     },
@@ -2330,8 +2323,9 @@ elements in order.
     successor of `cited`, each with `name` (the name of the successor),
     `kind` (one of `"design"`, `"spec"`, `"schema"`, `"req"`, `"atom"`,
     `"term"`, and `"decision"`), `duplicate` (`true` when two or more
-    items share its name in its set of names so no citation names it,
-    and `false` otherwise), optional `label` (its current revision,
+    declared items of the tree have its name, so that no edge has it as
+    its cited item (`ontology#edge`), and `false` otherwise), optional
+    `label` (its current revision,
     omitted when it is a term with no label), and, when `origin-kind` is
     `"vector-line"`, `in-vector-owner` (when the vector set is of an
     item of the kind `design` D, `true` when the successor is a schema
