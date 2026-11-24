@@ -131,6 +131,21 @@ let is_entry_id_tests =
     property ~name:"is_entry_id is the form of the term entry-id"
       ~print:print_line id_text_gen (fun text ->
         Entry_id.is_entry_id text = Model.is_id text);
+    (* @cites ledger=v1
+       `Entry_id.is_entry_id` gives `true` when, and only when, the text is
+       `e-` followed by 32 lowercase hex digits, each one of `0` to `9` and `a`
+       to `f`. The case checks a valid 32-digit entry id and fixed inputs whose
+       32nd character after `e-` is not a lowercase hex digit. *)
+    Alcotest.test_case "is_entry_id checks the 32nd hex digit" `Quick (fun () ->
+        let prefix = "e-" ^ String.make 31 '0' in
+        Alcotest.(check bool)
+          "32 lowercase hex digits" true
+          (Entry_id.is_entry_id "e-0123456789abcdef0123456789abcdef");
+        List.iter
+          (fun suffix ->
+            let text = prefix ^ suffix in
+            Alcotest.(check bool) text false (Entry_id.is_entry_id text))
+          [ "g"; "A"; "F"; "/"; ":"; "`" ]);
     property ~name:"each entry id has the form of an entry id" ~print:print_line
       Model.line_gen (fun line ->
         Entry_id.is_entry_id
