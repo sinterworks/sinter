@@ -12,6 +12,11 @@
     records. Not designed.
 - **`sinter check`**
   - The built-in finding classes, `spec/algebra.md` section 9.
+- **The query algebra and `sinter query`** — a design of queries over
+  the graph of objects, and a command that runs one from the command
+  line. v0.1 has neither; a script reads the JSON lines of Interchange
+  instead. The work starts from a study of prior art, and it comes
+  before SinterScript. Not designed.
 - **SinterScript** — a small language of its own in which a repository
   writes its own checks, such as "every requirement cites an issue of
   our tracker". Not designed.
@@ -79,9 +84,11 @@
   approves the changes to a set of items since their last approval
   (design notes section 6.4). How to show those changes so that the
   person actually reads what they approve is open. Not designed.
-- **Signed judgments** — a judgment in the ledger (an approval, a
-  decline, done, abandoned, or a repair) carries a signature that only
-  the person who gives it can make. Today a program takes a judgment
+- **Signed judgments** — a judgment or a void in `.sinter/` (an
+  approval, a decline, `done`, `abandoned`, or a void) carries a
+  signature that only the person who gives it can make. The list of
+  persons of Approval says whose judgments count, but it does not stop a
+  forged `by`; a signature closes that gap. Today a program takes a judgment
   only on a confirmation that its standard input, its arguments, and
   its environment cannot give, such as an answer at the controlling
   terminal. An agent that runs the program on a pseudo-terminal can
@@ -114,6 +121,52 @@
     place in the order of dependencies is earlier, so that it covers the
     whole surface at once. It may be split into parts, or its work
     shared out, later.
+  - v0.1 holds a Security design narrowed to the surfaces of v0.1, and
+    it is written after the other designs of v0.1. The guarantees for
+    the surfaces that come after v0.1 wait for those surfaces.
+- **Reconsider the finding class `config-changed`** — v0.1 has no such
+  class.
+- **The host's own review as approval** — after the merge, the job reads
+  through the host adapter which listed persons approved the pull
+  request, and records it as an observation.
+- **Host adapters beyond GitHub and the local adapter** — for example
+  GitLab, with `refs/merge-requests/<iid>/head`.
+- **Proofs of properties over well-formed graphs of objects** — proofs
+  of properties of Sinter's algorithms over graphs of objects that obey
+  the rules of the Ontology.
+- **More detail in the JSON form of a claim from code** — such as a
+  `verifies` edge from a test, added only by adding to the form.
+- **A text form for task and plan definitions** — in v0.1, definitions
+  live only in `.sinter/`.
+- **A design names the path of its vectors** — in v0.1, the parameter
+  `vector-paths` locates vector files.
+- **A fix that adds an object file in `.sinter/`** — in v0.1, an offered
+  fix stays a set of edits in place.
+- **Acknowledgments in `.sinter/`** — a kind of record for an
+  acknowledgment of a finding. v0.1 has no acknowledgments there.
+- **Planned revisions of items in `.sinter/`** — a task definition names
+  the declared items that its work may revise or add in `.sinter/`, and
+  Sinter reports a new revision of a declared item in `.sinter/` that no
+  task plans. In v0.1, Work reports no such revision.
+- **Identity objects for tests, sites, persons, agents, findings, and
+  commits** — in v0.1, none of these gets an identity object, and commit
+  names stay values.
+- **Sinter's index as a cached database** — a cache, probably SQLite,
+  that Sinter reads in most operations instead of reading `.sinter/` and
+  the log branch again. Content ids are its primary keys, and edges are
+  rows that name two content ids. The index stays a cache: every result
+  equals the result of a fresh read of the snapshot and the log. It
+  brings back `sinter tracker fetch`, the tracker keys, and
+  `--no-cache`, which v0.1 defers.
+- **Readable views of changes to `.sinter/`** — tools, views, and
+  automated comments on pull requests that show each new object of
+  `.sinter/` with the keys of its identity objects (names, external ids,
+  vector selections) in place of their content ids. In v0.1, Interchange
+  gives the records of each object that a change adds to `.sinter/` and
+  of the identity objects that they name; the views themselves wait.
+- **The Command line specification, Views, and Reports' forms for
+  persons** — designs that v0.1 defers, with the earlier rulings on
+  views.
 - **Ideas from OpenSpec** — OpenSpec (openspec.dev) is a framework in
   which an AI coding assistant, a program such as Claude Code that
   writes code, writes a specification of each change before the
@@ -280,6 +333,48 @@
     the same protocol.
 - **`spec/protocol.md`** — the `serve` request and response protocol,
   as a specification of its own.
+- **The serve loop, the porcelain form, and `sinter parse`** — the
+  migration to the designs removes `sinter serve`, the output form
+  `-o porcelain` with `spec/porcelain.md`, and `sinter parse`, because
+  no design of v0.1 holds them. When the migration removes each one,
+  this entry names the last commit on `main` that holds its code, so
+  that a later design can start from it.
+- **The harness specification** — `sinter brief`, `sinter declare`, and
+  `sinter hook`, which v0.1 defers.
+- **Plugins for coding-agent harnesses** — a package for each harness
+  that runs Sinter at the right moments of an agent's session, so that
+  no person wires it up by hand.
+  - An OpenCode plugin: run the preview at the hand-back, show the
+    findings to the agent, and stop the hand-back on a finding that
+    blocks.
+  - The same for Claude Code (beyond the skills in `plugins/`), Codex
+    CLI, Gemini CLI, and Cursor.
+  - Each plugin says that an agent runs Sinter, so that Sinter writes no
+    judgment and no void for an agent.
+  - Each waits for the harness specification.
+- **Views inside OpenCode** — OpenCode's plugins for its terminal and
+  graphical interfaces can show Sinter's state beside the agent's work.
+  First research what those plugins allow; then, for example, a panel
+  of the findings of the current change, the tasks of the session with
+  their states and promises, and the requirements that the change
+  touches.
+- **Hooks of git and of the harness** — `sinter init` registers hooks:
+  pre-commit and pre-push for a person, and the hand-back of a harness
+  for an agent. They go with the harness specification.
+- **Editor extensions** — VS Code, Zed, Neovim, and JetBrains, on the
+  Language Server Protocol adapter: go to the definition of a cited
+  item, show findings in place, show the state of a requirement or a
+  task on hover, and name any object by its hash.
+- **CI templates** — a GitHub Action and a GitLab CI template that run
+  the checks at both gates and the job after a merge, and that set up
+  the protection of the log branch.
+- **Skills for agents** — skills and prompts that teach an agent to
+  write task and plan definitions, to write delivery lines, and to read
+  and answer findings.
+- **The look of Sinter** — a visual identity: a logo and an icon, colors
+  and type for the documentation site, the user manual, and the views of
+  editors and harnesses, and a short guide to the style of Sinter's own
+  output.
 - **Rank the items of the brief** — the brief ranks its items by
   their distance in the graph from the step's scope (design notes
   section 8.1). A wrong brief is worse than a short one, because it
@@ -289,6 +384,12 @@
   Measurements of real sessions will decide; the metrics of the
   ledger (design notes section 6.4) will show the answer as fewer
   violations in each turn report. Not designed.
+- **Pack distribution** — a fast-follow after v0.1: a packs repository
+  that publishes each language pack with its hash, `sinter pack add`,
+  the lock file `sinter.lock`, a user cache, and the check of each
+  archive. In v0.1, only the markdown pack is built in, and every other
+  pack comes from a local folder that the project's settings name
+  (record `local-pack-folders`).
 - **`sinter-packs` repository** — the language packs, in the
   repository `sinterworks/sinter-packs`, with the licenses that
   `docs/licensing-setup.md` describes.
