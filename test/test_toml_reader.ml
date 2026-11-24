@@ -133,6 +133,65 @@ let value_cases : (string * M.value option) list =
   [
     ("a = 99999999999999999999999999999999", None);
     ("a = " ^ below halfway_low, Some (M.Float 1.));
+    ("a = 1e309", Some (M.Float Float.infinity));
+    ("a = +1e309", Some (M.Float Float.infinity));
+    ("a = -1e309", Some (M.Float Float.neg_infinity));
+    ("a = 1e400", Some (M.Float Float.infinity));
+    ("a = -1e400", Some (M.Float Float.neg_infinity));
+    ("a = 1" ^ String.make 309 '0' ^ ".0", Some (M.Float Float.infinity));
+    ("a = -1" ^ String.make 309 '0' ^ ".0", Some (M.Float Float.neg_infinity));
+    ("a = 1_0e3_09", Some (M.Float Float.infinity));
+    ("a = -1_0e3_09", Some (M.Float Float.neg_infinity));
+    ("a = 1e99999999999999999999", Some (M.Float Float.infinity));
+    ("a = -1e99999999999999999999", Some (M.Float Float.neg_infinity));
+    ("a = 0e400", Some (M.Float 0.));
+    ("a = -0e400", Some (M.Float (-0.)));
+    ("a = 0.0e99999999999999999999", Some (M.Float 0.));
+    ("a = -0.0e99999999999999999999", Some (M.Float (-0.)));
+    ("a = 1.7976931348623157e308", Some (M.Float Float.max_float));
+    ("a = -1.7976931348623157e308", Some (M.Float (-.Float.max_float)));
+    ("a = 1.797693134862315807937289714053e308", Some (M.Float Float.max_float));
+    ( "a = -1.797693134862315807937289714053e308",
+      Some (M.Float (-.Float.max_float)) );
+    ("a = 1.797693134862315807937289714054e308", Some (M.Float Float.infinity));
+    ( "a = -1.797693134862315807937289714054e308",
+      Some (M.Float Float.neg_infinity) );
+    ( "a = 1979-05-27T07:32:00-00:00",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 0 },
+             M.Unknown_local )) );
+    ( "a = 1979-05-27T07:32:00+00:00",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 0 },
+             M.Minutes 0 )) );
+    ( "a = 1979-05-27T07:32:00Z",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 0 },
+             M.Minutes 0 )) );
+    ( "a = 1979-05-27T07:32:00z",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 0 },
+             M.Minutes 0 )) );
+    ( "a = 1979-05-27T07:32-00:00",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 0 },
+             M.Unknown_local )) );
+    ( "a = 1979-05-27T07:32:00.5-00:00",
+      Some
+        (M.Offset_date_time
+           ( { year = 1979; month = 5; day = 27 },
+             { hour = 7; minute = 32; second = 0; nanosecond = 500_000_000 },
+             M.Unknown_local )) );
     ("a = 1 #9-", Some (M.Integer 1L));
     ("a = 1#99-", Some (M.Integer 1L));
     ("a = 12#9-", Some (M.Integer 12L));
@@ -393,8 +452,6 @@ let fault_cases =
     ("a = = 1\n\xFF", "Not_utf_8 at 8");
     ("a = 9223372036854775808", "Integer_out_of_range at 4");
     ("x = [1, 0x8000000000000000]", "Integer_out_of_range at 8");
-    ("a = 1e400", "Float_out_of_range at 4");
-    ("a = [1, -1e400]", "Float_out_of_range at 8");
     ("d = 1979-02-30", "Date_time_out_of_range at 4");
     ("d = 2026-04-31", "Date_time_out_of_range at 4");
     ("d = 2026-06-31", "Date_time_out_of_range at 4");
@@ -496,7 +553,12 @@ let limit_cases =
     (Some 2, None, "b = [[[1]]]\na = 9223372036854775808", "Depth at 6");
     (Some 1, None, "a = 1\na = [[1]]", "Duplicate_key at 6");
     (Some 1, None, "a = [1, [2], 1e400]", "Depth at 8");
-    (Some 2, None, "a = [1, [2], 1e400]", "Float_out_of_range at 13");
+    (Some 2, None, "a = [1, [2], 1e400]", "Ok");
+    (Some 1, None, "a = [1, [2], 9223372036854775808]", "Depth at 8");
+    ( Some 2,
+      None,
+      "a = [1, [2], 9223372036854775808]",
+      "Integer_out_of_range at 13" );
     (None, Some 2, "a.a.a = 1", "Key_parts at 4");
     (None, Some 2, "[a.a.a]", "Key_parts at 5");
     (None, Some 2, "[[a . a . \"a\"]]", "Key_parts at 10");
@@ -610,6 +672,89 @@ let grows_no_faster_than_n_log_n () =
       | Error message -> Alcotest.failf "%s: %s" name message)
     growth_inputs
 
+let overflowing_float_gen =
+  let open Gen in
+  let* sign = oneof_list [ ""; "+"; "-" ] in
+  let* lead = char_range '1' '9' in
+  let* int_rest = string_size ~gen:(char_range '0' '9') (int_range 0 6) in
+  let* frac =
+    oneof
+      [
+        return "";
+        map
+          (fun digits -> "." ^ digits)
+          (string_size ~gen:(char_range '0' '9') (int_range 1 6));
+      ]
+  in
+  let* exp_mark = oneof_list [ "e"; "E"; "e+"; "E+" ] in
+  let* exp = oneof [ int_range 309 500; int_range 501 9999 ] in
+  let literal =
+    Printf.sprintf "%s%c%s%s%s%d" sign lead int_rest frac exp_mark exp
+  in
+  return (String.equal sign "-", literal)
+
+let overflowing_decimal_floats_give_signed_infinity =
+  property ~count:500
+    ~name:
+      "read gives signed infinity for decimal floats that round to an infinity"
+    ~print:(fun (_, literal) -> literal)
+    overflowing_float_gen
+    (fun (negative, literal) ->
+      let bytes = "a = " ^ literal ^ "\n" in
+      let expected = if negative then Float.neg_infinity else Float.infinity in
+      match T.read bytes with
+      | Ok
+          [
+            ( "a",
+              {
+                T.value = T.Float x;
+                span = Some { T.start = 4; stop };
+                key = _;
+              } );
+          ] ->
+          Float.equal x expected && stop = 4 + String.length literal
+      | _ -> false)
+
+let date_time_gen =
+  let open Gen in
+  let* year =
+    oneof [ oneof_list [ 0; 1979; 2000; 2026; 9999 ]; int_range 0 9999 ]
+  in
+  let* month = int_range 1 12 in
+  let* day = int_range 1 (M.days_in_month year month) in
+  let* hour = int_range 0 23 in
+  let* minute = int_range 0 59 in
+  let* second = oneof [ int_range 0 59; return 60 ] in
+  let* sep = oneof_list [ "T"; "t"; " " ] in
+  return
+    ( { M.year; month; day },
+      { M.hour; minute; second; nanosecond = 0 },
+      Printf.sprintf "%04d-%02d-%02d%s%02d:%02d:%02d" year month day sep hour
+        minute second )
+
+let unknown_local_offset_differs_from_zero_offset =
+  property ~count:500
+    ~name:
+      "read gives Unknown_local for -00:00 and Minutes 0 for Z, z, and +00:00"
+    ~print:(fun (_, _, text) -> text)
+    date_time_gen
+    (fun (date, time, prefix) ->
+      let check suffix expected_offset =
+        match T.read ("a = " ^ prefix ^ suffix ^ "\n") with
+        | Ok
+            [
+              ( "a",
+                { T.value = T.Offset_date_time (d, t, o); span = _; key = _ } );
+            ] ->
+            model_date d = date
+            && model_time t = time
+            && model_offset o = expected_offset
+        | _ -> false
+      in
+      check "-00:00" M.Unknown_local
+      && check "+00:00" (M.Minutes 0)
+      && check "Z" (M.Minutes 0) && check "z" (M.Minutes 0))
+
 let tests =
   [
     every_valid_case_gives_its_value;
@@ -620,6 +765,8 @@ let tests =
     gives_the_byte_spans;
     reads_corrupted_documents;
     reads_noise;
+    overflowing_decimal_floats_give_signed_infinity;
+    unknown_local_offset_differs_from_zero_offset;
     Alcotest.test_case
       "read reads deep nesting and long keys with a small stack" `Quick
       reads_deep_nesting_with_a_small_stack;

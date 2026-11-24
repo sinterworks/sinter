@@ -452,8 +452,10 @@ let write_integer st number =
 
 let write_float st number =
   if Float.is_nan number then pick st [ "nan"; "+nan"; "-nan" ]
-  else if Float.equal number Float.infinity then pick st [ "inf"; "+inf" ]
-  else if Float.equal number Float.neg_infinity then "-inf"
+  else if Float.equal number Float.infinity then
+    pick st [ "inf"; "+inf"; "1e309"; "+1e309"; "1e400"; "1.8e308" ]
+  else if Float.equal number Float.neg_infinity then
+    pick st [ "-inf"; "-1e309"; "-1e400"; "-1.8e308" ]
   else
     let sign =
       if Float.sign_bit number then "-" else if chance st 20 then "+" else ""

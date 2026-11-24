@@ -69,7 +69,7 @@ type located = {
 type located_key = {
   key_location : Yojson.Basic.t list;
       (** the location to which the key leads, as the requirement
-          [give-toml-spans] gives it *)
+          [give-only-toml-spans] gives it *)
   key_span : span;  (** the run that the rule [key] matches *)
   parts : span list;
       (** the runs that the rule [simple-key] matches, one for each TOML key *)

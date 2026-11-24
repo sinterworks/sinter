@@ -388,6 +388,56 @@ let gives_no_result_only_at_a_limit () =
       outcome ~max_depth:1 "a = [[1]]\na = 1\n";
     ]
 
+(* @verifies data-forms#{read-toml=v1, give-only-root-tables=v1}
+   The test gives decimal floats that round to positive or negative infinity in
+   IEEE 754-2019 binary64 and fails when the adapter gives "invalid" or a float
+   other than that signed infinity. *)
+let overflowing_decimal_floats_give_infinity =
+  property ~count:500
+    ~name:
+      "read gives valid and signed infinity for decimal floats that round to \
+       an infinity"
+    ~print:(fun (_, literal) -> literal)
+    Test_toml_reader.overflowing_float_gen
+    (fun (negative, literal) ->
+      let expected = if negative then Float.neg_infinity else Float.infinity in
+      let expected_form = if negative then "-inf" else "inf" in
+      match D.read ("a = " ^ literal ^ "\n") with
+      | D.Valid { D.root_table = [ ("a", D.Float x) ]; _ } ->
+          Float.equal x expected && String.equal (M.float_form x) expected_form
+      | _ -> false)
+
+(* @verifies data-forms#{read-toml=v1, give-only-root-tables=v1}
+   The test gives offset date-times with -00:00, +00:00, Z, and z and fails
+   when -00:00 does not give the unknown local offset, when +00:00, Z, or z does
+   not give the offset 0, or when -00:00 equals the offset 0. *)
+let unknown_local_offset_is_distinct_from_zero_offset =
+  property ~count:500
+    ~name:
+      "read gives unknown local offset for -00:00 apart from +00:00, Z, and z"
+    ~print:(fun (_, _, text) -> text)
+    Test_toml_reader.date_time_gen
+    (fun (date, time, prefix) ->
+      let read_value suffix =
+        match D.read ("a = " ^ prefix ^ suffix ^ "\n") with
+        | D.Valid { D.root_table = [ ("a", value) ]; _ } -> Some (model value)
+        | _ -> None
+      in
+      match
+        ( read_value "-00:00",
+          read_value "+00:00",
+          read_value "Z",
+          read_value "z" )
+      with
+      | Some unknown, Some plus_zero, Some upper_z, Some lower_z ->
+          M.equal unknown (M.Offset_date_time (date, time, M.Unknown_local))
+          && M.equal plus_zero (M.Offset_date_time (date, time, M.Minutes 0))
+          && M.equal plus_zero upper_z && M.equal plus_zero lower_z
+          && (not (M.equal unknown plus_zero))
+          && (not (M.equal unknown upper_z))
+          && not (M.equal unknown lower_z)
+      | _ -> false)
+
 let vector_groups =
   [
     give_root_table_vectors;
@@ -406,6 +456,8 @@ let tests =
       reads_generated_documents;
       gives_only_span_pairs;
       gives_a_result_for_outside_data;
+      overflowing_decimal_floats_give_infinity;
+      unknown_local_offset_is_distinct_from_zero_offset;
       gives_tables_in_the_order_of_their_texts;
       gives_no_result_past_a_limit;
       Alcotest.test_case "read gives no result only at a limit of the reader"
