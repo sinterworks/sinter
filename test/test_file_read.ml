@@ -617,10 +617,10 @@ let root_that_is_no_folder_fails () =
           Filename.get_temp_dir_name () ^ "/a\x00b";
         ])
 
-(* @verifies files#give-file-read-results=v1
-   @verifies conformance#report-stops-at-limits=v1
-   A root pathname longer than the system allows stops at the pathname length
-   limit at the root and gives none of the file-read results. *)
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   A root pathname longer than the system allows reaches the pathname length
+   limit at the root, ends each call, reports where the call stopped, and
+   gives no other result. *)
 let root_pathname_too_long_stops_at_limit () =
   let long_root = String.concat "/" (List.init 2500 (fun _ -> "a")) in
   let check_stopped what = function
@@ -721,6 +721,7 @@ end
 
 let fake_eilseq = 4242
 let fake_estale = 4243
+let fake_enotsup = 4244
 let fold name = String.lowercase_ascii name
 
 module Fake (F : FAULTS) = struct
@@ -850,7 +851,7 @@ module Fake (F : FAULTS) = struct
 
   let eilseq = fake_eilseq
   let estale = fake_estale
-  let enotsup = 4244
+  let enotsup = fake_enotsup
 end
 
 type fake_read = {
@@ -934,6 +935,9 @@ let call_name = function
 let name_rejected_errors =
   [ Unix.ENOENT; Unix.ENAMETOOLONG; Unix.EINVAL; Unix.EUNKNOWNERR fake_eilseq ]
 
+let unsupported_operation_errors =
+  [ Unix.ENOSYS; Unix.EOPNOTSUPP; Unix.EUNKNOWNERR fake_enotsup ]
+
 let missing_part_errors =
   [
     Unix.EACCES;
@@ -951,6 +955,7 @@ let missing_part_errors =
     Unix.EHOSTUNREACH;
     Unix.EUNKNOWNERR fake_estale;
   ]
+  @ unsupported_operation_errors
 
 let limit_errors =
   [
@@ -965,18 +970,27 @@ let other_unix_errors =
     Unix.ENOTDIR;
     Unix.ELOOP;
     Unix.EINTR;
-    Unix.ENOSYS;
-    Unix.EOPNOTSUPP;
     Unix.EBADF;
     Unix.EISDIR;
     Unix.EAGAIN;
     Unix.EPIPE;
     Unix.EHOSTDOWN;
+    Unix.EUNKNOWNERR (fake_eilseq - 1);
+    Unix.EUNKNOWNERR (fake_enotsup + 1);
     Unix.EUNKNOWNERR (fake_eilseq + 10);
   ]
 
 let is_name_rejected error = List.mem error name_rejected_errors
 let is_missing_part_error error = List.mem error missing_part_errors
+
+let only_closes_after call path targets =
+  let rec find = function
+    | [] -> false
+    | (c, p) :: rest when c = call && p = path ->
+        List.for_all (fun (c', _) -> c' = Close) rest
+    | _ :: rest -> find rest
+  in
+  find targets
 
 let limit_of_error call error =
   match (call, error) with
@@ -1027,9 +1041,10 @@ let name_not_accepted_gives_no_file () =
 
 (* @verifies files#give-file-read-results=v1
    @verifies conformance#report-missing-parts=v1
-   Every refused permission and every input or output error that the
-   interface names gives "cannot read" on every call of a file read and
-   closes each descriptor. *)
+   Every refused permission, every input or output error, and every
+   unsupported-operation error that the interface names gives "cannot read"
+   on every call of a file read (including the walk from the root), never
+   gives Stopped or Failed, and closes each descriptor. *)
 let missing_part_errors_give_cannot_read () =
   let calls =
     [
@@ -1061,11 +1076,10 @@ let missing_part_errors_give_cannot_read () =
         missing_part_errors)
     calls
 
-(* @verifies files#give-file-read-results=v1
-   @verifies conformance#report-stops-at-limits=v1
-   Every limit error that the interface names stops the file read with no
-   file-read result, names the limit and the file where the read stopped,
-   and closes each descriptor. *)
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   Every limit error and Out_of_memory that the interface names ends the call
+   at once with no further non-close call and no other result, reports the
+   limit and the file where the read stopped, and closes each descriptor. *)
 let limit_errors_stop_the_read () =
   let calls =
     [
@@ -1093,26 +1107,41 @@ let limit_errors_stop_the_read () =
           let fault called name =
             Option.map (fun () -> Fails error) (at call path called name)
           in
+          let read = fake_read ~fault fake_tree text in
           check_fake_failure
             (Sinter_file_read.Stopped { limit; names = path })
-            (fake_read ~fault fake_tree text))
+            read;
+          Alcotest.(check bool)
+            "no non-close call after the stop" true
+            (only_closes_after call path read.targets))
         limit_errors;
       let oom_fault called name =
         Option.map (fun () -> Raises Out_of_memory) (at call path called name)
       in
+      let read = fake_read ~fault:oom_fault fake_tree text in
       check_fake_failure
         (Sinter_file_read.Stopped
            { limit = Sinter_file_read.Memory; names = path })
-        (fake_read ~fault:oom_fault fake_tree text))
+        read;
+      Alcotest.(check bool)
+        "no non-close call after Out_of_memory" true
+        (only_closes_after call path read.targets))
     calls;
+  let root_too_long =
+    fake_read ~fault:(on Open_root (Fails Unix.ENAMETOOLONG)) fake_tree "a.md"
+  in
   check_fake_failure
     (Sinter_file_read.Stopped
        { limit = Sinter_file_read.Pathname_length; names = [] })
-    (fake_read ~fault:(on Open_root (Fails Unix.ENAMETOOLONG)) fake_tree "a.md")
+    root_too_long;
+  Alcotest.(check bool)
+    "no non-close call after Pathname_length" true
+    (only_closes_after Open_root [] root_too_long.targets)
 
 (* @verifies files#give-file-read-results=v1
-   Errors outside the missing-part, name-rejected, and limit cases give
-   Failed with the file and error number, and never "cannot read". *)
+   Errors outside the missing-part, name-rejected, and limit cases, including
+   EINVAL outside kind, give Failed with the file and error number, and never
+   "cannot read". *)
 let other_errors_fail_the_read () =
   List.iter
     (fun error ->
@@ -1162,11 +1191,15 @@ let unix_error_gen =
    @ other_unix_errors)
 
 (* @verifies files#give-file-read-results=v1
-   @verifies conformance#report-missing-parts=v1
-   @verifies conformance#report-stops-at-limits=v1
+   @verifies conformance#{
+       report-missing-parts=v1, report-stops-at-limits=v1,
+       end-runs-at-limits=v1,
+   }
    For generated system calls and error numbers on a file read, the result
-   matches the mapping of the interface, gives no file-read result on a stop
-   at a limit, and closes each descriptor. *)
+   matches the mapping of the interface, gives "cannot read" for refused
+   permissions, input or output errors, and unsupported operations, ends the
+   call with no further non-close call and no other result on a stop at a
+   limit, and closes each descriptor. *)
 let read_error_mapping_property =
   let call_site_gen =
     Gen.oneof_list
@@ -1210,14 +1243,19 @@ let read_error_mapping_property =
            if call = Close then Ok { result = "found"; text = Some "hi" }
            else expected_read_error call path error
          in
-         read.open_after = 0 && read.double_closes = 0
+         let ended_on_stop =
+           match expected with
+           | Error (Sinter_file_read.Stopped _) ->
+               only_closes_after call path read.targets
+           | _ -> true
+         in
+         read.open_after = 0 && read.double_closes = 0 && ended_on_stop
          && read.answer = Ok expected))
 
-(* @verifies files#give-file-read-results=v1
-   @verifies conformance#report-stops-at-limits=v1
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
    When UTF-8 decoding raises Out_of_memory after the content read finishes,
-   read stops at Memory with the entry names of the file. It gives no
-   file-read result and closes each descriptor exactly once. *)
+   read ends the call at Memory with the entry names of the file, gives no
+   other result, and closes each descriptor exactly once. *)
 let utf_8_decode_out_of_memory_stops_with_memory () =
   let content = String.make 1000 'a' in
   let tree =
@@ -1337,7 +1375,14 @@ let close_error_is_ignored () =
           Alcotest.failf "the read raised %s" (Printexc.to_string error));
       Alcotest.(check int) "the descriptors left open" 0 read.open_after;
       Alcotest.(check int) "the double closes" 0 read.double_closes)
-    [ Unix.EIO; Unix.EMFILE; Unix.EBADF ]
+    [
+      Unix.EIO;
+      Unix.EMFILE;
+      Unix.EBADF;
+      Unix.ENOSYS;
+      Unix.EOPNOTSUPP;
+      Unix.EUNKNOWNERR fake_enotsup;
+    ]
 
 exception Other_failure
 
@@ -1522,9 +1567,10 @@ let walk_follows_the_folder_tree =
          | Files_tree.Read { value; changes } ->
              changes = [] && value = Ok (walk_reference tree)))
 
-(* @verifies conformance#report-stops-at-limits=v1
-   A deep walk either gives the whole folder tree or stops at the descriptor
-   limit, and closes each descriptor. *)
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   A deep walk either gives the whole folder tree or ends the call at the
+   descriptor limit with no tree, changes no file, and closes each
+   descriptor. *)
 let deep_walk_closes_each_descriptor () =
   let tree = Pack_trees.deep_tree 600 in
   let value, before, after =
@@ -1650,13 +1696,17 @@ let rec mark_unread target replacement (file : 'a Tree.file) =
            entries)
   | _ -> file
 
-(* @verifies conformance#report-missing-parts=v1
-   @verifies conformance#report-stops-at-limits=v1
-   On a missing-part error from open_root, open_folder, listing, or kind, a
+(* @verifies conformance#{
+       report-missing-parts=v1, report-stops-at-limits=v1,
+       end-runs-at-limits=v1,
+   }
+   On a missing-part error (refused permission, input or output error, or
+   unsupported operation) from open_root, open_folder, listing, or kind, a
    walk marks the folder Unread_folder and continues. On a limit error or
-   Out_of_memory from a call other than close, the walk stops with the limit
-   and entry names. On any other Unix error, it gives Failed with that error,
-   and it lets other exceptions through. On every path, it closes each opened
+   Out_of_memory from a call other than close, the walk ends the call at once
+   with no further non-close call and no tree, and reports the limit and
+   entry names. On any other Unix error, it gives Failed with that error, and
+   it lets other exceptions through. On every path, it closes each opened
    descriptor exactly once. *)
 let walk_error_mapping_property =
   let fault_gen =
@@ -1719,11 +1769,12 @@ let walk_error_mapping_property =
                      run.value = Ok (Ok expected_tree)
                  | Close, (Sys_fails | Raises _) -> false
                  | _, Raises Out_of_memory ->
-                     run.value
-                     = Ok
-                         (Error
-                            (Sinter_file_read.Stopped
-                               { limit = Memory; names = path }))
+                     only_closes_after call path run.run_targets
+                     && run.value
+                        = Ok
+                            (Error
+                               (Sinter_file_read.Stopped
+                                  { limit = Memory; names = path }))
                  | _, Sys_fails -> (
                      match run.value with
                      | Error (Sys_error _) -> true
@@ -1740,11 +1791,12 @@ let walk_error_mapping_property =
                  | _, Fails error -> (
                      match limit_of_error call error with
                      | Some limit ->
-                         run.value
-                         = Ok
-                             (Error
-                                (Sinter_file_read.Stopped
-                                   { limit; names = path }))
+                         only_closes_after call path run.run_targets
+                         && run.value
+                            = Ok
+                                (Error
+                                   (Sinter_file_read.Stopped
+                                      { limit; names = path }))
                      | None ->
                          run.value
                          = Ok
@@ -1962,11 +2014,15 @@ let content_makes_the_calls_of_read =
              true
          | _ -> false))
 
-(* @verifies conformance#report-missing-parts=v1
-   @verifies conformance#report-stops-at-limits=v1
+(* @verifies conformance#{
+       report-missing-parts=v1, report-stops-at-limits=v1,
+       end-runs-at-limits=v1,
+   }
    For generated system calls and error numbers on content, Cannot_take names
-   the missing folder or file. Limit errors give Stopped, other errors give
-   Failed, and content closes each opened descriptor exactly once. *)
+   the missing folder or file for refused permissions, input or output
+   errors, and unsupported operations. Limit errors end the call at once with
+   no further non-close call and give Stopped, other errors give Failed, and
+   content closes each opened descriptor exactly once. *)
 let content_error_mapping_property =
   let call_site_gen =
     Gen.oneof_list
@@ -2006,8 +2062,19 @@ let content_error_mapping_property =
            if call = Close then Ok (Ok "hi")
            else expected_content_error call path error
          in
-         run.left_open = 0 && run.double_closes = 0 && run.value = Ok expected))
+         let ended_on_stop =
+           match expected with
+           | Error (Sinter_file_read.Stopped _) ->
+               only_closes_after call path run.run_targets
+           | _ -> true
+         in
+         run.left_open = 0 && run.double_closes = 0 && ended_on_stop
+         && run.value = Ok expected))
 
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   When a call of content raises Out_of_memory, content ends the call at once
+   with no further non-close call and no other result, reports Memory at that
+   file, and closes each descriptor exactly once. *)
 let content_out_of_memory_stops_with_memory () =
   let not_reg =
     fake_content
@@ -2031,6 +2098,9 @@ let content_out_of_memory_stops_with_memory () =
       in
       Alcotest.(check int) "open descriptors" 0 run.left_open;
       Alcotest.(check int) "double closes" 0 run.double_closes;
+      Alcotest.(check bool)
+        "no non-close call after Out_of_memory" true
+        (only_closes_after call path run.run_targets);
       Alcotest.(check bool)
         "stopped with Memory" true
         (run.value
@@ -2143,13 +2213,17 @@ let walk_contents_on_a_fake_system =
              && root_file = number (contents_reference tree)
          | _ -> false))
 
-(* @verifies conformance#report-missing-parts=v1
-   @verifies conformance#report-stops-at-limits=v1
-   A walk with contents maps missing-part errors to Unread_folder or
+(* @verifies conformance#{
+       report-missing-parts=v1, report-stops-at-limits=v1,
+       end-runs-at-limits=v1,
+   }
+   A walk with contents maps missing-part errors (refused permissions, input
+   or output errors, and unsupported operations) to Unread_folder or
    Unread_file. It maps limit errors and Out_of_memory from a call other than
-   close to Stopped, maps is_regular_file false to Changed, and maps other
-   Unix errors to Failed. It lets Sys_error and other exceptions through, and
-   it closes each opened descriptor exactly once. *)
+   close to Stopped, ends the call at once with no further non-close call and
+   no tree, maps is_regular_file false to Changed, and maps other Unix errors
+   to Failed. It lets Sys_error and other exceptions through, and it closes
+   each opened descriptor exactly once. *)
 let walk_contents_error_mapping_property =
   let fault_gen =
     Gen.oneof_weighted
@@ -2217,11 +2291,12 @@ let walk_contents_error_mapping_property =
                      run.value = Ok (Error (Sinter_file_read.Changed path))
                  | _, Not_regular -> run.value = Ok (Ok expected_tree)
                  | _, Raises Out_of_memory ->
-                     run.value
-                     = Ok
-                         (Error
-                            (Sinter_file_read.Stopped
-                               { limit = Memory; names = path }))
+                     only_closes_after call path run.run_targets
+                     && run.value
+                        = Ok
+                            (Error
+                               (Sinter_file_read.Stopped
+                                  { limit = Memory; names = path }))
                  | _, Sys_fails -> (
                      match run.value with
                      | Error (Sys_error _) -> true
@@ -2242,11 +2317,12 @@ let walk_contents_error_mapping_property =
                  | _, Fails error -> (
                      match limit_of_error call error with
                      | Some limit ->
-                         run.value
-                         = Ok
-                             (Error
-                                (Sinter_file_read.Stopped
-                                   { limit; names = path }))
+                         only_closes_after call path run.run_targets
+                         && run.value
+                            = Ok
+                                (Error
+                                   (Sinter_file_read.Stopped
+                                      { limit; names = path }))
                      | None ->
                          run.value
                          = Ok
@@ -2258,6 +2334,346 @@ let walk_contents_error_mapping_property =
                || QCheck2.Test.fail_reportf "walk_contents fault of %s at %s"
                     (call_name call) (String.concat "/" path))
            baseline.run_targets))
+
+(* @verifies conformance#report-missing-parts=v1
+   Each error of a call that the system or a file system does not support
+   (ENOSYS, EOPNOTSUPP, and ENOTSUP) marks the folder Unread_folder or the
+   file Unread_file in walks, names the missing part in Cannot_take for
+   content, keeps sibling entries readable, never gives Stopped or Failed,
+   and closes each descriptor. *)
+let unsupported_operation_marks_missing_part_in_walks_and_content () =
+  let tree =
+    file
+      (Folder
+         [
+           ("a.md", Files_tree.regular "hi");
+           ( "d",
+             file
+               (Folder
+                  [
+                    ("x.md", Files_tree.regular "x");
+                    ("y.md", Files_tree.regular "y");
+                  ]) );
+         ])
+  in
+  let walk_base = walk_reference tree in
+  let contents_base = contents_reference tree in
+  let label kind call path error =
+    Printf.sprintf "%s %s at %s with %s" kind (call_name call)
+      (String.concat "/" path) (Unix.error_message error)
+  in
+  List.iter
+    (fun error ->
+      List.iter
+        (fun (call, path, unread_folder) ->
+          let fault called name =
+            Option.map (fun () -> Fails error) (at call path called name)
+          in
+          let run = fake_walk ~fault tree in
+          let ctx = label "walk" call path error in
+          Alcotest.(check int) (ctx ^ ": open descriptors") 0 run.left_open;
+          Alcotest.(check int) (ctx ^ ": double closes") 0 run.double_closes;
+          Alcotest.(check bool)
+            (ctx ^ ": marks folder Unread_folder")
+            true
+            (run.value
+            = Ok (Ok (mark_unread unread_folder Tree.Unread_folder walk_base))))
+        [
+          (Open_root, [], []);
+          (Listing, [], []);
+          (Kind, [ "a.md" ], []);
+          (Open_folder, [ "d" ], [ "d" ]);
+          (Listing, [ "d" ], [ "d" ]);
+          (Kind, [ "d"; "x.md" ], [ "d" ]);
+        ];
+      List.iter
+        (fun (call, path, target, replacement) ->
+          let fault called name =
+            Option.map (fun () -> Fails error) (at call path called name)
+          in
+          let run = fake_walk_contents ~fault tree Fun.id in
+          let ctx = label "walk_contents" call path error in
+          Alcotest.(check int) (ctx ^ ": open descriptors") 0 run.left_open;
+          Alcotest.(check int) (ctx ^ ": double closes") 0 run.double_closes;
+          Alcotest.(check bool)
+            (ctx ^ ": marks unread part")
+            true
+            (run.value = Ok (Ok (mark_unread target replacement contents_base))))
+        [
+          (Open_root, [], [], Tree.Unread_folder);
+          (Listing, [], [], Tree.Unread_folder);
+          (Kind, [ "a.md" ], [], Tree.Unread_folder);
+          (Open_folder, [ "d" ], [ "d" ], Tree.Unread_folder);
+          (Listing, [ "d" ], [ "d" ], Tree.Unread_folder);
+          (Kind, [ "d"; "x.md" ], [ "d" ], Tree.Unread_folder);
+          (Open_file, [ "d"; "x.md" ], [ "d"; "x.md" ], Tree.Unread_file);
+          (Is_regular_file, [ "d"; "x.md" ], [ "d"; "x.md" ], Tree.Unread_file);
+          (Content, [ "d"; "x.md" ], [ "d"; "x.md" ], Tree.Unread_file);
+        ];
+      List.iter
+        (fun (call, path, part) ->
+          let fault called name =
+            Option.map (fun () -> Fails error) (at call path called name)
+          in
+          let run = fake_content ~fault tree [ "d"; "x.md" ] in
+          let ctx = label "content" call path error in
+          Alcotest.(check int) (ctx ^ ": open descriptors") 0 run.left_open;
+          Alcotest.(check int) (ctx ^ ": double closes") 0 run.double_closes;
+          Alcotest.(check bool)
+            (ctx ^ ": gives Cannot_take")
+            true
+            (run.value = Ok (Ok (Error (Sinter_file_read.Cannot_take part)))))
+        [
+          (Open_root, [], []);
+          (Check_search, [], []);
+          (Listing, [], []);
+          (Kind, [ "d" ], []);
+          (Open_folder, [ "d" ], [ "d" ]);
+          (Check_search, [ "d" ], [ "d" ]);
+          (Listing, [ "d" ], [ "d" ]);
+          (Kind, [ "d"; "x.md" ], [ "d" ]);
+          (Open_file, [ "d"; "x.md" ], [ "d"; "x.md" ]);
+          (Is_regular_file, [ "d"; "x.md" ], [ "d"; "x.md" ]);
+          (Content, [ "d"; "x.md" ], [ "d"; "x.md" ]);
+        ])
+    unsupported_operation_errors
+
+(* @verifies conformance#report-missing-parts=v1
+   EINVAL gives Failed on every call of walk and walk_contents, and on every
+   call of content other than kind, never a missing-part outcome. *)
+let einval_fails_walks_and_non_kind_content () =
+  let label kind call path =
+    Printf.sprintf "%s %s at %s with EINVAL" kind (call_name call)
+      (String.concat "/" path)
+  in
+  List.iter
+    (fun (call, path) ->
+      let fault called name =
+        Option.map (fun () -> Fails Unix.EINVAL) (at call path called name)
+      in
+      let w = fake_walk ~fault fake_tree in
+      let ctx = label "walk" call path in
+      Alcotest.(check int) (ctx ^ ": open descriptors") 0 w.left_open;
+      Alcotest.(check int) (ctx ^ ": double closes") 0 w.double_closes;
+      Alcotest.(check bool)
+        (ctx ^ ": gives Failed") true
+        (w.value
+        = Ok (Error (Sinter_file_read.Failed { names = path; error = EINVAL }))
+        ))
+    [
+      (Open_root, []);
+      (Listing, []);
+      (Kind, [ "d" ]);
+      (Open_folder, [ "d" ]);
+      (Listing, [ "d" ]);
+      (Kind, [ "d"; "a.md" ]);
+    ];
+  List.iter
+    (fun (call, path) ->
+      let fault called name =
+        Option.map (fun () -> Fails Unix.EINVAL) (at call path called name)
+      in
+      let wc = fake_walk_contents ~fault fake_tree Fun.id in
+      let ctx = label "walk_contents" call path in
+      Alcotest.(check int) (ctx ^ ": open descriptors") 0 wc.left_open;
+      Alcotest.(check int) (ctx ^ ": double closes") 0 wc.double_closes;
+      Alcotest.(check bool)
+        (ctx ^ ": gives Failed") true
+        (wc.value
+        = Ok (Error (Sinter_file_read.Failed { names = path; error = EINVAL }))
+        ))
+    [
+      (Open_root, []);
+      (Listing, []);
+      (Kind, [ "d" ]);
+      (Open_folder, [ "d" ]);
+      (Listing, [ "d" ]);
+      (Kind, [ "d"; "a.md" ]);
+      (Open_file, [ "d"; "a.md" ]);
+      (Is_regular_file, [ "d"; "a.md" ]);
+      (Content, [ "d"; "a.md" ]);
+    ];
+  List.iter
+    (fun (call, path) ->
+      let fault called name =
+        Option.map (fun () -> Fails Unix.EINVAL) (at call path called name)
+      in
+      let c = fake_content ~fault fake_tree [ "d"; "a.md" ] in
+      let ctx = label "content" call path in
+      Alcotest.(check int) (ctx ^ ": open descriptors") 0 c.left_open;
+      Alcotest.(check int) (ctx ^ ": double closes") 0 c.double_closes;
+      Alcotest.(check bool)
+        (ctx ^ ": gives Failed") true
+        (c.value
+        = Ok (Error (Sinter_file_read.Failed { names = path; error = EINVAL }))
+        ))
+    [
+      (Open_root, []);
+      (Check_search, []);
+      (Listing, []);
+      (Open_folder, [ "d" ]);
+      (Check_search, [ "d" ]);
+      (Listing, [ "d" ]);
+      (Open_file, [ "d"; "a.md" ]);
+      (Is_regular_file, [ "d"; "a.md" ]);
+      (Content, [ "d"; "a.md" ]);
+    ]
+
+(* @verifies conformance#report-missing-parts=v1
+   EINVAL from kind during content gives No_content_file, never Cannot_take or
+   Failed. *)
+let einval_on_kind_of_content_gives_no_content_file () =
+  List.iter
+    (fun path ->
+      let fault called name =
+        Option.map (fun () -> Fails Unix.EINVAL) (at Kind path called name)
+      in
+      let c = fake_content ~fault fake_tree [ "d"; "a.md" ] in
+      let ctx =
+        Printf.sprintf "content kind at %s with EINVAL" (String.concat "/" path)
+      in
+      Alcotest.(check int) (ctx ^ ": open descriptors") 0 c.left_open;
+      Alcotest.(check int) (ctx ^ ": double closes") 0 c.double_closes;
+      Alcotest.(check bool)
+        (ctx ^ ": gives No_content_file")
+        true
+        (c.value = Ok (Ok (Error Sinter_file_read.No_content_file))))
+    [ [ "d" ]; [ "d"; "a.md" ] ]
+
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   When walk or walk_contents reaches a limit on one branch of a folder tree,
+   the call ends at once with no further non-close call and no further value
+   callback, reports the limit and file, gives no tree, and closes each
+   descriptor. *)
+let limit_stop_ends_walks_at_once () =
+  let tree =
+    file
+      (Folder
+         [
+           ( "a",
+             file
+               (Folder
+                  [
+                    ("1.md", Files_tree.regular "1");
+                    ("2.md", Files_tree.regular "2");
+                  ]) );
+           ("b", file (Folder [ ("1.md", Files_tree.regular "3") ]));
+           ("c.md", Files_tree.regular "4");
+         ])
+  in
+  let stops =
+    List.map (fun (error, limit) -> (Fails error, limit)) limit_errors
+    @ [ (Raises Out_of_memory, Sinter_file_read.Memory) ]
+  in
+  let label kind call path limit =
+    Printf.sprintf "%s %s at %s stopping at %s" kind (call_name call)
+      (String.concat "/" path) (limit_name limit)
+  in
+  List.iter
+    (fun (call, path) ->
+      List.iter
+        (fun (fault_val, limit) ->
+          let fault called name =
+            Option.map (fun () -> fault_val) (at call path called name)
+          in
+          let run = fake_walk ~fault tree in
+          let ctx = label "walk" call path limit in
+          Alcotest.(check int) (ctx ^ ": open descriptors") 0 run.left_open;
+          Alcotest.(check int) (ctx ^ ": double closes") 0 run.double_closes;
+          Alcotest.(check bool)
+            (ctx ^ ": no non-close call after stop")
+            true
+            (only_closes_after call path run.run_targets);
+          Alcotest.(check bool)
+            (ctx ^ ": returns Stopped")
+            true
+            (run.value
+            = Ok (Error (Sinter_file_read.Stopped { limit; names = path }))))
+        stops)
+    [
+      (Open_root, []);
+      (Listing, []);
+      (Kind, [ "a" ]);
+      (Open_folder, [ "a" ]);
+      (Listing, [ "a" ]);
+      (Kind, [ "a"; "1.md" ]);
+    ];
+  List.iter
+    (fun (call, path) ->
+      List.iter
+        (fun (fault_val, limit) ->
+          let stopped = ref false in
+          let callbacks_after = ref 0 in
+          let fault called name =
+            match at call path called name with
+            | Some () ->
+                stopped := true;
+                Some fault_val
+            | None -> None
+          in
+          let run =
+            fake_walk_contents ~fault tree (fun bytes ->
+                if !stopped then incr callbacks_after;
+                bytes)
+          in
+          let ctx = label "walk_contents" call path limit in
+          Alcotest.(check int) (ctx ^ ": open descriptors") 0 run.left_open;
+          Alcotest.(check int) (ctx ^ ": double closes") 0 run.double_closes;
+          Alcotest.(check int)
+            (ctx ^ ": no value callback after stop")
+            0 !callbacks_after;
+          Alcotest.(check bool)
+            (ctx ^ ": no non-close call after stop")
+            true
+            (only_closes_after call path run.run_targets);
+          Alcotest.(check bool)
+            (ctx ^ ": returns Stopped")
+            true
+            (run.value
+            = Ok (Error (Sinter_file_read.Stopped { limit; names = path }))))
+        stops)
+    [
+      (Open_root, []);
+      (Listing, []);
+      (Kind, [ "a" ]);
+      (Open_folder, [ "a" ]);
+      (Listing, [ "a" ]);
+      (Kind, [ "a"; "1.md" ]);
+      (Open_file, [ "a"; "1.md" ]);
+      (Is_regular_file, [ "a"; "1.md" ]);
+      (Content, [ "a"; "1.md" ]);
+      (Open_file, [ "a"; "2.md" ]);
+      (Content, [ "a"; "2.md" ]);
+    ];
+  let w_long = fake_walk ~fault:(on Open_root (Fails Unix.ENAMETOOLONG)) tree in
+  Alcotest.(check bool)
+    "walk stops at Pathname_length" true
+    (w_long.left_open = 0 && w_long.double_closes = 0
+    && only_closes_after Open_root [] w_long.run_targets
+    && w_long.value
+       = Ok
+           (Error
+              (Sinter_file_read.Stopped { limit = Pathname_length; names = [] }))
+    );
+  let wc_long =
+    let calls = ref 0 in
+    let run =
+      fake_walk_contents ~fault:(on Open_root (Fails Unix.ENAMETOOLONG)) tree
+        (fun bytes ->
+          incr calls;
+          bytes)
+    in
+    (run, !calls)
+  in
+  Alcotest.(check bool)
+    "walk_contents stops at Pathname_length with no value call" true
+    (let run, calls = wc_long in
+     calls = 0 && run.left_open = 0 && run.double_closes = 0
+     && only_closes_after Open_root [] run.run_targets
+     && run.value
+        = Ok
+            (Error
+               (Sinter_file_read.Stopped { limit = Pathname_length; names = [] })))
 
 let exception_of_value_goes_through () =
   List.iter
@@ -2311,7 +2727,8 @@ let tests =
         "a name that the file system does not accept gives no file" `Quick
         name_not_accepted_gives_no_file;
       Alcotest.test_case
-        "each refused permission and input or output error gives cannot read"
+        "each refused permission, input or output error, and unsupported \
+         operation gives cannot read"
         `Quick missing_part_errors_give_cannot_read;
       Alcotest.test_case "each limit error stops the file read with no result"
         `Quick limit_errors_stop_the_read;
@@ -2360,6 +2777,15 @@ let tests =
       walk_contents_follows_the_folder_tree;
       walk_contents_on_a_fake_system;
       walk_contents_error_mapping_property;
+      Alcotest.test_case
+        "each unsupported operation marks the missing part in walks and content"
+        `Quick unsupported_operation_marks_missing_part_in_walks_and_content;
+      Alcotest.test_case "EINVAL fails walks and non-kind calls of content"
+        `Quick einval_fails_walks_and_non_kind_content;
+      Alcotest.test_case "EINVAL on kind of content gives No_content_file"
+        `Quick einval_on_kind_of_content_gives_no_content_file;
+      Alcotest.test_case "a stop at a limit ends walk and walk_contents at once"
+        `Quick limit_stop_ends_walks_at_once;
       Alcotest.test_case
         "an exception of value, Out_of_memory included, goes through" `Quick
         exception_of_value_goes_through;

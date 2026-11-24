@@ -712,10 +712,10 @@ let content_after_tree_change () =
           | Error (Pack.Unread [ [] ]) -> true
           | _ -> false)))
 
-(* @verifies conformance#report-stops-at-limits=v1
-   A root pathname longer than the system allows stops Pack.read at
-   Pathname_length. A missing or removed root reports Not_read or
-   Content_not_read with Failed. *)
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   A root pathname longer than the system allows ends Pack.read at
+   Pathname_length with no pack and reports where it stopped. A missing or
+   removed root reports Not_read or Content_not_read with Failed. *)
 let pack_stops_and_failures () =
   let long_root = String.concat "/" (List.init 2500 (fun _ -> "a")) in
   Alcotest.(check bool)
@@ -764,9 +764,10 @@ let pack_stops_and_failures () =
 
 let open_descriptors () = Array.length (Sys.readdir "/dev/fd")
 
-(* @verifies conformance#report-stops-at-limits=v1
-   A deep pack either gives the pack results of the terms or stops at the
-   descriptor limit, and closes each descriptor. *)
+(* @verifies conformance#{report-stops-at-limits=v1, end-runs-at-limits=v1}
+   A deep pack either gives the pack results of the terms or ends the call at
+   the descriptor limit with no pack or listing, changes no file, and closes
+   each descriptor. *)
 let deep_pack_gives_a_result_or_stops_at_limit () =
   List.iter
     (fun depth ->
