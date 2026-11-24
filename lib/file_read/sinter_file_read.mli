@@ -19,8 +19,9 @@ type outcome =
   | Not_utf_8  (** "not UTF-8" *)
   | Cannot_read
       (** "cannot read": the report of a part that the folder tree lacks,
-          because the system refused a permission or reported an input or output
-          error *)
+          because the system refused a permission, reported an input or output
+          error, or does not support a call that the read needs (the second case
+          of {!Walk.read}) *)
 
 type kind =
   | Folder  (** a folder: a file of the type directory *)
@@ -41,7 +42,8 @@ type limit =
 type failure =
   | Stopped of { limit : limit; names : string list }
       (** The program stopped at this limit of its own, at the file of these
-          entry names from the root: the empty list for the root itself. *)
+          entry names from the root: the empty list for the root itself. The
+          call then ends, and gives no other result. *)
   | Failed of { names : string list; error : Unix.error }
       (** A call of the system for the file of these entry names gave an error
           that no other case names. *)
@@ -69,8 +71,9 @@ module Tree : sig
     | Other_kind  (** a file of another kind, such as a pipe or a socket *)
     | Unread_folder
         (** a folder whose folder entries, with the kinds of their files, the
-            walk could not take, because the system refused a permission or
-            reported an input or output error *)
+            walk could not take, because the system refused a permission,
+            reported an input or output error, or does not support a call that
+            the walk needs (the second case of {!Walk.read}) *)
     | Unread_file
         (** a regular file whose content {!Walk.walk_contents} could not take,
             for the same causes *)
@@ -90,9 +93,10 @@ type content_failure =
   | Content_symbolic_link  (** a name names a symbolic link *)
   | Not_regular  (** the last name names a folder or a file of another kind *)
   | Cannot_take of string list
-      (** the system refused a permission or reported an input or output error
-          for the folder or the file of these entry names (the empty list for
-          the root), so the content is a missing part *)
+      (** for the folder or the file of these entry names (the empty list for
+          the root), the system refused a permission, reported an input or
+          output error, or does not support a call that the content read needs
+          (the second case of {!Walk.read}), so the content is a missing part *)
 
 (* @satisfies packs#read-only-pack-files=v1
    No call of the system takes the reference of a symbolic link, the data of
@@ -106,8 +110,8 @@ type content_failure =
    read make no call other than these. *)
 
 (** The calls of the system that a file read makes. Each function, except
-    [eilseq] and [estale], raises [Unix.Unix_error] with the error that the
-    system gives when the call fails. *)
+    [eilseq], [estale], and [enotsup], raises [Unix.Unix_error] with the error
+    that the system gives when the call fails. *)
 module type SYSTEM = sig
   type descr
   (** An open file: a folder, or the file that the last file name names. *)
@@ -157,6 +161,12 @@ module type SYSTEM = sig
   (** The number of the error [ESTALE] of the system, as [Unix.EUNKNOWNERR]: a
       file handle that is no longer valid, such as on a file system of another
       machine. *)
+
+  val enotsup : int
+  (** The number of the error [ENOTSUP] of the system, as [Unix.EUNKNOWNERR]: a
+      call that the system or a file system does not support. On a system where
+      [ENOTSUP] and [EOPNOTSUPP] have the same number, the calls give
+      [Unix.EOPNOTSUPP] instead. *)
 end
 
 (** The file read on the calls of a system. *)
@@ -174,19 +184,20 @@ module Walk (_ : SYSTEM) : sig
 
       + The call is [kind], and [e] is [ENOENT], [ENAMETOOLONG], [EINVAL], or
         [EUNKNOWNERR n] where [n] is [eilseq] of the system: [Ok No_file].
-      + [e] is [EACCES] or [EPERM] (a refused permission), or [EIO], [ENXIO],
+      + [e] is [EACCES] or [EPERM] (a refused permission); or [EIO], [ENXIO],
         [ENODEV], [ETIMEDOUT], [ECONNABORTED], [ECONNRESET], [ENOTCONN],
         [ENETDOWN], [ENETRESET], [ENETUNREACH], [EHOSTUNREACH], or
         [EUNKNOWNERR n] where [n] is [estale] of the system (an input or output
-        error): [Ok Cannot_read].
+        error); or [ENOSYS], [EOPNOTSUPP], or [EUNKNOWNERR n] where [n] is
+        [enotsup] of the system (a call that the system or a file system does
+        not support): [Ok Cannot_read].
       + [e] is [EMFILE] or [ENFILE]: [Error (Stopped)] with [Descriptors].
       + [e] is [ENOMEM]: [Error (Stopped)] with [Memory].
       + [e] is [EOVERFLOW]: [Error (Stopped)] with [File_size].
       + The call is [open_root], and [e] is [ENAMETOOLONG]: [Error (Stopped)]
         with [Pathname_length].
       + Otherwise, such as for [ENOENT] or [ENOTDIR] from [open_root], [ELOOP]
-        from [open_folder], [EINTR], or [ENOSYS] or [EOPNOTSUPP] from any call:
-        [Error (Failed)] with [e].
+        from [open_folder], or [EINTR]: [Error (Failed)] with [e].
 
       When a call other than [close], or the decoding of the content as UTF-8,
       raises [Out_of_memory], the result is [Error (Stopped)] with [Memory].
@@ -265,30 +276,31 @@ val read : root:string -> Sinter_text.Text.t -> (outcome, failure) result
     takes no byte from a file. It gives [Error (Failed)] when [root] names no
     folder, also when [root] holds U+0000. While no other process changes the
     folder tree, the result is the file-read result of the valid path, or
-    [Ok Cannot_read] when the system refuses a permission or reports an input or
-    output error, or [Error] when the read stops at a limit of the program's
-    own. A call that fails with [EINTR] runs again. When [faccessat] gives
-    [ENOSYS], [EOPNOTSUPP], [EINVAL], or [ENOTSUP], the check of the search
-    permission for a folder looks up [.] in that folder instead, which needs the
-    same permission. In each call, also when another process changes the folder
-    tree, [read] follows no symbolic link of the folder tree, takes bytes only
-    from the folders of the path and from the regular file that the last file
-    name names, waits for no other process and no device, changes no file of the
-    folder tree, and changes no user ID, group ID, or privilege of the process.
-    It closes each file descriptor that it opens exactly once, before it
-    returns. *)
+    [Ok Cannot_read] when the system refuses a permission, reports an input or
+    output error, or does not support a call that the read needs, or [Error]
+    when the read stops at a limit of the program's own. A call that fails with
+    [EINTR] runs again. When [faccessat] gives [ENOSYS], [EOPNOTSUPP], [EINVAL],
+    or [ENOTSUP], the check of the search permission for a folder looks up [.]
+    in that folder instead, which needs the same permission. In each call, also
+    when another process changes the folder tree, [read] follows no symbolic
+    link of the folder tree, takes bytes only from the folders of the path and
+    from the regular file that the last file name names, waits for no other
+    process and no device, changes no file of the folder tree, and changes no
+    user ID, group ID, or privilege of the process. It closes each file
+    descriptor that it opens exactly once, before it returns. *)
 
 val walk : root:string -> (unit Tree.file, failure) result
 (** [walk ~root] is the root of the folder tree whose root is the folder at the
     pathname [root], as a file, as {!Walk.walk} gives it with the calls of this
     system. When no other process changes the folder tree, the result is the
     root with the folder entries of the folder tree, with [Unread_folder] for
-    each folder whose entries the system refused or could not give, or [Error]
-    when the walk stops at a limit of the program's own or a call fails in
-    another way. [Error] carries no tree, so a caller gives no result from a
-    walk that failed. In each call, also when another process changes the folder
-    tree, [walk] follows no symbolic link of the folder tree, takes bytes only
-    from its folders (the names of their listings), opens no file that is not a
+    each folder whose entries the system refused or could not give, or for which
+    the system does not support a call that the walk needs, or [Error] when the
+    walk stops at a limit of the program's own or a call fails in another way.
+    [Error] carries no tree, so a caller gives no result from a walk that
+    failed. In each call, also when another process changes the folder tree,
+    [walk] follows no symbolic link of the folder tree, takes bytes only from
+    its folders (the names of their listings), opens no file that is not a
     folder, waits for no other process and no device, changes no file of the
     folder tree, and changes no user ID, group ID, or privilege of the process.
     It closes each file descriptor that it opens exactly once, before it

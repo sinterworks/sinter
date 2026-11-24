@@ -55,6 +55,7 @@ module type SYSTEM = sig
   val close : descr -> unit
   val eilseq : int
   val estale : int
+  val enotsup : int
 end
 
 module Walk (S : SYSTEM) = struct
@@ -73,6 +74,12 @@ module Walk (S : SYSTEM) = struct
 
   exception Stop of failure
 
+  (* @satisfies conformance#end-runs-at-limits=v1
+     A stop at a limit of the program's own raises [Stop], so the call takes
+     no further byte and makes no further call of the system other than the
+     close of each open descriptor; [read], [content], and the walks catch it
+     only to give [Error] with that limit and the names of the file where the
+     call stopped, and no other result. *)
   let stop names limit = raise (Stop (Stopped { limit; names }))
   let close descr = try S.close descr with Unix.Unix_error _ -> ()
   let closing descr f = Fun.protect ~finally:(fun () -> close descr) f
@@ -84,17 +91,23 @@ module Walk (S : SYSTEM) = struct
     | exception Out_of_memory -> Error Unix.ENOMEM
 
   (* @satisfies conformance#{report-missing-parts=v1, report-stops-at-limits=v1}
-     A refused permission or an input or output error makes the content of the
-     call a missing part, which the caller reports by its names; no free file
-     descriptor, no memory, and a file too large to read whole stop the read at
-     a limit of the program's own, at the names of the file of the call; every
-     other error gives no result and is no report of a missing part. *)
+     A refused permission, an input or output error, or a call that the system
+     or a file system does not support makes the content of the call a missing
+     part, which the caller reports by its names; no free file descriptor, no
+     memory, and a file too large to read whole stop the read at a limit of the
+     program's own, at the names of the file of the call; every other error
+     gives no result and is no report of a missing part. *)
+  (* @satisfies files#give-file-read-results=v1
+     A call that the system or a file system does not support makes the part
+     that the call takes a part that the folder tree lacks, not a stop at a
+     limit of the program's own. *)
   let missing names = function
     | Unix.EACCES | Unix.EPERM | Unix.EIO | Unix.ENXIO | Unix.ENODEV
     | Unix.ETIMEDOUT | Unix.ECONNABORTED | Unix.ECONNRESET | Unix.ENOTCONN
-    | Unix.ENETDOWN | Unix.ENETRESET | Unix.ENETUNREACH | Unix.EHOSTUNREACH ->
+    | Unix.ENETDOWN | Unix.ENETRESET | Unix.ENETUNREACH | Unix.EHOSTUNREACH
+    | Unix.ENOSYS | Unix.EOPNOTSUPP ->
         ()
-    | Unix.EUNKNOWNERR code when code = S.estale -> ()
+    | Unix.EUNKNOWNERR code when code = S.estale || code = S.enotsup -> ()
     | Unix.EMFILE | Unix.ENFILE -> stop names Descriptors
     | Unix.ENOMEM -> stop names Memory
     | Unix.EOVERFLOW -> stop names File_size
@@ -138,9 +151,11 @@ module Walk (S : SYSTEM) = struct
      for byte in its listing, a symbolic link, a file that is not a folder
      before the last name, and a last name that is not a regular file each end
      the read before any open of that file; only a folder before the last name
-     is entered. A folder whose entries, or a last file whose content, the
-     system refuses or cannot give is a missing part, which gives "cannot
-     read". *)
+     is entered. When the read cannot take the search permission, the entries,
+     or the kinds of names of a folder, or the content of the last file,
+     because the system refuses a permission, reports an input or output error,
+     or does not support the call, that part is a missing part, which gives
+     "cannot read". *)
   let step folder path name rest =
     let names = path @ [ name ] in
     match call (fun () -> S.check_search folder) with
@@ -191,9 +206,12 @@ module Walk (S : SYSTEM) = struct
      with the user IDs, the group IDs, and the privileges that the process
      has. *)
   (* @satisfies files#give-file-read-results=v1
-     A read that stops at a limit of the program's own gives an error in place
-     of an outcome, so it gives none of the results and no text; "cannot read",
-     given once, is the report of the missing parts that the result needs. *)
+     "Cannot read", given once, is the report of the missing parts that the
+     result needs. *)
+  (* @satisfies conformance#end-runs-at-limits=v1
+     A read that stops at a limit of the program's own, also while it decodes
+     the content, gives an error in place of an outcome, so it gives none of
+     the results and no text. *)
   let read ~root text =
     match Sinter_paths.Path.of_text text with
     | Error _ -> Ok Invalid
@@ -245,10 +263,11 @@ module Walk (S : SYSTEM) = struct
      reading of its content, so no symbolic link and no file of another kind
      opens. *)
   (* @satisfies conformance#report-missing-parts=v1
-     A folder whose listing, or the kind of one of whose names, the system
-     refuses or cannot give is one missing part, marked once at its place; the
-     walk keeps none of its entries and goes on with the rest of the tree, so
-     a caller can give each thing that does not need that part. *)
+     A folder whose listing, or the kind of one of whose names, the walk cannot
+     take, because the system refuses a permission, reports an input or output
+     error, or does not support the call, is one missing part, marked once at
+     its place; the walk keeps none of its entries and goes on with the rest of
+     the tree, so a caller can give each thing that does not need that part. *)
   let traverse ~root regular =
     let stack = ref [] in
     let rec loop frame below =
@@ -312,8 +331,10 @@ module Walk (S : SYSTEM) = struct
   let walk ~root = traverse ~root (fun _ _ _ -> Tree.Regular_file ())
 
   (* @satisfies conformance#report-missing-parts=v1
-     A regular file whose content the system refuses or cannot give is one
-     missing part, marked at its place, and the walk goes on. *)
+     A regular file whose content the walk cannot take, because the system
+     refuses a permission, reports an input or output error, or does not
+     support the call, is one missing part, marked at its place, and the walk
+     goes on. *)
   let walk_contents ~root value =
     traverse ~root (fun folder name names ->
         match read_file folder name with
@@ -359,6 +380,7 @@ external check_search : Unix.file_descr -> unit
 external listing : Unix.file_descr -> string list = "sinter_file_read_list"
 external eilseq : unit -> int = "sinter_file_read_eilseq" [@@noalloc]
 external estale : unit -> int = "sinter_file_read_estale" [@@noalloc]
+external enotsup : unit -> int = "sinter_file_read_enotsup" [@@noalloc]
 
 module System = struct
   type descr = Unix.file_descr
@@ -424,6 +446,7 @@ module System = struct
   let close = Unix.close
   let eilseq = eilseq ()
   let estale = estale ()
+  let enotsup = enotsup ()
 end
 
 module Real = Walk (System)

@@ -80,8 +80,10 @@ static int unsupported(int error) {
 
 /* @satisfies files#give-file-read-results=v1
    When the system does not support the check of the search permission with
-   the effective IDs, the lookup of "." in the folder needs the same search
-   permission, so a missing search permission still gives its error. */
+   the effective IDs, the check looks up "." in the folder. That lookup needs
+   the same search permission and follows no symbolic link, so a missing
+   search permission still gives its error, and the lack of support for the
+   first check makes no part of the folder tree a missing part. */
 CAMLprim value sinter_file_read_check_search(value folder) {
   CAMLparam1(folder);
   const char *call = "faccessat";
@@ -173,4 +175,13 @@ CAMLprim value sinter_file_read_eilseq(value unit) {
 CAMLprim value sinter_file_read_estale(value unit) {
   (void)unit;
   return Val_int(ESTALE);
+}
+
+CAMLprim value sinter_file_read_enotsup(value unit) {
+  (void)unit;
+#ifdef ENOTSUP
+  return Val_int(ENOTSUP);
+#else
+  return Val_int(EOPNOTSUPP);
+#endif
 }

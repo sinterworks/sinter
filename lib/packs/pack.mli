@@ -19,13 +19,13 @@
 
     The results below hold while no other process changes the folder tree. A
     part of the folder tree that the system refuses or cannot give, by a refused
-    permission or an input or output error, as {!Sinter_file_read.Walk.read}
-    names these errors, is a missing part: the folder entries of a folder, or
-    the content of a regular file. A function gives no value that needs a
-    missing part and names each such part by its entry names from the root. A
-    function whose walk stops at a limit of the program's own, or fails in
-    another way, gives the {!Sinter_file_read.failure} of that walk and no
-    value. *)
+    permission, an input or output error, or a call that the system or a file
+    system does not support, as {!Sinter_file_read.Walk.read} names these
+    errors, is a missing part: the folder entries of a folder, or the content of
+    a regular file. A function gives no value that needs a missing part and
+    names each such part by its entry names from the root. A function whose walk
+    stops at a limit of the program's own, or fails in another way, gives the
+    {!Sinter_file_read.failure} of that walk and no value. *)
 
 type t
 (** A pack: its root and its folder tree, as one walk found it. *)
@@ -33,10 +33,11 @@ type t
 type failure =
   | Unread of string list list
       (** The walk could not take these parts, because the system refused a
-          permission or reported an input or output error. Each part is the
-          entry names from the root of a folder whose folder entries, or of a
-          regular file whose content, the walk could not take. Each part comes
-          once, in the order of the walk. *)
+          permission, reported an input or output error, or does not support a
+          call that the walk needs. Each part is the entry names from the root
+          of a folder whose folder entries, or of a regular file whose content,
+          the walk could not take. Each part comes once, in the order of the
+          walk. *)
   | Not_read of Sinter_file_read.failure
       (** the walk stopped at a limit of the program's own, failed, or found a
           change *)

@@ -850,6 +850,7 @@ module Fake (F : FAULTS) = struct
 
   let eilseq = fake_eilseq
   let estale = fake_estale
+  let enotsup = 4244
 end
 
 type fake_read = {

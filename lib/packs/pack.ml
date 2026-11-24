@@ -23,6 +23,9 @@ type content_failure =
    Every use of a pack needs the folder entries of the root, so a root whose
    entries the walk could not take gives no pack and names the root as the
    missing part. *)
+(* @satisfies conformance#end-runs-at-limits=v1
+   A walk that stops at a limit of the program's own ends this call with that
+   stop, which names the limit and the file, and with no pack. *)
 let read ~root =
   match Sinter_file_read.walk ~root with
   | Ok (Tree.Folder entries) -> Ok { root; entries }
@@ -55,6 +58,9 @@ let rec place entries prefix = function
    an unread folder off the path changes nothing, and an unread folder on the
    path, or a folder or file that the content read could not take, is the
    missing part that the failure names. *)
+(* @satisfies conformance#end-runs-at-limits=v1
+   A content read that stops at a limit of the program's own ends this call
+   with that stop, which names the limit and the file, and with no content. *)
 let content pack path =
   let names = List.map Text.encode (Path.file_names path) in
   match place pack.entries [] names with
@@ -206,6 +212,9 @@ let line (path, hash) =
    spaces, the valid path, and a line feed; the pack hash is the hash of these
    bytes. A walk that fails, or that finds other files than the well-named
    pack has, gives no listing. *)
+(* @satisfies conformance#end-runs-at-limits=v1
+   A walk that stops at a limit of the program's own ends this call with that
+   stop, which names the limit and the file, and with no listing and no hash. *)
 let listing named =
   match Sinter_file_read.walk_contents ~root:named.pack.root Hash.compute with
   | Error failure -> Error (Not_read failure)
