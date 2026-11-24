@@ -4,7 +4,7 @@
 (library
  (name sinter_ledger_lines)
  (public_name sinter.ledger_lines)
- (libraries sinter_text sinter_json_lines sinter_hash_ids)
+ (libraries sinter_text sinter_json_lines sinter_hashes)
  (instrumentation
   (backend bisect_ppx))
  (instrumentation
