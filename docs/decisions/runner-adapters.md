@@ -2,8 +2,8 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Let language packs carry runner adapters
-@decision runner-adapters
-@cites pack-delivery
+@decision runner-adapters v2
+@cites local-pack-folders
 @cites tags-not-titles
 A language pack can carry runner adapters: sandboxed WebAssembly modules that bind a test runner's results to the tests in the source, built, versioned, and released with the pack, while the tool keeps the meaning of every result.
 

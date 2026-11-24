@@ -2,9 +2,9 @@
 <!-- Copyright 2026 The Sinter Authors -->
 
 # Compare a pack release with the release before it by its kind
-@decision pack-release-comparison
-@cites pack-delivery
-The packs repository checks a release against its own fixtures byte for byte, and against the fixtures of the release before it by a rule for each kind of release.
+@decision pack-release-comparison v2
+@cites local-pack-folders
+The packs repository checks a release against its own fixtures byte for byte, and against the fixtures of the release before it by a rule for each kind of release. Pack distribution, which follows v0.1, applies this decision (record `local-pack-folders`).
 
 ## Context
 

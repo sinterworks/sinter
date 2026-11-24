@@ -49,7 +49,7 @@ design has one JSON text on each line of the text of that file.
 | [definition](sinter:conformance#design=v1) | a term, a schema, or an atom that a design declares under a name |
 | [schema](sinter:conformance#design=v1) | a definition that a design declares under a name that gives the form of a concrete thing that crosses the edge of a program, or the form of a file of test cases for a design: its layout and every constraint that is a property of the thing itself |
 | [requirement](sinter:conformance#requirement=v1) | a declared item of the kind requirement that a design declares under a name, such as `report-stops-at-limits`, and that states one or more obligations of a program with the word must |
-| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
+| [conforming program](sinter:conformance#conforming-program=v1) | a program, or a part of a program, that meets every requirement of a design (or every requirement that a specification of a design declares), together with `report-stops-at-limits`, `end-runs-at-limits`, `reject-invalid-inputs`, `report-missing-parts`, `give-results-over-canonical-objects`, and `read-defined-encodings`; the term says under which inputs and limits each obligation binds |
 | [input](sinter:conformance#input=v1) | a thing that a program takes for a requirement, such as a file or an argument of a command; an input is not valid when its owner design says that such a thing is not valid or when it supplies code that never ends; an input can also have parts, such as the commits of a history or the files of a folder tree |
 | decode | a conforming program decodes a byte sequence as UTF-8 when the conforming program gives a result for whether the byte sequence is valid UTF-8 and, when the byte sequence is valid UTF-8, gives the text of the byte sequence |
 | [result](sinter:#result=v1) | a text that a requirement shows between two double quotes, such as "valid", as one of the cases of what a conforming program gives for an input. The double quotes are not part of the result. A conforming program gives a result when the conforming program gives something that stands for that result and for no other result. |
@@ -1325,9 +1325,8 @@ do not end a line. The vector file holds zero or more vector lines.
 
 The text of each line of the vector file is a vector line. A vector line
 meets the schema `canonical-vector-line`, and its JSON object has the
-members `form`, `group`, `input`, `note`, `result`, and `values`, in
-that order, and no other member, with `note` and `result` only where
-these rules state:
+members `form`, `group`, `input`, `note`, `result`, and `values`, and no
+other member, with `note` and `result` only where these rules state:
 
 - `form`: a JSON string of `#`, the name of the schema of this design
   for the group of the vector, `=`, and a label. That label is `v`, then
@@ -1467,12 +1466,12 @@ and the lines of the text. Each vector line of the group meets the
 schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number, a
-run, and a sequence have these forms:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more, a run, and a sequence have these forms:
 
-- A whole number, such as a place, a boundary, a line number, or a
-  column, is a JSON number, such as `12`, written as the decimal numeral
-  of that whole number.
+- A whole number of 0 or more, such as a place, a boundary, a line
+  number, or a column, is a JSON number, such as `12`, written as the
+  decimal numeral of that whole number.
 - A run is a JSON object with two members: `from`, the boundary where
   the run starts, and `to`, the boundary where the run ends. So the run
   that starts at boundary 1 and ends at boundary 4 is
@@ -1527,9 +1526,9 @@ body of the text, and the position of the character at that place. Each
 vector line of the group meets the schema `vector-line`.
 
 Inside `input` and `values`, a text has the JSON form that
-`decode-vector` states. Inside `input` and `values`, a whole number has
-the JSON form that `line-vector` states. Inside `input` and `values`, a
-position has this form:
+`decode-vector` states. Inside `input` and `values`, a whole number of 0
+or more has the JSON form that `line-vector` states. Inside `input` and
+`values`, a position has this form:
 
 - A position is a JSON object with two members: `line`, the line number
   of the position, and `column`, the column of the position. So the
@@ -1571,9 +1570,9 @@ The group `spans` holds the vectors of the requirements
 span of the text, and the start and the end of the span. Each vector
 line of the group meets the schema `vector-line`. Inside `input` and
 `values`, a text has the JSON form that `decode-vector` states. Inside
-`input` and `values`, a whole number and a run have the JSON forms that
-`line-vector` states. Inside `input` and `values`, a position has the
-JSON form that `character-position-vector` states.
+`input` and `values`, a whole number of 0 or more and a run have the
+JSON forms that `line-vector` states. Inside `input` and `values`, a
+position has the JSON form that `character-position-vector` states.
 
 The members `input` and `values` of the JSON object of a vector line
 hold these things:
