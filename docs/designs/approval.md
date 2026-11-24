@@ -62,8 +62,8 @@ agents, statements, judgments, voids, object withdrawal and counting
 voids, things and latest statements, agreement and conflicts, states,
 approval states, deprecated items (including the `status` member in
 `.sinter/`), effective `supersedes` edges, retired items, and in-force
-items; trees, the default branch, edges with their kinds and cited
-items, finding classes, and parameters; and the requirements
+items; trees, the default branch, tests, sites, edges with their kinds
+and cited items, finding classes, and parameters; and the requirements
 `ontology#treat-ledger-entries-alike` and
 `ontology#write-judgments-only-for-persons`. From the Object store
 (`object-store`), the design takes store files, valid object files, the
@@ -79,12 +79,13 @@ statement-check finding classes for unaccepted statements and conflicts.
 From Documents (`documents`), the design takes declared items of the
 text encoding with their files and declarations, the parameter
 `file-readers`, read files, the edges of a tree, origins and origin
-positions, position subjects, the order of positions, the spots of runs,
-and tree findings. From Changes (`changes`), the design takes commits
-and their parents, the files of the tree of a commit, the parameter
-`default-branch-name`, the commit of the default branch, first-parent
-lines, shallow commits, and repository reads. From Findings (`findings`),
-the design takes finding subjects and spots.
+positions, position subjects, edge finding subjects, the order of
+positions, the spots of runs, and tree findings. From Changes
+(`changes`), the design takes commits and their parents, the files of
+the tree of a commit, the parameter `default-branch-name`, the commit of
+the default branch, first-parent lines, shallow commits, and repository
+reads. From Findings (`findings`), the design takes finding subjects and
+spots.
 
 The production `subject-text` is written in ABNF, the notation of RFC
 5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
@@ -99,7 +100,7 @@ strings, numbers, and the literal names `true` and `false`.
 | [kind of subject of approval](sinter:ontology#subject-of-approval=v1) | which of seven units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the schemas, the items of the kind requirement, the atoms, and the terms that it holds, a schema that an item of the kind design holds directly, an item of the kind requirement that an item of the kind design holds directly, an atom that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
 | [declared item of a subject of approval](sinter:ontology#subject-of-approval=v1) | the item of the kind design, for a subject of approval of the first kind, and otherwise the item of the kind specification, the schema, the item of the kind requirement, the atom, the term, or the decision record that the subject of approval is |
 | [subject of approval of a declared item](sinter:ontology#subject-of-approval=v1) | for an item of the kind design, an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for a schema, an item of the kind requirement, an atom, or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification; each other declared item has none |
-| [same subject of approval](sinter:ontology#subject-of-approval=v1) | two subjects of approval of two trees are the same when their declared items are the [same item](sinter:ontology#same-item=v1) (have the same name in the corresponding set of names, regardless of kind) |
+| [same subject of approval](sinter:ontology#subject-of-approval=v1) | two subjects of approval of two trees are the same when their declared items are the [same item](sinter:ontology#same-item=v1) (declared items with the same name, whatever their kinds and encodings) |
 | [revised content](sinter:ontology#revised-content=v1) | the content that a declared item's canonical object represents; two revised contents of the same declared item are the same when, and only when, their canonical objects have the same [content hash](sinter:ontology#content-hash=v1) |
 | [content hash](sinter:ontology#content-hash=v1), [content id](sinter:ontology#content-id=v1) | the SHA-256 hash (64 lowercase hex digits) of the canonical byte sequence of an object (no `id`, no final line feed); the object kind word of the object, `:`, and the first 32 hex digits of its content hash |
 | [binding of `approval-kinds`](sinter:#approval-kinds=v1) | a set of kinds of subject of approval |
@@ -130,6 +131,7 @@ strings, numbers, and the literal names `true` and `false`.
 | [tree finding](sinter:documents#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable |
 | [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
 | [position subject](sinter:documents#position-subject=v1) | the subject of a finding at a position, such as `src/fee.ml@L3C4` |
+| [edge finding subject](sinter:documents#edge-finding-subject=v1) | the subject of a finding on a citation edge whose source is a declared item: the content id of the source, a space, the edge kind, a space, and the content id of the target |
 
 ## 2. Judgments and approval states
 
@@ -267,8 +269,8 @@ show the rules:
    `revises` edge names Ada's approval. Bo's approval is accepted with
    no conflict, replaces Ada's approval, and leaves O approved.
 4. Ada's approval A replaced Bo's earlier decline D (`revises` naming
-   D). Cy writes a counting void V that withdraws A (copying A's `about`
-   and `revises` edges). A is withdrawn, D stays replaced through V's
+   D). Cy writes a counting void V that withdraws A (copying A's `about`,
+   `judges`, and `revises` edges). A is withdrawn, D stays replaced through V's
    copied `revises` edge, and O has no latest counting judgment (state
    neither). A later approval of O holds no `revises` edge, and the
    program shows no approval or decline judgment in place of A.
@@ -319,13 +321,17 @@ one valid binding of `default-branch-name`.
 
 Any invalid store file (broken or newer) in `.sinter/` makes the object
 store of the tree not valid (`object-store#tree-object-store`), so under
-`conformance#reject-invalid-inputs` a conforming program gives no state
-and no finding over the objects of that tree (also for kinds that do not
-need approval). By contrast, Acceptance (`give-judgment-acceptance`) and
-the statement checks (`give-judgment-check-findings`) read only the
-object store of `.sinter/` and the optional parameter `persons`, so they
-still run under an invalid binding of `file-readers`,
-`external-namespaces`, `approval-kinds`, or `default-branch-name`.
+`conformance#reject-invalid-inputs` a conforming program gives no
+approval state, no acceptance result, and no approval or statement-check
+finding for that tree (also for kinds that do not need approval), and
+the Object store still gives its `invalid-object-file` findings. By
+contrast, acceptance (`give-judgment-acceptance`) and the statement
+checks (`give-judgment-check-findings`) read only the object store of
+`.sinter/` (and, for `void` acceptance on a change, any valid base-tree
+object store that `ledger#accepted-entry` reads) and the optional
+parameter `persons`, so they still run under an invalid binding of
+`file-readers`, `external-namespaces`, `approval-kinds`, or
+`default-branch-name`.
 Approval reads no observations on the log branch, so a missing or
 rewritten log branch does not hold back Approval's own statement
 reading.
@@ -383,14 +389,17 @@ with no file.
 
 An `unapproved-req` finding reports a `satisfies` or `verifies` edge
 that says what its kind says to an in-force requirement or schema whose
-subject of approval needs approval and is not approved. Its spot is the
-run of its citation entry in text, the valid path of its source's valid
-object file alone in `.sinter/`, or no spot when no file holds the
-source.
+subject of approval needs approval and is not approved. When the source
+of the edge is a declared item, the finding has the edge finding subject
+and the declared-item edge spot of Documents, once for each distinct
+canonical edge. When the source is a test or a site, the finding has the
+position subject and the spot of the run of its citation entry, such as
+`src/fee.ml@L3C4`.
 
 In addition, requirement `give-judgment-check-findings` obliges a
-conforming program to report, using the Ledger's check 5 and check 7
-finding classes, each `approval` or `decline` statement in `.sinter/`
+conforming program to report, using the Ledger's finding classes
+`unaccepted-statement` (check "Kind rules") and `statement-conflict`
+(check "Conflicts"), each `approval` or `decline` statement in `.sinter/`
 for which `judgment-acceptance-rule` does not hold, and each
 declared-item content id for which `judgment-conflict` holds.
 
@@ -957,20 +966,20 @@ subject order (`subject-order`), whose subject text is t:
     },
     ontology#{
         edge=v1, satisfies-edge=v1, verifies-edge=v1, supersedes-edge=v1,
-        subject-of-approval=v1, declared-item=v1, schema=v1, tree=v1,
-        parameter=v1, encoding=v1,
+        subject-of-approval=v1, declared-item=v1, schema=v1, test=v1,
+        site=v1, tree=v1, parameter=v1, encoding=v1,
     },
     object-store#{valid-object-file=v1, tree-object-store=v1},
     documents#{
         file-readers=v1, tree-edge=v1, origin=v1,
-        origin-position=v1, position-subject=v1, run-spot=v1,
-        tree-finding=v1,
+        origin-position=v1, position-subject=v1,
+        edge-finding-subject=v1, run-spot=v1, tree-finding=v1,
     },
     changes#{
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, first-parent-line=v1,
     },
-    findings#{spot=v1},
+    findings#{finding-subject=v1, spot=v1},
     conformance#{conforming-program=v1, own-store=v1},
     text#{result=v1, code-span=v1},
     #{
@@ -986,8 +995,9 @@ Identifiers gives the result "valid", `persons` unbound or bound to a
 valid binding L, a tree T whose object store is valid, and, when T has a
 `supersedes` edge that reads a merge under A (term `merge-read-edge`), a
 valid binding D of `default-branch-name`. T has, under these bindings,
-one tree finding of the class `unapproved-req` for each edge that T has
-(in either encoding) such that all four of these conditions are true:
+the tree findings of the class `unapproved-req` that the last paragraph
+of this atom gives for the edges that T has (in either encoding) such
+that all four of these conditions are true:
 
 1. The edge is of the kind `satisfies` or `verifies`, and says what its
    kind of edge says.
@@ -999,15 +1009,17 @@ one tree finding of the class `unapproved-req` for each edge that T has
 4. The subject of approval of that cited item needs approval under A and
    is not approved in T under these bindings (`subject-state`).
 
-When the edge comes from a citation entry in a text file of T, the
-subject of that tree finding is the position subject of the origin
-position of that citation entry (`documents#position-subject`), and its
-spot is the spot of the run of that citation entry in the text of the
-file of the edge (`documents#run-spot`). When the edge is an edge of a
-declared item in a valid object file of `.sinter/` of T, its spot is the
-valid path of that valid object file alone, with no span; when the
-source stands in no file of T (comes from a valid program's own store
-with no file), the finding has no spot.
+When the source of such an edge is a declared item (in a text file, in a
+valid object file of `.sinter/`, or from a valid program's own store), T
+has one finding for each distinct canonical edge of such edges. Its
+subject is the edge finding subject of that canonical edge, and its spot
+is the declared-item edge spot of that canonical edge
+(`documents#edge-finding-subject`). When the source of such an edge is a
+test or a site, T has one finding for that edge. Its subject is the
+position subject of the origin position of its citation entry
+(`documents#position-subject`), and its spot is the spot of the run of
+that citation entry in the text of the file of the edge
+(`documents#run-spot`).
 
 ### 4.15 Incomplete first-parent lines
 
@@ -1244,7 +1256,7 @@ program gives whether E is accepted in T:
     ontology#{
         object=v1, object-kind=v1, content-id=v1, statement=v1,
         person=v1, subject-of-approval=v1, revised-content=v1, tree=v1,
-        edge=v1, write-judgments-only-for-persons=v1,
+        edge=v1, parameter=v1, write-judgments-only-for-persons=v1,
     },
     object-store#{
         tree-object-store=v1, write-object-files=v1,
@@ -1256,17 +1268,18 @@ program gives whether E is accepted in T:
     documents#{file-readers=v1},
     conformance#{conforming-program=v1, end-runs-at-limits=v1},
     text#{result=v1, code-span=v1},
-    #{judgment-acceptance-rule=v1},
+    #{persons=v1, judgment-acceptance-rule=v1},
 }
 
 This requirement applies for a working tree T whose object store is
 valid (`object-store#tree-object-store`), a valid binding F of
 `file-readers`, a binding N of `external-namespaces` for which a
 conforming program of the design Identifiers gives the result "valid",
-and a subject of approval S of T whose declared item has canonical
-object content id t. When a conforming program writes in `.sinter/` of T
-a statement E of the kind `approval` or `decline` to record a decision
-of a person on the revised content of S in T, all of these rules apply:
+`persons` unbound or bound to a valid binding L, and a subject of
+approval S of T whose declared item has canonical object content id t.
+When a conforming program writes in `.sinter/` of T a statement E of the
+kind `approval` or `decline` to record a decision of a person on the
+revised content of S in T, all of these rules apply:
 
 - E must meet its row of `ontology#object-kind`, with `kind` equal to
   `approval` when the person approved that revised content and `decline`
@@ -1274,7 +1287,8 @@ of a person on the revised content of S in T, all of these rules apply:
 - The one `about` edge and the one `judges` edge of E must both have
   `to` equal to t.
 - E must carry no member `agent`.
-- The acceptance rule `judgment-acceptance-rule` must hold for E in T.
+- The acceptance rule `judgment-acceptance-rule` must hold for E in T
+  under `persons`.
 - The conforming program must write E as a store object file in
   `.sinter/` of T under `object-store#write-object-files` (and obey
   `object-store#limit-store-writes`,
@@ -1413,17 +1427,19 @@ and the files of the trees of its commits:
 This requirement applies for a tree T whose object store is valid
 (`object-store#tree-object-store`) and `persons` unbound or bound.
 
-- When a conforming program gives the findings of the Ledger's check 5
-  finding class (`ledger#unaccepted-statement-finding`) for `approval`
-  and `decline` statements of T: for each `approval` or `decline`
-  statement E in the object store of T for which
-  `judgment-acceptance-rule` does not hold in T (and is not withheld
-  under an invalid binding of `persons`), the conforming program must
-  give once the finding of that class for E, and must give no finding of
-  that class for any `approval` or `decline` statement in T for which
-  `judgment-acceptance-rule` holds or is withheld.
-- When a conforming program gives the findings of the Ledger's check 7
-  finding class (`ledger#statement-conflict-finding`) for `approval` and `decline`
+- When a conforming program gives the findings of the Ledger's check
+  "Kind rules" (finding class `unaccepted-statement`,
+  `ledger#unaccepted-statement-finding`) for `approval` and `decline`
+  statements of T: for each `approval` or `decline` statement E in the
+  object store of T for which `judgment-acceptance-rule` does not hold
+  in T (and is not withheld under an invalid binding of `persons`), the
+  conforming program must give once the finding of that class for E, and
+  must give no finding of that class for any `approval` or `decline`
+  statement in T for which `judgment-acceptance-rule` holds or is
+  withheld.
+- When a conforming program gives the findings of the Ledger's check
+  "Conflicts" (finding class `statement-conflict`,
+  `ledger#statement-conflict-finding`) for `approval` and `decline`
   judgments of T: for each declared-item content id t for which a
   conflict exists in T (`judgment-conflict`, when `persons` is unbound
   or valid, or when the conflict holds under every valid binding of
@@ -1544,8 +1560,8 @@ is `false`.
         inline-citation=v1,
     },
     ontology#{
-        subject-of-approval=v1, declared-item=v1, schema=v1, tree=v1,
-        edge=v1, finding-class=v1, parameter=v1,
+        subject-of-approval=v1, declared-item=v1, schema=v1, test=v1,
+        site=v1, tree=v1, edge=v1, finding-class=v1, parameter=v1,
     },
     object-store#{tree-object-store=v1},
     changes#{
@@ -1554,7 +1570,7 @@ is `false`.
     },
     documents#{
         file-readers=v1, tree-edge=v1, origin-position=v1,
-        position-subject=v1, tree-finding=v1,
+        position-subject=v1, edge-finding-subject=v1, tree-finding=v1,
     },
     findings#{finding-subject=v1},
     #{
@@ -1585,12 +1601,12 @@ changes these inputs while the program reads them.
 
 The JSON values, objects, arrays, strings, numbers, and the literal
 names `true` and `false` of this schema are as RFC 8259 defines them.
-Inside `input` and `values`, a text, such as a subject text or a
-position subject, is a JSON string whose characters are the characters
-of the text, in order. A sequence is a JSON array of its elements, in
-order. A valid binding of `approval-kinds` is a JSON array of JSON
-strings holding, for each kind of subject of approval in the binding,
-the kind word of that kind, each once, in code point order.
+Inside `input` and `values`, a text, such as a subject text, an edge
+finding subject, or a position subject, is a JSON string whose characters
+are the characters of the text, in order. A sequence is a JSON array of
+its elements, in order. A valid binding of `approval-kinds` is a JSON
+array of JSON strings holding, for each kind of subject of approval in
+the binding, the kind word of that kind, each once, in code point order.
 
 - `input`: a JSON object with three members. `binding` is a valid
   binding of `approval-kinds`. `subjects` is the subjects of approval of
@@ -1601,7 +1617,9 @@ the kind word of that kind, each once, in code point order.
   and `false` otherwise). `edges` is the edges of the tree, as a
   sequence. Each edge in `edges` is a JSON object with `kind` (kind of
   edge), `fits` (`true` when the edge says what its kind of edge says,
-  `false` otherwise), and `at` (finding subject for the edge), and, when
+  `false` otherwise), and `at` (the subject of the finding for the edge:
+  an edge finding subject when its source is a declared item, and a
+  position subject when its source is a test or a site), and, when
   its cited item is a requirement or a schema with a subject of
   approval, two more members: `cited` (the 1-based index of that subject
   of approval in `subjects`) and `in-force` (`true` when that cited item
@@ -1725,6 +1743,9 @@ result.
     },
     ontology#{content-id=v1, statement=v1, void-statement=v1, tree=v1},
     object-store#{tree-object-store=v1},
+    ledger#{
+        unaccepted-statement-finding=v1, statement-conflict-finding=v1,
+    },
     #{
         persons=v1, judgment-acceptance-rule=v1, judgment-conflict=v1,
         give-judgment-check-findings=v1, acceptance-vector=v1,
@@ -1736,9 +1757,11 @@ The group `checks` holds the vectors of the requirement
 and `decline` statements, an optional set of `void` statements, and an
 optional valid binding of `persons`, standing for a tree whose object
 store is valid and holds those statements. The vector gives the content
-ids of unaccepted `approval` and `decline` statements (check 5) and of
-declared-item objects with conflicting latest counting judgments (check
-7). The group uses no need, so these forms give no need names.
+ids of unaccepted `approval` and `decline` statements (check "Kind
+rules", class `unaccepted-statement`) and of declared-item objects with
+conflicting latest counting judgments (check "Conflicts", class
+`statement-conflict`). The group uses no need, so these forms give no
+need names.
 
 The input of each vector stands for a tree whose object store is valid
 and holds the given statements; when `persons` is present, for that
@@ -1761,11 +1784,13 @@ the forms of `acceptance-vector`.
   declared-item content ids for which `judgment-conflict` holds in that
   tree, each once in code point order.
 
-When a conforming program gives the check 5 and check 7 findings for the
-`approval` and `decline` statements of that tree, the program gives one
-check 5 finding for each content id in `unaccepted`, one check 7 finding
-for each content id in `conflicts`, and no other finding of those
-classes for `approval` and `decline`.
+When a conforming program gives the findings of the classes
+`unaccepted-statement` (check "Kind rules") and `statement-conflict`
+(check "Conflicts") for the `approval` and `decline` statements of that
+tree, the program gives one `unaccepted-statement` finding for each
+content id in `unaccepted`, one `statement-conflict` finding for each
+content id in `conflicts`, and no other finding of those classes for
+`approval` and `decline`.
 
 ```
 {"form":"#checks-vector=v1","group":"checks","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"decline","reason":"needs a clearer bound","v":1}]},"note":"an approval and a decline of the same declared-item object give a conflict finding","values":{"conflicts":["req:7692c3ad3540bb803c020b3aee66cd88"],"unaccepted":[]}}
