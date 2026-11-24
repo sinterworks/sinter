@@ -71,7 +71,7 @@ object store of a tree (with its validity and missing computed identity
 objects), `object-store#write-object-files`, and the five store safety
 obligations (`object-store#limit-store-writes`,
 `object-store#keep-store-files-unchanged`,
-`object-store#write-no-object-after-stop`,
+`object-store#write-no-file-after-stop`,
 `object-store#write-no-file-after-read-error`, and
 `object-store#limit-store-deletions`). From the ledger (`ledger`), the
 design takes acceptance rules (`ledger#accepted-entry`) and the
@@ -200,7 +200,7 @@ A conforming program writes `approval` and `decline` statements into
 safety obligations of the Object store
 (`object-store#limit-store-writes`,
 `object-store#keep-store-files-unchanged`,
-`object-store#write-no-object-after-stop`,
+`object-store#write-no-file-after-stop`,
 `object-store#write-no-file-after-read-error`, and
 `object-store#limit-store-deletions`) together with
 `conformance#end-runs-at-limits` and
@@ -1249,7 +1249,7 @@ program gives whether E is accepted in T:
     object-store#{
         tree-object-store=v1, write-object-files=v1,
         limit-store-writes=v1, keep-store-files-unchanged=v1,
-        write-no-object-after-stop=v1,
+        write-no-file-after-stop=v1,
         write-no-file-after-read-error=v1, limit-store-deletions=v1,
     },
     identifiers#{external-namespaces=v1, validate-bindings=v1},
@@ -1279,7 +1279,7 @@ of a person on the revised content of S in T, all of these rules apply:
   `.sinter/` of T under `object-store#write-object-files` (and obey
   `object-store#limit-store-writes`,
   `object-store#keep-store-files-unchanged`,
-  `object-store#write-no-object-after-stop`, and
+  `object-store#write-no-file-after-stop`, and
   `object-store#write-no-file-after-read-error`).
 
 ### 5.4 What `revises` edges on a written approval or decline judgment record
@@ -1400,7 +1400,7 @@ and the files of the trees of its commits:
     object-store#{tree-object-store=v1},
     ledger#{
         accepted-entry=v1, unaccepted-statement-finding=v1,
-        conflict-finding=v1,
+        statement-conflict-finding=v1,
     },
     conformance#{conforming-program=v1},
     text#{code-span=v1},
@@ -1423,7 +1423,7 @@ This requirement applies for a tree T whose object store is valid
   that class for any `approval` or `decline` statement in T for which
   `judgment-acceptance-rule` holds or is withheld.
 - When a conforming program gives the findings of the Ledger's check 7
-  finding class (`ledger#conflict-finding`) for `approval` and `decline`
+  finding class (`ledger#statement-conflict-finding`) for `approval` and `decline`
   judgments of T: for each declared-item content id t for which a
   conflict exists in T (`judgment-conflict`, when `persons` is unbound
   or valid, or when the conflict holds under every valid binding of
