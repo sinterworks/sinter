@@ -37,16 +37,17 @@ findings, finding classes, and parameters. From Object store
 (`object-store`), it takes store files, valid object files, needed
 identity files, and the object store of a tree, including missing
 computed identity objects. From Documents (`documents`), it takes the
-declared items of a tree and their files, the origins of the runs of the
-text of a file, the origin positions of citation entries and inline
-citations, sets of names, vector files, the edges of a tree, the form
-runs and form positions of the edges that vector lines give, position
-subjects, edge subjects of declared items, the spots of runs, tree
-findings, and bindings of the parameters `file-readers` (with their
-readers) and `vector-paths`. From Changes (`changes`), it takes commits,
-the files of the tree of a commit, the change of a commit, the base of
-the change of a commit under a binding of the parameter
-`default-branch-name`, and undisturbed repository reads. From Data forms
+declared items of a tree and their files, the canonical objects of
+declared items in the text encoding, kept object sets, the origins of
+the runs of the text of a file, the origin positions of citation entries
+and inline citations, sets of names, vector files, the edges of a tree,
+the form runs and form positions of the edges that vector lines give,
+position subjects, edge finding subjects and declared-item edge spots,
+the spots of runs, tree findings, and bindings of the parameters
+`file-readers` (with their readers) and `vector-paths`. From Changes
+(`changes`), it takes commits, the files of the tree of a commit, the
+change of a commit, the base of the change of a commit under a binding
+of the parameter `default-branch-name`, and undisturbed repository reads. From Data forms
 (`data-forms`), it takes line objects, canonical byte sequences, hashes,
 test-vector sets, vector lines, the forms of a group, the meaning of a
 vector, and hex texts. From Findings (`findings`), it takes the
@@ -189,10 +190,11 @@ store), tests, sites, and vector lines can be suspect. Structural edges
 withdrawn declared-item objects in `.sinter/` are never suspect.
 
 Exact pins and content-id citations of non-identity declared-item
-objects resolve first in the tree (a current declared item, or for an
-exact pin a single replaced, unwithdrawn declared-item object in
-`.sinter/`) and then against unwithdrawn kept objects supplied from the
-log branch (`ontology#edge`, `ontology#log-branch`,
+objects resolve first in the tree (for an exact pin, a current declared
+item and then a single replaced, unwithdrawn declared-item object in
+`.sinter/`; for a content-id citation, any unwithdrawn object of the
+tree) and then against unwithdrawn objects of a kept object set
+(`documents#kept-object-set`, `ontology#edge`,
 `ontology#object-withdrawal`). For example, when `billing#size` has the
 current revision `v3` in the tree and an unwithdrawn kept object holds
 `billing#size` at `v2`, both `@cites billing#size=v2` and a content-id
@@ -205,35 +207,35 @@ identity objects and are never pinned and never suspect. A leftover
 `name` object file in `.sinter/` never creates a declared item in the
 tree.
 
-A pinned citation names a `pin` computed identity object only for a pin
-cycle, an undeclared name, or an ambiguous pin matching two or more
-copies (`ontology#edge`). For a pin cycle, the `pin` object's label
-matches the current revision of its target, so the edge is not suspect.
-For an undeclared name, no declared item of that name exists in the
-tree, so the edge is not suspect. For an ambiguous pin (two or more
-unwithdrawn kept copies, two or more replaced unwithdrawn `.sinter/`
-copies, or two or more current declared-item objects of one name and
-label), `ontology#suspect-edge` applies directly: the edge is suspect
-when its `pin` object's label differs from the current revision of its
-target or when that name has no unique current declared-item object in
-the tree.
+A pinned citation written as a name and a label names a `pin` computed
+identity object only for a pin cycle, an undeclared name, or an
+ambiguous pin matching two or more copies (`ontology#edge`). For a pin
+cycle, the `pin` object's label matches the current revision of its
+target, so the edge is not suspect. For an undeclared name, no declared
+item of that name exists in the tree, so the edge is not suspect. For an
+ambiguous pin (two or more unwithdrawn kept copies, two or more replaced
+unwithdrawn `.sinter/` copies, or two or more declared items of one name
+and label with different canonical objects), `ontology#suspect-edge`
+applies directly: the edge is suspect when its `pin` object's label
+differs from the current revision of its target or when that name has no
+unique current declared-item object in the tree.
 
 In the text encoding, `@cites pin:…` resolves as the exact pin `n=l`
-when an input holds that `pin` object (`n`, `l`), and an unknown `pin:`
-content id whose object no input holds resolves to no object and gives
-no `suspect` finding (`ontology#edge`). In `.sinter/`, a stored edge
-whose `to` is `pin:…` keeps that `pin:` content id as its canonical
-target and resolves in a tree as `n=l` when an input holds that `pin`
-object.
+when an input gives that `pin` object (`n`, `l`), by the object or by
+its key, and an unknown `pin:` content id whose object no input gives
+resolves to no object and gives no `suspect` finding (`ontology#edge`).
+In `.sinter/`, a stored edge whose `to` is `pin:…` keeps that `pin:`
+content id as its canonical target and resolves in a tree as `n=l` when
+an input gives that `pin` object, by the object or by its key.
 
 When a citation edge's target is a missing part (`ontology#edge`,
 `object-store#tree-object-store`) — such as an exact pin to a revision
 that never merged, a pin or content-id citation to a kept object
 withdrawn by a counting void, a missing log branch needed to resolve an
 earlier revision, or a stored `"to":"pin:…"` edge in `.sinter/` whose
-`pin` object no input of the run holds — a conforming program withholds
-the `suspect` finding for that edge and still gives every `suspect`
-finding that does not need that missing part
+`pin` object no input of the run gives, by the object or by its key — a
+conforming program withholds the `suspect` finding for that edge and
+still gives every `suspect` finding that does not need that missing part
 (`conformance#report-missing-parts`). When another input of the run,
 such as a text file, supplies a `pin` object missing from `.sinter/`,
 the run does not lack that part and gives every finding.
@@ -256,9 +258,10 @@ bases, a conforming program gives no finding of that class for the
 change and gives that the change has no base.
 
 Both trees of a comparison are read under one binding of each parameter
-and one set of kept objects. What a program gives from a repository read
-that is not undisturbed, or from a file that changes while the program
-reads it, is a matter of the quality of an implementation.
+and one kept object set (`documents#kept-object-set`). What a program
+gives from a repository read that is not undisturbed, or from a file
+that changes while the program reads it, is a matter of the quality of
+an implementation.
 
 ### 2.5 Findings
 
@@ -321,28 +324,29 @@ are the same text.
     ontology#{
         declared-item=v1, item-name=v1, item-revision=v1,
         revised-content=v1, object=v1, content-hash=v1, containment=v1,
-        encoding=v1, log-branch=v1, parameter=v1, tree=v1,
+        encoding=v1, parameter=v1, tree=v1,
     },
     object-store#{tree-object-store=v1, valid-object-file=v1},
     findings#{spot=v1},
     documents#{
-        file-readers=v1, item-file=v1, origin=v1, run-spot=v1,
-        tree-finding=v1,
+        file-readers=v1, item-file=v1, kept-object-set=v1,
+        canonical-object=v1, origin=v1, run-spot=v1, tree-finding=v1,
     },
     text#{text=v1},
     #{base-item=v1},
 }
 
 This atom is for a tree T, a base tree B, a binding of `file-readers`, a
-binding of `external-namespaces`, and a set of kept objects
-(`ontology#log-branch`). The declared items, their kinds, names, current
-revisions, canonical objects, content hashes, and files of T and of B,
-and the base items in B of the declared items of T, are those that T and
-B have under these bindings and kept objects, across the text encoding
-and the `.sinter/` encoding (when the object store of each tree is
-valid), or from a valid program's own store.
+binding of `external-namespaces`, and a kept object set
+(`documents#kept-object-set`). The declared items, their kinds, names,
+current revisions, canonical objects (`documents#canonical-object`),
+content hashes, and files of T and of B, and the base items in B of the
+declared items of T, are those that T and B have under these bindings
+and kept object set, across the text encoding and the `.sinter/`
+encoding (when the object store of each tree is valid), or from a valid
+program's own store.
 
-Under these bindings and kept objects, T has one tree finding of the
+Under these bindings and kept object set, T has one tree finding of the
 class `needs-revision` against B for each declared item d of T that
 meets three conditions:
 
@@ -376,24 +380,25 @@ follows the input from which d comes:
     ontology#{
         edge=v1, pinned-edge=v1, declared-item=v1, object=v1,
         content-id=v1, computed-identity=v1, encoding=v1,
-        log-branch=v1, parameter=v1, tree=v1,
+        parameter=v1, tree=v1,
     },
-    object-store#{tree-object-store=v1, valid-object-file=v1},
+    object-store#{tree-object-store=v1},
     findings#{spot=v1},
     documents#{
-        file-readers=v1, vector-paths=v1, tree-edge=v1, origin=v1,
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        canonical-object=v1, tree-edge=v1, origin=v1,
         origin-position=v1, position-subject=v1, edge-finding-subject=v1,
         run-spot=v1, tree-finding=v1,
     },
-    text#{space=v1, text=v1},
+    text#{text=v1},
 }
 
 Under a binding of `file-readers`, a binding of `vector-paths`, a
-binding of `external-namespaces`, and a set of kept objects
-(`ontology#log-branch`), a tree has one tree finding of the class
+binding of `external-namespaces`, and a kept object set
+(`documents#kept-object-set`), a tree has one tree finding of the class
 `suspect` for each citation edge of the tree under these bindings and
-kept objects that is suspect in the tree (`ontology#suspect-edge`) and
-whose target is not a missing part (`ontology#edge`). Only citation
+kept object set that is suspect in the tree (`ontology#suspect-edge`)
+and whose target is not a missing part (`ontology#edge`). Only citation
 edges (`cites`, `satisfies`, `verifies`, `refines`, and `supersedes`)
 whose source is a current declared item of the tree (in the text
 encoding, in the `.sinter/` encoding when the object store of the tree
@@ -407,21 +412,11 @@ The subject and the spot of the finding for a suspect edge follow the
 source of that edge:
 
 - For a canonical citation edge whose source is a declared item, the
-  subject of the finding is the edge subject (`documents#edge-finding-subject`):
-  the content id of the source canonical object, then a space, then the
-  kind of edge, then a space, then the target content id of the edge.
-  When that declared item is in the text encoding in the tree and
-  exactly one citation entry or inline citation in that declared item
-  gives that canonical edge, the spot of the finding is the spot of the
-  run of that citation entry or inline citation in the text of the file
-  of that declared item. When that declared item is in the text encoding
-  in the tree and two or more citation entries or inline citations in
-  that declared item give that canonical edge, the finding has no spot.
-  When that declared item is in the `.sinter/` encoding in the tree, the
-  spot of the finding is the spot that is the valid path of the valid
-  object file of that declared item alone, with no span. When a program
-  takes that declared item from a valid program's own store with no file
-  in the tree, the finding has no spot.
+  subject of the finding is the edge finding subject of that canonical
+  edge (`documents#edge-finding-subject`). The spot of the finding is
+  the declared-item edge spot of that canonical edge in the tree
+  (`documents#edge-finding-subject`); the finding has no spot when that
+  term gives no spot.
 - For an edge that a citation entry or an inline citation standing in a
   test or in a site gives, the subject of the finding is the position
   subject of the origin position of that citation entry or inline
@@ -440,11 +435,14 @@ source of that edge:
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{
-        finding-class=v1, tree=v1, parameter=v1, log-branch=v1,
-        edge=v1, declared-item=v1,
+        finding-class=v1, tree=v1, parameter=v1, edge=v1,
+        declared-item=v1,
     },
     object-store#{tree-object-store=v1},
-    documents#{file-readers=v1, tree-finding=v1},
+    documents#{
+        file-readers=v1, kept-object-set=v1, canonical-object=v1,
+        tree-finding=v1,
+    },
     conformance#{
         conforming-program=v1, dependence=v1, report-missing-parts=v1,
         give-results-over-canonical-objects=v1,
@@ -456,8 +454,8 @@ source of that edge:
 
 This requirement applies under a valid binding of `file-readers`, a
 binding of `external-namespaces` for which a conforming program of the
-design Identifiers gives the result "valid", a set of kept objects
-(`ontology#log-branch`), and valid object stores
+design Identifiers gives the result "valid", a valid kept object set
+(`documents#kept-object-set`), and valid object stores
 (`object-store#tree-object-store`) of T and of B (or valid program's own
 stores). Under these inputs, when a conforming program gives the
 findings of the class `needs-revision` of a tree T against a base tree
@@ -467,10 +465,11 @@ that class.
 
 A finding of the class `needs-revision` for a declared item d of T needs
 a missing part of a citation edge (`ontology#edge`) only when computing
-the canonical object of d in T or of its base item in B needs that part.
-It does not need a computed identity object missing from `.sinter/`
-(`object-store#tree-object-store`) when the valid object file of d in T
-and of its base item in B already hold their canonical byte sequences.
+the canonical object (`documents#canonical-object`) of d in T or of its
+base item in B needs that part. It does not need a computed identity
+object missing from `.sinter/` (`object-store#tree-object-store`) when
+the valid object file of d in T and of its base item in B already hold
+their canonical byte sequences.
 
 ### 4.2 The findings of the class `suspect`
 
@@ -478,11 +477,14 @@ and of its base item in B already hold their canonical byte sequences.
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
     ontology#{
-        finding-class=v1, tree=v1, parameter=v1, log-branch=v1,
-        edge=v1,
+        finding-class=v1, tree=v1, parameter=v1, edge=v1,
+        suspect-edge=v1,
     },
     object-store#{tree-object-store=v1},
-    documents#{file-readers=v1, vector-paths=v1, tree-finding=v1},
+    documents#{
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        canonical-object=v1, tree-finding=v1,
+    },
     conformance#{
         conforming-program=v1, dependence=v1, reject-invalid-inputs=v1,
         report-missing-parts=v1,
@@ -494,42 +496,43 @@ and of its base item in B already hold their canonical byte sequences.
 }
 
 This requirement applies under a valid binding of `file-readers`, a
-valid binding of `vector-paths`, a binding of `external-namespaces` for
-which a conforming program of the design Identifiers gives the result
-"valid", a set of kept objects (`ontology#log-branch`), and a valid
-object store (`object-store#tree-object-store`) of the tree (or a valid
+binding of `vector-paths`, a binding of `external-namespaces` for which
+a conforming program of the design Identifiers gives the result "valid",
+a valid kept object set (`documents#kept-object-set`), and a valid object
+store (`object-store#tree-object-store`) of the tree (or a valid
 program's own store). Under these inputs, when a conforming program
 gives the findings of the class `suspect` of a tree, that program must
 give each tree finding of that class that the tree has under these
 inputs once, and must give no other finding of that class.
 
 Only a finding of the class `suspect` for an edge that a vector line
-gives depends on the binding of `vector-paths`. When an edge of a
-declared item in `.sinter/`, a test, a site, or a vector line has a
-target that is a missing part (`ontology#edge`, including a stored
-`"to":"pin:…"` edge in `.sinter/` whose `pin` object no input of the run
-holds under `object-store#tree-object-store`), only the finding of the
-class `suspect` for that edge needs that missing part; every other
-finding of the class `suspect` of the tree does not need that missing
-part. When an edge of a declared item d in the text encoding has a
-target that is a missing part, each finding of the class `suspect` whose
-source is d (or whose source's canonical object depends on d) needs that
-missing part; every other finding of the class `suspect` of the tree
-does not need that missing part.
+gives depends on the binding of `vector-paths`. A finding of the class
+`suspect` for an edge needs a missing part (`ontology#edge`, including a
+stored `"to":"pin:…"` edge in `.sinter/` whose `pin` object no input of
+the run gives, by the object or by its key, under
+`object-store#tree-object-store`) when, and only when, one of these
+holds:
+
+- the target of that edge is that missing part;
+- the source of that edge is a declared item whose canonical object
+  (`documents#canonical-object`) that missing part withholds; or
+- deciding whether that edge is suspect (`ontology#suspect-edge`) needs
+  a canonical object (`documents#canonical-object`) that that missing
+  part withholds.
 
 ### 4.3 The base tree of the change of a commit
 
 @req compare-with-change-base=v1
 @cites {
     identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{finding-class=v1, tree=v1, parameter=v1, log-branch=v1},
+    ontology#{finding-class=v1, tree=v1, parameter=v1},
     object-store#{tree-object-store=v1},
     changes#{
         default-branch-name=v1, commit=v1, commit-file=v1,
         change-of-a-commit=v1, change-base=v1, repository-read=v1,
         undisturbed-read=v1,
     },
-    documents#{file-readers=v1, tree-finding=v1},
+    documents#{file-readers=v1, kept-object-set=v1, tree-finding=v1},
     conformance#{
         conforming-program=v1, give-results-over-canonical-objects=v1,
         read-defined-encodings=v1,
@@ -538,8 +541,8 @@ does not need that missing part.
     #{needs-revision-finding=v1},
 }
 
-This requirement applies for a commit h under three bindings, a set of
-kept objects (`ontology#log-branch`), and valid object stores
+This requirement applies for a commit h under three bindings, a valid
+kept object set (`documents#kept-object-set`), and valid object stores
 (`object-store#tree-object-store`) of the tree of h and of the tree of
 the base of the change of h: a valid binding of `default-branch-name`
 under which the change of h has a base, a valid binding of
@@ -639,11 +642,14 @@ them. No vector follows from the requirements
     },
     ontology#{
         tree=v1, finding-class=v1, parameter=v1, object=v1,
-        object-kind=v1, log-branch=v1,
+        declared-item=v1, computed-identity=v1, object-withdrawal=v1,
     },
     object-store#{tree-object-store=v1},
     findings#{spot=v1},
-    documents#{file-readers=v1, vector-paths=v1, tree-finding=v1},
+    documents#{
+        file-readers=v1, vector-paths=v1, kept-object-set=v1,
+        tree-finding=v1,
+    },
     #{
         needs-revision-finding=v1, suspect-finding=v1,
         give-needs-revision-findings=v1, give-suspect-findings=v1,
@@ -653,11 +659,13 @@ them. No vector follows from the requirements
 The group `trees` holds the vectors whose inputs are a base tree, a
 tree, a binding of `file-readers` whose readers are all `markdown`, a
 binding of `external-namespaces`, an optional binding of `vector-paths`,
-and an optional set of kept objects. Its requirements are
-`give-needs-revision-findings` and `give-suspect-findings`. Each vector
-of the group has the member `values`, and no
-vector has the member `result`. These forms name no question for
-`result`. The group uses no need, so these forms give no need names.
+and an optional kept object set. Its requirements are
+`give-needs-revision-findings` and `give-suspect-findings`. The input of
+a vector of this group stands for each tree in which no list of persons
+is bound (`ontology#object-withdrawal`). Each vector of the group has
+the member `values`, and no vector has the member `result`. These forms
+name no question for `result`. The group uses no need, so these forms
+give no need names.
 
 The JSON values, objects, arrays, strings, and numbers of this schema
 are as RFC 8259 defines them. In the members `input` and `values`, a
@@ -684,10 +692,10 @@ four required members and two optional members:
   array of path set members, each a text, in their order. When absent,
   the binding of `vector-paths` is `["**"]`, which never includes any
   file of `.sinter/`.
-- `kept` (optional): the set of kept objects (`ontology#log-branch`), as
-  a JSON array of canonical objects (each a JSON object conforming to a
-  row of `ontology#object-kind` marked allowed on the log branch), in no
-  meaningful order. When absent, the set of kept objects is empty.
+- `kept` (optional): the kept object set (`documents#kept-object-set`),
+  as a JSON array of valid canonical objects (declared-item objects and
+  computed identity objects), in no meaningful order. When absent, the
+  kept object set is empty.
 
 A tree is a JSON object with one member for each file of the tree. The
 key is the valid path of the file. When the content of the file is valid
@@ -712,8 +720,8 @@ value is a JSON array. In that case, `findings` holds:
 - one element for each tree finding of the class `suspect` that `tree`
   has under the inputs, except when `vector-paths` is not valid (in
   which case `findings` holds no finding of the class `suspect` for an
-  edge that a vector line gives) or when that edge has a target that is
-  a missing part.
+  edge that a vector line gives) or when that finding needs a missing
+  part (`give-suspect-findings`).
 
 In that case, the elements of `findings` are in the code point order of
 the slugs of the classes of those findings and then in the code point
