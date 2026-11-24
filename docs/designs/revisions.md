@@ -382,7 +382,7 @@ follows the input from which d comes:
     findings#{spot=v1},
     documents#{
         file-readers=v1, vector-paths=v1, tree-edge=v1, origin=v1,
-        origin-position=v1, position-subject=v1, edge-subject=v1,
+        origin-position=v1, position-subject=v1, edge-finding-subject=v1,
         run-spot=v1, tree-finding=v1,
     },
     text#{space=v1, text=v1},
@@ -407,7 +407,7 @@ The subject and the spot of the finding for a suspect edge follow the
 source of that edge:
 
 - For a canonical citation edge whose source is a declared item, the
-  subject of the finding is the edge subject (`documents#edge-subject`):
+  subject of the finding is the edge subject (`documents#edge-finding-subject`):
   the content id of the source canonical object, then a space, then the
   kind of edge, then a space, then the target content id of the edge.
   When that declared item is in the text encoding in the tree and
