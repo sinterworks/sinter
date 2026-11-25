@@ -141,6 +141,26 @@
   live only in `.sinter/`.
 - **A design names the path of its vectors** — in v0.1, the parameter
   `vector-paths` locates vector files.
+- **Parameter bindings on cited designs** — a citing design binds
+  parameters of a cited lower design directly in its `@cites` tag, with
+  syntax of the form
+  `@cites other=vN with {param-1="foo", param-2=42}`. In v0.1,
+  parameters remain unbound across designs until top-level
+  configuration binds them globally. Not designed.
+  - Binding parameters at the citation specializes `other` for the
+    citing design, and Sinter checks the supplied values against the
+    parameter schemas of `other`.
+- **Local aliases for cited designs and items** — a citing design binds
+  a local name to a cited design or a cited item, with syntax of the
+  form `@cites third=vN as new-id` (or
+  `@cites third#item=vN as local-name`). References inside the citing
+  design then use the local name instead of the target's global slug or
+  item name. Not in v0.1. Not designed.
+  - Local aliases shorten long slugs and decouple internal references
+    from global names.
+  - Combined with parameter bindings on cited designs, local aliases
+    let one design cite the same parameterized design multiple times
+    under different parameter bindings, each with its own local name.
 - **A fix that adds an object file in `.sinter/`** — in v0.1, an offered
   fix stays a set of edits in place.
 - **Acknowledgments in `.sinter/`** — a kind of record for an
