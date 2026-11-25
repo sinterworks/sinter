@@ -60,7 +60,7 @@ conforming program must schedule no next attempt and must mark the delivery
 A program conforms to the specification `retries` when the program is a
 conforming program of that specification: the program meets every requirement
 that the specification declares. The vectors of this specification stand in
-`webhooks.test-vectors.jsonl`.
+`webhooks-vectors.jsonl`.
 ```
 
 **Why this fails:**
@@ -135,7 +135,7 @@ closes `retries`.)
   to both `#retry-policy=v1` and `#delivery-state=v1`.
 - **Test vectors settle edge cases:** Malformed `Retry-After` strings, HTTP 408
   vs. 429, `Retry-After: 0`, and `Retry-After > max-delay` live cleanly in
-  `webhooks.test-vectors.jsonl`.
+  `webhooks-vectors.jsonl` (linked from `[designs.webhooks]` in `sinter.toml`).
 
 ---
 
@@ -249,8 +249,7 @@ reject the input with no audit envelope otherwise.
   domain sentence with a subject, the intro adds non-redundant context, and
   `@cites` records the RFC dependencies without a prose inventory.
 - **Distinct design and schema names:** The design slug (`audit-log`) and
-  schema name (`audit-envelope`) stay distinct in citations and vector file
-  names.
+  schema name (`audit-envelope`) stay distinct in citations.
 - **No unnecessary Glossary or secondary RFC:** Drops basic lower-layer terms,
   drops tautological verb definitions, and narrows RFC 8259 directly instead of
   fighting RFC 7493's mismatches.
@@ -270,7 +269,7 @@ reject the input with no audit envelope otherwise.
 ```markdown
 ### Test vectors
 
-Vectors for `retries` stand in `webhooks.test-vectors.jsonl`.
+Vectors for `retries` stand in `webhooks-vectors.jsonl`.
 
 #### Retry scheduling vectors
 
@@ -308,7 +307,7 @@ vector has a `values` member, which is a JSON object with `state` (`"retry"`,
 @cites #{schedule-retry=v1}
 
 Group `retry-schedule` in
-[`webhooks.test-vectors.jsonl`](webhooks.test-vectors.jsonl) tests
+[`webhooks-vectors.jsonl`](webhooks-vectors.jsonl) tests
 `schedule-retry`. No vector uses `needs`. Durations are whole seconds.
 
 | field | type | meaning |
@@ -333,7 +332,7 @@ Group `retry-schedule` in
 
 **Why this works:**
 
-- Because `retries` has one vector group, the file link and group `@schema` sit
+- Because `retries` has one vector group, the file reference and group `@schema` sit
   directly under `### Test vectors` without an extra wrapper heading.
 - The unused `rfc/8259` pin is removed.
 - One `field | type | meaning` table with path notation replaces a wall of

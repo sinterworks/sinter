@@ -25,7 +25,7 @@ distinct audience and job:
 |---|---|---|---|
 | **Non-normative prose** (design intro, `@spec` intro, `@example` blocks) | Readers and the human author | Orient the reader on what the part does and illustrate concrete cases. | Brief and readable so the human author can edit it directly. Editing a `@design` or `@spec` introduction changes the hash of that `@design` or `@spec` but never the hashes of its child items (`@schema`, `@req`, `@atom`, `@term`), and editing an `@example` block never changes its parent item's hash. |
 | **Normative items** (`@spec`, `@schema`, `@req`, `@atom`, `@term`) | Engineers and future agents that implement or investigate code | State directly what is or must be true; ground code and reviews in declared behavior. | Precise within reason for plain language; consistent with and covering the test vectors. |
-| **Test vectors** (`.test-vectors.jsonl` and vector-group `@schema`s) | Implementations and conformance suites | Decide whether an implementation conforms on exact inputs and boundary cases. | Exact concrete inputs, boundary values, and subtle interactions. |
+| **Test vectors** (JSON Lines vector files linked in `sinter.toml` and vector-group `@schema`s) | Implementations and conformance suites | Decide whether an implementation conforms on exact inputs and boundary cases. | Exact concrete inputs, boundary values, and subtle interactions. |
 
 Plain language cannot match the arbitrary precision of code or structured data
 without turning into unreadable legal prose. Do not force normative prose to do
@@ -140,6 +140,19 @@ genuinely implement them independently.
   obligations (`must`) and optional permissions (`may`) only in `@req` items.
 - **Assume ordinary engineering meaning.** Do not define ordinary verbs such as
   "return", "give", or "represent" for values.
+- **Use standard engineering vocabulary.** Use the standard technical words and
+  phrases that software engineers expect. Standard technical words improve
+  clarity even when two designs use the same plain word for different concepts,
+  because each declared item belongs to a named design (for example,
+  `config#location` and `diagnostics#location`). Within one design, use one term
+  for one meaning, and use that term the same way every time. All `@spec`
+  sections of a design share the terms of that design, and the definitions that
+  a design cites count as terms of that design. Do not coin a substitute or
+  folksy word only because another design uses the standard word. Prefer the
+  word that software engineers, a cited standard, a cited format, or a cited
+  design already use for that meaning. When two meanings of one standard word
+  meet in one design, give each meaning a plain fixed phrase (such as "config
+  location" and "diagnostic location"), and use that fixed phrase every time.
 - **Distinguish routine input handling from safety obligations.** State invalid
   input behavior plainly as part of the operation's contract (for example, the
   operation rejects the input and returns no value). Reserve unqualified
@@ -174,8 +187,13 @@ genuinely implement them independently.
 
 ### 3. Test vectors (conformance arbiter)
 
-Treat the `.test-vectors.jsonl` file as part of the specification, not an
-afterthought.
+Treat each test-vector JSON Lines file (linked explicitly in a root or nested
+`sinter.toml` via `[designs.<design>]` or `[designs.<design>.specs.<spec>]`
+with `test-vectors = "<path>"`) as part of the specification, not an
+afterthought. A design-level `test-vectors` file tests schemas and cited
+requirements anywhere in that design (including inside `@spec` sections); a
+`@spec`-level `test-vectors` file tests schemas and requirements declared in
+that `@spec`.
 
 - **Cover normal inputs and real edge cases thoroughly.** Every boundary value,
   error case, derivation rule, and non-obvious interaction that a real user or
@@ -186,14 +204,15 @@ afterthought.
   every vector and must cover the behaviors the vectors test, while leaving
   exhaustive enumeration of boundary combinations to the vectors.
 - **Write compact vector-group schemas.** State shared vector-file conventions
-  (file link, byte encoding, and `needs`) once per `@spec`, without repeating
-  conformance boilerplate paragraphs in every specification. Define each group
-  in a compact `field | type | meaning` table (using path notation such as
-  `events[].id` for nested objects and omitting `result` when a group does not
-  use it). If you include one or two sample JSONL lines at the end of a
-  vector-group `@schema`, place them in a trailing `@example` block with a
-  short lead line inline-citing the tested requirement (and any key definition)
-  above the verbatim line copied from `.test-vectors.jsonl`.
+  (the Markdown reference to the file, byte encoding, and `needs`) once per
+  `@spec` (or once in a design-level `## Test vectors` section), without
+  repeating conformance boilerplate paragraphs in every specification. Define each group in a compact
+  `field | type | meaning` table (using path notation such as `events[].id` for
+  nested objects and omitting `result` when a group does not use it). If you
+  include one or two sample JSONL lines at the end of a vector-group `@schema`,
+  place them in a trailing `@example` block with a short lead line inline-citing
+  the tested requirement (and any key definition) above the verbatim line copied
+  from the test-vector file.
 
 See [references/syntax.md](./references/syntax.md) for Sinter core terms, tag
 syntax, revision and hashing rules, `@example` mechanics, brief-line

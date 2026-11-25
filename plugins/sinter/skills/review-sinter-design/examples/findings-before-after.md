@@ -62,7 +62,7 @@ section 10.2.3), the program must use
 - **A-2** violates the three-tier allocation test. RFC 9110 section 10.2.3
   already defines `delay-seconds = 1*DIGIT` (non-negative decimal seconds,
   excluding negative integers and `HTTP-date` values). Instead of checking the
-  cited standard and checking whether `webhooks.test-vectors.jsonl` covers
+  cited standard and checking whether `webhooks-vectors.jsonl` covers
   those inputs, the critic demands a redundant single-use `@term` and prose
   bloat.
 
@@ -72,12 +72,12 @@ section 10.2.3), the program must use
   attempt.
 - **Check the cited standard and the vectors first.** RFC 9110 section 10.2.3
   already decides `"-5"` and `HTTP-date` strings, so no prose change is needed.
-  If `webhooks.test-vectors.jsonl` already tests `"-5"` and an HTTP-date
+  If `webhooks-vectors.jsonl` already tests `"-5"` and an HTTP-date
   string, file nothing (record it in verification notes). If those real
   boundary inputs are missing from the vector file, file Class `B` with
   concrete proposed vector lines:
 
-> **B-1 (`schedule-retry` and `webhooks.test-vectors.jsonl`, group `retry-schedule`):**
+> **B-1 (`schedule-retry` and `webhooks-vectors.jsonl`, group `retry-schedule`):**
 > - **Quoted text:** "includes a `Retry-After` header with a valid
 >   `delay-seconds` value (RFC 9110, section 10.2.3)"
 > - **Defect:** RFC 9110 section 10.2.3 excludes negative numbers and
@@ -118,7 +118,7 @@ a first attempt returning HTTP 429 with `Retry-After: 45` overrides the
 computed 10s delay and schedules attempt 2 at 45s (capped at `max-delay`).
 ```
 
-Vector line 14 in `webhooks.test-vectors.jsonl`:
+Vector line 14 in `webhooks-vectors.jsonl`:
 
 ```json
 {"form":"#retry-schedule-vector=v1","group":"retry-schedule","input":{"attempt":1,"policy":{"base-delay":10,"max-attempts":3,"max-delay":60},"retry-after":"45","status":429},"note":"429 Retry-After overrides shorter exponential backoff","values":{"delay":45,"state":"retry"}}
@@ -138,7 +138,7 @@ Vector line 14 in `webhooks.test-vectors.jsonl`:
 
 ### Grounded critique (right approach)
 
-> **A-1 (`schedule-retry`, `@example`, and `webhooks.test-vectors.jsonl:14`):**
+> **A-1 (`schedule-retry`, `@example`, and `webhooks-vectors.jsonl:14`):**
 > - **Quoted text:** "the program must schedule the next attempt after
 >   `min(base-delay * 2^(n - 1), max-delay)` for failed 1-based attempt `n`."
 > - **Defect:** Stranded rule and normative–vector contradiction. The normative
@@ -192,7 +192,7 @@ return the decoded audit envelope if the bytes match `audit-envelope`, and
 reject the input with no audit envelope otherwise.
 ```
 
-Vector line 9 in `audit-log.test-vectors.jsonl`:
+Vector line 9 in `audit-log-vectors.jsonl`:
 
 ```json
 {"form":"#decode-envelope-vector=v1","group":"decode-envelope","input":"7b22616374696f6e223a226c6f67696e222c226163746f72223a22616461222c227473223a22323032362d30352d30315431323a30303a30302e3530305a227d","note":"fractional seconds in ts are rejected","result":"invalid","values":{}}
@@ -223,7 +223,7 @@ Vector line 9 in `audit-log.test-vectors.jsonl`:
 
 ### Grounded critique (right approach)
 
-> **A-1 (`audit-envelope` and `audit-log.test-vectors.jsonl:9`):**
+> **A-1 (`audit-envelope` and `audit-log-vectors.jsonl:9`):**
 > - **Quoted text:** "RFC 3339 `date-time` with uppercase `T` and uppercase `Z`
 >   offset (no numeric offsets and no leap second `60`)."
 > - **Defect:** Normative–vector contradiction on fractional seconds. RFC 3339
@@ -268,7 +268,7 @@ and `estimate-retry-window`) is `min(base-delay * 2^(n - 1), max-delay)`
 @cites #{schedule-retry=v1}
 
 Group `retry-schedule` in
-[`webhooks.test-vectors.jsonl`](webhooks.test-vectors.jsonl) tests
+[`webhooks-vectors.jsonl`](webhooks-vectors.jsonl) tests
 `schedule-retry`.
 
 | field | type | meaning |

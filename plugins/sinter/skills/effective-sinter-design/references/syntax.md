@@ -172,8 +172,16 @@ and `estimate-retry-window`) is `min(base-delay * 2^(n - 1), max-delay)`.
 
 ## Test-vector files and vector-group schemas
 
-Test vectors live in a sidecar JSON Lines file (`<slug>.test-vectors.jsonl` or
-`<slug>.<spec>.test-vectors.jsonl`). Each line is a canonical JSON object with:
+Test vectors live in JSON Lines files linked explicitly from a root or nested
+`sinter.toml` file via `[designs.<design>]` or
+`[designs.<design>.specs.<spec>]` tables with `test-vectors = "<path>"` (a
+strictly downward-relative path at or below the directory of that `sinter.toml`
+file, never inside `.sinter/`, one file per target). Sinter does not match
+vector files by filename convention. A design-level `test-vectors` file tests
+vector-group `@schema` items and cited requirements anywhere in that design
+(including inside `@spec` sections); a `@spec`-level `test-vectors` file stays
+scoped to `@schema` and requirement items declared in that `@spec`. Each line is
+a canonical JSON object with:
 
 - `"form"`: pinned schema reference (`"#<group>-vector=<rev>"`)
 - `"group"`: lowercase hyphenated group name matching the schema
@@ -185,16 +193,17 @@ Test vectors live in a sidecar JSON Lines file (`<slug>.test-vectors.jsonl` or
   environment-precondition names
 - `"note"` (optional): short human note on what the vector tests
 
-**Structuring vector schemas inside a `@spec`:**
+**Structuring vector schemas inside a `@spec` (or design-level `## Test vectors`):**
 
-- When a `@spec` has multiple vector groups, place a short `### Test vectors`
-  intro once, linking to the `.test-vectors.jsonl` file and stating any shared
-  conventions (such as hex-encoded byte sequences or whether any group uses
-  `needs`), followed by one `####` subsection per group `@schema` (without
-  repeating the file link in each group).
-- When a `@spec` has only one vector group, place the file link and the single
-  group `@schema` directly under `### Test vectors` without an extra wrapper
-  heading.
+- When a `@spec` (or design-level `## Test vectors` section) has multiple vector
+  groups, place a short `### Test vectors` (or `## Test vectors`) intro once,
+  naming the test-vector file with a Markdown link matching the path that
+  `sinter.toml` links and stating any shared conventions (such as hex-encoded
+  byte sequences or whether any group uses `needs`), followed by one subsection
+  per group `@schema` (without repeating the file reference in each group).
+- When a `@spec` has only one vector group, place the file reference (matching
+  the path that `sinter.toml` links) and the single group `@schema` directly
+  under `### Test vectors` without an extra wrapper heading.
 - Document each group's fields in one compact `field | type | meaning` table.
   Use dot and bracket path notation (such as `events[].id` or
   `input.policy.max-delay`) for nested objects. Omit `result` from the table
@@ -204,10 +213,10 @@ Test vectors live in a sidecar JSON Lines file (`<slug>.test-vectors.jsonl` or
 - When including one or two sample JSONL lines at the end of a vector-group
   `@schema`, place them in a trailing `@example` block with a short lead line
   inline-citing the tested requirement (and any key definition) above the
-  fenced JSON block, and copy each line verbatim from the `.test-vectors.jsonl`
-  file (including `"note"`, if present). Placing sample lines in `@example`
-  keeps edits to samples out of the `@schema` hash; when a copied vector
-  changes, update the sample or delete it.
+  fenced JSON block, and copy each line verbatim from the test-vector file
+  (including `"note"`, if present). Placing sample lines in `@example` keeps
+  edits to samples out of the `@schema` hash; when a copied vector changes,
+  update the sample or delete it.
 
 ## Formatting and partial-rewrite conventions
 

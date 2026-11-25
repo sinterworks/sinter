@@ -62,6 +62,16 @@ Classify every finding with one of four letters, or drop it entirely:
 - Uses the right item kind: `@term`, `@schema`, and `@atom` stay declarative
   present tense; program obligations (`must`) and optional permissions (`may`)
   live in `@req`.
+- **Scoped engineering vocabulary (`B`/`C`):** Uses the standard technical words
+  and phrases that software engineers expect, even when another design uses the
+  same word in its own scope (because each item belongs to a named design, such
+  as `config#location` and `diagnostics#location`). Keeps one meaning per term
+  within the design (including all of its `@spec` sections) and its cited
+  definitions, and uses plain fixed phrases whenever two meanings meet in one
+  design (such as "config location" and "diagnostic location"). Flag folksy
+  substitutes or same-design term clashes as `B` or `C` (class `A` when the
+  clash splits cooperative implementations); do not demand synonyms solely to
+  avoid cross-design overlap.
 - Passes the single-use test for `@term` and avoids artificial splits of
   tightly paired operations.
 - Pin hygiene (`B`): pins every normative item and external standard that the
@@ -102,12 +112,21 @@ Classify every finding with one of four letters, or drop it entirely:
 - Vector `"note"` fields are non-normative human aids: a note that states a
   false or misleading reason is Class `B`; terminology drift in notes is
   Class `C`.
-- Vector-group `@schema` sections link the vector file once per `@spec` (placed
-  directly under `### Test vectors` without an extra wrapper heading when a
-  `@spec` has only one group) and match the JSON fields in `.test-vectors.jsonl`
-  accurately (`field | type | meaning` with path notation, omitting `result`
-  when unused, marking optional fields and empty `"values":{}` cases clearly,
-  and stating `needs` conventions once per `@spec`).
+- Test-vector files are linked explicitly in `sinter.toml` via
+  `[designs.<design>]` or `[designs.<design>.specs.<spec>]` with
+  `test-vectors = "<path>"` (never matched by filename convention). A
+  design-level file tests schemas and cited requirements anywhere in the design
+  (including inside `@spec` sections), while a `@spec`-level file tests schemas
+  and cited requirements in that `@spec`.
+- Vector-group `@schema` sections name the test-vector file with a Markdown link
+  (matching the path that `sinter.toml` links) once per `@spec` or once in a
+  design-level `## Test vectors` section. When a `@spec` has only one group,
+  place the file reference and the single `@schema` directly under
+  `### Test vectors` without an extra wrapper heading. Each group table matches
+  the JSON fields in the test-vector file accurately (`field | type | meaning`
+  with path notation, omitting `result` when unused, marking optional fields and
+  empty `"values":{}` cases clearly), and states `needs` conventions once per
+  `@spec` (or once in a design-level `## Test vectors` section).
 - Any sample JSONL lines embedded at the end of a vector-group `@schema` stand
   inside a trailing `@example` block with a lead line inline-citing the tested
   requirement (and any key definition) and match the vector file verbatim
@@ -122,12 +141,12 @@ of bloating it:
 | defect pattern | right remedy | wrong remedy (avoid) |
 |---|---|---|
 | Real ambiguity between two cooperative readings | Rewrite the sentence as the simplest stronger rule, and add a test vector settling the chosen reading (or file Class `O` if unruled). | Append a multi-clause caveat or `"when, and only when"` wrapper. |
-| Missing real boundary case or untested derivation rule | Add concrete test vector(s) to `.test-vectors.jsonl`. | Expand normative prose to enumerate every combination. |
+| Missing real boundary case or untested derivation rule | Add concrete test vector(s) to the test-vector file. | Expand normative prose to enumerate every combination. |
 | Normative item contradicts vectors | Check which side the schema table, the other vectors, and any `@example` support; propose fixing the single disagreeing sentence (noting the reverse as an `O` fallback if the author intended that sentence). | Rewrite both without checking the surrounding evidence. |
 | Behavioral rule stranded in prose or `@example` | Move the rule once into the owning normative item; trim the prose sentence. | Copy the rule into the normative item while leaving the duplicate in prose. |
 | Contrived bad-faith loophole (e.g., emitting duplicate results) | Drop the finding. | Demand `"once and only once, and no other X"`. |
 | Missing or unused `@cites` pin | Add the missing pin or delete the unused pin; delete sentences that duplicate another design's rule in prose. | Leave dead pins or restate the cited design's definition inline. |
-| Stale, uncited, or untagged sample vector lines | Wrap verbatim lines in `@example` with a lead inline citation, or delete the sample block if the table and file link suffice. | Leave drifted copies inside normative `@schema` text. |
+| Stale, uncited, or untagged sample vector lines | Wrap verbatim lines in `@example` with a lead inline citation, or delete the sample block if the table and file reference suffice. | Leave drifted copies inside normative `@schema` text. |
 
 ## Report structure
 
