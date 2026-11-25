@@ -11,8 +11,8 @@
     {
       "name": "sinter",
       "source": "./plugins/sinter",
-      "description": "Write and review Sinter designs with conformance test vectors, turn an approved plan into a Sinter plan file, and write a decision record.",
-      "version": "0.2.0"
+      "description": "Write and review Sinter designs and specifications with conformance test vectors.",
+      "version": "0.3.0"
     }
   ]
 }
