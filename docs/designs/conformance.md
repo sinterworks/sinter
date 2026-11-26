@@ -3,9 +3,9 @@
 
 # Conformance
 @design conformance=v1
-A Sinter design declares specifications, requirements, terms, schemas, and atoms, and a conforming program of a design meets the requirements of that design, ends a run at a resource limit, rejects invalid inputs, reports missing parts, and gives the same results over canonical objects in every encoding.
+A Sinter design declares specifications, requirements, terms, schemas, and atoms, and a conforming program of a design meets the requirements of that design, ends a run at a resource limit, rejects invalid inputs, reports missing parts, and returns the same results over canonical objects in every encoding.
 
-Sinter designs specify what conforming programs give and what actions
+Sinter designs specify what conforming programs return and what actions
 those programs avoid. During a run, a program can reach a bound on a
 resource such as memory or time, receive an input that the design of
 that input defines as invalid, or receive a valid input with content
@@ -35,7 +35,7 @@ A **definition** of a design is a declared term, schema, or atom:
   concrete artifact that crosses a program boundary, or of a conformance
   test-vector file.
 - An **atom** defines a named result, state, or classification that a
-  program gives, with the condition under which the program gives it.
+  program returns, with the condition under which the program returns it.
 
 A **specification** of a design is a declared item of kind
 `specification` that has its own name and declares a subset of the
@@ -67,7 +67,7 @@ one of these guarantees:
   than what the requirement allows (for example, a file, a symbolic
   link, a stored record, or code supplied by a file or by another
   program), or gains no permission;
-- that a program never gives an answer that permits an action to
+- that a program never returns an answer that permits an action to
   proceed; or
 - that a program ends code or an operation that the program runs.
 
@@ -79,7 +79,7 @@ one of these guarantees:
 An **input** is a thing that a program takes, such as a file, a
 directory tree, or a command argument. A program takes a thing as an
 input for a requirement `R` when `R` names that thing as an input of
-something `R` obliges the program to give or do, or when the program
+something `R` obliges the program to return or do, or when the program
 supplies that thing as an input for `R`.
 
 Each requirement `R` names the kind of thing as which a program takes
@@ -130,7 +130,7 @@ input invalid.
 
 A **part of a program** is a component of a larger program, such as a
 library or a subsystem, whose boundary is the interface through which
-the larger program passes inputs and receives what the component gives,
+the larger program passes inputs and receives what the component returns,
 together with any external state that the component reads, alters,
 writes, follows, or runs. For a part of a program, a **run** is one call
 of that component.
@@ -166,7 +166,7 @@ read the file while the program keeps every
 [safety obligation](sinter:#safety-obligation=v1). The directory tree
 remains valid and lacks that file's content. When a result
 [needs](sinter:#dependence=v1) that file, the program reports the
-missing file and withholds that result. The program still gives every
+missing file and withholds that result. The program still returns every
 result that does not need that file
 ([report-missing-parts](sinter:#report-missing-parts=v1)). By contrast,
 when the program stops a read of a 10 GB file because the file exceeds
@@ -179,23 +179,25 @@ ends the run ([end-runs-at-limits](sinter:#end-runs-at-limits=v1)).
 @term dependence=v1
 @cites #{design=v1, input=v1}
 
-What a program gives or does includes any value, summary over several
-inputs, exit status, report, or action.
+What a program returns or does includes any value, summary over several
+inputs, exit status, report, or action. A program returns a thing when
+the program produces that thing through any interface, such as a return
+value, standard output, a structured message, or an exit status.
 
-Let `X` be an input or a part of an input. A thing that a program gives
+Let `X` be an input or a part of an input. A thing that a program returns
 or does **depends on** `X` when either condition holds:
 
 - a requirement defines that thing, and changing `X`, with every other
   input and the rest of the input that holds `X` unchanged, can change
-  what that requirement obliges the program to give or do for that
+  what that requirement obliges the program to return or do for that
   thing; or
 - the program computes or chooses that thing from `X`.
 
 When an input `I` lacks a part `P`—including content that the program
-could not read—whether a thing that a program gives or does depends on
+could not read—whether a thing that a program returns or does depends on
 `P` is judged as if `I` held `P` and the program read `P`.
 
-A thing that a program gives or does **depends on** a reading or
+A thing that a program returns or does **depends on** a reading or
 computation when what a requirement obliges for that thing depends on an
 input or part that the reading reads or on the value that the
 computation computes, or when the program computes or chooses that thing
@@ -235,7 +237,7 @@ lacks is a resource limit:
 @term report=v1
 @cites #{design=v1, input=v1, resource-limit=v1}
 
-A **report** is an output that a program gives to identify a stop at a
+A **report** is an output that a program returns to identify a stop at a
 resource limit, an invalid input, or a missing part of a valid input.
 Unless a requirement states the form of a report, a report can have any
 form that identifies the required fact, such as a message, a structured
@@ -348,8 +350,8 @@ specification. Each obligation of the general requirements binds every
 conforming program of every design and of every specification.
 
 For anything that an obligation of a requirement obliges a conforming
-program to give or do—including an obligation to give nothing, to do
-nothing, or to give no thing of a kind—that obligation binds the
+program to return or do—including an obligation to return nothing, to do
+nothing, or to return no thing of a kind—that obligation binds the
 conforming program only in a run in which the program reaches no
 resource limit, and only when every input on which that thing depends is
 valid and holds every part that that thing needs. These categories of
@@ -364,12 +366,12 @@ obligation bind a conforming program beyond that scope:
 - In a run in which the program reaches no resource limit, when an input
   is invalid, every obligation of `reject-invalid-inputs` binds the
   conforming program, together with every obligation of a requirement of
-  that input's owner design that states what a program gives or does
+  that input's owner design that states what a program returns or does
   when that input is invalid.
 - In a run in which the program reaches no resource limit, when a valid
   input lacks a part, every obligation of `report-missing-parts` binds
   the conforming program, together with every obligation of a
-  requirement that states what a program gives or does when a valid
+  requirement that states what a program returns or does when a valid
   input lacks a part.
 
 No other obligation binds a conforming program beyond that scope.
@@ -383,9 +385,9 @@ No other obligation binds a conforming program beyond that scope.
 
 When a program reaches a resource limit, the program must end the run
 (for a part of a program, that call). Unless the program's machine ends
-the program before the program can report, the program must give one
+the program before the program can report, the program must return one
 report identifying where the program reached that limit, as far as the
-machine permits. The program must give no other result of that run, and
+machine permits. The program must return no other result of that run, and
 must write nothing durable after the program reaches that limit. A
 program must report no resource-limit stop that did not occur.
 
@@ -399,10 +401,10 @@ program must report no resource-limit stop that did not occur.
 When a program takes an invalid input `I` for a requirement `R`, the
 program must:
 
-- give a report identifying which input is invalid and where, once for
+- return a report identifying which input is invalid and where, once for
   each invalid input unless a requirement of the owner design of `I` for
   `R` states otherwise; and
-- give nothing and do nothing that depends on `I`, other than reports of
+- return nothing and do nothing that depends on `I`, other than reports of
   invalid inputs, reports of resource-limit stops, and any output or
   action that a requirement of the owner design of `I` for `R` states
   for `I` when `I` is invalid.
@@ -417,16 +419,16 @@ for `I` when `I` is invalid, that report is the report of `I` for `R`.
 @cites #{design=v1, input=v1, dependence=v1, report=v1}
 
 When a program takes a valid input `I` for a requirement `R` and a thing
-that `R` obliges the program to give or do needs a part that `I` lacks,
+that `R` obliges the program to return or do needs a part that `I` lacks,
 the program must:
 
-- give a report identifying which part is missing, once for each such
+- return a report identifying which part is missing, once for each such
   missing part unless a requirement of the owner design of `I` for `R`
   or of the design that declares `R` states otherwise; and
-- give nothing and do nothing that needs that part.
+- return nothing and do nothing that needs that part.
 
 A program must report no part that `I` holds as missing. For every thing
-that does not need that missing part, the program must still give and do
+that does not need that missing part, the program must still return and do
 what the requirements oblige.
 
 When a requirement of the owner design of `I` for `R` or of the design
@@ -435,9 +437,9 @@ the report of that missing part for `R`. When both designs state a
 report for that missing part, the report that the design that declares
 `R` states governs for `R`. When two requirements of different designs
 both need the same missing part and those designs state different
-reports, the program must give each design's report for its requirement.
+reports, the program must return each design's report for its requirement.
 
-### Giving results over canonical objects
+### Returning results over canonical objects
 
 @req give-results-over-canonical-objects=v1
 @cites #{
@@ -445,9 +447,9 @@ reports, the program must give each design's report for its requirement.
     own-store=v1,
 }
 
-When a requirement `R` defines what a program gives or does over
-objects, the program must give and do what `R` obliges for the set of
-canonical objects held together by these inputs, and must give and do
+When a requirement `R` defines what a program returns or does over
+objects, the program must return and do what `R` obliges for the set of
+canonical objects held together by these inputs, and must return and do
 nothing else for `R` in place of what `R` obliges:
 
 - each valid input in an encoding from which the program reads objects
@@ -459,7 +461,7 @@ This requirement applies only to the part of what `R` obliges that `R`
 defines from those canonical objects, and not to a part that `R` defines
 from another property of an input, such as a file path, a file layout,
 or the location in an input from which the program reads an object (such
-as a line of a file). What a program gives or does for such a part
+as a line of a file). What a program returns or does for such a part
 depends on that input.
 
 The designs that define those kinds of object and those encodings govern
@@ -487,7 +489,7 @@ A program that meets a requirement `R` must read every object of a kind
 that a valid input in an encoding holds when all of these conditions
 hold:
 
-- `R` defines what a program gives or does over objects of that kind;
+- `R` defines what a program returns or does over objects of that kind;
 - the design `D` that declares `R`, or a design that `D` cites directly
   or through a chain of citations, defines that encoding for objects of
   that kind; and
