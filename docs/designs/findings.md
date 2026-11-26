@@ -628,9 +628,9 @@ with a space (U+0020) or a tab (U+0009). The path-finding subject of a
 valid path is a `finding-subject` for that valid path.
 
 The path-finding subject of a valid path *f* is the text that these
-steps give.
+steps return.
 
-1. If *f* does not need path encoding, give *f*.
+1. If *f* does not need path encoding, return *f*.
 2. Let *s* be `/`.
 3. For each *ch* of *f*, in order:
    1. Let *out* be *ch*.
@@ -639,7 +639,7 @@ steps give.
    4. If *ch* is a space (U+0020), set *out* to `%20`.
    5. If *ch* is a tab (U+0009), set *out* to `%09`.
    6. Append *out* to *s*.
-4. Give *s*.
+4. Return *s*.
 
 @example Path-finding subjects of [valid paths](sinter:files#path=v1) as
 [finding subjects](sinter:#finding-subject=v1):
