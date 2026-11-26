@@ -64,9 +64,11 @@ workspace that `jj workspace add` made before jj 0.46.0.
 This repository is also a Claude Code plugin marketplace. The `sinter`
 plugin holds two skills:
 
-- `/sinter:plan` turns an approved plan into a plan file under
-  `.plans/`.
-- `/sinter:decision` writes a decision record under `docs/decisions/`.
+- `/sinter:effective-sinter-design` writes and revises software designs
+  and specifications using Sinter's tag vocabulary and conformance test
+  vectors.
+- `/sinter:review-sinter-design` critiques and reviews Sinter designs
+  and conformance test vectors without adversarial bloat.
 
 To install the plugin, run these two commands inside Claude Code:
 

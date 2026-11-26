@@ -22,10 +22,14 @@ tool's own output. The rules:
 - Use the active voice and simple tenses.
 - Use one term for one meaning, and use it the same way every time. A
   term is a word or a fixed phrase, such as "boundary rule" or "git's
-  index". When a word has more than one meaning in the project, give
-  each meaning a fixed phrase, and do not use a synonym in its place.
-- Do not invent terms. When a technical term is necessary, define it
-  at first use.
+  index". In a design, the scope of this rule is that design and the
+  definitions that it cites. When a word has more than one meaning within
+  that scope, give each meaning a fixed phrase, and do not use a
+  synonym in its place.
+- Do not invent terms or substitute folksy words for standard
+  engineering terms. Use the standard technical words that software
+  engineers expect, even when two designs use the same word in their
+  own scopes. Define any project-specific technical term at first use.
 - Give every pronoun one clear referent. Repeat the noun when in
   doubt.
 - Give the context before the detail, so that each sentence makes

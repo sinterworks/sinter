@@ -1,0 +1,17 @@
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"req:","number-of-hex-digits":32},"values":{"hash-id":"req:ba7816bf8f01cfea414140de5dae2223"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"","id-prefix":"task-def:","number-of-hex-digits":32},"values":{"hash-id":"task-def:e3b0c44298fc1c149afbf4c8996fb924"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"vector-group-def:","number-of-hex-digits":1},"values":{"hash-id":"vector-group-def:b"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"req:","number-of-hex-digits":64},"values":{"hash-id":"req:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}
+{"form":"#compute-hash-id-vector=v1","group":"compute","input":{"byte-sequence":"616263","id-prefix":"task-def:","number-of-hex-digits":12},"values":{"hash-id":"task-def:ba7816bf8f01"}}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e11"},"result":"valid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e1"},"note":"11 hex digits","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e11a"},"note":"13 hex digits","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5B1C0A9D2E11"},"note":"uppercase letters are not hex digits","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"task-def:5b1c0a9d2e11"},"note":"the text does not start with `req:`","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"5b1c0a9d2e11"},"note":"the text does not start with `req:`","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req-5b1c0a9d2e11"},"note":"the text does not start with `req:`","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"task-def:","number-of-hex-digits":32,"text":"task-def:ba7816bf8f01cfea414140de5dae2223"},"result":"valid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"vector-group-def:","number-of-hex-digits":1,"text":"vector-group-def:b"},"result":"valid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"vector-group-def:","number-of-hex-digits":64,"text":"vector-group-def:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"},"result":"valid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e1g"},"note":"`g` is not a hex digit","result":"invalid"}
+{"form":"#validate-hash-id-vector=v1","group":"validate","input":{"id-prefix":"req:","number-of-hex-digits":12,"text":"req:5b1c0a9d2e11\n"},"note":"a trailing line feed is not a hex digit","result":"invalid"}
