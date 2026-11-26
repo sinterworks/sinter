@@ -557,7 +557,7 @@ file (`read-file`):
   than a space (U+0020) or a tab (U+0009), in order.
 
 The code text of an attachment target *a* is the text that these steps
-give.
+return.
 
 1. Let *r* be the node slice of *a*.
 2. If *a* is a definition node, set *r* to the slice of the text of the
@@ -582,7 +582,7 @@ give.
       *t*, as many characters as *shared* holds, from *t*.
    3. Append *t* to *c*.
    4. Append a line feed (U+000A) to *c*.
-8. Give *c*.
+8. Return *c*.
 
 A `comment-sequence` that holds at least one tagged `comment-node` and
 attaches (`attachment`) to an attachment target `a` has a **code
@@ -2052,7 +2052,7 @@ link and the `]` that closes that `[`, in their order. The inline
 elements of an image are the inline elements of the description of that
 image, in their order.
 
-The escaped text of a text *t* is the text that these steps give.
+The escaped text of a text *t* is the text that these steps return.
 
 1. Let *u* be the empty text.
 2. For each *c* of *t*, in order:
@@ -2060,9 +2060,9 @@ The escaped text of a text *t* is the text that these steps give.
    2. Otherwise:
       1. If *c* is `\`, `{`, or `}`, append `\` to *u*.
       2. Append *c* to *u*.
-3. Give *u*.
+3. Return *u*.
 
-The single-spaced text of a text *t* is the text that these steps give.
+The single-spaced text of a text *t* is the text that these steps return.
 
 1. Let *u* be the empty text.
 2. For each *c* of *t*, in order:
@@ -2070,10 +2070,10 @@ The single-spaced text of a text *t* is the text that these steps give.
       1. If *u* is empty or the last character of *u* is not a space
          (U+0020), append a space (U+0020) to *u*.
    2. Otherwise, append *c* to *u*.
-3. Give *u*.
+3. Return *u*.
 
 The normalized inline text of a sequence *s* of inline elements under
-target mapping *m* is the text that these steps give.
+target mapping *m* is the text that these steps return.
 
 1. Let *w* be the empty text.
 2. Let *pending* be the empty text.
@@ -2124,7 +2124,7 @@ target mapping *m* is the text that these steps give.
    9. If *x* is a hard line break, append `{br}` to *w*.
 4. Append the escaped text of the single-spaced text of *pending* to
    *w*.
-5. Give *w*.
+5. Return *w*.
 
 #### Normalized lines
 
@@ -2238,18 +2238,18 @@ task marker** of the line is its task marker with each `X` replaced by
 `x`.
 
 The indent of a non-negative integer *k* is the text that these steps
-give.
+return.
 
-1. If *k* is less than 1, give the empty text.
+1. If *k* is less than 1, return the empty text.
 2. Let *j* be *k* minus 1.
 3. Let *pad* be the indent of *j*.
 4. Append a space (U+0020) to *pad*.
 5. Append a space (U+0020) to *pad*.
-6. Give *pad*.
+6. Return *pad*.
 
 The normalized lines of a block *b* at depth *k* with base level *base*
 for a text declared item *d* in a set *e* of file lines under *m* is the
-sequence that these steps give.
+sequence that these steps return.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the indent of *k*.
@@ -2356,7 +2356,7 @@ sequence that these steps give.
       6. Append *line* to *lines*.
       7. For each *w* of *inner*, in order:
          1. Append *w* to *lines*.
-10. Give *lines*.
+10. Return *lines*.
 
 A `tag-line` of a `tag-text` is **accepted** when the input of the tree
 formed by that line together with its `continuation-line`s is an
@@ -2377,7 +2377,7 @@ from the first line of *L* or a cut to the next cut or the last line of
 
 The normalized tag lines of a tag text *t* at depth *k* for a text
 declared item *d* in a set *e* of file lines under *m* is the sequence
-that these steps give.
+that these steps return.
 
 1. Let *lines* be the empty sequence.
 2. For each *c* of the clusters of *t* in *e*, in order:
@@ -2402,11 +2402,11 @@ that these steps give.
    6. For each *w* of the normalized cluster of *tags* and *notes* for
       *t* at depth *k*, *d*, and *e* under *m*, in order:
       1. Append *w* to *lines*.
-3. Give *lines*.
+3. Return *lines*.
 
 The normalized cluster of a sequence *p* of tag lines and a sequence *r*
 of texts for a tag text *t* at depth *k*, a text declared item *d*, and
-a set *e* of file lines under *m* is the sequence that these steps give.
+a set *e* of file lines under *m* is the sequence that these steps return.
 
 1. Let *lines* be the empty sequence.
 2. Let *pad* be the indent of *k*.
@@ -2433,11 +2433,11 @@ a set *e* of file lines under *m* is the sequence that these steps give.
 5. For each *w* of the normalized prose of *r* after *p* for *t* at
    depth *k*, *d*, and *e* under *m*, in order:
    1. Append *w* to *lines*.
-6. Give *lines*.
+6. Return *lines*.
 
 The normalized prose of a sequence *r* of texts after a sequence *p* of
 tag lines for a tag text *t* at depth *k*, a text declared item *d*, and
-a set *e* of file lines under *m* is the sequence that these steps give.
+a set *e* of file lines under *m* is the sequence that these steps return.
 
 1. Let *lines* be the empty sequence.
 2. Let *raw* be the empty text.
@@ -2500,10 +2500,10 @@ a set *e* of file lines under *m* is the sequence that these steps give.
             with base level equal to the base level of *d* for *d* in
             *e* under *m*, in order:
             1. Append *w* to *lines*.
-7. Give *lines*.
+7. Return *lines*.
 
 The normalized text of a text declared item *d* under target mapping *m*
-is the text that these steps give.
+is the text that these steps return.
 
 1. Let *e* be the hashed lines (`hashed-line`) of *d*.
 2. Let *lines* be the empty sequence.
@@ -2529,10 +2529,10 @@ is the text that these steps give.
 6. For each *w* of *lines*, in order:
    1. Append *w* to *out*.
    2. Append a line feed (U+000A) to *out*.
-7. Give *out*.
+7. Return *out*.
 
 The normalized text of an `example-block` *x* of a text declared item
-*d* under target mapping *m* is the text that these steps give.
+*d* under target mapping *m* is the text that these steps return.
 
 1. Let *raw-lines* be the empty sequence.
 2. If the file of *d* is a Markdown file, then:
@@ -2614,7 +2614,7 @@ The normalized text of an `example-block` *x* of a text declared item
 11. For each *w* of *lines*, in order:
     1. Append *w* to *out*.
     2. Append a line feed (U+000A) to *out*.
-12. Give *out*.
+12. Return *out*.
 
 @example Under a level-1 design heading (`# Q` and `@design qa=v1`), the
 two Markdown blocks
