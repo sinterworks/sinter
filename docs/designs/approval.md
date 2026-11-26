@@ -3,479 +3,531 @@
 
 # Approval
 @design approval=v1
-@cites conformance=v1
-@cites text=v1
-@cites identifiers=v1
-@cites files=v1
-@cites data-forms=v1
-@cites ontology=v1
-@cites object-store=v1
-@cites changes=v1
-@cites findings=v1
-@cites documents=v1
-@cites ledger=v1
-@cites rfc/5234
-@cites rfc/7405
-@cites rfc/8259
-Specifies the subjects of approval that need approval by a person; the optional parameter `persons` of the persons whose judgments and voids count; the acceptance rule, latest counting judgments, agreement, and conflict of `approval` and `decline` statements; the rule for merges and incomplete first-parent lines; the states approved, declined, and neither of subjects of approval; the finding classes `declined`, `awaiting-approval`, and `unapproved-req`, and the conditions on `approval` and `decline` statements for the statement-check finding classes of the Ledger; and requirements for conforming programs that give these states, acceptance, and findings, and that write `approval` and `decline` statements in `.sinter/`.
+@cites {
+    conformance=v1, text=v1, identifiers=v1, files=v1, data-forms=v1,
+    ontology=v1, object-store=v1, changes=v1, findings=v1, documents=v1,
+    ledger=v1, rfc/5234, rfc/7405,
+}
+Conforming programs validate and write person judgments in `.sinter/`,
+determine subject approval states from judgments or default-branch
+merges, and return findings for declined or unapproved items.
 
-A person approves or declines the revised content of a subject of
-approval, such as the canonical object of an item of the kind
-requirement. A binding of the parameter `approval-kinds` says which
-kinds of subject of approval need approval by a person. For such a kind,
-the latest counting `approval` and `decline` statements that judge the
-current canonical object of the subject of approval decide its state.
-For each other kind, a merge into the default branch approves it. An
-optional binding of the parameter `persons` names the persons whose
-judgments (of all four judgment kinds) and voids count. An `approval` or
-`decline` statement lives in `.sinter/`, names its judged declared-item
-object with both an `about` edge and a `judges` edge (by content id),
-and names earlier approval or decline judgments that it replaces with
-`revises` edges.
+A project chooses which kinds of subject of approval need approval by a
+person and which kinds gain approval by merging into the default
+branch. An optional parameter names the persons whose judgments and
+voids count in the repository.
 
-From Conformance (`conformance`), the design takes conforming programs,
-inputs, dependence, objects, encodings, valid program's own stores, and
-the general requirements that bind every conforming program, including
-`conformance#end-runs-at-limits`, `conformance#reject-invalid-inputs`,
-`conformance#report-missing-parts`,
-`conformance#give-results-over-canonical-objects`, and
-`conformance#read-defined-encodings`. From Text and notation (`text`),
-the design takes texts, characters, whole numbers, decimal numerals,
-code point order, positions, productions, rule names, code spans, and
-results. From Identifiers (`identifiers`), the design takes slugs, full
-names, kind words, content ids, citation entries, inline citations,
-status tags, the texts of tag lines, the form of `@ack` lines with its
-production `subject`, the parameter `external-namespaces`, and
-`identifiers#validate-bindings`. From Files and paths (`files`), the
-design takes valid paths. From Data forms (`data-forms`), the design
-takes JSON values, the index of an element of a finite sequence, the
-hash form, canonical byte sequences, vector lines, the forms of a group,
-the meaning of a vector, and test-vector sets. The file that holds the
-conformance vectors of the design is a test-vector set.
+A person records an approval or decline as a canonical statement in
+`.sinter/` tied to one declared-item object and to any earlier
+judgments that the statement replaces. Together with default-branch
+merge history, those judgments determine whether a subject of approval
+is approved or declined, which declared items stay in force, and which
+approval findings a program returns.
 
-From the Ontology (`ontology`), the design takes subjects of approval,
-their seven kinds, declared items, `same-item`, containment (including
-`.sinter/` containment), schemas, atoms, terms, and decision records;
-objects, the schema table `object-kind`, content hashes, content ids,
-computed identity objects, revised content, and encodings; persons,
-agents, statements, judgments, voids, object withdrawal and counting
-voids, things and latest statements, agreement and conflicts, states,
-approval states, deprecated items (including the `status` member in
-`.sinter/`), effective `supersedes` edges, retired items, and in-force
-items; trees, the default branch, tests, sites, edges with their kinds
-and cited items, finding classes, and parameters; and the requirements
-`ontology#treat-ledger-entries-alike` and
-`ontology#write-judgments-only-for-persons`. From the Object store
-(`object-store`), the design takes store files, valid object files, the
-object store of a tree (with its validity and missing computed identity
-objects), `object-store#write-object-files`, and the five store safety
-obligations (`object-store#limit-store-writes`,
-`object-store#keep-store-files-unchanged`,
-`object-store#write-no-file-after-stop`,
-`object-store#write-no-file-after-read-error`, and
-`object-store#limit-store-deletions`). From the ledger (`ledger`), the
-design takes acceptance rules (`ledger#accepted-entry`) and the
-statement-check finding classes for unaccepted statements and conflicts.
-From Documents (`documents`), the design takes declared items of the
-text encoding with their files and declarations, the parameter
-`file-readers`, read files, the edges of a tree, origins and origin
-positions, position subjects, edge finding subjects, the order of
-positions, the spots of runs, and tree findings. From Changes
-(`changes`), the design takes commits and their parents, the files of
-the tree of a commit, the parameter `default-branch-name`, the commit of
-the default branch, first-parent lines, shallow commits, and repository
-reads. From Findings (`findings`), the design takes finding subjects and
-spots.
+## Parameters
 
-The production `subject-text` is written in ABNF, the notation of RFC
-5234, with the case-sensitive strings `%s"…"` of RFC 7405. From RFC
-8259, the design takes JSON values, with their objects, members, arrays,
-strings, numbers, and the literal names `true` and `false`.
-
-## 1. Glossary
-
-| word or phrase | meaning |
-|---|---|
-| [subject of approval](sinter:ontology#subject-of-approval=v1) | a unit that a person approves, or that the merge approves, as a whole |
-| [kind of subject of approval](sinter:ontology#subject-of-approval=v1) | which of seven units a subject of approval is: an item of the kind design without the declared items that it holds, an item of the kind specification with the schemas, the items of the kind requirement, the atoms, and the terms that it holds, a schema that an item of the kind design holds directly, an item of the kind requirement that an item of the kind design holds directly, an atom that an item of the kind design holds directly, a term that an item of the kind design holds directly, or a decision record |
-| [declared item of a subject of approval](sinter:ontology#subject-of-approval=v1) | the item of the kind design, for a subject of approval of the first kind, and otherwise the item of the kind specification, the schema, the item of the kind requirement, the atom, the term, or the decision record that the subject of approval is |
-| [subject of approval of a declared item](sinter:ontology#subject-of-approval=v1) | for an item of the kind design, an item of the kind specification, a schema, an item of the kind requirement, an atom, or a term that an item of the kind design holds directly, or a decision record, the subject of approval whose declared item it is; for a schema, an item of the kind requirement, an atom, or a term that an item of the kind specification holds, the subject of approval of that item of the kind specification; each other declared item has none |
-| [same subject of approval](sinter:ontology#subject-of-approval=v1) | two subjects of approval of two trees are the same when their declared items are the [same item](sinter:ontology#same-item=v1) (declared items with the same name, whatever their kinds and encodings) |
-| [revised content](sinter:ontology#revised-content=v1) | the content that a declared item's canonical object represents; two revised contents of the same declared item are the same when, and only when, their canonical objects have the same [content hash](sinter:ontology#content-hash=v1) |
-| [content hash](sinter:ontology#content-hash=v1), [content id](sinter:ontology#content-id=v1) | the SHA-256 hash (64 lowercase hex digits) of the canonical byte sequence of an object (no `id`, no final line feed); the object kind word of the object, `:`, and the first 32 hex digits of its content hash |
-| [binding of `approval-kinds`](sinter:#approval-kinds=v1) | a set of kinds of subject of approval |
-| [need approval](sinter:#approval-need=v1) | a subject of approval needs approval by a person under a valid binding of `approval-kinds` when its kind is in that binding |
-| [binding of `persons`](sinter:#persons=v1), [listed person](sinter:#listed-person=v1) | an optional finite set of texts naming the persons whose judgments (all four kinds) and voids count by exact text equality with `by`; unbound means every person's judgments and voids count, and the empty set means no person's judgments or voids count |
-| [kind word of a kind of subject of approval](sinter:#subject-text=v1) | `design`, `spec`, `schema`, `req`, `atom`, `term`, or `decision`, matching the object kind word of the declared item of that subject of approval |
-| [subject text](sinter:#subject-text=v1) | a text that matches the production `subject-text`, such as `req:billing#limit`: the kind word of a subject of approval's kind, `:`, and the name of its declared item |
-| [statement](sinter:ontology#statement=v1) | a record of one of the seven statement kinds stored as a fixed object file in `.sinter/` |
-| [judgment](sinter:ontology#judgment=v1) | a statement that records a decision of a person: a statement of the kind `approval`, `decline`, `done`, or `abandoned` |
-| approval or decline judgment | a statement of the kind `approval` (an **approval judgment**) or `decline` (a **decline judgment**), which judges one declared-item object |
-| [counting void](sinter:ontology#object-withdrawal=v1), [withdrawn](sinter:ontology#object-withdrawal=v1) | a `void` statement in `.sinter/` that meets its acceptance rule, carries no `agent`, satisfies `listed-person`, and meets the copy rule when its withdrawn object is present; an object named by a counting void's `withdraws` edge |
-| [store file](sinter:object-store#store-file=v1), [valid object file](sinter:object-store#valid-object-file=v1), [object store of a tree](sinter:object-store#tree-object-store=v1) | a file of a tree under `.sinter/` and outside `.sinter/local/`; a store object file whose line object meets its row of `ontology#object-kind`; the set of all store files of a tree, valid when every store file of the tree is a valid object file |
-| [acceptance rule](sinter:ledger#accepted-entry=v1), [accepted](sinter:ontology#thing=v1) | the condition under which a statement of one kind is accepted in a tree; for `approval` and `decline`, the atom [`judgment-acceptance-rule`](sinter:#judgment-acceptance-rule=v1) |
-| [counts](sinter:ontology#thing=v1), [latest counting judgment](sinter:#latest-judgment=v1) | an approval or decline judgment counts in a tree when it is accepted, not withdrawn by a counting void, carries no `agent`, and meets `listed-person`; a latest counting judgment of a declared-item object is a counting approval or decline judgment of that object that no other counting approval or decline judgment of that object replaces and that no counting void's copied `revises` edge keeps replaced |
-| [agreement](sinter:#judgment-conflict=v1), [conflict](sinter:#judgment-conflict=v1) | two or more latest counting approval or decline judgments of one declared-item object agree when all are `approval` or all are `decline`, and conflict when at least one is `approval` and at least one is `decline` |
-| [read file](sinter:documents#read-file=v1) | under a valid binding of `file-readers`, a file of a tree outside `.sinter/` whose valid path has a reader, has no line feed, and has no space and no tab as its first character or as its last character |
-| [first-parent line](sinter:changes#first-parent-line=v1) | the sequence of commits that starts with a commit and goes on, from each commit, to its first parent, until a commit with no parent |
-| [shallow commit](sinter:changes#shallow-commit=v1) | a commit of a git repository that the file `shallow` of its git folder names |
-| [repository read](sinter:changes#repository-read=v1) | an operation in which a program takes things from a git repository or from a working tree of that git repository, with each fetch into that git repository that the program makes during that operation as part of it |
-| [commit of the default branch](sinter:changes#default-branch-commit=v1) | the commit that the default branch has, under a valid binding of `default-branch-name` |
-| [incomplete first-parent line](sinter:#incomplete-first-parent-line=v1), [complete](sinter:#incomplete-first-parent-line=v1), [visibly merged](sinter:#incomplete-first-parent-line=v1) | for the repository reads from which a program takes the first-parent line of the commit of the default branch and the files of the trees of its commits, a commit of that line is complete when the git repository holds its git tree object, every subtree object, every blob of a read file of its tree under `file-readers`, and every blob of a store file of its tree in `.sinter/` outside `.sinter/local/`; that line is incomplete when any commit of it is shallow, has a missing first parent, or is not complete; revised content has visibly merged when some complete commit of that incomplete line gives the same subject of approval the same content hash |
-| [has merged](sinter:#merged-content=v1) | the revised content of a subject of approval in a tree has merged into the default branch of a git repository when the default branch has a commit and the tree of a commit of its first-parent line gives the same subject of approval the same content hash |
-| [approved, declined, neither](sinter:#subject-state=v1) | the three states of a subject of approval in a tree, under the bindings of the parameters |
-| [reads a merge](sinter:#merge-read-edge=v1) | a `supersedes` edge reads a merge when the state approved of its source can depend on a merge |
-| [in force](sinter:ontology#in-force-item=v1) | a declared item is in force in a tree when it is not retired there: when it still applies |
-| [in force under the bindings](sinter:#bound-in-force-item=v1) | in force as the atom `ontology#in-force-item` gives it, where the state approved of the source of each `supersedes` edge follows from `subject-state`, and where declared items, status tags (including member `status` in `.sinter/`), containment (`ontology#containment`), and edges come from both encodings |
-| [subject order](sinter:#subject-order=v1) | the order of subjects of approval of a tree by the content id of their declared item's canonical object in code point order, and then (for equal canonical objects) file before no-file, valid path in code point order, and declaration origin position |
-| [tree finding](sinter:documents#tree-finding=v1) | a finding of a tree with a given class, a given subject, and a given spot or no spot, that is not ackable |
-| [subject of a finding](sinter:findings#finding-subject=v1) | the text that names what a finding is about |
-| [position subject](sinter:documents#position-subject=v1) | the subject of a finding at a position, such as `src/fee.ml@L3C4` |
-| [edge finding subject](sinter:documents#edge-finding-subject=v1) | the subject of a finding on a citation edge whose source is a declared item: the content id of the source, a space, the edge kind, a space, and the content id of the target |
-
-## 2. Judgments and approval states
-
-### 2.1 Subjects that need approval
-
-The parameter `approval-kinds` gives the kinds of subject of approval
-that need approval by a person (schema `approval-kinds` and term
-`approval-need`). For example, under the binding of the two kinds of
-subject of approval whose kind words are `spec` and `req`, the subject
-of approval `req:billing#limit` needs approval, and the subject of
-approval `design:billing` does not. Under the empty binding, no subject
-of approval needs approval.
-
-A subject of approval has a subject text (term `subject-text`). For
-example, the item of the kind requirement `billing#limit` that the item
-of the kind design `billing` holds directly has the subject text
-`req:billing#limit`, and the item of the kind design `billing` has the
-subject text `design:billing`. An item of the kind requirement that an
-item of the kind specification holds is no subject of approval; its
-subject of approval is the subject of approval of that item of the kind
-specification. Two subjects of approval of two trees are the same
-subject of approval when their declared items are the same item
-(`ontology#same-item`), and their revised contents are the same when
-their canonical objects have the same content hash (and therefore the
-same content id, covering `v`, `kind`, `name`, `label`, `status`,
-`text`, and `edges`). Because an unpinned citation names a `name`
-computed identity object rather than a kind word, changing the kind of
-an unpinned target changes neither the canonical object nor the content
-id of a citing subject of approval, so its approval stays.
-
-### 2.2 Approval and decline statements and the parameter `persons`
-
-Approval judgments (`approval`) and decline judgments (`decline`) are
-statements stored as fixed object files in `.sinter/`, conforming to
-their rows of `ontology#object-kind`. For example, this is the canonical
-object of an approval judgment that replaces no earlier judgment:
-
-```
-{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1}
-```
-
-Both `about` and `judges` name the content id of the exact declared-item
-object that the person approved or declined (requirement
-`record-judged-content`). Because the content id comes from the
-canonical byte sequence of that declared-item object, moving a declared
-item between the text encoding and `.sinter/` without changing its
-canonical object keeps its content id and keeps its approvals and
-declines. Editing a declared item back to an earlier canonical object
-restores that content id, so the approval or decline judgments of that
-content id decide its state again.
-
-Zero or more `revises` edges on an approval or decline judgment name the
-latest counting approval or decline judgments of that same declared-item
-object that the writer saw and replaces. Before a person confirms a
-decision that writes an approval or decline judgment with `revises`
-edges, the program shows the person each exact approval or decline
-judgment that those `revises` edges name (requirement
-`record-seen-judgments`). When no latest counting approval or decline
-judgment exists — including when a counting void withdrew the only
-latest counting judgment — the new statement holds no `revises` edge,
-and the program shows no approval or decline judgment in place of a
-withdrawn approval or decline judgment. The optional member `reason` of
-a decline judgment holds a reason that the person gave; neither
-acceptance nor any state depends on `reason`.
-
-A conforming program writes `approval` and `decline` statements into
-`.sinter/` through `object-store#write-object-files` and obeys the five
-safety obligations of the Object store
-(`object-store#limit-store-writes`,
-`object-store#keep-store-files-unchanged`,
-`object-store#write-no-file-after-stop`,
-`object-store#write-no-file-after-read-error`, and
-`object-store#limit-store-deletions`) together with
-`conformance#end-runs-at-limits` and
-`ontology#write-judgments-only-for-persons`. In a run that stops at a
-limit of its own, the program ends the run, reports where it reached the
-limit as far as it can, gives no other result, and writes nothing
-durable. In a run in which the program could not read a file or a folder
-under `conformance#input`, the program writes no file in `.sinter/`.
-
-The optional parameter `persons` (schema `persons` and term
-`listed-person`) names the persons whose judgments (all four kinds:
-`approval`, `decline`, `done`, and `abandoned`) and voids (`void`)
-count. Matching is exact text equality with the member `by`. When
-`persons` is unbound, every person's judgments and voids count. When
-`persons` is bound to the empty set, no person's judgments or voids
-count. When `persons` is bound to a value that does not meet the schema
-`persons`, whether a judgment or void that meets the other conditions
-counts is withheld, and every result whose value depends on whether such
-a judgment or void counts is withheld, while every result whose value
-does not depend on it is unaffected.
-
-### 2.3 Acceptance, counting, and conflicts
-
-The atom `judgment-acceptance-rule` refines `ledger#accepted-entry` for
-the kinds `approval` and `decline`. Acceptance checks that the statement
-meets its row of `ontology#object-kind` and that each of its `revises`
-edges names an `approval` or `decline` statement of the same
-declared-item object (either present in the tree or withdrawn by a
-counting void in the tree whose `withdrawn-kind` is `approval` or
-`decline` and whose copied `about` edge names that same declared-item
-object). Acceptance reads no declared item in the tree, so an approval
-whose declared-item object is not yet in the tree is still accepted. An
-approval judgment may replace an earlier approval judgment even when no
-conflict exists.
-
-Whether an approval or decline judgment counts in a tree follows
-`ontology#thing` and `listed-person`: it must be accepted, not withdrawn
-by a counting void, carry no `agent` member, and satisfy `listed-person`
-under `persons`. A statement that does not count takes no part in the
-`revises` graph of its declared-item object: it replaces nothing, is
-never a latest counting judgment, and a `revises` edge naming it
-replaces nothing. A counting void withdraws an approval or decline
-judgment and keeps every earlier approval or decline judgment that the
-withdrawn statement replaced out of the latest counting judgments
-through the void's copied `revises` edges, whether the withdrawn
-statement's file stays in `.sinter/` or is deleted.
-
-For one declared-item object O, the term `latest-judgment` gives the set
-of latest counting approval or decline judgments of O, and the atom
-`judgment-conflict` refines `ontology#conflict` for them. These cases
-show the rules:
-
-1. Two branches each add an approval judgment of O with no `revises`
-   edge. Both approval judgments are latest counting judgments. They
-   agree, so O is approved and no conflict exists.
-2. One branch adds an approval judgment A of O and another branch adds a
-   decline judgment D of O, with no `revises` edge between them. Both A
-   and D are latest counting judgments. They conflict, so O is neither
-   approved nor declined, gives `awaiting-approval` and a conflict
-   finding (and no `declined` finding). A person settles the conflict by
-   writing one new approval or decline judgment whose `revises` edges
-   name both A and D.
-3. Ada approves O, and Bo later writes a second approval of O whose
-   `revises` edge names Ada's approval. Bo's approval is accepted with
-   no conflict, replaces Ada's approval, and leaves O approved.
-4. Ada's approval A replaced Bo's earlier decline D (`revises` naming
-   D). Cy writes a counting void V that withdraws A (copying A's `about`,
-   `judges`, and `revises` edges). A is withdrawn, D stays replaced through V's
-   copied `revises` edge, and O has no latest counting judgment (state
-   neither). A later approval of O holds no `revises` edge, and the
-   program shows no approval or decline judgment in place of A.
-5. An approval judgment carries `agent`, has `by` outside a valid binding
-   of `persons`, or fails `judgment-acceptance-rule` (for example, its
-   `revises` edge names an approval or decline judgment of another
-   declared-item object or an absent unvoided content id). That approval
-   judgment does not count and does not replace an earlier counting
-   decline of O.
-
-### 2.4 States of subjects of approval
-
-The atom `subject-state` refines `ontology#approval-state` and gives
-each subject of approval of a tree one of the three states approved,
-declined, and neither. For a subject of approval that needs approval
-under `approval-kinds`, the latest counting approval or decline
-judgments of its current declared-item object decide: non-empty and all
-`approval` gives approved; non-empty and all `decline` gives declined;
-empty or conflicting (both `approval` and `decline`) gives neither. For
-a subject of approval that does not need approval under
-`approval-kinds`, the merge into the default branch decides (term
-`merged-content`): merged gives approved, not merged gives neither, and
-it is never declined.
-
-Under `ontology#treat-ledger-entries-alike`, `ts` and unlisted members
-on records change no state, and `by` changes a state only through
-membership in a bound `persons`.
-
-### 2.5 Merges
-
-The rule for merges (term `merged-content`) reads the first-parent line
-of the commit of the default branch and compares content hashes across
-both encodings (text files under `file-readers` and `external-namespaces`,
-and valid object files in `.sinter/`). A merge commit, a squash merge,
-and a commit made straight on the default branch each put their tree on
-that line. A commit reached only through the second parent of a merge
-commit is not on that line. When the default branch has no commit under
-a valid binding of `default-branch-name`, no revised content has merged.
-
-### 2.6 Bindings and missing inputs
-
-The states and approval findings of a tree use one valid binding of
-`approval-kinds`, one valid binding of `file-readers`, one valid binding
-of `external-namespaces`, the optional parameter `persons`, a valid
-object store of the tree (`object-store#tree-object-store`), and (when
-needed for merge-approved kinds or `supersedes` edges that read a merge)
-one valid binding of `default-branch-name`.
-
-Any invalid store file (broken or newer) in `.sinter/` makes the object
-store of the tree not valid (`object-store#tree-object-store`), so under
-`conformance#reject-invalid-inputs` a conforming program gives no
-approval state, no acceptance result, and no approval or statement-check
-finding for that tree (also for kinds that do not need approval), and
-the Object store still gives its `invalid-object-file` findings. By
-contrast, acceptance (`give-judgment-acceptance`) and the statement
-checks (`give-judgment-check-findings`) read only the object store of
-`.sinter/` (and, for `void` acceptance on a change, any valid base-tree
-object store that `ledger#accepted-entry` reads) and the optional
-parameter `persons`, so they still run under an invalid binding of
-`file-readers`, `external-namespaces`, `approval-kinds`, or
-`default-branch-name`.
-Approval reads no observations on the log branch, so a missing or
-rewritten log branch does not hold back Approval's own statement
-reading.
-
-When a valid object store of a tree lacks a computed identity file
-needed by a stored object (such as a `name` or `pin` object named by a
-`supersedes` or `satisfies` edge of a declared item in `.sinter/`), the
-object store stays valid (`object-store#tree-object-store`). When no
-input of the run supplies that computed identity object or its key, it
-is a missing part under `conformance#input`, so under
-`conformance#report-missing-parts` a conforming program withholds only
-results that need its key and gives every result that does not need its
-key.
-
-When the default branch has a commit under a valid binding of
-`default-branch-name` and its first-parent line is incomplete for the
-repository reads from which a program takes that line and the files of
-its commit trees (term `incomplete-first-parent-line`, where commit
-completeness covers both read files under `file-readers` and store files
-in `.sinter/` outside `.sinter/local/`), a program still gives every
-state and every finding that does not need the missing part of that
-line, and gives that it cannot see the whole history when a requested
-state or finding class depends on the missing part (requirements
-`give-subject-states` and `give-approval-findings`).
-
-What a program gives while another process changes a file, a ref, or the
-object store is a matter of the quality of an implementation.
-
-### 2.7 Findings
-
-Approval defines three non-ackable tree finding classes and refines two
-statement-check finding classes declared by the Ledger.
-
-| class | atom |
-|---|---|
-| `declined` | [`declined-finding`](sinter:#declined-finding=v1) |
-| `awaiting-approval` | [`awaiting-approval-finding`](sinter:#awaiting-approval-finding=v1) |
-| `unapproved-req` | [`unapproved-req-finding`](sinter:#unapproved-req-finding=v1) |
-
-The subject of a `declined` or `awaiting-approval` finding is a subject
-text, such as `req:billing#limit`. Each of the three classes reports
-only a subject of approval whose declared item is in force under the
-bindings, or an edge whose cited item is in force under the bindings
-(term `bound-in-force-item`, reading status tags from `@deprecated` in
-text and from member `status` in `.sinter/`, and containment from
-`ontology#containment`). A subject of approval whose latest counting
-judgments conflict has state neither, so it gives `awaiting-approval`
-and no `declined`. When two declared items of one tree share a subject
-text, they give at most one finding of each class, and the spot comes
-from the first of them in `subject-order` (content id in code point
-order first, then file before no-file, valid path, and origin position):
-its declaration tag-line run in text, its object file valid path alone
-in `.sinter/`, or no spot when taken from a valid program's own store
-with no file.
-
-An `unapproved-req` finding reports a `satisfies` or `verifies` edge
-that says what its kind says to an in-force requirement or schema whose
-subject of approval needs approval and is not approved. When the source
-of the edge is a declared item, the finding has the edge finding subject
-and the declared-item edge spot of Documents, once for each distinct
-canonical edge. When the source is a test or a site, the finding has the
-position subject and the spot of the run of its citation entry, such as
-`src/fee.ml@L3C4`.
-
-In addition, requirement `give-judgment-check-findings` obliges a
-conforming program to report, using the Ledger's finding classes
-`unaccepted-statement` (check "Kind rules") and `statement-conflict`
-(check "Conflicts"), each `approval` or `decline` statement in `.sinter/`
-for which `judgment-acceptance-rule` does not hold, and each
-declared-item content id for which `judgment-conflict` holds.
-
-## 3. Parameters
-
-### 3.1 `approval-kinds`
+### Approval kinds
 
 @schema approval-kinds=v1
-@cites {
-    ontology#{subject-of-approval=v1, parameter=v1},
-    text#{code-span=v1},
+@cites ontology#{
+    subject-of-approval=v1, declared-item=v1, person=v1, parameter=v1,
 }
 
-A binding of the parameter `approval-kinds` is a set of kinds of subject
-of approval. The empty set is a binding. Every binding of
-`approval-kinds` meets the schema `approval-kinds`.
+The `parameter` `approval-kinds` names the kinds of
+`subject-of-approval` that need approval by a `person`. A binding of
+`approval-kinds` meets `approval-kinds` when the binding is a subset of
+the seven kinds of `subject-of-approval` (corresponding to the seven
+`declared-item` kinds: `design`, `spec`, `schema`, `req`, `atom`,
+`term`, and `decision`). The empty set is a valid binding. Otherwise,
+the binding is invalid.
 
-### 3.2 `persons`
+Under a valid binding `A` of `approval-kinds`, a `subject-of-approval`
+**needs approval** (needs approval by a `person`) when its kind is in
+`A`, and needs no approval by a person otherwise.
+
+### Persons
 
 @schema persons=v1
-@cites {
-    ontology#{parameter=v1, person=v1},
-    text#{text=v1, code-span=v1},
-}
+@cites {ontology#{parameter=v1, person=v1}, text#text=v1}
 
-The parameter `persons` is optional. A binding of the parameter
-`persons` meets the schema `persons` when, and only when, that binding
-is a finite set of texts. The empty set is a valid binding.
+The `parameter` `persons` is optional and supplies a list of `person`s.
+A binding of `persons` meets `persons` when the binding is a finite set
+of `text`s. The empty set is a valid binding. Otherwise, the binding is
+invalid.
 
-## 4. Definitions
+## Definitions
 
-### 4.1 Subjects that need approval
-
-@term approval-need=v1
-@cites {
-    ontology#{subject-of-approval=v1, person=v1, parameter=v1},
-    text#{code-span=v1},
-    #{approval-kinds=v1},
-}
-
-Under a valid binding A of `approval-kinds`, a subject of approval needs
-approval by a person when, and only when, its kind is in A.
-
-### 4.2 Listed persons
+### Listed persons
 
 @term listed-person=v1
 @cites {
     ontology#{
         parameter=v1, person=v1, judgment=v1, void-statement=v1,
-        object-withdrawal=v1, thing=v1,
+        object-withdrawal=v1, topic=v1,
     },
-    data-forms#{json-value=v1},
-    text#{text=v1, code-span=v1},
-    #{persons=v1},
+    data-forms#json-value=v1,
+    text#text=v1,
+    #persons=v1,
 }
 
-The optional parameter `persons` gives the persons whose judgments (of
-all four kinds: `approval`, `decline`, `done`, and `abandoned`) and
-`void` statements count in `ontology#thing` and
-`ontology#object-withdrawal`:
+The optional `parameter` `persons` names the `person`s whose
+`judgment`s (of all four kinds: `"approval"`, `"decline"`, `"done"`,
+and `"abandoned"`) and `"void"` statements (`void-statement`) count
+under `ontology#topic` and `ontology#object-withdrawal`:
 
-- When `persons` is unbound, every judgment and every `void` statement
-  satisfies `listed-person`.
-- When `persons` is bound to a valid binding L (schema `persons`), a
-  judgment or a `void` statement satisfies `listed-person` under L when,
-  and only when, the value of its member `by` is equal (as a text) to an
-  element of L. Under the empty binding of `persons`, no judgment and no
-  `void` statement satisfies `listed-person`.
-- When `persons` is bound to a value that does not meet the schema
-  `persons`, whether any judgment or `void` statement that meets the
-  other conditions of `ontology#thing` or `ontology#object-withdrawal`
-  counts is withheld, and every result whose value depends on whether
-  such a judgment or `void` statement counts is withheld, while every
-  result whose value does not depend on it is unaffected.
+- When `persons` is unbound, every `judgment` and every `"void"`
+  statement satisfies `listed-person`.
+- When `persons` is bound to a valid binding `L` (`persons`), a
+  `judgment` or a `"void"` statement satisfies `listed-person` under
+  `L` when the value of its member `by` (`json-value`) is equal as a
+  `text` to an element of `L`, and does not satisfy `listed-person`
+  otherwise. Under the empty binding of `persons`, no `judgment` and no
+  `"void"` statement satisfies `listed-person`.
+- When `persons` is bound to a value that does not meet `persons`,
+  whether any `judgment` or `"void"` statement that meets the other
+  conditions of `ontology#topic` or `ontology#object-withdrawal` counts
+  is withheld, and every result whose value depends on whether such a
+  `judgment` or `"void"` statement counts is withheld, while every
+  result whose value does not depend on whether such a statement counts
+  is unaffected.
 
-### 4.3 Subject texts
+## Approval and decline judgments
+
+@spec judgments=v1
+
+An `"approval"` or `"decline"` statement in `.sinter/` records a
+person's decision on one canonical declared-item object and names any
+earlier judgments that the statement replaces with `revises` edges.
+
+### Definitions
+
+#### Judgment acceptance rule
+
+@atom judgment-acceptance-rule=v1
+@refines ledger#accepted-record=v1
+@cites {
+    ontology#{
+        object=v1, object-kind=v1, content-id=v1, declared-item=v1,
+        statement=v1, void-statement=v1, object-withdrawal=v1,
+        edge=v1, tree=v1, parameter=v1,
+    },
+    object-store#tree-object-store=v1,
+    #{persons=v1, listed-person=v1},
+}
+
+For a `tree` `T` whose `tree-object-store` is valid, a `statement` `E`
+of kind `"approval"` or `"decline"`, and the `parameter` `persons`
+(unbound or bound), `judgment-acceptance-rule` holds for `E` in `T`
+when both of these conditions hold:
+
+1. `E` meets its row of `ontology#object-kind`, holding one `about`
+   `edge` naming a `content-id` of one of the seven `declared-item`
+   kinds, one `judges` edge naming that same content ID, and only
+   `revises` edges beyond those two, each naming a content ID of kind
+   `"approval"` or `"decline"`.
+2. For each `revises` edge of `E`, naming a content ID `c`, at least
+   one of these conditions holds in `T`:
+   - `T` holds a canonical `object` of kind `"approval"` or `"decline"`
+     with content ID `c` that meets its row of `ontology#object-kind`
+     and whose `about` edge names the same content ID as the `about`
+     edge of `E`; or
+   - `T` holds a counting void (`object-withdrawal`, under
+     `listed-person`) whose `withdraws` edge names `c`, whose member
+     `withdrawn-kind` is `"approval"` or `"decline"`, and that holds an
+     `about` edge naming the same content ID as the `about` edge of `E`.
+
+Whether `judgment-acceptance-rule` holds for `E` in `T` is withheld
+when all three of these conditions hold:
+
+- `E` meets condition 1;
+- no `revises` edge of `E` fails condition 2 outright (every `revises`
+  edge of `E` either satisfies condition 2 or targets an absent content
+  ID `c` covered by the next bullet); and
+- for at least one `revises` edge of `E` naming a content ID `c` that
+  `T` does not hold as a canonical `"approval"` or `"decline"` object,
+  `T` holds a `"void"` statement (`void-statement`) whose `withdraws`
+  edge names `c`, whose member `withdrawn-kind` is `"approval"` or
+  `"decline"`, whose `about` edge names the same content ID as the
+  `about` edge of `E`, and whose counting is withheld under an invalid
+  binding of `persons` (`listed-person`).
+
+Whether `judgment-acceptance-rule` holds for `E` in `T` does not depend
+on whether `T` holds the declared-item object named by the `about` and
+`judges` edges of `E`, and does not forbid an `"approval"` statement
+from naming an `"approval"` statement with `revises`.
+
+@example This canonical `"approval"`
+[statement](sinter:ontology#statement=v1) meets its row of
+[object-kind](sinter:ontology#object-kind=v1), names one
+[declared-item](sinter:ontology#declared-item=v1) object by
+[content ID](sinter:ontology#content-id=v1) on both `about` and
+`judges` [edges](sinter:ontology#edge=v1), and carries no `revises`
+edge, so that statement is accepted in a [tree](sinter:ontology#tree=v1)
+whose [object store](sinter:object-store#tree-object-store=v1) is valid,
+even when that tree does not hold
+`req:7692c3ad3540bb803c020b3aee66cd88`:
+
+```json
+{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1}
+```
+
+#### Latest counting judgment
+
+@term latest-judgment=v1
+@cites {
+    ontology#{
+        object=v1, object-kind=v1, content-id=v1, declared-item=v1,
+        statement=v1, judgment=v1, void-statement=v1,
+        object-withdrawal=v1, topic=v1, edge=v1, tree=v1, parameter=v1,
+        agent=v1,
+    },
+    object-store#tree-object-store=v1,
+    #{persons=v1, listed-person=v1, judgment-acceptance-rule=v1},
+}
+
+For a `tree` `T` whose `tree-object-store` is valid, a `declared-item`
+`object`'s `content-id` `t`, and the `parameter` `persons` unbound or
+bound to a valid binding `L`, an `"approval"` or `"decline"` `statement`
+`E` in `T` **counts for `t` in `T`** (under `persons`) when all five of
+these conditions hold (`ontology#topic`):
+
+1. `judgment-acceptance-rule` holds for `E` in `T`.
+2. No counting void (`object-withdrawal`, under `listed-person`) in `T`
+   withdraws `E`.
+3. `E` carries no member `agent` (`ontology#agent`).
+4. `E` satisfies `listed-person` under `persons`.
+5. The `about` and `judges` `edge`s of `E` name `t`.
+
+An `"approval"` or `"decline"` statement that does not count for `t` in
+`T` replaces nothing, is never a latest counting `judgment` of `t`, and
+a `revises` edge naming that statement replaces nothing.
+
+A statement `E` that counts for `t` in `T` is **replaced** in `T`
+(under `persons`) when either of these conditions holds:
+
+- another `"approval"` or `"decline"` statement that counts for `t` in
+  `T` holds a `revises` edge naming the content ID of `E`; or
+- a counting void (`object-withdrawal`, `void-statement`, under
+  `listed-person`) in `T` whose `withdrawn-kind` (`object-kind`) is
+  `"approval"` or `"decline"` and that holds an `about` edge naming `t`
+  also holds a `revises` edge naming the content ID of `E`.
+
+The **latest counting judgments** of `t` in `T` (under `persons`) are
+the `"approval"` and `"decline"` statements that count for `t` in `T`
+and are not replaced in `T`.
+
+#### Judgment conflict
+
+@atom judgment-conflict=v1
+@refines ontology#conflict=v1
+@cites {
+    ontology#{
+        declared-item=v1, content-id=v1, statement=v1, tree=v1,
+        parameter=v1,
+    },
+    object-store#tree-object-store=v1,
+    #{persons=v1, latest-judgment=v1},
+}
+
+For a `tree` `T` whose `tree-object-store` is valid, a `declared-item`
+`content-id` `t`, and the `parameter` `persons` unbound or bound to a
+valid binding `L`, let `J` be the set of latest counting judgments of
+`t` in `T` under `persons` (`latest-judgment`):
+
+- The latest counting judgments of `t` **agree** in `T` when `J` holds
+  two or more elements and either every element of `J` is a `statement`
+  of kind `"approval"` or every element of `J` is a `statement` of kind
+  `"decline"`.
+- A **conflict** exists for `t` in `T` (the latest counting judgments
+  of `t` **conflict** in `T`) when `J` holds at least one `statement`
+  of kind `"approval"` and at least one `statement` of kind `"decline"`.
+
+@example Five scenarios for one
+[declared-item](sinter:ontology#declared-item=v1) object `O` under
+[latest-judgment](sinter:#latest-judgment=v1):
+
+1. Two concurrent `"approval"`
+   [judgments](sinter:ontology#judgment=v1) of `O` with no `revises`
+   [edge](sinter:ontology#edge=v1) are both latest counting judgments
+   and agree, so no conflict exists.
+2. One `"approval"` judgment `A` of `O` and one `"decline"` judgment
+   `D` of `O` with no `revises` edge between them are both latest
+   counting judgments and conflict; one new `"approval"` or `"decline"`
+   judgment with `revises` edges naming both `A` and `D` settles the
+   conflict.
+3. Ada writes an `"approval"` judgment of `O`, and Bo writes a second
+   `"approval"` judgment of `O` whose `revises` edge names Ada's
+   judgment; Bo's judgment is accepted although no conflict exists
+   ([judgment-acceptance-rule](sinter:#judgment-acceptance-rule=v1)),
+   replaces Ada's judgment, and leaves one latest counting `"approval"`.
+4. Ada's `"approval"` `A` replaced Bo's `"decline"` `D`, and Cy writes
+   a [counting void](sinter:ontology#object-withdrawal=v1) `V`
+   withdrawing `A` (copying `A`'s `about`, `judges`, and `revises`
+   edges per [object-kind](sinter:ontology#object-kind=v1)); `A` is
+   withdrawn, `D` stays replaced through `V`'s copied `revises` edge,
+   and `O` has zero latest counting judgments.
+5. An `"approval"` carrying [agent](sinter:ontology#agent=v1), with
+   `by` outside a valid binding of [persons](sinter:#persons=v1)
+   ([listed-person](sinter:#listed-person=v1)), or failing
+   [judgment-acceptance-rule](sinter:#judgment-acceptance-rule=v1) does
+   not count and neither replaces nor conflicts with an earlier
+   counting `"decline"` of `O`.
+
+### Returning judgment acceptance
+
+@req give-judgment-acceptance=v1
+@cites {
+    conformance#conforming-program=v1,
+    ledger#accepted-record=v1,
+    ontology#{statement=v1, tree=v1, parameter=v1},
+    object-store#tree-object-store=v1,
+    #{persons=v1, judgment-acceptance-rule=v1},
+}
+
+For a `tree` `T` whose `tree-object-store` is valid, the `parameter`
+`persons` (unbound or bound), and a `statement` `E` of kind
+`"approval"` or `"decline"`, when a conforming program returns whether
+`E` is accepted in `T` (`accepted-record`):
+
+- When `judgment-acceptance-rule` holds for `E` in `T` (and is not
+  withheld under an invalid binding of `persons`), the program must
+  return `"accepted"` and no other acceptance result for `E`.
+- When `judgment-acceptance-rule` does not hold for `E` in `T` (and is
+  not withheld under an invalid binding of `persons`), the program must
+  return `"not accepted"` and no other acceptance result for `E`.
+- When whether `judgment-acceptance-rule` holds for `E` in `T` is
+  withheld under an invalid binding of `persons`, the program must
+  return neither `"accepted"` nor `"not accepted"` for `E`.
+
+### Writing approval and decline judgments
+
+@req write-judgments=v1
+@cites {
+    conformance#conforming-program=v1,
+    ontology#{
+        object=v1, object-kind=v1, content-id=v1, statement=v1,
+        judgment=v1, void-statement=v1, object-withdrawal=v1,
+        person=v1, agent=v1, subject-of-approval=v1, declared-item=v1,
+        revised-content=v1, tree=v1, edge=v1, parameter=v1,
+        write-judgments-only-for-persons=v1,
+    },
+    object-store#{tree-object-store=v1, write-object-files=v1},
+    #{persons=v1, judgment-acceptance-rule=v1, latest-judgment=v1},
+}
+
+For a working `tree` `T` whose `tree-object-store` is valid, the
+`parameter` `persons` unbound or bound to a valid binding `L`, and a
+`subject-of-approval` `S` of `T` whose `declared-item` has canonical
+`object` `content-id` `t`, when a conforming program writes in
+`.sinter/` of `T` a `statement` `E` of kind `"approval"` or `"decline"`
+to record a decision of a `person` on the `revised-content` of `S` in
+`T`, all of these rules apply:
+
+- The program must write `E` only to record a decision that the
+  `person` confirmed under `write-judgments-only-for-persons`.
+- `E` must meet its row of `ontology#object-kind`, with `kind` equal to
+  `"approval"` when the person approved that revised content and
+  `"decline"` when the person declined that revised content.
+- The one `about` `edge` and the one `judges` `edge` of `E` must both
+  have `to` equal to `t`.
+- `E` must carry no member `agent` (`ontology#agent`).
+- `judgment-acceptance-rule` must hold for `E` in `T` under `persons`.
+- Each `revises` `edge` of `E` must name a latest counting `judgment`
+  of `t` in `T` under `persons` (`latest-judgment`).
+- Before the `person` whose decision `E` records confirms that
+  decision, the program must show that person each exact `"approval"`
+  or `"decline"` judgment that a `revises` edge of `E` names.
+- When `t` has no latest counting judgment in `T` under `persons`
+  (including when a counting void (`object-withdrawal`,
+  `void-statement`) in `T` withdrew the only latest counting judgment
+  of `t`), `E` must hold no `revises` edge, and the program must show
+  that person no `"approval"` or `"decline"` judgment in place of a
+  withdrawn judgment.
+- The program must write `E` as a store object file in `.sinter/` of
+  `T` under `write-object-files`.
+
+### Returning judgment check findings
+
+@req give-judgment-check-findings=v1
+@cites {
+    conformance#conforming-program=v1,
+    ontology#{
+        finding-class=v1, statement=v1, judgment=v1, declared-item=v1,
+        content-id=v1, tree=v1, parameter=v1,
+    },
+    object-store#tree-object-store=v1,
+    ledger#{
+        unaccepted-statement-finding=v1,
+        statement-conflict-finding=v1,
+    },
+    #{
+        persons=v1, listed-person=v1, judgment-acceptance-rule=v1,
+        judgment-conflict=v1,
+    },
+}
+
+For a `tree` `T` whose `tree-object-store` is valid and the `parameter`
+`persons` (unbound or bound):
+
+- When a conforming program returns findings of the `finding-class`
+  `unaccepted-statement` (`unaccepted-statement-finding`) for
+  `"approval"` and `"decline"` statements of `T`: for each `"approval"`
+  or `"decline"` `statement` `E` in the object store of `T` for which
+  `judgment-acceptance-rule` does not hold in `T` (and is not withheld
+  under an invalid binding of `persons`), the program must return once
+  the `unaccepted-statement-finding` for `E`, and must return no
+  `unaccepted-statement-finding` for any `"approval"` or `"decline"`
+  statement in `T` for which `judgment-acceptance-rule` holds or is
+  withheld.
+- When a conforming program returns findings of the `finding-class`
+  `statement-conflict` (`statement-conflict-finding`) for `"approval"`
+  and `"decline"` `judgment`s of `T`: when `persons` is unbound or
+  bound to a valid binding `L`, for each `declared-item` `content-id`
+  `t` for which `judgment-conflict` holds in `T`, the program must
+  return once the `statement-conflict-finding` for `t`, and must return
+  no `statement-conflict-finding` for any `declared-item` `content-id`
+  `t` for which `judgment-conflict` does not hold in `T`. When
+  `persons` is bound to an invalid binding, the program must return no
+  `statement-conflict-finding` for `"approval"` and `"decline"`
+  judgments of `T` (`listed-person`).
+
+### Test vectors
+
+Test vectors for `judgments` live in
+[approval.test-vectors.jsonl](approval.test-vectors.jsonl) as a
+test-vector set under [test-vectors](sinter:data-forms#test-vectors=v1).
+Neither group uses `needs`, and neither group uses `result`.
+
+#### Acceptance vectors
+
+@schema acceptance-vector=v1
+@cites {
+    conformance#conforming-program=v1,
+    text#{text=v1, code-point-order=v1},
+    data-forms#{
+        group-schema=v1, vector-meaning=v1, line-object=v1,
+        vector-line=v1, canonical-byte-sequence=v1,
+    },
+    ontology#{
+        object=v1, content-id=v1, statement=v1, void-statement=v1,
+        parameter=v1, tree=v1,
+    },
+    object-store#tree-object-store=v1,
+    #{
+        persons=v1, judgment-acceptance-rule=v1,
+        give-judgment-acceptance=v1,
+    },
+}
+
+`acceptance-vector` is a `group-schema` for group `acceptance` and
+tests `give-judgment-acceptance`. Each line is a `vector-line` whose
+meaning follows `vector-meaning`. Each vector represents a `tree` whose
+`tree-object-store` is valid and holds the listed statements, together
+with the optional `parameter` `persons`.
+
+| field | type | meaning |
+|---|---|---|
+| `input.judgments` | array of objects | canonical `"approval"` and `"decline"` `statement` objects (`line-object` with no `id` member; each `object`'s `content-id` comes from its `canonical-byte-sequence`), in an order that aligns with `values.accepted` |
+| `input.voids` | array of objects (optional) | canonical `"void"` `statement` objects (`void-statement`, `line-object` with no `id` member); absent when the store holds no `"void"` statement |
+| `input.persons` | array of strings (optional) | distinct `text` strings in `code-point-order` forming a valid binding of `persons`; absent when `persons` is unbound |
+| `values.accepted` | array of booleans | one boolean per element of `input.judgments` in the same order: `true` when `judgment-acceptance-rule` holds in that tree, `false` otherwise |
+
+The objects `input` and `values` hold only the members listed in this
+table. When a `conforming-program` returns whether an element of
+`input.judgments` is accepted in that tree under
+`give-judgment-acceptance`, the program returns `"accepted"` when the
+matching element of `values.accepted` is `true`, and `"not accepted"`
+when that element is `false`.
+
+@example Sample lines testing
+[give-judgment-acceptance](sinter:#give-judgment-acceptance=v1) and
+[judgment-acceptance-rule](sinter:#judgment-acceptance-rule=v1) on an
+accepted `"approval"` and on an unaccepted `"approval"` whose `revises`
+[edge](sinter:ontology#edge=v1) targets another
+[declared-item](sinter:ontology#declared-item=v1) object
+([vector-line](sinter:data-forms#vector-line=v1)):
+
+```json
+{"form":"#acceptance-vector=v1","group":"acceptance","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1}]},"note":"a first approval with no `revises` edge is accepted","values":{"accepted":[true]}}
+{"form":"#acceptance-vector=v1","group":"acceptance","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"},{"kind":"judges","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"revises","to":"approval:09dfaa1f3d6939a31d86c31bba0c6049"}],"kind":"approval","v":1}]},"note":"an approval revising a judgment whose `about` edge names another declared-item object is not accepted","values":{"accepted":[true,false]}}
+```
+
+#### Statement-check vectors
+
+@schema checks-vector=v1
+@cites {
+    conformance#conforming-program=v1,
+    text#{text=v1, code-point-order=v1},
+    data-forms#{
+        group-schema=v1, vector-meaning=v1, line-object=v1,
+        vector-line=v1, canonical-byte-sequence=v1,
+    },
+    ontology#{
+        object=v1, content-id=v1, declared-item=v1, statement=v1,
+        void-statement=v1, parameter=v1, tree=v1,
+    },
+    object-store#tree-object-store=v1,
+    ledger#{
+        unaccepted-statement-finding=v1,
+        statement-conflict-finding=v1,
+    },
+    #{
+        persons=v1, judgment-acceptance-rule=v1, judgment-conflict=v1,
+        give-judgment-check-findings=v1,
+    },
+}
+
+`checks-vector` is a `group-schema` for group `checks` and tests
+`give-judgment-check-findings`. Each line is a `vector-line` whose
+meaning follows `vector-meaning`. Each vector represents a `tree` whose
+`tree-object-store` is valid and holds the listed statements, together
+with the optional `parameter` `persons`.
+
+| field | type | meaning |
+|---|---|---|
+| `input.judgments` | array of objects | canonical `"approval"` and `"decline"` `statement` objects (`line-object` with no `id` member; each `object`'s `content-id` comes from its `canonical-byte-sequence`) |
+| `input.voids` | array of objects (optional) | canonical `"void"` `statement` objects (`void-statement`, `line-object` with no `id` member); absent when the store holds no `"void"` statement |
+| `input.persons` | array of strings (optional) | distinct `text` strings in `code-point-order` forming a valid binding of `persons`; absent when `persons` is unbound |
+| `values.unaccepted` | array of strings | `content-id` values of the `"approval"` and `"decline"` statements in `input.judgments` for which `judgment-acceptance-rule` does not hold in that tree, each once in `code-point-order` |
+| `values.conflicts` | array of strings | `declared-item` `content-id` values for which `judgment-conflict` holds in that tree, each once in `code-point-order` |
+
+The objects `input` and `values` hold only the members listed in this
+table. When a `conforming-program` returns
+`unaccepted-statement-finding` or `statement-conflict-finding` findings
+for `"approval"` and `"decline"` statements of that tree under
+`give-judgment-check-findings`, the program returns one
+`unaccepted-statement-finding` for each `content-id` in
+`values.unaccepted`, one `statement-conflict-finding` for each
+`content-id` in `values.conflicts`, and no other finding of those
+classes for `"approval"` and `"decline"` statements.
+
+@example Sample lines testing
+[give-judgment-check-findings](sinter:#give-judgment-check-findings=v1)
+for [judgment-conflict](sinter:#judgment-conflict=v1)
+([statement-conflict](sinter:ledger#statement-conflict-finding=v1)) and
+for
+[unaccepted-statement](sinter:ledger#unaccepted-statement-finding=v1)
+under [judgment-acceptance-rule](sinter:#judgment-acceptance-rule=v1)
+([vector-line](sinter:data-forms#vector-line=v1)):
+
+```json
+{"form":"#checks-vector=v1","group":"checks","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"decline","reason":"needs a clearer bound","v":1}]},"note":"an approval and a decline of the same declared-item object give a conflict finding","values":{"conflicts":["req:7692c3ad3540bb803c020b3aee66cd88"],"unaccepted":[]}}
+{"form":"#checks-vector=v1","group":"checks","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"},{"kind":"judges","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"revises","to":"approval:09dfaa1f3d6939a31d86c31bba0c6049"}],"kind":"approval","v":1},{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"revises","to":"approval:00000000000000000000000000000000"}],"kind":"approval","v":1}]},"note":"each unaccepted approval or decline gives an unaccepted-statement finding by its content id","values":{"conflicts":[],"unaccepted":["approval:6798359519a793343925504ffa036d0c","approval:7ff01153e5d4dc943d42e371068fea54"]}}
+```
+
+## Approval states
+
+@spec states=v1
+
+Each subject of approval in a repository tree takes one of three
+states: approved, declined, or neither. The judgments of persons, or
+the merge history of the default branch, decide the state of a subject
+of approval. That state decides whether a `supersedes` edge takes
+effect and which declared items stay in force.
+
+### Definitions
+
+#### Subject text
 
 @term subject-text=v1
 @cites {
@@ -484,160 +536,39 @@ all four kinds: `approval`, `decline`, `done`, and `abandoned`) and
     identifiers#{slug=v1, full-name=v1, kind-word=v1},
     ontology#{
         subject-of-approval=v1, declared-item=v1, item-name=v1,
-        schema=v1, atom=v1, term=v1, decision-record=v1, containment=v1,
+        containment=v1,
     },
-    text#{text=v1, production=v1, rule-name=v1, code-span=v1},
+    text#{text=v1, production=v1},
 }
 
-A subject text is a text that matches the production `subject-text`:
+A **subject text** is a `text` that matches the `production`
+`subject-text` (written in ABNF per RFC 5234 with the case-sensitive
+strings of RFC 7405):
 
 ```abnf
 subject-text  = ( %s"design" / %s"decision" ) ":" slug
-              / ( %s"spec" / %s"schema" / %s"req" / %s"atom" / %s"term" )
-                ":" ( slug / full-name )
+              / ( %s"spec" / %s"schema" / %s"req" / %s"atom"
+                  / %s"term" ) ":" ( slug / full-name )
 ```
 
-The seven texts `design`, `spec`, `schema`, `req`, `atom`, `term`, and
-`decision` are kind words of Identifiers. In a subject text, each of
-those seven texts names a kind of subject of approval. The kind word of
-a kind of subject of approval is `design` for an item of the kind design
-without the declared items that it holds, `spec` for an item of the kind
-specification with the items that it holds, `schema` for a schema that
-an item of the kind design holds directly, `req` for an item of the kind
-requirement that an item of the kind design holds directly, `atom` for
-an atom that an item of the kind design holds directly, `term` for a
-term that an item of the kind design holds directly, and `decision` for
-a decision record. The subject text of a subject of approval is the kind
-word of its kind of subject of approval, then `:`, then the name of its
-declared item.
+Each of the seven `kind-word`s maps to one kind of
+`subject-of-approval` (its **kind word**):
 
-### 4.4 The acceptance rule of `approval` and `decline` statements
+| kind word | kind of subject of approval |
+|---|---|
+| `design` | an item of the kind design, without the declared items that it holds (`containment`) |
+| `spec` | an item of the kind specification, with the schemas, items of the kind requirement, atoms, and terms that it holds |
+| `schema` | a schema that an item of the kind design holds directly |
+| `req` | an item of the kind requirement that an item of the kind design holds directly |
+| `atom` | an atom that an item of the kind design holds directly |
+| `term` | a term that an item of the kind design holds directly |
+| `decision` | a decision record |
 
-@atom judgment-acceptance-rule=v1
-@refines ledger#accepted-entry=v1
-@cites {
-    ontology#{
-        object=v1, object-kind=v1, content-id=v1, statement=v1,
-        judgment=v1, void-statement=v1, object-withdrawal=v1, thing=v1,
-        edge=v1, tree=v1, parameter=v1,
-    },
-    object-store#{valid-object-file=v1, tree-object-store=v1},
-    data-forms#{json-value=v1},
-    text#{code-span=v1},
-    #{persons=v1, listed-person=v1},
-}
+The **subject text** of a `subject-of-approval` is the kind word of its
+kind of subject of approval, followed by `:`, followed by the
+`item-name` of its `declared-item`.
 
-This atom is for a tree T whose object store is valid (or a set of
-canonical objects from valid encodings or valid program's own stores), a
-statement E of the kind `approval` or `decline`, and the parameter
-`persons` (unbound or bound).
-
-The acceptance rule of the kinds `approval` and `decline` holds for E in
-T when, and only when, both of these conditions hold:
-
-1. E meets its row of `ontology#object-kind` (including that E holds one
-   `about` edge naming a content id of one of the seven declared-item
-   kinds, one `judges` edge naming that same content id, and only
-   `revises` edges beyond those two, each naming a content id of kind
-   `approval` or `decline`).
-2. For each `revises` edge of E, naming a content id c, at least one of
-   these holds in T:
-   - T holds a canonical object of kind `approval` or `decline` with
-     content id c that meets its row of `ontology#object-kind` and whose
-     `about` edge names the same content id as the `about` edge of E; or
-   - T holds a counting void (`ontology#object-withdrawal`, under
-     `listed-person`) whose `withdraws` edge names c, whose member
-     `withdrawn-kind` is `approval` or `decline`, and that holds an
-     `about` edge naming the same content id as the `about` edge of E.
-
-When E meets condition 1, no `revises` edge of E fails condition 2
-outright, and for at least one `revises` edge of E naming a content id c
-that T does not hold as a canonical `approval` or `decline` object, T
-holds a `void` statement naming c with `withdraws` whose
-`withdrawn-kind` is `approval` or `decline`, whose `about` edge names
-the same content id as the `about` edge of E, and whose counting is
-withheld under an invalid binding of `persons`, whether the acceptance
-rule holds for E in T is withheld.
-
-Whether the acceptance rule holds for E in T does not depend on whether
-T holds the declared-item object named by the `about` and `judges` edges
-of E, and does not forbid an `approval` statement from naming an
-`approval` statement with `revises`.
-
-### 4.5 Latest counting judgments
-
-@term latest-judgment=v1
-@cites {
-    ontology#{
-        object=v1, object-kind=v1, content-id=v1, statement=v1,
-        judgment=v1, void-statement=v1, object-withdrawal=v1, thing=v1,
-        edge=v1, tree=v1, parameter=v1, agent=v1,
-    },
-    object-store#{tree-object-store=v1},
-    text#{code-span=v1},
-    #{persons=v1, listed-person=v1, judgment-acceptance-rule=v1},
-}
-
-This term is for a tree T whose object store is valid (or a set of
-canonical objects from valid encodings or valid program's own stores), a
-declared-item content id t, and `persons` unbound or bound to a valid
-binding L.
-
-An `approval` or `decline` statement E in T counts for t in T (under
-`persons`) when, and only when, all five of these conditions hold
-(`ontology#thing`):
-
-1. The acceptance rule `judgment-acceptance-rule` holds for E in T.
-2. No counting void in T (`ontology#object-withdrawal`, under
-   `listed-person`) withdraws E.
-3. E does not carry the member `agent`.
-4. E satisfies `listed-person` under `persons`.
-5. The `about` and `judges` edges of E name t.
-
-An `approval` or `decline` statement that does not count for t in T
-takes no part in the replacement graph of t: it replaces nothing, is
-never a latest counting judgment of t, and a `revises` edge naming it
-replaces nothing.
-
-A statement E that counts for t in T is replaced in T (under `persons`)
-when, and only when, either of these holds:
-
-- another `approval` or `decline` statement that counts for t in T holds
-  a `revises` edge naming the content id of E; or
-- a counting void in T (`ontology#object-withdrawal`, under
-  `listed-person`) whose `withdrawn-kind` is `approval` or `decline` and
-  that holds an `about` edge naming t also holds a `revises` edge naming
-  the content id of E.
-
-The latest counting judgments of t in T (under `persons`) are the
-`approval` and `decline` statements that count for t in T and are not
-replaced in T.
-
-### 4.6 Agreement and conflict of approval and decline judgments
-
-@atom judgment-conflict=v1
-@refines ontology#conflict=v1
-@cites {
-    ontology#{content-id=v1, thing=v1, tree=v1, parameter=v1},
-    object-store#{tree-object-store=v1},
-    text#{code-span=v1},
-    #{persons=v1, latest-judgment=v1},
-}
-
-This atom is for a tree T whose object store is valid (or a set of
-canonical objects from valid encodings or valid program's own stores), a
-declared-item content id t, and `persons` unbound or bound to a valid
-binding L. Let J be the set of latest counting judgments of t in T under
-`persons` (`latest-judgment`):
-
-- The latest counting judgments of t agree in T when J has two or more
-  elements and either every element of J is of the kind `approval` or
-  every element of J is of the kind `decline`.
-- A conflict exists for t in T (the latest counting judgments of t
-  conflict in T) when J holds at least one statement of the kind
-  `approval` and at least one statement of the kind `decline`.
-
-### 4.7 The rule for merges
+#### Merged content
 
 @term merged-content=v1
 @cites {
@@ -645,1153 +576,769 @@ binding L. Let J be the set of latest counting judgments of t in T under
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, first-parent-line=v1,
     },
+    documents#file-readers=v1,
+    identifiers#external-namespaces=v1,
+    object-store#tree-object-store=v1,
     ontology#{
         subject-of-approval=v1, declared-item=v1, same-item=v1,
-        revised-content=v1, content-hash=v1, default-branch=v1, tree=v1,
-        parameter=v1, encoding=v1,
+        revised-content=v1, object=v1, content-hash=v1,
+        default-branch=v1, tree=v1, parameter=v1, encoding=v1,
     },
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
 }
 
-This term is for a git repository R, a tree T whose object store is
-valid, a valid binding D of `default-branch-name`, a valid binding F of
-`file-readers`, and a binding N of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid".
-For a subject of approval S that T has (from the text encoding under F
-and N or from the valid object store of T), the revised content of S in
-T has merged into the default branch of R under D, F, and N when, and
-only when, two conditions are true. First, the default branch of R has a
-commit H under D. Second, some commit C of the first-parent line of H
-has a tree (whose object store is valid) that has, in either encoding
-under F and N, a subject of approval S2 that is the same subject of
-approval as S, and the canonical object of the declared item of S2 in
-the tree of C has the same content hash (`ontology#content-hash`) as the
-canonical object of the declared item of S in T. When the default branch
-of R has no commit under D, the revised content of no subject of
-approval has merged into the default branch of R under D, F, and N.
+For a git repository `R`, a `tree` `T` whose object store is valid
+(`tree-object-store`), and valid bindings of the `parameter`s
+`default-branch-name` (`D`), `file-readers` (`F`), and
+`external-namespaces` (`N`), let `S` be a `subject-of-approval` of `T`
+(from the text `encoding` under `F` and `N`, or from the valid object
+store of `T`). The `revised-content` of `S` in `T` **merged** into the
+`default-branch` of `R` under `D`, `F`, and `N` when both of these
+conditions hold:
 
-### 4.8 The states of subjects of approval
+1. The default branch of `R` has a `commit` `H` under `D`
+   (`default-branch-commit`).
+2. Some commit `C` of the `first-parent-line` of `H` has a tree
+   (`commit-file`) whose object store is valid and that holds, in
+   either encoding under `F` and `N`, a subject of approval `S2` that
+   is the same subject of approval as `S` (`same-item`) and whose
+   `declared-item`'s canonical `object` in the tree of `C` has the same
+   `content-hash` as the canonical object of the declared item of `S`
+   in `T`.
+
+Otherwise, the revised content of `S` in `T` did not merge into the
+default branch of `R` under `D`, `F`, and `N`.
+
+#### Subject state
 
 @atom subject-state=v1
 @refines ontology#approval-state=v1
 @cites {
+    changes#default-branch-name=v1,
+    documents#file-readers=v1,
+    identifiers#external-namespaces=v1,
+    object-store#tree-object-store=v1,
     ontology#{
         subject-of-approval=v1, declared-item=v1, content-id=v1,
-        tree=v1, state=v1, default-branch=v1, parameter=v1, encoding=v1,
+        revised-content=v1, default-branch=v1, tree=v1, parameter=v1,
+        encoding=v1,
     },
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    documents#{file-readers=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
     #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        latest-judgment=v1, judgment-conflict=v1, merged-content=v1,
+        approval-kinds=v1, persons=v1, latest-judgment=v1,
+        judgment-conflict=v1, merged-content=v1,
     },
 }
 
-This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound to a
-valid binding L, a tree T whose object store is valid, and, for a
-subject of approval that does not need approval under A, a valid binding
-D of `default-branch-name`. Each subject of approval S that T has (from
-the text encoding under F and N or from the valid object store of T),
-with declared-item canonical object content id t, is in exactly one of
-the states approved, declined, and neither:
+For a git repository `R`, a `tree` `T` whose object store is valid
+(`tree-object-store`), valid bindings of the `parameter`s
+`approval-kinds` (`A`), `file-readers` (`F`), and `external-namespaces`
+(`N`), `persons` unbound or bound to a valid binding `L`, and—for a
+subject of approval that does not need approval under `A`—a valid
+binding `D` of `default-branch-name`, each `subject-of-approval` `S` of
+`T` (in either `encoding`, with declared-item canonical object
+`content-id` `t`) has exactly one of the three states `"approved"`,
+`"declined"`, and `"neither"`:
 
-- When S needs approval under A, let J be the set of latest counting
-  judgments of t in T under `persons` (`latest-judgment`):
-  - S is approved when, and only when, J is not empty and every element
-    of J is of the kind `approval`.
-  - S is declined when, and only when, J is not empty and every element
-    of J is of the kind `decline`.
-  - S is neither when, and only when, J is empty or a conflict exists
-    for t in T (`judgment-conflict`).
-- When S does not need approval under A, S is approved when, and only
-  when, the revised content of S in T has merged into the default branch
-  of R under D, F, and N (`merged-content`). When S does not need
-  approval under A, S is neither when the revised content of S in T has
-  not merged into the default branch of R under D, F, and N. When S does
-  not need approval under A, S is never declined.
+- When `S` needs approval under `A` (`approval-kinds`), let `J` be the
+  set of latest counting judgments of `t` in `T` under `persons`
+  (`latest-judgment`):
+  - `S` is `"approved"` when `J` is not empty and every element of `J`
+    has kind `"approval"`.
+  - `S` is `"declined"` when `J` is not empty and every element of `J`
+    has kind `"decline"`.
+  - `S` is `"neither"` when `J` is empty or `judgment-conflict` holds
+    for `t` in `T`.
+- When `S` does not need approval under `A`:
+  - `S` is `"approved"` when the `revised-content` of `S` in `T` merged
+    into the `default-branch` of `R` under `D`, `F`, and `N`
+    (`merged-content`).
+  - `S` is `"neither"` when the revised content of `S` in `T` did not
+    merge into the default branch of `R` under `D`, `F`, and `N`.
+  - `S` is never `"declined"`.
 
-The states approved and declined that this atom gives are the states
-approved and declined of S in T that the term `ontology#approval-state`
-names. A subject of approval that is neither is neither approved nor
-declined.
+The states `"approved"`, `"declined"`, and `"neither"` are the states
+approved, declined, and neither of `S` in `T` under
+`ontology#approval-state`.
 
-### 4.9 Edges that read a merge
+@example Editing a trailing `@example` block on a text-encoded
+[declared item](sinter:ontology#declared-item=v1) `billing#limit` leaves
+its [hashed lines](sinter:documents#hashed-line=v1), its canonical
+[object](sinter:documents#canonical-object=v1), and its
+[content hash](sinter:ontology#content-hash=v1) unchanged. Because an
+`"approval"` judgment targets that canonical object by
+[content ID](sinter:ontology#content-id=v1)
+([latest-judgment](sinter:#latest-judgment=v1)) and
+[merged-content](sinter:#merged-content=v1) compares content hashes,
+`billing#limit` keeps its `"approved"` state without re-approval.
 
-@term merge-read-edge=v1
+#### Merge-dependent edge
+
+@term merge-dependent-edge=v1
 @cites {
+    documents#file-readers=v1,
+    identifiers#external-namespaces=v1,
+    object-store#tree-object-store=v1,
     ontology#{
         edge=v1, supersedes-edge=v1, declared-item=v1,
-        subject-of-approval=v1, approval-state=v1, schema=v1, atom=v1,
-        term=v1, containment=v1, tree=v1, parameter=v1, encoding=v1,
+        subject-of-approval=v1, containment=v1, tree=v1, parameter=v1,
+        encoding=v1,
     },
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
-    #{approval-kinds=v1, approval-need=v1},
+    #approval-kinds=v1,
 }
 
-Under a valid binding A of `approval-kinds`, a valid binding F of
-`file-readers`, and a binding N of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid",
-for a tree T whose object store is valid, a `supersedes` edge that T has
-(in either encoding, with containment under `ontology#containment`)
-reads a merge under A when, and only when, one or both of these
-conditions are true:
+For a `tree` `T` whose object store is valid (`tree-object-store`) and
+valid bindings of the `parameter`s `approval-kinds` (`A`),
+`file-readers` (`F`), and `external-namespaces` (`N`), a `supersedes`
+`edge` (`supersedes-edge`) of `T` (in either `encoding`, with
+`containment`) is **merge-dependent** under `A` when one or both of
+these conditions hold:
 
-1. The source of the edge has a subject of approval, and that subject of
-   approval does not need approval under A.
-2. The source of the edge is an item of the kind design, and the subject
-   of approval of an item of the kind specification that the source
-   holds, or of a schema, an item of the kind requirement, an atom, or a
-   term that the source holds directly, does not need approval under A.
+1. The source of the edge has a `subject-of-approval`, and that subject
+   of approval does not need approval under `A`.
+2. The source of the edge is an item of the kind design, and at least
+   one of these subjects of approval does not need approval under `A`:
+   the subject of approval of an item of the kind specification that
+   the source holds, or the subject of approval of a schema, an item of
+   the kind requirement, an atom, or a term that the source holds
+   directly.
 
-### 4.10 In force under the bindings
+Otherwise, the `supersedes` edge is not merge-dependent under `A`.
 
-@term bound-in-force-item=v1
+#### In-force item
+
+@term in-force-item=v1
 @cites {
+    changes#default-branch-name=v1,
+    documents#file-readers=v1,
+    identifiers#{external-namespaces=v1, status-tag=v1},
+    object-store#tree-object-store=v1,
     ontology#{
         declared-item=v1, containment=v1, deprecated-item=v1,
-        in-force-item=v1, retired-item=v1,
-        effective-supersedes-edge=v1, supersedes-edge=v1,
-        approval-state=v1, edge=v1, tree=v1, parameter=v1,
-        subject-of-approval=v1, encoding=v1,
+        retired-item=v1, effective-supersedes-edge=v1,
+        supersedes-edge=v1, approval-state=v1, edge=v1, tree=v1,
+        parameter=v1, encoding=v1,
     },
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    documents#{file-readers=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
     #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        subject-state=v1, merge-read-edge=v1,
+        approval-kinds=v1, persons=v1, subject-state=v1,
+        merge-dependent-edge=v1,
     },
 }
 
-This term is for a git repository R, a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound to a
-valid binding L, a tree T whose object store is valid, and, when T has a
-`supersedes` edge that reads a merge under A (term `merge-read-edge`), a
-valid binding D of `default-branch-name`. A declared item that T has (in
-the text encoding under F and N or in the valid object store of T) is in
-force in T under these bindings when, and only when, that declared item
-is in force in T (atom `ontology#in-force-item`), read as this term
-gives. The atoms `ontology#effective-supersedes-edge` and
-`ontology#retired-item` read the state approved of the source of each
-`supersedes` edge from the states that `subject-state` gives for R and T
-under these bindings. Each declared item, status tag (in text under F
-and N, and in `.sinter/` from its canonical member `status` per
-`ontology#deprecated-item`), containment relation
-(`ontology#containment`), and edge comes from both encodings of T.
+For a git repository `R`, a `tree` `T` whose object store is valid
+(`tree-object-store`), valid bindings of the `parameter`s
+`approval-kinds` (`A`), `file-readers` (`F`), and `external-namespaces`
+(`N`), `persons` unbound or bound to a valid binding `L`, and—when `T`
+holds a `merge-dependent-edge` under `A`—a valid binding `D` of
+`default-branch-name`, a `declared-item` of `T` (from either `encoding`)
+is **in force under the bindings** in `T` when that declared item is in
+force in `T` under `ontology#retired-item`, evaluated with:
 
-### 4.11 The subject order
+- the `approval-state` of the source of each `supersedes-edge` (read by
+  `effective-supersedes-edge`) taken from `subject-state` for `R` and
+  `T` under these bindings; and
+- every declared item, `status-tag` (in text under `F` and `N`, and in
+  `.sinter/` from canonical member `status` per `deprecated-item`),
+  `containment` relation, and `edge` taken from both encodings of `T`.
 
-@term subject-order=v1
-@cites {
-    files#{path=v1},
-    text#{code-point-order=v1, position=v1},
-    identifiers#{tag-line-text=v1},
-    ontology#{
-        subject-of-approval=v1, declared-item=v1, content-id=v1,
-        tree=v1, encoding=v1,
-    },
-    object-store#{valid-object-file=v1},
-    documents#{item-file=v1, origin-position=v1, position-order=v1},
-    conformance#{own-store=v1},
-}
+Otherwise, that declared item is retired under the bindings in `T`.
 
-One subject of approval S1 of a tree T comes before another subject of
-approval S2 of T in the subject order when, and only when, one of these
-four conditions holds:
-
-1. The content id of the canonical object of the declared item of S1
-   comes before the content id of the canonical object of the declared
-   item of S2 in code point order.
-2. Those two content ids are equal, the declared item of S1 stands in a
-   file of T (a text file or a valid object file of `.sinter/`), and the
-   declared item of S2 stands in no file of T (comes from a valid
-   program's own store with no file).
-3. Those two content ids are equal, both declared items stand in files
-   of T, and the valid path of the file of the declared item of S1 comes
-   before the valid path of the file of the declared item of S2 in code
-   point order.
-4. Those two content ids are equal, both declared items stand in the
-   same text file of T, and the origin position of the text of the tag
-   line of the declaration of the declared item of S1 comes before the
-   origin position of the text of the tag line of the declaration of the
-   declared item of S2 in the order of positions.
-
-### 4.12 Findings of the class `declined`
-
-@atom declined-finding=v1
-@cites {
-    ontology#{
-        subject-of-approval=v1, declared-item=v1, supersedes-edge=v1,
-        tree=v1, parameter=v1, encoding=v1,
-    },
-    object-store#{valid-object-file=v1, tree-object-store=v1},
-    identifiers#{
-        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
-    },
-    documents#{
-        file-readers=v1, item-file=v1, origin=v1, run-spot=v1,
-        tree-finding=v1,
-    },
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    findings#{finding-subject=v1, spot=v1},
-    conformance#{conforming-program=v1, own-store=v1},
-    text#{result=v1, code-span=v1},
-    #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        subject-text=v1, subject-state=v1, merge-read-edge=v1,
-        bound-in-force-item=v1, subject-order=v1,
-    },
-}
-
-This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound to a
-valid binding L, a tree T whose object store is valid, and, when T has a
-`supersedes` edge that reads a merge under A (term `merge-read-edge`), a
-valid binding D of `default-branch-name`. T has, under these bindings,
-one tree finding of the class `declined` for each text t that is the
-subject text of a subject of approval S of T such that both of these are
-true:
-
-1. S is declined in T under these bindings (`subject-state`).
-2. The declared item of S is in force in T under these bindings
-   (`bound-in-force-item`).
-
-Its subject is t. Let S0 be the first subject of approval of T, in the
-subject order (`subject-order`), whose subject text is t:
-
-- When the declared item of S0 stands in a text file of T, the spot of
-  the finding is the spot of the run of the text of the tag line of its
-  declaration in the text of that file.
-- When the declared item of S0 stands in a valid object file of
-  `.sinter/` of T, the spot of the finding is the valid path of that
-  valid object file alone, with no span.
-- When the declared item of S0 stands in no file of T (comes from a
-  valid program's own store with no file), the finding has no spot.
-
-### 4.13 Findings of the class `awaiting-approval`
-
-@atom awaiting-approval-finding=v1
-@cites {
-    ontology#{
-        subject-of-approval=v1, declared-item=v1, supersedes-edge=v1,
-        tree=v1, parameter=v1, encoding=v1,
-    },
-    object-store#{valid-object-file=v1, tree-object-store=v1},
-    identifiers#{
-        external-namespaces=v1, validate-bindings=v1, tag-line-text=v1,
-    },
-    documents#{
-        file-readers=v1, item-file=v1, origin=v1, run-spot=v1,
-        tree-finding=v1,
-    },
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    findings#{finding-subject=v1, spot=v1},
-    conformance#{conforming-program=v1, own-store=v1},
-    text#{result=v1, code-span=v1},
-    #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        subject-text=v1, subject-state=v1, merge-read-edge=v1,
-        bound-in-force-item=v1, subject-order=v1,
-    },
-}
-
-This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound to a
-valid binding L, a tree T whose object store is valid, and, when T has a
-`supersedes` edge that reads a merge under A (term `merge-read-edge`), a
-valid binding D of `default-branch-name`. T has, under these bindings,
-one tree finding of the class `awaiting-approval` for each text t that
-is the subject text of a subject of approval S of T such that each of
-these is true:
-
-1. S needs approval under A.
-2. The declared item of S is in force in T under these bindings
-   (`bound-in-force-item`).
-3. S is neither in T under these bindings (`subject-state`).
-
-Its subject is t. Let S0 be the first subject of approval of T, in the
-subject order (`subject-order`), whose subject text is t:
-
-- When the declared item of S0 stands in a text file of T, the spot of
-  the finding is the spot of the run of the text of the tag line of its
-  declaration in the text of that file.
-- When the declared item of S0 stands in a valid object file of
-  `.sinter/` of T, the spot of the finding is the valid path of that
-  valid object file alone, with no span.
-- When the declared item of S0 stands in no file of T (comes from a
-  valid program's own store with no file), the finding has no spot.
-
-### 4.14 Findings of the class `unapproved-req`
-
-@atom unapproved-req-finding=v1
-@cites {
-    identifiers#{
-        external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
-    },
-    ontology#{
-        edge=v1, satisfies-edge=v1, verifies-edge=v1, supersedes-edge=v1,
-        subject-of-approval=v1, declared-item=v1, schema=v1, test=v1,
-        site=v1, tree=v1, parameter=v1, encoding=v1,
-    },
-    object-store#{valid-object-file=v1, tree-object-store=v1},
-    documents#{
-        file-readers=v1, tree-edge=v1, origin=v1,
-        origin-position=v1, position-subject=v1,
-        edge-finding-subject=v1, run-spot=v1, tree-finding=v1,
-    },
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    findings#{finding-subject=v1, spot=v1},
-    conformance#{conforming-program=v1, own-store=v1},
-    text#{result=v1, code-span=v1},
-    #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        subject-state=v1, merge-read-edge=v1, bound-in-force-item=v1,
-    },
-}
-
-This atom is for a git repository R, a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound to a
-valid binding L, a tree T whose object store is valid, and, when T has a
-`supersedes` edge that reads a merge under A (term `merge-read-edge`), a
-valid binding D of `default-branch-name`. T has, under these bindings,
-the tree findings of the class `unapproved-req` that the last paragraph
-of this atom gives for the edges that T has (in either encoding) such
-that all four of these conditions are true:
-
-1. The edge is of the kind `satisfies` or `verifies`, and says what its
-   kind of edge says.
-2. The cited item of the edge is an item of the kind requirement that
-   has a subject of approval, or a schema that has a subject of
-   approval.
-3. That cited item is in force in T under these bindings
-   (`bound-in-force-item`).
-4. The subject of approval of that cited item needs approval under A and
-   is not approved in T under these bindings (`subject-state`).
-
-When the source of such an edge is a declared item (in a text file, in a
-valid object file of `.sinter/`, or from a valid program's own store), T
-has one finding for each distinct canonical edge of such edges. Its
-subject is the edge finding subject of that canonical edge, and its spot
-is the declared-item edge spot of that canonical edge
-(`documents#edge-finding-subject`). When the source of such an edge is a
-test or a site, T has one finding for that edge. Its subject is the
-position subject of the origin position of its citation entry
-(`documents#position-subject`), and its spot is the spot of the run of
-that citation entry in the text of the file of the edge
-(`documents#run-spot`).
-
-### 4.15 Incomplete first-parent lines
+#### Incomplete first-parent line
 
 @term incomplete-first-parent-line=v1
 @cites {
-    ontology#{
-        default-branch=v1, tree=v1, parameter=v1,
-        subject-of-approval=v1, revised-content=v1, content-hash=v1,
-        content-id=v1, declared-item=v1, same-item=v1, containment=v1,
-        deprecated-item=v1, in-force-item=v1, retired-item=v1,
-        effective-supersedes-edge=v1, supersedes-edge=v1, edge=v1,
-        approval-state=v1, encoding=v1,
-    },
-    object-store#{store-file=v1, tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1, status-tag=v1},
     changes#{
         commit=v1, commit-file=v1, shallow-commit=v1,
         default-branch-name=v1, default-branch-commit=v1,
         first-parent-line=v1, repository-read=v1,
     },
     documents#{file-readers=v1, read-file=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
-    #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        latest-judgment=v1, declined-finding=v1,
-        awaiting-approval-finding=v1, unapproved-req-finding=v1,
+    identifiers#external-namespaces=v1,
+    object-store#{store-file=v1, tree-object-store=v1},
+    ontology#{
+        default-branch=v1, tree=v1, parameter=v1,
+        subject-of-approval=v1, declared-item=v1, same-item=v1,
+        revised-content=v1, object=v1, content-hash=v1, content-id=v1,
+        approval-state=v1, encoding=v1,
     },
+    #{approval-kinds=v1, persons=v1, latest-judgment=v1},
 }
 
-For a git repository R, a valid binding D of `default-branch-name` under
-which the default branch of R has a commit H, a valid binding F of
-`file-readers`, and the repository reads from which a program takes the
-first-parent line of H and the files of the trees of the commits of that
-first-parent line, R holds a git object when R holds that git object at
-the end of those repository reads.
+For a git repository `R`, a valid binding `D` of the `parameter`
+`default-branch-name` under which the `default-branch` of `R` has a
+`commit` `H` (`default-branch-commit`), a valid binding `F` of
+`file-readers`, and the `repository-read`s from which a program reads
+the `first-parent-line` of `H` and the files of the trees of its
+commits (`commit-file`), `R` **holds** a git object when `R` holds that
+git object at the end of those repository reads.
 
-A commit C of the first-parent line of H is complete in R under F for
-those repository reads when, and only when, R holds the git tree object
-of C, every git tree object that a tree entry of the git tree object of
-C names, every blob that a regular-file entry of the git tree object of
-C names when that regular-file entry gives a file of the tree of C that
-is a read file of the tree of C under F, and every blob that a
-regular-file entry of the git tree object of C names when that
-regular-file entry gives a store file of the tree of C (in `.sinter/`
-and outside `.sinter/local/`, `object-store#store-file`).
+A commit `C` of the `first-parent-line` of `H` is **complete** in `R`
+under `F` for those repository reads when `R` holds all four of these:
 
-The first-parent line of H under F is incomplete for those repository
-reads when, and only when, one or more of these three conditions is
-true:
+1. the git tree object of `C`;
+2. every git tree object that a tree entry of the git tree object of
+   `C` names (`commit-file`);
+3. every blob that a regular-file entry of the git tree object of `C`
+   names when that entry yields a `read-file` of the tree of `C` under
+   `F`; and
+4. every blob that a regular-file entry of the git tree object of `C`
+   names when that entry yields a `store-file` of the tree of `C` (in
+   `.sinter/` and outside `.sinter/local/`).
 
-1. A commit of the first-parent line of H is a shallow commit of R.
-2. For some commit C of the first-parent line of H, C is not a shallow
-   commit of R, and the commit object of C names as the first parent of
-   C a git object that is not a commit of R.
-3. Some commit C of the first-parent line of H is not complete in R
-   under F for those repository reads.
+The `first-parent-line` of `H` under `F` is **incomplete** for those
+repository reads when one or more of these three conditions hold:
 
-Under a binding N of `external-namespaces` for which a conforming
-program of the design Identifiers gives the result "valid", when the
-first-parent line of H under F is incomplete for those repository reads,
-the revised content of a subject of approval S of a tree T has visibly
-merged in R under D, F, and N for those repository reads when, and only
-when, some commit C of the first-parent line of H that is complete in R
-under F for those repository reads has a tree (whose object store is
-valid) that has, in either encoding under F and N, a subject of approval
-S2 that is the same subject of approval as S and whose declared item's
-canonical object in the tree of C has the same content hash
-(`ontology#content-hash`) as the canonical object of the declared item
-of S in T.
+1. Some commit of the first-parent line of `H` is a `shallow-commit` of
+   `R`.
+2. Some commit `C` of the first-parent line of `H` is not a
+   `shallow-commit` of `R`, and the commit object of `C` names as its
+   first parent a git object that is not a `commit` of `R`.
+3. Some commit `C` of the first-parent line of `H` is not complete in
+   `R` under `F` for those repository reads.
 
-Under a valid binding A of `approval-kinds`, D, F, N, and `persons`
-unbound or bound to a valid binding L, for a tree T whose object store
-is valid, when the first-parent line of H under F is incomplete for
-those repository reads:
+Under a valid binding `N` of `external-namespaces`, when the
+first-parent line of `H` under `F` is incomplete for those repository
+reads, the `revised-content` of a `subject-of-approval` `S` of a `tree`
+`T` **visibly merged** in `R` under `D`, `F`, and `N` for those
+repository reads when some commit `C` of the first-parent line of `H`
+that is complete in `R` under `F` for those repository reads has a tree
+whose object store is valid (`tree-object-store`) and that holds, in
+either `encoding` under `F` and `N`, a subject of approval `S2` that is
+the same subject of approval as `S` (`same-item`) and whose
+`declared-item`'s canonical `object` in the tree of `C` has the same
+`content-hash` as the canonical object of the declared item of `S` in
+`T`.
 
-- Under the least merge for those repository reads, each subject of
-  approval S of T (with declared-item object content id t) that needs
-  approval under A is approved when, and only when, the set of latest
-  counting judgments of t in T under `persons` (`latest-judgment`) is
-  not empty and every element of that set is of the kind `approval`; and
-  each subject of approval S of T that does not need approval under A is
-  approved when, and only when, the revised content of S in T has
-  visibly merged in R under D, F, and N for those repository reads.
-- For each of the classes `declined`, `awaiting-approval`, and
-  `unapproved-req`, the findings of that class under the least merge for
-  those repository reads are the tree findings that the atom of that
-  class (`declined-finding`, `awaiting-approval-finding`, or
-  `unapproved-req-finding`) gives for T under A, F, N, and `persons`
-  when `ontology#in-force-item`, `ontology#retired-item`, and
-  `ontology#effective-supersedes-edge` read the state approved of the
-  source of each `supersedes` edge from the states under the least merge
-  for those repository reads (reading declared items, status tags
-  including member `status` in `.sinter/`, containment under
-  `ontology#containment`, and edges from both encodings).
+Under valid bindings `A` of `approval-kinds`, `D`, `F`, and `N`, and
+`persons` unbound or bound to a valid binding `L`, for a `tree` `T`
+whose object store is valid, when the first-parent line of `H` under
+`F` is incomplete for those repository reads, the **least merge**
+defines whether each subject of approval `S` of `T` (with declared-item
+canonical object `content-id` `t`) is approved (`approval-state`):
 
-For a git repository R, a valid binding A of `approval-kinds`, a valid
-binding F of `file-readers`, a binding N of `external-namespaces` for
-which a conforming program of the design Identifiers gives the result
-"valid", `persons` unbound or bound to a valid binding L, and a tree T
-whose object store is valid:
+- When `S` needs approval under `A`, `S` is approved when the set of
+  latest counting judgments of `t` in `T` under `persons`
+  (`latest-judgment`) is not empty and every element of that set has
+  kind `"approval"`, and is not approved otherwise.
+- When `S` does not need approval under `A`, `S` is approved when the
+  revised content of `S` in `T` visibly merged in `R` under `D`, `F`,
+  and `N` for those repository reads, and is not approved otherwise.
 
-- Under the greatest merge, each subject of approval S of T (with
-  declared-item object content id t) that needs approval under A is
-  approved when, and only when, the set of latest counting judgments of
-  t in T under `persons` (`latest-judgment`) is not empty and every
-  element of that set is of the kind `approval`; and each other subject
-  of approval of T is approved.
-- For each of the classes `declined`, `awaiting-approval`, and
-  `unapproved-req`, the findings of that class under the greatest merge
-  are the tree findings that the atom of that class (`declined-finding`,
-  `awaiting-approval-finding`, or `unapproved-req-finding`) gives for T
-  under A, F, N, and `persons`, with no binding of
-  `default-branch-name`, when `ontology#in-force-item`,
-  `ontology#retired-item`, and `ontology#effective-supersedes-edge` read
-  the state approved of the source of each `supersedes` edge from the
-  states under the greatest merge (reading declared items, status tags
-  including member `status` in `.sinter/`, containment under
-  `ontology#containment`, and edges from both encodings).
+Under `A`, `F`, `N`, and `persons` (needing no binding of
+`default-branch-name`), for a `tree` `T` whose object store is valid,
+the **greatest merge** defines whether each subject of approval `S` of
+`T` (with declared-item canonical object `content-id` `t`) is approved
+(`approval-state`):
 
-## 5. Requirements
+- When `S` needs approval under `A`, `S` is approved when the set of
+  latest counting judgments of `t` in `T` under `persons`
+  (`latest-judgment`) is not empty and every element of that set has
+  kind `"approval"`, and is not approved otherwise.
+- When `S` does not need approval under `A`, `S` is approved.
 
-### 5.1 The states of subjects of approval
+### Returning subject states
 
 @req give-subject-states=v1
 @cites {
-    ontology#{subject-of-approval=v1, tree=v1, state=v1, parameter=v1},
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
     changes#{
         commit=v1, commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, first-parent-line=v1,
         repository-read=v1,
     },
-    documents#{file-readers=v1},
     conformance#{conforming-program=v1, dependence=v1},
-    text#{result=v1, code-span=v1},
+    documents#file-readers=v1,
+    identifiers#external-namespaces=v1,
+    object-store#tree-object-store=v1,
+    ontology#{
+        subject-of-approval=v1, revised-content=v1, default-branch=v1,
+        tree=v1, parameter=v1,
+    },
     #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        listed-person=v1, subject-state=v1,
-        incomplete-first-parent-line=v1,
+        approval-kinds=v1, persons=v1, listed-person=v1,
+        subject-state=v1, incomplete-first-parent-line=v1,
     },
 }
 
-This requirement applies for a git repository R, a tree T whose object
-store is valid (`object-store#tree-object-store`), a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", `persons` unbound or bound, and a
-subject of approval S of T.
+For a git repository `R`, a `tree` `T` whose object store is valid
+(`tree-object-store`), valid bindings of the `parameter`s
+`approval-kinds` (`A`), `file-readers` (`F`), and `external-namespaces`
+(`N`), `persons` unbound or bound, and a `subject-of-approval` `S` of
+`T`, when a `conforming-program` returns whether `S` is approved or
+declined in `T`, these rules apply:
 
-When S needs approval under A and `persons` is unbound or bound to a
-valid binding L, when a conforming program gives whether S is approved
-or declined in T under A, F, N, and `persons`, that conforming program
-must give exactly one result, and only "approved", "declined", or
-"neither":
+- When `S` needs approval under `A` (`approval-kinds`) and `persons` is
+  unbound or bound to a valid binding, the program must return exactly
+  one result—`"approved"`, `"declined"`, or `"neither"`—matching
+  `subject-state` for `S` in `T`, and must not return that the program
+  cannot see the whole history for `S`.
+- When `S` needs approval under `A` and `persons` is bound to an
+  invalid value (one that does not meet `persons`):
+  - if every valid binding of `persons` and unbound `persons` yield the
+    same `subject-state` for `S` in `T`, the program must return that
+    single result and must not return that the program cannot see the
+    whole history for `S`;
+  - otherwise, the state of `S` depends on `persons` (`dependence`,
+    `listed-person`), and the program must return no state
+    (`"approved"`, `"declined"`, or `"neither"`) for `S`.
+- When `S` does not need approval under `A`, under a valid binding `D`
+  of `default-branch-name` (regardless of whether `persons` is unbound,
+  valid, or invalid), for the `repository-read`s from which the program
+  reads the `first-parent-line` of the `default-branch-commit` and the
+  files of the trees of its commits (`commit-file`):
+  - when the `default-branch` of `R` has no `commit` under `D`, or has
+    a commit `H` under `D` whose first-parent line under `F` is not
+    incomplete (`incomplete-first-parent-line`) for those repository
+    reads, the program must return exactly one result—`"approved"` or
+    `"neither"`—matching `subject-state` for `S` in `T`, and must not
+    return that the program cannot see the whole history for `S`;
+  - when the default branch of `R` has a commit `H` under `D`, its
+    first-parent line under `F` is incomplete for those repository
+    reads, and the `revised-content` of `S` in `T` visibly merged
+    (`incomplete-first-parent-line`) in `R` under `D`, `F`, and `N` for
+    those repository reads, the program must return exactly one result,
+    `"approved"`, and must not return that the program cannot see the
+    whole history for `S`;
+  - when the default branch of `R` has a commit `H` under `D`, its
+    first-parent line under `F` is incomplete for those repository
+    reads, and the revised content of `S` in `T` did not visibly merge
+    in `R` under `D`, `F`, and `N` for those repository reads, the
+    program must return no state (`"approved"`, `"declined"`, or
+    `"neither"`) for `S` and must return that the program cannot see
+    the whole history for `S`.
 
-- That conforming program must give "approved" when S is approved in T
-  under A, F, N, and `persons`.
-- That conforming program must give "declined" when S is declined in T
-  under A, F, N, and `persons`.
-- That conforming program must give "neither" when S is neither in T
-  under A, F, N, and `persons`.
-- That conforming program must not give that it cannot see the whole
-  history for S.
+### Test vectors
 
-When S needs approval under A and `persons` is bound to a value that
-does not meet the schema `persons`, if every valid binding of `persons`
-and unbound `persons` give the same state for S in T, the conforming
-program must give that state and must not give that it cannot see the
-whole history for S; otherwise, the state of S depends on `persons`, and
-the conforming program must give no state ("approved", "declined", or
-"neither") for S.
-
-When S does not need approval under A, under a valid binding D of
-`default-branch-name` (whatever the binding of `persons` is), when a
-conforming program gives whether S is approved or declined in T under A,
-D, F, and N, these rules apply for the repository reads from which that
-conforming program takes the first-parent line of the commit of the
-default branch and the files of the trees of its commits:
-
-- When the default branch of R has no commit under D, or when the
-  default branch of R has a commit H under D and the first-parent line
-  of H under F is not incomplete for those repository reads, that
-  conforming program must give exactly one result, and only "approved"
-  or "neither": "approved" when S is approved in T under A, D, F, and N,
-  and "neither" when S is neither in T under A, D, F, and N; and that
-  conforming program must not give that it cannot see the whole history
-  for S.
-- When the default branch of R has a commit H under D, the first-parent
-  line of H under F is incomplete for those repository reads, and the
-  revised content of S in T has visibly merged in R under D, F, and N
-  for those repository reads, that conforming program must give exactly
-  one result, and only "approved", and must not give that it cannot see
-  the whole history for S.
-- When the default branch of R has a commit H under D, the first-parent
-  line of H under F is incomplete for those repository reads, and the
-  revised content of S in T has not visibly merged in R under D, F, and
-  N for those repository reads, that conforming program must give no
-  state ("approved", "declined", or "neither") for S and must give that
-  it cannot see the whole history for S.
-
-### 5.2 The acceptance of `approval` and `decline` statements
-
-@req give-judgment-acceptance=v1
+@schema states-vector=v1
 @cites {
-    ledger#{accepted-entry=v1},
-    ontology#{statement=v1, tree=v1, parameter=v1},
-    object-store#{tree-object-store=v1},
-    conformance#{conforming-program=v1},
-    text#{result=v1, code-span=v1},
-    #{persons=v1, judgment-acceptance-rule=v1},
-}
-
-This requirement applies for a tree T whose object store is valid
-(`object-store#tree-object-store`), `persons` unbound or bound, and a
-statement E of the kind `approval` or `decline`. When a conforming
-program gives whether E is accepted in T:
-
-- When `judgment-acceptance-rule` holds for E in T (and is not withheld
-  under an invalid binding of `persons`), that conforming program must
-  give exactly one result, "accepted".
-- When `judgment-acceptance-rule` does not hold for E in T (and is not
-  withheld under an invalid binding of `persons`), that conforming
-  program must give exactly one result, "not accepted".
-- When whether `judgment-acceptance-rule` holds for E in T is withheld
-  under an invalid binding of `persons`, that conforming program must
-  give neither "accepted" nor "not accepted" for E.
-
-### 5.3 What an `approval` or `decline` statement records
-
-@req record-judged-content=v1
-@cites {
+    changes#{
+        commit=v1, commit-file=v1, default-branch-name=v1,
+        default-branch-commit=v1, first-parent-line=v1,
+    },
+    conformance#conforming-program=v1,
+    data-forms#{
+        line-object=v1, canonical-byte-sequence=v1, hash-form=v1,
+        vector-line=v1, test-vector-set=v1, group-schema=v1,
+        vector-meaning=v1,
+    },
+    documents#file-readers=v1,
+    identifiers#external-namespaces=v1,
+    object-store#tree-object-store=v1,
     ontology#{
-        object=v1, object-kind=v1, content-id=v1, statement=v1,
-        person=v1, subject-of-approval=v1, revised-content=v1, tree=v1,
-        edge=v1, parameter=v1, write-judgments-only-for-persons=v1,
+        subject-of-approval=v1, declared-item=v1, object-kind=v1,
+        content-hash=v1, content-id=v1, tree=v1, statement=v1,
+        void-statement=v1, default-branch=v1, parameter=v1,
     },
-    object-store#{
-        tree-object-store=v1, write-object-files=v1,
-        limit-store-writes=v1, keep-store-files-unchanged=v1,
-        write-no-file-after-stop=v1,
-        write-no-file-after-read-error=v1, limit-store-deletions=v1,
+    text#{text=v1, code-point-order=v1},
+    #{
+        approval-kinds=v1, persons=v1, subject-text=v1,
+        subject-state=v1, incomplete-first-parent-line=v1,
+        give-subject-states=v1,
     },
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    documents#{file-readers=v1},
-    conformance#{conforming-program=v1, end-runs-at-limits=v1},
-    text#{result=v1, code-span=v1},
-    #{persons=v1, judgment-acceptance-rule=v1},
 }
 
-This requirement applies for a working tree T whose object store is
-valid (`object-store#tree-object-store`), a valid binding F of
-`file-readers`, a binding N of `external-namespaces` for which a
-conforming program of the design Identifiers gives the result "valid",
-`persons` unbound or bound to a valid binding L, and a subject of
-approval S of T whose declared item has canonical object content id t.
-When a conforming program writes in `.sinter/` of T a statement E of the
-kind `approval` or `decline` to record a decision of a person on the
-revised content of S in T, all of these rules apply:
+`states-vector` is a `group-schema` for group `states` in
+[approval.test-vectors.jsonl](approval.test-vectors.jsonl) and tests
+`give-subject-states`. That file is a `test-vector-set` of
+`vector-line` entries whose meaning follows `vector-meaning`. Group
+`states` uses no `needs` and omits `values`.
 
-- E must meet its row of `ontology#object-kind`, with `kind` equal to
-  `approval` when the person approved that revised content and `decline`
-  when the person declined that revised content.
-- The one `about` edge and the one `judges` edge of E must both have
-  `to` equal to t.
-- E must carry no member `agent`.
-- The acceptance rule `judgment-acceptance-rule` must hold for E in T
-  under `persons`.
-- The conforming program must write E as a store object file in
-  `.sinter/` of T under `object-store#write-object-files` (and obey
-  `object-store#limit-store-writes`,
-  `object-store#keep-store-files-unchanged`,
-  `object-store#write-no-file-after-stop`, and
-  `object-store#write-no-file-after-read-error`).
+| field | type | meaning |
+|---|---|---|
+| `input.binding` | array of strings | valid binding of `approval-kinds`, holding the kind word (`subject-text`) of each kind of subject of approval in the binding, each once, in `code-point-order` |
+| `input.subject` | string | `subject-text` of the queried `subject-of-approval` `S` of `tree` `T` |
+| `input.hash` | string | `text` matching `hash-form`: the `content-hash` of the canonical object of the `declared-item` of `S` in `T` (so its `content-id` is the kind word of `S`, `:`, and the first 32 characters of `input.hash`) |
+| `input.judgments` | array of objects | canonical `"approval"` and `"decline"` `statement` objects (`line-object`s meeting their rows of `object-kind`, with no `id` member) in the valid object store of `T`; each object's `content-id` derives from its `canonical-byte-sequence` |
+| `input.voids` | array of objects (optional) | canonical `"void"` `void-statement` objects (`line-object`s meeting their row of `object-kind`, with no `id` member) in the valid object store of `T`; when absent, the object store holds no `"void"` statement |
+| `input.persons` | array of strings (optional) | distinct strings in `code-point-order` representing a valid binding of `persons`; when absent, `persons` is unbound |
+| `input.line` | array of arrays of objects (optional) | when present, the `default-branch` has a `default-branch-commit` whose complete `first-parent-line` (`incomplete-first-parent-line` does not hold) appears in sequence from head commit to root commit; each inner array lists the subjects of approval of that commit's tree (`commit-file`, with valid object store); when absent, the default branch has no `commit` |
+| `input.line[][].subject` | string | `subject-text` of a subject of approval in that commit's tree |
+| `input.line[][].hash` | string | `text` matching `hash-form`: the `content-hash` of that subject of approval's declared-item canonical object in that commit's tree |
+| `result` | string | `"approved"`, `"declined"`, or `"neither"`, matching `subject-state` |
 
-### 5.4 What `revises` edges on a written approval or decline judgment record
+The object `input` and each object of `input.line[][]` hold only the
+members listed in this table. Each vector stands for a tree `T` whose
+object store is valid (`tree-object-store`), valid bindings of the
+`parameter`s `file-readers`, `external-namespaces`, and
+`default-branch-name`, `approval-kinds` bound to `input.binding`, and
+`persons` bound to `input.persons` (or unbound when absent), with no
+other process changing those inputs while the program reads them.
 
-@req record-seen-judgments=v1
+When a `conforming-program` returns whether `S` is approved or declined
+in `T` under `give-subject-states`, the program returns the string
+value of `result` and no other result.
+
+@example Sample lines testing
+[give-subject-states](sinter:#give-subject-states=v1) for a subject of
+approval with no judgment under
+[subject-state](sinter:#subject-state=v1) and for merge approval under
+the empty binding of [approval-kinds](sinter:#approval-kinds=v1)
+([merged-content](sinter:#merged-content=v1),
+[vector-line](sinter:data-forms#vector-line=v1)):
+
+```json
+{"form":"#states-vector=v1","group":"states","input":{"binding":["req","spec"],"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","judgments":[],"subject":"req:billing#limit"},"note":"no judgment","result":"neither"}
+{"form":"#states-vector=v1","group":"states","input":{"binding":[],"hash":"8b5b9db0c13db24256c829aa364aa90c6d2eba318b9232a4ab9313b954d3555f","judgments":[],"line":[[{"hash":"8b5b9db0c13db24256c829aa364aa90c6d2eba318b9232a4ab9313b954d3555f","subject":"decision:ledger-ref"}]],"subject":"decision:ledger-ref"},"note":"under the empty binding, each subject is approved by the merge","result":"approved"}
+```
+
+## Approval findings
+
+@spec findings=v1
+
+Approval findings tell a team which subjects of approval and which
+claims of code still wait on a person's approval or carry a decline.
+
+### Definitions
+
+#### Subject order
+
+@term subject-order=v1
 @cites {
+    conformance#own-store=v1,
+    files#path=v1,
+    text#code-point-order=v1,
+    identifiers#tag-line-text=v1,
     ontology#{
-        statement=v1, judgment=v1, void-statement=v1,
-        object-withdrawal=v1, person=v1, edge=v1, tree=v1, parameter=v1,
+        subject-of-approval=v1, declared-item=v1, object=v1,
+        content-id=v1, tree=v1,
     },
-    object-store#{tree-object-store=v1},
-    conformance#{conforming-program=v1},
-    text#{code-span=v1},
-    #{persons=v1, latest-judgment=v1},
+    object-store#valid-object-file=v1,
+    findings#location=v1,
+    documents#{
+        item-file=v1, origin=v1, origin-position=v1, position-order=v1,
+        slice-location=v1,
+    },
+    #subject-text=v1,
 }
 
-This requirement applies for a working tree T whose object store is
-valid (`object-store#tree-object-store`) and `persons` unbound or bound
-to a valid binding L. When a conforming program writes in `.sinter/` of
-T a statement E of the kind `approval` or `decline` whose `about` and
-`judges` edges name declared-item content id t:
+One `subject-of-approval` `S1` of a `tree` `T` comes before another
+`subject-of-approval` `S2` of `T` in the **subject order** when, and
+only when, one of these four conditions holds:
 
-- Each `revises` edge of E must name a latest counting judgment of t in
-  T under `persons` (`latest-judgment`).
-- Before the person whose decision E records confirmed that decision,
-  the conforming program must have given that person each exact approval
-  or decline judgment that a `revises` edge of E names.
-- When t has no latest counting judgment in T under `persons` (including
-  when a counting void in T withdrew the only latest counting judgment
-  of t), E must hold no `revises` edge, and the conforming program must
-  give that person no approval or decline judgment in place of a
-  withdrawn approval or decline judgment.
+1. The `content-id` of the canonical `object` of the `declared-item` of
+   `S1` comes before the `content-id` of the canonical `object` of the
+   `declared-item` of `S2` in `code-point-order`.
+2. Those two content IDs are equal, the declared item of `S1` stands in
+   a file of `T` (a text file under `item-file` or a `valid-object-file`
+   of `.sinter/`), and the declared item of `S2` stands in no file of
+   `T` (comes from a valid `own-store` with no file).
+3. Those two content IDs are equal, both declared items stand in files
+   of `T`, and the valid `path` of the file of the declared item of `S1`
+   comes before the valid `path` of the file of the declared item of
+   `S2` in `code-point-order`.
+4. Those two content IDs are equal, both declared items stand in the
+   same text file of `T`, and the `origin-position` of the
+   `tag-line-text` of the declaration of the declared item of `S1` comes
+   before the `origin-position` of the `tag-line-text` of the
+   declaration of the declared item of `S2` in `position-order`.
 
-### 5.5 The approval findings of a tree
+For a `tree` `T` and a `subject-text` `t` that is the subject text of
+one or more subjects of approval of `T`, let `S0` be the first subject
+of approval of `T`, in the subject order, whose subject text is `t`. The
+**subject location** of `t` in `T` is:
+
+- when the declared item of `S0` stands in a text file of `T`
+  (`item-file`), the `slice-location` of the `origin` slice of the
+  `tag-line-text` of its declaration in the text of that file;
+- when the declared item of `S0` stands in a `valid-object-file` of
+  `.sinter/` of `T`, the valid `path` of that valid object file alone,
+  with no span (`findings#location`);
+- when the declared item of `S0` stands in no file of `T` (comes from a
+  valid `own-store` with no file), no location.
+
+#### Declined findings
+
+@atom declined-finding=v1
+@cites {
+    ontology#{subject-of-approval=v1, declared-item=v1, tree=v1},
+    documents#tree-finding=v1,
+    #{
+        subject-text=v1, subject-state=v1, in-force-item=v1,
+        subject-order=v1,
+    },
+}
+
+For a `tree` `T` under the bindings for which `in-force-item` is
+defined, `T` has one `tree-finding` of the class `declined` for each
+`subject-text` `t` that is the subject text of at least one
+`subject-of-approval` `S` of `T` such that both of these conditions
+hold:
+
+1. `S` is `"declined"` in `T` under those bindings (`subject-state`).
+2. The `declared-item` of `S` is in force in `T` under those bindings
+   (`in-force-item`).
+
+Its subject is `t`, and its location is the subject location of `t` in
+`T` (`subject-order`).
+
+#### Awaiting-approval findings
+
+@atom awaiting-approval-finding=v1
+@cites {
+    ontology#{subject-of-approval=v1, declared-item=v1, tree=v1},
+    documents#tree-finding=v1,
+    #{
+        approval-kinds=v1, subject-text=v1, subject-state=v1,
+        in-force-item=v1, subject-order=v1,
+    },
+}
+
+For a `tree` `T` under the bindings for which `in-force-item` is
+defined, `T` has one `tree-finding` of the class `awaiting-approval`
+for each `subject-text` `t` that is the subject text of at least one
+`subject-of-approval` `S` of `T` such that all three of these
+conditions hold:
+
+1. `S` needs approval under the binding of `approval-kinds`.
+2. The `declared-item` of `S` is in force in `T` under those bindings
+   (`in-force-item`).
+3. `S` is `"neither"` in `T` under those bindings (`subject-state`).
+
+Its subject is `t`, and its location is the subject location of `t` in
+`T` (`subject-order`).
+
+#### Unapproved-requirement findings
+
+@atom unapproved-req-finding=v1
+@cites {
+    conformance#own-store=v1,
+    identifiers#citation-entry=v1,
+    ontology#{
+        edge=v1, satisfies-edge=v1, verifies-edge=v1,
+        subject-of-approval=v1, declared-item=v1, test=v1, site=v1,
+        tree=v1, encoding=v1,
+    },
+    object-store#valid-object-file=v1,
+    documents#{
+        tree-edge=v1, origin=v1, origin-position=v1,
+        position-subject=v1, edge-finding-subject=v1,
+        slice-location=v1, tree-finding=v1,
+    },
+    #{approval-kinds=v1, subject-state=v1, in-force-item=v1},
+}
+
+For a `tree` `T` under the bindings for which `in-force-item` is
+defined, consider each `tree-edge` of `T` (in either `encoding`, or
+from a valid `own-store`) such that all four of these conditions hold:
+
+1. The edge is of the kind `satisfies` (`satisfies-edge`) or `verifies`
+   (`verifies-edge`), and fits its kind (`ontology#edge`).
+2. The cited item of the edge is a `declared-item` of the kind
+   requirement or schema that has a `subject-of-approval`.
+3. That cited item is in force in `T` under those bindings
+   (`in-force-item`).
+4. The subject of approval of that cited item needs approval under the
+   binding of `approval-kinds` and is not `"approved"` in `T` under
+   those bindings (`subject-state`).
+
+`T` has these `tree-finding` values of the class `unapproved-req`:
+
+- When the source of such an edge is a `declared-item` (in a text file,
+  in a `valid-object-file` of `.sinter/`, or from a valid `own-store`),
+  `T` has one finding for each distinct canonical edge among those
+  edges. Its subject is the `edge-finding-subject` of that canonical
+  edge, and its location is the object edge location of that canonical
+  edge (`edge-finding-subject`).
+- When the source of such an edge is a `test` or a `site`, `T` has one
+  finding for that edge. Its subject is the `position-subject` of the
+  `origin-position` of its `citation-entry`, and its location is the
+  `slice-location` of the `origin` slice of that citation entry in the
+  text of the file of the edge.
+
+### Returning approval findings
 
 @req give-approval-findings=v1
 @cites {
-    ontology#{
-        finding-class=v1, subject-of-approval=v1, supersedes-edge=v1,
-        tree=v1, parameter=v1,
+    conformance#{
+        conforming-program=v1, dependence=v1, report=v1,
+        reject-invalid-inputs=v1, report-missing-parts=v1,
     },
-    object-store#{tree-object-store=v1},
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
+    identifiers#external-namespaces=v1,
+    ontology#{
+        finding-class=v1, tree=v1, approval-state=v1,
+        supersedes-edge=v1,
+    },
+    object-store#tree-object-store=v1,
     changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
+        commit-file=v1, default-branch-name=v1,
         default-branch-commit=v1, first-parent-line=v1,
         repository-read=v1,
     },
     documents#{file-readers=v1, tree-finding=v1},
-    conformance#{
-        conforming-program=v1, dependence=v1, report-missing-parts=v1,
-    },
-    text#{result=v1, code-span=v1},
     #{
-        approval-kinds=v1, persons=v1, approval-need=v1,
-        listed-person=v1, merge-read-edge=v1, declined-finding=v1,
+        approval-kinds=v1, persons=v1, listed-person=v1,
+        subject-state=v1, merge-dependent-edge=v1, in-force-item=v1,
+        incomplete-first-parent-line=v1, declined-finding=v1,
         awaiting-approval-finding=v1, unapproved-req-finding=v1,
-        incomplete-first-parent-line=v1,
     },
 }
 
-This requirement applies for a git repository R, a tree T whose object
-store is valid (`object-store#tree-object-store`), a valid binding A of
-`approval-kinds`, a valid binding F of `file-readers`, a binding N of
-`external-namespaces` for which a conforming program of the design
-Identifiers gives the result "valid", a binding D of
-`default-branch-name`, and `persons` unbound or bound. When a conforming
-program gives the findings of one of the classes `declined`,
-`awaiting-approval`, and `unapproved-req` of T under these bindings,
-these rules apply for the repository reads from which that conforming
-program takes the first-parent line of the commit of the default branch
-and the files of the trees of its commits:
+This requirement applies for a git repository `R`, a `tree` `T` with a
+valid `tree-object-store`, valid bindings `A` of `approval-kinds`, `F`
+of `file-readers`, and `N` of `external-namespaces`, a binding `D` of
+`default-branch-name`, and `persons` unbound or bound.
 
-- When `persons` is unbound or bound to a valid binding L, and either T
-  has no `supersedes` edge that reads a merge under A (term
-  `merge-read-edge`), or D is a valid binding of `default-branch-name`
-  and either the default branch of R has no commit under D or the
-  default branch of R has a commit H under D and the first-parent line
-  of H under F is not incomplete for those repository reads, that
-  conforming program must give each tree finding of that class that T
-  has under these bindings once, must give no other finding of that
-  class, and must not give that it cannot see the whole history for that
-  class.
-- When `persons` is unbound or bound to a valid binding L, T has a
-  `supersedes` edge that reads a merge under A (term `merge-read-edge`),
-  D is a valid binding of `default-branch-name`, the default branch of R
-  has a commit H under D, and the first-parent line of H under F is
-  incomplete for those repository reads, that conforming program must
-  give each finding of that class under the greatest merge once, and
-  must give no other finding of that class. In that case, when the
-  findings of that class under the least merge for those repository
-  reads hold a finding that the findings of that class under the
-  greatest merge do not hold, that conforming program must give that it
-  cannot see the whole history for that class; otherwise, that conforming
-  program must not give that it cannot see the whole history for that
-  class.
-- When `persons` is unbound or bound to a valid binding L, T has a
-  `supersedes` edge that reads a merge under A (term `merge-read-edge`),
-  and D is not a valid binding of `default-branch-name`, that conforming
-  program must give each finding of that class under the greatest merge
-  once, and must give no other finding of that class.
-- When `persons` is bound to a value that does not meet the schema
-  `persons`, that conforming program must give once each finding of that
-  class that holds under every valid binding of `persons` and when
-  `persons` is unbound (under the three rules of this requirement for
-  unbound or valid bindings of `persons`), and must give no
-  finding of that class whose existence depends on the binding of
-  `persons`, and no other finding of that class.
+For a `finding-class` `c` among `declined`, `awaiting-approval`, and
+`unapproved-req`, with `persons` unbound or bound to a valid binding:
 
-### 5.6 Statement-check findings for `approval` and `decline`
+- When `D` is a valid binding of `default-branch-name`, the default
+  branch of `R` has a `default-branch-commit` `H` under `D`, and the
+  `first-parent-line` of `H` under `F` is incomplete for the
+  `repository-read`s from which a program reads that first-parent line
+  and the files of the trees of its commits (`commit-file`)
+  (`incomplete-first-parent-line`), the **findings of `c` under the
+  least merge** are the `tree-finding` values that the atom of `c`
+  (`declined-finding`, `awaiting-approval-finding`, or
+  `unapproved-req-finding`) defines for `T` under `A`, `F`, `N`, and
+  `persons` when `in-force-item` takes the `approval-state` of the
+  source of each `supersedes-edge` from the states under the least
+  merge for those repository reads (`incomplete-first-parent-line`) in
+  place of `subject-state`.
+- The **findings of `c` under the greatest merge** need no binding of
+  `default-branch-name`. Those findings are the `tree-finding` values
+  that the atom of `c` (`declined-finding`, `awaiting-approval-finding`,
+  or `unapproved-req-finding`) defines for `T` under `A`, `F`, `N`, and
+  `persons` when `in-force-item` takes the `approval-state` of the
+  source of each `supersedes-edge` from the states under the greatest
+  merge (`incomplete-first-parent-line`) in place of `subject-state`.
 
-@req give-judgment-check-findings=v1
-@cites {
-    ontology#{
-        finding-class=v1, statement=v1, content-id=v1, tree=v1,
-        parameter=v1,
-    },
-    object-store#{tree-object-store=v1},
-    ledger#{
-        accepted-entry=v1, unaccepted-statement-finding=v1,
-        statement-conflict-finding=v1,
-    },
-    conformance#{conforming-program=v1},
-    text#{code-span=v1},
-    #{
-        persons=v1, listed-person=v1, judgment-acceptance-rule=v1,
-        judgment-conflict=v1,
-    },
-}
+When a conforming program returns the findings of `T` of a finding class
+`c` among `declined`, `awaiting-approval`, and `unapproved-req` under
+these bindings, these four rules apply for the `repository-read`s from
+which the program reads the `first-parent-line` of the
+`default-branch-commit` and the files of the trees of its commits
+(`commit-file`):
 
-This requirement applies for a tree T whose object store is valid
-(`object-store#tree-object-store`) and `persons` unbound or bound.
+1. When `persons` is unbound or bound to a valid binding, and either `T`
+   has no `merge-dependent-edge` under `A`, or `D` is a valid binding of
+   `default-branch-name` and either the default branch of `R` has no
+   commit under `D` or the default branch of `R` has a commit `H` under
+   `D` whose `first-parent-line` under `F` is not incomplete for those
+   repository reads (`incomplete-first-parent-line`): the program must
+   return once each `tree-finding` of class `c` that `T` has under those
+   bindings, must return no other finding of class `c`, and must return
+   no `conformance#report` stating that the program cannot see the whole
+   history for class `c`.
+2. When `persons` is unbound or bound to a valid binding, `T` has a
+   `merge-dependent-edge` under `A`, `D` is a valid binding of
+   `default-branch-name`, the default branch of `R` has a commit `H`
+   under `D`, and the `first-parent-line` of `H` under `F` is incomplete
+   for those repository reads: the program must return once each finding
+   of class `c` under the greatest merge, and must return no other
+   finding of class `c`. If the findings of class `c` under the least
+   merge for those repository reads hold a finding that the findings of
+   class `c` under the greatest merge do not hold, the program must
+   return one `conformance#report` stating that the program cannot see
+   the whole history for class `c` (as the report for that missing part
+   under `report-missing-parts`); otherwise, the program must return no
+   such report for class `c`.
+3. When `persons` is unbound or bound to a valid binding, `T` has a
+   `merge-dependent-edge` under `A`, and `D` is not a valid binding of
+   `default-branch-name`: the program must return once each finding of
+   class `c` under the greatest merge, and must return no other finding
+   of class `c` (`reject-invalid-inputs`).
+4. When `persons` is bound to a value that does not meet `persons`: the
+   program must return once each finding of class `c` that rules 1 to 3
+   oblige with no dependence (`dependence`) on `persons`
+   (`listed-person`), and must return no other finding of class `c`
+   (`reject-invalid-inputs`).
 
-- When a conforming program gives the findings of the Ledger's check
-  "Kind rules" (finding class `unaccepted-statement`,
-  `ledger#unaccepted-statement-finding`) for `approval` and `decline`
-  statements of T: for each `approval` or `decline` statement E in the
-  object store of T for which `judgment-acceptance-rule` does not hold
-  in T (and is not withheld under an invalid binding of `persons`), the
-  conforming program must give once the finding of that class for E, and
-  must give no finding of that class for any `approval` or `decline`
-  statement in T for which `judgment-acceptance-rule` holds or is
-  withheld.
-- When a conforming program gives the findings of the Ledger's check
-  "Conflicts" (finding class `statement-conflict`,
-  `ledger#statement-conflict-finding`) for `approval` and `decline`
-  judgments of T: for each declared-item content id t for which a
-  conflict exists in T (`judgment-conflict`, when `persons` is unbound
-  or valid, or when the conflict holds under every valid binding of
-  `persons` and when `persons` is unbound), the conforming program must
-  give once the finding of that class for t, and must give no finding of
-  that class for any declared-item content id t for which no conflict
-  holds or whether a conflict holds depends on an invalid binding of
-  `persons`.
+@example Suppose [approval-kinds](sinter:#approval-kinds=v1) is bound to
+requirements only (`req`), so a design needs no approval by a person and
+a merge approves it. A tree holds a design `old-billing` containing a
+[declined](sinter:#subject-state=v1) requirement `old-billing#cap`, and
+an empty design `new-billing` carrying `@supersedes old-billing=v1` (a
+[merge-dependent](sinter:#merge-dependent-edge=v1)
+[supersedes edge](sinter:ontology#supersedes-edge=v1)). On an
+[incomplete first-parent line](sinter:#incomplete-first-parent-line=v1)
+where `new-billing` did not visibly merge: under the greatest merge
+`new-billing` is approved, so the edge
+[takes effect](sinter:ontology#effective-supersedes-edge=v1) and retires
+`old-billing` and its held requirement `old-billing#cap`
+([retired-item](sinter:ontology#retired-item=v1)), producing no
+[declined finding](sinter:#declined-finding=v1); under the least merge
+`new-billing` is not approved, so `old-billing#cap` stays in force and
+produces `declined` for `req:old-billing#cap`. The least merge holds a
+finding that the greatest merge omits, so the program returns no
+`declined` finding for `req:old-billing#cap` and returns one
+[report](sinter:conformance#report=v1) stating that the program cannot
+see the whole history for `declined`.
 
-## 6. Conformance
-
-A program conforms to this design when it is a
-[conforming program](sinter:conformance#conforming-program=v1) of this design.
-
-The vectors of this design are in the file
-[`approval.test-vectors.jsonl`](approval.test-vectors.jsonl), in the
-same folder as this design. The file is a test-vector set, as the
-specification [`test-vectors`](sinter:data-forms#test-vectors=v1) of
-Data forms gives it. A vector is an input and what a conforming program
-gives for it. Each vector follows from the requirements and adds nothing
-to them. The vectors are in four groups: `acceptance`, `checks`,
-`findings`, and `states`. Each group has a subsection below that gives
-the forms of that group, as the term
-[`group-form-list`](sinter:data-forms#group-form-list=v1) gives the
-forms of a group. No vector follows from the operational requirements
-`record-judged-content` and `record-seen-judgments`.
-
-Each requirement from which vectors follow applies only when a program
-gives the thing that the requirement names, such as whether an
-`approval` or `decline` statement is accepted in a tree. So a vector
-holds a program only to what the program gives for the input.
-
-### 6.1 Acceptance
-
-@schema acceptance-vector=v1
-@cites {
-    rfc/8259,
-    conformance#{conforming-program=v1},
-    text#{text=v1, character=v1, code-point-order=v1, result=v1, code-span=v1},
-    data-forms#{
-        group-form-list=v1, vector-meaning=v1, json-value=v1,
-        vector-line=v1, canonical-byte-sequence=v1,
-    },
-    ontology#{
-        object=v1, object-kind=v1, content-id=v1, statement=v1,
-        void-statement=v1, parameter=v1, tree=v1,
-    },
-    object-store#{tree-object-store=v1},
-    #{
-        persons=v1, judgment-acceptance-rule=v1,
-        give-judgment-acceptance=v1,
-    },
-}
-
-The group `acceptance` holds the vectors of the requirement
-`give-judgment-acceptance`. Each vector gives a set of `approval` and
-`decline` statements, an optional set of `void` statements, and an
-optional valid binding of `persons`, standing for a tree whose object
-store is valid and holds those statements. For each statement in
-`judgments`, the vector gives whether `judgment-acceptance-rule` holds
-in that tree. The group uses no need, so these forms give no need names.
-
-The input of each vector stands for a tree whose object store is valid
-and holds the given statements; when `persons` is present, for that
-valid binding of `persons`, and when `persons` is absent, for `persons`
-unbound. No other process changes these inputs while the program reads
-them.
-
-The JSON values, objects, arrays, strings, numbers, and the literal
-names `true` and `false` of this schema are as RFC 8259 defines them.
-Inside `input` and `values`, a text is a JSON string whose characters
-are the characters of the text, in order, and a sequence is a JSON array
-of its elements, in order. Each element of `judgments` and `voids` is
-the canonical JSON object of that statement (with no `id` member); its
-content id is the `ontology#content-id` computed from its canonical byte
-sequence.
-
-- `input`: a JSON object with `judgments`, and optionally `voids` and
-  `persons`. `judgments` is a sequence of canonical `approval` and
-  `decline` statement objects in `.sinter/` (its order serves only to
-  align with `accepted`). `voids`, when present, is a sequence of
-  canonical `void` statement objects in `.sinter/`; when absent, the
-  store holds no `void` statement. `persons`, when present, is a JSON
-  array of distinct JSON strings in code point order giving a valid
-  binding of `persons`; when absent, `persons` is unbound.
-- `result`: no vector of the group has this member; these forms name no
-  question for `result`.
-- `values`: a JSON object with one member, `accepted`. `accepted` is a
-  JSON array with one element for each element of `judgments`, in the
-  same order: `true` when `judgment-acceptance-rule` holds for that
-  statement in that tree, and `false` when it does not hold.
-
-When a conforming program gives whether one of these statements is
-accepted in that tree, the program gives "accepted" when its element of
-`accepted` is `true`, and "not accepted" when its element of `accepted`
-is `false`.
-
-```
-{"form":"#acceptance-vector=v1","group":"acceptance","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"},{"kind":"judges","to":"req:3fc4ccfe745870e2c0d99f71f30ff065"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"revises","to":"approval:09dfaa1f3d6939a31d86c31bba0c6049"}],"kind":"approval","v":1}]},"note":"an approval revising a judgment whose `about` edge names another declared-item object is not accepted","values":{"accepted":[true,false]}}
-```
-
-### 6.2 Findings
+### Test vectors
 
 @schema findings-vector=v1
 @cites {
-    rfc/8259,
-    conformance#{conforming-program=v1},
-    text#{
-        text=v1, character=v1, whole-number=v1, decimal-numeral=v1,
-        code-point-order=v1, result=v1, code-span=v1,
-    },
     data-forms#{
-        index=v1, group-form-list=v1, vector-meaning=v1, json-value=v1,
-        vector-line=v1,
+        index=v1, group-schema=v1, vector-line=v1, test-vector-set=v1,
+        vector-meaning=v1,
     },
-    identifiers#{
-        external-namespaces=v1, validate-bindings=v1, citation-entry=v1,
-        inline-citation=v1,
-    },
+    text#code-point-order=v1,
+    identifiers#external-namespaces=v1,
     ontology#{
-        subject-of-approval=v1, declared-item=v1, schema=v1, test=v1,
-        site=v1, tree=v1, edge=v1, finding-class=v1, parameter=v1,
+        subject-of-approval=v1, declared-item=v1, test=v1, site=v1,
+        tree=v1, edge=v1,
     },
-    object-store#{tree-object-store=v1},
+    object-store#tree-object-store=v1,
     changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
+        default-branch-name=v1, default-branch-commit=v1,
+        first-parent-line=v1,
     },
     documents#{
-        file-readers=v1, tree-edge=v1, origin-position=v1,
-        position-subject=v1, edge-finding-subject=v1, tree-finding=v1,
+        file-readers=v1, tree-edge=v1, position-subject=v1,
+        edge-finding-subject=v1, tree-finding=v1,
     },
-    findings#{finding-subject=v1},
+    findings#finding-subject=v1,
     #{
         approval-kinds=v1, persons=v1, subject-text=v1,
-        subject-state=v1, bound-in-force-item=v1, declined-finding=v1,
+        subject-state=v1, in-force-item=v1,
+        incomplete-first-parent-line=v1, declined-finding=v1,
         awaiting-approval-finding=v1, unapproved-req-finding=v1,
-        incomplete-first-parent-line=v1, give-approval-findings=v1,
+        give-approval-findings=v1,
     },
 }
 
-The group `findings` holds the vectors of the requirement
-`give-approval-findings`. Each vector gives the subjects of approval of
-a tree, their states, and whether their declared items are in force. The
-vector gives the edges of the tree. For each edge, when its cited item
-is a requirement or a schema with a subject of approval, the vector
-gives whether that cited item is in force. The vector gives the findings
-of the three classes of the tree, by the subjects of those findings. The
-group uses no need, so these forms give no need names.
+`findings-vector` is a `group-schema` for group `findings` in
+[approval.test-vectors.jsonl](approval.test-vectors.jsonl) and tests
+`give-approval-findings`. That file is a `test-vector-set` of
+`vector-line` entries whose meaning follows `vector-meaning`. Group
+`findings` uses no `needs` and omits `result`. Each vector stands for a
+git repository and a `tree` with a valid `tree-object-store`, valid
+bindings of `approval-kinds`, `file-readers`, `external-namespaces`, and
+`default-branch-name`, and `persons` unbound or bound to a valid
+binding, where the `first-parent-line` of the `default-branch-commit`
+(when the default branch has a commit) is not incomplete
+(`incomplete-first-parent-line`), no other process changes the inputs
+during the run, and the program returns the expected `tree-finding`
+values under `give-approval-findings` with no report that the program
+cannot see the whole history.
 
-The input of each vector stands for a tree whose object store is valid;
-for a binding of `file-readers` that is valid; for a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid"; for `persons` unbound or bound to a valid
-binding; and for a valid binding of `default-branch-name` (the input
-does not depend on that binding) under which, when the default branch
-has a commit, its first-parent line is not incomplete. No other process
-changes these inputs while the program reads them.
+| field | type | meaning |
+|---|---|---|
+| `input.binding` | array of strings | valid binding of `approval-kinds`: kind words of the kinds in the binding (`subject-text`), each once, in `code-point-order` |
+| `input.subjects` | array of objects | sequence of the subjects of approval (`subject-of-approval`) of the `tree` |
+| `input.subjects[].subject` | string | `subject-text` of the subject of approval |
+| `input.subjects[].state` | string | `"approved"`, `"declined"`, or `"neither"` (`subject-state`) |
+| `input.subjects[].in-force` | boolean | `true` when the `declared-item` of the subject of approval is in force (`in-force-item`), `false` otherwise |
+| `input.edges` | array of objects | sequence of the `tree-edge` values of the `tree` |
+| `input.edges[].kind` | string | kind of edge (`ontology#edge`) |
+| `input.edges[].fits` | boolean | `true` when the edge fits its kind (`ontology#edge`), `false` otherwise |
+| `input.edges[].at` | string | `finding-subject` for the edge: `edge-finding-subject` when its source is a `declared-item`, or `position-subject` when its source is a `test` or `site` |
+| `input.edges[].cited` | integer (`>= 1`, optional) | present (with `in-force`) when the edge's cited item is a requirement or schema with a `subject-of-approval`: 1-based `index` of that subject of approval in `input.subjects`; absent otherwise |
+| `input.edges[].in-force` | boolean (optional) | present (with `cited`) when the edge's cited item is a requirement or schema with a `subject-of-approval`: `true` when that cited item is in force (`in-force-item`), `false` otherwise; absent otherwise |
+| `values.findings.awaiting-approval` | array of strings | `finding-subject` values of all `awaiting-approval-finding` findings of the tree, each once, in `code-point-order` |
+| `values.findings.declined` | array of strings | `finding-subject` values of all `declined-finding` findings of the tree, each once, in `code-point-order` |
+| `values.findings.unapproved-req` | array of strings | `finding-subject` values of all `unapproved-req-finding` findings of the tree, each once, in `code-point-order` |
 
-The JSON values, objects, arrays, strings, numbers, and the literal
-names `true` and `false` of this schema are as RFC 8259 defines them.
-Inside `input` and `values`, a text, such as a subject text, an edge
-finding subject, or a position subject, is a JSON string whose characters
-are the characters of the text, in order. A sequence is a JSON array of
-its elements, in order. A valid binding of `approval-kinds` is a JSON
-array of JSON strings holding, for each kind of subject of approval in
-the binding, the kind word of that kind, each once, in code point order.
+Each JSON object in `input` and `values` holds only the members listed
+in this table, with `input.edges[].cited` and `input.edges[].in-force`
+either both present or both absent.
 
-- `input`: a JSON object with three members. `binding` is a valid
-  binding of `approval-kinds`. `subjects` is the subjects of approval of
-  the tree, as a sequence. Each subject of approval in `subjects` is a
-  JSON object with three members: `subject` (subject text), `state` (one
-  of `"approved"`, `"declined"`, and `"neither"`), and `in-force`
-  (`true` when its declared item is in force under `bound-in-force-item`,
-  and `false` otherwise). `edges` is the edges of the tree, as a
-  sequence. Each edge in `edges` is a JSON object with `kind` (kind of
-  edge), `fits` (`true` when the edge says what its kind of edge says,
-  `false` otherwise), and `at` (the subject of the finding for the edge:
-  an edge finding subject when its source is a declared item, and a
-  position subject when its source is a test or a site), and, when
-  its cited item is a requirement or a schema with a subject of
-  approval, two more members: `cited` (the 1-based index of that subject
-  of approval in `subjects`) and `in-force` (`true` when that cited item
-  is in force under `bound-in-force-item`, and `false` otherwise).
-- `result`: no vector of the group has this member; these forms name no
-  question for `result`.
-- `values`: a JSON object with one member, `findings`. `findings` is a
-  JSON object with three members: `awaiting-approval`, `declined`, and
-  `unapproved-req`. Each is a JSON array of the subjects of the tree
-  findings of that class that the tree has, each once, in code point
-  order.
+@example Sample lines testing
+[give-approval-findings](sinter:#give-approval-findings=v1) under an
+empty [approval-kinds](sinter:#approval-kinds=v1) binding and on a
+subject in [conflict](sinter:#judgment-conflict=v1) that produces
+[awaiting-approval-finding](sinter:#awaiting-approval-finding=v1) and
+[unapproved-req-finding](sinter:#unapproved-req-finding=v1)
+([vector-line](sinter:data-forms#vector-line=v1)):
 
-When a conforming program gives the findings of one of the three classes
-of the tree, the program gives one finding with each subject in the
-member of `findings` for that class, and gives no other finding of that
-class.
-
-```
-{"form":"#findings-vector=v1","group":"findings","input":{"binding":["req"],"edges":[],"subjects":[{"in-force":true,"state":"declined","subject":"req:billing#limit"},{"in-force":true,"state":"declined","subject":"req:billing#limit"},{"in-force":true,"state":"neither","subject":"req:billing#limit"}]},"note":"two declared items with the same kind and name give one finding of a class","values":{"findings":{"awaiting-approval":["req:billing#limit"],"declined":["req:billing#limit"],"unapproved-req":[]}}}
-```
-
-### 6.3 States
-
-@schema states-vector=v1
-@cites {
-    rfc/8259,
-    conformance#{conforming-program=v1},
-    text#{
-        text=v1, character=v1, code-point-order=v1, result=v1,
-        code-span=v1,
-    },
-    data-forms#{
-        group-form-list=v1, vector-meaning=v1, json-value=v1,
-        hash-form=v1, vector-line=v1,
-    },
-    identifiers#{external-namespaces=v1, validate-bindings=v1},
-    ontology#{
-        subject-of-approval=v1, content-hash=v1, content-id=v1,
-        tree=v1, statement=v1, void-statement=v1, default-branch=v1,
-        parameter=v1,
-    },
-    object-store#{tree-object-store=v1},
-    changes#{
-        commit=v1, commit-file=v1, default-branch-name=v1,
-        default-branch-commit=v1, first-parent-line=v1,
-    },
-    documents#{file-readers=v1},
-    #{
-        approval-kinds=v1, persons=v1, subject-text=v1,
-        subject-state=v1, incomplete-first-parent-line=v1,
-        give-subject-states=v1, acceptance-vector=v1,
-        findings-vector=v1,
-    },
-}
-
-The group `states` holds the vectors of the requirement
-`give-subject-states`. Each vector gives one subject of approval of a
-tree by its subject text and the content hash of its declared item's
-canonical object (so its declared-item object's content id is its kind
-word, `:`, and the first 32 characters of `hash`); a valid binding of
-`approval-kinds`; the `approval` and `decline` statements (and optional
-`void` statements) of `.sinter/`; an optional valid binding of
-`persons`; and the trees of the commits of the first-parent line of the
-commit of the default branch. The vector gives the state of that subject
-of approval in that tree. The group uses no need, so these forms give no
-need names.
-
-The input of each vector stands for a tree whose object store is valid;
-for a binding of `file-readers` that is valid; for a binding of
-`external-namespaces` for which a conforming program of Identifiers
-gives the result "valid"; for `persons` as given (or unbound when
-absent); and for a valid binding of `default-branch-name`. When the
-input has `line`, the default branch has the commit whose complete
-first-parent line `line` gives. When the input has no `line`, the
-default branch has no commit. No other process changes these inputs
-while the program reads them.
-
-The JSON values, objects, arrays, strings, and numbers of this schema
-are as RFC 8259 defines them. Inside `input` and `result`, a text is a
-JSON string, a sequence is a JSON array, a valid binding of
-`approval-kinds` has the form of `findings-vector`, and `judgments`,
-`voids`, and `persons` have the forms of `acceptance-vector`.
-
-- `input`: a JSON object with `binding`, `subject`, `hash`, and
-  `judgments`, and optionally `voids`, `persons`, and `line`. `binding`
-  is a valid binding of `approval-kinds`. `subject` is the subject text
-  of the subject of approval. `hash` is a string fitting `hash-form`,
-  the content hash (`ontology#content-hash`) of the canonical object of
-  the declared item of that subject of approval in the tree. `judgments`
-  and optional `voids` and `persons` have the forms of
-  `acceptance-vector`. When the default branch has a commit, `line` is
-  the sequence of commits of its first-parent line, where each commit is
-  a JSON array of JSON objects `{"hash":…,"subject":…}` giving the
-  subject text and content hash of each subject of approval in that
-  commit's tree. When the default branch has no commit, `line` is
-  absent.
-- `result`: `"approved"`, `"declined"`, or `"neither"`, matching
-  `subject-state`.
-- `values`: no vector of the group has this member; these forms give no
-  fixed form for `values`.
-
-When a conforming program gives whether the subject of approval is
-approved or declined in the tree, the program gives `"approved"`,
-`"declined"`, or `"neither"` as `result` states, and gives no other
-result.
-
-```
-{"form":"#states-vector=v1","group":"states","input":{"binding":["req","spec"],"hash":"7692c3ad3540bb803c020b3aee66cd8887123234ea0c6e7143c0add73ff431ed","judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"decline","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1}],"subject":"req:billing#limit"},"note":"a decline and an approval with no `revises` edge conflict and give neither","result":"neither"}
-```
-
-### 6.4 Statement checks
-
-@schema checks-vector=v1
-@cites {
-    rfc/8259,
-    conformance#{conforming-program=v1},
-    text#{text=v1, character=v1, code-point-order=v1, code-span=v1},
-    data-forms#{
-        group-form-list=v1, vector-meaning=v1, json-value=v1,
-        vector-line=v1,
-    },
-    ontology#{content-id=v1, statement=v1, void-statement=v1, tree=v1},
-    object-store#{tree-object-store=v1},
-    ledger#{
-        unaccepted-statement-finding=v1, statement-conflict-finding=v1,
-    },
-    #{
-        persons=v1, judgment-acceptance-rule=v1, judgment-conflict=v1,
-        give-judgment-check-findings=v1, acceptance-vector=v1,
-    },
-}
-
-The group `checks` holds the vectors of the requirement
-`give-judgment-check-findings`. Each vector gives a set of `approval`
-and `decline` statements, an optional set of `void` statements, and an
-optional valid binding of `persons`, standing for a tree whose object
-store is valid and holds those statements. The vector gives the content
-ids of unaccepted `approval` and `decline` statements (check "Kind
-rules", class `unaccepted-statement`) and of declared-item objects with
-conflicting latest counting judgments (check "Conflicts", class
-`statement-conflict`). The group uses no need, so these forms give no
-need names.
-
-The input of each vector stands for a tree whose object store is valid
-and holds the given statements; when `persons` is present, for that
-valid binding of `persons`, and when `persons` is absent, for `persons`
-unbound. No other process changes these inputs while the program reads
-them.
-
-The JSON values, objects, arrays, strings, and numbers of this schema
-are as RFC 8259 defines them. `judgments`, `voids`, and `persons` have
-the forms of `acceptance-vector`.
-
-- `input`: a JSON object with `judgments`, and optionally `voids` and
-  `persons`, in the forms of `acceptance-vector`.
-- `result`: no vector of the group has this member; these forms name no
-  question for `result`.
-- `values`: a JSON object with two members: `unaccepted`, a JSON array
-  of the content ids of the `approval` and `decline` statements in
-  `judgments` for which `judgment-acceptance-rule` does not hold, each
-  once in code point order; and `conflicts`, a JSON array of the
-  declared-item content ids for which `judgment-conflict` holds in that
-  tree, each once in code point order.
-
-When a conforming program gives the findings of the classes
-`unaccepted-statement` (check "Kind rules") and `statement-conflict`
-(check "Conflicts") for the `approval` and `decline` statements of that
-tree, the program gives one `unaccepted-statement` finding for each
-content id in `unaccepted`, one `statement-conflict` finding for each
-content id in `conflicts`, and no other finding of those classes for
-`approval` and `decline`.
-
-```
-{"form":"#checks-vector=v1","group":"checks","input":{"judgments":[{"by":"Ada Lovelace <ada@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"approval","v":1},{"by":"Bo Chen <bo@example.com>","edges":[{"kind":"about","to":"req:7692c3ad3540bb803c020b3aee66cd88"},{"kind":"judges","to":"req:7692c3ad3540bb803c020b3aee66cd88"}],"kind":"decline","reason":"needs a clearer bound","v":1}]},"note":"an approval and a decline of the same declared-item object give a conflict finding","values":{"conflicts":["req:7692c3ad3540bb803c020b3aee66cd88"],"unaccepted":[]}}
+```json
+{"form":"#findings-vector=v1","group":"findings","input":{"binding":[],"edges":[{"at":"src/fee.ml@L3C4","cited":1,"fits":true,"in-force":true,"kind":"satisfies"}],"subjects":[{"in-force":true,"state":"neither","subject":"req:billing#limit"},{"in-force":true,"state":"approved","subject":"spec:billing#auth"}]},"note":"under the empty binding, nothing waits for a person","values":{"findings":{"awaiting-approval":[],"declined":[],"unapproved-req":[]}}}
+{"form":"#findings-vector=v1","group":"findings","input":{"binding":["req"],"edges":[{"at":"src/limit.ml@L10C4","cited":1,"fits":true,"in-force":true,"kind":"satisfies"}],"subjects":[{"in-force":true,"state":"neither","subject":"req:billing#limit"}]},"note":"a subject in conflict has state neither and gives `awaiting-approval` and `unapproved-req`, not `declined`","values":{"findings":{"awaiting-approval":["req:billing#limit"],"declined":[],"unapproved-req":["src/limit.ml@L10C4"]}}}
 ```
