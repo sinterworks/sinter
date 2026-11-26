@@ -83,7 +83,7 @@
 {"form":"#read-json-vector=v1","group":"read-json","input":"312e30","note":"the number has a fraction","result":"invalid","values":{}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"316532","note":"the number has an exponent","result":"invalid","values":{}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"302e35","note":"the number has a fraction","result":"invalid","values":{}}
-{"form":"#read-json-vector=v1","group":"read-json","input":"2d30","note":"the number `-0` writes the whole number 0","result":"valid","values":{"json-value":0}}
+{"form":"#read-json-vector=v1","group":"read-json","input":"2d30","note":"the number `-0` decodes to the integer 0","result":"valid","values":{"json-value":0}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"39303037313939323534373430393931","note":"the number writes 2^53 − 1","result":"valid","values":{"json-value":9007199254740991}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"2d39303037313939323534373430393931","note":"the number writes −(2^53 − 1)","result":"valid","values":{"json-value":-9007199254740991}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"39303037313939323534373430393932","note":"the number writes 2^53, which is greater than 2^53 − 1","result":"invalid","values":{}}
@@ -132,3 +132,5 @@
 {"form":"#read-json-vector=v1","group":"read-json","input":"7b","note":"the object has no closing `}`","result":"invalid","values":{}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"7b226122","note":"the object ends after a member name","result":"invalid","values":{}}
 {"form":"#read-json-vector=v1","group":"read-json","input":"7b2261223a31","note":"the object has no closing `}`","result":"invalid","values":{}}
+{"form":"#read-json-vector=v1","group":"read-json","input":"efbbbf7b7d","note":"a byte order mark stands before `{`","result":"invalid","values":{}}
+{"form":"#read-json-vector=v1","group":"read-json","input":"7b7d0a7b7d0a","note":"the byte sequence holds two JSON texts","result":"invalid","values":{}}
