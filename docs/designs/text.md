@@ -353,11 +353,11 @@ bytes that encode each character of the text as RFC 3629 defines UTF-8.
 
 An algorithm inside a definition of a design specifies a computed value
 through a single-sentence header paragraph followed by a numbered list of
-steps. An algorithm defines only the value it gives, not how a program
+steps. An algorithm defines only the value it returns, not how a program
 computes that value.
 
 The header has the form `The <name> of <inputs> is the <kind> that these
-steps give.`, where `<name>` contains no ` of `. A value name is one or
+steps return.`, where `<name>` contains no ` of `. A value name is one or
 more lowercase ASCII words (`a` to `z`) joined by `-` and written in
 italics (such as `*s*` or `*next-line*`). Each input value name appears
 once in `<inputs>` and nowhere in `<name>` or `<kind>`. In an algorithm, a
@@ -375,7 +375,7 @@ value, `C` is a condition, and `S` is a sequence):
   for the remaining steps at the same level and their substeps.
 - `Set *n* to V.` — rebinds an existing `Let` value name `*n*` to `V`.
 - `If C, then:` (with substeps) or `If C, <action>.` (where `<action>` is a
-  lowercase `set`, `append`, `remove`, or `give` step) — executes when `C`
+  lowercase `set`, `append`, `remove`, or `return` step) — executes when `C`
   holds.
 - `Otherwise:` (with substeps) or `Otherwise, <action>.` — immediately
   follows an `If` step at the same level and executes only when that `If`
@@ -392,7 +392,7 @@ value, `C` is a condition, and `S` is a sequence):
   a text or byte sequence.
 - `Remove V from *s*.` — updates `*s*` by removing the element or elements
   identified by `V`, preserving the order of the remaining elements.
-- `Give V.` — ends evaluation and produces `V` as the algorithm's value.
+- `Return V.` — ends evaluation and produces `V` as the algorithm's value.
 
 Value names do not shadow an already visible value name, and only
 `Let`-bound value names can be updated by `Set`, `Append`, or `Remove`.
@@ -402,21 +402,21 @@ other algorithms held by definitions that the enclosing definition cites (or
 invoke the same algorithm recursively) using `<name>`, then ` of `, then
 `<inputs>` with a value in place of each input value name; other words of
 `<inputs>` can be omitted. Evaluation executes steps and substeps in order
-and reaches a `Give` step in finitely many steps for every choice of values
+and reaches a `Return` step in finitely many steps for every choice of values
 of its input value names.
 
 @example An algorithm that replaces each tab (U+0009) in a
 [text](sinter:#text=v1) with a space (U+0020):
 
-The spaced text of a text *t* is the text that these steps give.
+The spaced text of a text *t* is the text that these steps return.
 
 1. Let *s* be the empty text.
 2. For each *c* of *t*, in order:
    1. If *c* is U+0009, append U+0020 to *s*.
    2. Otherwise, append *c* to *s*.
-3. Give *s*.
+3. Return *s*.
 
-For `a`, U+0009, `b`, these steps give `a`, U+0020, `b`.
+For `a`, U+0009, `b`, these steps return `a`, U+0020, `b`.
 
 ## Requirements
 
@@ -443,7 +443,7 @@ valid UTF-8, and must return `"invalid"` with no text otherwise.
 When encoding a text as UTF-8, a conforming program must return the UTF-8
 encoding of that text.
 
-### Giving lines
+### Returning lines
 
 @req give-lines=v1
 @cites {
@@ -458,7 +458,7 @@ line number, a conforming program must return the slice or text of the line
 with that line number, and no line for a line number that the text does not
 have.
 
-### Giving character positions
+### Returning character positions
 
 @req give-character-positions=v1
 @cites {
@@ -472,7 +472,7 @@ line number of that character's position. When returning the column of the
 character at a 1-based character index in the body of a text, a conforming
 program must return the 1-based column of that character's position.
 
-### Giving span positions
+### Returning span positions
 
 @req give-span-positions=v1
 @cites {
