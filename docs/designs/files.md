@@ -3,673 +3,117 @@
 
 # Files and paths
 @design files=v1
-@cites conformance=v1
-@cites text=v1
-@cites rfc/5234
-@cites rfc/7405
-@cites rfc/8259
-@cites posix/2024
-Specifies folder trees and files; valid paths; file reads of texts as paths in folder trees, their results, and what conforming programs guarantee in them; valid globs, and the valid paths that fit them; path sets, and the valid paths in their sets; and requirements for conforming programs that validate texts as paths, texts as globs, and path sets, that decide whether valid paths fit valid globs and whether valid paths are in the sets of path sets, and that make file reads.
-
-A folder tree is a folder, its root, with every file under that root. A
-valid path, such as `docs/guide/a.md`, is one or more file names joined
-by `/`. A file read of a valid path in a folder tree gives the text of
-the regular file that the valid path names, or a result that tells why
-the file read gives no text. A valid glob, such as `docs/**/*.md`, is a
-pattern for valid paths. A path set is a finite sequence of texts, its
-path set members, such as `docs/` followed by `!docs/old/`. A path set
-can give a set of valid paths.
-
-The productions in the section Definitions are productions as Text and
-notation defines them, in ABNF, the notation of RFC 5234, with the
-case-sensitive strings of RFC 7405.
-
-From Conformance (`conformance`), the design takes designs,
-requirements, conforming programs, inputs, dependence, a program's own
-limits, reports, safety obligations, and the general requirements that
-bind every conforming program, including `report-missing-parts`,
-`report-stops-at-limits`, and `end-runs-at-limits`.
-From Text and notation, the design takes characters, texts, places,
-boundaries, runs, code spans, bytes, byte sequences, valid UTF-8, the
-text of a byte sequence, UTF-8 encodings, the notation of productions,
-results, and canonical vector lines for its vector file. From
-POSIX.1-2024, the design takes files, processes, and what a file system
-is; the file types, such as a directory, a regular file, and a symbolic
-link; the directory entries of a directory, and the names `.` and `..`
-in a directory; pathnames and pathname resolution; the search
-permission, the read permission, and the write permission of a process
-for a file, the owner of a file, and the time of last access of a file;
-and the user IDs and the appropriate privileges of a process.
-
-From RFC 8259, the design takes JSON texts, with their objects, members,
-arrays, strings, numbers, and the literal names `true` and `false`. Each
-line of the file that holds the conformance vectors of the design is a
-JSON text.
-
-## 1. Glossary
-
-| word or phrase | meaning |
-|---|---|
-| [system](sinter:#system=v1) | the computer that executes a program, together with the operating system of that computer, and not the program, nor the libraries, the runtime, and any other program that the program runs |
-| [file system](sinter:#file-system=v1) | the part of the system that stores files, as POSIX.1-2024 defines a file system, and that acts on those files when a program asks it to; a file is on the file system that stores it |
-| [folder tree](sinter:#folder-tree=v1) | a folder, its root, with the file of each folder entry of the root and the file of each folder entry of each folder of the folder tree |
-| [root](sinter:#folder-tree=v1) | the folder at the top of a folder tree |
-| file | a file as POSIX.1-2024 defines a file: a folder, a regular file, a symbolic link, or a file of another kind |
-| [file type](sinter:#file-kind=v1) | the type of a file on a file system, such as a directory or a regular file, as POSIX.1-2024 defines the file types; the file type gives the kind of the file |
-| [folder](sinter:#folder=v1) | a file that holds folder entries; POSIX.1-2024 calls it a directory |
-| [listing](sinter:#folder=v1) | the names of the directory entries of a folder that the file system would give to the process of the program if that process had the read permission for that folder |
-| [folder entry](sinter:#folder=v1) | an entry name and a file, which a folder holds: a directory entry of POSIX.1-2024 whose name the listing of the folder holds, other than `.` and `..`; the file of the folder entry is the file that the system finds for the entry name of the folder entry in the folder, as in a pathname resolution of POSIX.1-2024 that does not go on from a symbolic link, so the file of the folder entry can be a symbolic link |
-| [entry name](sinter:#folder=v1) | the byte sequence that names a folder entry |
-| [hold a file](sinter:#folder=v1) | a folder holds a file when, and only when, that file is the file of a folder entry of the folder |
-| [regular file](sinter:#regular-file=v1) | a file that holds a content |
-| [content](sinter:#regular-file=v1) | the byte sequence that a regular file holds |
-| [symbolic link](sinter:#symbolic-link=v1) | a file that holds a reference, which can lead to a file or to no file, such as a link that `ln -s` makes |
-| [file of another kind](sinter:#file-of-another-kind=v1) | a file that is not a folder, a regular file, or a symbolic link, such as a pipe, a character special file, a block special file, or a socket |
-| [search permission](sinter:#search-permission=v1) | the permission of a program, as POSIX.1-2024 defines the search permission, to look up names in a folder |
-| [read permission](sinter:#read-permission=v1) | the permission of a program, as POSIX.1-2024 defines it, to take bytes from a regular file or the names of the directory entries of a folder |
-| [attribute](sinter:#attribute=v1) | a property of a file, such as the file type, the size, the mode, the owner, the times, or the extended attributes of the file, other than the content of a regular file, the folder entries of a folder, the reference of a symbolic link, and the data of a file of another kind |
-| [take bytes from a file](sinter:#taken-byte=v1) | copy into the program a byte that the file holds or gives: a byte of the content of a regular file, of the names of the directory entries of a folder, of the reference of a symbolic link, of the data of a file of another kind, or of the value of an extended attribute of the file; copying another attribute of a file takes no bytes from that file |
-| ignore case | treat two names that differ only in the case of their letters, such as `a.md` and `A.md`, as one name |
-| Unicode normalization | a change of a text into a standard form of Unicode, such as the change of `e` and U+0301 into U+00E9; a file system that ignores differences of Unicode normalization treats two names that differ only in this way as one name |
-| [valid path](sinter:#path=v1) | a text of one or more file names, with `/` between each two of them, such as `docs/a.md` |
-| [file name](sinter:#path=v1) | one of the texts of which a valid path is made, such as `docs` or `a.md` in `docs/a.md`; the file names of a valid path have numbers from 1, in order: `docs` is file name 1 of `docs/a.md`; a file name is a text, and an entry name is a byte sequence |
-| folder entry for a file name | in a folder, the folder entry whose entry name is the UTF-8 encoding of the file name, byte for byte |
-| [file read](sinter:#file-read=v1) | an operation that a program makes to give, for a text as a path in a folder tree, one of the results "invalid", "found", "no file", "symbolic link", "not a regular file", "not UTF-8", and "cannot read" |
-| [read a text as a path in a folder tree](sinter:#file-read=v1) | make a file read of the text in the folder tree |
-| [file-read result](sinter:#file-read-result=v1) | the result that a valid path in a folder tree gives for a program, from the folder entries and the files that the file names name, one file name after the other from the root, and from the permissions of the program: "cannot read" (for a part that the folder tree lacks because the program has no search permission or no read permission, and, in a file read, for any other part that the folder tree lacks under the term `input` of Conformance), "no file", "symbolic link", "not a regular file", "not UTF-8", or "found", with the text of a content |
-| [file of the path](sinter:#path-file=v1) | in a folder tree, a file that a valid path names: the root, or, for file name k, the file of the folder entry for file name k in folder k; folder 1 is the root, and, when file name k is not the last file name of the valid path, folder k + 1 is the folder that file name k names |
-| [folder of the path](sinter:#path-file=v1) | in a folder tree, a folder k of a valid path: the root, or a folder that a file name other than the last file name of the valid path names |
-| [follow a symbolic link](sinter:#follow-no-symbolic-links=v1) | find a file by the reference of the symbolic link |
-| [valid glob](sinter:#glob=v1) | a pattern for valid paths, such as `docs/**/*.md` |
-| [glob segment](sinter:#glob=v1) | one of the texts that a valid glob joins with `/`, such as `docs`, `**`, or `*.md` in `docs/**/*.md`; when the valid glob ends with `/`, the text `**` is one more glob segment after those texts, so the glob segments of `docs/` are `docs` and `**`; the glob segments of a valid glob have numbers from 1, in order |
-| [fit](sinter:#glob-fit=v1) | a valid path fits a valid glob when the valid path has the form that the valid glob gives |
-| [path set](sinter:#path-set=v1) | a finite sequence of texts, its path set members, such as `docs/` followed by `!docs/old/` |
-| [path set member](sinter:#path-set=v1) | one text of a path set |
-| [plain member](sinter:#path-set=v1) | a path set member that does not start with `!` |
-| [`!` member](sinter:#path-set=v1) | a path set member that starts with `!`, such as `!docs/old/` |
-| [glob text of a path set member](sinter:#path-set=v1) | the text after the `!` of a `!` member, or the whole path set member for a plain member; the glob text of a path set member can be a text that is not a valid glob |
-| [valid path set](sinter:#valid-path-set=v1) | a path set in which the glob text of each path set member is a valid glob, no two path set members are the same text, and, when the path set holds a path set member, at least one path set member is a plain member |
-| [set of a path set](sinter:#path-set-membership=v1) | for a valid path set, the valid paths that fit the glob text of a plain member of the valid path set and fit the glob text of no `!` member of the valid path set |
-| validate | to validate a text as a path, a text as a glob, or a path set is to make an operation, other than a file read, to give one of the results "valid" and "invalid" for that text or that path set; a validation is one such operation, also when the program gives another thing in that operation, or nothing |
-| decide | to decide whether a valid path fits a valid glob is to make an operation to give one of the results "fits" and "does not fit"; to decide whether a valid path is in the set of a valid path set is to make an operation to give one of the results "in the set" and "not in the set"; the program decides in such an operation also when the program gives another thing in that operation, or nothing |
-| [file object](sinter:#file-object=v1) | a JSON object that stands for a file, and for the permissions of a program for it: its member `type`, such as `"regular file"`; by its type, its member `entries`, `content`, or `reference`, or none of them; and the members `read`, `search`, `write`, and `owned-by-other` only when their values differ from the values that apply without them |
-| [folder tree object](sinter:#folder-tree-object=v1) | the file object of the root of a folder tree, where that file object is the member `file` of no entry object; the folder tree of a folder tree object is the folder tree whose root that folder tree object stands for |
-| [store the folder tree of a folder tree object](sinter:#stored-folder-tree=v1) | for a file system, for a process of a program: have that whole folder tree on that file system, with the entry names, the file types, the contents, the references, the permissions of that process, and, for each file, whether the user ID of the owner of that file differs from the effective user ID of that process, as the folder tree object gives them |
-| valid, invalid | the results of a validation of a text as a path, of a text as a glob, or of a path set; a file read also gives "invalid", when, and only when, its text is not a valid path |
-
-## 2. Files, paths, globs, and path sets
-
-### 2.1 Folder trees and files
-
-The system of a program is the computer that executes the program,
-together with the operating system of that computer. The program, and
-the libraries, the runtime, and any other program that the program runs,
-are not part of the system. A file system is the part of the system that
-stores files, as POSIX.1-2024 defines a file system, and that acts on
-those files when a program asks it to. A file is on the file system that
-stores it.
-
-A folder tree is a folder, its root, together with the file of each
-folder entry of the root and the file of each folder entry of each
-folder of the folder tree. Each file is of one of four kinds:
-
-| kind | what the file holds |
-|---|---|
-| folder | folder entries: each folder entry has an entry name and a file |
-| regular file | a content: a byte sequence |
-| symbolic link | a reference, which can lead to a file or to no file |
-| file of another kind | something that is not a content, folder entries, or a reference, such as the data of a pipe, a character special file, a block special file, or a socket |
-
-An entry name is a byte sequence. No two folder entries of one folder
-have the same entry name. A folder holds a file when that file is the
-file of a folder entry of the folder.
-
-On a file system, the file type of a file gives its kind, as
-POSIX.1-2024 defines the file types. A file of the type directory is a
-folder. A file of the type regular file is a regular file. A file of the
-type symbolic link is a symbolic link. A file of each other type, such
-as a FIFO special file (a pipe), a character special file, a block
-special file, or a socket, is a file of another kind.
-
-The listing of a folder is the names of the directory entries of the
-folder that the file system that the folder is on would give to the
-process of the program if that process had the read permission for the
-folder, as POSIX.1-2024 defines directory entries. Some file systems
-give different names to different processes: for example, a file system
-can hide from a process the names of the files that the process cannot
-read. The folder entries of a folder are the directory entries whose
-names the listing of the folder holds, other than `.` and `..`. The file
-of a folder entry is the file that the system finds for the entry name
-of that folder entry in the folder, as in a pathname resolution of
-POSIX.1-2024 that does not go on from a symbolic link. So the file of a
-folder entry can be a symbolic link. In POSIX.1-2024, the names `.` and
-`..` in a directory lead to the directory itself and to the directory
-above it. So the name `..` does not make the folder above the root a
-file of the folder tree.
-
-### 2.2 Valid paths
-
-A valid path is one or more file names, with `/` between each two of
-them. A file name is a text that is not empty, that holds no `/` and no
-U+0000, and that is not `.` or `..`. So a valid path never starts or
-ends with `/`, and it never holds two `/` together. The file names of a
-valid path have numbers from 1, in order. In `docs/guide/a.md`, file
-name 1 is `docs`, and file name 3, the file name with the highest
-number, is `a.md`. Two file names of one valid path can be the same
-text, as in `a/a`. A file name is a text, not an entry name. An entry
-name is a byte sequence. In a folder, the folder entry for a file name
-is the folder entry whose entry name is the UTF-8 encoding of the file
-name, byte for byte.
-
-A conforming program that validates these texts as paths gives these
-results:
-
-| text | result |
-|---|---|
-| `a.md` | "valid": one file name |
-| `docs/guide/a.md` | "valid": three file names |
-| `.github/workflows/ci.yml` | "valid": a file name can start with `.` |
-| `...` | "valid": of the texts of dots alone, only `.` and `..` are not file names |
-| `a b/c\d.md` | "valid": a space and `\` are characters of a file name |
-| the empty text | "invalid" |
-| `/a.md` | "invalid": it starts with `/` |
-| `docs/` | "invalid": it ends with `/` |
-| `docs//a.md` | "invalid": two `/` together |
-| `./a.md` | "invalid": `.` is not a file name |
-| `docs/../a.md` | "invalid": `..` is not a file name |
-
-`/` is the only separator, so `a\b.md` is one file name. `.` and `..`
-are not file names, so `docs/../a.md` does not lead to `a.md`:
-`docs/../a.md` is not a valid path.
-
-A valid path is a text. Two valid paths are the same valid path only
-when they are the same text. So case matters: `Docs/a.md` and
-`docs/a.md` are two different valid paths. No Unicode normalization
-applies, so a valid path with `é` as U+00E9 and a valid path with `e`
-and U+0301 are two different valid paths, though they look the same.
-
-### 2.3 The file read
-
-A file read is an operation that a program makes to give, for a text as
-a path in a folder tree, one of the results "invalid", "found", "no
-file", "symbolic link", "not a regular file", "not UTF-8", and "cannot
-read". An operation that a program makes to give one of these results
-for a text as a path in a folder tree is a file read, also when the
-program gives another thing in that operation, or nothing. To read a
-text as a path in a folder tree is to make a file read of that text in
-that folder tree.
-
-A file read gives "invalid" when, and only when, its text is not a valid
-path. So a file read of the text `../a.md` or `/etc/passwd` gives
-"invalid".
-
-A valid path names files in a folder tree, one file name after the
-other. Folder 1 is the root. When folder k holds the folder entry for
-file name k, file name k names the file of that folder entry. When that
-file is a folder, and file name k is not the last file name, that folder
-is folder k + 1. The files of the path are the root and each file that a
-file name of the valid path names. The folders of the path are the
-folders k.
-
-When the text is a valid path, and no other process changes the folder
-tree during the file read, the requirement `give-file-read-results`
-states the result of the file read from the file-read result of the
-valid path. The atom `file-read-result` of section 3.16 defines the
-file-read result.
-
-Example: the root holds the folder `docs`. The folder `docs` holds the
-regular file `a.md`. The content of `a.md` is the text `hi`. The valid
-path `docs/a.md` gives "found", with the text `hi`. The valid path
-`docs` gives "not a regular file". The valid path `docs/b.md` gives "no
-file". The valid path `docs/a.md/x` gives "no file", because file name
-2, `a.md`, is not the last file name, and its file is not a folder.
-Whether a file name is the last file name depends on its number, and not
-on its text. In a folder tree with the regular file `a`, the valid path
-`a/a` gives "no file".
-
-On every file system, a folder holds the folder entry for a file name
-only when the entry name of that folder entry is the UTF-8 encoding of
-the file name, byte for byte. Some file systems ignore case or
-differences of Unicode normalization, so that a lookup of `A.md` can
-find the file of the folder entry `a.md`. Still, the valid path `A.md`
-gives "no file" in a folder tree whose root holds only the regular file
-`a.md`. A name that the listing of a folder does not hold names no
-folder entry. An example of such a name is `..` followed by a space on a
-file system that ignores a space at the end of a name.
-
-Folder k is the folder that must hold the folder entry for file name k.
-For file name 1, folder 1 is the root. For each later file name k,
-folder k is the folder that the file name before file name k names. On
-every file system, when the program has no read permission for folder k,
-the result is "cannot read", also when folder k holds the folder entry
-for file name k. Without the read permission, the program cannot take
-the names of the listing of the folder, and so it cannot compare them
-with the UTF-8 encoding of the file name, byte for byte. The permissions
-of the program for a folder that the last file name names do not change
-the result. When `docs` is a folder, the valid path `docs` gives "not a
-regular file", also when the program has neither the search permission
-nor the read permission for `docs`.
-
-For example, when the system reports a device error while the program
-reads the content of `docs/a.md`, or when the system or the file system
-rejects as not supported every operation of the system that lets the
-program read `docs/a.md` while the program keeps every safety obligation
-that binds the program (in particular, `follow-no-symbolic-links` and
-`read-only-named-files`), the folder tree lacks that content, and the
-valid path `docs/a.md` gives "cannot read". In the same way, when the
-system rejects as not supported every operation of the system that tells
-the program, without following a symbolic link, the file type of the
-file that `docs` names, the folder tree lacks that file type, and the
-valid path `docs/a.md` gives "cannot read". The result "cannot read" is
-then the report of that missing part (`report-missing-parts` of
-Conformance). By contrast, when the system rejects as not supported one
-operation of the system that tells whether the program has the search
-permission for `docs`, and another operation of the system tells whether
-the program has that permission while the program keeps every safety
-obligation that binds the program, the folder tree lacks no part on that
-account. When the program stops reading `docs/a.md` because the content
-is too large for the memory of the program, the program reaches a limit
-of its own, not a missing part. The program ends that run (for a part of
-a program, that call), reports where it reached that limit as far as it
-can, gives no other result of that run (not "cannot read"), and writes
-nothing durable. When the program has the search permission and the read
-permission for the root, and the UTF-8 encoding of file name 1 is longer
-than the file system that the root is on allows for one entry name, the
-root holds no folder entry for file name 1, and the result is "no file".
-
-With the result "found", the file read also gives the text of the
-content of the regular file, and no other text as the text of the
-content. The text holds one character for each character that the
-content encodes, in order. The program adds no character, removes no
-character, and changes no character. So the text keeps a byte order
-mark, keeps each carriage return, and keeps each character in the form
-that the content encodes, with no Unicode normalization. With each other
-result, the file read gives no text as the text of a content. In a file
-read, a program can give other texts, such as a message.
-
-When another process changes the folder tree during a file read of a
-valid path, no requirement fixes the result of the file read or the text
-that the file read gives with "found". When another process changes the
-folder tree during a file read of a valid path, the guarantees below
-still hold.
-
-In each file read, also when another process changes the folder tree, a
-conforming program keeps these guarantees:
-
-- It follows no symbolic link of the folder tree: it finds no file by
-  the reference of such a symbolic link.
-- For a file read, it takes bytes only from the folders of the path and
-  from the regular file that the last file name names. For a text that
-  is not a valid path, the conforming program takes no bytes.
-- It does not wait for another process or for a device to act on a file
-  of another kind of the folder tree, such as for a process to open the
-  other end of a pipe.
-- It changes no file of the folder tree, other than by a change that the
-  file system makes by itself, such as of the time of last access.
-- It uses only the permissions and the appropriate privileges, as
-  POSIX.1-2024 defines these, that its process has without a change by
-  the program.
-
-A valid path cannot lead out of the folder tree through a symbolic link.
-In a folder tree whose root holds the symbolic link `d`, whose reference
-leads to the folder `q`, the valid path `d/a.md` gives "symbolic link",
-and the program takes no byte from a file in `q`. A symbolic link that
-the valid path does not name does not change the file read. In a folder
-tree with the symbolic link `self`, whose reference leads to the root,
-and with the regular file `a.md`, the valid path `a.md` gives "found".
-
-### 2.4 Valid globs
-
-A valid glob is a pattern for valid paths. A valid glob is one or more
-texts with `/` between each two of them, and it can end with `/`. Its
-glob segments are these texts and, when the valid glob ends with `/`,
-one more glob segment, `**`, after them (statement 5 below). Each glob
-segment is `**`, or a text in which `*` stands for any run of characters
-inside one file name. The glob segments of a valid glob have numbers
-from 1, in order. A valid path fits a valid glob when the valid path has
-the form that the valid glob gives. These statements say what that form
-is:
-
-1. A valid path fits a valid glob only as a whole, from file name 1.
-   Only the valid path `Cargo.lock` fits `Cargo.lock`. A valid path
-   whose file name with the highest number is `Cargo.lock` fits
-   `**/Cargo.lock`, at any depth.
-2. Any run of characters inside one file name fits `*`, the empty run
-   included. No `/` fits `*`, because a file name holds no `/`.
-3. Any number of file names, zero included, fit a glob segment `**` that
-   does not have the highest number. So `x.md` and `a/b/x.md` fit
-   `**/x.md`, and `a/b` fits `a/**/b`.
-4. One or more file names fit a glob segment `**` that has the highest
-   number. So each valid path that has file name 1 `docs` and more than
-   one file name, such as `docs/a.md` and `docs/a/b.md`, fits `docs/**`.
-   The valid path `docs` does not fit `docs/**`. In `**/x/**`, glob
-   segment 1 is a `**` that does not have the highest number, and glob
-   segment 3 is a `**` that has the highest number. So `x/a` fits
-   `**/x/**`, and `x` does not.
-5. A valid glob that ends with `/` has the glob segment `**` after that
-   `/`. So `docs/` means `docs/**`.
-6. File names that start with `.` fit `*` and `**`.
-7. In a glob segment, for a character other than `*`, only a run of one
-   character, that same character, fits that character. So `aa.md` does
-   not fit `a.md`. Case always matters, so `docs/a.md` does not fit
-   `Docs/*`.
-
-These texts are not valid globs:
-
-- the empty text;
-- a text that starts with `/`;
-- a text with two `/` together;
-- a text with a glob segment `.` or `..`;
-- a text with `**` in a glob segment that holds other characters too,
-  such as `src/**.ts`; `src/**/*.ts` is a valid glob;
-- a text that holds `?`, `[`, `]`, `{`, `}`, or `\`.
-
-| valid glob | valid paths that fit it | valid paths that do not fit it |
-|---|---|---|
-| `*.md` | `a.md`; `.md`; `.notes.md` | `a/b.md`; `a.txt` |
-| `docs/**/*.md` | `docs/a.md`; `docs/x/y/a.md` | `a.md`; `docs/a.txt` |
-| `a*b*c` | `abc`; `aXbYc` | `ab`; `acb` |
-
-### 2.5 Path sets
-
-A path set is a finite sequence of texts, its path set members. A path
-set member that starts with `!` is a `!` member, and the glob text of
-that path set member is the text after that `!`. Every other path set
-member is a plain member, and the glob text of that path set member is
-the path set member. The glob text of a path set member can be a text
-that is not a valid glob.
-
-A path set is valid when:
-
-1. the glob text of each path set member is a valid glob;
-2. no two path set members are the same text;
-3. when the path set holds at least one path set member, at least one
-   path set member is a plain member.
-
-The empty path set is valid.
-
-A valid path set gives a set of valid paths, the set of the path set. A
-valid path is in the set of a valid path set when the valid path fits
-the glob text of a plain member, and fits the glob text of no `!`
-member. So a `!` member removes valid paths from the set. The order of
-the path set members does not change the set. No valid path is in the
-set of the empty path set. A path set that is not valid gives no set of
-valid paths.
-
-Example: with the path set members `docs/` and `!docs/old/`, the valid
-path `docs/a.md` is in the set of the path set, and `docs/old/a.md` and
-`a.md` are not.
-
-## 3. Definitions
-
-### 3.1 The system
-
-@term system=v1
-
-The system of a program is the computer that executes the program,
-together with the operating system of that computer. The program, and
-the libraries, the runtime, and any other program that the program runs,
-are not part of the system. In a statement about a program, the system
-is the system of that program.
-
-### 3.2 File systems
-
-@term file-system=v1
-@cites {posix/2024, #{system=v1}}
-
-A file system is the part of the system that stores files, as
-POSIX.1-2024 defines a file system, and that acts on those files when a
-program asks it to. A file is on a file system when, and only when, that
-file system stores that file.
-
-### 3.3 Folders
-
-@term folder=v1
 @cites {
-    posix/2024,
-    #{system=v1, file-system=v1, symbolic-link=v1, read-permission=v1},
-    text#{byte-sequence=v1, text=v1, utf-8-encoding=v1, code-span=v1},
+    conformance=v1, text=v1, rfc/5234, rfc/7405, rfc/8259, posix/2024,
 }
+Valid paths name files in directory trees, globs and path sets match and select valid paths, and safe file reads resolve valid paths in directory trees to UTF-8 text without following symbolic links or modifying the directory tree.
 
-A folder is a file that holds folder entries. Each folder entry of a
-folder has an entry name and a file. An entry name is a byte sequence.
-No two folder entries of one folder have the same entry name. A folder
-holds a file when, and only when, that file is the file of a folder
-entry of that folder. In a statement about a program, the listing of a
-folder is the names of the directory entries of that folder that the
-file system that the folder is on would give to the process of that
-program if that process had the read permission for that folder, as
-POSIX.1-2024 defines directory entries and the read permission of a
-process. The folder entries of a folder are the directory entries of
-that folder whose names its listing holds, except each directory entry
-whose name is the UTF-8 encoding of the text `.` or of the text `..`.
-The entry name of a folder entry is the name of the directory entry that
-is that folder entry. The file of a folder entry of a folder is the file
-that the system finds for the entry name of that folder entry in that
-folder, as in a pathname resolution of POSIX.1-2024 that does not go on
-from a symbolic link. So the file of a folder entry can be a symbolic
-link.
+A directory tree holds a root directory and the files under that root,
+and valid paths name files in that tree. Globs, such as `docs/**/*.md`,
+and path sets, such as `docs/` followed by `!docs/old/`, select valid
+paths. Reading a valid path in a directory tree resolves its path
+segments from the root directory and decodes a regular file's content as
+UTF-8 text.
 
-### 3.4 Regular files
+## Valid paths
 
-@term regular-file=v1
-@cites text#{byte-sequence=v1}
+@spec paths=v1
 
-A regular file is a file that holds a content, which is a byte
-sequence.
+A valid path, such as `docs/guide/a.md`, names a file in a directory
+tree as a sequence of path segments joined by `/`.
 
-### 3.5 Symbolic links
+### Definitions
 
-@term symbolic-link=v1
-
-A symbolic link is a file that holds a reference, which can lead to a
-file or to no file.
-
-### 3.6 Files of another kind
-
-@term file-of-another-kind=v1
-@cites #{folder=v1, regular-file=v1, symbolic-link=v1}
-
-A file of another kind is a file that is not a folder, a regular file,
-or a symbolic link.
-
-### 3.7 Folder trees
-
-@term folder-tree=v1
-@cites #{folder=v1}
-
-A folder tree is a folder, its root, together with the file of each
-folder entry of the root and the file of each folder entry of each
-folder of the folder tree.
-
-### 3.8 The kinds of files on a file system
-
-@term file-kind=v1
-@cites {
-    posix/2024,
-    #{
-        file-system=v1, folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1,
-    },
-}
-
-On a file system, the file type of a file gives the kind of that file,
-as POSIX.1-2024 defines the file types. On a file system, a file of the
-type directory is a folder. On a file system, a file of the type regular
-file is a regular file. On a file system, a file of the type symbolic
-link is a symbolic link. On a file system, a file of each other type is
-a file of another kind.
-
-### 3.9 The search permission
-
-@term search-permission=v1
-@cites posix/2024
-
-The search permission of a program for a file is the search permission
-of the process of the program for that file, as POSIX.1-2024 defines the
-search permission.
-
-### 3.10 The read permission
-
-@term read-permission=v1
-@cites posix/2024
-
-The read permission of a program for a file is the read permission of
-the process of the program for that file, as POSIX.1-2024 defines the
-read permission.
-
-### 3.11 Attributes
-
-@term attribute=v1
-@cites {
-    posix/2024,
-    #{
-        folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, file-kind=v1,
-    },
-}
-
-An attribute of a file is a property of the file other than the content
-of a regular file, the folder entries of a folder, the reference of a
-symbolic link, and the data of a file of another kind. Examples of
-attributes of a file are the file type of the file (as POSIX.1-2024
-defines the file types), the size of the file, the mode of the file, the
-owner of the file, the times of the file, and the extended attributes of
-the file.
-
-### 3.12 Bytes taken from a file
-
-@term taken-byte=v1
-@cites {
-    posix/2024,
-    #{
-        folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, attribute=v1,
-    },
-    text#{byte=v1},
-}
-
-A byte that a program takes from a file is a byte that the file holds or
-gives and that the program copies into the program: a byte of the
-content of a regular file, of the names of the directory entries of a
-folder, as POSIX.1-2024 defines directory entries, of the reference of a
-symbolic link, of the data of a file of another kind, or of the value of
-an extended attribute of the file. To take bytes from a file is to copy
-such bytes into the program. Copying another attribute of a file into
-the program takes no bytes from that file.
-
-### 3.13 Valid paths
+#### Valid path
 
 @term path=v1
-@cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
+@cites text#{text=v1, production=v1}
 
-A valid path is a text that matches the production `path`:
+A **valid path** is a `text` that matches the `production` `path`:
 
-```abnf
-path       = file-name *( "/" file-name )
-file-name  = *"." non-dot *name-char / 3*"."
-name-char  = %x1-2E / %x30-D7FF / %xE000-10FFFF
-non-dot    = %x1-2D / %x30-D7FF / %xE000-10FFFF
+```
+path          = path-segment *( "/" path-segment )
+path-segment  = *"." non-dot *name-char / 3*"."
+name-char     = %x1-2E / %x30-D7FF / %xE000-10FFFF
+non-dot       = %x1-2D / %x30-D7FF / %xE000-10FFFF
 ```
 
-The file names of a valid path are the texts that its `file-name`
-elements match. The file names of a valid path have numbers from 1, in
-the order of the `file-name` elements. File name 1 is the text that the
-first `file-name` element matches. Each later file name has the number 1
-more than the file name right before that later file name.
+A valid path consists of a sequence of **path segments**: the `text`
+values that its `path-segment` elements match, in order. Each path
+segment has a 1-based number. Path segment 1 is the first element of
+that sequence, and each later path segment has a number 1 greater than
+the preceding path segment.
 
-### 3.14 File reads
+@example Valid and invalid [text](sinter:text#text=v1) values under this
+definition:
 
-@term file-read=v1
-@cites {#{folder-tree=v1, path=v1}, text#{text=v1, result=v1}}
+| text | valid path | reason |
+|---|---|---|
+| `docs/guide/a.md` | yes | three path segments: `docs` (1), `guide` (2), and `a.md` (3) |
+| `.github/workflows/ci.yml` | yes | a path segment can start with `.` |
+| `...` | yes | three or more dots form a valid path segment |
+| `..a` | yes | dots followed by a non-dot character form a valid path segment |
+| `a b/c\d.md` | yes | space and `\` are ordinary characters; `/` is the only separator |
+| `a/a` | yes | two path segments can hold the same text (`a` at 1 and `a` at 2) |
+| empty text | no | a valid path holds at least one path segment |
+| `/a.md`, `docs/`, `docs//a.md` | no | a leading, trailing, or doubled `/` leaves an empty text where a path segment stands |
+| `.`, `./a.md`, `docs/../a.md` | no | `.` and `..` are not path segments |
+| the text of `a`, U+0000, and `.md` | no | a path segment holds no U+0000 |
 
-A file read is an operation that a program makes to give, for a text as
-a path in a folder tree, one of the results "invalid", "found", "no
-file", "symbolic link", "not a regular file", "not UTF-8", and "cannot
-read". Such an operation is a file read also when the program gives
-another thing in that operation, or gives nothing in that operation.
-That text is the text of the file read. That folder tree is the folder
-tree of the file read. To read a text as a path in a folder tree is to
-make a file read of that text in that folder tree.
+Because a valid path is a [text](sinter:text#text=v1), `Docs/A.MD` and
+`docs/a.md` are distinct valid paths. For the same reason, a path that
+holds U+00E9 is distinct from a path that holds `e` followed by U+0301.
 
-### 3.15 The files of the path
+### Validating paths
 
-@term path-file=v1
-@cites {
-    #{folder=v1, folder-tree=v1, path=v1},
-    text#{text=v1, utf-8-encoding=v1},
-}
+@req validate-paths=v1
+@cites {conformance#conforming-program=v1, text#text=v1, #{path=v1}}
 
-For a valid path in a folder tree, folder 1 is the root of that folder
-tree. For each file name k of that valid path, from file name 1, when
-folder k exists and holds a folder entry whose entry name is the UTF-8
-encoding of file name k, file name k names the file of that folder
-entry. For each file name k of that valid path, from file name 1, when
-file name k names a file, that file is a folder, and file name k is not
-the last file name of that valid path, that folder is folder k + 1. The
-files of the path of a valid path in a folder tree are the root of that
-folder tree and each file that a file name of that valid path names in
-that folder tree. The folders of the path of a valid path in a folder
-tree are the folders k that exist for that valid path in that folder
-tree.
+When a conforming program validates a `text` as a path, the program must
+return `"valid"` when the text is a valid `path`, and must return
+`"invalid"` otherwise.
 
-### 3.16 The result of a file read
+### Test vectors
 
-@atom file-read-result=v1
-@cites {
-    #{
-        folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, folder-tree=v1, file-kind=v1,
-        search-permission=v1, read-permission=v1, path=v1, path-file=v1,
-    },
-    conformance#{input=v1},
-    text#{
-        text=v1, result=v1, utf-8-encoding=v1, valid-utf-8=v1,
-        text-of-a-byte-sequence=v1,
-    },
-}
+@schema path-vector=v1
+@cites {#{vector-line=v1, validate-paths=v1, path=v1}, text#text=v1}
 
-The file-read result of a valid path in a folder tree, for a program, is
-the result of the first of these cases that holds, where folder k and
-the file that file name k names are those of that valid path in that
-folder tree. For each file name k of that valid path in turn, from file
-name 1, the cases apply in order from case 1 to case 6:
+Group `paths` in [files.test-vectors.jsonl](files.test-vectors.jsonl)
+tests `validate-paths`. Each line conforms to `vector-line` and omits
+`needs` and `values`.
 
-1. The program has no search permission or no read permission for folder
-   k: "cannot read".
-2. Folder k holds no folder entry whose entry name is the UTF-8 encoding
-   of file name k: "no file".
-3. The file that file name k names is a symbolic link: "symbolic link".
-4. File name k is not the last file name of that valid path, and the
-   file that file name k names is not a folder: "no file".
-5. File name k is the last file name of that valid path, and the file
-   that file name k names is a folder or a file of another kind: "not a
-   regular file".
-6. When the file that file name k names is a regular file and the
-   program has no read permission for that file, the result is "cannot
-   read". When the file that file name k names is a regular file, the
-   program has the read permission for that file, and the content of
-   that file is not valid UTF-8, the result is "not UTF-8". When the
-   file that file name k names is a regular file, the program has the
-   read permission for that file, and the content of that file is valid
-   UTF-8, the result is "found", with the text of the content of that
-   file.
+| field | type | meaning |
+|---|---|---|
+| `input` | string | `text` to validate as a path |
+| `result` | string | `"valid"` when `input` is a valid `path`, `"invalid"` otherwise |
 
-In case 1, the folder entries of folder k are a part that the folder
-tree lacks for the program. In case 6, when the program has no read
-permission for the regular file, the content of that regular file is a
-part that the folder tree lacks for the program. A valid folder tree can
-lack such a part. In those cases, "cannot read" is the result for that
-missing part.
+@example Sample lines testing [validate-paths](sinter:#validate-paths=v1)
+on valid and invalid [path](sinter:#path=v1) inputs
+([vector-line](sinter:#vector-line=v1)):
 
-### 3.17 Valid globs
+```
+{"form":"#path-vector=v1","group":"paths","input":"docs/guide/a.md","result":"valid"}
+{"form":"#path-vector=v1","group":"paths","input":"docs/../a.md","note":"`..` is not a path segment","result":"invalid"}
+```
+
+## Globs
+
+@spec globs=v1
+
+A glob, such as `docs/**/*.md`, is a pattern for valid paths. The
+wildcard `*` matches characters within one path segment. The wildcard
+`**` matches whole path segments.
+
+### Definitions
+
+#### Valid glob
 
 @term glob=v1
-@cites text#{production=v1, rule-name=v1, code-span=v1, text=v1}
+@cites text#{character=v1, text=v1, production=v1}
 
-A valid glob is a text that matches the production `glob`:
+A **valid glob** is a text that matches the production `glob`:
 
-```abnf
+```
 glob           = glob-segment *( "/" glob-segment ) [ "/" ]
 glob-segment   = "**" / star-segment / plain-segment
 star-segment   = *glob-char "*" *( 1*glob-char "*" ) *glob-char
@@ -680,960 +124,788 @@ glob-non-dot   = %x0-29 / %x2B-2D / %x30-3E / %x40-5A / %x5E-7A / %x7C
                / %x7E-D7FF / %xE000-10FFFF
 ```
 
-The glob segments of a valid glob are the texts that its `glob-segment`
-elements match, in order, and then the text `**` when the valid glob
-ends with `/`. The glob segments of a valid glob have numbers from 1, in
-that order.
+The production `glob-char` matches every character except `*`, `/`, `?`,
+`[`, `\`, `]`, `{`, and `}`. Both U+0000 and `!` match `glob-char`. The
+production `glob-non-dot` matches every `glob-char` except `.`.
 
-### 3.18 Valid paths that fit valid globs
+The **glob segments** of a valid glob are the texts that its `glob-segment`
+elements match, in order, with one additional glob segment `**` at the end
+when the valid glob ends with `/`. The glob segments of a valid glob have
+1-based numbers from 1 to `m` in that order, where `m` is the number of
+glob segments.
 
-@atom glob-fit=v1
+@example Valid and invalid [texts](sinter:text#text=v1) as globs:
+
+- Valid: `docs/**/*.md` (glob segments 1: `docs`, 2: `**`, 3: `*.md`);
+  `docs/` (glob segments 1: `docs`, 2: `**`); `**/` (glob segments 1:
+  `**`, 2: `**`); `a*b*c`; `...`; `!x`; and the text of `a`, U+0000,
+  and `.md` (the JSON string `"a\u0000.md"`).
+- Invalid: the empty text; `/docs`; `docs//a.md`; `./a.md`; `docs/..`;
+  `src/**.ts`; `***`; `a?.md`; `[ab].md`; `{a,b}.md`; and `a\b`.
+
+#### Glob match
+
+@atom glob-match=v1
 @cites {
+    text#{character=v1, text=v1, slice=v1},
     #{path=v1, glob=v1},
-    text#{
-        character=v1, text=v1, run=v1, result=v1, code-span=v1,
-        place=v1,
-    },
 }
 
-A valid path fits a valid glob when, and only when, the file names of
-the valid path can be divided into groups that meet all three of these
-conditions. First, there is one group for each glob segment of the valid
-glob. Second, the file names of the groups, group after group in the
-order of the numbers of the glob segments, are the file names of the
-valid path in the order of the numbers of those file names. Third, each
-group fits its glob segment:
-
-- A group fits a glob segment `**` that has the highest number when,
-  and only when, the group holds one or more file names.
-- A group fits a glob segment `**` that does not have the highest
-  number when, and only when, the group holds zero or more file names.
-- A group fits each other glob segment when, and only when, the group
-  holds exactly one file name, and that file name fits the glob segment.
-
-A file name fits a glob segment other than `**` when, and only when, the
-file name can be divided into runs that meet all three of these
-conditions. First, there is one run for each place of the glob segment.
-Second, the characters of the runs, run after run in the order of the
-places of the glob segment, are the characters of the file name in
-order. Third, each run fits its place of the glob segment. A run fits a
-place at which the character of the glob segment is `*`, whatever
-characters the run holds, the empty run included. A run fits a place at
-which the character of the glob segment is a character other than `*`
-when, and only when, the run holds one character, and that character is
-the character of the glob segment at that place.
-
-For a valid path and a valid glob, the result is "fits" when the valid
-path fits the valid glob, and "does not fit" when it does not.
-
-### 3.19 Path sets
-
-@term path-set=v1
-@cites text#{
-    text=v1, character=v1, code-span=v1, place=v1, boundary=v1, run=v1,
-}
-
-A path set is a finite sequence of texts, its path set members. A path
-set member whose character at place 1 is `!` is a `!` member. The glob
-text of a `!` member is the text of the run of that `!` member that
-starts at boundary 1 and ends at the last boundary of that `!` member.
-Each path set member that is not a `!` member is a plain member. The
-glob text of a plain member is that plain member.
-
-### 3.20 Valid path sets
-
-@term valid-path-set=v1
-@cites {#{path-set=v1, glob=v1}, text#{text=v1}}
-
-A path set is valid when, and only when, the path set meets all three of
-these conditions. First, the glob text of each path set member is a
-valid glob. Second, no two path set members are the same text. Third,
-when the path set holds at least one path set member, at least one path
-set member is a plain member.
-
-### 3.21 The set of a path set
-
-@atom path-set-membership=v1
-@cites {
-    #{path=v1, glob-fit=v1, path-set=v1, valid-path-set=v1},
-    text#{text=v1, result=v1, code-span=v1},
-}
-
-For a valid path set, a valid path is in the set of the valid path set
-when, and only when, the valid path fits the glob text of at least one
-plain member of the valid path set, and the valid path fits the glob
-text of no `!` member of the valid path set.
-
-For a valid path and a valid path set, the result is "in the set" when
-the valid path is in the set of the valid path set, and "not in the set"
-when it is not.
-
-### 3.22 File objects
-
-@term file-object=v1
-@cites {
-    rfc/8259,
-    posix/2024,
-    #{
-        folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, file-kind=v1, search-permission=v1,
-        read-permission=v1,
-    },
-    text#{
-        text=v1, whole-number=v1, decimal-numeral=v1, hex-digit=v1,
-        byte=v1, byte-sequence=v1, utf-8-encoding=v1, 0x-numeral=v1,
-        code-span=v1,
-    },
-}
-
-A file object is a JSON object, as RFC 8259 defines JSON values, that
-stands for a file, and for the permissions of a program for that file.
-The member `type` of a file object is a JSON string that names the file
-type of the file that the file object stands for, as POSIX.1-2024
-defines the file types. That JSON string is one of four JSON strings:
-`"directory"` for a folder, `"regular file"` for a regular file,
-`"symbolic link"` for a symbolic link, and `"FIFO special file"` for a
-FIFO special file. A FIFO special file is a file of another kind. By its
-type, a file object also has one member for what its file holds, or
-none:
-
-- `"directory"`: `entries`, a JSON array of one entry object for each
-  folder entry of the folder, in increasing order of their entry names,
-  where one entry name comes before another when, at the first byte at
-  which they differ, its byte is less, or when its bytes are fewer and
-  they are the first bytes of the other. An entry object is a JSON
-  object with two members: `name`, the entry name of the folder entry,
-  as a hex byte sequence, and `file`, the file object of the file of the
-  folder entry. The entry name of an entry object is not empty, holds no
-  byte 0x00 and no byte 0x2F, and is not the UTF-8 encoding of the text
-  `.` or of the text `..`. A folder that holds no folder entry has
-  `"entries":[]`.
-- `"regular file"`: `content`, the content of the regular file, as
-  pieces of a byte sequence.
-- `"symbolic link"`: `reference`, the reference of the symbolic link, as
-  a hex byte sequence. The reference is not empty and holds no byte
-  0x00. The reference leads to a file as in a pathname resolution of
-  POSIX.1-2024, from the folder that holds the symbolic link.
-- `"FIFO special file"`: no such member.
-
-A file object can also have the members `read`, `search`, `write`, and
-`owned-by-other`, each a JSON boolean, `true` or `false`. A file object
-has one of those four members only when the value of that member differs
-from the value in brackets. The value of one of these members for a file
-object is the value of that member, or the value in brackets when the
-file object does not have that member:
-
-- `read` (`true`): whether the program has the read permission for the
-  file. A file object of the type `"symbolic link"` cannot have this
-  member.
-- `search` (`true`): whether the program has the search permission for
-  the folder. Only a file object of the type `"directory"` can have this
-  member. The value in brackets applies only to a file object of the
-  type `"directory"`.
-- `write` (`true`): whether the program has the write permission for the
-  file, as POSIX.1-2024 defines the write permission. A file object of
-  the type `"symbolic link"` cannot have this member.
-- `owned-by-other` (`false`): whether the user ID of the owner of the
-  file, as POSIX.1-2024 defines it, differs from the effective user ID
-  of the process of the program.
-
-A hex byte sequence is a JSON string of hex digits that holds, for each
-byte of the byte sequence, in order, the hex digit of the whole-number
-quotient of the byte divided by 16, then the hex digit of the remainder.
-So the byte sequence 0xC3, 0xA9 is `"c3a9"`, and the empty byte sequence
-is `""`. The pieces of a byte sequence are a JSON array of JSON objects,
-each with two members: `bytes`, a hex byte sequence, and `times`, a JSON
-number written as the decimal numeral of a whole number of 1 or more.
-The byte sequence of these pieces is the bytes of each piece, `times`
-times in a row, piece after piece in the order of the JSON array. So
-`[{"bytes":"61","times":3}]` is the byte sequence 0x61, 0x61, 0x61, and
-`[]` is the empty byte sequence. Pieces that give the same byte sequence
-stand for the same content.
-
-A file object, an entry object, and each JSON object of the pieces of a
-byte sequence have the members that this definition names for them, and
-no other member. None of these JSON objects has two members with the
-same name.
-
-### 3.23 Folder tree objects
-
-@term folder-tree-object=v1
-@cites {
-    #{folder=v1, folder-tree=v1, file-object=v1},
-    text#{code-span=v1},
-}
-
-A folder tree object is a file object whose member `type` is
-`"directory"` and that is not the member `file` of an entry object. The
-folder tree of a folder tree object is the folder tree whose root is the
-folder that the folder tree object stands for. The files of that folder
-tree are the files that the folder tree object and the file objects in
-that folder tree object stand for, and no other file.
-
-### 3.24 Stored folder trees
-
-@term stored-folder-tree=v1
-@cites {
-    posix/2024,
-    #{
-        file-system=v1, folder=v1, regular-file=v1, symbolic-link=v1,
-        folder-tree=v1, file-kind=v1, search-permission=v1,
-        read-permission=v1, file-object=v1, folder-tree-object=v1,
-    },
-    text#{code-span=v1},
-}
-
-A file system stores the folder tree of a folder tree object, for a
-process of a program, while these conditions hold:
-
-1. The whole folder tree is on that file system.
-2. The listing of each folder of the folder tree, for that program,
-   holds the entry name of each entry object of the file object of that
-   folder, and no other name except `.` and `..`.
-3. Each file of the folder tree has the file type, the content, and the
-   reference that the file object of that file gives.
-4. The owner of each file of the folder tree has a user ID, as
-   POSIX.1-2024 defines a user ID, that differs from the effective user
-   ID of that process when, and only when, the value of `owned-by-other`
-   for the file object of that file is `true`.
-5. For each file of the folder tree other than a symbolic link, that
-   process has the read permission for that file when, and only when,
-   the value of `read` for the file object of that file is `true`. For
-   each file of the folder tree other than a symbolic link, that process
-   has the write permission for that file, as POSIX.1-2024 defines the
-   write permission, when, and only when, the value of `write` for the
-   file object of that file is `true`. For each folder of the folder
-   tree, that process has the search permission for that folder when,
-   and only when, the value of `search` for the file object of that
-   folder is `true`.
-
-While a file system stores the folder tree of a folder tree object for a
-process of a program, that folder tree is a stored folder tree of that
-folder tree object, for that process.
-
-## 4. Requirements
-
-### 4.1 The validation of texts as paths
-
-@req validate-paths=v1
-@cites {
-    #{path=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1, production=v1, code-span=v1},
-}
-
-A validation of a text as a path is an operation, other than a file
-read, that a program makes to give one of the results "valid" and
-"invalid" for whether the text is a valid path. Such an operation is a
-validation of a text as a path also when the program gives another thing
-in that operation, or nothing. In each validation of a text as a path
-that a conforming program makes, the conforming program must give
-exactly one result: "valid" when the text matches `path`, and "invalid"
-when the text does not match `path`.
-
-### 4.2 Texts that are not valid paths
-
-@req give-invalid-for-non-paths=v1
-@cites {
-    #{folder-tree=v1, path=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1},
-}
-
-In each file read of a text in a folder tree, when the text is not a
-valid path, a conforming program must give exactly one result,
-"invalid". In each file read of a text in a folder tree, when the text
-is a valid path, a conforming program must not give the result
-"invalid".
-
-### 4.3 The result of a file read
-
-@req give-file-read-results=v1
-@cites {
-    posix/2024,
-    #{
-        system=v1, file-system=v1, folder=v1, folder-tree=v1,
-        regular-file=v1, file-kind=v1, path=v1, file-read=v1,
-        file-read-result=v1, follow-no-symbolic-links=v1,
-        read-only-named-files=v1,
-    },
-    conformance#{
-        conforming-program=v1, requirement=v1, input=v1, dependence=v1,
-        own-limit=v1, report=v1, safety-obligation=v1,
-        report-missing-parts=v1,
-    },
-    text#{result=v1, code-span=v1},
-}
-
-In each file read of a valid path in a folder tree that no other process
-changes during the file read, the conforming program must give exactly
-one result, and only "found", "no file", "symbolic link", "not a regular
-file", "not UTF-8", or "cannot read". In that file read, when at least
-one of these conditions holds, the conforming program must give "cannot
-read", and no other result:
-
-- The file-read result of that valid path in that folder tree for the
-  conforming program is "cannot read".
-- The conforming program could not take a thing of that folder tree,
-  such as the folder entries of a folder, the file type of a file, or
-  the content of a regular file, because of a denied permission, because
-  of an input or output error, or because no operation of the system
-  lets the conforming program take that thing while the conforming
-  program keeps every safety obligation (term `safety-obligation` of
-  Conformance) that binds the conforming program (in particular,
-  `follow-no-symbolic-links` and `read-only-named-files`); that thing is
-  a part that the folder tree lacks under the term `input` of
-  Conformance; and the result of that file read needs that part.
-
-In that file read, when neither condition holds, the conforming program
-must give the file-read result of that valid path in that folder tree
-for the conforming program, and no other result. In that file read, when
-at least one of those conditions holds, the result "cannot read", given
-once for that file read, is the report, for this requirement under
-`report-missing-parts` of Conformance, of each part that the folder tree
-lacks and that the result of that file read needs.
-
-A bound on the length of a whole pathname of POSIX.1-2024 and a bound
-on the size of a file are examples of limits of the conforming
-program's own (term `own-limit` of Conformance) in a file read. A bound
-of the system or of a file system on the length of one entry name is not
-a limit of the conforming program's own.
-
-### 4.4 The text of the content
-
-@req give-file-text=v1
-@cites {
-    #{
-        folder-tree=v1, regular-file=v1, path=v1, file-read=v1,
-        file-read-result=v1,
-    },
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1},
-}
-
-When a conforming program gives the result "found" in a file read of a
-valid path in a folder tree that no other process changes during the
-file read, the conforming program must give with that result, as the
-text of the content, the text that the file-read result of that valid
-path in that folder tree, for the conforming program, gives with
-"found". When the conforming program gives the result "found" in that
-file read, the conforming program must give with that result no other
-text as the text of the content.
-
-### 4.5 No text of a content with another result
-
-@req omit-texts-of-other-results=v1
-@cites {
-    #{folder-tree=v1, regular-file=v1, path=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1},
-}
-
-When a conforming program reads a text as a path in a folder tree and
-gives a result other than "found", the conforming program must give, in
-that file read, no text as the text of the content of a regular file.
-
-### 4.6 No symbolic link followed
-
-@req follow-no-symbolic-links=v1
-@cites {
-    #{folder-tree=v1, symbolic-link=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{text=v1},
-}
-
-In each file read of a text in a folder tree, a conforming program must
-follow no symbolic link that is a file of the folder tree. In that file
-read, the conforming program must find no file by the reference of such
-a symbolic link.
-
-### 4.7 Bytes only from the files that the path names
-
-@req read-only-named-files=v1
-@cites {
-    #{
-        folder-tree=v1, folder=v1, regular-file=v1, taken-byte=v1,
-        path=v1, file-read=v1, path-file=v1,
-    },
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{text=v1, byte=v1},
-}
-
-For each file read of a text in a folder tree, a conforming program must
-take bytes only from the folders of the path of that text in that folder
-tree and from the regular file that the last file name of that text
-names in that folder tree. For each file read of a text in a folder
-tree, when the text is not a valid path, a conforming program must take
-no bytes.
-
-### 4.8 No wait for another process
-
-@req avoid-waits=v1
-@cites {
-    #{folder-tree=v1, file-of-another-kind=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{text=v1},
-}
-
-In each file read of a text in a folder tree, a conforming program must
-not wait for another process or for a device to act on a file of another
-kind that is a file of the folder tree, such as for a process to open
-the other end of a pipe.
-
-### 4.9 No change to the files of the folder tree
-
-@req keep-folder-trees-unchanged=v1
-@cites {
-    #{file-system=v1, folder-tree=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{text=v1},
-}
-
-In each file read of a text in a folder tree, a conforming program must
-change no file of the folder tree, other than by a change that the file
-system makes by itself when the program uses that file, such as a change
-of the time of last access.
-
-### 4.10 No permission or privilege that the process did not have
-
-@req gain-no-privileges=v1
-@cites {
-    posix/2024,
-    #{folder-tree=v1, file-read=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{text=v1},
-}
-
-In each file read of a text in a folder tree, a conforming program must
-use only the permissions and the appropriate privileges, as POSIX.1-2024
-defines these, that its process has without a change by the program.
-
-### 4.11 The validation of texts as globs
+Let a valid glob have `m` glob segments, numbered from 1 to `m`. A valid
+path **matches** the valid glob when its path segments divide into `m`
+contiguous groups (group 1 through group `m`, whose path segments in order
+form the path segments of the valid path) such that each group `i`
+satisfies the rule for glob segment `i`:
+
+- When glob segment `i` is `**` and `i = m` (the last glob segment), group
+  `i` holds one or more path segments.
+- When glob segment `i` is `**` and `i < m` (not the last glob segment),
+  group `i` holds zero or more path segments.
+- When glob segment `i` is not `**`, group `i` holds one path segment, and
+  that path segment matches glob segment `i`.
+
+Let a glob segment `g` other than `**` have `k` characters, at 1-based
+character indices 1 to `k`. A path segment `s` of `n` characters
+**matches** `g` when `s` divides into `k` slices (slice 1 through slice
+`k`, one slice for each 1-based character index `j` of `g`) that meet all
+of these conditions:
+
+- Slice 1 starts at boundary 0. For each `j` from 2 to `k`, slice `j`
+  starts at the end boundary of slice `j - 1`. Slice `k` ends at boundary
+  `n`.
+- When the character at 1-based character index `j` of `g` is `*`, slice
+  `j` holds zero or more characters.
+- When the character at 1-based character index `j` of `g` is a character
+  `c` other than `*`, slice `j` holds one character, and that character
+  equals `c`.
+
+Character comparison is exact: letter case matters, and no Unicode
+normalization applies. A leading `.` in a path segment has no special
+treatment under `*` or `**`.
+
+For a valid path and a valid glob, the `glob-match` outcome is `"matches"`
+when the valid path matches the valid glob, and `"does not match"`
+otherwise.
+
+@example Matches of [valid paths](sinter:#path=v1) against
+[valid globs](sinter:#glob=v1), including trailing `/` expansion, non-final
+`**` with zero path segments, final `**` with one or more path segments,
+leading `.` under `*`, and exact letter case:
+
+| valid glob | matching valid paths | non-matching valid paths |
+|---|---|---|
+| `docs/` | `docs/a.md`; `docs/a/b.md` | `docs` |
+| `docs/**` | `docs/a.md`; `docs/a/b.md` | `docs` |
+| `a/**/b` | `a/b`; `a/x/y/b` | `b`; `a/b/c` |
+| `**/x/**` | `x/a`; `a/x/b` | `x`; `a/x` |
+| `*.md` | `a.md`; `.md` | `a/b.md` |
+| `Docs/*` | `Docs/a.md` | `docs/a.md` |
+
+### Validating globs
 
 @req validate-globs=v1
 @cites {
+    conformance#conforming-program=v1,
+    text#text=v1,
     #{glob=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1, text=v1, production=v1, code-span=v1},
 }
 
-A validation of a text as a glob is an operation that a program makes to
-give one of the results "valid" and "invalid" for whether the text is a
-valid glob. Such an operation is a validation of a text as a glob also
-when the program gives another thing in that operation, or nothing. In
-each validation of a text as a glob that a conforming program makes, the
-conforming program must give exactly one result: "valid" when the text
-matches `glob`, and "invalid" when the text does not match `glob`.
+When a conforming program validates a text as a glob, the program must
+return `"valid"` when the text is a valid glob, and must return `"invalid"`
+otherwise.
 
-### 4.12 Whether valid paths fit valid globs
+### Matching globs
 
-@req decide-glob-fit=v1
+@req match-globs=v1
 @cites {
-    #{glob=v1, path=v1, glob-fit=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1},
+    conformance#conforming-program=v1,
+    #{path=v1, glob=v1, glob-match=v1},
 }
 
-To decide whether a valid path fits a valid glob is to make an operation
-to give one of the results "fits" and "does not fit" for whether that
-valid path fits that valid glob. A program decides whether a valid path
-fits a valid glob in such an operation also when the program gives
-another thing in that operation, or nothing. Each time a conforming
-program decides whether a valid path fits a valid glob, the conforming
-program must give exactly one result: "fits" when the valid path fits
-the valid glob, and "does not fit" when the valid path does not fit the
-valid glob.
+When a conforming program matches a valid path against a valid glob, the
+program must return the `glob-match` outcome for that valid path and
+that valid glob.
 
-### 4.13 The validation of path sets
+### Test vectors
 
-@req validate-path-sets=v1
-@cites {
-    #{path-set=v1, valid-path-set=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1},
-}
+Test vectors for `globs` live in
+[files.test-vectors.jsonl](files.test-vectors.jsonl).
 
-A validation of a path set is an operation that a program makes to give
-one of the results "valid" and "invalid" for whether the path set is
-valid. Such an operation is a validation of a path set also when the
-program gives another thing in that operation, or nothing. In each
-validation of a path set that a conforming program makes, the conforming
-program must give exactly one result: "valid" when the path set is
-valid, and "invalid" when the path set is not valid.
-
-### 4.14 Whether valid paths are in the sets of path sets
-
-@req decide-path-set-membership=v1
-@cites {
-    #{path-set=v1, valid-path-set=v1, path=v1, path-set-membership=v1},
-    conformance#{conforming-program=v1, requirement=v1},
-    text#{result=v1},
-}
-
-To decide whether a valid path is in the set of a valid path set is to
-make an operation to give one of the results "in the set" and "not in
-the set" for whether that valid path is in the set of that valid path
-set. In such an operation, a program decides whether a valid path is in
-the set of that valid path set also when the program gives another thing
-in that operation, or nothing. Each time a conforming program decides
-whether a valid path is in the set of a valid path set, the conforming
-program must give exactly one result: "in the set" when the valid path
-is in the set of the valid path set, and "not in the set" when the valid
-path is not in the set of the valid path set.
-
-## 5. Conformance
-
-A program conforms to this design when it is a
-[conforming program](sinter:conformance#conforming-program=v1) of this design.
-
-The vectors of this design are in the file
-[`files.test-vectors.jsonl`](files.test-vectors.jsonl), the vector file,
-in the same directory as this design. Each vector follows from the
-requirements and adds nothing to them. The schema `vector-line`
-(section 5.1) defines the layout of the vector file, the shared members
-of each vector line, and the shared JSON forms of inputs and values. The
-schemas in sections 5.2 to 5.7 each define the forms of one vector
-group, name the requirements that the vectors of that group follow from,
-and list the need names that the group uses, if any.
-
-### 5.1 Vector lines
-
-@schema vector-line=v1
-@cites {
-    rfc/8259,
-    #{
-        regular-file=v1, folder-tree=v1, path=v1, file-read=v1,
-        glob=v1, path-set=v1,
-    },
-    conformance#{design=v1, conforming-program=v1, input=v1},
-    text#{
-        canonical-vector-line=v1, text=v1, character=v1, run=v1,
-        line=v1, line-feed=v1, carriage-return=v1, byte-sequence=v1,
-        valid-utf-8=v1, text-of-a-byte-sequence=v1, whole-number=v1,
-        decimal-numeral=v1, code-point-order=v1, u-numeral=v1,
-        sequence=v1, result=v1, code-span=v1,
-    },
-}
-
-A vector is an input and what a conforming program gives for it. The
-person or the program that runs the vectors, and compares what a program
-gives with them, is the runner. The vectors are in groups, and each
-group has a name, such as `paths`.
-
-The vector file, `files.test-vectors.jsonl` in the same directory as
-this design, is a byte sequence that is valid UTF-8. The text of the
-vector file does not start with U+FEFF. The text holds no carriage
-return. The text has no empty line. When the text is not empty, the text
-ends with a line feed. Only a line feed ends a line of the vector file.
-A JSON string of the vector file can hold U+0085, U+2028, or U+2029.
-These characters do not end a line. The vector file holds zero or more
-vector lines.
-
-The text of each line of the vector file is a vector line: a JSON text,
-as RFC 8259 defines it, that meets the schema `canonical-vector-line` of
-Text and notation. Its JSON object holds the required members `form`,
-`group`, `input`, and `result`, and the optional members `needs`,
-`note`, and `values`, and no other member:
-
-- `form`: a JSON string of `#`, the name of the schema of this design
-  for the group of the vector, `=`, and a label (for example,
-  `"#path-vector=v1"`). That label is `v`, then the decimal numeral of a
-  whole number of 1 or more, such as `v1`.
-- `group`: the name of the group of the vector, as a JSON string, such
-  as `"paths"`.
-- `input`: the inputs of the vector: what a conforming program takes or
-  reads. The schema of each group names these inputs and gives their
-  form. The input of a vector can hold more than one input of the
-  program: for example, a valid glob and a valid path. In the group
-  `file-reads`, the input also stands for conditions on the file read.
-- `needs`: the needs of the vector, as a JSON array of one or more need
-  names, each a JSON string, in code point order with no repeated name.
-  A need is a condition of the run of a vector that a runner can be
-  unable to make hold and that a need name names. Each schema of a
-  vector group lists the need names that its group uses, each with the
-  need that it stands for; a need name stands for the same need in every
-  schema of this design. A vector has this member when, and only when,
-  it has one or more needs.
-- `note`: an explanation of the vector, as a JSON string, which is no
-  part of the input, the result, or the values. A vector has this member
-  only when it has an explanation.
-- `result`: the result that a conforming program gives for the inputs
-  that the schema of the group names, such as a valid glob and a valid
-  path together, as a JSON string that holds the characters of the
-  result without its double quotes. Each vector of this design has this
-  member. The schema of each group also names the operations on these
-  inputs in which a conforming program gives this result: each
-  validation that it makes, each time that it decides, or each file read
-  that it makes. In each such operation, under the conditions that the
-  schema names, if any, a conforming program gives this result, and no
-  other result.
-- `values`: a JSON object that holds what a conforming program gives, or
-  does not give, for the inputs of the vector, other than the result.
-  The schema of each group states whether the vectors of that group have
-  this member and, when they do, gives the members of this JSON object.
-  An empty JSON object, `{}`, says that a conforming program gives none
-  of the things that the schema of the group names for `values`. A
-  vector without the member `values` says nothing about what a
-  conforming program gives for the inputs of the vector, other than the
-  result.
-
-A vector writes each input and each value in a fixed form. Each text and
-sequence has this fixed form, except a folder tree and the text of the
-content in `values`, whose forms the schema of the group `file-reads`
-gives:
-
-- A text, such as a valid path, a valid glob, or a path set member, is a
-  JSON string whose characters are the characters of the text, in order.
-  So the text `a`, U+0000, `.md` is `"a\u0000.md"`, and the empty text
-  is `""`.
-- A sequence, such as the path set members of a path set, is a JSON
-  array of its elements, in order. So the path set with the path set
-  members `docs/` and `!docs/old/` is `["docs/","!docs/old/"]`, and the
-  empty path set is `[]`.
-
-Each JSON object that a schema of a vector group describes has the
-members that the schema names for that JSON object, and no other member.
-
-A vector line meets the schema `vector-line` when, and only when, it
-meets what this schema states for one vector line: what this schema
-states from "The text of each line of the vector file" up to this
-paragraph, this paragraph left out. All vector lines in the vector file
-with the same `group` have the same `#` and name of a schema in `form`,
-and their labels in `form` may differ. The vector file meets the schema
-`vector-line` when, and only when, the vector file meets what this
-schema states before "The text of each line of the vector file" and
-what this paragraph states on `group` and `form`, and the text of each
-line of the vector file is a vector line that meets the schema
-`vector-line`.
-
-### 5.2 Paths
-
-@schema path-vector=v1
-@cites {
-    #{vector-line=v1, validate-paths=v1, path=v1},
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, line=v1, result=v1, code-span=v1},
-}
-
-The group `paths` holds the vectors of the requirement `validate-paths`.
-Each vector line of the group meets the schema `vector-line`. Each
-vector gives a text and the result that a conforming program gives when
-it validates the text as a path.
-
-- `input`: the text.
-- `result`: the result of each validation of the text as a path that a
-  conforming program makes: "valid" or "invalid".
-- `values`: no vector of the group has this member.
-- `needs`: the group `paths` uses no need, so this schema gives no need
-  names, and no vector of the group has this member.
-
-In each validation of the text as a path that a conforming program
-makes, the conforming program gives the result that `result` holds, and
-no other result.
-
-```
-{"form":"#path-vector=v1","group":"paths","input":"docs/guide/a.md","result":"valid"}
-{"form":"#path-vector=v1","group":"paths","input":"docs/../a.md","note":"`..` is not a file name","result":"invalid"}
-```
-
-### 5.3 File reads
-
-@schema file-read-vector=v1
-@cites {
-    rfc/8259,
-    posix/2024,
-    #{
-        vector-line=v1, give-invalid-for-non-paths=v1,
-        give-file-read-results=v1, give-file-text=v1,
-        omit-texts-of-other-results=v1, system=v1, file-system=v1,
-        folder=v1, regular-file=v1, symbolic-link=v1,
-        file-of-another-kind=v1, folder-tree=v1, path=v1, file-read=v1,
-        file-object=v1, folder-tree-object=v1, stored-folder-tree=v1,
-    },
-    conformance#{
-        conforming-program=v1, input=v1, dependence=v1, own-limit=v1,
-        safety-obligation=v1,
-    },
-    text#{
-        text=v1, run=v1, line=v1, byte=v1, byte-sequence=v1,
-        valid-utf-8=v1, 0x-numeral=v1, result=v1, code-span=v1,
-    },
-}
-
-The group `file-reads` holds the vectors of the requirements
-`give-invalid-for-non-paths`, `give-file-read-results`,
-`give-file-text`, and `omit-texts-of-other-results`. Each vector line of
-the group meets the schema `vector-line`. Each vector gives a text and
-a folder tree, and what a conforming program gives when it reads the
-text as a path in the folder tree.
-
-- `input`: a JSON object, as RFC 8259 defines JSON values, with two
-  members: `text`, the text, and `tree`, the folder tree, as a folder
-  tree object. The input stands for the text and the folder tree of a
-  file read in which these conditions hold:
-  1. A file system stores the folder tree of `tree`, for the process of
-     the program, as the term `stored-folder-tree` defines storing the
-     folder tree of a folder tree object, from the time at which the
-     runner finishes making the folder tree to the end of the file read.
-     So the program has the permissions that `tree` gives.
-  2. No other process changes the folder tree during the file read.
-  3. During the file read, including while reaching the root, the system
-     denies no permission other than the permissions that `tree` takes
-     away, reports no input or output error, and, for each thing of the
-     folder tree that the result of the file read needs, offers an
-     operation of the system that lets the program take that thing while
-     the program keeps every safety obligation (term `safety-obligation`
-     of Conformance) that binds the program. The program reaches no
-     limit of its own during the file read.
-  4. No other process opens a pipe of the folder tree during the file
-     read.
-
-  A run of the vectors runs a vector under these conditions, or skips
-  the vector as this schema states for skips.
-- `result`: the result of each file read of the text in the folder tree
-  that a conforming program makes under these conditions: "invalid",
-  "found", "no file", "symbolic link", "not a regular file", "not
-  UTF-8", or "cannot read".
-- `values`: what a conforming program gives, or does not give, as the
-  text of the content in such a file read. With the result "found",
-  `values` is a JSON object with one member, `text`. The member `text`
-  is the text of the content, as pieces of a text. This schema defines
-  pieces of a text. With each other result, `values` is the empty JSON
-  object, `{}`. Each vector of the group has this member.
-
-In each file read of the text in the folder tree that a conforming
-program makes under these conditions, the conforming program gives the
-result that `result` holds, and no other result. With the result
-"found", the conforming program gives the text that `text` holds as the
-text of the content, and no other text as the text of the content. When
-`values` is `{}`, the conforming program gives no text as the text of a
-content. Under these conditions, a conforming program gives exactly one
-result in each file read, also when no process opens a pipe of the
-folder tree. So when a file read gives no result within a time that the
-runner chooses, the run of the vectors fails on that vector, as when the
-program does not give the result that `result` holds.
-
-For example, in `tree`, the reference `b.md` of a symbolic link, which
-is the hex byte sequence `"622e6d64"`, leads to the file of the folder
-entry `b.md` of the folder that holds the symbolic link. In `tree`, the
-reference `.` of a symbolic link, which is `"2e"`, leads to the folder
-that holds the symbolic link.
-
-The text in `values` stands as pieces of a text, so that a long text can
-stand in a short line, as a long content does. The pieces of a text are
-the same as the pieces of a byte sequence (term `file-object`), with the
-member `text`, a text, in place of `bytes`. So
-`[{"text":"hi","times":1}]` is the text `hi`, and `[]` is the empty
-text. Different lists of pieces can give the same byte sequence:
-`[{"bytes":"6161","times":1}]`, `[{"bytes":"61","times":2}]`, and
-`[{"bytes":"61","times":1},{"bytes":"61","times":1}]` all give the
-content 0x61, 0x61. Two lists of pieces that give the same byte sequence
-stand for the same content, and two lists of pieces that give the same
-text stand for the same text.
-
-Some file systems change entry names, add folder entries of their own,
-or do not allow some entry names. For example, a file system that
-changes each entry name into a decomposed form of Unicode normalization
-lists the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64 as
-0x63, 0x61, 0x66, 0x65, 0xCC, 0x81, 0x2E, 0x6D, 0x64. So that file
-system does not store the folder tree of a vector whose folder tree
-holds the entry name 0x63, 0x61, 0x66, 0xC3, 0xA9, 0x2E, 0x6D, 0x64.
-Some file systems do not allow the entry name 0xE9, so they do not store
-the folder tree of a vector whose folder tree holds that entry name.
-Whether a file system stores a folder tree also depends on the process
-of the program. When a process has an appropriate privilege, as
-POSIX.1-2024 defines an appropriate privilege, and that privilege gives
-the process a permission that a file object takes away, the process does
-not have the permissions that the file object gives. The result and the
-values of a vector are the same on every file system that stores its
-folder tree.
-
-A need of a vector is a condition of its run that a runner can be unable
-to make hold and that a need name names: a condition on the file system
-that holds the folder tree, on the process of the program, or on the
-owners of the files of the folder tree. These are the need names that
-the group `file-reads` uses, what each need is, and when a vector of the
-group has it. No other need name stands in a vector of the group. A name
-in the member `needs` that is not one of these need names stands for no
-need. A skip of a vector because of a name that is not one of these need
-names decides that the program does not give what the vector states.
-
-- `names-kept`: the folder tree is on a file system that keeps each
-  entry name of the folder tree as the runner makes that entry name,
-  byte for byte. For example, the file system does not change an entry
-  name into a decomposed form of Unicode normalization. A vector has
-  this need when an entry name of its folder tree is valid UTF-8 and
-  holds a byte of 0x80 or more, such as the entry name 0x63, 0x61, 0x66,
-  0xC3, 0xA9, 0x2E, 0x6D, 0x64.
-- `no-privilege`: the process of the program has no appropriate
-  privilege, as POSIX.1-2024 defines an appropriate privilege, that
-  gives that process a permission that a file object of the folder tree
-  takes away. A vector has this need when a file object of its folder
-  tree has the member `read`, `search`, or `write` with the value
-  `false`.
-- `non-utf-8-names`: the folder tree is on a file system that keeps each
-  entry name of the folder tree that is not valid UTF-8 as the runner
-  makes that entry name, byte for byte. A vector has this need when an
-  entry name of its folder tree is not valid UTF-8, such as the entry
-  name 0xE9.
-- `other-owner`: each file of the folder tree whose file object has the
-  member `owned-by-other` with the value `true` has an owner whose user
-  ID differs from the effective user ID of the process of the program. A
-  vector has this need when a file object of its folder tree has the
-  member `owned-by-other` with the value `true`.
-
-For each vector that a run of the vectors does not skip, the run uses a
-file system that stores the folder tree of that vector and a process of
-the program for which the conditions of the input of that vector hold. A
-skip of a vector decides nothing about that vector when the runner
-cannot make a need of the vector hold, the member `needs` of the vector
-names that need, and the runner reports that need. Each other skip of a
-vector decides that the program does not give what the vector states.
-What a run of the vectors decides about a vector, a skip included,
-belongs to that run, and not to a reader of what that run reports.
-
-```
-{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
-{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"reference":"622e6d64","type":"symbolic link"},"name":"612e6d64"},{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"622e6d64"}],"type":"directory"}},"result":"symbolic link","values":{}}
-{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"search":false,"type":"directory"},"name":"646f6373"}],"type":"directory"}},"needs":["no-privilege"],"note":"the program has no search permission for folder 2, `docs`","result":"cannot read","values":{}}
-```
-
-### 5.4 Globs
+#### Valid globs
 
 @schema glob-vector=v1
-@cites {
-    #{vector-line=v1, validate-globs=v1, glob=v1},
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, line=v1, result=v1, code-span=v1},
-}
+@cites {text#text=v1, #{vector-line=v1, validate-globs=v1, glob=v1}}
 
-The group `globs` holds the vectors of the requirement `validate-globs`.
-Each vector line of the group meets the schema `vector-line`. Each
-vector gives a text and the result that a conforming program gives when
-that conforming program validates the text as a glob.
+Group `globs` tests `validate-globs`. Each line conforms to `vector-line`
+and omits `needs` and `values`.
 
-- `input`: the text.
-- `result`: the result of each validation of the text as a glob that a
-  conforming program makes: "valid" or "invalid".
-- `values`: no vector of the group has this member.
-- `needs`: the group `globs` uses no need, so this schema gives no need
-  names, and no vector of the group has this member.
+| field | type | meaning |
+|---|---|---|
+| `input` | string | candidate `text` to validate as a glob |
+| `result` | string | `"valid"` when `input` is a valid `glob`, `"invalid"` otherwise |
 
-In each validation of the text as a glob that a conforming program
-makes, that conforming program gives the result that `result` holds, and
-no other result.
+@example Sample lines testing [validate-globs](sinter:#validate-globs=v1)
+on valid and invalid [glob](sinter:#glob=v1) inputs
+([vector-line](sinter:#vector-line=v1)):
 
 ```
 {"form":"#glob-vector=v1","group":"globs","input":"docs/**/*.md","result":"valid"}
 {"form":"#glob-vector=v1","group":"globs","input":"src/**.ts","note":"`**` in a glob segment that holds other characters too","result":"invalid"}
 ```
 
-### 5.5 Valid paths that fit valid globs
+#### Glob matching
 
-@schema fit-vector=v1
-@cites {
-    rfc/8259,
-    #{
-        vector-line=v1, decide-glob-fit=v1, glob=v1, path=v1,
-        glob-fit=v1,
-    },
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, line=v1, result=v1, code-span=v1},
+@schema glob-match-vector=v1
+@cites #{
+    vector-line=v1, match-globs=v1, path=v1, glob=v1, glob-match=v1,
 }
 
-The group `fits` holds the vectors of the requirement `decide-glob-fit`.
-Each vector line of the group meets the schema `vector-line`. Each
-vector gives a valid glob and a valid path, and the result that a
-conforming program gives when that conforming program decides whether
-the valid path fits the valid glob. The group `globs` holds a vector of
-each valid glob of the group `fits`, with the result "valid".
+Group `matches` tests `match-globs`. Each line conforms to `vector-line`
+and omits `needs` and `values`.
 
-- `input`: a JSON object, as RFC 8259 defines JSON values, with two
-  members: `glob`, the valid glob, and `path`, the valid path. Each of
-  the two members is a text.
-- `result`: the result of each operation in which a conforming program
-  decides whether the valid path fits the valid glob: "fits" or "does
-  not fit".
-- `values`: no vector of the group has this member.
-- `needs`: the group `fits` uses no need, so this schema gives no need
-  names, and no vector of the group has this member.
+| field | type | meaning |
+|---|---|---|
+| `input.glob` | string | valid `glob` |
+| `input.path` | string | valid `path` |
+| `result` | string | `glob-match` outcome: `"matches"` or `"does not match"` |
 
-Each time a conforming program decides whether the valid path fits the
-valid glob, that conforming program gives the result that `result`
-holds, and no other result.
+@example Sample lines testing [match-globs](sinter:#match-globs=v1) with
+[glob-match](sinter:#glob-match=v1) on a [glob](sinter:#glob=v1) and two
+[path](sinter:#path=v1) inputs ([vector-line](sinter:#vector-line=v1)):
 
 ```
-{"form":"#fit-vector=v1","group":"fits","input":{"glob":"docs/**","path":"docs/a/b.md"},"result":"fits"}
-{"form":"#fit-vector=v1","group":"fits","input":{"glob":"docs/**","path":"docs"},"result":"does not fit"}
+{"form":"#glob-match-vector=v1","group":"matches","input":{"glob":"docs/**","path":"docs/a/b.md"},"result":"matches"}
+{"form":"#glob-match-vector=v1","group":"matches","input":{"glob":"docs/**","path":"docs"},"result":"does not match"}
 ```
 
-### 5.6 Path sets
+## Path sets
+
+@spec path-sets=v1
+
+A single glob cannot express exclusions on its own. A path set lists
+globs that select valid paths and globs, each marked with a leading `!`,
+that exclude valid paths.
+
+### Definitions
+
+#### Path set
+
+@term path-set=v1
+@cites {#{glob=v1}, text#{character=v1, text=v1, slice=v1}}
+
+A **path set** is a finite sequence of texts. Each text in a path set is
+a **path set member**. A path set member is a **`!` member** when its
+character at 1-based character index 1 is `!` (U+0021). The **glob text**
+of a `!` member of `n` characters is the text of its slice `(1, n)`.
+Every other path set member is a **plain member**. The glob text of a
+plain member is that plain member itself.
+
+A path set is **valid** when all three of these conditions hold:
+
+- The glob text of each path set member is a valid glob (`glob`).
+- No two path set members are equal texts.
+- When the path set holds at least one path set member, at least one
+  path set member is a plain member.
+
+Otherwise, the path set is **invalid**.
+
+#### Set of a path set
+
+@atom path-set-membership=v1
+@cites #{path=v1, glob-match=v1, path-set=v1}
+
+For a valid path set, a valid path is **in the set** of that path set
+when the valid path meets both of these conditions:
+
+- The valid path matches (under `glob-match`) the glob text of at least
+  one plain member of that path set.
+- The valid path matches (under `glob-match`) the glob text of no `!`
+  member of that path set.
+
+An invalid path set defines no set of valid paths.
+
+For a valid path and a valid path set, the `path-set-membership` outcome
+is `"in the set"` when the valid path is in the set of that path set,
+and `"not in the set"` otherwise.
+
+@example Under [glob](sinter:#glob=v1) and
+[glob match](sinter:#glob-match=v1), for the valid
+[path set](sinter:#path-set=v1) with members `docs/` and `!docs/old/`
+(in either order), the valid [path](sinter:#path=v1) `docs/a.md` has
+outcome `"in the set"`. The valid paths `docs/old/a.md` and `a.md` have
+outcome `"not in the set"`.
+
+### Validating path sets
+
+@req validate-path-sets=v1
+@cites {conformance#conforming-program=v1, #{path-set=v1}}
+
+When a conforming program validates a path set, the program must return
+`"valid"` when the path set is valid, and must return `"invalid"`
+otherwise.
+
+### Deciding path-set membership
+
+@req decide-path-set-membership=v1
+@cites {
+    conformance#conforming-program=v1,
+    #{path=v1, path-set=v1, path-set-membership=v1},
+}
+
+When a conforming program decides whether a valid path is in the set of
+a valid path set, the program must return the `path-set-membership`
+outcome for that valid path and that valid path set.
+
+### Test vectors
+
+Test vectors for `path-sets` live in
+[files.test-vectors.jsonl](files.test-vectors.jsonl).
+
+#### Valid path sets
 
 @schema path-set-vector=v1
 @cites {
     #{vector-line=v1, validate-path-sets=v1, path-set=v1},
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, line=v1, sequence=v1, result=v1, code-span=v1},
+    text#text=v1,
 }
 
-The group `path-sets` holds the vectors of the requirement
-`validate-path-sets`. Each vector line of the group meets the schema
-`vector-line`. Each vector gives a path set and the result that a
-conforming program gives when that conforming program validates the path
-set.
+Group `path-sets` tests `validate-path-sets`. Each line conforms to
+`vector-line` and omits `needs` and `values`.
 
-- `input`: the path set, as the sequence of its path set members.
-- `result`: the result of each validation of the path set that a
-  conforming program makes: "valid" or "invalid".
-- `values`: no vector of the group has this member.
-- `needs`: the group `path-sets` uses no need, so this schema gives no
-  need names, and no vector of the group has this member.
+| field | type | meaning |
+|---|---|---|
+| `input` | array of strings | `path-set`, holding its path set member `text` values in order (`[]` for the empty path set) |
+| `result` | string | `"valid"` when `input` is a valid `path-set`, `"invalid"` otherwise |
 
-In each validation of the path set that a conforming program makes, that
-conforming program gives the result that `result` holds, and no other
-result.
+@example Sample lines testing
+[validate-path-sets](sinter:#validate-path-sets=v1) on valid and invalid
+[path sets](sinter:#path-set=v1) ([vector-line](sinter:#vector-line=v1)):
 
 ```
 {"form":"#path-set-vector=v1","group":"path-sets","input":["docs/","!docs/old/"],"result":"valid"}
 {"form":"#path-set-vector=v1","group":"path-sets","input":["!docs/"],"note":"no plain member","result":"invalid"}
 ```
 
-### 5.7 Valid paths in the sets of path sets
+#### Path-set membership
 
 @schema membership-vector=v1
 @cites {
-    rfc/8259,
     #{
-        vector-line=v1, decide-path-set-membership=v1, path-set=v1,
-        valid-path-set=v1, path=v1, path-set-membership=v1,
+        vector-line=v1, decide-path-set-membership=v1, path=v1,
+        path-set=v1, path-set-membership=v1,
     },
-    conformance#{conforming-program=v1, input=v1},
-    text#{text=v1, line=v1, sequence=v1, result=v1, code-span=v1},
+    text#text=v1,
 }
 
-The group `memberships` holds the vectors of the requirement
-`decide-path-set-membership`. Each vector line of the group meets the
-schema `vector-line`. Each vector gives a valid path set, a valid path,
-and the result that a conforming program gives when that conforming
-program decides whether the valid path is in the set of the valid path
-set. The group `path-sets` holds a vector of each valid path set of the
-group `memberships`, with the result "valid".
+Group `memberships` tests `decide-path-set-membership`. Each line
+conforms to `vector-line` and omits `needs` and `values`.
 
-- `input`: a JSON object, as RFC 8259 defines JSON values, with two
-  members. The member `path-set` is the valid path set, as the sequence
-  of its path set members. The member `path` is the valid path, as a
-  text.
-- `result`: the result of each operation in which a conforming program
-  decides whether the valid path is in the set of the valid path set:
-  "in the set" or "not in the set".
-- `values`: no vector of the group has this member.
-- `needs`: the group `memberships` uses no need, so this schema gives no
-  need names, and no vector of the group has this member.
+| field | type | meaning |
+|---|---|---|
+| `input.path` | string | valid `path` to test |
+| `input.path-set` | array of strings | valid `path-set`, holding its path set member `text` values in order (`[]` for the empty path set) |
+| `result` | string | `"in the set"` when `input.path` is in the set of `input.path-set` (`path-set-membership`), `"not in the set"` otherwise |
 
-Each time a conforming program decides whether the valid path is in the
-set of the valid path set, that conforming program gives the result that
-`result` holds, and no other result.
+@example Sample lines testing
+[decide-path-set-membership](sinter:#decide-path-set-membership=v1) with
+[path-set-membership](sinter:#path-set-membership=v1),
+[path](sinter:#path=v1), and [path-set](sinter:#path-set=v1)
+([vector-line](sinter:#vector-line=v1)):
 
 ```
 {"form":"#membership-vector=v1","group":"memberships","input":{"path":"docs/a.md","path-set":["docs/","!docs/old/"]},"result":"in the set"}
+{"form":"#membership-vector=v1","group":"memberships","input":{"path":"docs/old/a.md","path-set":["!docs/old/","docs/"]},"result":"not in the set"}
 ```
+
+## Safe file reads
+
+@spec file-reads=v1
+
+Reading a file by a valid path inside a directory tree resolves path
+segments from a root directory and decodes a regular file's bytes as
+UTF-8 text. A directory tree can hold directories, regular files,
+symbolic links, and files of another kind such as FIFO special files,
+under varying POSIX permissions and file-system behaviors.
+
+### Definitions
+
+#### Directory
+
+@term directory=v1
+@cites {
+    posix/2024,
+    text#{byte-sequence=v1, text=v1, utf-8-encoding=v1},
+}
+
+A **directory** is a file of the POSIX.1-2024 type directory that holds
+directory entries. Each **directory entry** pairs an **entry name** (a
+`byte-sequence`) with a file. No two directory entries of one directory
+share the same entry name. A directory **holds** a file when, and only
+when, that file is the file of a directory entry of that directory.
+
+For a program, the **listing** of a directory is the set of
+directory-entry names that the file system storing that directory would
+supply to the program's process if that process held POSIX.1-2024 read
+permission for that directory. The directory entries of a directory are
+the POSIX.1-2024 directory entries whose names appear in its listing,
+excluding any entry whose name is the `utf-8-encoding` of `.` or `..`.
+
+The **file of a directory entry** is the file that the file system finds
+for that entry name in that directory, as in POSIX.1-2024 pathname
+resolution that does not follow a symbolic link. Thus, the file of a
+directory entry can be a symbolic link.
+
+#### Directory tree
+
+@term directory-tree=v1
+@cites #{directory=v1}
+
+A **directory tree** is a `directory`—its **root**—together with the
+file of each directory entry of the root and, recursively, the file of
+each directory entry of each directory of the directory tree.
+
+#### File kind
+
+@term file-kind=v1
+@cites {posix/2024, #{directory=v1}, text#byte-sequence=v1}
+
+On a POSIX.1-2024 file system, the POSIX.1-2024 file type of each file
+places that file into one of four kinds:
+
+| kind | POSIX.1-2024 file type | what the file holds |
+|---|---|---|
+| directory | directory | directory entries (`directory`) |
+| **regular file** | regular file | a **content**, which is a `byte-sequence` |
+| **symbolic link** | symbolic link | a **reference**, which can lead to a file or to no file |
+| **file of another kind** | any other file type (such as a FIFO special file, character special file, block special file, or socket) | file-type-specific data rather than a content, directory entries, or a reference |
+
+#### Bytes read from a file
+
+@term read-byte=v1
+@cites {posix/2024, #{directory=v1, file-kind=v1}, text#byte-sequence=v1}
+
+An **attribute** of a file is a property of that file other than the
+content of a regular file, the directory entries of a `directory`, the
+reference of a symbolic link, and the data of a file of another kind
+(for example, the POSIX.1-2024 file type, size, mode, owner, timestamps,
+or extended attributes).
+
+A **byte that a program reads from a file** is a byte that the file
+holds or supplies and that the program copies into itself from any of
+these sources:
+
+- the content of a regular file;
+- the directory-entry names of a directory (as POSIX.1-2024 defines
+  directory entries);
+- the reference of a symbolic link;
+- the data of a file of another kind; or
+- the value of an extended attribute of the file.
+
+To **read bytes from a file** is to copy one or more such bytes into the
+program. Copying any other attribute of a file (such as POSIX.1-2024
+file type, size, mode, owner, or timestamps) reads no bytes from that
+file.
+
+#### Path resolution
+
+@term path-resolution=v1
+@cites {
+    #{path=v1, directory=v1, directory-tree=v1},
+    text#{byte-sequence=v1, utf-8-encoding=v1},
+}
+
+For a valid `path` in a `directory-tree`, **directory 1** is the root of
+the directory tree. For each 1-based `path-segment` `k` of the path,
+starting from `k = 1`:
+
+- When directory `k` exists and holds a directory entry whose entry name
+  equals the `utf-8-encoding` of path segment `k` (byte for byte), path
+  segment `k` **names** the file of that directory entry.
+- When path segment `k` names a file, that file is a `directory`, and
+  path segment `k` is not the last path segment of the path, that
+  directory is **directory `k + 1`**.
+
+A file system that ignores letter case, Unicode normalization
+differences, or trailing spaces does not cause a path segment to name a
+directory entry whose entry name in the directory's listing differs in
+bytes.
+
+The **files of the path** are the root of the directory tree and each
+file that a path segment of the path names in the directory tree. The
+**directories of the path** are the directories `k` that exist for the
+path in the directory tree.
+
+@example Suppose the root of a
+[directory tree](sinter:#directory-tree=v1) holds only a
+[regular file](sinter:#file-kind=v1) whose
+[directory entry](sinter:#directory=v1) has the entry name `a.md` (the
+[UTF-8 encoding](sinter:text#utf-8-encoding=v1) `0x61 0x2E 0x6D 0x64`).
+Even on a file system that ignores letter case, the valid
+[path](sinter:#path=v1) `A.md` names no file in the root because the
+listing of the root holds no entry name equal to `0x41 0x2E 0x6D 0x64`.
+Therefore, the files of the path `A.md` are only the root.
+
+#### File-read result
+
+@atom file-read-result=v1
+@cites {
+    posix/2024,
+    conformance#{input=v1, dependence=v1, resource-limit=v1},
+    #{
+        path=v1, directory=v1, directory-tree=v1, file-kind=v1,
+        path-resolution=v1,
+    },
+    text#{valid-utf-8=v1, utf-8-text=v1, utf-8-encoding=v1},
+}
+
+For a valid `path` of `m` path segments in a `directory-tree`, the
+**file-read result** for a program is one of six results: `"cannot read"`,
+`"no file"`, `"symbolic link"`, `"not a regular file"`, `"not UTF-8"`,
+or `"found"` (paired with a `utf-8-text`).
+
+Evaluating each 1-based `path-segment` `k` from `1` to `m` in turn
+(using directory `k` and the file named by path segment `k` from
+`path-resolution`), the first matching case determines the result:
+
+1. The program lacks POSIX.1-2024 search permission or read permission
+   for directory `k`: `"cannot read"`.
+2. Directory `k` holds no directory entry whose entry name equals the
+   `utf-8-encoding` of path segment `k`: `"no file"`.
+3. The file that path segment `k` names is a symbolic link:
+   `"symbolic link"`.
+4. Path segment `k` is not the last path segment (`k < m`) and the file
+   that path segment `k` names is not a `directory`: `"no file"`. (When
+   `k < m` and the named file is a directory, evaluation continues with
+   path segment `k + 1` in directory `k + 1`.)
+5. Path segment `k` is the last path segment (`k = m`) and the file that
+   path segment `k` names is a directory or a file of another kind:
+   `"not a regular file"`.
+6. Path segment `k` is the last path segment (`k = m`) and the file that
+   path segment `k` names is a regular file:
+   - If the program lacks POSIX.1-2024 read permission for that regular
+     file: `"cannot read"`.
+   - If the program holds read permission and the content of that
+     regular file is not `valid-utf-8`: `"not UTF-8"`.
+   - If the program holds read permission and the content of that
+     regular file is `valid-utf-8`: `"found"`, paired with the
+     `utf-8-text` of that content.
+
+In case 1, the directory entries of directory `k` are a part that the
+directory tree lacks for the program (`input`). In case 6, when the
+program lacks read permission for the regular file, the content of that
+regular file is a part that the directory tree lacks for the program
+(`input`). In addition, whenever a part of the directory tree that the
+result needs—such as the directory entries of a directory, the file type
+of a file, or the content of a regular file—is a part that the directory
+tree lacks (`input`), the result is `"cannot read"`. A valid directory
+tree can lack any such part.
+
+A bound on the length of a whole POSIX.1-2024 pathname or on the size of
+a file is a resource limit, not a missing part. By contrast, a system or
+file-system bound on the length of one entry name is not a resource
+limit: when the program holds POSIX.1-2024 search permission and read
+permission for directory `k` and the `utf-8-encoding` of path segment
+`k` exceeds that entry-name bound, directory `k` holds no directory
+entry for path segment `k`, and the result is `"no file"`.
+
+#### Directory tree object
+
+@term directory-tree-object=v1
+@cites {
+    rfc/8259,
+    posix/2024,
+    #{directory=v1, directory-tree=v1, file-kind=v1},
+    text#{
+        byte-sequence=v1, decimal-numeral=v1, hex-digit=v1, text=v1,
+        utf-8-encoding=v1,
+    },
+}
+
+A **file object** is a JSON object (RFC 8259) that represents a file and
+a program's permissions for that file. A **hex byte sequence** is a JSON
+string of two `hex-digit` characters per byte of a `byte-sequence` in
+order, high nibble (`byte / 16`) first and low nibble (`byte mod 16`)
+second (`""` for the empty byte sequence). **Byte-sequence pieces** are
+a JSON array of piece objects, each with two members: `bytes` (a hex
+byte sequence) and `times` (a JSON integer `>= 1` written as a
+`decimal-numeral`). The represented byte sequence concatenates each
+piece's `bytes` repeated `times` times in array order (`[]` for the
+empty byte sequence), and two piece arrays that expand to the same byte
+sequence represent the same content.
+
+Each file object has a required `type` member naming a POSIX.1-2024 file
+type, plus the type-specific member listed for that type:
+
+| `type` | type-specific member | constraints |
+|---|---|---|
+| `"directory"` | `entries` (JSON array of entry objects) | One entry object per directory entry (`[]` when empty), sorted in ascending lexicographic byte order of entry name (smaller byte first at the first differing byte; shorter prefix first) with no duplicate entry names. Each **entry object** has `name` (hex byte sequence: non-empty, no `0x00`, no `0x2F`, not the `utf-8-encoding` of `.` or `..`) and `file` (a file object). |
+| `"regular file"` | `content` (byte-sequence pieces) | Represents the regular file's content byte sequence. |
+| `"symbolic link"` | `reference` (hex byte sequence) | Non-empty and holds no `0x00`; resolves as in POSIX.1-2024 pathname resolution relative to the directory that holds the symbolic link. |
+| `"FIFO special file"` | none | Represents a POSIX.1-2024 FIFO special file (a file of another kind). |
+
+A file object can also hold up to four optional JSON boolean members,
+each present only when its value differs from its default (when absent,
+the default applies):
+
+| member | default | allowed `type` values | meaning |
+|---|---|---|---|
+| `read` | `true` | `"directory"`, `"regular file"`, `"FIFO special file"` | whether the program holds POSIX.1-2024 read permission for the file |
+| `search` | `true` | `"directory"` only | whether the program holds POSIX.1-2024 search permission for the directory |
+| `write` | `true` | `"directory"`, `"regular file"`, `"FIFO special file"` | whether the program holds POSIX.1-2024 write permission for the file |
+| `owned-by-other` | `false` | all four types | whether the POSIX.1-2024 owner user ID of the file differs from the process's effective user ID |
+
+Each file object, entry object, and piece object holds only the members
+defined for it, with no other members and no duplicate member names.
+
+A **directory tree object** is a file object whose `type` is
+`"directory"` and that is not the `file` member of any entry object. The
+**directory tree of a directory tree object** is the `directory-tree`
+whose root is the directory that the directory tree object represents;
+its files are the files represented by that directory tree object and
+the nested file objects within it, and no other files.
+
+A file system **stores the directory tree** of a directory tree object
+for a program's process (forming a **stored directory tree** for that
+process) while all of these conditions hold:
+
+1. The entire directory tree resides on that file system.
+2. The listing of each directory of the directory tree, for that
+   program, holds the entry name of each entry object in that
+   directory's file object and no other name except `.` and `..`.
+3. Each file of the directory tree has the POSIX.1-2024 file type,
+   content (for regular files), and reference (for symbolic links)
+   specified by its file object.
+4. For each file of the directory tree, the owner's POSIX.1-2024 user ID
+   differs from the process's effective user ID when, and only when,
+   `owned-by-other` for that file object is `true`.
+5. For each file other than a symbolic link, the process holds
+   POSIX.1-2024 read permission when, and only when, `read` is `true`,
+   and POSIX.1-2024 write permission when, and only when, `write` is
+   `true`; for each directory, the process holds POSIX.1-2024 search
+   permission when, and only when, `search` is `true`.
+
+### Reading files
+
+@req read-file=v1
+@cites {
+    conformance#{
+        conforming-program=v1, input=v1, dependence=v1, report=v1,
+        report-missing-parts=v1,
+    },
+    #{path=v1, directory-tree=v1, file-kind=v1, file-read-result=v1},
+    text#text=v1,
+}
+
+When reading a `text` as a path in a `directory-tree`, a conforming
+program must act as follows:
+
+- When the text is not a valid `path`, the program must return
+  `"invalid"`.
+- When the text is a valid `path` and no other process modifies the
+  directory tree during the read, the program must return the
+  `file-read-result` of that path in that directory tree.
+- When the result is `"cannot read"`, returning `"cannot read"` once for
+  that read is the report under `report-missing-parts` for every part
+  that the directory tree lacks and that the result needs.
+- Whenever a file read returns any result other than `"found"`, the
+  program must return no file content text.
+
+@example A `"found"` [file-read result](sinter:#file-read-result=v1)
+carries the [regular file](sinter:#file-kind=v1)'s
+[UTF-8 text](sinter:text#utf-8-text=v1) unchanged: bytes
+`0xEF 0xBB 0xBF 0x78` keep the leading U+FEFF, bytes
+`0x61 0x0D 0x0A 0x62` keep the carriage return, and bytes
+`0x65 0xCC 0x81` stay `e` followed by U+0301 rather than U+00E9.
+
+### Following no symbolic links
+
+@req follow-no-symbolic-links=v1
+@cites {
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    #{directory-tree=v1, file-kind=v1},
+    text#text=v1,
+}
+
+When reading a text as a path in a directory tree, a conforming program
+must never follow a symbolic link of the directory tree or resolve any
+file through a symbolic link's reference.
+
+### Reading only named files
+
+@req read-only-named-files=v1
+@cites {
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    #{
+        path=v1, directory=v1, directory-tree=v1, file-kind=v1,
+        read-byte=v1, path-resolution=v1,
+    },
+    text#text=v1,
+}
+
+When reading a valid `path` in a directory tree, a conforming program
+must read bytes only from the directories of the path and from the
+regular file that the last path segment names. When reading a text that
+is not a valid `path`, a conforming program must read no bytes from any
+file.
+
+### Avoiding blocking on special files
+
+@req avoid-blocking-on-special-files=v1
+@cites {
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    #{directory-tree=v1, file-kind=v1},
+    text#text=v1,
+}
+
+When reading a text as a path in a directory tree, a conforming program
+must never block on a file of another kind in the directory tree to wait
+for another process or a device, such as for a process to open the other
+end of a FIFO special file.
+
+### Keeping directory trees unchanged
+
+@req keep-directory-trees-unchanged=v1
+@cites {
+    posix/2024,
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    #{directory-tree=v1},
+    text#text=v1,
+}
+
+When reading a text as a path in a directory tree, a conforming program
+must never modify any file of the directory tree, apart from automatic
+metadata updates that the file system makes on its own when the program
+accesses that file, such as an update to the time of last access.
+
+### Gaining no privileges
+
+@req gain-no-privileges=v1
+@cites {
+    posix/2024,
+    conformance#{conforming-program=v1, safety-obligation=v1},
+    #{directory-tree=v1},
+    text#text=v1,
+}
+
+When reading a text as a path in a directory tree, a conforming program
+must use only the POSIX.1-2024 permissions and appropriate privileges
+that its process holds without a change by the program.
+
+### Test vectors
+
+@schema file-read-vector=v1
+@cites {
+    posix/2024,
+    conformance#safety-obligation=v1,
+    #{
+        vector-line=v1, read-file=v1, directory-tree=v1, file-kind=v1,
+        file-read-result=v1, directory-tree-object=v1,
+    },
+    text#{text=v1, valid-utf-8=v1, decimal-numeral=v1},
+}
+
+Group `file-reads` in [files.test-vectors.jsonl](files.test-vectors.jsonl)
+tests `read-file`. Each line conforms to `vector-line`.
+
+A runner executes each non-skipped vector under these conditions:
+
+- A file system stores the `directory-tree` of `input.tree` for the
+  program's process (`directory-tree-object`) from setup through the end
+  of the read.
+- No other process modifies the directory tree or opens any FIFO special
+  file in the directory tree during the read (if a read fails to return
+  a result within the runner's time limit, the vector fails).
+- During the read, including while reaching the root, the system refuses
+  no permission beyond those removed by `input.tree`, reports no I/O
+  error, and offers an operation that lets the program read every needed
+  part while keeping every safety obligation.
+
+| field | type | meaning |
+|---|---|---|
+| `input.text` | string | `text` passed as the path to read |
+| `input.tree` | `directory-tree-object` | JSON representation of the stored `directory-tree` |
+| `result` | string | `"invalid"`, or the `file-read-result` (`"found"`, `"no file"`, `"symbolic link"`, `"not a regular file"`, `"not UTF-8"`, or `"cannot read"`) |
+| `values.text` | array (optional) | expected file content `text` encoded as text pieces when `result` is `"found"`; absent (`values` is `{}`) for every other `result` |
+| `needs` | array of strings (optional) | need names from the needs table of this group |
+
+In `values.text`, **text pieces** are a JSON array of piece objects,
+each with `text` (a JSON string) and `times` (a JSON integer `>= 1`
+written as a `decimal-numeral`). The represented `text` concatenates
+each piece's `text` repeated `times` times in array order (`[]` for the
+empty text). Two piece arrays that expand to the same text represent the
+same text.
+
+Only these four need names are valid in `needs` for group `file-reads`:
+
+| need | environment condition | when a vector carries this need |
+|---|---|---|
+| `names-kept` | The file system keeps every entry name of `input.tree` byte for byte without modification (such as Unicode normalization). | An entry name in `input.tree` is `valid-utf-8` and holds a byte `>= 0x80`. |
+| `no-privilege` | The program's process holds no POSIX.1-2024 appropriate privilege that grants a permission removed by `input.tree`. | A file object in `input.tree` sets `read`, `search`, or `write` to `false`. |
+| `non-utf-8-names` | The file system keeps every non-UTF-8 entry name of `input.tree` byte for byte. | An entry name in `input.tree` is not `valid-utf-8`. |
+| `other-owner` | Each file whose file object sets `owned-by-other` to `true` has a POSIX.1-2024 owner user ID different from the process's effective user ID. | A file object in `input.tree` sets `owned-by-other` to `true`. |
+
+@example Sample lines testing [read-file](sinter:#read-file=v1) with
+[file-read-result](sinter:#file-read-result=v1) and
+[directory-tree-object](sinter:#directory-tree-object=v1)
+([vector-line](sinter:#vector-line=v1)):
+
+```
+{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"a.md","tree":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"type":"directory"}},"result":"found","values":{"text":[{"text":"hi","times":1}]}}
+{"form":"#file-read-vector=v1","group":"file-reads","input":{"text":"docs/a.md","tree":{"entries":[{"file":{"entries":[{"file":{"content":[{"bytes":"6869","times":1}],"type":"regular file"},"name":"612e6d64"}],"search":false,"type":"directory"},"name":"646f6373"}],"type":"directory"}},"needs":["no-privilege"],"note":"the program has no search permission for directory 2, `docs`","result":"cannot read","values":{}}
+```
+
+## Test vectors
+
+@schema vector-line=v1
+@cites {
+    rfc/8259,
+    conformance#{design=v1, conforming-program=v1, input=v1},
+    text#{
+        canonical-vector-line=v1, byte-sequence=v1, valid-utf-8=v1,
+        utf-8-text=v1, character=v1, text=v1, line=v1,
+        decimal-numeral=v1, code-point-order=v1,
+    },
+}
+
+The test-vector file [files.test-vectors.jsonl](files.test-vectors.jsonl)
+of this design is a `valid-utf-8` `byte-sequence` that holds zero or more
+vector lines. Its `utf-8-text` does not start with a byte order mark
+(U+FEFF), holds no carriage return (U+000D), and has no empty `line`.
+When the file is non-empty, its `utf-8-text` ends with a single line feed
+(U+000A). Only a line feed ends a line of the file; `character` values
+U+0085, U+2028, and U+2029 can appear inside JSON strings and do not end
+a line.
+
+Each line of the file is a **vector line**: an RFC 8259 JSON object that
+conforms to `canonical-vector-line` and holds only these members. All
+vector lines in the file with the same `group` name the same
+`#<schema-name>` in `form` (their revision labels can differ).
+
+| field | type | meaning |
+|---|---|---|
+| `form` | string | `"#<schema-name>=v<n>"`, naming a group schema of this design, where `<n>` is the `decimal-numeral` of a positive integer (so `v<n>` is `v1`, `v2`, and so on) |
+| `group` | string | name of the vector group |
+| `input` | JSON value | the input handed to a conforming program, in the form defined by the group schema |
+| `needs` | array of strings (optional) | one or more need names defined by the group schema, sorted in `code-point-order` with no duplicates; omitted when the vector has no needs |
+| `note` | string (optional) | non-normative explanation; ignored by conforming programs |
+| `result` | string | expected result string that a conforming program returns for the input |
+| `values` | object (optional) | expected outputs defined by the group schema; `{}` when the program returns none of those outputs; omitted when the group defines no outputs beyond `result` |
+
+Unless a group schema specifies a different form, a `text` appears as a
+JSON string that holds its characters in order, and a sequence appears as
+a JSON array of its elements in order. When a group schema defines a JSON
+object, that object holds only the members that the group schema names.
+
+A **need** is an environment condition of a vector run that a runner can
+be unable to satisfy. Each group schema lists the need names that its
+group uses, together with the condition that each need name identifies; a
+need name identifies the same condition in every group schema of this
+design. When all three of these conditions hold, a skip of a vector makes
+no conformance judgment for that vector:
+
+- the runner cannot satisfy a need that the vector's group schema defines;
+- the vector's `needs` array lists that need name; and
+- the runner reports that unmet need.
+
+Every other skip of a vector counts as a failure of the program on that
+vector.
