@@ -195,6 +195,37 @@ let refuses_an_unknown_wasm_kind () =
     (malformed "a grammar error has the kind 4")
     (error_message (fun () -> Decode.language_error (failure [ 1; 4 ] "m")))
 
+(* @cites rust-bridge
+   Decode.query_error decodes a query compilation failure buffer for each
+   Query.kind value that the bridge writes (codes 0 through 6), including
+   Query.Language (code 6), where row, column, and offset are 0. The test fails
+   when any documented query error kind fails to decode to its matching
+   Query.Invalid value. *)
+let decodes_each_query_error_kind () =
+  let cases =
+    [
+      (0, B.Query.Syntax, 1, 2, 3);
+      (1, B.Query.Node_type, 1, 2, 3);
+      (2, B.Query.Field, 1, 2, 3);
+      (3, B.Query.Capture, 1, 2, 3);
+      (4, B.Query.Predicate, 1, 0, 0);
+      (5, B.Query.Structure, 1, 2, 3);
+      (6, B.Query.Language, 0, 0, 0);
+    ]
+  in
+  List.iter
+    (fun (code, kind, row, column, offset) ->
+      let expected =
+        B.Query.Invalid { kind; row; column; offset; message = "m" }
+      in
+      let given =
+        Decode.query_error (failure [ 5; code; row; column; offset ] "m")
+      in
+      Alcotest.(check bool)
+        (Printf.sprintf "query error kind %d" code)
+        true (given = expected))
+    cases
+
 let refuses_an_unknown_query_kind () =
   Alcotest.(check string)
     "the message names the kind"
@@ -247,6 +278,29 @@ let refuses_a_size_that_does_not_fit_an_int () =
     (Decode.adapter_error (with_size (Int64.of_int max_int))
     = B.Adapter.Memory_limit max_int)
 
+(* @cites rust-bridge
+   Each decoder in Sinter_bridge.Decode takes one whole buffer of its kind and
+   raises Error for any other bytes. A failure buffer that ends inside the
+   64-bit size field of Memory_limit (code 11), Alloc (code 12), or
+   Response_outside_memory (code 13) is not one whole buffer of a failure.
+   Decode.adapter_error raises Error for each of these short buffers. *)
+let refuses_a_failure_cut_inside_a_size () =
+  let cases =
+    [
+      ("Memory_limit cut before size", buffer ~kind:5 [ 11 ]);
+      ("Memory_limit cut inside size", buffer ~kind:5 [ 11; 0 ] ^ "\000\000\000");
+      ("Alloc cut inside memory_size", buffer ~kind:5 [ 12; 0; 0; 0; 0 ]);
+      ( "Response_outside_memory cut inside memory_size",
+        buffer ~kind:5 [ 13; 0; 0; 0 ] );
+    ]
+  in
+  List.iter
+    (fun (label, b) ->
+      Alcotest.(check bool)
+        label true
+        (raises_error (fun () -> Decode.adapter_error b)))
+    cases
+
 let names_a_failure_of_another_family () =
   Alcotest.(check string)
     "the message says the failure does not belong"
@@ -278,6 +332,8 @@ let tests =
     Alcotest.test_case "refuses an unknown code" `Quick refuses_an_unknown_code;
     Alcotest.test_case "refuses an unknown wasm kind" `Quick
       refuses_an_unknown_wasm_kind;
+    Alcotest.test_case "decodes each query error kind" `Quick
+      decodes_each_query_error_kind;
     Alcotest.test_case "refuses an unknown query kind" `Quick
       refuses_an_unknown_query_kind;
     Alcotest.test_case "refuses an unknown input" `Quick
@@ -290,6 +346,8 @@ let tests =
       refuses_a_missing_export_with_two_names;
     Alcotest.test_case "refuses a size that does not fit an int" `Quick
       refuses_a_size_that_does_not_fit_an_int;
+    Alcotest.test_case "refuses a failure cut inside a size" `Quick
+      refuses_a_failure_cut_inside_a_size;
     Alcotest.test_case "names a failure of another family" `Quick
       names_a_failure_of_another_family;
     Alcotest.test_case "names the count of a report buffer with two records"

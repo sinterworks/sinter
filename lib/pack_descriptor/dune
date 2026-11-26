@@ -1,0 +1,12 @@
+; SPDX-License-Identifier: Apache-2.0
+; Copyright 2026 The Sinter Authors
+
+(library
+ (name sinter_pack_descriptor)
+ (public_name sinter.pack_descriptor)
+ (libraries sinter_data_forms_toml sinter_hashes sinter_paths sinter_text)
+ (private_modules forms)
+ (instrumentation
+  (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml)))

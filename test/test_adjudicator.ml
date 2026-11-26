@@ -427,6 +427,40 @@ let a_slug_with_two_tombstones_leaves_the_edge_dangling () =
          ("docs/use.md", "# Use\n\n@cites a v1\n");
        ])
 
+let renamed_counts_only_new_declarations () =
+  Alcotest.check strings
+    "a declaration of the base with the extent hash of the tombstone is not new"
+    [
+      "docs/use.md:3 | finding:dangling:cites:site:docs/use.md#use->a | no \
+       declaration has the slug a";
+    ]
+    (with_tree_findings
+       [
+         ("docs/spec.md", "# Spec\n\n@req a v1 Same.\n");
+         ("docs/kept.md", "# Spec\n\n@req b v1 Same.\n");
+         ("docs/use.md", "# Use\n\n@cites a v1\n");
+       ]
+       [
+         ("docs/kept.md", "# Spec\n\n@req b v1 Same.\n");
+         ("docs/use.md", "# Use\n\n@cites a v1\n");
+       ]);
+  Alcotest.check strings
+    "a declaration whose slug the base declares with another kind is new"
+    [
+      "docs/use.md:3 | finding:renamed:cites:site:docs/use.md#use->a | the \
+       base declares req:a, and req:b has its extent now | fix: @cites b v2";
+    ]
+    (with_tree_findings
+       [
+         ("docs/spec.md", "# Spec\n\n@req a v1 Same.\n");
+         ("docs/other.md", "# Other\n\n@design b v1 Other.\n");
+         ("docs/use.md", "# Use\n\n@cites a v1\n");
+       ]
+       [
+         ("docs/other.md", "# Spec\n\n@req b v2 Same.\n");
+         ("docs/use.md", "# Use\n\n@cites a v1\n");
+       ])
+
 let a_new_promise_of_a_slug_of_the_base_collides () =
   let plan steps = "# P\n\n@plan p\n@scope docs/**\n\n" ^ steps in
   Alcotest.check strings "the findings"
@@ -1433,6 +1467,8 @@ let tests =
       two_candidates_leave_the_edge_dangling;
     case "a slug with two tombstones leaves the edge dangling"
       a_slug_with_two_tombstones_leaves_the_edge_dangling;
+    case "renamed counts only new declarations"
+      renamed_counts_only_new_declarations;
     case "a new promise of a slug of the base collides"
       a_new_promise_of_a_slug_of_the_base_collides;
     case "the same plan across the base holds its promises"

@@ -54,6 +54,14 @@ if ! command -v cmake >/dev/null 2>&1; then
   exit 1
 fi
 
+channel=$(sed -n 's/^channel *= *"\([^"]*\)" *$/\1/p' "$crate/rust-toolchain.toml")
+if [ -z "$channel" ]; then
+  echo "The bridge names no Rust toolchain channel in rust-toolchain.toml." >&2
+  exit 1
+fi
+RUSTUP_TOOLCHAIN=$channel
+export RUSTUP_TOOLCHAIN
+
 log=$target/native-static-libs.log
 mkdir -p "$target"
 

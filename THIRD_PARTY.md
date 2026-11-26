@@ -6,11 +6,13 @@ release binary, the components that are checked into the repository,
 and the components that the test suite links. Each row of a table
 gives one component, the license of that component, and a link.
 
-The parser bridge pins its Rust dependencies in `bridge/Cargo.lock`.
-That file names every crate and its version, and the tables below do
-not repeat it. The licensing workflow reads the license of every crate
-in that lock file and fails on a forbidden one. Some rows below are
-components that the design expects and the project does not pin yet.
+The parser bridge pins its Rust dependencies in `bridge/Cargo.lock`,
+and the WebAssembly engine pins its Rust dependencies in
+`wasm_engine/Cargo.lock`. These files name every crate and its version,
+and the tables below do not repeat them. The licensing workflow reads
+the license of every crate in each of these lock files and fails on a
+forbidden one. Some rows below are components that the design expects
+and the project does not pin yet.
 
 | component | license | link |
 |---|---|---|
@@ -18,8 +20,18 @@ components that the design expects and the project does not pin yet.
 | yojson | BSD-3-Clause | https://github.com/ocaml-community/yojson |
 | fmt | ISC | https://erratique.ch/software/fmt |
 | uucp | ISC | https://erratique.ch/software/uucp |
+| cmarkit | ISC | https://github.com/dbuenzli/cmarkit |
+| digestif | MIT | https://github.com/mirage/digestif |
+| eqaf (a dependency of digestif) | MIT | https://github.com/mirage/eqaf |
+| decompress | MIT | https://github.com/mirage/decompress |
+| checkseum (a dependency of decompress) | MIT | https://github.com/mirage/checkseum |
+| optint (a dependency of decompress) | ISC | https://github.com/mirage/optint |
 | wasmtime | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
-| tree-sitter runtime | MIT | https://github.com/tree-sitter/tree-sitter |
+| tree-sitter runtime, the Rust crate of the parser bridge | MIT | https://github.com/tree-sitter/tree-sitter |
+| tree-sitter C library, release v0.27.2, compiled to WebAssembly into the binary from the submodule `third_party/tree-sitter` | MIT | https://github.com/tree-sitter/tree-sitter |
+| musl, the string and character functions that tree-sitter's `lib/src/wasm-stdlib/libc/` copies from wasi-libc, with their license in that directory, compiled with the tree-sitter C library | MIT | https://musl.libc.org/ |
+| QuickJS, its files `libregexp.c`, `libunicode.c`, and `cutils.c` with their headers, at commit e585640f, compiled into the binary from the submodule `third_party/quickjs` | MIT | https://github.com/bellard/quickjs |
+| Unicode Character Database 17.0.0, the version that QuickJS's `unicode_download.sh` names, as the tables that QuickJS generated from it into `libunicode-table.h` | Unicode-3.0 | https://www.unicode.org/license.txt |
 | tree-sitter-markdown block grammar, release v0.5.4, embedded in the binary; the file and its license are in `lib/markdown/` | MIT | https://github.com/tree-sitter-grammars/tree-sitter-markdown |
 | cranelift (a dependency of wasmtime) | Apache-2.0 WITH LLVM-exception | https://github.com/bytecodealliance/wasmtime |
 | jq (only if bundled) | MIT | https://github.com/jqlang/jq |
@@ -48,3 +60,4 @@ release binary, and the release notices do not name them.
 | qcheck | BSD-2-Clause | https://github.com/c-cube/qcheck |
 | qcheck-alcotest | BSD-2-Clause | https://github.com/c-cube/qcheck |
 | yojson | BSD-3-Clause | https://github.com/ocaml-community/yojson |
+| wasm, the reference interpreter of the WebAssembly Core Specification 2.0 | Apache-2.0 | https://github.com/WebAssembly/spec |

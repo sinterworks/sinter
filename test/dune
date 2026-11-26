@@ -10,18 +10,81 @@
   %{exe:../bin/main.exe}
   %{exe:../bench/generate.exe}
   %{exe:../bench/run.exe}
+  wait_probe/wait_probe.exe
   (glob_files_rec fixtures/*)
+  %{workspace_root}/lib/markdown/tree-sitter-markdown.wasm
   (glob_files ../spec/*.md)
+  (glob_files ../docs/designs/*.test-vectors.jsonl)
+  (glob_files ../lib/branch_names/*)
+  (glob_files ../lib/commit_graphs/*)
+  (glob_files ../lib/git_model/*)
+  (glob_files ../lib/line_maps/*)
+  (glob_files ../lib/repository_files/*)
+  (glob_files ../lib/git_objects/*)
+  (glob_files ../lib/wildmatch/*)
+  (glob_files ../lib/ref_names/*)
+  (glob_files ../lib/git_config/*)
+  (glob_files ../lib/git_refs/*)
+  (glob_files ../lib/git_object_store/*)
   (source_tree cases)
   (env_var SINTER_PROMOTE))
  (libraries
   sinter_core
   sinter_bridge
+  sinter_text
+  sinter_id_patterns
+  sinter_identifiers
+  sinter_inline_citations
+  sinter_paths
+  sinter_file_read
+  sinter_json_lines
+  sinter_hashes
+  sinter_hash_ids
+  sinter_test_vectors
+  sinter_toml
+  sinter_data_forms_toml
+  sinter_tree
+  sinter_spots
+  sinter_findings
+  sinter_branch_names
+  sinter_line_maps
+  sinter_commit_graphs
+  sinter_git_model
+  sinter_file_readers
+  sinter_origins
+  sinter_tag_inputs
+  sinter_markdown_limits
+  sinter_markdown_tag_texts
+  sinter_readings
+  sinter_code_tag_texts
+  sinter_tree_inputs
+  sinter_tree_items
+  sinter_ledger_lines
+  sinter_ledger_trees
+  sinter_ledger_sync
+  sinter_repository_files
+  sinter_git_objects
+  sinter_wildmatch
+  sinter_ref_names
+  sinter_git_config
+  sinter_git_refs
+  sinter_git_object_store
+  sinter_packs
+  sinter_pack_descriptor
+  sinter_adapter_protocol
+  sinter_wasm_engine
+  sinter_adapters
+  sinter_ecma_pattern
+  sinter_grammars
+  digestif.c
+  decompress.de
+  decompress.zl
   git_fixture
   sinter_bench
   alcotest
   qcheck-core
   qcheck-alcotest
+  wasm
   yojson
   unix))
 

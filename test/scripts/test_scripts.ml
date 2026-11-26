@@ -180,6 +180,7 @@ let standard =
         };
         program "bench/.generate.eobjs" "Generate" [];
         program "bench/.run.eobjs" "Run" [];
+        program "test/wait_probe/.wait_probe.eobjs" "Wait_probe" [];
         {
           objects = "test/.test_sinter.eobjs";
           name = "Dune__exe";

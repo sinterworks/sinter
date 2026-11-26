@@ -151,10 +151,20 @@ compiler that `sinter.opam.locked` pins, 5.5.2, for example with
 `opam switch create 5.5.2`. The install below fails on any other
 compiler. The parser bridge in `bridge/` is a Rust crate, so also
 install the Rust toolchain with [rustup](https://rustup.rs) and
-install `cmake`, which a build script of wasmtime runs. Then, from the
-repository root:
+install `cmake`, which a build script of wasmtime runs. The build
+reads the C sources of tree-sitter and QuickJS from the git
+submodules under `third_party/`: run `git submodule update --init`
+once in each clone. The build compiles the core of the grammars (the
+WebAssembly module that holds tree-sitter's C library) from
+`lib/grammars/core/` with a `clang` that has the WebAssembly back end
+(the target `wasm32`). The build takes the compiler from the variable
+`SINTER_WASM_CC`, or `clang` when it is not set. The `clang` of Xcode
+can lack that back end; on macOS, install LLVM's clang with
+`brew install llvm`, and set `SINTER_WASM_CC` to
+`$(brew --prefix llvm)/bin/clang`. Then, from the repository root:
 
 ```
+git submodule update --init
 eval $(opam env --switch=5.5.2)
 opam install . --deps-only --with-test --with-dev-setup --locked
 dune build
@@ -174,7 +184,7 @@ Before you commit, check that all of these pass:
   rewrites files in place; commit the files it changes.
 - `reuse lint`. Install the tool once, for example with
   `pipx install reuse`.
-- In `bridge/`: `cargo fmt --check` and
+- In `bridge/` and in `wasm_engine/`: `cargo fmt --check` and
   `cargo clippy --all-targets -- -D warnings`.
 
 CI runs all of them.
@@ -200,6 +210,13 @@ done
 
 A directory with no `checkout` file predates the file; remove it by
 hand, and the next build writes a new one.
+
+The dune rule that builds the WebAssembly engine in `wasm_engine/` keeps
+its build output in a directory of its own in the same place, by the
+same rule. Each of the two rules builds with the toolchain channel that
+the file `rust-toolchain.toml` of its crate names, and `dune test` fails
+when the two files name different channels: Rust archives from two
+toolchains do not link into one executable.
 
 ### Coverage
 
