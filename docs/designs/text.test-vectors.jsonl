@@ -35,65 +35,65 @@
 {"form":"#encode-vector=v1","group":"encode","input":"😀","values":{"encoding":"f09f9880"}}
 {"form":"#encode-vector=v1","group":"encode","input":"􏿿","values":{"encoding":"f48fbfbf"}}
 {"form":"#encode-vector=v1","group":"encode","input":"a\r\n","values":{"encoding":"610d0a"}}
-{"form":"#line-vector=v1","group":"lines","input":"a","values":{"runs":[{"from":0,"to":1}],"texts":["a"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\nb","values":{"runs":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\n","values":{"runs":[{"from":0,"to":1}],"texts":["a"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\n\n","values":{"runs":[{"from":0,"to":1},{"from":2,"to":2}],"texts":["a",""]}}
-{"form":"#line-vector=v1","group":"lines","input":"\n","values":{"runs":[{"from":0,"to":0}],"texts":[""]}}
-{"form":"#line-vector=v1","group":"lines","input":"\n\n","values":{"runs":[{"from":0,"to":0},{"from":1,"to":1}],"texts":["",""]}}
-{"form":"#line-vector=v1","group":"lines","input":"","values":{"runs":[],"texts":[]}}
-{"form":"#line-vector=v1","group":"lines","input":"﻿","values":{"runs":[],"texts":[]}}
-{"form":"#line-vector=v1","group":"lines","input":"﻿\n","values":{"runs":[{"from":1,"to":1}],"texts":[""]}}
-{"form":"#line-vector=v1","group":"lines","input":"﻿x","values":{"runs":[{"from":1,"to":2}],"texts":["x"]}}
-{"form":"#line-vector=v1","group":"lines","input":"ab\r\nc","values":{"runs":[{"from":0,"to":2},{"from":4,"to":5}],"texts":["ab","c"]}}
-{"form":"#line-vector=v1","group":"lines","input":"ab\r\n","values":{"runs":[{"from":0,"to":2}],"texts":["ab"]}}
-{"form":"#line-vector=v1","group":"lines","input":"\r\n","values":{"runs":[{"from":0,"to":0}],"texts":[""]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\r","values":{"runs":[{"from":0,"to":2}],"texts":["a\r"]}}
-{"form":"#line-vector=v1","group":"lines","input":"\tx ","values":{"runs":[{"from":0,"to":3}],"texts":["\tx "]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\u000bb","values":{"runs":[{"from":0,"to":3}],"texts":["a\u000bb"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a\fb","values":{"runs":[{"from":0,"to":3}],"texts":["a\fb"]}}
-{"form":"#line-vector=v1","group":"lines","input":"ab","values":{"runs":[{"from":0,"to":3}],"texts":["ab"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a b","values":{"runs":[{"from":0,"to":3}],"texts":["a b"]}}
-{"form":"#line-vector=v1","group":"lines","input":"a b","values":{"runs":[{"from":0,"to":3}],"texts":["a b"]}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":1,"text":"abc"},"values":{"position":{"column":1,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"abc"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"a\nb"},"values":{"position":{"column":2,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"a\nb"},"values":{"position":{"column":1,"line":2}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":1,"text":"\n"},"values":{"position":{"column":1,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"\n\n"},"values":{"position":{"column":1,"line":2}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"ab\r\nc"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":4,"text":"ab\r\nc"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":5,"text":"ab\r\nc"},"values":{"position":{"column":1,"line":2}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":4,"text":"aa\r\nb"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"﻿x"},"values":{"position":{"column":1,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"﻿\n"},"values":{"position":{"column":1,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"éx"},"values":{"position":{"column":2,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"éx"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"😀x"},"values":{"position":{"column":2,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":2,"text":"\tx"},"values":{"position":{"column":2,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"a b"},"values":{"position":{"column":3,"line":1}}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":7,"text":"ab\nc\nde"},"values":{"position":{"column":2,"line":3}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":2},"text":"abc"},"values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":3},"text":"abc"},"values":{"end":{"column":4,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":4},"text":"ab\ncd"},"values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":5},"text":"ab\r\ncd"},"values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":4},"text":"ab\r\ncd"},"note":"the line ending does not move the end","values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":7},"text":"ab\r\ncd\n"},"values":{"end":{"column":3,"line":2},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":2},"text":"\nx"},"values":{"end":{"column":2,"line":2},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":3},"text":"a\n\nb"},"values":{"end":{"column":2,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":3},"text":"﻿ab"},"values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":2},"text":"éx"},"values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":3,"to":3},"text":"a ="},"note":"an empty span after the last character","values":{"end":{"column":4,"line":1},"start":{"column":4,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":0},"text":"a ="},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":1},"text":"a\n"},"values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":2},"text":"a\n"},"note":"no place of the span is a place of a line","values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":2,"to":2},"text":"a\n"},"note":"the boundary where the body ends, after a line ending","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":1},"text":"\n\n"},"values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":2,"to":2},"text":"\n\n"},"values":{"end":{"column":1,"line":3},"start":{"column":1,"line":3}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":3,"to":3},"text":"ab\r\ncd"},"note":"the boundary between the carriage return and the line feed","values":{"end":{"column":3,"line":1},"start":{"column":3,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":4,"to":4},"text":"ab\r\ncd"},"values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":0,"to":0},"text":""},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
-{"form":"#span-vector=v1","group":"spans","input":{"run":{"from":1,"to":1},"text":"﻿"},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#line-vector=v1","group":"lines","input":"a","values":{"slices":[{"from":0,"to":1}],"texts":["a"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\nb","values":{"slices":[{"from":0,"to":1},{"from":2,"to":3}],"texts":["a","b"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\n","values":{"slices":[{"from":0,"to":1}],"texts":["a"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\n\n","values":{"slices":[{"from":0,"to":1},{"from":2,"to":2}],"texts":["a",""]}}
+{"form":"#line-vector=v1","group":"lines","input":"\n","values":{"slices":[{"from":0,"to":0}],"texts":[""]}}
+{"form":"#line-vector=v1","group":"lines","input":"\n\n","values":{"slices":[{"from":0,"to":0},{"from":1,"to":1}],"texts":["",""]}}
+{"form":"#line-vector=v1","group":"lines","input":"","values":{"slices":[],"texts":[]}}
+{"form":"#line-vector=v1","group":"lines","input":"﻿","values":{"slices":[],"texts":[]}}
+{"form":"#line-vector=v1","group":"lines","input":"﻿\n","values":{"slices":[{"from":1,"to":1}],"texts":[""]}}
+{"form":"#line-vector=v1","group":"lines","input":"﻿x","values":{"slices":[{"from":1,"to":2}],"texts":["x"]}}
+{"form":"#line-vector=v1","group":"lines","input":"ab\r\nc","values":{"slices":[{"from":0,"to":2},{"from":4,"to":5}],"texts":["ab","c"]}}
+{"form":"#line-vector=v1","group":"lines","input":"ab\r\n","values":{"slices":[{"from":0,"to":2}],"texts":["ab"]}}
+{"form":"#line-vector=v1","group":"lines","input":"\r\n","values":{"slices":[{"from":0,"to":0}],"texts":[""]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\r","values":{"slices":[{"from":0,"to":2}],"texts":["a\r"]}}
+{"form":"#line-vector=v1","group":"lines","input":"\tx ","values":{"slices":[{"from":0,"to":3}],"texts":["\tx "]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\u000bb","values":{"slices":[{"from":0,"to":3}],"texts":["a\u000bb"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a\fb","values":{"slices":[{"from":0,"to":3}],"texts":["a\fb"]}}
+{"form":"#line-vector=v1","group":"lines","input":"ab","values":{"slices":[{"from":0,"to":3}],"texts":["ab"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a b","values":{"slices":[{"from":0,"to":3}],"texts":["a b"]}}
+{"form":"#line-vector=v1","group":"lines","input":"a b","values":{"slices":[{"from":0,"to":3}],"texts":["a b"]}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":1,"text":"abc"},"values":{"position":{"column":1,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"abc"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"a\nb"},"values":{"position":{"column":2,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"a\nb"},"values":{"position":{"column":1,"line":2}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":1,"text":"\n"},"values":{"position":{"column":1,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"\n\n"},"values":{"position":{"column":1,"line":2}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"ab\r\nc"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":4,"text":"ab\r\nc"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":5,"text":"ab\r\nc"},"values":{"position":{"column":1,"line":2}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":4,"text":"aa\r\nb"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"﻿x"},"values":{"position":{"column":1,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"﻿\n"},"values":{"position":{"column":1,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"éx"},"values":{"position":{"column":2,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"éx"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"😀x"},"values":{"position":{"column":2,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":2,"text":"\tx"},"values":{"position":{"column":2,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"a b"},"values":{"position":{"column":3,"line":1}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":7,"text":"ab\nc\nde"},"values":{"position":{"column":2,"line":3}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":2},"text":"abc"},"values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":3},"text":"abc"},"values":{"end":{"column":4,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":4},"text":"ab\ncd"},"values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":5},"text":"ab\r\ncd"},"values":{"end":{"column":2,"line":2},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":4},"text":"ab\r\ncd"},"note":"the line ending does not move the end","values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":7},"text":"ab\r\ncd\n"},"values":{"end":{"column":3,"line":2},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":2},"text":"\nx"},"values":{"end":{"column":2,"line":2},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":3},"text":"a\n\nb"},"values":{"end":{"column":2,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":3},"text":"﻿ab"},"values":{"end":{"column":3,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":2},"text":"éx"},"values":{"end":{"column":3,"line":1},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":3,"to":3},"text":"a ="},"note":"an empty span after the last character","values":{"end":{"column":4,"line":1},"start":{"column":4,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":0},"text":"a ="},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":1},"text":"a\n"},"values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":2},"text":"a\n"},"note":"no character index of the span belongs to a line","values":{"end":{"column":2,"line":1},"start":{"column":2,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":2,"to":2},"text":"a\n"},"note":"the boundary where the body ends, after a line ending","values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":1},"text":"\n\n"},"values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":2,"to":2},"text":"\n\n"},"values":{"end":{"column":1,"line":3},"start":{"column":1,"line":3}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":3,"to":3},"text":"ab\r\ncd"},"note":"the boundary between the carriage return and the line feed","values":{"end":{"column":3,"line":1},"start":{"column":3,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":4,"to":4},"text":"ab\r\ncd"},"values":{"end":{"column":1,"line":2},"start":{"column":1,"line":2}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":0,"to":0},"text":""},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
+{"form":"#span-vector=v1","group":"spans","input":{"slice":{"from":1,"to":1},"text":"﻿"},"values":{"end":{"column":1,"line":1},"start":{"column":1,"line":1}}}
 {"form":"#decode-vector=v1","group":"decode","input":"dfbf","note":"the largest two-byte form, U+07FF","result":"valid","values":{"text":"߿"}}
 {"form":"#decode-vector=v1","group":"decode","input":"f0908080","note":"the smallest four-byte form, U+10000","result":"valid","values":{"text":"𐀀"}}
 {"form":"#decode-vector=v1","group":"decode","input":"e282","note":"the first two bytes of a three-byte form, with no byte after them","result":"invalid","values":{}}
@@ -116,5 +116,8 @@
 {"form":"#decode-vector=v1","group":"decode","input":"f5808080","note":"a four-byte form starting with 0xF5, above U+10FFFF","result":"invalid","values":{}}
 {"form":"#decode-vector=v1","group":"decode","input":"f090807f","note":"a four-byte form whose fourth byte is 0x7F, outside 0x80 to 0xBF","result":"invalid","values":{}}
 {"form":"#decode-vector=v1","group":"decode","input":"61f09f988061","note":"a four-byte form between two other characters","result":"valid","values":{"text":"a😀a"}}
-{"form":"#line-vector=v1","group":"lines","input":"\n\r","note":"a line feed followed by a carriage return that is not before a line feed","values":{"runs":[{"from":0,"to":0},{"from":1,"to":2}],"texts":["","\r"]}}
-{"form":"#character-position-vector=v1","group":"character-positions","input":{"place":3,"text":"\n\r\n"},"note":"the line feed of a carriage return and line feed on line 2","values":{"position":{"column":1,"line":2}}}
+{"form":"#decode-vector=v1","group":"decode","input":"c080","note":"an overlong two-byte form of U+0000 starting with 0xC0","result":"invalid","values":{}}
+{"form":"#line-vector=v1","group":"lines","input":"\n\r","note":"a line feed followed by a carriage return that is not before a line feed","values":{"slices":[{"from":0,"to":0},{"from":1,"to":2}],"texts":["","\r"]}}
+{"form":"#line-vector=v1","group":"lines","input":"﻿﻿x","note":"only the first U+FEFF is a byte order mark; the second U+FEFF is an ordinary character of line 1","values":{"slices":[{"from":1,"to":3}],"texts":["﻿x"]}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"\n\r\n"},"note":"the line feed of a carriage return and line feed on line 2","values":{"position":{"column":1,"line":2}}}
+{"form":"#character-position-vector=v1","group":"character-positions","input":{"index":3,"text":"﻿﻿x"},"note":"the second U+FEFF counts as one column","values":{"position":{"column":2,"line":1}}}
