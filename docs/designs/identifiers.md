@@ -1297,7 +1297,7 @@ A CommonMark line is a line as CommonMark 0.31.2 defines it, after
 CommonMark 0.31.2 replaces each U+0000 with U+FFFD.
 
 The raw content of a paragraph or heading *b* is the text that these
-steps give.
+steps return.
 
 1. Let *lines* be the sequence of the CommonMark lines of *b*, in order.
 2. If *b* is a setext heading, remove the underline of *b* from *lines*.
@@ -1319,7 +1319,7 @@ steps give.
 6. While *content* is not empty and the last character of *content* is a
    space (U+0020) or a tab (U+0009):
    1. Remove the last character of *content* from *content*.
-7. Give *content*.
+7. Return *content*.
 
 The link text of an inline link or a reference link is the text between
 the `[` that starts the link and the `]` that closes that `[`, as
@@ -1577,10 +1577,10 @@ destination has a match by the production `inline-destination`, the
 or `content-id` matches in that match of the destination.
 
 The canonical form of *c* with a slug *s* and a kind word *k* is the
-text that these steps give.
+text that these steps return.
 
 1. Let *n* be the entry name of *c*.
-2. If *c* matches the production `content-id`, give *n*.
+2. If *c* matches the production `content-id`, return *n*.
 3. If *s* is not empty and the first character of *n* is `#`, then:
    1. Let *full* be *s*.
    2. Append *n* to *full*.
@@ -1592,7 +1592,7 @@ text that these steps give.
 6. Append *n* to *form*.
 7. If *c* is a citation entry whose match uses `vector-selection`,
    append the vector selection of *c* to *form*.
-8. Give *form*.
+8. Return *form*.
 
 @example Canonical forms of [citation entries](sinter:#citation-entry=v1)
 and [inline-citation](sinter:#inline-citation=v1) targets across
